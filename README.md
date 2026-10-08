@@ -64,7 +64,7 @@ Python 3, standard library only.
 
 ## Data files
 
-`gamemaster.json` and `Pokemon.js` come from [PvPoke](https://github.com/pvpoke/pvpoke) (MIT license). To update them, download fresh copies:
+`gamemaster.json` and `Pokemon.js` come from [PvPoke](https://github.com/pvpoke/pvpoke) (MIT license). Their license is in `LICENSE-pvpoke`. To update them, download fresh copies:
 
 ```
 curl -O https://raw.githubusercontent.com/pvpoke/pvpoke/master/src/data/gamemaster.json

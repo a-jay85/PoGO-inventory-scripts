@@ -72,7 +72,7 @@ def walk_list(visit, limit=10 ** 9, stop=None, odd=None):
                 log("the scroll opened a Pokémon: backing out")
                 back_to_list()
                 continue
-            if ui.ANDROID and not {(ui.tile_name(t[0]).upper(), t[1]) for t in ui.tiles(texts)} - before:
+            if ui.ANDROID and not ui.android.NO_WINDOW and not {(ui.tile_name(t[0]).upper(), t[1]) for t in ui.tiles(texts)} - before:
                 # a frozen scrcpy picture of a scrolled list looks like a live one: ask the phone itself
                 ui.android.sharp("/tmp/pvpc_phone_list.png")
                 if {(ui.tile_name(t[0]).upper(), t[1]) for t in ui.tiles(ui.ocr("/tmp/pvpc_phone_list.png"))} - before:
@@ -314,8 +314,8 @@ def panel_text():
 
 
 def bar_shows(got, q):
-    """same_query, and on Android a second look: scrcpy's picture loses small symbols ('!', '&'), so read the bar
-    off the phone's own screenshot"""
+    """same_query, and on Android a second look: the normal-size picture loses small symbols ('!', '&'), so read the
+    bar off the phone's own screenshot at 3x"""
     if same_query(got, q):
         return True
     if ui.ANDROID:

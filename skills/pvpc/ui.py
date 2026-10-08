@@ -10,7 +10,7 @@ Claude doesn't need screenshots, and hands back fuzzed tap spots in screenshot c
   ui.py look              save the window capture to /tmp/pvpc_cap.png (Read it if you must see it)
   ui.py press <target>    plan a tap like `tap` and do it (Android: adb taps the phone, no clicking needed)
 
-With POGO_PHONE=android the screen comes from a scrcpy window and taps go through adb (see android.py).
+With POGO_PHONE=android the screen comes from the phone's own screenshots and taps go through adb (see android.py).
 """
 import json, os, random, re, shutil, subprocess, sys, time
 from PIL import Image

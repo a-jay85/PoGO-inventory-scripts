@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Android phone for the /pvpc, /ivc and /ivcsort scripts. Turned on with POGO_PHONE=android.
-Sees the phone through a scrcpy window (read-only) and taps and types with adb, so the Mac's mouse and
+Sees the phone with its own screenshots (adb screencap) and taps and types with adb, so the Mac's mouse and
 keyboard stay free. ui.py sends its helper calls (click, drag, scroll, key, type, front) here.
+POGO_SCRCPY=1 sees it through a read-only scrcpy window instead. Avoid that: scrcpy's picture freezes now and
+then while the Mac is in use.
 
-  POGO_PHONE=android python3 android.py check   phone plugged in, Pokémon GO in front, scrcpy up, positions agree
+  POGO_PHONE=android python3 android.py check   phone plugged in, Pokémon GO in front (and with scrcpy: window up, positions agree)
   POGO_PHONE=android python3 android.py type <text>
   POGO_PHONE=android python3 android.py key <delete|return|back|clear|one character>
 """
@@ -17,8 +19,8 @@ WIDTH = 406  # captures get shrunk to the width of an iPhone Mirroring capture: 
 IPHONE_H = 890  # ...and padded to its height: the iPhone's insets are taller. With the strips the search bar, tabs,
 BOTTOM_PAD = 8  # dialogs, bottom buttons and the map's Poké Ball land within a few pixels of where the iPhone code expects them
 CHECK_EVERY = 10  # seconds between ready() checks
-NO_WINDOW = os.environ.get("POGO_NO_WINDOW") == "1"  # see the phone with adb screenshots only: no scrcpy window
-# (slower per look, but nothing on the Mac's screen, and a covered or stalled window can't freeze the picture)
+NO_WINDOW = os.environ.get("POGO_SCRCPY") != "1"  # see the phone with adb screenshots only: no scrcpy window
+# (~1.5s per look, but nothing on the Mac's screen, and a covered or stalled window can't freeze the picture)
 
 
 class NotReady(Exception):
@@ -137,6 +139,8 @@ def frozen(im, force=False):
 def fresh(path="/tmp/pvpc_fresh.png"):
     """before tapping something again: is scrcpy's picture the phone's real screen? Restarts scrcpy if not.
     -> True if it was stuck (the last tap may well have landed)"""
+    if NO_WINDOW:  # every look is the phone's own screenshot already
+        return False
     before = _restarts
     capture(path, force=True)
     return _restarts > before
@@ -215,6 +219,8 @@ def start_scrcpy():
 
 def close():
     """close the scrcpy window this started, and its half on the phone (a stuck one there blacks out the next)"""
+    if NO_WINDOW:
+        return False
     pat = f"window-title={TITLE}"
     ok = subprocess.run(["pkill", "-f", pat]).returncode == 0
     for _ in range(10):
@@ -403,8 +409,9 @@ if __name__ == "__main__":
     try:
         if a[:1] == ["check"]:
             ready(force=True)
-            print(f"ok: phone {size()[0]}x{size()[1]}, Pokémon GO in front, scrcpy window up, "
-                  + ("positions agree" if _aligned else "positions not checked yet (too little text on screen)"))
+            print(f"ok: phone {size()[0]}x{size()[1]}, Pokémon GO in front, " + (
+                "seeing it with the phone's own screenshots" if NO_WINDOW else "scrcpy window up, "
+                + ("positions agree" if _aligned else "positions not checked yet (too little text on screen)")))
         elif a[:1] == ["type"] and len(a) == 2:
             type_text(a[1])
         elif a[:1] == ["key"] and len(a) == 2:

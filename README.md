@@ -62,6 +62,10 @@ L16.0  13/10/12  L2671(meditite) G247(meditite) U230(medicham)
 
 Python 3, standard library only.
 
+## Skills
+
+`skills/` holds the Claude Code skills `/pvpc`, `/ivc`, `/ivcsort` and `/cleanup`. Each one has a `SKILL.md` that says what it does. They are used through symlinks at `~/.claude/skills/<name>`. How to work on them: `CLAUDE.md`.
+
 ## Data files
 
 `gamemaster.json` and `Pokemon.js` come from [PvPoke](https://github.com/pvpoke/pvpoke) (MIT license). Their license is in `LICENSE-pvpoke`. To update them, download fresh copies:

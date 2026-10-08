@@ -2,3 +2,8 @@ __pycache__/
 *.pyc
 .claude/
 .DS_Store
+# skill runtime files (stay local, never pushed: the repo is public)
+skills/*/runs/
+skills/pvpc/.state.json
+skills/pvpc/.calib.json
+skills/pvpc/helper

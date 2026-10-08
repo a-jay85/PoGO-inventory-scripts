@@ -143,7 +143,7 @@ def idle_seconds():
 def front():
     """bring iPhone Mirroring forward. If the user switched to another app, wait until they've left the Mac
     alone for USER_IDLE seconds first, so their typing doesn't land on the phone.
-    Android: adb never touches the Mac's mouse or keyboard, so just check the phone and the scrcpy window."""
+    Android: adb never touches the Mac's mouse or keyboard, so just check the phone."""
     if ui.ANDROID:
         try:
             return ui.android.ready()
@@ -206,7 +206,7 @@ def go(target, *screens):
         try:
             return wait_for(*screens, timeout=4, capture=False)
         except Stop:
-            if ui.ANDROID:  # scrcpy's picture can lag or stall: check the phone's own screen before tapping again
+            if ui.ANDROID:  # (POGO_SCRCPY=1) scrcpy's picture can lag or stall: check the phone's own screen before tapping again
                 stuck = ui.android.fresh()
                 try:
                     return wait_for(*screens, timeout=4, capture=False)
@@ -1121,7 +1121,7 @@ if __name__ == "__main__":
                     keep_capture("fallen")
                     log(f"fallen out step STOPPED: {e} (run `run.py fallen {RUN_DIR}` to go on)")
                     at_end = 0  # leave the phone where it is
-        if at_end and ui.ANDROID:
+        if at_end and ui.ANDROID and not ui.android.NO_WINDOW:
             log("closed the scrcpy window" if ui.android.close() else "couldn't close the scrcpy window")
         elif at_end:
             try:

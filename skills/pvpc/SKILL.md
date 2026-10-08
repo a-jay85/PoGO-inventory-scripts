@@ -58,10 +58,10 @@ Everything above also works on an Android phone over USB. Set `POGO_PHONE=androi
 Without it, the scripts drive iPhone Mirroring exactly as before.
 
 - Setup, once: turn on USB debugging (Settings > About phone > tap Build number 7 times, then Settings > System > Developer options). Plug in, tap **Allow** on the phone. Also turn on **Stay awake** in Developer options: adb can't get past a lock screen.
-- `POGO_PHONE=android python3 $S/android.py check` checks the phone is plugged in and awake, that Pokémon GO is in front, and that scrcpy and adb agree on positions. It opens a read-only scrcpy window to see the phone.
+- `POGO_PHONE=android python3 $S/android.py check` checks the phone is plugged in and awake, and that Pokémon GO is in front. The scripts see the phone with its own screenshots (`adb exec-out screencap`), about 1.5s per look. Don't use scrcpy or any Mac window grab to see the phone: scrcpy's picture freezes now and then while the Mac is in use. `POGO_SCRCPY=1` turns the old scrcpy window back on, only if asked.
 - Taps and typing go through adb, so the Mac's mouse and keyboard stay free. Skip the **Session start** steps (no computer use, no `calib`).
 - By hand: use `ui.py press <target>` instead of `tap` + click. It plans the same safe spot and taps it on the phone. Type with `android.py type "<name>"`. Clear a text box with `android.py key clear`.
-- Unattended: `POGO_PHONE=android caffeinate -dimsu python3 $S/run.py ...`. At the end of the list it closes the scrcpy window.
+- Unattended: `POGO_PHONE=android caffeinate -dimsu python3 $S/run.py ...`.
 - Not tested on a real phone yet (built 2026-10-07). The screen positions were tuned on the iPhone. Try `--limit 1` first and watch.
 
 ## Session start

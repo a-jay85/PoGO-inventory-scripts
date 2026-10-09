@@ -46,7 +46,7 @@ def remember(path, texts, bounds):
     """keep a look so plan() can count it as its first one (no tap since, so it's still the screen)"""
     global _seen, _older
     _older = _seen  # the look before, if no tap came between: two that agree make plan()'s stillness check
-    copy = "/tmp/pvpc_seen%d.png" % (not (_seen and _seen[1].endswith("0.png")))
+    copy = "/tmp/pvpc_seen%d.png" % (0 if _seen and _seen[1].endswith("1.png") else 1)  # take turns: _older keeps its own picture
     shutil.copyfile(path, copy)
     _seen = (time.time(), copy, texts, list(bounds), classify(texts))
 

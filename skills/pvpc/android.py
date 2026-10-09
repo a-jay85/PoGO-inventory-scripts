@@ -347,6 +347,19 @@ def drag(p1, p2, ms):
     shell("; ".join(steps))
 
 
+def hold_drag(fx1, fy1, fx2, fy2):
+    """press, hold a moment, then slide (fractions of the screen). The list's slider only follows a finger that
+    held still first: a plain swipe on it moves nothing (Pixel, 2026-10-09)"""
+    W, H = size()
+    x1, y1, x2, y2 = round(fx1 * W), round(fy1 * H), round(fx2 * W), round(fy2 * H)
+    steps = [f"input motionevent DOWN {x1} {y1}", f"sleep {random.uniform(0.35, 0.45):.2f}"]
+    n = random.randint(4, 6)
+    for i in range(1, n + 1):
+        steps.append(f"input motionevent MOVE {round(x1 + (x2 - x1) * i / n)} {round(y1 + (y2 - y1) * i / n)}")
+    steps += [f"sleep {random.uniform(0.12, 0.2):.2f}", f"input motionevent UP {x2} {y2}"]
+    shell("; ".join(steps))
+
+
 KEYCODES = {"delete": 67, "return": 66, " ": 62, "back": 4}
 
 

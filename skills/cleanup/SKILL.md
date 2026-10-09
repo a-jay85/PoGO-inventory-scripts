@@ -21,6 +21,7 @@ Uses the shared tapper and screen reader from /pvpc (`~/.claude/skills/pvpc`: `u
    - no XXL/XXS in the name
    - not legendary, mythical or an Ultra Beast (checked by its candy)
    - enough candy and Stardust
+   - its appraisal reads under 98% once purified (a wrong name can land a 98% one in Nope). Trade retagging checks this too.
    Anything else is passed over, and it swipes to the next one.
 4. Purify: one PURIFY tap, then a check that the dialog names this Pokémon, then one YES tap. It waits until PURIFY is gone, POWER UP is back and the CP has changed (about 13s of animation). It never taps twice: POWER UP moves into PURIFY's spot.
 5. After a purify, the swipe stops working, because it no longer fits the search. So it goes back to the list and opens the top tile again.

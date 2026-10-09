@@ -14,7 +14,7 @@ Start with Pokémon GO on the inventory, filtered to the PvpC tag. Anything the 
 about is skipped and written to runs/<time>/log.txt with a capture. Anything unexpected stops the run.
 This file is also the shared tapper and screen code for /ivc and /ivcsort (they `import run`).
 """
-import json, os, random, re, shutil, subprocess, sys, time
+import json, math, os, random, re, shutil, subprocess, sys, time
 from collections import Counter
 
 if __name__ == "__main__":  # search.py and fallen.py `import run`: let them share this copy (one RUN_DIR, one last_tap)
@@ -371,7 +371,7 @@ def high_iv(ivs=None, raws=None):
             ivs, raws = appraise()
         finally:
             go("dialog", "detail")
-    top = [min(15, max(v, round(r + 0.2))) for v, r in zip(ivs, raws or ivs)]
+    top = [min(15, max(v, math.floor(r + 0.7))) for v, r in zip(ivs, raws or ivs)]
     if shadow:
         top = [min(15, v + 2) for v in top]
     what = f"{'/'.join(map(str, ivs))}{' shadow' if shadow else ''}"
@@ -678,7 +678,10 @@ def process(i, tile_name, tile_cp):
     slots = new_slots(sp, cp, info["hp"], ivs, raws, name)
     think()
     go("dialog", "detail")
-    if name == "NOPE":
+    if name == "NOPE" and high_iv(ivs, raws)[0]:  # bad for PvP but 98%+: /ivc names it instead
+        set_tags(on=["IVC"], off=["PvpC"])
+        name = "->IVC"
+    elif name == "NOPE":
         do_nope(info["tags"], ivs, raws)
     else:
         do_rename(name)

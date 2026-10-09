@@ -514,12 +514,13 @@ def act(limit):
             favorite_and_untag()
         else:  # a name can be wrong ('FP*' on a 98% lucky): appraise before any Nope
             keep, ivs, raws, what = base.high_iv()
-            if keep:
+            if keep:  # 98%+ always keeps
+                favorite_and_untag()
                 plans.remove(m)
                 todo[(n, c)] -= 1
-                log(f"LEAVE {m['name']!r} CP{c} {m['species']}: appraised {what}, 98%+ never gets Nope")
+                log(f"DONE KEEP {m['name']!r} CP{c} {m['species']}: the plan said NOPE, appraised {what}: 98%+")
                 go("close", "list")
-                return False
+                return True
             base.nope(TAG, now["tags"], only=False, ivs=ivs, raws=raws)  # swap IVC for Nope, keep any other tags
         plans.remove(m)
         todo[(n, c)] -= 1

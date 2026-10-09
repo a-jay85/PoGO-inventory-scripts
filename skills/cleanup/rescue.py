@@ -4,9 +4,9 @@
   caffeinate -dimsu python3 rescue.py [--limit N] [--dry-run]
   POGO_PHONE=android caffeinate -dimsu python3 rescue.py ...   (Android phone over USB)
 
-A wrong name ('FP*' on a 98% lucky) could land a 98% one in Nope. Only 3* (82-98%) and 4* (100%) can be 98%+,
-a shadow too once purified (2* tops out at 80%, 93% purified). So it searches #Nope&3*,4*, opens each one and
-appraises it. 98%+ (a shadow: once purified) gets the star and loses Nope; its other tags stay. The rest are
+A wrong name ('FP*' on a 98% lucky) could land a 98% one in Nope. 98%+ means two stats at 15, so two of
+4attack/4defense/4hp hold: that's the first search. A shadow is 98%+ once purified from 12/13/13 (84%), so shadows
+get their own search, #Nope&shadow&3*,4* (3* is 82-98%). It opens each one and appraises it. 98%+ (a shadow: once purified) gets the star and loses Nope; its other tags stay. The rest are
 left alone. --dry-run appraises and logs, changes nothing. Log in runs/<time>/.
 """
 import os, sys
@@ -17,7 +17,8 @@ import run as base
 from run import Stop, Skip, log, go, front
 import search
 
-QUERY = "#Nope&3*,4*"
+QUERIES = ("#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp",  # two of the three at 15
+           "#Nope&shadow&3*,4*")
 
 
 def main(limit, dry):
@@ -26,7 +27,8 @@ def main(limit, dry):
     def visit(i, n, c):
         base.open_tile(i)
         info, _, _ = base.steady_detail()
-        if not base.opened_right(info, n, c):
+        bare = dict(info, name=(info["name"] or "").replace(" ", ""))  # OCR drops or adds spaces: '91H' / '91 H'
+        if not base.opened_right(bare, n.replace(" ", ""), c):
             raise Skip(f"opened {info['name']!r} but tile said {n!r}")
         if not any(base.is_tag(t, "Nope") for t in info["tags"]):
             raise Skip(f"no Nope tag on detail: {info['tags']}")
@@ -48,8 +50,12 @@ def main(limit, dry):
         go("close", "list")
         return True
 
-    search.start_search(QUERY)
-    search.walk_list(visit, limit)
+    for q in QUERIES:
+        if looked[0] >= limit:
+            break
+        log(f"--- {q}")
+        search.start_search(q)
+        search.walk_list(visit, limit - looked[0])
     log(f"appraised {looked[0]}, kept {len(kept)}: {[(k['name'], k['cp'], k['ivs']) for k in kept]}")
 
 

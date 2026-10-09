@@ -462,6 +462,28 @@ def favorite_and_untag():
     set_tags(off=[TAG])
 
 
+ACT_QUERY_MAX = 120  # a longer dex list costs more typing than walking past the tiles it would hide
+
+
+def dex_terms(dexes):
+    """[1, 4, 5, 7] -> '1,4-5,7': the game's OR of dex numbers and ranges"""
+    runs = []
+    for d in sorted(set(dexes)):
+        if runs and d == runs[-1][1] + 1:
+            runs[-1][1] = d
+        else:
+            runs.append([d, d])
+    return ",".join(f"{a}-{b}" if a != b else str(a) for a, b in runs)
+
+
+def act_query(plans):
+    """only the dex numbers that still have work, when that's short enough to type; else every IVC one.
+    XXL/xxs are never in the plan (scan leaves them out), so they don't need to be in the list either"""
+    q = f"#{TAG}&!xxl&!xxs"
+    dex = dex_terms(sort.SPECIES[m["species"]]["dex"] for m in plans if m.get("species") in sort.SPECIES)
+    return f"{q}&{dex}" if dex and len(dex) <= ACT_QUERY_MAX else q
+
+
 def act(limit):
     todo = Counter()
     want = {}
@@ -470,13 +492,32 @@ def act(limit):
             key = (sort.clean_name(m["tile"]), m["cp"])
             todo[key] += 1
             want.setdefault(key, []).append(m)
-    log(f"act: {sum(todo.values())} to change")
+    # what earlier act runs on this run dir did or skipped: a restart doesn't open those again
+    has = os.path.exists(os.path.join(base.RUN_DIR, "act.json"))
+    progress = load("act.json") if has else {"done": [], "skipped": []}
+    for n, c, name, species in progress["done"]:
+        p = next((p for p in want.get((n, c), []) if (p["name"], p["species"]) == (name, species)), None)
+        if p:
+            want[(n, c)].remove(p)
+            todo[(n, c)] -= 1
+    skipped = {tuple(k) for k in progress["skipped"]}
+    log(f"act: {sum(todo.values())} to change ({len(progress['done'])} done by earlier runs, "
+        f"{len(skipped)} skipped earlier: delete act.json to try those again)")
     pooled = []  # pools and counts, loaded the first time a Pokémon has to be judged again
 
     def visit(i, n, c):
-        if not todo[(n, c)]:
-            log(f"  tile {i}: {n} CP{c} not in the plan, passing")
+        if not todo[(n, c)] or (n, c) in skipped:
+            log(f"  tile {i}: {n} CP{c} not in the plan{' (skipped earlier)' if (n, c) in skipped else ''}, passing")
             return False
+        try:
+            return change(i, n, c)
+        except Skip:
+            skipped.add((n, c))
+            progress["skipped"] = sorted(skipped)
+            save("act.json", progress)
+            raise
+
+    def change(i, n, c):
         plans = want[(n, c)]
         log(f"tile {i}: {n} CP{c}")
         ivcrun.open_tile(i)
@@ -524,14 +565,23 @@ def act(limit):
             base.nope(TAG, now["tags"], only=False, ivs=ivs, raws=raws)  # swap IVC for Nope, keep any other tags
         plans.remove(m)
         todo[(n, c)] -= 1
+        progress["done"].append([n, c, m["name"], m["species"]])
+        save("act.json", progress)
         log(f"DONE {m['verdict']} {m['name']!r} CP{c} {m['species']}: {m['why'][0] if m['why'] else ''}")
         go("close", "list")
         return True
 
+    left = [m for k, ms in want.items() if k not in skipped for m in ms]
+    if not left:
+        log("nothing left to change")
+        return
     front()
-    ivcrun.to_top()
+    to_search_list()
+    q = act_query(left)
+    _, texts, _ = start_search(q)
+    log(f"{q}: the game says {result_count(texts)}")
     walk_list(visit, limit)
-    log(f"left over (not found in the list): {sum(todo.values())}")
+    log(f"left over (not found in the list): {sum(todo.values())}, skipped: {len(skipped)}")
 
 
 if __name__ == "__main__":

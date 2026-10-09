@@ -679,10 +679,11 @@ def candy(texts):
 def type_line(texts):
     """the types under the name ('ICE / FLYING'), between the HP line and STARDUST"""
     hp = next(t for t in texts if re.search(r"\d+\s*/\s*\d+\s*HP", t[4]))
+    words = lambda t: ui.norm(t[4]).replace("/", " ").split()
     for t in texts:
-        words = ui.norm(t[4]).split()
-        if hp[1] < t[1] < hp[1] + 0.2 and words and all(w in TYPES for w in words):
-            return set(words)
+        if hp[1] < t[1] < hp[1] + 0.2 and words(t) and all(w in TYPES for w in words(t)):
+            # the two types can come out as two texts: 'FLYING' and '/ STEEL'
+            return {w for x in texts if abs(x[1] - t[1]) < 0.012 and words(x) and all(w in TYPES for w in words(x)) for w in words(x)}
     return set()
 
 

@@ -39,7 +39,7 @@ Four steps. Only the last one changes anything.
 1. `caffeinate -dimsu python3 $S/run.py scan` opens every IVC Pokémon and writes `runs/<time>/scan.json`.
 2. `caffeinate -dimsu python3 $S/run.py pools $S/runs/<time>` types the pool searches and writes `pools.json`. You can rerun it to carry on.
 3. `python3 $S/run.py plan $S/runs/<time>` writes `plan.txt`.
-4. `caffeinate -dimsu python3 $S/run.py act $S/runs/<time>` lists the NOPEs and asks `Go ahead? [y/N]` in the terminal, then favorites and untags, or Nopes. It asks once per plan.
+4. `caffeinate -dimsu python3 $S/run.py act $S/runs/<time>` lists the NOPEs and asks `Go ahead? [y/N]` in the terminal, then favorites and untags, or Nopes. It asks once per plan. Without a terminal it stops and prints the NOPE list instead. Show that list to the user. Rerun with `--yes` only after the user says yes.
 
 To test one search, run `python3 $S/run.py search "4&!#Nope&shadow"`.
 

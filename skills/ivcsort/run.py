@@ -377,7 +377,7 @@ def approved(yes):
     print(f"{len(nopes)} to Nope, {keeps} to keep (favorite + untick IVC). Full table: {os.path.join(base.RUN_DIR, 'plan.txt')}")
     if not yes:
         if not sys.stdin.isatty():
-            sys.exit("act needs a yes: run it in a terminal, or add --yes once you've read plan.txt")
+            sys.exit("act needs a yes: run it in a terminal, or add --yes once the user has said yes to this list")
         if input("Go ahead? [y/N] ").strip().lower() not in ("y", "yes"):
             return False
     with open(ok_path, "w") as f:

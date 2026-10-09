@@ -187,9 +187,17 @@ def detail_info(texts):
     return {"name": name, "cp": cp, "hp": hp, "tags": tags, "texts": [t[4] for t in texts]}
 
 
+def tile_cps(texts):
+    """the CP labels of the list's tiles"""
+    cps = [t for t in texts if re.fullmatch(r"CP\s*\d+", t[4].upper().replace(" ", ""))]
+    # a shiny's sparkles cover the 'CP': '$1636', 'ф1629', '$2256,'. Not a tagged name ('•96') under a real CP
+    return cps + [t for t in texts if re.fullmatch(r"[^\dA-Z•·\s]{1,2}\d{3,4}[.,]?", t[4].upper().replace(" ", ""))
+                  and not any(0.08 < t[1] - c[1] < 0.13 and abs((t[0] + t[2] / 2) - (c[0] + c[2] / 2)) < 0.1 for c in cps)]
+
+
 def tiles(texts):
     """Pokémon tiles in the list, in reading order: (name, cp, x, y) with x, y = middle of the tile image"""
-    cps = [t for t in texts if re.fullmatch(r"CP\s*\d+", t[4].upper().replace(" ", ""))]
+    cps = tile_cps(texts)
     out = []
     for c in cps:
         # under 0.9: lower down, the round buttons (+, X, A-Z) cover the names and read as 'L+', '2'

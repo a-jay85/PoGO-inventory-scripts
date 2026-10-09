@@ -397,13 +397,13 @@ def hp_bar(im, t):
 def top_row(path, texts):
     """a chip row ('#Luckydex +') can hide the top row's CPs under the search bar: read those names off their HP bars.
     Only on the first screen, so a row that scrolled up under the bar isn't counted twice."""
-    cps = [t for t in texts if re.fullmatch(r"CP\s*\d+", t[4].upper().replace(" ", ""))]
+    cps = ui.tile_cps(texts)
     first_cp = min((c[1] for c in cps), default=1.0)
     head = max((t[1] + t[3] for t in texts if t[1] < 0.35 and (ui.norm(t[4]) == "SHOW EVOLUTIONARY LINE" or ui.search_box([t]))), default=0.2)
     im = Image.open(path).convert("RGB")
     out = []
     for t in texts:
-        if head < t[1] < first_cp + 0.05 and not re.fullmatch(r"CP\s*\d+", t[4].upper().replace(" ", "")) and hp_bar(im, t):
+        if head < t[1] < first_cp + 0.05 and t not in cps and hp_bar(im, t):
             if not any(0 < t[1] - c[1] < 0.13 and abs((t[0] + t[2] / 2) - (c[0] + c[2] / 2)) < 0.1 for c in cps):
                 out.append((ui.tile_name(t[4]), 0))
     return out
@@ -428,6 +428,8 @@ def merge_cutoffs(most, sightings):
     """a name read while half hidden (under the X button or the edge) comes out short: 'Cha' for 'Charmander',
     '96' for '96 AD'. Same CP and the start of a longer name: fold it into the longer one."""
     for k in sorted(most, key=lambda k: len(k[0])):
+        if not k[1]:  # no CP (read off its HP bar, top_row): '93 H' and '93 HP ATK' are two Pokémon
+            continue
         longer = [o for o in most if o != k and o[1] == k[1] and len(o[0]) > len(k[0]) and o[0].startswith(k[0])]
         if longer:
             o = max(longer, key=lambda o: sightings[o])

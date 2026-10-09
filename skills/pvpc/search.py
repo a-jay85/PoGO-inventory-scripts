@@ -319,7 +319,9 @@ def result_count(texts):
     for t in texts:
         m = re.match(r"[Q9]?\s*\((\d[\d,]*|O)\)", t[4])  # the Q icon can read as 9, and (0) as (O)
         if t[1] < 0.15 and m:
-            return int(m.group(1).replace(",", "").replace("O", "0"))
+            if m.group(1) == "O":  # trust it only with no tiles: a misread (8) must never skip a search
+                return None if ui.tiles(texts) else 0
+            return int(m.group(1).replace(",", ""))
 
 
 def panel_text():

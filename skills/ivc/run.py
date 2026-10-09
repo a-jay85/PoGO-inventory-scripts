@@ -120,8 +120,8 @@ def same_name(got, want):
 
 
 def retag(new):
-    """untick IVC, tick the new tag (Nope or PvpC)"""
-    base.set_tags(on=[new], off=[TAG], only=True)
+    """untick IVC, tick the new tag (Nope or PvpC). Other tags the user put on (Old, ...) stay"""
+    base.set_tags(on=[new], off=[TAG])
 
 
 # ---------- one Pokémon ----------
@@ -160,7 +160,7 @@ def process(i, tile_name, tile_cp, dry):
     if dry:
         log(f"DRY {what}")
     elif name is None:
-        base.nope(TAG, info["tags"])
+        base.nope(TAG, info["tags"], only=False)
     elif name == "->PvpC":
         retag("PvpC")
     else:

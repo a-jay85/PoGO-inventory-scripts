@@ -9,6 +9,7 @@ model: claude-sonnet-5-5
 Drive Pokémon GO on the user's iPhone through **iPhone Mirroring**. Computer use does the clicking. Everything else goes through `ui.py`, which reads the Mirroring window as text. **Don't take screenshots or zoom** unless a step below says to, or `ui.py` says it can't read something.
 
 - `S=~/.claude/skills/pvpc`
+- Search terms and their bugs: `$S/SEARCH.md`. Read it before building a search.
 - `python3 $S/ui.py read` tells you which screen is up and what's on it:
   - `list`: numbered tiles with name and CP.
   - `detail`: name, CP, HP, tags, species ID.

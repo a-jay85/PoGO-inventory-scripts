@@ -160,7 +160,7 @@ def process(i, tile_name, tile_cp, dry):
     if dry:
         log(f"DRY {what}")
     elif name is None:
-        base.nope(TAG, info["tags"])
+        base.nope(TAG, info["tags"], ivs=ivs, raws=raws)
     elif name == "->PvpC":
         retag("PvpC")
     else:

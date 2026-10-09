@@ -14,7 +14,7 @@ Start with Pokémon GO on the inventory, filtered to the PvpC tag. Anything the 
 about is skipped and written to runs/<time>/log.txt with a capture. Anything unexpected stops the run.
 This file is also the shared tapper and screen code for /ivc and /ivcsort (they `import run`).
 """
-import json, os, random, re, shutil, subprocess, sys, time
+import json, math, os, random, re, shutil, subprocess, sys, time
 from collections import Counter
 
 if __name__ == "__main__":  # search.py and fallen.py `import run`: let them share this copy (one RUN_DIR, one last_tap)
@@ -26,6 +26,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 RUN_DIR = os.path.join(HERE, "runs", time.strftime("%Y%m%d-%H%M%S"))
 MAX_SKIPS_IN_A_ROW = 5
 END_AFTER_STALE = 3  # scrolls in a row that show no new tiles
+ALWAYS_KEEP = 44  # IV sum of 98%: 98% and 100% (a shadow: once purified) never get Nope, traded or transferred
 NAME_OK = re.compile(r"Pvp ?[LGU][A-Za-z0-9 +]*")
 
 
@@ -359,8 +360,37 @@ def lift_tag_row(T):
             time.sleep(0.3)
 
 
-def set_tags(on=(), off=(), only=False):
-    """tick the on tags and untick the off ones, leave the rest. only: afterwards the detail must show just the on tags"""
+def high_iv(ivs=None, raws=None):
+    """on the detail screen: 98%+ (a shadow: 98%+ once purified)? Appraises first unless the bars are given, and
+    comes back to the detail screen. A bar between two values counts as the higher one. -> (keep?, ivs, raws, what)"""
+    _, texts, _, _ = wait_for("detail")
+    shadow = is_shadow(texts)
+    if ivs is None:
+        open_appraisal()
+        try:
+            ivs, raws = appraise()
+        finally:
+            go("dialog", "detail")
+            # the appraisal fades out slowly and reads as the detail screen while it does: wait until its bars are gone
+            for _ in range(20):
+                _, texts, _, _ = wait_for("detail")
+                if not {"ATTACK", "DEFENSE"} & {ui.norm(t[4]) for t in texts}:
+                    break
+                time.sleep(0.25)
+    top =[min(15, max(v, math.floor(r + 0.7))) for v, r in zip(ivs, raws or ivs)]
+    if shadow:
+        top = [min(15, v + 2) for v in top]
+    what = f"{'/'.join(map(str, ivs))}{' shadow' if shadow else ''}"
+    return sum(top) >= ALWAYS_KEEP, ivs, raws, what
+
+
+def set_tags(on=(), off=(), only=False, ivs=None, raws=None):
+    """tick the on tags and untick the off ones, leave the rest. only: afterwards the detail must show just the on tags.
+    Nope never goes on a 98%+ one: it's appraised first (unless ivs/raws are given) and skipped if so"""
+    if "NOPE" in {t.upper() for t in on}:
+        keep, _, _, what = high_iv(ivs, raws)
+        if keep:
+            raise Skip(f"{what} is 98%+ (or purifies to it): never Nope")
     go("menu", "menu")
     go("TAG", "tags")
     ticks = tick_tags()
@@ -417,7 +447,7 @@ def set_star(on):
             raise Stop(f"tapped the star but it still looks {'empty' if on else 'filled'}")
 
 
-def nope(mine, tags, only=True):
+def nope(mine, tags, only=True, ivs=None, raws=None):
     """swap this skill's tag (IVC or PvpC) for Nope. If the Pokémon has the other one too, only untick
     this skill's: the other skill judges it next and may still keep it. -> what was done, for the log"""
     other = "IVC" if mine.upper() == "PVPC" else "PvpC"
@@ -425,12 +455,12 @@ def nope(mine, tags, only=True):
         set_tags(off=[mine])
         log(f"  has {other} too: unticked {mine} only, {other} decides")
         return f"left for {other}"
-    set_tags(on=["Nope"], off=[mine], only=only)
+    set_tags(on=["Nope"], off=[mine], only=only, ivs=ivs, raws=raws)
     return "Nope"
 
 
-def do_nope(tags):
-    return nope("PvpC", tags)
+def do_nope(tags, ivs=None, raws=None):
+    return nope("PvpC", tags, ivs=ivs, raws=raws)
 
 
 def same_name(got, want):
@@ -654,8 +684,11 @@ def process(i, tile_name, tile_cp):
     slots = new_slots(sp, cp, info["hp"], ivs, raws, name)
     think()
     go("dialog", "detail")
-    if name == "NOPE":
-        do_nope(info["tags"])
+    if name == "NOPE" and high_iv(ivs, raws)[0]:  # bad for PvP but 98%+: /ivc names it instead
+        set_tags(on=["IVC"], off=["PvpC"])
+        name = "->IVC"
+    elif name == "NOPE":
+        do_nope(info["tags"], ivs, raws)
     else:
         do_rename(name)
         # for the fallen-out step at the end

@@ -50,11 +50,14 @@ def walk_list(visit, limit=10 ** 9, stop=None, odd=None):
     stop(name): the list is past what's wanted. odd: see read_tiles."""
     passed, seen = Counter(), set()
     stale, done, skips = 0, 0, 0
+    full = None  # started on the full Pokémon list (start_search's results), not a tag's list
     while done < limit:
         _, texts, path, bounds = wait_for("list")
         if leave_multiselect(texts, bounds):  # a drag held too long at the list's end reads as a long press
             continue
-        if {"TAGS", "EGGS"} <= {ui.norm(t[4]) for t in texts}:  # the whole Pokémon list: the tag's list was closed
+        now_full = {"TAGS", "EGGS"} <= {ui.norm(t[4]) for t in texts}
+        full = now_full if full is None else full
+        if now_full and not full:  # a tag's list turned into the whole Pokémon list: it was closed
             raise Stop("left the tag's list (the full Pokémon list is showing)")
         ts = read_tiles(texts, path, odd)
         seen.update((t[0].upper(), t[1]) for t in ts)

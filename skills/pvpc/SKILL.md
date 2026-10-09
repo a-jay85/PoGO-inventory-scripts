@@ -77,7 +77,7 @@ Without it, the scripts drive iPhone Mirroring exactly as before.
 
 - **Qualifies** = top 100 stat product in any of: Little Cup (500 CP), Great League (1500), Ultra League (2500). Max level 50 (no best buddy).
 - **Qualifies:** rename it. Keep the PvpC tag.
-- **Doesn't qualify:** remove PvpC, add Nope. Don't rename. If it also has IVC, only remove PvpC (no Nope): /ivc decides.
+- **Doesn't qualify:** remove PvpC, add Nope. If it's 98%+ (a shadow: once purified), never Nope: swap PvpC for IVC so /ivc names it. Don't rename. If it also has IVC, only remove PvpC (no Nope): /ivc decides.
 - **Name format:** `Pvp` then leagues in order L, G, U, like `Pvp G1`, `Pvp G35 U88`, `Pvp L5G7U99`. Max 12 characters.
   1. Keep all spaces if it fits.
   2. Else drop spaces between leagues.

@@ -30,6 +30,7 @@ Search terms and their bugs: `~/.claude/skills/pvpc/SEARCH.md`. Read it before b
 - **Vivillon patterns** (`COLLECT`): a NOPE in the Scatterbug line becomes LEAVE so the user picks.
 - **Keep** = favorite (star) + untick IVC. **Fail** = untick IVC + tick Nope. If it also has PvpC, only IVC gets unticked (no Nope): /pvpc decides.
 - A fail with XXL/xxs in the name is left alone for the user. A name with no IV and no size (`FP*`) gets Nope.
+- **98%/100% never get Nope**, whatever the name says. `act` and the fallen-out step appraise each one before tagging Nope. A 98%+ one (a shadow: once purified) is kept instead.
 - **Fallen out:** older Pokémon with an /ivc name and no IVC tag that now fall outside the top (`fallen.json`, listed at the end of plan.txt). Shiny and costume ones are never touched. Not traded + caught 2016–2020 → tag GuaranteedLucky. Not traded + older than 300 days → tag Old. Anything else (traded, since a Pokémon trades only once, or newer) → star off + Nope. Each one is judged again on its detail screen before anything changes. Steps: `run.py fallen <dir>` (read-only, sorts them into groups), then `run.py act-fallen <dir>` after `act`.
 - It never renames or transfers.
 

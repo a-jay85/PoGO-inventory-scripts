@@ -231,8 +231,7 @@ def scan(limit):
             have = sum(chunk_of(m, a, b) for m in found)
             log(f"  {q}: {have} of {want} scanned")
         chunks[q] = {"want": want, "have": have, "done": want is not None and have >= want}
-        save("chunks.json", chunks)
-        to_search_list()
+        save("chunks.json", chunks)  # (no tab switch here: start_search clears the bar and goes back to the top)
         if len(found) >= limit:
             break
     left = {q: f"{c['have']}/{c['want']}" for q, c in chunks.items() if not c["done"]}

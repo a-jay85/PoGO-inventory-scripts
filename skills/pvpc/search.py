@@ -14,6 +14,9 @@ from run import Stop, Skip, Lost, log, keep_capture, go, tap, wait_for, key, typ
 
 ZOOM = "/tmp/pvpc-zoom.png"
 END_AFTER_STALE = 3
+# Pixel rows are 0.165 apart and a row down to ~0.83 still reads. A list whose lowest tile sits above this had room
+# for another row: that's its end, no drags needed (3 stale drags on a short list cost ~10s). iPhone: not measured
+LAST_ROW_ABOVE = 0.6 if ui.ANDROID else 0
 MAX_SKIPS_IN_A_ROW = 5
 # a new search typed over a scrolled list shows its results scrolled the same way, so the top rows are never read.
 # Dragging back up isn't safe (one pull-down too many closes the Pokémon screen), and a tab switch doesn't reset a list
@@ -74,6 +77,9 @@ def walk_list(visit, limit=10 ** 9, stop=None, odd=None):
             if here[(n, c)] > passed[(n, c)]:
                 pick = (i, n, c)
                 break
+        if not pick and ts and max(t[3] for t in ts) < LAST_ROW_ABOVE:
+            log("end of list (room for another row, none there)")
+            return
         if not pick:
             before = set(seen)
             global scrolled

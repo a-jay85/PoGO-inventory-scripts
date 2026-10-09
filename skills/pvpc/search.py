@@ -14,11 +14,11 @@ from run import Stop, Skip, Lost, log, keep_capture, go, tap, wait_for, key, typ
 
 ZOOM = "/tmp/pvpc-zoom.png"
 END_AFTER_STALE = 3
-EXTRA_SCROLLS = 2  # a read short of the game's count scrolls this many more times before it gives up
 MAX_SKIPS_IN_A_ROW = 5
 # a new search typed over a scrolled list shows its results scrolled the same way, so the top rows are never read.
-# Dragging back up isn't safe (one pull-down too many closes the Pokémon screen), so clear_search reopens it instead
-scrolled = False
+# Dragging back up isn't safe (one pull-down too many closes the Pokémon screen), so clear_search reopens it instead.
+# A run can start on a list an earlier run left scrolled (a tab switch doesn't reset one with a search in it): reopen first
+scrolled = True
 
 
 # ---------- walking a list ----------
@@ -217,8 +217,6 @@ def to_search_list():
         go("POKMON", "list")
         _, texts, _, bounds = wait_for("list")
         if ui.search_box(texts) or empty_bar(texts):
-            global scrolled
-            scrolled = False
             break
         log("  no search bar yet: tapping POKÉMON again")
     else:
@@ -302,7 +300,7 @@ def clear_search():
             if not got:
                 return "panel"
             continue
-        if screen == "list" and ui.search_box(texts) and not ui.search_text(ui.search_box(texts)):
+        if screen == "list" and not scrolled and ui.search_box(texts) and not ui.search_text(ui.search_box(texts)):
             return "list"
         if screen == "list" and not scrolled and ui.search_box(texts) and x_button(bounds):
             return "panel"
@@ -511,7 +509,7 @@ def run_search(q, iv_only=False):
     want = result_count(texts)
     if want == 0:
         return [], 0
-    most, sightings, seen, stale, stuck, last = Counter(), Counter(), set(), 0, 0, None
+    most, sightings, seen, stale, last = Counter(), Counter(), set(), 0, None
     for turn in range(300):
         now = Counter((ui.tile_name(t[0]), t[1]) for t in ui.tiles(texts))
         if turn == 0:
@@ -532,15 +530,13 @@ def run_search(q, iv_only=False):
                 break
         if want is None and len(now) < 9:  # under three rows: everything is on screen
             break
-        short = want is not None and sum(most.values()) < want  # the game counted more than we've read
-        stuck = stuck + 1 if now == last else 0
-        if stuck > (EXTRA_SCROLLS if short else 0):  # the list didn't move: the end (a short read scrolls again first)
+        if now == last:  # the list didn't move: the end
             break
         last = now
         fresh = set(now) - seen
         seen |= set(now)
         stale = 0 if fresh else stale + 1
-        if stale >= END_AFTER_STALE + (EXTRA_SCROLLS if short else 0):
+        if stale >= END_AFTER_STALE:
             break
         small_scroll(bounds)
         path, bounds = ui.capture()  # the search bar may have scrolled away: just read the tiles

@@ -576,7 +576,7 @@ def locate(T, path, texts, screen, aspect):
         raise Refused(f"REFUSED: {T} is not an allowed target")
     if screen not in CONFIRM_SCREENS[T]:
         raise Refused(f"REFUSED: {T} only allowed on {CONFIRM_SCREENS[T]}, screen is '{screen}'")
-    hits = [t for t in texts if norm(t[4]) == T or (norm(t[4]).startswith(T + " ") and len(norm(t[4])) <= len(T) + 2)]
+    hits = [t for t in texts if is_label(t[4], T)]
     if ANDROID and screen == "rename" and T == "OK" and len(hits) == 2:
         # Android's keyboard brings its own text bar with an OK: that one keeps the typed text and hides the
         # keyboard (Back would throw the text away). The next OK tap then hits the dialog's own button.

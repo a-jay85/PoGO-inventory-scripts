@@ -14,7 +14,7 @@ Start with Pokémon GO on the inventory, filtered to the PvpC tag. Anything the 
 about is skipped and written to runs/<time>/log.txt with a capture. Anything unexpected stops the run.
 This file is also the shared tapper and screen code for /ivc and /ivcsort (they `import run`).
 """
-import json, math, os, random, re, shutil, subprocess, sys, time
+import contextlib, json, math, os, random, re, shutil, subprocess, sys, time
 from collections import Counter
 
 if __name__ == "__main__":  # search.py and fallen.py `import run`: let them share this copy (one RUN_DIR, one last_tap)
@@ -36,6 +36,24 @@ class Stop(Exception):
 
 class Skip(Exception):
     """not sure about this one: leave it for a human"""
+
+
+class Lost(Stop):
+    """the screen isn't the one expected (a tap didn't land, or landed late). Mid-Pokémon, a walk can back out
+    with recover() and go on; anywhere else it stops the run like any Stop"""
+
+
+MAX_LOST = 15  # backed out this many times in one run: something's really off, stop (the 10-07 run had ~8)
+lost = 0
+
+
+@contextlib.contextmanager
+def changing(what):
+    """something on this Pokémon may have changed already: a lost screen from here on stops the run"""
+    try:
+        yield
+    except Lost as e:
+        raise Stop(f"{e} (while {what})") from e
 
 
 # ---------- logging ----------
@@ -128,7 +146,7 @@ def wait_for(*screens, timeout=10, capture=True):
         time.sleep(0.12)
     if capture:
         keep_capture("stuck")
-    raise Stop(f"wanted {screens}, screen is {last}")
+    raise Lost(f"wanted {screens}, screen is {last}")
 
 
 def idle_seconds():
@@ -179,7 +197,9 @@ def tap(target, dry=False):
                 time.sleep(0.4)
                 continue
             keep_capture("refused")
-            raise Stop(f"tap {target}: {e}")
+            if "never-tap" in str(e):
+                raise Stop(f"tap {target}: {e}")
+            raise Lost(f"tap {target}: {e}")  # not there, or not on this screen
         px, py = to_points(fx, fy, bounds)
         if dry:
             log(f"DRY tap {target} on {screen} at {px:.0f},{py:.0f}")
@@ -314,6 +334,24 @@ def back_to_list():
     wait_for("list")
 
 
+def recover(e, what):
+    """after a Lost mid-Pokémon: back out to the list by the known-safe path, so the walk can pass this one and
+    go on. Stops instead on the tag sheet or the nickname box (backing out there could save a half-made change)"""
+    global lost
+    lost += 1
+    keep_capture(f"lost-{what}")
+    try:
+        screen = look()[0]
+    except Refused:
+        screen = "?"  # back_to_list() below can't find a known screen either, and stops
+    if screen in ("tags", "rename"):
+        raise Stop(f"{e} (on the {screen} screen: not safe to back out)") from e
+    if lost > MAX_LOST:
+        raise Stop(f"{e} (lost the screen {lost} times this run)") from e
+    log(f"LOST {what}: {e}. Backing out to the list and passing it")
+    back_to_list()
+
+
 def settle(read, ok, timeout=3):
     """keep reading until ok(value) or timeout: taps land faster than the screen redraws"""
     end = time.time() + timeout
@@ -397,23 +435,24 @@ def set_tags(on=(), off=(), only=False, ivs=None, raws=None):
         raise Skip(f"no {', '.join(missing)} tag on this account")
     names = {t.upper(): t for t in (*off, *on)}
     want = {**{t.upper(): False for t in off}, **{t.upper(): True for t in on}}  # unticks first
-    for T, v in want.items():
-        for _ in range(2):  # a tick only gets tapped again once a slow read has shown it didn't change
-            if T in ticks and ticks[T] is not v:
-                if ui.ANDROID:
-                    lift_tag_row(T)
-                tap(names[T])
-                ticks = settle(tick_tags, lambda t: t.get(T) is v)
-    if any(T in ticks and ticks[T] is not v for T, v in want.items()):
-        keep_capture("tags")
-        raise Stop(f"tags didn't end up right: {ticks}")
-    go("DONE", "detail")
-    ON, OFF = {t.upper() for t in on}, {t.upper() for t in off}
-    good = lambda t: (sorted(t) == sorted(ON)) if only else (ON <= set(t) and not OFF & set(t))
-    tags = settle(detail_tags, good)
-    if not good(tags):
-        keep_capture("tags")
-        raise Stop(f"after DONE tags are {tags}, wanted {sorted(ON)} on{' only' if only else ''}, {sorted(OFF)} off")
+    with changing("ticking tags"):
+        for T, v in want.items():
+            for _ in range(2):  # a tick only gets tapped again once a slow read has shown it didn't change
+                if T in ticks and ticks[T] is not v:
+                    if ui.ANDROID:
+                        lift_tag_row(T)
+                    tap(names[T])
+                    ticks = settle(tick_tags, lambda t: t.get(T) is v)
+        if any(T in ticks and ticks[T] is not v for T, v in want.items()):
+            keep_capture("tags")
+            raise Stop(f"tags didn't end up right: {ticks}")
+        go("DONE", "detail")
+        ON, OFF = {t.upper() for t in on}, {t.upper() for t in off}
+        good = lambda t: (sorted(t) == sorted(ON)) if only else (ON <= set(t) and not OFF & set(t))
+        tags = settle(detail_tags, good)
+        if not good(tags):
+            keep_capture("tags")
+            raise Stop(f"after DONE tags are {tags}, wanted {sorted(ON)} on{' only' if only else ''}, {sorted(OFF)} off")
 
 
 def set_star(on):
@@ -427,11 +466,6 @@ def set_star(on):
     if filled is None:
         raise Skip("can't find the favorite star")
     if filled is not on:
-        if spot:
-            search.click(*spot, bounds)  # tap() would read the CP again, and a 2nd read can miss it
-        else:
-            tap("star")
-
         def read():
             _, texts, path, _ = wait_for("detail")
             f = ui.star_filled(path, texts)
@@ -439,9 +473,14 @@ def set_star(on):
                 path = ui.android.sharp()
                 f = ui.star_filled(path, ui.ocr(path))
             return f
-        if settle(read, lambda f: f is on, timeout=8 if ui.ANDROID else 3) is not on:  # a sharp() look takes ~2s
-            keep_capture("star")
-            raise Stop(f"tapped the star but it still looks {'empty' if on else 'filled'}")
+        with changing("tapping the star"):
+            if spot:
+                search.click(*spot, bounds)  # tap() would read the CP again, and a 2nd read can miss it
+            else:
+                tap("star")
+            if settle(read, lambda f: f is on, timeout=8 if ui.ANDROID else 3) is not on:  # a sharp() look takes ~2s
+                keep_capture("star")
+                raise Stop(f"tapped the star but it still looks {'empty' if on else 'filled'}")
 
 
 def nope(mine, tags, only=True, ivs=None, raws=None):
@@ -491,26 +530,27 @@ def leave_rename(button, name=None, same=same_name):
 def do_rename(name, same=same_name):
     """same(read, wanted): how loosely the OCR of the name may match (each skill's names misread their own way)"""
     go("pencil", "rename")
-    tap("field")
-    time.sleep(random.uniform(0.25, 0.4))  # field taking focus
-    for attempt in range(2):
-        key("a", cmd=True)
-        key("delete")
-        time.sleep(random.uniform(0.15, 0.25))  # typing straight after cmd+a once dropped the first letter
-        type_text(name)
-        got = settle(field_text, lambda g: same(g, name), timeout=1.5)
-        if same(got, name):  # the typing itself is exact keycodes; only the reading is fuzzy
-            break
-        log(f"  field shows {got!r}, wanted {name!r}" + (", retyping" if attempt == 0 else ""))
-    else:
-        keep_capture("rename")
-        leave_rename("CANCEL")
-        raise Stop(f"couldn't get {name!r} into the nickname box")
-    leave_rename("OK", name, same)
-    got = settle(detail_name, lambda g: same(g, name))
-    if not same(got, name):
-        keep_capture("rename")
-        raise Stop(f"after OK the name reads {got!r}, wanted {name!r}")
+    with changing("renaming"):
+        tap("field")
+        time.sleep(random.uniform(0.25, 0.4))  # field taking focus
+        for attempt in range(2):
+            key("a", cmd=True)
+            key("delete")
+            time.sleep(random.uniform(0.15, 0.25))  # typing straight after cmd+a once dropped the first letter
+            type_text(name)
+            got = settle(field_text, lambda g: same(g, name), timeout=1.5)
+            if same(got, name):  # the typing itself is exact keycodes; only the reading is fuzzy
+                break
+            log(f"  field shows {got!r}, wanted {name!r}" + (", retyping" if attempt == 0 else ""))
+        else:
+            keep_capture("rename")
+            leave_rename("CANCEL")
+            raise Stop(f"couldn't get {name!r} into the nickname box")
+        leave_rename("OK", name, same)
+        got = settle(detail_name, lambda g: same(g, name))
+        if not same(got, name):
+            keep_capture("rename")
+            raise Stop(f"after OK the name reads {got!r}, wanted {name!r}")
 
 
 # ---------- the detail screen (shared with /ivc and /ivcsort) ----------
@@ -1109,9 +1149,12 @@ def main(limit, dry):
             counts["done"] += 1
             skips_in_a_row = 0
             stale = 0
-        except Skip as e:
-            keep_capture(f"skip-{n}")
-            log(f"SKIP {n} CP{c}: {e}")
+        except (Skip, Lost) as e:
+            if isinstance(e, Lost):
+                recover(e, f"{n} CP{c}")
+            else:
+                keep_capture(f"skip-{n}")
+                log(f"SKIP {n} CP{c}: {e}")
             skipped[(n, c)] += 1
             counts["skip"] += 1
             skips_in_a_row += 1

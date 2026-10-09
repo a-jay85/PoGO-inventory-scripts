@@ -10,7 +10,7 @@ from PIL import Image
 
 import ui
 import run as base
-from run import Stop, Skip, log, keep_capture, go, tap, wait_for, key, type_text, back_to_list, scroll, front
+from run import Stop, Skip, Lost, log, keep_capture, go, tap, wait_for, key, type_text, back_to_list, scroll, front
 
 ZOOM = "/tmp/pvpc-zoom.png"
 END_AFTER_STALE = 3
@@ -93,9 +93,12 @@ def walk_list(visit, limit=10 ** 9, stop=None, odd=None):
         try:
             gone = visit(i, n, c)
             skips = 0
-        except Skip as e:
-            keep_capture(f"skip-{n}")
-            log(f"SKIP {n} CP{c}: {e}")
+        except (Skip, Lost) as e:
+            if isinstance(e, Lost):
+                base.recover(e, f"{n} CP{c}")
+            else:
+                keep_capture(f"skip-{n}")
+                log(f"SKIP {n} CP{c}: {e}")
             gone = False
             skips += 1
             if skips >= MAX_SKIPS_IN_A_ROW:

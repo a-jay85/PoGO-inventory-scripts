@@ -232,9 +232,12 @@ def main(limit, dry):
             if dry:
                 passed[(n, c)] += 1
             skips_in_a_row = stale = 0
-        except Skip as e:
-            keep_capture(f"skip-{n}")
-            log(f"SKIP {n} CP{c}: {e}")
+        except (Skip, base.Lost) as e:
+            if isinstance(e, base.Lost):
+                base.recover(e, f"{n} CP{c}")
+            else:
+                keep_capture(f"skip-{n}")
+                log(f"SKIP {n} CP{c}: {e}")
             passed[(n, c)] += 1
             counts["skip"] += 1
             skips_in_a_row += 1

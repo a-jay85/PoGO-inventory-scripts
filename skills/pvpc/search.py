@@ -449,6 +449,10 @@ def start_search(q):
             log("the panel didn't close after Return")
             continue
         if bar_shows(got, q):
+            if not {"TAGS", "EGGS"} <= {ui.norm(t[4]) for t in texts}:  # typed in a tag's list: only searched that tag
+                log("  that searched inside a tag's list: going to the full Pokémon list")
+                to_search_list()
+                continue
             log(f"  timing: clear {t1 - t0:.1f}s, type {time.time() - t1:.1f}s ({c})")
             break
         log(f"search bar says {got!r}, wanted {q!r}: typing it again")

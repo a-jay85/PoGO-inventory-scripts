@@ -36,10 +36,6 @@ Drives iPhone Mirroring like /pvpc and /ivc (read their **Session start** and **
 
 Four steps. Only the last one changes anything.
 
-Once, before the first run with gender searches (added 2026-10-08): check the game splits genders cleanly.
-`run.py search "281&male&!#Nope"` plus `run.py search "281&female&!#Nope"` must add up to `run.py search "281&!#Nope"`.
-If they don't, stop: male/female searches would count Pokémon twice and Nope too many.
-
 1. `caffeinate -dimsu python3 $S/run.py scan` opens every IVC Pokémon and writes `runs/<time>/scan.json`.
 2. `caffeinate -dimsu python3 $S/run.py pools $S/runs/<time>` types the pool searches and writes `pools.json`. You can rerun it to carry on.
 3. `python3 $S/run.py plan $S/runs/<time>` writes `plan.txt`.

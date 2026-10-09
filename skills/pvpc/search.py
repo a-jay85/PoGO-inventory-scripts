@@ -317,9 +317,9 @@ def clear_search():
 def result_count(texts):
     """the 'Q (7)' under the POKÉMON tab after a search"""
     for t in texts:
-        m = re.match(r"[Q9]?\s*\((\d[\d,]*)\)", t[4])  # the Q icon can read as 9
+        m = re.match(r"[Q9]?\s*\((\d[\d,]*|O)\)", t[4])  # the Q icon can read as 9, and (0) as (O)
         if t[1] < 0.15 and m:
-            return int(m.group(1).replace(",", ""))
+            return int(m.group(1).replace(",", "").replace("O", "0"))
 
 
 def panel_text():
@@ -445,6 +445,7 @@ def drop_misreads(most, sightings, extra):
 
 def start_search(q):
     """type one search (Return, SHOW EVOLUTIONARY LINE unticked). -> (path, texts, bounds) of the results, at the top"""
+    global scrolled
     t0 = time.time()
     for attempt in range(3):
         c = clear_search()
@@ -492,6 +493,9 @@ def start_search(q):
         raise Stop("SHOW EVOLUTIONARY LINE stays ticked")
     if ticked is None:
         log("can't see SHOW EVOLUTIONARY LINE after the search")
+    want = result_count(texts)
+    if want is not None and want <= len(ui.tiles(texts)):  # every result fits on one screen: nothing to scroll
+        scrolled = False
     if scrolled:
         path, texts, bounds = to_top(bounds)
     return path, texts, bounds

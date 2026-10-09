@@ -53,6 +53,9 @@ def strict(got, q):
     s = re.sub(r"^[<‹]?[q9]?(?=#)", "", s)  # the magnifier glued on
     s = re.sub(r"^[,.'`]+", "", s)  # the panel's cursor end can read as a stray ","
     Q = re.sub(r"\s", "", q).lower()
+    bang = re.sub(r"^[q9]?[il|]", "!", s)  # the end of a long search: a '!' at its start reads as 'I' or 'QI'
+    if bang != s and len(s) >= 15 and Q.endswith(bang):
+        s = bang
     if s == Q:
         _views.append(("all", len(s)))
     elif len(s) >= 15 and Q.endswith(s):

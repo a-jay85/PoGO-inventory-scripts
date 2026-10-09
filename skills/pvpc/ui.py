@@ -428,7 +428,7 @@ def fuzz_circle(cx, cy, r, texts, aspect):
 def search_box(texts):
     """the search bar at the top of the list: 'Search' (Q = the magnifier) or a typed search like '#IVC' / '4&shadow'"""
     # Q = the magnifier. '#Luckydex +' chips don't have it; 'Q (5)' under the POKÉMON tab is the result count
-    hits = [t for t in texts if t[1] < 0.3 and re.match(r"(?:[<‹]\s*[Q9]|Q)[\s,.]+\S", t[4]) and not re.match(r"Q\s*\(\d+\)", t[4])]
+    hits = [t for t in texts if t[1] < 0.3 and re.match(r"(?:[<‹]\s*[Q9]|Q)[\s,.]+\S", t[4]) and not re.match(r"Q\s*\([\dO]+\)", t[4])]  # (0) can read as (O)
     if not hits:  # the magnifier glued to the text ('Q4&shadow', '< 9113&!#Nope'): go by where the bar sits
         hits = [t for t in texts if 0.155 < t[1] < 0.2 and t[0] < 0.35 and t[4].strip() not in ("<", "‹", "Q", "9", "< 9", "‹ 9")]
     return hits[0] if len(hits) == 1 else None

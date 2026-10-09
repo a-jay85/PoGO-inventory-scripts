@@ -30,7 +30,7 @@ Drive Pokémon GO on the user's iPhone through **iPhone Mirroring**. Computer us
 ## Unattended mode
 
 `run.py` does the whole loop below with no Claude: `caffeinate -dimsu python3 $S/run.py [--limit N] [--dry-run]`.
-It skips anything unsure (logged in `$S/runs/<time>/`) and stops on anything unexpected.
+It skips anything unsure (logged in `$S/runs/<time>/`) and stops on anything unexpected. If a tap lands on the wrong screen mid-Pokémon, it backs out to the list and passes that one (up to 15 times a run, never from the tag sheet or the nickname box).
 At the end of the list it runs the read-only fallen-out step, then quits iPhone Mirroring. Stops, crashes and `--limit` leave it open.
 Use this skill to clear its skips by hand.
 Taps come 0.1–0.25s apart (same as /ivc and /ivcsort). A short 0.7–1.3s pause stays, on the appraisal only.

@@ -18,7 +18,7 @@ Works like /pvpc and borrows its screen reader, tapper and helper (`~/.claude/sk
 
 `caffeinate -dimsu python3 $S/run.py [--limit N] [--dry-run]` does the whole loop with no Claude.
 - `--dry-run` reads and appraises but changes nothing. It logs the name each Pokémon would get.
-- It skips anything unsure and stops on anything unexpected. Logs and captures go in `$S/runs/<time>/`.
+- It skips anything unsure and stops on anything unexpected. If a tap lands on the wrong screen mid-Pokémon, it backs out to the list and passes that one (up to 15 times a run). Logs and captures go in `$S/runs/<time>/`.
 - Use this skill by hand to clear its skips.
 
 **Android phone:** put `POGO_PHONE=android` in front of the command. See the **Android phone** section of the /pvpc skill.

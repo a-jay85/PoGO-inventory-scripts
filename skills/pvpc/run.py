@@ -371,7 +371,13 @@ def high_iv(ivs=None, raws=None):
             ivs, raws = appraise()
         finally:
             go("dialog", "detail")
-    top = [min(15, max(v, math.floor(r + 0.7))) for v, r in zip(ivs, raws or ivs)]
+            # the appraisal fades out slowly and reads as the detail screen while it does: wait until its bars are gone
+            for _ in range(20):
+                _, texts, _, _ = wait_for("detail")
+                if not {"ATTACK", "DEFENSE"} & {ui.norm(t[4]) for t in texts}:
+                    break
+                time.sleep(0.25)
+    top =[min(15, max(v, math.floor(r + 0.7))) for v, r in zip(ivs, raws or ivs)]
     if shadow:
         top = [min(15, v + 2) for v in top]
     what = f"{'/'.join(map(str, ivs))}{' shadow' if shadow else ''}"

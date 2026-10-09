@@ -21,7 +21,7 @@ import ui
 import run as base
 from run import Stop, log, keep_capture, go, look, wait_for, save, load, candy
 import search
-from shadows import Pass, GM, press, swipe_next, settled_tiles, exact
+from shadows import Pass, GM, press, swipe_next, settled_tiles, exact, not_high_iv
 
 OLD_DAYS = 300  # caught this many days ago or more -> Old (the game's age300-)
 LEGENDS = "#Nope&!traded&!shiny&!costume&legendary"
@@ -346,6 +346,7 @@ def walk(q, decide, done, limit):
             if me in passed:
                 raise Pass(passed[me])
             tags = decide(info, texts, path, bounds, me)
+            not_high_iv()  # last, so only the ones about to be retagged get appraised
         except Pass as e:
             if me not in passed:
                 log(f"pass {info['name']} CP{info['cp']}: {e}")

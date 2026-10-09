@@ -32,6 +32,17 @@ class Pass(Exception):
     """leave this one alone"""
 
 
+def not_high_iv():
+    """on the detail screen: raise Pass if it's 98%+ (a shadow: once purified), or its IV can't be read.
+    A wrong name can land a 98% one in Nope: those never get purified, transferred or traded away."""
+    try:
+        keep, _, _, what = base.high_iv()
+    except base.Skip as e:
+        raise Pass(f"can't read its IV: {e}")
+    if keep:
+        raise Pass(f"appraised {what}: 98%+ (or purifies to it), never transferred or traded")
+
+
 class Again(Exception):
     """the screen was still settling: read it again"""
 
@@ -177,6 +188,7 @@ def check(info, texts, path):
             texts = ui.ocr(ui.android.sharp()) if ui.ANDROID and attempt else look()[1]
     if have_candy < cnd or have_dust < dust:
         raise Pass(f"not enough: needs {cnd} candy + {dust} dust, has {have_candy} + {have_dust}")
+    not_high_iv()
 
 
 def purify(info):

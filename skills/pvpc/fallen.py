@@ -83,9 +83,15 @@ def act(limit, recheck, off=(), stop=None, odd=None):
                 log(f"  {n} CP{c}: {what} on a closer look, leaving it")
                 go("close", "list")
                 return False
-            if g == "Nope":
+            ivs = raws = None
+            if g == "Nope":  # appraise before the star comes off: 98%+ never gets Nope
+                keep, ivs, raws, what = base.high_iv()
+                if keep:
+                    log(f"  {n} CP{c}: appraised {what}, 98%+ never gets Nope, leaving it")
+                    go("close", "list")
+                    return False
                 base.set_star(False)
-            base.set_tags(on=[g], off=off)
+            base.set_tags(on=[g], off=off, ivs=ivs, raws=raws)
             done[g] += 1
             log(f"DONE fallen {g} {n!r} CP{c}: {what}")
             go("close", "list")

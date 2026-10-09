@@ -16,9 +16,11 @@ ZOOM = "/tmp/pvpc-zoom.png"
 END_AFTER_STALE = 3
 MAX_SKIPS_IN_A_ROW = 5
 # a new search typed over a scrolled list shows its results scrolled the same way, so the top rows are never read.
-# Dragging back up isn't safe (one pull-down too many closes the Pokémon screen), so clear_search reopens it instead.
-# A run can start on a list an earlier run left scrolled (a tab switch doesn't reset one with a search in it): reopen first
+# Dragging back up isn't safe (one pull-down too many closes the Pokémon screen), and a tab switch doesn't reset a list
+# with a search in it. Sorting by HP and then by Name again does, and keeps the search: start_search does that.
+# A run can start on a list an earlier run left scrolled, so the first search does it too
 scrolled = True
+SORT_BUTTON = (0.838, 0.937)  # the round sort button, bottom right
 
 
 # ---------- walking a list ----------
@@ -269,8 +271,7 @@ def x_button(bounds):
 
 def clear_search():
     """typing only lands in an empty search bar, and the game empties it when the Pokémon screen reopens:
-    close it with the X at the bottom, then Poké Ball -> POKÉMON. A scrolled list always goes that way: it reopens at the top"""
-    global scrolled
+    close it with the X at the bottom, then Poké Ball -> POKÉMON"""
     for _ in range(3):
         path, bounds = ui.capture()
         texts = ui.ocr(path)
@@ -279,12 +280,8 @@ def clear_search():
         if ui.search_panel(texts):  # left open: a Return that didn't take
             box = ui.search_box(texts)
             if not (box and ui.search_text(box)):
-                if not scrolled:
-                    return "panel"  # open and empty: ready to type
-                click(0.10, 0.155, bounds)  # the < back arrow, then reopen below
-                time.sleep(random.uniform(1.2, 1.5))
-            else:
-                close_panel(bounds)
+                return "panel"  # open and empty: ready to type
+            close_panel(bounds)
         try:
             screen, texts, _, bounds = wait_for("list", "tag-tab", "detail", "menu", "appraisal", timeout=6)
         except Stop:
@@ -300,11 +297,11 @@ def clear_search():
             if not got:
                 return "panel"
             continue
-        if screen == "list" and not scrolled and ui.search_box(texts) and not ui.search_text(ui.search_box(texts)):
+        if screen == "list" and ui.search_box(texts) and not ui.search_text(ui.search_box(texts)):
             return "list"
-        if screen == "list" and not scrolled and ui.search_box(texts) and x_button(bounds):
+        if screen == "list" and ui.search_box(texts) and x_button(bounds):
             return "panel"
-        if screen == "list" and not scrolled and empty_bar(texts) and open_panel(bounds):
+        if screen == "list" and empty_bar(texts) and open_panel(bounds):
             return "panel"
         if screen not in ("list", "tag-tab"):
             back_to_list()
@@ -312,7 +309,6 @@ def clear_search():
         click(0.5 + random.uniform(-0.01, 0.01), 0.93 + random.uniform(-0.004, 0.004), bounds)
         time.sleep(random.uniform(1.6, 2.0))
         off_map()
-        scrolled = False
     keep_capture("clear")
     raise Stop("couldn't get an empty search bar")
 
@@ -495,6 +491,43 @@ def start_search(q):
         raise Stop("SHOW EVOLUTIONARY LINE stays ticked")
     if ticked is None:
         log("can't see SHOW EVOLUTIONARY LINE after the search")
+    if scrolled:
+        path, texts, bounds = to_top(bounds)
+    return path, texts, bounds
+
+
+def sort_by(label, bounds):
+    """open the sort menu, pick RECENT / FAVORITE / NUMBER / HP / NAME / COMBAT POWER, wait for the list"""
+    click(SORT_BUTTON[0] + random.uniform(-0.01, 0.01), SORT_BUTTON[1] + random.uniform(-0.004, 0.004), bounds)
+    for _ in range(12):
+        time.sleep(0.25)
+        path, bounds = ui.capture()
+        texts = ui.ocr(path)
+        row = [t for t in texts if t[1] > 0.3 and ui.norm(t[4]) == label]
+        if row and any(ui.norm(t[4]) == "COMBAT POWER" for t in texts):
+            break
+    else:
+        keep_capture("sortmenu")
+        raise Stop("the sort menu didn't open")
+    click(0.868 + random.uniform(-0.01, 0.01), row[0][1] + row[0][3] / 2 + random.uniform(-0.004, 0.004), bounds)
+    for _ in range(12):  # the menu fades out: a tap on the button before it's gone gets lost
+        time.sleep(0.25)
+        path, bounds = ui.capture()
+        texts = ui.ocr(path)
+        if not any(ui.norm(t[4]) == "COMBAT POWER" for t in texts) and ui.classify(texts) == "list":
+            return path, texts, bounds
+    keep_capture("sortmenu")
+    raise Stop(f"the list didn't come back after sorting by {label}")
+
+
+def to_top(bounds):
+    """sort by HP, then by Name again: the list comes back at the top with the search still in the bar"""
+    global scrolled
+    t0 = time.time()
+    _, _, bounds = sort_by("HP", bounds)
+    path, texts, bounds = sort_by("NAME", bounds)
+    scrolled = False
+    log(f"  back to the top (sort HP, then Name): {time.time() - t0:.1f}s")
     return path, texts, bounds
 
 

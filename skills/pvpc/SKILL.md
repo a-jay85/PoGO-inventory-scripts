@@ -33,7 +33,7 @@ Drive Pokémon GO on the user's iPhone through **iPhone Mirroring**. Computer us
 It skips anything unsure (logged in `$S/runs/<time>/`) and stops on anything unexpected.
 At the end of the list it runs the read-only fallen-out step, then quits iPhone Mirroring. Stops, crashes and `--limit` leave it open.
 Use this skill to clear its skips by hand.
-Taps come 0.1–0.25s apart (same as /ivc and /ivcsort). The 2.5–5.5s pause stays, on the appraisal only.
+Taps come 0.1–0.25s apart (same as /ivc and /ivcsort). A short 0.7–1.3s pause stays, on the appraisal only.
 
 ### Fallen out and trims
 

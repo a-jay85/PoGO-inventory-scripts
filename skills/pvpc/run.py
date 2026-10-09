@@ -91,11 +91,8 @@ def tap_gap():
 
 
 def think():
-    """on the appraisal: looks like working out the IVs and the stat product"""
-    t = random.uniform(2.5, 5.5)
-    if random.random() < 0.15:
-        t += random.uniform(1.5, 4)
-    time.sleep(t)
+    """on the appraisal: a short pause, like a glance at the bars (it was 2.5-5.5s, ~4.4s a Pokémon)"""
+    time.sleep(random.uniform(0.7, 1.3))
 
 
 # ---------- screen ----------

@@ -104,6 +104,9 @@ def read_moves():
                 break
             x, y = spot
             drag(x, y, x, min(y + random.uniform(0.36, 0.40), 0.85), bounds)
+        if extra and not any(re.search(r"\d+\s*/\s*\d+\s*HP", t[4]) for t in base.look()[1]):
+            keep_capture("scroll-back")  # still far down: the weight's old spot may be a button now
+            raise Stop("detail screen didn't scroll back up past the moves")
         drag(fx, ty, fx, fy, bounds)
     def weight():
         _, texts, _, _ = wait_for("detail")
@@ -150,7 +153,16 @@ def forms_by_moves(sp, moves):
     pool = {s: {MOVE_NAMES.get(m, m) for m in pvp.SPECIES[s]["fastMoves"] + pvp.SPECIES[s]["chargedMoves"]}
             for s in sp}
     own = lambda s: pool[s] - set().union(*(pool[o] for o in sp if o != s))
-    return [s for s in sp if any(knows(moves, m) for m in own(s))] or sp
+    sp = [s for s in sp if any(knows(moves, m) for m in own(s))] or sp
+    # a form that can't learn a move it shows is out (only moves some form learns count: OCR junk counts for none)
+    read = [m for m in set().union(*pool.values()) if knows(moves, m)]
+    return [s for s in sp if all(m in pool[s] for m in read)] or sp
+
+
+def forms_by_stats(sp, cp, hp, ivs):
+    """the forms whose base stats give this CP and HP with these IVs at some level"""
+    fit = lambda b: any(pvp.cp(b, ivs, lv) == cp and pvp.hp(b, ivs, lv) == hp for lv in pvp.LEVELS)
+    return [s for s in sp if fit(pvp.SPECIES[s]["baseStats"])] or sp
 
 
 def is_legendary(sp):
@@ -206,6 +218,9 @@ def process(i, tile_name, tile_cp, dry):
     base.open_appraisal()
     bars, raws = appraise()
     ivs = exact_ivs(sp, cp, info["hp"], bars, raws)
+    if len(sp) > 1:
+        sp = forms_by_stats(sp, cp, info["hp"], ivs)
+        log(f"  forms CP and HP allow: {sp}")
     legendary = is_legendary(sp)
     gym = any(s in ivc.GYM_DEFENDERS for s in sp)
     name = ivc.make_name(ivs, shadow=shadow, size=size, moves=moves, lucky=lucky, legendary=legendary, gym=gym)

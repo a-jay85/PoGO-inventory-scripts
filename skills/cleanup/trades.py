@@ -6,7 +6,7 @@
 
 Start with Pokémon GO on the Pokémon screen. Two groups, each one searched, opened and swiped through:
   1. not traded, and legendary, Ultra Beast, Meltan or Melmetal -> Remote Trade + RT (+ Old if caught 300+ days ago)
-  2. traded -> Spot Transfer
+  2. traded legendary, Ultra Beast, Meltan or Melmetal -> Spot Transfer (other traded Nope ones are left alone)
 and Nope comes off. Shiny and costume ones are kept out by the search. On its detail screen each one is retagged only
 if: its only tag is Nope, no star, no XXL/XXS in the name. Group 1 also needs: not shadow, a tradeable family (not
 Deoxys and the other mythicals) and, for Kyurem and Necrozma, not fused. Its age comes off the caught date at the
@@ -26,7 +26,7 @@ from shadows import Pass, GM, press, swipe_next, settled_tiles, exact
 OLD_DAYS = 300  # caught this many days ago or more -> Old (the game's age300-)
 LEGENDS = "#Nope&!traded&!shiny&!costume&legendary"
 BEASTS = "#Nope&!traded&!shiny&!costume&793-806,808,809"  # Ultra Beasts, Meltan, Melmetal (801, 802: candy check)
-TRADED = "#Nope&traded&!shiny&!costume"
+TRADED = ("#Nope&traded&!shiny&!costume&legendary", "#Nope&traded&!shiny&!costume&793-806,808,809")  # same species as 1.
 
 
 def family(tag):
@@ -48,9 +48,10 @@ def strict(got, q):
     end while typing and only its start after Return: note which part matched, search_exact() adds them up."""
     if ui.ANDROID:
         box = ui.search_box(ui.ocr(ui.android.sharp()))
-        got = ui.search_text(box) if box else ""
+        got = ui.search_text(box) if box else got  # (the search panel's bar isn't found that way: keep the caller's read)
     s = re.sub(r"\s", "", got or "").lower()
     s = re.sub(r"^[<‹]?[q9]?(?=#)", "", s)  # the magnifier glued on
+    s = re.sub(r"^[,.'`]+", "", s)  # the panel's cursor end can read as a stray ","
     Q = re.sub(r"\s", "", q).lower()
     if s == Q:
         _views.append(("all", len(s)))
@@ -99,7 +100,8 @@ def tag_chips(texts):
     hp = next(t for t in texts if re.search(r"\d+\s*/\s*\d+\s*HP", t[4]))
     kg = [t[1] for t in texts if re.fullmatch(r"[\d.,]+\s*kg", t[4].strip()) and t[1] > hp[1]]
     low = min(kg) if kg else hp[1] + 0.06
-    return sorted(n for t in texts if hp[1] + 0.005 < t[1] < low - 0.005 and (n := ui.norm(t[4]))
+    return sorted(n for t in texts if hp[1] + 0.005 < t[1] < low - 0.005
+                  and (n := re.sub(r"^[A-Z] (?=[A-Z]{2})", "", ui.norm(t[4])))  # Remote Trade's icon: "c Remote Trade"
                   and n not in ("DYNAMAX", "GIGANTAMAX") and not n.startswith("LUCKY POK"))
 
 
@@ -132,27 +134,29 @@ def scrolled_bottom(bounds):
     return reads
 
 
-def back_to_top(me):
-    """drag from the weight number: a drag down the left edge doesn't move the page from its bottom.
-    A drag at the top closes the page, so only drag while the CP is out of sight; else wait and look again."""
-    _, _, _, bounds = look()
-    for _ in range(6):
-        texts = ui.ocr(ui.android.sharp()) if ui.ANDROID else look()[1]
-        if ui.classify(texts) == "detail" and who(texts)[1] == me:
+def back_to_top(me, bounds):
+    """drag down until the CP shows. Only drag from labels that are never buttons (weight, candy, the caught box,
+    form text), never from the top strip: a drag there pulls down the phone's notification shade.
+    A drag at the top closes the page, so check a fresh read before each drag and size it from the weight row."""
+    for _ in range(12):
+        texts = look()[1]  # the phone's own screenshot
+        if ui.classify(texts) == "detail" and who(texts)[1][1:3] == me[1:3]:  # same CP and HP (name reads can wobble)
             return
+        if any(re.fullmatch(r"[cC]\s*[pP]\s*\d+", t[4].strip()) for t in texts):
+            time.sleep(0.3)  # CP in sight: at the top, maybe still settling
+            continue
         kg = [t for t in texts if re.search(r"\d\s*kg$", t[4].strip())]
-        # long pages (Zacian's form text) hide the weight at the bottom: then any plain text up top
-        plain = [t for t in texts if 0.05 < t[1] < 0.35 and len(t[4]) > 12
-                 and not re.search(r"POWER|ATTACK|FORM|BUDD|RAIDS|BATTLES|PURIFY|MEGA|EVOLVE", ui.norm(t[4]))]
-        hold = (kg or plain)[:1]
-        if hold and not any(re.fullmatch(r"[cC]\s*[pP]\s*\d+", t[4].strip()) for t in texts):
+        hold = [t for t in texts if 0.1 < t[1] < 0.8 and (t in kg or re.search(
+            r"WEIGHT|HEIGHT|STARDUST|CANDY|CAUGHT|HATCHED|WITH YOUR PARTY|THIS POK|BECOME|CAN USE|CAN FUSE|ADVENTURE EFFECT|DISTORTS", ui.norm(t[4])))]
+        if hold:
             x, y = hold[0][0] + hold[0][2] / 2, hold[0][1] + hold[0][3] / 2
-            # at the top the weight sits at ~0.6: drag the weight just short of there, any more and the page closes
-            to = random.uniform(0.56, 0.58) if kg else y + random.uniform(0.4, 0.45)
-            base.drag(x, y, x, max(to, y + 0.03), bounds)
-        time.sleep(0.8)
+            # at the top the weight sits at ~0.6: move it to just short of there, any more and the page closes
+            far = random.uniform(0.56, 0.58) - kg[0][1] if kg else random.uniform(0.4, 0.45)
+            base.drag(x, y, x, min(y + max(far, 0.03), 0.92), bounds)  # (drag waits for it to stop)
+        else:
+            time.sleep(0.3)
     keep_capture("top")
-    raise Stop("couldn't get back to the top of the detail page")
+    raise Stop(f"couldn't get back to the top of the detail page (wanted {me}, read {who(texts)[1]})")
 
 
 def caught(texts):
@@ -175,10 +179,14 @@ def check_trade(info, texts, path, bounds, me):
         raise Pass("can't read the candy name")
     if c not in TRADEABLE:
         raise Pass(f"{c.title()}: not a tradeable legendary/Ultra Beast")
+    if c in FUSES:  # the line sits mid-page, off screen by the bottom: look one drag down
+        base.drag(0.08, 0.75, 0.08, 0.2, bounds)
+        mid = [look()[1]] + ([ui.ocr(ui.android.sharp())] if ui.ANDROID else [])
+        if not all(any("can fuse with" in t[4] for t in r) for r in mid):
+            back_to_top(me, bounds)
+            raise Pass(f"{c.title()}: no 'can fuse with' line, may be fused")
     reads = scrolled_bottom(bounds)
     try:
-        if c in FUSES and not all(any("can fuse with" in t[4] for t in r) for r in reads):
-            raise Pass(f"{c.title()}: no 'can fuse with' line, may be fused")
         days = {caught(r) for r in reads}
         if len(days) != 1 or None in days:
             raise Pass(f"caught date reads {days}")
@@ -187,7 +195,7 @@ def check_trade(info, texts, path, bounds, me):
         if not 0 <= age < 4000:
             raise Pass(f"caught date {day} looks wrong")
     finally:
-        back_to_top(me)
+        back_to_top(me, bounds)
     log(f"  {c.title()}, caught {day} ({age} days)")
     return ["Remote Trade", "RT"] + (["Old"] if age >= OLD_DAYS else [])
 
@@ -196,10 +204,12 @@ def check_trade(info, texts, path, bounds, me):
 
 def sheet_rows(texts, path):
     """tag rows that are safe to tap (not under the fade at the bottom): norm name -> (box, ticked)"""
-    ticks = dict((ui.norm(n), on) for n, on in ui.ticked_tags(path, texts))
+    def name(s):  # the icon by Remote Trade reads as a stray letter: "c Remote Trade"
+        return re.sub(r"^[A-Z] (?=[A-Z]{2})", "", ui.norm(s.lstrip("•· ")))
+    ticks = dict((name(n), on) for n, on in ui.ticked_tags(path, texts))
     rows = {}
     for t in texts:
-        n = ui.norm(t[4].lstrip("•· "))
+        n = name(t[4])
         if n in ticks and 0.2 < t[1] < 0.7:
             rows[n] = (t, ticks[n])
     return rows
@@ -209,7 +219,7 @@ def still_sheet():
     last = None
     for _ in range(10):
         _, texts, path, bounds = wait_for("tags")
-        ys = [(t[4], round(t[1], 3)) for t in texts]
+        ys = [(t[4], round(t[1], 2)) for t in texts]  # (boxes jitter a little between reads of a still screen)
         if ys == last:
             return texts, path, bounds
         last = ys
@@ -217,14 +227,58 @@ def still_sheet():
     return texts, path, bounds
 
 
+def cancel_sheet():
+    """leave the tag sheet unsaved. Android's sheet has no CANCEL, only the X under DONE"""
+    _, texts, _, bounds = look()
+    if not ui.ANDROID:
+        go("CANCEL", "detail")
+        return
+    d = next(t for t in texts if ui.norm(t[4]) == "DONE")
+    press((d[0] + d[2] / 2 - 0.03, d[1] + 0.075, 0.06, 0.03), bounds)
+    wait_for("detail")
+
+
+def done_sheet(texts, bounds):
+    """tap DONE (where the last read of the sheet saw it) -> the detail page's texts. One caught in the last month
+    gets a popup first ("Cannot Trade Recently Caught Pokémon Remotely ... will keep the Remote Trade tag"):
+    its OK saves the tags"""
+    press(next(t for t in texts if ui.norm(t[4]) == "DONE"), bounds)
+    end, again = time.time() + 8, True
+    while time.time() < end:
+        time.sleep(0.15)
+        screen, texts, _, bounds = look()
+        if screen == "detail":
+            return texts
+        if any("RECENTLY CAUGHT" in ui.norm(t[4]) for t in texts) and exact(texts, "OK"):
+            log("  recently caught: OK on the popup (it keeps the Remote Trade tag)")
+            press(exact(texts, "OK")[0], bounds)
+            end = time.time() + 6
+        elif screen == "tags" and again and time.time() > end - 5:
+            log("  tap DONE didn't land, again")
+            press(next(t for t in texts if ui.norm(t[4]) == "DONE"), bounds)
+            again = False
+    keep_capture("done")
+    raise Stop("after DONE: never got back to the detail page")
+
+
 def retag(on, off=("Nope",)):
     """tick on, untick off, scrolling down the sheet to find each. Afterwards the tags must be exactly on."""
-    go("menu", "menu")
-    go("TAG", "tags")
+    _, texts, _, bounds = go("menu", "menu")
+    tag = exact(texts, "TAG")
+    if not tag:
+        go("TAG", "tags")
+    else:  # straight from the read that found the menu (go("TAG") would look twice more first)
+        press(tag[0], bounds)
+        screen = base.settle(lambda: look()[0], lambda s: s == "tags", timeout=4)
+        if screen == "menu":
+            go("TAG", "tags")
+        elif screen != "tags":
+            keep_capture("tag")
+            raise Stop(f"tapped TAG, got screen {screen}")
     want = {**{t.upper(): False for t in off}, **{t.upper(): True for t in on}}
-    left, same = dict(want), 0
+    left, same, sheet = dict(want), 0, still_sheet()
     for _ in range(30):
-        texts, path, bounds = still_sheet()
+        texts, path, bounds = sheet
         rows = sheet_rows(texts, path)
         for T in [T for T in left if T in rows]:
             if rows[T][1] is not left[T]:
@@ -247,17 +301,18 @@ def retag(on, off=("Nope",)):
         base.drag(0.3, 0.62, 0.3, 0.4, bounds)
         if ui.ANDROID:
             ui.android.fresh()
-        after = [t[4] for t in still_sheet()[0]]
+        sheet = still_sheet()  # (also the next round's read)
+        after = [t[4] for t in sheet[0]]
         same = same + 1 if after == before else 0
         if same >= 2:
-            go("CANCEL", "detail")
+            cancel_sheet()
             raise Stop(f"no {', '.join(left)} tag in the list: cancelled")
     else:
-        go("CANCEL", "detail")
+        cancel_sheet()
         raise Stop(f"couldn't find {', '.join(left)} in the tag list: cancelled")
-    go("DONE", "detail")
+    first = [done_sheet(texts, bounds)]
     good = sorted(t.upper() for t in on)
-    got = base.settle(lambda: tag_chips(wait_for("detail")[1]), lambda t: t == good, timeout=4)
+    got = base.settle(lambda: tag_chips(first.pop() if first else wait_for("detail")[1]), lambda t: t == good, timeout=4)
     if got != good:
         keep_capture("tags")
         raise Stop(f"after DONE the tags read {got}, wanted {good}")
@@ -272,7 +327,7 @@ def walk(q, decide, done, limit):
         return
     log(f"--- {q}")
     go("tile 1", "detail")
-    seen, passed, agains = set(), {}, 0
+    seen, passed, agains, retagged = set(), {}, 0, False
     while len(done) < limit:
         t0 = time.time()
         _, texts, path, bounds = wait_for("detail")
@@ -304,14 +359,7 @@ def walk(q, decide, done, limit):
                 done.append({"name": info["name"], "cp": info["cp"], "tags": tags})
                 save("done.json", done)
                 log(f"retagged {info['name']} CP{info['cp']}: {' + '.join(tags)}, Nope off  ({time.time() - t0:.1f}s, #{len(done)})")
-                texts = go("close", "list")[1]  # it no longer fits the search: back to the list, open the top one again
-                if not ui.tiles(texts):
-                    time.sleep(0.4)
-                    if not settled_tiles():
-                        return
-                go("tile 1", "detail")
-                seen = set()
-                continue
+                retagged = True
         moved = False
         for attempt in range(2):  # next one; a swipe that does nothing twice = end of the list
             swipe_next(bounds)
@@ -319,10 +367,22 @@ def walk(q, decide, done, limit):
                 time.sleep(0.12)
                 screen, texts, _, bounds = look()
                 if screen == "detail" and who(texts)[1] != me and None not in who(texts)[1]:
-                    moved = True
-                    break
+                    again = look()  # the same twice: a read mid-slide can mix two Pokémon
+                    if again[0] == "detail" and who(again[1])[1] == who(texts)[1]:
+                        moved = True
+                        break
             if moved:
+                retagged = False
                 break
+        if not moved and retagged:  # it no longer fits the search: back to the list, open the top one again
+            texts = go("close", "list")[1]
+            if not ui.tiles(texts):
+                time.sleep(0.4)
+                if not settled_tiles():
+                    return
+            go("tile 1", "detail")
+            seen, retagged = set(), False
+            continue
         if not moved:
             break
     if len(done) >= limit:
@@ -347,7 +407,7 @@ if __name__ == "__main__":
     t_start = time.time()
     try:
         base.front()
-        for q, decide in ((LEGENDS, check_trade), (BEASTS, check_trade), (TRADED, check_traded)):
+        for q, decide in ((LEGENDS, check_trade), (BEASTS, check_trade)) + tuple((q, check_traded) for q in TRADED):
             if len(done) < limit:
                 walk(q, decide, done, limit)
     except Stop as e:

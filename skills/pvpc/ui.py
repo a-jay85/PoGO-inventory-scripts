@@ -171,7 +171,7 @@ def tile_name(name):
 def name_box(texts, hp_line):
     """nickname = the lowest text right above the HP line that spans its centre (not stray icons at the side)"""
     mid = hp_line[0] + hp_line[2] / 2
-    above = [t for t in texts if t[1] < hp_line[1] and hp_line[1] - t[1] < 0.08 and t[0] < mid < t[0] + t[2]
+    above = [t for t in texts if t[1] < hp_line[1] and hp_line[1] - t[1] < 0.1 and t[0] < mid < t[0] + t[2]
              and not norm(t[4]).startswith("LUCKY POK")]  # lucky ones have a LUCKY POKÉMON line under the name
     return max(above, key=lambda t: t[1]) if above else None
 

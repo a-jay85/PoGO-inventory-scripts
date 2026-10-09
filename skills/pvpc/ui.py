@@ -25,7 +25,8 @@ if ANDROID:
     import android
 
 # Never produce a tap on or near these.
-HAZARDS = ("TRANSFER", "POWER UP", "EVOLVE", "PURIFY", "MEGA EVOLVE", "UNLOCK", "TRADE", "BUDDY", "NEW ATTACK")
+HAZARDS = ("TRANSFER", "POWER UP", "EVOLVE", "PURIFY", "MEGA EVOLVE", "UNLOCK", "TRADE", "BUDDY", "NEW ATTACK",
+           "FUSE", "UNFUSE")
 HAZARD_MARGIN = 0.02  # of window height, around each hazard box
 
 

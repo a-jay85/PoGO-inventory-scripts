@@ -609,7 +609,10 @@ def to_top(bounds):
     got = slider_to_top(bounds) if ui.ANDROID else None
     how = "slider"
     if not got:
-        _, _, bounds = sort_by("HP", ui.capture()[1])
+        path, bounds = ui.capture()
+        if leave_multiselect(ui.ocr(path), bounds):  # the hold on the slider landed on a tile after it faded: a long press
+            bounds = ui.capture()[1]
+        _, _, bounds = sort_by("HP", bounds)
         got, how = sort_by("NAME", bounds), "sort HP, then Name"
     scrolled = False
     log(f"  back to the top ({how}): {time.time() - t0:.1f}s")

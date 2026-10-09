@@ -41,6 +41,10 @@ Classify by what the diff is. Scope is the skill when there is one, e.g. `fix(pv
 
 Amend only when fixing the commit just made in this conversation and it isn't pushed yet. Otherwise make a new commit.
 
+## In-game searches
+
+Before typing or building a storage search, read `skills/pvpc/SEARCH.md` (live at `~/.claude/skills/pvpc/SEARCH.md`). It lists every search term, how `&` `,` `!` combine, and the known bugs. Prefer a tighter search over scanning more tiles.
+
 ## Seeing the phone
 
 Scripts see the Android phone with its own screenshots (`adb exec-out screencap`, via `ui.capture()` / `android.capture()` in `skills/pvpc/android.py`). Never use scrcpy or a Mac window grab (`screencapture`) for it: scrcpy's picture freezes at random while the Mac is in use. New scripts reuse `ui.capture()` and don't add their own capture path. `POGO_SCRCPY=1` brings the old scrcpy window back, only if the user asks for it.

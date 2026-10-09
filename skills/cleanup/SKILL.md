@@ -8,6 +8,7 @@ model: claude-sonnet-5-5
 
 Uses the shared tapper and screen reader from /pvpc (`~/.claude/skills/pvpc`: `ui.py`, `run.py`, `search.py`).
 `S=~/.claude/skills/cleanup`.
+Search terms and their bugs: `~/.claude/skills/pvpc/SEARCH.md`. Read it before building a search.
 
 ## Shadows in Nope: purify, then transfer
 

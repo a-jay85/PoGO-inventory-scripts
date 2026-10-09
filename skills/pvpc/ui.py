@@ -12,7 +12,7 @@ Claude doesn't need screenshots, and hands back fuzzed tap spots in screenshot c
 
 With POGO_PHONE=android the screen comes from the phone's own screenshots and taps go through adb (see android.py).
 """
-import json, os, random, re, shutil, subprocess, sys, time
+import json, os, random, re, shutil, subprocess, sys, time, unicodedata
 from PIL import Image
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -229,6 +229,39 @@ def ticked_tags(path, texts):
 
 # ---------- species from name ----------
 
+def letters(s):
+    """'Flabébé' -> 'flabebe', 'Type: Null' -> 'typenull', 'Mime Jr.' -> 'mimejr'"""
+    return re.sub(r"[^a-z]", "", unicodedata.normalize("NFKD", s).lower())
+
+
+def loose_match(name, texts, gm):
+    """no exact name match. Try the letters only (Flabébé, Type: Null, Mime Jr.).
+    Then the gender sign after the name, which can read as one stray letter ('Raltsр', cleaned to 'Raltsp'):
+    drop it, but only if the 'RALTS CANDY' line names that species' family and no family member is spelled
+    that way (Porygon + 'Z' is Porygon-Z)."""
+    if re.search(r"[\d*]", name):  # our own nicknames ('89 HA FP*'): never a species
+        return []
+    mons = [p for p in gm["pokemon"] if not p["speciesId"].endswith(("_shadow", "_mega", "_mega_x", "_mega_y", "_xs"))
+            and "_primal" not in p["speciesId"]]
+    spell = lambda p: {letters(p["speciesName"].split(" (")[0]), letters(p["speciesName"])}
+    out = [p for p in mons if letters(name) in spell(p)]
+    if out:
+        return out
+    candy = {m.group(1) for t in texts for m in [re.fullmatch(r"(.+) CANDY", norm(t))] if m}
+    by_id = {p["speciesId"]: p for p in gm["pokemon"]}
+    def root(p):
+        while p.get("family", {}).get("parent") in by_id:
+            p = by_id[p["family"]["parent"]]
+        return p
+    family = lambda p: (p.get("family") or {}).get("id")
+    for p in mons:
+        base = letters(p["speciesName"].split(" (")[0])
+        if len(letters(name)) == len(base) + 1 and letters(name).startswith(base) and norm(root(p)["speciesName"].split(" (")[0]) in candy:
+            if not any(letters(name) in spell(q) for q in mons if family(q) and family(q) == family(p)):
+                out.append(p)
+    return out
+
+
 def species_for(name, texts):
     gm = json.load(open(os.path.join(HERE, "gamemaster.json")))
     words = {w for t in texts for w in norm(t).split()}  # the type line reads as one text: "DARK / NORMAL"
@@ -240,6 +273,8 @@ def species_for(name, texts):
         base = p["speciesName"].split(" (")[0]
         if base.lower() == (name or "").lower():
             cands.append(p)
+    if not cands and name:
+        cands = loose_match(name, texts, gm)
     if (name or "").lower() == "pikachu":  # costumes all share Pikachu's base stats, so they rank the same
         return ["pikachu"]
     if len(cands) > 1:  # regional forms etc: keep those whose types match the type line

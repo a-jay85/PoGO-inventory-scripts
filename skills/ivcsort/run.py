@@ -7,14 +7,15 @@
   caffeinate -dimsu python3 run.py pools <run dir>          2. type the pool searches, read every tile (changes nothing)
   python3 run.py plan <run dir>                             3. decide offline -> <run dir>/plan.txt (no phone)
   caffeinate -dimsu python3 run.py fallen <run dir>         3b. sort the fallen-out ones into groups (changes nothing)
-  caffeinate -dimsu python3 run.py act <run dir> [--limit N] 4. favorite+untag or Nope, as plan.json says
+  caffeinate -dimsu python3 run.py act <run dir> [--limit N] [--yes]  4. favorite+untag or Nope, as plan.json says.
+                                                            Lists the NOPEs and asks first (--yes: don't ask)
   caffeinate -dimsu python3 run.py act-fallen <run dir> [--limit N]  5. tag the fallen-out ones (after act)
   python3 run.py search "<query>"                           type one search and print the tiles (testing)
 
 Start with Pokémon GO open on the Pokémon screen. Every step writes into runs/<time>/ (scan.json, pools.json,
-plan.txt, plan.json, log.txt). Only `act` changes anything, and only after the user has read plan.txt.
+plan.txt, plan.json, log.txt). Only `act` changes anything, and only after the user says yes to its NOPE list.
 """
-import importlib.util, os, re, sys, time
+import hashlib, importlib.util, os, re, sys, time
 from collections import Counter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -360,6 +361,30 @@ def plan():
     print(f"table: {os.path.join(base.RUN_DIR, 'plan.txt')}")
 
 
+def approved(yes):
+    """show the NOPE list and ask once per plan. The answer is kept (approved.txt holds the plan's hash),
+    so restarting act on the same plan doesn't ask again. --yes says yes without asking."""
+    raw = open(os.path.join(base.RUN_DIR, "plan.json"), "rb").read()
+    digest = hashlib.sha256(raw).hexdigest()
+    ok_path = os.path.join(base.RUN_DIR, "approved.txt")
+    if os.path.exists(ok_path) and open(ok_path).read().strip() == digest:
+        return True
+    plan_ = load("plan.json")
+    nopes = [m for m in plan_ if m["verdict"] == "NOPE"]
+    keeps = sum(m["verdict"] == "KEEP" for m in plan_)
+    for m in nopes:
+        print(f"NOPE  {m.get('name') or m['tile']!r:16} CP{m['cp']:<5} {m.get('species') or '?':20} {(m.get('why') or [''])[0]}")
+    print(f"{len(nopes)} to Nope, {keeps} to keep (favorite + untick IVC). Full table: {os.path.join(base.RUN_DIR, 'plan.txt')}")
+    if not yes:
+        if not sys.stdin.isatty():
+            sys.exit("act needs a yes: run it in a terminal, or add --yes once you've read plan.txt")
+        if input("Go ahead? [y/N] ").strip().lower() not in ("y", "yes"):
+            return False
+    with open(ok_path, "w") as f:
+        f.write(digest + "\n")
+    return True
+
+
 # ---------- fallen out ----------
 # Older Pokémon (no IVC tag) that the new keepers push out of the top. Not traded and caught 2016-2020 ->
 # GuaranteedLucky (a trade is guaranteed lucky). Not traded and older than OLD_DAYS -> Old. Anything else
@@ -529,6 +554,8 @@ if __name__ == "__main__":
                 sys.exit("run plan first, and read plan.txt")
             if any(m.get("unrenamed") for m in load("plan.json")) and "--force" not in a:
                 sys.exit("some IVC Pokémon aren't renamed yet: run /ivc first (or --force)")
+            if not approved("--yes" in a):
+                sys.exit("not approved, nothing changed")
             act(limit)
         elif cmd == "search":
             front()

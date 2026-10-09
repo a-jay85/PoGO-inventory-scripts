@@ -42,8 +42,8 @@ If they don't, stop: male/female searches would count Pokémon twice and Nope to
 
 1. `caffeinate -dimsu python3 $S/run.py scan` opens every IVC Pokémon and writes `runs/<time>/scan.json`.
 2. `caffeinate -dimsu python3 $S/run.py pools $S/runs/<time>` types the pool searches and writes `pools.json`. You can rerun it to carry on.
-3. `python3 $S/run.py plan $S/runs/<time>` writes `plan.txt`. **Show the user the NOPE lines and get a yes before step 4.**
-4. `caffeinate -dimsu python3 $S/run.py act $S/runs/<time>` favorites and untags, or Nopes.
+3. `python3 $S/run.py plan $S/runs/<time>` writes `plan.txt`.
+4. `caffeinate -dimsu python3 $S/run.py act $S/runs/<time>` lists the NOPEs and asks `Go ahead? [y/N]` in the terminal, then favorites and untags, or Nopes. It asks once per plan.
 
 To test one search, run `python3 $S/run.py search "4&!#Nope&shadow"`.
 

@@ -190,8 +190,12 @@ def detail_info(texts):
 def tile_cps(texts):
     """the CP labels of the list's tiles"""
     cps = [t for t in texts if re.fullmatch(r"CP\s*\d+", t[4].upper().replace(" ", ""))]
-    # a shiny's sparkles cover the 'CP': '$1636', 'ф1629', '$2256,'. Not a tagged name ('•96') under a real CP
-    return cps + [t for t in texts if re.fullmatch(r"[^\dA-Z•·\s]{1,2}\d{3,4}[.,]?", t[4].upper().replace(" ", ""))
+    # a shiny's sparkles cover the 'CP': '$1636', 'ф1629', '$2256,', or just '2168' (that one only in a row of CPs).
+    # Not a tagged name ('•96') under a real CP
+    def shiny(t):
+        m = re.fullmatch(r"([^\dA-Z•·\s]{0,2})\d{3,4}[.,]?", t[4].upper().replace(" ", ""))
+        return m and (m.group(1) or any(abs(t[1] - c[1]) < 0.01 for c in cps))
+    return cps + [t for t in texts if shiny(t)
                   and not any(0.08 < t[1] - c[1] < 0.13 and abs((t[0] + t[2] / 2) - (c[0] + c[2] / 2)) < 0.1 for c in cps)]
 
 

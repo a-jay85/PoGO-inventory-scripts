@@ -504,6 +504,7 @@ def act(limit):
     log(f"act: {sum(todo.values())} to change ({len(progress['done'])} done by earlier runs, "
         f"{len(skipped)} skipped earlier: delete act.json to try those again)")
     pooled = []  # pools and counts, loaded the first time a Pokémon has to be judged again
+    opened = [0]
 
     def visit(i, n, c):
         if not todo[(n, c)] or (n, c) in skipped:
@@ -519,6 +520,7 @@ def act(limit):
 
     def change(i, n, c):
         plans = want[(n, c)]
+        opened[0] += 1
         log(f"tile {i}: {n} CP{c}")
         ivcrun.open_tile(i)
         now = read_member(n, c)
@@ -580,7 +582,7 @@ def act(limit):
     q = act_query(left)
     _, texts, _ = start_search(q)
     log(f"{q}: the game says {result_count(texts)}")
-    walk_list(visit, limit)
+    walk_list(visit, stop=lambda n: opened[0] >= limit)  # --limit counts the ones opened, not the ones passed
     log(f"left over (not found in the list): {sum(todo.values())}, skipped: {len(skipped)}")
 
 

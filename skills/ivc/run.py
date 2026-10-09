@@ -38,9 +38,36 @@ def untouched(name):
     return n in SPECIES_NAMES or (len(n) >= 6 and any(s.startswith(n) for s in SPECIES_NAMES))
 
 
+SCROLL_FROM = re.compile(r"WEIGHT|HEIGHT|STARDUST|CANDY|ENERGY|CAUGHT|HATCHED|THIS POK|BECOME|CAN FUSE|CAN USE")
+MOVE_STOPS = ("NEW ATTACK", "CAUGHT", "HATCHED", "RECEIVED", "TRADED", "OBTAINED", "PURIFIED", "RAID", "RESEARCH")
+
+
+def moves_on(texts):
+    """the moves under the GYMS & RAIDS / TRAINER BATTLES tabs, or None if the list isn't all on screen yet"""
+    tabs = [t[1] for t in texts if " ".join(ui.norm(t[4]).split()) in ("GYMS RAIDS", "TRAINER BATTLES")]
+    if not tabs:
+        return None
+    top = max(tabs)
+    stops = [t[1] for t in texts if t[1] > top and ui.norm(t[4]).startswith(MOVE_STOPS)]
+    if not stops and top > 0.6:  # tabs low on the screen, nothing after them: the moves run off the bottom
+        return None
+    end = min(stops) if stops else 0.92
+    moves = [re.sub(r"^[^A-Za-z]+", "", t[4]).strip() for t in texts if top < t[1] < end and t[0] < 0.45]
+    return [m for m in moves if m and not ui.norm(m).endswith("BONUS")]  # SHADOW / WEATHER BONUS labels
+
+
+def label_spot(texts, lo, hi, lowest):
+    """the middle of a label between lo and hi (window fractions) that is never a button and isn't near one"""
+    spots = [(t[0] + t[2] / 2, t[1] + t[3] / 2) for t in texts if SCROLL_FROM.search(ui.norm(t[4]))]
+    spots = sorted((p for p in spots if lo < p[1] < hi and ui.safe(p[0], p[1], texts)), key=lambda p: p[1])
+    return (spots[-1] if lowest else spots[0]) if spots else None
+
+
 def read_moves():
     """scroll the detail screen up to the moves, read them, scroll back. The drag starts on the weight
-    (no button there) and the way back starts where the weight ended up, so neither touches a button."""
+    (no button there) and the way back starts where the weight ended up, so neither touches a button.
+    Kyurem's fusion section pushes the moves farther down: then more drags, each from a label like the
+    fusion line or the energy counts (never a button), and the same back down."""
     _, texts, _, bounds = wait_for("detail")
     kg = [t for t in texts if re.search(r"\d\s*kg$", t[4].strip())]
     if len(kg) != 1:
@@ -48,19 +75,35 @@ def read_moves():
     fx, fy = kg[0][0] + kg[0][2] / 2, kg[0][1] + kg[0][3] / 2
     ty = fy - random.uniform(0.36, 0.40)
     drag(fx, fy, fx, ty, bounds)
+    extra = 0
     try:
-        _, texts, _, _ = wait_for("detail")
-        tabs = [t[1] for t in texts if " ".join(ui.norm(t[4]).split()) in ("GYMS RAIDS", "TRAINER BATTLES")]
-        if not tabs:
+        for _ in range(3):
+            # look, not wait_for: farther down the HP line is gone, and wait_for would pull the page back up
+            _, texts, _, _ = base.look()
+            moves = moves_on(texts)
+            if moves is not None or extra == 2:
+                break
+            spot = label_spot(texts, 0.45, 0.88, lowest=True)
+            if not spot:
+                break
+            x, y = spot
+            drag(x, y, x, max(y - random.uniform(0.36, 0.40), 0.15), bounds)
+            extra += 1
+        if moves is None:
             keep_capture("moves")
             raise Skip("moves section not on screen after scrolling")
-        top = max(tabs)
-        stops = [t[1] for t in texts if t[1] > top and ui.norm(t[4]).startswith(
-            ("NEW ATTACK", "CAUGHT", "HATCHED", "RECEIVED", "TRADED", "OBTAINED", "PURIFIED", "RAID", "RESEARCH"))]
-        end = min(stops) if stops else 0.92
-        moves = [re.sub(r"^[^A-Za-z]+", "", t[4]).strip() for t in texts if top < t[1] < end and t[0] < 0.45]
-        moves = [m for m in moves if m and not ui.norm(m).endswith("BONUS")]  # SHADOW / WEATHER BONUS labels
+        if len(moves) < 2:
+            keep_capture("moves")
     finally:
+        for _ in range(extra + 2 if extra else 0):  # back up to where the first drag left it: the HP line shows
+            _, texts, _, _ = base.look()
+            if any(re.search(r"\d+\s*/\s*\d+\s*HP", t[4]) for t in texts):
+                break
+            spot = label_spot(texts, 0.12, 0.55, lowest=False)
+            if not spot:
+                break
+            x, y = spot
+            drag(x, y, x, min(y + random.uniform(0.36, 0.40), 0.85), bounds)
         drag(fx, ty, fx, fy, bounds)
     def weight():
         _, texts, _, _ = wait_for("detail")
@@ -82,18 +125,32 @@ def read_moves():
         keep_capture("scroll-back")
         raise Stop("detail screen didn't scroll back to where it was")
     if len(moves) < 2:
-        keep_capture("moves")
         raise Skip(f"read fewer than 2 moves: {moves}")
     return moves
 
 
+def knows(moves, move):
+    """move shows in the move list read off the screen"""
+    w = " ".join(ui.norm(move).split())
+    # the bullet before a move can read as a letter ("O Body Slam"), so a match may have one stray word in front
+    return any(g == w or re.fullmatch(r"\S{1,2} " + re.escape(w), g) for g in (" ".join(ui.norm(m).split()) for m in moves))
+
+
 def elite_on(sp, moves):
     """the species' Elite TM moves that show in its move list"""
-    want = {m for s in sp for m in ivc.elite_moves(s)}
-    got = [" ".join(ui.norm(m).split()) for m in moves]
-    # the bullet before a move can read as a letter ("O Body Slam"), so a match may have one stray word in front
-    hit = lambda w: any(g == w or re.fullmatch(r"\S{1,2} " + re.escape(w), g) for g in got)
-    return sorted(m for m in want if hit(" ".join(ui.norm(m).split())))
+    return sorted(m for m in {m for s in sp for m in ivc.elite_moves(s)} if knows(moves, m))
+
+
+MOVE_NAMES = {m["moveId"]: m["name"] for m in GM["moves"]}
+
+
+def forms_by_moves(sp, moves):
+    """forms with the same name (Kyurem, Black and White Kyurem) told apart by a move only one of them learns.
+    No such move read: all of them stay, and CP and HP decide"""
+    pool = {s: {MOVE_NAMES.get(m, m) for m in pvp.SPECIES[s]["fastMoves"] + pvp.SPECIES[s]["chargedMoves"]}
+            for s in sp}
+    own = lambda s: pool[s] - set().union(*(pool[o] for o in sp if o != s))
+    return [s for s in sp if any(knows(moves, m) for m in own(s))] or sp
 
 
 def is_legendary(sp):
@@ -142,6 +199,9 @@ def process(i, tile_name, tile_cp, dry):
     if any(ivc.elite_moves(s) for s in sp):
         seen = read_moves()
         log(f"  moves read: {seen}")
+        if len(sp) > 1:
+            sp = forms_by_moves(sp, seen)
+            log(f"  forms the moves allow: {sp}")
         moves = elite_on(sp, seen)
     base.open_appraisal()
     bars, raws = appraise()

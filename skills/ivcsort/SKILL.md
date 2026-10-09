@@ -39,7 +39,7 @@ Search terms and their bugs: `~/.claude/skills/pvpc/SEARCH.md`. Read it before b
 Four steps. Only the last one changes anything.
 
 1. `caffeinate -dimsu python3 $S/run.py scan` opens every IVC Pokémon and writes `runs/<time>/scan.json`.
-2. `caffeinate -dimsu python3 $S/run.py pools $S/runs/<time>` types the pool searches and writes `pools.json`. You can rerun it to carry on.
+2. `caffeinate -dimsu python3 $S/run.py pools $S/runs/<time>` types the pool searches and writes `pools.json`. You can rerun it to carry on. At the end it reads again (up to 2 more times) any search whose miscount could turn a KEEP or NOPE into LEAVE.
 3. `python3 $S/run.py plan $S/runs/<time>` writes `plan.txt`.
 4. `caffeinate -dimsu python3 $S/run.py act $S/runs/<time>` lists the NOPEs and asks `Go ahead? [y/N]` in the terminal, then favorites and untags, or Nopes. It asks once per plan. Without a terminal it stops and prints the NOPE list instead. Show that list to the user. Rerun with `--yes` only after the user says yes.
 
@@ -50,7 +50,7 @@ To test one search, run `python3 $S/run.py search "4&!#Nope&shadow"`.
 ## How reading works
 
 - To clear the search bar, it closes the Pokémon screen and reopens it. A fresh screen always has an empty bar.
-- After each search it reads the game's count `Q (n)` and saves it in `counts.json`.
+- After each search it reads the game's count `Q (n)` and saves it in `counts.json`. A read that comes up short of that count scrolls a little longer before it stops.
 - If the tiles it read don't match that count, `plan` tries the worst case. If the worst case flips KEEP/NOPE, the verdict becomes LEAVE.
 - A search that shows no tiles and no count isn't saved. That Pokémon is SKIP until `pools` is run again.
 - Tile names get cleaned before matching. The tag icon reads as `9`, `$` or `•` (`993 H` is `93 H`). `13h` and `13 h` are the same name.

@@ -14,6 +14,7 @@ from run import Stop, Skip, Lost, log, keep_capture, go, tap, wait_for, key, typ
 
 ZOOM = "/tmp/pvpc-zoom.png"
 END_AFTER_STALE = 3
+EXTRA_SCROLLS = 2  # a read short of the game's count scrolls this many more times before it gives up
 MAX_SKIPS_IN_A_ROW = 5
 
 
@@ -493,7 +494,7 @@ def run_search(q, iv_only=False):
     want = result_count(texts)
     if want == 0:
         return [], 0
-    most, sightings, seen, stale, last = Counter(), Counter(), set(), 0, None
+    most, sightings, seen, stale, stuck, last = Counter(), Counter(), set(), 0, 0, None
     for turn in range(300):
         now = Counter((ui.tile_name(t[0]), t[1]) for t in ui.tiles(texts))
         if turn == 0:
@@ -514,13 +515,15 @@ def run_search(q, iv_only=False):
                 break
         if want is None and len(now) < 9:  # under three rows: everything is on screen
             break
-        if now == last:  # the list didn't move: the end
+        short = want is not None and sum(most.values()) < want  # the game counted more than we've read
+        stuck = stuck + 1 if now == last else 0
+        if stuck > (EXTRA_SCROLLS if short else 0):  # the list didn't move: the end (a short read scrolls again first)
             break
         last = now
         fresh = set(now) - seen
         seen |= set(now)
         stale = 0 if fresh else stale + 1
-        if stale >= END_AFTER_STALE:
+        if stale >= END_AFTER_STALE + (EXTRA_SCROLLS if short else 0):
             break
         small_scroll(bounds)
         path, bounds = ui.capture()  # the search bar may have scrolled away: just read the tiles

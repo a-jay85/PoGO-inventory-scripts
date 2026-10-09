@@ -16,6 +16,9 @@ ZOOM = "/tmp/pvpc-zoom.png"
 END_AFTER_STALE = 3
 EXTRA_SCROLLS = 2  # a read short of the game's count scrolls this many more times before it gives up
 MAX_SKIPS_IN_A_ROW = 5
+# a new search typed over a scrolled list shows its results scrolled the same way, so the top rows are never read.
+# Dragging back up isn't safe (one pull-down too many closes the Pokémon screen), so clear_search reopens it instead
+scrolled = False
 
 
 # ---------- walking a list ----------
@@ -70,6 +73,8 @@ def walk_list(visit, limit=10 ** 9, stop=None, odd=None):
                 break
         if not pick:
             before = set(seen)
+            global scrolled
+            scrolled = True
             scroll(bounds, "drag")
             screen, texts, _, _ = wait_for("list", "detail")
             if screen == "detail":  # the drag landed as a tap and opened a tile: back out and drag again
@@ -212,6 +217,8 @@ def to_search_list():
         go("POKMON", "list")
         _, texts, _, bounds = wait_for("list")
         if ui.search_box(texts) or empty_bar(texts):
+            global scrolled
+            scrolled = False
             break
         log("  no search bar yet: tapping POKÉMON again")
     else:
@@ -264,7 +271,8 @@ def x_button(bounds):
 
 def clear_search():
     """typing only lands in an empty search bar, and the game empties it when the Pokémon screen reopens:
-    close it with the X at the bottom, then Poké Ball -> POKÉMON"""
+    close it with the X at the bottom, then Poké Ball -> POKÉMON. A scrolled list always goes that way: it reopens at the top"""
+    global scrolled
     for _ in range(3):
         path, bounds = ui.capture()
         texts = ui.ocr(path)
@@ -273,8 +281,12 @@ def clear_search():
         if ui.search_panel(texts):  # left open: a Return that didn't take
             box = ui.search_box(texts)
             if not (box and ui.search_text(box)):
-                return "panel"  # open and empty: ready to type
-            close_panel(bounds)
+                if not scrolled:
+                    return "panel"  # open and empty: ready to type
+                click(0.10, 0.155, bounds)  # the < back arrow, then reopen below
+                time.sleep(random.uniform(1.2, 1.5))
+            else:
+                close_panel(bounds)
         try:
             screen, texts, _, bounds = wait_for("list", "tag-tab", "detail", "menu", "appraisal", timeout=6)
         except Stop:
@@ -292,9 +304,9 @@ def clear_search():
             continue
         if screen == "list" and ui.search_box(texts) and not ui.search_text(ui.search_box(texts)):
             return "list"
-        if screen == "list" and ui.search_box(texts) and x_button(bounds):
+        if screen == "list" and not scrolled and ui.search_box(texts) and x_button(bounds):
             return "panel"
-        if screen == "list" and empty_bar(texts) and open_panel(bounds):
+        if screen == "list" and not scrolled and empty_bar(texts) and open_panel(bounds):
             return "panel"
         if screen not in ("list", "tag-tab"):
             back_to_list()
@@ -302,6 +314,7 @@ def clear_search():
         click(0.5 + random.uniform(-0.01, 0.01), 0.93 + random.uniform(-0.004, 0.004), bounds)
         time.sleep(random.uniform(1.6, 2.0))
         off_map()
+        scrolled = False
     keep_capture("clear")
     raise Stop("couldn't get an empty search bar")
 
@@ -395,12 +408,16 @@ def top_row(path, texts):
 
 def small_scroll(bounds):
     """about a row and a half, so every tile is read on two or three screens"""
+    global scrolled
+    scrolled = True
     front()
     fx, fy = random.uniform(0.3, 0.7), random.uniform(0.6, 0.7)
     x, y = base.to_points(fx, fy, bounds)
-    dist = bounds[3] * random.uniform(0.2, 0.25)
-    ui.sh(ui.HELPER, "drag", f"{x:.1f}", f"{y:.1f}", f"{x + random.uniform(-6, 6):.1f}", f"{y - dist:.1f}",
-          str(random.randint(450, 650)))
+    # an adb swipe flings on: 0.22 in 550ms moved 0.25-0.30, and rows slipped past between two looks.
+    # Slower and shorter lands near 0.22 (measured on the Pixel, 2026-10-09)
+    dist = bounds[3] * (random.uniform(0.17, 0.19) if ui.ANDROID else random.uniform(0.2, 0.25))
+    ms = random.randint(900, 1100) if ui.ANDROID else random.randint(450, 650)
+    ui.sh(ui.HELPER, "drag", f"{x:.1f}", f"{y:.1f}", f"{x + random.uniform(-6, 6):.1f}", f"{y - dist:.1f}", str(ms))
     time.sleep(random.uniform(0.7, 0.9))
 
 

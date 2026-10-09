@@ -49,7 +49,7 @@ To test one search, run `python3 $S/run.py search "4&!#Nope&shadow"`.
 
 ## How reading works
 
-- To clear the search bar, it closes the Pokémon screen and reopens it. A fresh screen always has an empty bar.
+- To clear the search bar, it closes the Pokémon screen and reopens it. A fresh screen always has an empty bar. After a search that scrolled, it always reopens: a new search typed over a scrolled list starts scrolled too, and its top rows were never read.
 - After each search it reads the game's count `Q (n)` and saves it in `counts.json`. A read that comes up short of that count scrolls a little longer before it stops.
 - If the tiles it read don't match that count, `plan` tries the worst case. If the worst case flips KEEP/NOPE, the verdict becomes LEAVE.
 - A search that shows no tiles and no count isn't saved. That Pokémon is SKIP until `pools` is run again.

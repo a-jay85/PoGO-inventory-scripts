@@ -75,8 +75,8 @@ def read_member(tile_name, tile_cp, ivc=True):
 # ---------- walking a list ----------
 
 def odd_name(n):
-    """a tile name that doesn't look like an /ivc name (IV number first, or a move-only name like 'FP*')"""
-    return not re.match(r"\d{2}|[A-Z]{2}\*", n or "")
+    """a tile name that doesn't look like an /ivc name (IV number first, one digit for 0-9% like '9 h', or a move-only name like 'FP*')"""
+    return not re.match(r"\d{2}|\d(\s|/|$)|[A-Z]{2}\*", n or "")
 
 
 def walk_list(visit, limit=10 ** 9, stop=None):

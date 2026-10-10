@@ -262,13 +262,45 @@ def pools():
                 to_search_list()
                 continue
         if want is not None and len(got) != want:
-            got2, want2 = run_search(q, iv_only)  # read it once more and keep the closer one
-            if want2 is not None and abs(len(got2) - want2) < abs(len(got) - want):
-                got = got2
+            got = closer(q, iv_only, got, want)  # read it once more and keep the closer one
         done[q], wants[q] = got, want
         save("pools.json", done)
         save("counts.json", wants)
         log(f"  {q}: {len(done[q])} tiles, {sum(sort.parse_name(n).iv is not None for n, _ in done[q])} with an IV")
+    reread(members, done, wants)
+
+
+def closer(q, iv_only, got, want):
+    """read q again: the read nearer the game's count wins"""
+    got2, want2 = run_search(q, iv_only)
+    return got2 if want2 is not None and abs(len(got2) - want2) < abs(len(got) - want) else got
+
+
+REREADS = 2  # extra reads for a search whose miscount would turn a verdict into LEAVE
+
+
+def reread(members, done, wants):
+    """a search read short or long only matters when it could flip a KEEP or NOPE (plan would LEAVE it).
+    Read just those again, up to REREADS times each, until one matches the count."""
+    results = {k: [tuple(x) for x in v] for k, v in done.items()}
+    flips = []
+    for m in members:
+        if any(q not in results for q in sort.searches_for(m)):
+            continue
+        verdict, why = sort.decide(m, results)
+        if recheck(m, results, wants, verdict, why)[0] == "LEAVE" != verdict:
+            flips += [q for q in sort.searches_for(m) if wants.get(q) is not None and wants[q] != len(results[q])]
+    flips = list(dict.fromkeys(flips))
+    if not flips:
+        return
+    log(f"{len(flips)} miscounted searches could flip a verdict: reading them again")
+    for q in flips:
+        for _ in range(REREADS):
+            if len(done[q]) == wants[q]:
+                break
+            done[q] = closer(q, not q.endswith(sort.NOT_NOPE), done[q], wants[q])
+        save("pools.json", done)
+        log(f"  {q}: {len(done[q])} of {wants[q]} after rereading")
 
 
 # ---------- 3. plan ----------

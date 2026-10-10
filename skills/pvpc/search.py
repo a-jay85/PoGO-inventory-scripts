@@ -15,6 +15,13 @@ from run import Stop, Skip, Lost, log, keep_capture, go, tap, wait_for, key, typ
 ZOOM = "/tmp/pvpc-zoom.png"
 END_AFTER_STALE = 3
 MAX_SKIPS_IN_A_ROW = 5
+# a new search typed over a scrolled list shows its results scrolled the same way, so the top rows are never read.
+# Dragging back up isn't safe (one pull-down too many closes the Pokémon screen), and a tab switch doesn't reset a list
+# with a search in it. start_search drags the slider on the right edge to the top instead (Android), or sorts by HP
+# and then by Name again. Both keep the search. A run can start on a list an earlier run left scrolled, so the first
+# search does it too
+scrolled = True
+SORT_BUTTON = (0.838, 0.937)  # the round sort button, bottom right
 
 
 # ---------- walking a list ----------
@@ -69,6 +76,8 @@ def walk_list(visit, limit=10 ** 9, stop=None, odd=None):
                 break
         if not pick:
             before = set(seen)
+            global scrolled
+            scrolled = True
             scroll(bounds, "drag")
             screen, texts, _, _ = wait_for("list", "detail")
             if screen == "detail":  # the drag landed as a tap and opened a tile: back out and drag again
@@ -308,8 +317,10 @@ def clear_search():
 def result_count(texts):
     """the 'Q (7)' under the POKÉMON tab after a search"""
     for t in texts:
-        m = re.match(r"[Q9]?\s*\((\d[\d,]*)\)", t[4])  # the Q icon can read as 9
+        m = re.match(r"[Q9]?\s*\((\d[\d,]*|O)\)", t[4])  # the Q icon can read as 9, and (0) as (O)
         if t[1] < 0.15 and m:
+            if m.group(1) == "O":  # trust it only with no tiles: a misread (8) must never skip a search
+                return None if ui.tiles(texts) else 0
             return int(m.group(1).replace(",", ""))
 
 
@@ -394,12 +405,16 @@ def top_row(path, texts):
 
 def small_scroll(bounds):
     """about a row and a half, so every tile is read on two or three screens"""
+    global scrolled
+    scrolled = True
     front()
     fx, fy = random.uniform(0.3, 0.7), random.uniform(0.6, 0.7)
     x, y = base.to_points(fx, fy, bounds)
-    dist = bounds[3] * random.uniform(0.2, 0.25)
-    ui.sh(ui.HELPER, "drag", f"{x:.1f}", f"{y:.1f}", f"{x + random.uniform(-6, 6):.1f}", f"{y - dist:.1f}",
-          str(random.randint(450, 650)))
+    # an adb swipe flings on: 0.22 in 550ms moved 0.25-0.30, and rows slipped past between two looks.
+    # Slower and shorter lands near 0.22 (measured on the Pixel, 2026-10-09)
+    dist = bounds[3] * (random.uniform(0.17, 0.19) if ui.ANDROID else random.uniform(0.2, 0.25))
+    ms = random.randint(900, 1100) if ui.ANDROID else random.randint(450, 650)
+    ui.sh(ui.HELPER, "drag", f"{x:.1f}", f"{y:.1f}", f"{x + random.uniform(-6, 6):.1f}", f"{y - dist:.1f}", str(ms))
     time.sleep(random.uniform(0.7, 0.9))
 
 
@@ -432,6 +447,7 @@ def drop_misreads(most, sightings, extra):
 
 def start_search(q):
     """type one search (Return, SHOW EVOLUTIONARY LINE unticked). -> (path, texts, bounds) of the results, at the top"""
+    global scrolled
     t0 = time.time()
     for attempt in range(3):
         c = clear_search()
@@ -479,7 +495,94 @@ def start_search(q):
         raise Stop("SHOW EVOLUTIONARY LINE stays ticked")
     if ticked is None:
         log("can't see SHOW EVOLUTIONARY LINE after the search")
+    want = result_count(texts)
+    if want is not None and want <= len(ui.tiles(texts)):  # every result fits on one screen: nothing to scroll
+        scrolled = False
+    if scrolled:
+        path, texts, bounds = to_top(bounds)
     return path, texts, bounds
+
+
+def sort_by(label, bounds):
+    """open the sort menu, pick RECENT / FAVORITE / NUMBER / HP / NAME / COMBAT POWER, wait for the list"""
+    click(SORT_BUTTON[0] + random.uniform(-0.01, 0.01), SORT_BUTTON[1] + random.uniform(-0.004, 0.004), bounds)
+    for _ in range(12):
+        time.sleep(0.25)
+        path, bounds = ui.capture()
+        texts = ui.ocr(path)
+        row = [t for t in texts if t[1] > 0.3 and ui.norm(t[4]) == label]
+        if row and any(ui.norm(t[4]) == "COMBAT POWER" for t in texts):
+            break
+    else:
+        keep_capture("sortmenu")
+        raise Stop("the sort menu didn't open")
+    click(0.868 + random.uniform(-0.01, 0.01), row[0][1] + row[0][3] / 2 + random.uniform(-0.004, 0.004), bounds)
+    for _ in range(12):  # the menu fades out: a tap on the button before it's gone gets lost
+        time.sleep(0.25)
+        path, bounds = ui.capture()
+        texts = ui.ocr(path)
+        if not any(ui.norm(t[4]) == "COMBAT POWER" for t in texts) and ui.classify(texts) == "list":
+            return path, texts, bounds
+    keep_capture("sortmenu")
+    raise Stop(f"the list didn't come back after sorting by {label}")
+
+
+def find_slider(path):
+    """the slider on the right edge, shown for a moment after a scroll: a white pill with teal arrows.
+    -> its middle (fy), or None. Below 0.88 the sort button's arrows would look the same"""
+    im = Image.open(path).convert("RGB")
+    W, H = im.size
+    ys = []
+    for y in range(int(H * 0.2), int(H * 0.88), 2):
+        for x in range(int(W * 0.90), int(W * 0.965), 2):
+            r, g, b = im.getpixel((x, y))
+            if g > 150 and b > 150 and r < 120:
+                ys.append(y)
+                break
+    if not ys or (max(ys) - min(ys)) / H > 0.05:  # nothing, or something bigger than the pill's arrows
+        return None
+    return (min(ys) + max(ys)) / 2 / H
+
+
+def at_top(texts):
+    """the first row of CPs sits right under SHOW EVOLUTIONARY LINE only at the top of the list (0.020 on the Pixel)"""
+    head = max((t[1] + t[3] for t in texts if t[1] < 0.35 and ui.norm(t[4]) == "SHOW EVOLUTIONARY LINE"), default=None)
+    cps = [t[1] for t in texts if re.fullmatch(r"CP\s*\d+", t[4].upper().replace(" ", ""))]
+    return head is not None and bool(cps) and 0.01 < min(cps) - head < 0.03
+
+
+def slider_to_top(bounds):
+    """a short drag down the list shows the slider. Hold it, then pull it to the top. -> (path, texts, bounds) or None"""
+    fx = random.uniform(0.4, 0.6)
+    x, y = base.to_points(fx, random.uniform(0.65, 0.7), bounds)
+    ui.sh(ui.HELPER, "drag", f"{x:.1f}", f"{y:.1f}", f"{x:.1f}", f"{y - bounds[3] * 0.08:.1f}", "400")  # finger up: never past the top
+    path, bounds = ui.capture()
+    fy = find_slider(path)
+    if fy is None:
+        log("  no slider on the right edge")
+        return None
+    ui.android.hold_drag(random.uniform(0.945, 0.955), fy, random.uniform(0.945, 0.955), random.uniform(0.14, 0.16))
+    time.sleep(random.uniform(0.3, 0.4))
+    path, bounds = ui.capture()
+    texts = ui.ocr(path)
+    if not at_top(texts) or ui.classify(texts) != "list":
+        log("  the slider didn't reach the top")
+        return None
+    return path, texts, bounds
+
+
+def to_top(bounds):
+    """back to the top of the list, the search still in the bar: the slider (Android), else sort by HP then Name"""
+    global scrolled
+    t0 = time.time()
+    got = slider_to_top(bounds) if ui.ANDROID else None
+    how = "slider"
+    if not got:
+        _, _, bounds = sort_by("HP", ui.capture()[1])
+        got, how = sort_by("NAME", bounds), "sort HP, then Name"
+    scrolled = False
+    log(f"  back to the top ({how}): {time.time() - t0:.1f}s")
+    return got
 
 
 def run_search(q, iv_only=False):

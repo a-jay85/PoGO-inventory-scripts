@@ -14,6 +14,9 @@ from run import Stop, Skip, Lost, log, keep_capture, go, tap, wait_for, key, typ
 
 ZOOM = "/tmp/pvpc-zoom.png"
 END_AFTER_STALE = 3
+# Pixel rows are 0.165 apart and a row down to ~0.83 still reads. A list whose lowest tile sits above this had room
+# for another row: that's its end, no drags needed (3 stale drags on a short list cost ~10s). iPhone: not measured
+LAST_ROW_ABOVE = 0.6 if ui.ANDROID else 0
 MAX_SKIPS_IN_A_ROW = 5
 # a new search typed over a scrolled list shows its results scrolled the same way, so the top rows are never read.
 # Dragging back up isn't safe (one pull-down too many closes the Pokémon screen), and a tab switch doesn't reset a list
@@ -74,6 +77,9 @@ def walk_list(visit, limit=10 ** 9, stop=None, odd=None):
             if here[(n, c)] > passed[(n, c)]:
                 pick = (i, n, c)
                 break
+        if not pick and ts and max(t[3] for t in ts) < LAST_ROW_ABOVE:
+            log("end of list (room for another row, none there)")
+            return
         if not pick:
             before = set(seen)
             global scrolled
@@ -273,9 +279,9 @@ def x_button(bounds):
 def clear_search():
     """typing only lands in an empty search bar, and the game empties it when the Pokémon screen reopens:
     close it with the X at the bottom, then Poké Ball -> POKÉMON"""
+    want = ("list", "tag-tab", "detail", "menu", "appraisal")
     for _ in range(3):
-        path, bounds = ui.capture()
-        texts = ui.ocr(path)
+        screen, texts, _, bounds = base.look()
         if leave_multiselect(texts, bounds):
             continue
         if ui.search_panel(texts):  # left open: a Return that didn't take
@@ -283,8 +289,10 @@ def clear_search():
             if not (box and ui.search_text(box)):
                 return "panel"  # open and empty: ready to type
             close_panel(bounds)
+            screen = None
         try:
-            screen, texts, _, bounds = wait_for("list", "tag-tab", "detail", "menu", "appraisal", timeout=6)
+            if screen not in want:  # the first look is enough when it's already one of them
+                screen, texts, _, bounds = wait_for(*want, timeout=6)
         except Stop:
             if not ui.ANDROID:
                 raise
@@ -391,13 +399,13 @@ def hp_bar(im, t):
 def top_row(path, texts):
     """a chip row ('#Luckydex +') can hide the top row's CPs under the search bar: read those names off their HP bars.
     Only on the first screen, so a row that scrolled up under the bar isn't counted twice."""
-    cps = [t for t in texts if re.fullmatch(r"CP\s*\d+", t[4].upper().replace(" ", ""))]
+    cps = ui.tile_cps(texts)
     first_cp = min((c[1] for c in cps), default=1.0)
     head = max((t[1] + t[3] for t in texts if t[1] < 0.35 and (ui.norm(t[4]) == "SHOW EVOLUTIONARY LINE" or ui.search_box([t]))), default=0.2)
     im = Image.open(path).convert("RGB")
     out = []
     for t in texts:
-        if head < t[1] < first_cp + 0.05 and not re.fullmatch(r"CP\s*\d+", t[4].upper().replace(" ", "")) and hp_bar(im, t):
+        if head < t[1] < first_cp + 0.05 and t not in cps and hp_bar(im, t):
             if not any(0 < t[1] - c[1] < 0.13 and abs((t[0] + t[2] / 2) - (c[0] + c[2] / 2)) < 0.1 for c in cps):
                 out.append((ui.tile_name(t[4]), 0))
     return out
@@ -418,11 +426,33 @@ def small_scroll(bounds):
     time.sleep(random.uniform(0.7, 0.9))
 
 
-def merge_cutoffs(most, sightings):
+def nameless(texts):
+    """a CP with no name read under it: OCR misses a one-letter name ('f'). -> [('', cp)], folded into the
+    full name later if another screen reads it. Not the bottom row, where the buttons cover names"""
+    out = []
+    for c in ui.tile_cps(texts):
+        if c[1] < 0.75 and not any(0.08 < t[1] - c[1] < 0.13 and abs((t[0] + t[2] / 2) - (c[0] + c[2] / 2)) < 0.1 for t in texts):
+            out.append(("", int(re.sub(r"\D", "", c[4]))))
+    return out
+
+
+def merge_cutoffs(most, sightings, together=()):
     """a name read while half hidden (under the X button or the edge) comes out short: 'Cha' for 'Charmander',
-    '96' for '96 AD'. Same CP and the start of a longer name: fold it into the longer one."""
+    '96' for '96 AD'. Same CP and the start of a longer name: fold it into the longer one.
+    together: pairs seen side by side on one screen, two Pokémon ('93 H' and '93 HP', both CP2191)"""
+    squash = lambda n: re.sub(r"\s", "", n)
+    for k in sorted(most, key=lambda k: sightings[k]):  # a space read or not ('82 ha f', '82 haf'): one name
+        same = [o for o in most if o != k and o[1] == k[1] and squash(o[0]) == squash(k[0]) and frozenset((k, o)) not in together]
+        if k[1] and same:
+            o = max(same, key=lambda o: sightings[o])
+            most[o] = max(most[o], most[k])
+            sightings[o] += sightings[k]
+            del most[k]
     for k in sorted(most, key=lambda k: len(k[0])):
-        longer = [o for o in most if o != k and o[1] == k[1] and len(o[0]) > len(k[0]) and o[0].startswith(k[0])]
+        if not k[1]:  # no CP (read off its HP bar, top_row): '93 H' and '93 HP ATK' are two Pokémon
+            continue
+        longer = [o for o in most if o != k and o[1] == k[1] and len(o[0]) > len(k[0]) and o[0].startswith(k[0])
+                  and frozenset((k, o)) not in together]
         if longer:
             o = max(longer, key=lambda o: sightings[o])
             most[o] = max(most[o], most[k])
@@ -521,7 +551,8 @@ def sort_by(label, bounds):
         time.sleep(0.25)
         path, bounds = ui.capture()
         texts = ui.ocr(path)
-        if not any(ui.norm(t[4]) == "COMBAT POWER" for t in texts) and ui.classify(texts) == "list":
+        # every label gone: half faded, RECENT / FAVORITE still cover the top row, which is read only once
+        if not {ui.norm(t[4]) for t in texts} & {"RECENT", "FAVORITE", "NUMBER", "COMBAT POWER"} and ui.classify(texts) == "list":
             return path, texts, bounds
     keep_capture("sortmenu")
     raise Stop(f"the list didn't come back after sorting by {label}")
@@ -578,7 +609,10 @@ def to_top(bounds):
     got = slider_to_top(bounds) if ui.ANDROID else None
     how = "slider"
     if not got:
-        _, _, bounds = sort_by("HP", ui.capture()[1])
+        path, bounds = ui.capture()
+        if leave_multiselect(ui.ocr(path), bounds):  # the hold on the slider landed on a tile after it faded: a long press
+            bounds = ui.capture()[1]
+        _, _, bounds = sort_by("HP", bounds)
         got, how = sort_by("NAME", bounds), "sort HP, then Name"
     scrolled = False
     log(f"  back to the top ({how}): {time.time() - t0:.1f}s")
@@ -596,14 +630,16 @@ def run_search(q, iv_only=False):
     want = result_count(texts)
     if want == 0:
         return [], 0
-    most, sightings, seen, stale, last = Counter(), Counter(), set(), 0, None
+    most, sightings, seen, stale, last, together = Counter(), Counter(), set(), 0, None, set()
     for turn in range(300):
         now = Counter((ui.tile_name(t[0]), t[1]) for t in ui.tiles(texts))
+        now.update(nameless(texts))
         if turn == 0:
             now.update(top_row(path, texts))
         for k, v in now.items():
             most[k] = max(most[k], v)
             sightings[k] += 1
+        together |= {frozenset((a, b)) for a in now for b in now if a != b and a[1] == b[1]}
         if want is not None and want <= 9 and sum(most.values()) == want:  # one screen, all read
             break
         order = [bool(re.match(r"\d", ui.tile_name(t[0]))) for t in ui.tiles(texts)]  # row by row
@@ -628,7 +664,7 @@ def run_search(q, iv_only=False):
         small_scroll(bounds)
         path, bounds = ui.capture()  # the search bar may have scrolled away: just read the tiles
         texts = ui.ocr(path)
-    merge_cutoffs(most, sightings)
+    merge_cutoffs(most, sightings, together)
     if want is not None and sum(most.values()) > want:
         drop_misreads(most, sightings, sum(most.values()) - want)
     got = [k for k, v in most.items() for _ in range(v)]

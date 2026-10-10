@@ -27,7 +27,7 @@ Weak lines (no species, mega or shadow form of the line reaches STRONG_AT% on Di
 COLLECT lines (Vivillon patterns): a NOPE becomes LEAVE so the user picks.
 Fails: XXL/xxs in the name -> leave for the user. Otherwise -> Nope. No IV and no size (FP*, *) -> Nope.
 """
-import json, os, re, sys
+import difflib, json, os, re, sys
 from collections import Counter, namedtuple
 from functools import lru_cache
 
@@ -258,9 +258,13 @@ def strong(line):
 def identify(candy, type_words, cp, hp, iv):
     """renamed Pokémon: candidates from the candy's family, then the type line, then which ones CP and HP fit
     with that IV sum. -> list of species ids (one if sure)."""
-    candy = (candy or "").strip().lower()
+    letters = lambda n: re.sub(r"[^a-z0-9]", "", n.lower())  # OCR drops ' - and é: 'FARFETCHD', 'HOOH', 'FLABB'
+    candy = letters(candy or "")
     fam = lambda s: (SPECIES[s].get("family") or {}).get("id") or "solo " + base_name(s)  # legendaries: no family
-    fams = {fam(s) for s in SPECIES if base_name(s) == candy}
+    names = {letters(base_name(s)) for s in SPECIES}
+    if candy not in names:  # 'flabebe' read without its é's: the nearest name
+        candy = next(iter(difflib.get_close_matches(candy, names, 1, 0.8)), candy)
+    fams = {fam(s) for s in SPECIES if letters(base_name(s)) == candy}
     cands = [s for s in SPECIES if fam(s) in fams]
     typed = [s for s in cands if all(t.upper() in type_words for t in SPECIES[s]["types"] if t != "none")]
     if typed:

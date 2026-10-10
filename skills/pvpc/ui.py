@@ -171,7 +171,7 @@ def tile_name(name):
 def name_box(texts, hp_line):
     """nickname = the lowest text right above the HP line that spans its centre (not stray icons at the side)"""
     mid = hp_line[0] + hp_line[2] / 2
-    above = [t for t in texts if t[1] < hp_line[1] and hp_line[1] - t[1] < 0.08 and t[0] < mid < t[0] + t[2]
+    above = [t for t in texts if t[1] < hp_line[1] and hp_line[1] - t[1] < 0.1 and t[0] < mid < t[0] + t[2]
              and not norm(t[4]).startswith("LUCKY POK")]  # lucky ones have a LUCKY POKÉMON line under the name
     return max(above, key=lambda t: t[1]) if above else None
 
@@ -187,9 +187,21 @@ def detail_info(texts):
     return {"name": name, "cp": cp, "hp": hp, "tags": tags, "texts": [t[4] for t in texts]}
 
 
+def tile_cps(texts):
+    """the CP labels of the list's tiles"""
+    cps = [t for t in texts if re.fullmatch(r"CP\s*\d+", t[4].upper().replace(" ", ""))]
+    # a shiny's sparkles cover the 'CP': '$1636', 'ф1629', '$2256,', ':P393', or just '2168' (that one only in a row of CPs).
+    # Not a tagged name ('•96') under a real CP
+    def shiny(t):
+        m = re.fullmatch(r"([^\dA-Z•·\s]{0,2}P?)\d{2,4}[.,]?", t[4].upper().replace(" ", ""))
+        return m and (m.group(1) or any(abs(t[1] - c[1]) < 0.01 for c in cps))
+    return cps + [t for t in texts if shiny(t)
+                  and not any(0.08 < t[1] - c[1] < 0.13 and abs((t[0] + t[2] / 2) - (c[0] + c[2] / 2)) < 0.1 for c in cps)]
+
+
 def tiles(texts):
     """Pokémon tiles in the list, in reading order: (name, cp, x, y) with x, y = middle of the tile image"""
-    cps = [t for t in texts if re.fullmatch(r"CP\s*\d+", t[4].upper().replace(" ", ""))]
+    cps = tile_cps(texts)
     out = []
     for c in cps:
         # under 0.9: lower down, the round buttons (+, X, A-Z) cover the names and read as 'L+', '2'

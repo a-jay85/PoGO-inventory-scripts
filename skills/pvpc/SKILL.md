@@ -129,3 +129,4 @@ Every "tap X" below means: run `ui.py tap X`, then click the printed spot. After
 - Never tap Transfer, Power Up, Evolve, Mega Evolve, or Purify. `ui.py tap` refuses them and anything close to them. Don't work around a REFUSED. Take a screenshot and look instead.
 - If `read` says `unknown`, or shows a popup you didn't expect, stop. Take a screenshot. Don't confirm anything you didn't mean to.
 - Report back to the user after each rename, unless they've said to keep going.
+- Tags, the star and the name only change the Pokémon that was opened. The scripts check its CP, max HP, weight and height before and after each change (`still_opened()` in `run.py`). A stray swipe slides the detail screen to the next Pokémon. If that happens, the script stops and names the CP of the one on screen. Check that one by hand.

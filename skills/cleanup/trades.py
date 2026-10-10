@@ -261,8 +261,20 @@ def done_sheet(texts, bounds):
     raise Stop("after DONE: never got back to the detail page")
 
 
-def retag(on, off=("Nope",)):
-    """tick on, untick off, scrolling down the sheet to find each. Afterwards the tags must be exactly on."""
+def same_one(me, what):
+    """raise Stop unless the detail screen still shows me (CP, max HP, weight, height): a stray swipe slides to the next one"""
+    nums = lambda w: (w[1], w[2], base.number(w[3], "kg"), base.number(w[4], "m"))
+    now = base.settle(lambda: who(wait_for("detail")[1])[1], lambda w: base.same_pokemon(nums(me), nums(w)), timeout=2)
+    if not base.same_pokemon(nums(me), nums(now)):
+        keep_capture("moved")
+        raise Stop(f"{what}: the screen shows CP{now[1]} HP{now[2]}, but CP{me[1]} HP{me[2]} was read. "
+                   f"It slid to another Pokémon: check that one's tags by hand")
+
+
+def retag(on, me, off=("Nope",)):
+    """tick on, untick off, scrolling down the sheet to find each. Afterwards the tags must be exactly on.
+    me: who() of the Pokémon it was decided for. Checked before and after, so tags never land on another"""
+    same_one(me, "before the tags")
     _, texts, _, bounds = go("menu", "menu")
     tag = exact(texts, "TAG")
     if not tag:
@@ -316,6 +328,7 @@ def retag(on, off=("Nope",)):
     if got != good:
         keep_capture("tags")
         raise Stop(f"after DONE the tags read {got}, wanted {good}")
+    same_one(me, "after the tags")
 
 
 # ---------- the walk ----------
@@ -356,7 +369,7 @@ def walk(q, decide, done, limit):
                 log(f"DRY would retag {info['name']} CP{info['cp']}: {' + '.join(tags)}, Nope off")
                 passed[me] = "dry run"
             else:
-                retag(tags)
+                retag(tags, me)
                 done.append({"name": info["name"], "cp": info["cp"], "tags": tags})
                 save("done.json", done)
                 log(f"retagged {info['name']} CP{info['cp']}: {' + '.join(tags)}, Nope off  ({time.time() - t0:.1f}s, #{len(done)})")

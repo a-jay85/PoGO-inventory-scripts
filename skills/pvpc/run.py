@@ -362,14 +362,66 @@ def settle(read, ok, timeout=3):
         time.sleep(0.1)
 
 
-def detail_tags():
+# ---------- which Pokémon is open ----------
+# Tags, the star and the name may only change the Pokémon that was opened. A stray swipe on the detail screen
+# slides to its neighbour, and the tag sheet doesn't show which one it's on: on 10-07 a Nope meant for
+# Mewtwo CP2945 landed on Mewtwo CP2371. So each change checks CP and max HP before and after.
+OPENED = {}  # "who": (CP, max HP, kg, m) read on the detail screen right after open_tile()
+
+
+def number(s, unit):
+    """'12.5 kg' -> 12.5 (a comma decimal too), None if it isn't that"""
+    m = re.fullmatch(r"([\d.,]+)\s*" + unit, (s or "").strip())
+    return float(m.group(1).replace(",", ".")) if m else None
+
+
+def who(info):
+    """CP, max HP, weight and height: raid twins often share CP and HP, but hardly ever weight and height too"""
+    kg = next((v for v in (number(t, "kg") for t in info.get("texts", [])) if v is not None), None)
+    m = next((v for v in (number(t, "m") for t in info.get("texts", [])) if v is not None), None)
+    return info["cp"], info["hp"], kg, m
+
+
+def same_pokemon(a, b):
+    """two who() reads: the same Pokémon? Unread values, or a dropped CP digit ('CP62' for CP626), still match"""
+    (c1, *r1), (c2, *r2) = a, b
+    if any(x is not None and y is not None and x != y for x, y in zip(r1, r2)):
+        return False
+    return not (c1 and c2 and c1 != c2 and not (str(c1).startswith(str(c2)) or str(c2).startswith(str(c1))))
+
+
+def detail_now():
     _, texts, _, _ = wait_for("detail")
-    return [ui.norm(t) for t in ui.detail_info(texts)["tags"]]
+    return ui.detail_info(texts)
+
+
+def still_opened(what, info=None):
+    """raise Stop unless the detail screen still shows the Pokémon that was opened. info: a read already made.
+    Nothing opened through open_tile() yet: this read becomes the one to compare with"""
+    info = info or detail_now()
+    if not OPENED:
+        OPENED["who"] = who(info)
+        return
+    now = who(info)
+    if not same_pokemon(OPENED["who"], now):  # a read mid-slide: look again
+        now = settle(lambda: who(detail_now()), lambda w: same_pokemon(OPENED["who"], w), timeout=2)
+    if not same_pokemon(OPENED["who"], now):
+        keep_capture("moved")
+        say = lambda w: f"CP{w[0]} HP{w[1]} {w[2]}kg {w[3]}m"
+        raise Stop(f"{what}: the screen shows {say(now)}, but {say(OPENED['who'])} was opened. "
+                   f"It slid to another Pokémon: check that one's tags, star and name by hand")
+
+
+def detail_tags():
+    info = detail_now()
+    still_opened("after the tags", info)
+    return [ui.norm(t) for t in info["tags"]]
 
 
 def detail_name():
-    _, texts, _, _ = wait_for("detail")
-    return ui.detail_info(texts)["name"] or ""
+    info = detail_now()
+    still_opened("after the rename", info)
+    return info["name"] or ""
 
 
 def tick_tags():
@@ -422,6 +474,7 @@ def high_iv(ivs=None, raws=None):
 def set_tags(on=(), off=(), only=False, ivs=None, raws=None):
     """tick the on tags and untick the off ones, leave the rest. only: afterwards the detail must show just the on tags.
     Nope never goes on a 98%+ one: it's appraised first (unless ivs/raws are given) and skipped if so"""
+    still_opened("before the tags")
     if "NOPE" in {t.upper() for t in on}:
         keep, _, _, what = high_iv(ivs, raws)
         if keep:
@@ -458,6 +511,7 @@ def set_tags(on=(), off=(), only=False, ivs=None, raws=None):
 def set_star(on):
     """favorite (on) or not. The star toggles, so it's only tapped when it's the other way"""
     _, texts, path, bounds = wait_for("detail")
+    still_opened("before the star", ui.detail_info(texts))
     filled, spot = ui.star_filled(path, texts), ui.star_spot(texts)
     if filled is None and ui.ANDROID:  # the CP next to the star misread: look again at the phone's own screenshot
         path = ui.android.sharp()
@@ -468,6 +522,7 @@ def set_star(on):
     if filled is not on:
         def read():
             _, texts, path, _ = wait_for("detail")
+            still_opened("after the star", ui.detail_info(texts))
             f = ui.star_filled(path, texts)
             if f is None and ui.ANDROID:
                 path = ui.android.sharp()
@@ -529,6 +584,7 @@ def leave_rename(button, name=None, same=same_name):
 
 def do_rename(name, same=same_name):
     """same(read, wanted): how loosely the OCR of the name may match (each skill's names misread their own way)"""
+    still_opened("before the rename")
     go("pencil", "rename")
     with changing("renaming"):
         tap("field")
@@ -560,7 +616,8 @@ TYPES = {"NORMAL", "FIRE", "WATER", "GRASS", "ELECTRIC", "ICE", "FIGHTING", "POI
 
 
 def steady_detail():
-    """the screen slides in: wait for two reads that agree"""
+    """the screen slides in: wait for two reads that agree. The first one after open_tile() is the Pokémon that
+    tags, star and name may change (OPENED)"""
     prev = None
     for _ in range(6):
         _, texts, path, _ = wait_for("detail")
@@ -570,6 +627,7 @@ def steady_detail():
             break
         prev = now
         time.sleep(0.15)
+    OPENED.setdefault("who", who(info))
     return info, texts, path
 
 
@@ -644,6 +702,7 @@ def drag(fx, fy, tx, ty, bounds):
 def open_tile(i):
     """tap the tile. Now and then the detail opens already scrolled down to the moves: drag it back to the top,
     starting on the weight (no button there)."""
+    OPENED.clear()
     try:
         return go(f"tile {i}", "detail")
     except Stop:

@@ -966,6 +966,41 @@ def plan_lines(todo):
          for t in trims]
 
 
+CARRY_HOURS = 12  # one sitting of stops and restarts. Older stopped runs are left to `run.py fallen <run dir>`
+RUN_NAME = re.compile(r"\d{8}-\d{6}")
+
+
+def carry_over():
+    """new names from earlier runs that stopped before their fallen-out step, added to this run's renamed.json.
+    Looks back from this run to the last one with a fallen.json, at most CARRY_HOURS. Only pvpc's main run calls it."""
+    runs, me = os.path.split(RUN_DIR)
+    if not RUN_NAME.fullmatch(me):
+        return []
+    start = time.mktime(time.strptime(me, "%Y%m%d-%H%M%S"))
+    found = []
+    for d in sorted((d for d in os.listdir(runs) if RUN_NAME.fullmatch(d) and d < me), reverse=True):
+        path = os.path.join(runs, d)
+        if os.path.exists(os.path.join(path, "fallen.json")) or \
+                start - time.mktime(time.strptime(d, "%Y%m%d-%H%M%S")) > CARRY_HOURS * 3600:
+            break
+        if os.path.exists(os.path.join(path, "renamed.json")):
+            with open(os.path.join(path, "renamed.json")) as f:
+                found.append((d, json.load(f)))
+    renamed = load("renamed.json", [])
+    key = lambda r: (r["name"], r["cp"], tuple(r["species"]), r["shadow"])
+    have, carried, added = {key(r) for r in renamed}, [], []
+    for d, rs in reversed(found):  # oldest first
+        new = [r for r in rs if key(r) not in have]
+        have.update(map(key, new))
+        added += new
+        carried.append([d, len(new)])
+        log(f"carried over from {d} (stopped before its fallen-out step): {len(new)} new names of {len(rs)}")
+    if added:
+        save("renamed.json", added + renamed)
+        save("carried.json", load("carried.json", []) + carried)
+    return added
+
+
 def fallen_step():
     """reads only: pool searches -> pools.json + counts.json, the fallen-out ones -> fallen.json, the plan (fallen
     and trims) -> fallen.txt, their groups -> fallen-groups.json. Stops and starts again where it left off."""
@@ -1247,6 +1282,11 @@ if __name__ == "__main__":
             counts = main(limit, dry)
             at_end = counts.pop("end", 0)
             log(f"finished: {dict(counts)}")
+            if at_end:  # and what earlier runs that stopped early renamed
+                try:
+                    carry_over()
+                except Exception as e:  # never let it stop this run's own fallen-out step
+                    log(f"no carry-over from earlier runs: {type(e).__name__}: {e}")
             if at_end and load("renamed.json", []):  # still on the phone: check what the new names pushed out
                 try:
                     fallen_step()

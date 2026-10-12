@@ -139,6 +139,10 @@ def classify(texts):
         return "menu"
     if any(re.search(r"\d+\s*/\s*\d+\s*HP", t[4]) for t in texts):
         return "detail"
+    # a Pokémon defending a gym opens its own screen: no HP line, tags or weight, just its gym record
+    # ("Raid in progress!" shows only during a raid, so not that)
+    if "TIME DEFENDED" in words or "VICTORIES" in words and "TREATS" in words:
+        return "gym"
     if ("TAGS" in words or "EGGS" in words) and any("HAVE THIS TAG" in w for w in words) \
             or sum("HAVE THIS TAG" in w for w in words) >= 3:  # scrolled: header may be gone
         return "tag-tab"
@@ -441,6 +445,9 @@ def search_box(texts):
     """the search bar at the top of the list: 'Search' (Q = the magnifier) or a typed search like '#IVC' / '4&shadow'"""
     # Q = the magnifier. '#Luckydex +' chips don't have it; 'Q (5)' under the POKÉMON tab is the result count
     hits = [t for t in texts if t[1] < 0.3 and re.match(r"(?:[<‹]\s*[Q9]|Q)[\s,.]+\S", t[4]) and not re.match(r"Q\s*\([\dO]+\)", t[4])]  # (0) can read as (O)
+    if not hits:  # the magnifier read as a bare 9 ('9 Search'): only where the bar's text starts, as tile names under it
+        # read the tag icon as a 9 too ('9 96 HD'), and a result count is '9 (5)'
+        hits = [t for t in texts if 0.155 < t[1] < 0.2 and 0.35 < t[0] < 0.5 and re.match(r"9\s+[^\s(]", t[4])]
     if not hits:  # the magnifier glued to the text ('Q4&shadow', '< 9113&!#Nope'): go by where the bar sits
         hits = [t for t in texts if 0.155 < t[1] < 0.2 and t[0] < 0.35 and t[4].strip() not in ("<", "‹", "Q", "9", "< 9", "‹ 9")]
     return hits[0] if len(hits) == 1 else None
@@ -455,7 +462,7 @@ def search_panel(texts):
 
 def search_text(box):
     """what's typed in the search bar, as OCR reads it ('' if it just says Search)"""
-    t = re.sub(r"^(?:[<‹]\s*[Q9]|Q)[\s,.]+|^[<‹]\s*Q?|^Q(?=\d)", "", box[4]).strip()
+    t = re.sub(r"^(?:[<‹]\s*[Q9]|Q)[\s,.]+|^[<‹]\s*Q?|^Q(?=\d)|^9\s+", "", box[4]).strip()  # 9: the magnifier misread
     return "" if t.lower() in ("search", "9", "q") else t
 
 
@@ -478,17 +485,37 @@ def evo_ticked(path, texts):
     return ink > 6
 
 
-def star_spot(texts):
+def star_by_cp(texts):
     """favorite star: top right of the detail screen, level with the CP (the camera button sits below it)"""
     cpt = [t for t in texts if re.fullmatch(r"\S?P\s*\d{2,}", t[4].upper().replace(" ", "")) and t[1] < 0.2]  # the C can misread (S, G, &)
     if not cpt:  # 'CP' and the number read as two texts ('CP:', '957'): the number is level with the star
         cpt = [t for t in texts if re.fullmatch(r"\d{2,5}", t[4].strip()) and 0.06 < t[1] < 0.2 and t[0] < 0.75]
-    if len(cpt) != 1:
-        return ANDROID_STAR if ANDROID and unscrolled(texts) else None
-    return 0.895, cpt[0][1] + cpt[0][3] / 2 + 0.004
+    return (0.895, cpt[0][1] + cpt[0][3] / 2 + 0.004) if len(cpt) == 1 else None
 
 
 ANDROID_STAR = (0.901, 0.104)  # the Pixel's star in the capture layout, for when a lucky's sparkles hide the CP
+# iPhone: the star sits this far above the HP line (0.369-0.371 over 69 captures; a lucky's extra line: 0.390-0.392).
+# The HP line rests at 0.481-0.485 (a lucky: 0.505)
+IPHONE_STAR_ABOVE_HP, IPHONE_STAR_ABOVE_HP_LUCKY = 0.370, 0.391
+IPHONE_HP_REST, IPHONE_HP_REST_LUCKY = 0.484, 0.505
+
+
+def star_guess(texts):
+    """the star's usual spot, for when the CP beside it can't be read (a lucky's sparkles, sun glare behind the
+    Pokémon). Only on a detail screen at the top"""
+    if not unscrolled(texts):
+        return None
+    if ANDROID:
+        return ANDROID_STAR
+    hp = next(t for t in texts if re.search(r"\d+\s*/\s*\d+\s*HP", t[4]))
+    lucky = any(norm(t[4]).startswith("LUCKY POK") for t in texts)
+    if abs(hp[1] - (IPHONE_HP_REST_LUCKY if lucky else IPHONE_HP_REST)) > 0.006:
+        return None  # scrolled a little, or a LUCKY POKÉMON line went unread: the guess would land off the star
+    return 0.895, hp[1] - (IPHONE_STAR_ABOVE_HP_LUCKY if lucky else IPHONE_STAR_ABOVE_HP)
+
+
+def star_spot(texts):
+    return star_by_cp(texts) or star_guess(texts)
 
 
 def unscrolled(texts):
@@ -508,7 +535,9 @@ def star_filled(path, texts):
     r = int(0.018 * W)
     px = [im.getpixel((x, y)) for x in range(cx - r, cx + r + 1) for y in range(cy - r, cy + r + 1)]
     gold = sum(1 for p, g, b in px if p > 200 and g > 140 and b < 90 and p - b > 120)
-    if spot == ANDROID_STAR and gold <= len(px) * 0.15 and sum(1 for p in px if min(p) > 235) < len(px) * 0.03:
+    # the iPhone's outline is thinner and softer: 9-23% of the box is over 200, against ~1% over 235
+    no_outline = sum(1 for p in px if min(p) > 235) < len(px) * 0.03 if ANDROID else sum(1 for p in px if min(p) > 200) < len(px) * 0.05
+    if not star_by_cp(texts) and gold <= len(px) * 0.15 and no_outline:
         return None  # no CP to go by, and neither a gold star nor a white outline where the star should be
     return gold > len(px) * 0.15
 
@@ -524,7 +553,7 @@ def locate(T, path, texts, screen, aspect):
         cs = circles(path)
         if T == "MENU" and screen == "detail":
             c = [c for c in cs if c[0] > 0.7]
-        elif T == "CLOSE" and screen == "detail":
+        elif T == "CLOSE" and screen in ("detail", "gym"):  # the gym screen has the same X and menu buttons
             c = [c for c in cs if 0.35 < c[0] < 0.65]
             menu = [m for m in cs if m[0] > 0.7]
             if not c and len(menu) == 1:  # the X is see-through and can vanish into the background:

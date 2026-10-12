@@ -315,7 +315,7 @@ def main(limit, dry):
                 log(f"SKIP {n} CP{c}: {e}")
             passed[(n, c)] += 1
             counts["skip"] += 1
-            skips_in_a_row += 1
+            skips_in_a_row += str(e) != base.GYM  # a row of gym defenders is nothing wrong
             if skips_in_a_row >= MAX_SKIPS_IN_A_ROW:
                 raise Stop(f"{skips_in_a_row} skips in a row, something's off")
             back_to_list()

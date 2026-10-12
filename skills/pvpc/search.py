@@ -217,20 +217,30 @@ def to_search_list():
         if not any(base.tick_tags().values()):  # ticks half changed (IVC off, Nope not on yet): DONE would save that
             raise Stop("left on the tag sheet with nothing ticked: finish this Pokémon by hand")
         go("DONE", "detail")
-    if base.look()[0] in ("detail", "menu", "appraisal"):  # left on a Pokémon (a stop mid-visit): back out first
+    if base.look()[0] in ("detail", "menu", "appraisal", "gym"):  # left on a Pokémon (a stop mid-visit): back out first
         back_to_list()
     off_map()
-    base.to_tags_tab()
     for _ in range(3):
+        base.to_tags_tab()
         time.sleep(random.uniform(0.8, 1.0))  # a tab tap during the tab animation gets ignored
-        go("POKMON", "list")
-        _, texts, _, bounds = wait_for("list")
-        if ui.search_box(texts) or empty_bar(texts):
+        if wait_for("list", "tag-tab")[0] == "tag-tab":  # POKÉMON only ever on the Tags tab: on the list it's REFUSED
+            go("POKMON", "list")
+        if bar_seen():
             break
-        log("  no search bar yet: tapping POKÉMON again")
+        log("  no search bar yet: back to the Tags tab, POKÉMON again")
     else:
         keep_capture("nosearch")
         raise Stop("no search bar on the Pokémon list")
+
+
+def bar_seen():
+    """the list's search bar, read over ~1s: OCR now and then misses it on one look"""
+    for _ in range(4):
+        _, texts, _, _ = wait_for("list")
+        if ui.search_box(texts) or empty_bar(texts):
+            return True
+        time.sleep(0.25)
+    return False
 
 
 def search_screen():
@@ -279,7 +289,7 @@ def x_button(bounds):
 def clear_search():
     """typing only lands in an empty search bar, and the game empties it when the Pokémon screen reopens:
     close it with the X at the bottom, then Poké Ball -> POKÉMON"""
-    want = ("list", "tag-tab", "detail", "menu", "appraisal")
+    want = ("list", "tag-tab", "detail", "menu", "appraisal", "gym")
     for _ in range(3):
         screen, texts, _, bounds = base.look()
         if leave_multiselect(texts, bounds):
@@ -533,6 +543,16 @@ def start_search(q):
     return path, texts, bounds
 
 
+def sort_row(t, label):
+    """a sort menu row. OCR can glue the row's icon on ('COMBAT POWER CP'). Raw text, not norm(): that drops
+    digits, and a tile name '98 HP DEF' would pass as HP"""
+    return t[1] > 0.3 and re.fullmatch(re.escape(label) + r"(?:\s+\S{1,3})?", t[4].strip().upper()) is not None
+
+
+def sort_menu(texts):
+    return any(sort_row(t, l) for t in texts for l in ("RECENT", "FAVORITE", "NUMBER", "COMBAT POWER"))
+
+
 def sort_by(label, bounds):
     """open the sort menu, pick RECENT / FAVORITE / NUMBER / HP / NAME / COMBAT POWER, wait for the list"""
     click(SORT_BUTTON[0] + random.uniform(-0.01, 0.01), SORT_BUTTON[1] + random.uniform(-0.004, 0.004), bounds)
@@ -540,11 +560,13 @@ def sort_by(label, bounds):
         time.sleep(0.25)
         path, bounds = ui.capture()
         texts = ui.ocr(path)
-        row = [t for t in texts if t[1] > 0.3 and ui.norm(t[4]) == label]
-        if row and any(ui.norm(t[4]) == "COMBAT POWER" for t in texts):
+        row = [t for t in texts if sort_row(t, label)]
+        if row and any(sort_row(t, "COMBAT POWER") for t in texts):
             break
     else:
         keep_capture("sortmenu")
+        if sort_menu(texts):  # open after all, but the row wasn't read: its X (where the sort button was) shuts it
+            click(SORT_BUTTON[0] + random.uniform(-0.01, 0.01), SORT_BUTTON[1] + random.uniform(-0.004, 0.004), bounds)
         raise Stop("the sort menu didn't open")
     click(0.868 + random.uniform(-0.01, 0.01), row[0][1] + row[0][3] / 2 + random.uniform(-0.004, 0.004), bounds)
     for _ in range(12):  # the menu fades out: a tap on the button before it's gone gets lost
@@ -552,7 +574,7 @@ def sort_by(label, bounds):
         path, bounds = ui.capture()
         texts = ui.ocr(path)
         # every label gone: half faded, RECENT / FAVORITE still cover the top row, which is read only once
-        if not {ui.norm(t[4]) for t in texts} & {"RECENT", "FAVORITE", "NUMBER", "COMBAT POWER"} and ui.classify(texts) == "list":
+        if not sort_menu(texts) and ui.classify(texts) == "list":
             return path, texts, bounds
     keep_capture("sortmenu")
     raise Stop(f"the list didn't come back after sorting by {label}")

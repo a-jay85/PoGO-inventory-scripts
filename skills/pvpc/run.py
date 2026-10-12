@@ -323,13 +323,13 @@ def decide_forms(sp, cp, hp, ivs, raws):
 
 
 def back_to_list():
-    """from appraisal, detail or menu to the list, by the known-safe path"""
-    screen = wait_for("appraisal", "detail", "menu", "list")[0]
+    """from appraisal, detail, menu or a gym defender's screen to the list, by the known-safe path"""
+    screen = wait_for("appraisal", "detail", "menu", "gym", "list")[0]
     if screen == "appraisal":
         screen = go("dialog", "detail")[0]
     if screen == "menu":
         screen = go("close", "detail")[0]
-    if screen == "detail":
+    if screen in ("detail", "gym"):
         go("close", "list")
     wait_for("list")
 
@@ -702,10 +702,11 @@ def drag(fx, fy, tx, ty, bounds):
 
 def open_tile(i):
     """tap the tile. Now and then the detail opens already scrolled down to the moves: drag it back to the top,
-    starting on the weight (no button there)."""
+    starting on the weight (no button there). A Pokémon defending a gym opens its gym screen instead (its CP there
+    is lower than the tile's): Skip, and the caller backs out and passes it."""
     OPENED.clear()
     try:
-        return go(f"tile {i}", "detail")
+        got = go(f"tile {i}", "detail", "gym")
     except Stop:
         screen, texts, _, bounds = look()
         words = {ui.norm(t[4]) for t in texts}
@@ -713,6 +714,10 @@ def open_tile(i):
         if screen != "unknown" or not {"WEIGHT", "STARDUST"} <= words or len(kg) != 1 \
                 or any(re.search(r"\d+\s*/\s*\d+\s*HP", t[4]) for t in texts):
             raise
+    else:
+        if got[0] == "gym":
+            raise Skip("in a gym")
+        return got
     log("  detail opened scrolled down, dragging it back to the top")
     x, y = kg[0][0] + kg[0][2] / 2, kg[0][1] + kg[0][3] / 2
     drag(x, y, x, min(y + random.uniform(0.45, 0.5), 0.85), bounds)
@@ -835,7 +840,7 @@ def open_tag(name):
 def to_tags_tab():
     """get to the Tags tab. The full Pokémon list (TAGS / POKÉMON / EGGS header showing) has a TAGS tab to tap.
     A tag-filtered list drops back to the Tags tab when pulled down past the top."""
-    if wait_for("list", "tag-tab", "detail", "menu", "appraisal")[0] not in ("list", "tag-tab"):
+    if wait_for("list", "tag-tab", "detail", "menu", "appraisal", "gym")[0] not in ("list", "tag-tab"):
         back_to_list()  # a run that was cut off left a Pokémon open
     for _ in range(150):  # a stop deep in a 700+ list needs 60+ pulls to get back up
         screen, texts, _, bounds = wait_for("list", "tag-tab")

@@ -14,6 +14,7 @@ Drive Pokémon GO on the user's iPhone through **iPhone Mirroring**. Computer us
   - `list`: numbered tiles with name and CP.
   - `detail`: name, CP, HP, tags, species ID.
   - `menu`, `appraise-intro`.
+  - `gym`: a Pokémon defending a gym (no HP line or tags). Leave it: `tap close` backs out to the list.
   - `appraisal`: IVs from the bars, the candidate rows, and a **VERDICT** line.
   - `tags`: which tags are ticked.
   - `rename`: what's in the nickname box.

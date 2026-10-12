@@ -38,6 +38,9 @@ class Skip(Exception):
     """not sure about this one: leave it for a human"""
 
 
+GYM = "in a gym"  # the Skip for a Pokémon defending a gym: not counted toward MAX_SKIPS_IN_A_ROW
+
+
 class Lost(Stop):
     """the screen isn't the one expected (a tap didn't land, or landed late). Mid-Pokémon, a walk can back out
     with recover() and go on; anywhere else it stops the run like any Stop"""
@@ -716,7 +719,7 @@ def open_tile(i):
             raise
     else:
         if got[0] == "gym":
-            raise Skip("in a gym")
+            raise Skip(GYM)
         return got
     log("  detail opened scrolled down, dragging it back to the top")
     x, y = kg[0][0] + kg[0][2] / 2, kg[0][1] + kg[0][3] / 2
@@ -1222,7 +1225,7 @@ def main(limit, dry):
                 log(f"SKIP {n} CP{c}: {e}")
             skipped[(n, c)] += 1
             counts["skip"] += 1
-            skips_in_a_row += 1
+            skips_in_a_row += str(e) != GYM  # a row of gym defenders is nothing wrong
             if skips_in_a_row >= MAX_SKIPS_IN_A_ROW:
                 raise Stop(f"{skips_in_a_row} skips in a row, something's off")
             back_to_list()

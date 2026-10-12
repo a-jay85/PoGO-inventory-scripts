@@ -10,7 +10,7 @@ from PIL import Image
 
 import ui
 import run as base
-from run import Stop, Skip, Lost, log, keep_capture, go, tap, wait_for, key, type_text, back_to_list, scroll, front
+from run import Stop, Skip, Lost, GYM, log, keep_capture, go, tap, wait_for, key, type_text, back_to_list, scroll, front
 
 ZOOM = "/tmp/pvpc-zoom.png"
 END_AFTER_STALE = 3
@@ -85,8 +85,8 @@ def walk_list(visit, limit=10 ** 9, stop=None, odd=None):
             global scrolled
             scrolled = True
             scroll(bounds, "drag")
-            screen, texts, _, _ = wait_for("list", "detail")
-            if screen == "detail":  # the drag landed as a tap and opened a tile: back out and drag again
+            screen, texts, _, _ = wait_for("list", "detail", "gym")
+            if screen in ("detail", "gym"):  # the drag landed as a tap and opened a tile: back out and drag again
                 log("the scroll opened a Pokémon: backing out")
                 back_to_list()
                 continue
@@ -115,7 +115,7 @@ def walk_list(visit, limit=10 ** 9, stop=None, odd=None):
                 keep_capture(f"skip-{n}")
                 log(f"SKIP {n} CP{c}: {e}")
             gone = False
-            skips += 1
+            skips += str(e) != GYM  # a row of gym defenders is nothing wrong
             if skips >= MAX_SKIPS_IN_A_ROW:
                 raise Stop(f"{skips} skips in a row, something's off")
             back_to_list()
@@ -573,8 +573,10 @@ def sort_by(label, bounds):
         time.sleep(0.25)
         path, bounds = ui.capture()
         texts = ui.ocr(path)
-        # every label gone: half faded, RECENT / FAVORITE still cover the top row, which is read only once
-        if not sort_menu(texts) and ui.classify(texts) == "list":
+        # every label gone: half faded, RECENT / FAVORITE still cover the top row, which is read only once.
+        # Loose here ('RECENT.' counts): a label read wrong only means waiting a moment longer
+        if not any(t[1] > 0.3 and ui.norm(t[4]).startswith(l) for t in texts for l in ("RECENT", "FAVORITE", "NUMBER", "COMBAT POWER")) \
+                and ui.classify(texts) == "list":
             return path, texts, bounds
     keep_capture("sortmenu")
     raise Stop(f"the list didn't come back after sorting by {label}")

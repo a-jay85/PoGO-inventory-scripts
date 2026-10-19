@@ -1,6 +1,6 @@
 # PoGO-inventory-scripts
 
-Claude Code skills that sort a Pokémon GO storage: `/pvpc`, `/ivc`, `/ivcsort` and `/cleanup`. Each one lives in `skills/<name>/`.
+Claude Code skills that sort a Pokémon GO storage: `/pvpc`, `/ivc`, `/ivcsort`, `/cleanup` and `/trade`. Each one lives in `skills/<name>/`.
 
 ## The live skills run from the main checkout
 
@@ -54,7 +54,7 @@ Scripts see the Android phone with its own screenshots (`adb exec-out screencap`
 The repo is public. These stay local and are in `.gitignore`:
 
 - `skills/*/runs/`: run logs and screen captures (trainer names, inventory)
-- `skills/pvpc/.state.json`, `skills/pvpc/.calib.json`: per-machine state
+- `skills/pvpc/.state.json`, `skills/pvpc/.calib.json`, `skills/trade/.state.json`: per-machine state
 - `skills/pvpc/helper`: built from `helper.swift` on first use
 
 ## Testing

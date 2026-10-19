@@ -37,6 +37,7 @@ SKIPS = 3  # pairs caught under MIN_KM apart: how many of the Android's next one
 COST = 100  # Stardust for a regular trade between these two accounts
 OK_WARNINGS = ("MAX MOVE LEVELS WILL BE RESET",)  # trade warnings tapped YES; any other one stops the run
 X_BUTTON = (0.5, 0.935)  # the round X at the bottom middle (gift, result, friend page, picker)
+MANAGE_X = (0.5, 0.906)  # the round X that closes the Manage Favorite Search box
 SORT_BUTTON = (0.838, 0.937)
 
 
@@ -133,6 +134,8 @@ def classify(texts, path):
     raw = [up(t) for t in texts]
     words = {ui.norm(t[4]) for t in texts}
     joined = " ".join(raw)
+    if "MANAGE FAVORITE" in joined:
+        return "manage"  # the Manage Favorite Search box: a shortcut tap that landed as a long press
     if "EXIT POK" in joined:
         return "exit"  # Android: "Do you want to exit Pokémon GO?"
     if "TRADE EXPIRED" in joined or "TRADE WAS CANCELED" in joined or "HAS EXPIRED" in joined:
@@ -220,6 +223,8 @@ def to_friend(p):
             p.tap_text(button)
         elif s == "leave":
             p.tap_text(label(p, "YES"))
+        elif s == "manage":
+            p.tap(*MANAGE_X)
         elif s in ("gift", "result"):
             p.tap(*X_BUTTON)
         elif s == "map":
@@ -365,12 +370,27 @@ def counts(p, last=None):
     raise Stop(f"{p.name}: couldn't read the shortcut counts: {p.summary()}")
 
 
+def long_pressed(p, pile):
+    """the shortcut tap landed as a long press: the Manage Favorite Search box is up and the panel stays open.
+    Close it and tap the shortcut again. True when it did"""
+    if not p.find(lambda t: "MANAGE FAVORITE" in up(t)):
+        return False
+    log(f"{p.name}: the shortcut tap was a long press: tapping again")
+    p.tap(*MANAGE_X)
+    time.sleep(1)
+    p.look()
+    p.tap_text(shortcut(p, pile), dy=-0.055)
+    return True
+
+
 def probe(p, pile):
     """run a pile's search to read its '(n)' off the header (0 too), then open the panel again"""
     p.tap_text(shortcut(p, pile), dy=-0.055)
     for _ in range(12):
         time.sleep(0.4)
         p.look()
+        if long_pressed(p, pile):
+            continue
         if p.screen == "picker" and not label(p, "FAVORITE") and in_bar(p, pile) and results(p) is not None:
             n = results(p)
             log(f"{p.name}: {pile} count missed under its shortcut: its search shows {n}")
@@ -415,14 +435,7 @@ def pick_pile(p, pile):
     for _ in range(12):
         time.sleep(0.4)
         p.look()
-        if p.find(lambda t: "MANAGE FAVORITE" in up(t)):
-            # the tap landed as a long press: this box fills the bar but leaves the panel open. Close it, tap again
-            log(f"{p.name}: the shortcut tap was a long press: tapping again")
-            p.tap(0.5, 0.906)
-            time.sleep(1)
-            p.look()
-            t = shortcut(p, pile)
-            p.tap_text(t, dy=-0.055)
+        if long_pressed(p, pile):
             continue
         if p.screen == "picker" and not label(p, "FAVORITE"):  # the panel closed and the search ran
             if in_bar(p, pile) and results(p):

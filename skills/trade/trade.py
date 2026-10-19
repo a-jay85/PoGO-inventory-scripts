@@ -150,9 +150,11 @@ def classify(texts, path):
     if re.search(r"\bME LV", joined):
         return "lobby"  # in the trade, nothing picked: "Waiting for ... to select their Pokémon", picker button below
     # the trade's Pokémon list: only a POKÉMON header (storage has TAGS and EGGS tabs beside it). The SPECIAL TRADES
-    # REMAINING line shows only while no search is on: the picker keeps the last search between trades
+    # REMAINING line shows only while no search is on: the picker keeps the last search between trades. A pile
+    # search can leave fewer than 3 tiles: then the distance search in the bar vouches for it
+    tiles = sum(bool(re.fullmatch(r"CP\s*\d+", r.replace("С", "C"))) for r in raw)
     if "SPECIAL TRADES REMAINING" in joined or "POKMON" in words and not words & {"TAGS", "EGGS"} and (
-            sum(bool(re.fullmatch(r"CP\s*\d+", r.replace("С", "C"))) for r in raw) >= 3 or "FAVORITE" in words):
+            tiles >= 3 or "FAVORITE" in words or tiles and "DISTANCE" in joined):
         return "picker"
     if "NEXT" in words and any(re.search(r"CP\s*\d+\s*>", r) for r in raw):
         return "select"

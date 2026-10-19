@@ -365,12 +365,27 @@ def counts(p, last=None):
     raise Stop(f"{p.name}: couldn't read the shortcut counts: {p.summary()}")
 
 
+def long_pressed(p, pile):
+    """the shortcut tap landed as a long press: the Manage Favorite Search box is up and the panel stays open.
+    Close it and tap the shortcut again. True when it did"""
+    if not p.find(lambda t: "MANAGE FAVORITE" in up(t)):
+        return False
+    log(f"{p.name}: the shortcut tap was a long press: tapping again")
+    p.tap(0.5, 0.906)
+    time.sleep(1)
+    p.look()
+    p.tap_text(shortcut(p, pile), dy=-0.055)
+    return True
+
+
 def probe(p, pile):
     """run a pile's search to read its '(n)' off the header (0 too), then open the panel again"""
     p.tap_text(shortcut(p, pile), dy=-0.055)
     for _ in range(12):
         time.sleep(0.4)
         p.look()
+        if long_pressed(p, pile):
+            continue
         if p.screen == "picker" and not label(p, "FAVORITE") and in_bar(p, pile) and results(p) is not None:
             n = results(p)
             log(f"{p.name}: {pile} count missed under its shortcut: its search shows {n}")
@@ -415,14 +430,7 @@ def pick_pile(p, pile):
     for _ in range(12):
         time.sleep(0.4)
         p.look()
-        if p.find(lambda t: "MANAGE FAVORITE" in up(t)):
-            # the tap landed as a long press: this box fills the bar but leaves the panel open. Close it, tap again
-            log(f"{p.name}: the shortcut tap was a long press: tapping again")
-            p.tap(0.5, 0.906)
-            time.sleep(1)
-            p.look()
-            t = shortcut(p, pile)
-            p.tap_text(t, dy=-0.055)
+        if long_pressed(p, pile):
             continue
         if p.screen == "picker" and not label(p, "FAVORITE"):  # the panel closed and the search ran
             if in_bar(p, pile) and results(p):

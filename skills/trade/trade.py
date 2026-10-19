@@ -96,12 +96,13 @@ class Phone:
 
     def wait(self, *screens, timeout=10):
         end = time.time() + timeout
+        grace = end + 30  # a blank loading screen (the server is slow) holds the timeout off, this long at most
         while True:
             if self.look() in screens:
                 return self.screen
             if self.screen == "expired":
                 raise Expired(f"{self.name}: the trade expired")
-            if time.time() > end:
+            if time.time() > end and not (self.screen == "blank" and time.time() < grace):
                 raise Stop(f"{self.name}: wanted {'/'.join(screens)}, screen is {self.screen}: {self.summary()}")
             time.sleep(0.3)
 
@@ -140,6 +141,8 @@ def classify(texts, path):
         return "exit"  # Android: "Do you want to exit Pokémon GO?"
     if "TRADE EXPIRED" in joined or "TRADE WAS CANCELED" in joined or "HAS EXPIRED" in joined:
         return "expired"  # a trade left open too long (or the other side left): OK
+    if "ERROR FETCHING TRADE" in joined or "TRADING SERVICE" in joined:
+        return "expired"  # the server lost the trade ("Trading service temporarily unavailable"): OK, start over
     if "CANCEL THIS TRADE" in joined:
         return "leave"  # "Do you want to cancel this trade?" after the exit door: YES / NO
     if "ARE YOU SURE YOU WANT TO TRADE" in joined:
@@ -173,6 +176,8 @@ def classify(texts, path):
         return "profile"
     if len(texts) <= 12 and pokeball(path):
         return "map"
+    if all(t[1] < 0.08 for t in texts):
+        return "blank"  # only the status bar: the game is loading
     return "unknown"
 
 
@@ -221,6 +226,9 @@ def to_friend(p):
             if not button:
                 raise Stop(f"{p.name}: {s} dialog without its button: {p.summary()}")
             p.tap_text(button)
+            if p.find(lambda t: "UNAVAILABLE" in up(t)):
+                log(f"{p.name}: the trading service is down for now: waiting a minute")
+                time.sleep(60)
         elif s == "leave":
             p.tap_text(label(p, "YES"))
         elif s == "manage":

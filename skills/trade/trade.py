@@ -150,9 +150,11 @@ def classify(texts, path):
     if re.search(r"\bME LV", joined):
         return "lobby"  # in the trade, nothing picked: "Waiting for ... to select their Pokémon", picker button below
     # the trade's Pokémon list: only a POKÉMON header (storage has TAGS and EGGS tabs beside it). The SPECIAL TRADES
-    # REMAINING line shows only while no search is on: the picker keeps the last search between trades
+    # REMAINING line shows only while no search is on: the picker keeps the last search between trades. A pile
+    # search can leave fewer than 3 tiles, or none: then the distance search in the bar vouches for it
     if "SPECIAL TRADES REMAINING" in joined or "POKMON" in words and not words & {"TAGS", "EGGS"} and (
-            sum(bool(re.fullmatch(r"CP\s*\d+", r.replace("С", "C"))) for r in raw) >= 3 or "FAVORITE" in words):
+            sum(bool(re.fullmatch(r"CP\s*\d+", r.replace("С", "C"))) for r in raw) >= 3 or "FAVORITE" in words
+            or "DISTANCE" in joined):
         return "picker"
     if "NEXT" in words and any(re.search(r"CP\s*\d+\s*>", r) for r in raw):
         return "select"
@@ -338,7 +340,8 @@ def shortcut_count(p, name):
 def counts(p, last=None):
     """{NEAR: n, FAR: n} off the open panel, read twice the same. The reader often misses a lone digit under a
     shortcut ('6', every '0'). Then: the bar's pile is the '(n)' in the header, the game's own count; the other
-    pile is what last held for it (the previous round's read). last is updated with what was read"""
+    pile is what last held for it (the previous round's read), or, at a run's start, what its search shows.
+    last is updated with what was read"""
     seen = None
     for _ in range(4):
         got = {n: shortcut_count(p, n) for n in (NEAR, FAR)}
@@ -348,6 +351,10 @@ def counts(p, last=None):
                     got[n] = results(p)
                 elif last and n in last:
                     got[n] = last[n]
+                else:
+                    got[n] = probe(p, n)
+                    if last is not None:
+                        last[n] = got[n]
         if None not in got.values() and got == seen:
             if last is not None:
                 last.update(got)
@@ -356,6 +363,21 @@ def counts(p, last=None):
         time.sleep(0.3)
         p.look()
     raise Stop(f"{p.name}: couldn't read the shortcut counts: {p.summary()}")
+
+
+def probe(p, pile):
+    """run a pile's search to read its '(n)' off the header (0 too), then open the panel again"""
+    p.tap_text(shortcut(p, pile), dy=-0.055)
+    for _ in range(12):
+        time.sleep(0.4)
+        p.look()
+        if p.screen == "picker" and not label(p, "FAVORITE") and in_bar(p, pile) and results(p) is not None:
+            n = results(p)
+            log(f"{p.name}: {pile} count missed under its shortcut: its search shows {n}")
+            open_panel(p)
+            return n
+    p.keep("probe")
+    raise Stop(f"{p.name}: couldn't read the {pile} count: {bar(p)!r}, {p.summary()}")
 
 
 def bar(p):
@@ -380,8 +402,9 @@ def same_l(s):
 
 
 def in_bar(p, pile):
-    """the bar shows exactly this pile's search"""
-    got, want = same_l(bar(p) or ""), same_l(QUERY[pile])
+    """the bar shows exactly this pile's search. OCR can miss the far pile's last '-': the two piles still differ
+    without it ('&distance100' is no tail of '&distance0-100')"""
+    got, want = same_l(bar(p) or "").rstrip("-"), same_l(QUERY[pile]).rstrip("-")
     return got.endswith(want) and len(got) - len(want) <= 2
 
 

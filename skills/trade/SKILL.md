@@ -13,7 +13,7 @@ Uses the shared tapper and screen reader from /pvpc (`~/.claude/skills/pvpc`: `u
 
 Runs on its own. Keep both phones on, both games open, and keep your hands off the Mac mouse while it runs: the iPhone's taps go through the Mac pointer.
 
-- `--limit N`: at most N trades this run (default 99).
+- `--limit N`: at most N trades this run (default 48). Two runs come to 96, still under the 99 a day. One run leaves trades free for other friends.
 - `--done N`: sets today's count, for trades made by hand before the run.
 - `python3 $S/trade.py look`: what screen each phone is on, and its text.
 

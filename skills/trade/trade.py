@@ -29,6 +29,7 @@ from search import pokeball
 
 STATE = os.path.join(HERE, ".state.json")
 PER_DAY = 99  # the game allows 100: one is kept for a special trade made by hand
+PER_RUN = 48  # a run makes at most this many (--limit): two runs (96) stay under PER_DAY, one leaves trades for other friends
 NEAR, FAR = "0-100km", "100+km"  # the saved searches, on both accounts
 QUERY = {NEAR: "giv,xlx&distance0-100", FAR: "giv,xlx&distance100-"}  # what each one puts in the bar
 MIN_KM = 100
@@ -698,7 +699,7 @@ def cmd_look(phones):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("cmd", nargs="?", default="run", choices=("run", "look"))
-    ap.add_argument("--limit", type=int, default=PER_DAY)
+    ap.add_argument("--limit", type=int, default=PER_RUN)
     ap.add_argument("--done", type=int, help="trades already made today (sets the day's count)")
     a = ap.parse_args()
     ios = Phone("ios", False, "HashTagAJay", "CyrillJan")

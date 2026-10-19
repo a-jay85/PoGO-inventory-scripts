@@ -335,12 +335,22 @@ def shortcut_count(p, name):
     return int(below[0][4].replace(",", "")) if below else None
 
 
-def counts(p):
-    """{NEAR: n, FAR: n} off the open panel, read twice the same"""
+def counts(p, last=None):
+    """{NEAR: n, FAR: n} off the open panel, read twice the same. The reader often misses a lone digit under a
+    shortcut ('6', every '0'). Then: the bar's pile is the '(n)' in the header, the game's own count; the other
+    pile is what last held for it (the previous round's read). last is updated with what was read"""
     seen = None
     for _ in range(4):
         got = {n: shortcut_count(p, n) for n in (NEAR, FAR)}
+        for n in got:
+            if got[n] is None and shortcut(p, n):
+                if in_bar(p, n):
+                    got[n] = results(p)
+                elif last and n in last:
+                    got[n] = last[n]
         if None not in got.values() and got == seen:
+            if last is not None:
+                last.update(got)
             return got
         seen = got
         time.sleep(0.3)
@@ -369,11 +379,16 @@ def same_l(s):
     return re.sub(r"[il1|]", "l", s.lower())
 
 
+def in_bar(p, pile):
+    """the bar shows exactly this pile's search"""
+    got, want = same_l(bar(p) or ""), same_l(QUERY[pile])
+    return got.endswith(want) and len(got) - len(want) <= 2
+
+
 def pick_pile(p, pile):
     """tap the saved search and check the bar shows exactly it, with results"""
     t = shortcut(p, pile)
     p.tap_text(t, dy=-0.055)  # the round button above the label
-    want = same_l(QUERY[pile])
     for _ in range(12):
         time.sleep(0.4)
         p.look()
@@ -387,11 +402,10 @@ def pick_pile(p, pile):
             p.tap_text(t, dy=-0.055)
             continue
         if p.screen == "picker" and not label(p, "FAVORITE"):  # the panel closed and the search ran
-            got = same_l(bar(p) or "")
-            if got.endswith(want) and len(got) - len(want) <= 2 and results(p):
+            if in_bar(p, pile) and results(p):
                 return results(p)
     p.keep("search")
-    raise Stop(f"{p.name}: the search bar doesn't show {want}: {bar(p)!r}, {p.summary()}")
+    raise Stop(f"{p.name}: the search bar doesn't show {QUERY[pile]}: {bar(p)!r}, {p.summary()}")
 
 
 def arrow(path):
@@ -635,7 +649,7 @@ def trade_once(ios, android, specials):
     have = {}
     for p in phones:
         open_panel(p)
-        have[p.name] = counts(p)
+        have[p.name] = counts(p, specials.setdefault("piles", {}).setdefault(p.name, {}))
     log(f"piles: iPhone {have['ios']}, Android {have['android']}")
     pair = pairs(have["ios"], have["android"])
     if not pair:

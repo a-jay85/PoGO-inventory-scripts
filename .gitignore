@@ -6,4 +6,5 @@ __pycache__/
 skills/*/runs/
 skills/pvpc/.state.json
 skills/pvpc/.calib.json
+skills/trade/.state.json
 skills/pvpc/helper

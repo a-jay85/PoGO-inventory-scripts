@@ -501,7 +501,9 @@ def warning(p):
         raise Stop(f"{p.name}: trade warning without YES: {p.summary()}")
     lines = [re.sub(r"^[^A-Z]+", "", up(t)) for t in p.texts if top < t[1] < yes[1] - 0.01]
     reasons = [l for l in lines if l and "ARE YOU SURE" not in l and not l.startswith("THIS POK")]
-    unknown = [r for r in reasons if not any(r.startswith(k) for k in OK_WARNINGS)]
+    # (the bullet in front can read as a stray letter: "X MAX MOVE ...")
+    unknown = [r for r in reasons if not any(r.startswith(k) or re.sub(r"^\S\s+", "", r).startswith(k)
+                                             for k in OK_WARNINGS)]
     if not reasons or unknown:
         p.keep("warning")
         raise Stop(f"{p.name}: a trade warning I don't know: {reasons or p.summary()}")
@@ -665,15 +667,21 @@ def trade_once(ios, android, specials):
         if p.screen != "confirm":
             raise Stop(f"{p.name}: left the confirm screen before CONFIRM: {p.summary()}")
         confirm(p)
+    for p in phones:
+        p.live = False  # confirmed: an "expired" box from here on comes after the trade, it doesn't undo it
     return got, d, reads[0][1]
 
 
 def finish(phones):
     """wait out the animation, read what each got, close the result screens"""
     for p in phones:
-        p.wait("result", timeout=45)
+        if p.wait("result", "expired", timeout=45) == "expired":
+            # seen on the Android once, while the iPhone got its Pokémon: the trade went through all the same
+            log(f"{p.name}: says the trade expired after both confirmed: the next round clears it")
     for p in phones:
         for _ in range(3):
+            if p.screen != "result":
+                break
             p.tap(*X_BUTTON)
             time.sleep(1.5)
             if p.look() != "result":

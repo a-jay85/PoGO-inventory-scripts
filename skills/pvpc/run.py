@@ -1046,7 +1046,7 @@ def slots_of(sp, cp, hp, ivs):
     """{(league, form): rank} for exact IVs. sp: the forms it could be; CP and HP pick between them"""
     fit = [s for s in sp if s in pvp.PLAIN and any(pvp.cp(pvp.PLAIN[s]["baseStats"], ivs, lv) == cp and
                                 pvp.hp(pvp.PLAIN[s]["baseStats"], ivs, lv) == hp for lv in pvp.LEVELS)]
-    slots = {tuple(sorted(pvp.iv_slots(s, ivs).items())) for s in fit}
+    slots = {tuple(sorted(pvp.iv_slots(s, ivs, pvp.level_of(s, ivs, cp, hp)).items())) for s in fit}
     if len(slots) != 1:
         raise Skip(f"species unclear: {fit} rank differently")
     return dict(slots.pop()), fit[0]

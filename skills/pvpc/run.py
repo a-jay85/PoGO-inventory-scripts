@@ -1245,7 +1245,12 @@ def act_fallen(limit):
     return done
 
 
-import search, fallen  # down here: they `import run`, which has to be all there first
+import search, fallen, home  # down here: they `import run`, which has to be all there first
+
+
+def start():
+    """a run's first step: from wherever the phone is (Pokémon GO closed too) to the Pokémon screens"""
+    home.start()
 
 
 def main(limit, dry):
@@ -1324,6 +1329,7 @@ if __name__ == "__main__":
         new_run_dir(None, os.path.abspath(a[1]))
     code = 0
     try:
+        start()
         if cmd == "fallen":
             fallen_step()
             at_end, counts = 0, {}

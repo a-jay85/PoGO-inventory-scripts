@@ -627,6 +627,8 @@ if __name__ == "__main__":
     new_run_dir(os.path.abspath(given) if given else None)
     code = 0
     try:
+        if cmd != "plan":  # every other step uses the phone
+            base.start()
         if cmd == "scan":
             scan(limit)
         elif cmd == "pools":

@@ -119,6 +119,14 @@ class Phone:
         self.call(op="restart")
         self.live = False
 
+    def start(self):
+        """Pokémon GO open and loaded, from wherever the phone is (closed too)"""
+        return self.call(op="start", run_dir=base.RUN_DIR)["screen"]
+
+    def unstick(self):
+        """one step out of a screen nobody knows: Android Back, iPhone reopens the game (once)"""
+        self.call(op="unstick", texts=[list(t) for t in self.texts])
+
     def find(self, pred):
         return [t for t in self.texts if pred(t)]
 
@@ -218,7 +226,7 @@ def label(p, name):
 def to_friend(p):
     p.live = False
     unknown = 0
-    for _ in range(20):
+    for _ in range(40):  # room for a few Backs out of popups
         s = p.look()
         if s == "friend":
             name = friend_name(p)
@@ -273,11 +281,12 @@ def to_friend(p):
         elif s in ("select", "warning", "confirm"):
             p.keep("midtrade")
             raise Stop(f"{p.name}: in the middle of a trade ({s}): finish or back out of it by hand")
-        else:
+        elif s == "unknown":
             unknown += 1
-            if unknown > 4:
+            if unknown > 2:  # the same screen a few looks running: a popup, or a screen trading doesn't use
                 p.keep("lost")
-                raise Stop(f"{p.name}: don't know this screen: {p.summary()}")
+                p.unstick()  # stops the run once it's out of steps
+                unknown = 0
         time.sleep(1.5)
     p.keep("lost")
     raise Stop(f"{p.name}: couldn't get to {p.friend}'s friend page")
@@ -806,6 +815,8 @@ def main():
         base.new_run_dir(os.path.join(HERE, "runs"))
         if a.cmd == "restart":
             return restart(phones)
+        for p in phones:  # from wherever each phone is, Pokémon GO closed too
+            log(f"{p.name}: Pokémon GO up, on {p.start()}")
         if a.done is not None:
             set_made(a.done)
         made, n, specials, expired = made_today(), 0, {}, 0

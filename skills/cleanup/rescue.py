@@ -14,7 +14,7 @@ import os, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
 import run as base
-from run import Stop, Skip, log, go, front
+from run import Stop, Skip, log, go
 import search
 
 QUERIES = ("#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp",  # two of the three at 15
@@ -64,7 +64,7 @@ if __name__ == "__main__":
     limit = int(a[a.index("--limit") + 1]) if "--limit" in a else 10 ** 9
     base.new_run_dir(os.path.join(HERE, "runs"))
     try:
-        front()
+        base.start()
         main(limit, "--dry-run" in a)
     except Stop as e:
         log(f"STOP: {e}")

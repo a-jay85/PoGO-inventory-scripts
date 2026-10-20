@@ -249,12 +249,13 @@ def to_friend(p):
             p.tap(*X_BUTTON)
         elif s == "map":
             p.tap(0.13, 0.91)
-        elif s == "profile":
-            p.tap_text(label(p, "FRIENDS"))
-        elif s == "friends":
+        elif s in ("profile", "friends"):
+            # a typed search hides ADD FRIEND, so a searched friend list reads as "profile": tap the row if it's there
             row = p.find(lambda t: t[4].strip().lower() == p.friend.lower() and t[0] > 0.2 and t[1] > 0.25)
             if row:
                 p.tap_text(row[0], dy=0.01)
+            elif s == "profile":
+                p.tap_text(label(p, "FRIENDS"))
             else:
                 search = label(p, "SEARCH")
                 if not search:

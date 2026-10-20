@@ -48,7 +48,13 @@ Examples: `100`, `96 A`, `89 HA FP*` (lucky), `87/96 A* XXL`, `78 A S*`, `67 d`,
 
 ## Per-Pokémon loop (by hand)
 
-The list filtered to IVC. Work on the first tile still named after its species. Renamed ones never match a species name.
+The list filtered to IVC. Work on the first tile still named after its species, or with a nickname. Pass over done names (`87/96 A*`, `FP*`, `xxs`) and Pvp names (`Pvp L35`).
+
+A nickname hides the species. Find it from the detail screen instead:
+- The candy name gives the line. A baby shows the next one's candy (Azurill: MARILL CANDY).
+- The type line picks the forms in that line (Alolan Vulpix is ICE).
+- CP and HP rule out the forms that can't have them at any level. A high CP rules out the early stages.
+- If more than one form is left, the appraisal's CP and HP check picks between them.
 
 1. **Open it.** Tap `tile N`. `$P/ui.py read` must say `detail`.
 2. **Read it.** Note the following from the detail screen:

@@ -690,6 +690,34 @@ def type_line(texts):
     return set()
 
 
+def can_have(sid, cp, hp):
+    """some IVs at some level give this exact CP and HP: a CP too high for the earlier stages rules them out"""
+    b = pvp.SPECIES[sid]["baseStats"]
+    for lv in pvp.LEVELS:
+        hs = [h for h in range(16) if pvp.hp(b, (0, 0, h), lv) == hp]
+        if hs and any(pvp.cp(b, (a, d, h), lv) == cp for h in hs for a in range(16) for d in range(16)):
+            return True
+    return False
+
+
+def species_from_candy(texts, cp, hp):
+    """for a Pokémon whose name isn't its species (a nickname): the line from the candy name, the forms in it
+    with the types shown, and of those the ones that can have this CP and HP. -> list of species, or Skip"""
+    got = candy(texts)  # a line with a baby takes the next one's candy (Azurill: MARILL CANDY)
+    lines = {pvp.root(s) for s in pvp.PLAIN if ui.norm(pvp.base_name(s)) == ui.norm(got or "")}
+    if not lines:
+        raise Skip(f"species unclear: candy reads {got!r}")
+    seen = type_line(texts)
+    # every form whose line starts there: tree() misses some (Alolan Raichu isn't among Pikachu's evolutions)
+    forms = [s for s in pvp.PLAIN if pvp.root(s) in lines
+             and {t.upper() for t in pvp.PLAIN[s]["types"] if t != "none"} == seen]
+    sp = [s for s in forms if can_have(s, cp, hp)]
+    if not sp:
+        raise Skip(f"species unclear: no form in the {got} line has types {sorted(seen)} and CP{cp} {hp}HP")
+    log(f"  {got} candy, {'/'.join(sorted(seen))}, CP{cp} {hp}HP: {sp}")
+    return sp
+
+
 def dynamax(texts):
     hp = next(t for t in texts if re.search(r"\d+\s*/\s*\d+\s*HP", t[4]))
     return any(ui.norm(t[4]) in ("DYNAMAX", "GIGANTAMAX") and hp[1] < t[1] < hp[1] + 0.3 for t in texts)

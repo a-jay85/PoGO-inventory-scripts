@@ -127,9 +127,22 @@ def costs(texts):
     """-> (stardust owned, candy owned, purify dust cost, purify candy cost) off the detail page"""
     pur = exact(texts, "PURIFY")[0]
     row = sorted((t for t in texts if abs(t[1] - pur[1]) < 0.02 and t[0] > pur[0] + pur[2]), key=lambda t: t[0])
-    dust_l = [t for t in texts if ui.norm(t[4]) == "STARDUST"]
-    if len(row) < 2 or len(dust_l) != 1:
+    if len(row) < 2:
         raise Pass(f"can't read the purify cost row: {[t[4] for t in row]}")
+    have_dust, have_candy = owned(texts)
+    dust, cnd = num(row[0][4]), num(row[-1][4])
+    if dust and cnd and dust != cnd * 1000 and str(dust).endswith(str(cnd * 1000)):
+        dust = cnd * 1000  # the Stardust icon read as a 1 ('15,000' for 5,000): purify costs 1000 dust per candy
+    if None in (dust, cnd) or not (1000 <= dust <= 20000 and dust % 1000 == 0) or not 1 <= cnd <= 20:
+        raise Pass(f"purify cost reads odd: dust {row[0][4]!r} candy {row[-1][4]!r}")
+    return have_dust, have_candy, dust, cnd
+
+
+def owned(texts):
+    """-> (stardust owned, candy owned) off the detail page"""
+    dust_l = [t for t in texts if ui.norm(t[4]) == "STARDUST"]
+    if len(dust_l) != 1:
+        raise Pass("can't find the STARDUST label")
     x, y, w, _ = dust_l[0][:4]
     up = [t for t in texts if 0 < y - t[1] < 0.045 and t[0] < x + w and x < t[0] + t[2]]
     if not up:
@@ -147,15 +160,10 @@ def costs(texts):
           and re.fullmatch(r"[\d,.]+", t[4].strip())]
     if len(up) != 1:
         raise Pass(f"can't read the candy owned: {[t[4] for t in up]}")
-    mid = up
-    have_dust, have_candy = num(dust_n[4]), num(mid[0][4])
-    dust, cnd = num(row[0][4]), num(row[-1][4])
-    if dust and cnd and dust != cnd * 1000 and str(dust).endswith(str(cnd * 1000)):
-        dust = cnd * 1000  # the Stardust icon read as a 1 ('15,000' for 5,000): purify costs 1000 dust per candy
-    if None in (have_dust, have_candy, dust, cnd) or not (1000 <= dust <= 20000 and dust % 1000 == 0) \
-            or not 1 <= cnd <= 20:
-        raise Pass(f"purify cost reads odd: dust {row[0][4]!r} candy {row[-1][4]!r}")
-    return have_dust, have_candy, dust, cnd
+    have_dust, have_candy = num(dust_n[4]), num(up[0][4])
+    if None in (have_dust, have_candy):
+        raise Pass(f"can't read the Stardust or candy owned: {dust_n[4]!r} {up[0][4]!r}")
+    return have_dust, have_candy
 
 
 def check(info, texts, path):

@@ -10,7 +10,7 @@ Reads one JSON request a line on stdin, answers one JSON line on stdout:
   {"op": "type", "text"}            {"op": "key", "name"}
   {"op": "restart"}                 force-close Pokémon GO and open it again (doesn't wait for it to load)
   {"op": "start", "run_dir"}        open Pokémon GO if it isn't, and wait until it's loaded -> {"screen"}
-  {"op": "unstick", "texts"}        one step out of a screen nobody knows (Android: Back; iPhone: reopen the game)
+  {"op": "unstick", "texts", "backs"}  one step out of a screen nobody knows (Android: Back; iPhone: reopen the game)
 Errors come back as {"error": "..."}.
 """
 import json, os, random, sys, time, traceback
@@ -80,6 +80,7 @@ def main():
                 base.new_run_dir(None, req["run_dir"])  # its log lines and captures go with trade.py's
                 out = {"screen": home.start(storage=False)}
             elif op == "unstick":
+                home.backs = req["backs"]  # each trip to the friend page gets its own allowance
                 home.unstick(req["texts"])
             else:
                 out = {"error": f"unknown op {op}"}

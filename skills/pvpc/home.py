@@ -23,6 +23,7 @@ from run import Stop, log, keep_capture
 import search
 
 STORAGE = ("list", "tag-tab", "detail", "menu", "appraisal", "appraise-intro", "gym")
+OPEN = ("detail", "menu", "appraisal", "appraise-intro", "gym")  # a Pokémon open: back_to_list() closes it
 LOAD_TIMEOUT = 150  # seconds for the game to open and get past its loading screens
 MAX_BACKS = 12  # Back presses (Android) on screens it doesn't know before it gives up
 DOCK = (0.73, 0.926)  # iPhone: the Poké Ball in the dock, third icon (Spotlight doesn't list the app near the top)
@@ -98,8 +99,11 @@ def android_launch():
         return False
     log("Pokémon GO isn't in front: opening it")
     a.shell(f"monkey -p {a.PKG} -c android.intent.category.LAUNCHER 1")
-    time.sleep(3)
-    return True
+    for _ in range(15):  # a cold start takes a few seconds to put the game in front
+        time.sleep(1)
+        if a.PKG in a.shell("dumpsys activity activities | grep -E 'ResumedActivity'"):
+            return True
+    raise Stop("opened Pokémon GO but it never came to the front")
 
 
 def iphone_open():
@@ -147,21 +151,39 @@ def start(storage=True):
     screen it knows or trade.py might (friend page, trade lobby...). -> the screen it ended on"""
     opened = android_launch() if ui.ANDROID else False
     if ui.ANDROID:
-        ui.android.ready(force=True)
+        try:
+            ui.android.ready(force=True)
+        except ui.android.NotReady as e:
+            raise Stop(str(e))
     else:
         base.front()
     t_open = time.time()
     end = t_open + LOAD_TIMEOUT
-    prev, same = None, 0
+    prev, same, unknowns = None, 0, 0
     while True:
         try:
             screen, texts, path, bounds = look()
         except ui.Refused as e:  # window gone for a moment
             screen, texts = "blank", []
             log(f"  can't see the phone yet: {e}")
-        if screen in STORAGE:
+        if screen != "unknown":
+            unknowns = 0
+        if not storage and screen in STORAGE:
+            return screen  # trade.py closes a trade's result screen itself
+        if screen in ("list", "tag-tab"):
+            if search.leave_panel(texts, bounds):
+                continue
             return screen
-        if screen in ("map", "mainmenu"):
+        if screen in OPEN:
+            try:
+                if screen == "appraise-intro":
+                    base.go("dialog", "appraisal")
+                base.back_to_list()  # the known-safe way out
+                continue
+            except Stop as e:  # not a storage Pokémon after all (a trade's result screen): out the other way
+                log(f"  couldn't close the Pokémon the usual way: {e}")
+                unstick(texts)
+        elif screen in ("map", "mainmenu"):
             if not storage:
                 return screen
             search.off_map()
@@ -203,11 +225,11 @@ def start(storage=True):
                 return screen  # the game was up already: trade.py knows screens this doesn't
             words = sorted(t[4] for t in texts)
             same = same + 1 if words == prev else 0
-            prev = words
-            # the same screen three looks running, and not just opened (its loading screens sit still a while):
-            # a popup, or a screen the scripts don't use
-            if same >= 2 and time.time() > t_open + (20 if opened else 0):
-                same = 0
+            prev, unknowns = words, unknowns + 1
+            # just opened: wait out the loading screens (they sit still a while), then Back on a screen that stays
+            # put three looks running. Already open: two unknown looks in a row is a popup or a screen nobody uses
+            if (same >= 2 and time.time() > t_open + 20) if opened else unknowns >= 2:
+                same = unknowns = 0
                 if unstick(texts):
                     opened, t_open, end = True, time.time(), time.time() + LOAD_TIMEOUT
         if time.time() > end:

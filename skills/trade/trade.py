@@ -123,9 +123,10 @@ class Phone:
         """Pokémon GO open and loaded, from wherever the phone is (closed too)"""
         return self.call(op="start", run_dir=base.RUN_DIR)["screen"]
 
-    def unstick(self):
-        """one step out of a screen nobody knows: Android Back, iPhone reopens the game (once)"""
-        self.call(op="unstick", texts=[list(t) for t in self.texts])
+    def unstick(self, backs):
+        """one step out of a screen nobody knows: Android Back, iPhone reopens the game (once).
+        backs: how many this trip to the friend page took already"""
+        self.call(op="unstick", texts=[list(t) for t in self.texts], backs=backs)
 
     def find(self, pred):
         return [t for t in self.texts if pred(t)]
@@ -225,9 +226,10 @@ def label(p, name):
 
 def to_friend(p):
     p.live = False
-    unknown = 0
+    unknown, backs = 0, 0
     for _ in range(40):  # room for a few Backs out of popups
         s = p.look()
+        unknown = unknown + 1 if s == "unknown" else 0
         if s == "friend":
             name = friend_name(p)
             if name and name.lower() == p.friend.lower():
@@ -282,11 +284,10 @@ def to_friend(p):
             p.keep("midtrade")
             raise Stop(f"{p.name}: in the middle of a trade ({s}): finish or back out of it by hand")
         elif s == "unknown":
-            unknown += 1
-            if unknown > 2:  # the same screen a few looks running: a popup, or a screen trading doesn't use
+            if unknown > 2:  # three unknown looks running: a popup, or a screen trading doesn't use
                 p.keep("lost")
-                p.unstick()  # stops the run once it's out of steps
-                unknown = 0
+                p.unstick(backs)  # stops the run once it's out of steps
+                unknown, backs = 0, backs + 1
         time.sleep(1.5)
     p.keep("lost")
     raise Stop(f"{p.name}: couldn't get to {p.friend}'s friend page")

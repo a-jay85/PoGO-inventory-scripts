@@ -627,6 +627,15 @@ if __name__ == "__main__":
     new_run_dir(os.path.abspath(given) if given else None)
     code = 0
     try:
+        if cmd == "act-fallen" and not os.path.exists(os.path.join(base.RUN_DIR, "fallen-groups.json")):
+            sys.exit("run fallen first, and read plan.txt")
+        if cmd == "act":  # these checks before the phone moves
+            if not os.path.exists(os.path.join(base.RUN_DIR, "plan.json")):
+                sys.exit("run plan first, and read plan.txt")
+            if any(m.get("unrenamed") for m in load("plan.json")) and "--force" not in a:
+                sys.exit("some IVC Pokémon aren't renamed yet: run /ivc first (or --force)")
+            if not approved("--yes" in a):
+                sys.exit("not approved, nothing changed")
         if cmd != "plan":  # every other step uses the phone
             base.start()
         if cmd == "scan":
@@ -639,16 +648,8 @@ if __name__ == "__main__":
             fallen.groups(iv_only=True)
             plan()
         elif cmd == "act-fallen":
-            if not os.path.exists(os.path.join(base.RUN_DIR, "fallen-groups.json")):
-                sys.exit("run fallen first, and read plan.txt")
             act_fallen(limit)
         elif cmd == "act":
-            if not os.path.exists(os.path.join(base.RUN_DIR, "plan.json")):
-                sys.exit("run plan first, and read plan.txt")
-            if any(m.get("unrenamed") for m in load("plan.json")) and "--force" not in a:
-                sys.exit("some IVC Pokémon aren't renamed yet: run /ivc first (or --force)")
-            if not approved("--yes" in a):
-                sys.exit("not approved, nothing changed")
             act(limit)
         elif cmd == "search":
             front()

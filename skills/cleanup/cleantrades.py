@@ -24,7 +24,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
 import ui
 import run as base
-from run import Stop, log, keep_capture, go, look, wait_for, front
+from run import Stop, log, keep_capture, go, look, wait_for
 import search
 import pvp
 from shadows import Pass, press, swipe_next, settled_tiles, exact, owned
@@ -497,8 +497,8 @@ if __name__ == "__main__":
     limit = int(a[a.index("--limit") + 1]) if "--limit" in a else 10 ** 9
     base.new_run_dir(os.path.join(HERE, "runs"))
     try:
-        front()
-        search.to_search_list()  # (from the map too)
+        base.start()  # from anywhere, Pokémon GO closed too
+        search.to_search_list()
         if LOOK:
             power_walk(limit)
             sys.exit(0)

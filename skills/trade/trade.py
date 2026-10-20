@@ -119,6 +119,15 @@ class Phone:
         self.call(op="restart")
         self.live = False
 
+    def start(self):
+        """Pokémon GO open and loaded, from wherever the phone is (closed too)"""
+        return self.call(op="start", run_dir=base.RUN_DIR)["screen"]
+
+    def unstick(self, backs):
+        """one step out of a screen nobody knows: Android Back, iPhone reopens the game (once).
+        backs: how many this trip to the friend page took already"""
+        self.call(op="unstick", texts=[list(t) for t in self.texts], backs=backs)
+
     def find(self, pred):
         return [t for t in self.texts if pred(t)]
 
@@ -217,9 +226,10 @@ def label(p, name):
 
 def to_friend(p):
     p.live = False
-    unknown = 0
-    for _ in range(20):
+    unknown, backs = 0, 0
+    for _ in range(40):  # room for a few Backs out of popups
         s = p.look()
+        unknown = unknown + 1 if s == "unknown" else 0
         if s == "friend":
             name = friend_name(p)
             if name and name.lower() == p.friend.lower():
@@ -273,11 +283,11 @@ def to_friend(p):
         elif s in ("select", "warning", "confirm"):
             p.keep("midtrade")
             raise Stop(f"{p.name}: in the middle of a trade ({s}): finish or back out of it by hand")
-        else:
-            unknown += 1
-            if unknown > 4:
+        elif s == "unknown":
+            if unknown > 2:  # three unknown looks running: a popup, or a screen trading doesn't use
                 p.keep("lost")
-                raise Stop(f"{p.name}: don't know this screen: {p.summary()}")
+                p.unstick(backs)  # stops the run once it's out of steps
+                unknown, backs = 0, backs + 1
         time.sleep(1.5)
     p.keep("lost")
     raise Stop(f"{p.name}: couldn't get to {p.friend}'s friend page")
@@ -806,6 +816,8 @@ def main():
         base.new_run_dir(os.path.join(HERE, "runs"))
         if a.cmd == "restart":
             return restart(phones)
+        for p in phones:  # from wherever each phone is, Pokémon GO closed too
+            log(f"{p.name}: Pokémon GO up, on {p.start()}")
         if a.done is not None:
             set_made(a.done)
         made, n, specials, expired = made_today(), 0, {}, 0

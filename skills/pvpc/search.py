@@ -202,17 +202,23 @@ def open_panel(bounds):
     return False
 
 
+def leave_panel(texts, bounds):
+    """a stop mid-search can leave the search panel open: close it. True if it was open"""
+    if not ui.search_panel(texts):
+        return False
+    box = ui.search_box(texts)
+    if box and ui.search_text(box):
+        close_panel(bounds)  # the (x) empties the bar and closes it
+    else:  # an empty bar has no (x): the < back arrow
+        click(0.10, 0.155, bounds)
+        time.sleep(random.uniform(1.2, 1.5))
+    return True
+
+
 def to_search_list():
     """the full Pokémon list with its search bar: Tags tab, then the POKÉMON tab (switching tabs puts the list back at the top)"""
     path, bounds = ui.capture()
-    texts = ui.ocr(path)
-    if ui.search_panel(texts):  # a stop mid-search left the panel open
-        box = ui.search_box(texts)
-        if box and ui.search_text(box):
-            close_panel(bounds)  # the (x) empties the bar and closes it
-        else:  # an empty bar has no (x): the < back arrow
-            click(0.10, 0.155, bounds)
-            time.sleep(random.uniform(1.2, 1.5))
+    leave_panel(ui.ocr(path), bounds)
     if base.look()[0] == "tags":  # cut off with the tag sheet open
         if not any(base.tick_tags().values()):  # ticks half changed (IVC off, Nope not on yet): DONE would save that
             raise Stop("left on the tag sheet with nothing ticked: finish this Pokémon by hand")

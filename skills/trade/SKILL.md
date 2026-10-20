@@ -20,7 +20,9 @@ Runs on its own. Keep both phones on, both games open, and keep your hands off t
 
 ## What one trade does
 
-1. Gets each phone to the other account's friend page: map → profile picture → FRIENDS → search the name → its row → X on a gift → the friend page. Old dialogs (trade expired, cancel this trade, exit Pokémon GO) are cleared on the way.
+Before the first trade, each phone opens Pokémon GO if it isn't open, and waits for it to load (`home.py`, see /pvpc).
+
+1. Gets each phone to the other account's friend page: map → profile picture → FRIENDS → search the name → its row → X on a gift → the friend page. Old dialogs (trade expired, cancel this trade, exit Pokémon GO) are cleared on the way. A screen it doesn't know gets Back (Android) or a reopen of the game (iPhone).
 2. LOCAL TRADE on both.
 3. Reads both saved searches on both phones: `0-100km` (`giv,xlx&distance0-100`) and `100+km` (`giv,xlx&distance100-`).
 4. Pairs iPhone 0-100km with Android 100+km. When either runs out, the other way round. When both ways are empty it stops: no trades inside one pile.

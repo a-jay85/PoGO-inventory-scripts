@@ -423,7 +423,7 @@ if __name__ == "__main__":
     done = []
     t_start = time.time()
     try:
-        base.front()
+        base.start()
         for q, decide in ((LEGENDS, check_trade), (BEASTS, check_trade)) + tuple((q, check_traded) for q in TRADED):
             if len(done) < limit:
                 walk(q, decide, done, limit)

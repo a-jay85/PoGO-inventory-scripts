@@ -403,7 +403,7 @@ if __name__ == "__main__":
     else:
         base.new_run_dir(runs)
     try:
-        front()
+        base.start()
         if a[:1] != ["transfer"]:
             purify_all(limit)
         transfer_all()

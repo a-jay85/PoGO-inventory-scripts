@@ -31,11 +31,20 @@ Drive Pokémon GO on the user's iPhone through **iPhone Mirroring**. Computer us
 ## Unattended mode
 
 `run.py` does the whole loop below with no Claude: `caffeinate -dimsu python3 $S/run.py [--limit N] [--dry-run]`.
+It starts from any screen, Pokémon GO closed too (`home.py`, shared by every script: see below).
 It skips anything unsure (logged in `$S/runs/<time>/`) and stops on anything unexpected.
 A Pokémon with a name you gave it (`L35`) gets its species from the appraisal's "This Meditite was caught on …" line. If a tap lands on the wrong screen mid-Pokémon, it backs out to the list and passes that one (up to 15 times a run, never from the tag sheet or the nickname box).
 At the end of the list it runs the read-only fallen-out step, then quits iPhone Mirroring. Stops, crashes and `--limit` leave it open.
 If earlier runs stopped before their fallen-out step (a stop, a crash, Ctrl-C), the run that reaches the end adds their new names to its own `renamed.json` first, so one fallen-out step covers them all. It looks back to the last run that has a `fallen.json`, at most 12 hours, and logs which runs it took (also in `carried.json`).
 Use this skill to clear its skips by hand.
+
+### Starting from anywhere
+
+Every script (`/pvpc`, `/ivc`, `/ivcsort`, `/cleanup`, `/trade`) first runs `home.start()`. The phone can be on any screen.
+- Android: wakes the phone and opens Pokémon GO if it isn't in front. Waits out the loading screens. Presses Back on popups and on screens the scripts don't use, until the map or the Pokémon screens show (at most 12 Backs). "Exit Pokémon GO?" gets CANCEL. A locked phone, a sign-in screen or an "isn't responding" box stops the run with a message.
+- iPhone: on the iPhone's home screen (told by the game's icon in the dock: app names are hidden), or a screen it doesn't know, it goes home and taps the game in the dock (once). A popup it still doesn't know stops the run: there's no Back key.
+- A nickname box left open gets CANCEL (nothing saved). A tag sheet left open: DONE if something is ticked, stop if nothing is.
+- `POGO_PHONE=android python3 $S/home.py` does just this step.
 Taps come 0.1–0.25s apart (same as /ivc and /ivcsort). A short 0.7–1.3s pause stays, on the appraisal only.
 
 ### Fallen out and trims
@@ -62,7 +71,7 @@ Everything above also works on an Android phone over USB. Set `POGO_PHONE=androi
 Without it, the scripts drive iPhone Mirroring exactly as before.
 
 - Setup, once: turn on USB debugging (Settings > About phone > tap Build number 7 times, then Settings > System > Developer options). Plug in, tap **Allow** on the phone. Also turn on **Stay awake** in Developer options: adb can't get past a lock screen.
-- `POGO_PHONE=android python3 $S/android.py check` checks the phone is plugged in and awake, and that Pokémon GO is in front. The scripts see the phone with its own screenshots (`adb exec-out screencap`), about 1.5s per look. Don't use scrcpy or any Mac window grab to see the phone: scrcpy's picture freezes now and then while the Mac is in use. `POGO_SCRCPY=1` turns the old scrcpy window back on, only if asked.
+- `POGO_PHONE=android python3 $S/android.py check` checks the phone is plugged in and awake, and that Pokémon GO is in front. The scripts don't need it: they open the game themselves. The scripts see the phone with its own screenshots (`adb exec-out screencap`), about 1.5s per look. Don't use scrcpy or any Mac window grab to see the phone: scrcpy's picture freezes now and then while the Mac is in use. `POGO_SCRCPY=1` turns the old scrcpy window back on, only if asked.
 - Taps and typing go through adb, so the Mac's mouse and keyboard stay free. Skip the **Session start** steps (no computer use, no `calib`).
 - By hand: use `ui.py press <target>` instead of `tap` + click. It plans the same safe spot and taps it on the phone. Type with `android.py type "<name>"`. Clear a text box with `android.py key clear`.
 - Unattended: `POGO_PHONE=android caffeinate -dimsu python3 $S/run.py ...`.

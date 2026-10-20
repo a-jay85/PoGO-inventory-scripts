@@ -342,6 +342,7 @@ if __name__ == "__main__":
     dry = "--dry-run" in a
     code = 0
     try:
+        base.start()
         counts = main(limit, dry)
         counts.pop("end", 0)
         log(f"finished: {dict(counts)}")

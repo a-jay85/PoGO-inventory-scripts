@@ -27,8 +27,6 @@ OPEN = ("detail", "menu", "appraisal", "appraise-intro", "gym")  # a Pokémon op
 LOAD_TIMEOUT = 150  # seconds for the game to open and get past its loading screens
 MAX_BACKS = 12  # Back presses (Android) on screens it doesn't know before it gives up
 DOCK = (0.73, 0.926)  # iPhone: the Poké Ball in the dock, third icon (Spotlight doesn't list the app near the top)
-IOS_APPS = {"SETTINGS", "APP STORE", "PHOTOS", "CAMERA", "SAFARI", "MAPS", "CLOCK", "CALENDAR", "WEATHER", "MESSAGES",
-            "NOTES", "WALLET", "MAIL", "MUSIC", "FACETIME", "REMINDERS"}  # two of these: the iPhone's home screen
 
 
 def joined(texts):
@@ -39,8 +37,24 @@ def main_menu(texts):
     return {"POKDEX", "POKMON", "ITEMS", "SHOP"} <= {ui.norm(t[4]).replace("É", "") for t in texts}
 
 
+def dock_icon(path):
+    """iPhone: the game's icon in the home screen's dock (red top, black band, white button). The home screen has no
+    app names to read (labels hidden), and its weather widget reads as a search bar, so this goes before classify"""
+    from PIL import Image
+    im = Image.open(path).convert("RGB")
+    W, H = im.size
+    px = lambda fx, fy: im.getpixel((int(fx * W), int(fy * H)))
+    red = [px(DOCK[0] + dx, 0.91) for dx in (-0.03, 0.03)]
+    white = [px(DOCK[0] + dx, 0.945) for dx in (-0.03, 0, 0.03)]
+    return all(r > 200 and g < 120 and b < 90 for r, g, b in red) and min(px(DOCK[0], 0.93)) > 230 \
+        and all(min(p) > 200 for p in white)
+
+
 def where(path, texts):
-    """the screens start() cares about: a storage screen, tags/rename, map, mainmenu, exit, signin, anr, blank, unknown"""
+    """the screens start() cares about: a storage screen, tags/rename, map, mainmenu, exit, signin, anr, ios-home,
+    mirroring, blank, unknown"""
+    if not ui.ANDROID and dock_icon(path):
+        return "ios-home"
     screen = ui.classify(texts)
     if screen != "unknown":
         return screen
@@ -53,8 +67,6 @@ def where(path, texts):
         return "anr"
     if not ui.ANDROID and ("IPHONE IN USE" in j or "IPHONE IS LOCKED" in j or "UNLOCK YOUR IPHONE" in j):
         return "mirroring"  # iPhone Mirroring can't reach the phone
-    if not ui.ANDROID and len({ui.norm(t[4]) for t in texts} & IOS_APPS) >= 2:
-        return "ios-home"
     if main_menu(texts):
         return "mainmenu"
     if len(texts) <= 12 and search.pokeball(path):
@@ -104,6 +116,10 @@ def android_launch():
         if a.PKG in a.shell("dumpsys activity activities | grep -E 'ResumedActivity'"):
             return True
     raise Stop("opened Pokémon GO but it never came to the front")
+
+
+def keyboard_up():
+    return "mInputShown=true" in ui.android.shell("dumpsys input_method | grep mInputShown=")
 
 
 def iphone_open():
@@ -172,6 +188,11 @@ def start(storage=True):
             return screen  # trade.py closes a trade's result screen itself
         if screen in ("list", "tag-tab"):
             if search.leave_panel(texts, bounds):
+                continue
+            if ui.ANDROID and keyboard_up():  # typing into the bar left the keyboard over the list: Back hides it
+                log("  the keyboard is up: hiding it")
+                ui.android.key("back")
+                time.sleep(1.0)
                 continue
             return screen
         if screen in OPEN:

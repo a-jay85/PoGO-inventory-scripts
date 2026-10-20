@@ -31,7 +31,8 @@ Drive Pokémon GO on the user's iPhone through **iPhone Mirroring**. Computer us
 ## Unattended mode
 
 `run.py` does the whole loop below with no Claude: `caffeinate -dimsu python3 $S/run.py [--limit N] [--dry-run]`.
-It skips anything unsure (logged in `$S/runs/<time>/`) and stops on anything unexpected. If a tap lands on the wrong screen mid-Pokémon, it backs out to the list and passes that one (up to 15 times a run, never from the tag sheet or the nickname box).
+It skips anything unsure (logged in `$S/runs/<time>/`) and stops on anything unexpected.
+A Pokémon with a name you gave it (`L35`) gets its species from the appraisal's "This Meditite was caught on …" line. If a tap lands on the wrong screen mid-Pokémon, it backs out to the list and passes that one (up to 15 times a run, never from the tag sheet or the nickname box).
 At the end of the list it runs the read-only fallen-out step, then quits iPhone Mirroring. Stops, crashes and `--limit` leave it open.
 If earlier runs stopped before their fallen-out step (a stop, a crash, Ctrl-C), the run that reaches the end adds their new names to its own `renamed.json` first, so one fallen-out step covers them all. It looks back to the last run that has a `fallen.json`, at most 12 hours, and logs which runs it took (also in `carried.json`).
 Use this skill to clear its skips by hand.

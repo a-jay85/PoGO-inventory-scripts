@@ -206,13 +206,14 @@ def process(i, tile_name, tile_cp, dry):
     open_tile(i)
     info, texts, _ = base.steady_detail()
     cp = info["cp"] or tile_cp
-    if not base.opened_right(info, tile_name, tile_cp):
+    # a tile name OCR cut short ('L+', 'He') needn't start the full one: there only the CP has to match
+    if not base.opened_right(info, tile_name, tile_cp) and untouched(tile_name):
         raise Skip(f"opened {info['name']!r} but tile said {tile_name!r}")
+    if not untouched(tile_name) and not_mine(info["name"]):
+        raise Skip(NOT_MINE)
     if not any(ui.norm(t) == TAG for t in info["tags"]):
         raise Skip(f"no {TAG} tag on detail: {info['tags']}")
     sp = ui.species_for(info["name"], info["texts"])
-    if not sp and not_mine(info["name"]):
-        raise Skip(NOT_MINE)
     if not sp:  # a nickname: the candy, the types and the CP tell the species
         sp = base.species_from_candy(texts, cp, info["hp"])
     shadow, lucky, size = extras(texts)

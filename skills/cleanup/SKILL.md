@@ -57,6 +57,7 @@ It works off the saved search shortcuts, always in this order:
 3. **Clean Trades** gets the Transfer tag. It doesn't transfer.
 
 Tagging a shortcut: its search + `&!#<tag>`, long press a tile, SELECT ALL, TAG (n). The n must equal the search's count, and the sheet must say "TAG n POKÉMON". The tag row is found by scrolling the sheet in small steps. Afterwards the same search must come back empty.
+PvpC1 and PvpC2 get no `&!#PvpC`: their own search already leaves out anything tagged. On the Pixel, HashTagAJay's PvpC1 search also fills the bar, so nothing more can be typed after it.
 
 Adding to a shortcut's search: tap the shortcut, tap the filled bar, jump to the end, type the extra part, Return. A `count…` term eats any text after it, so the XL part always goes last.
 

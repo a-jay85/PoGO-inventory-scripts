@@ -14,7 +14,7 @@ Start with Pokémon GO on the Pokémon screen. Three steps, always in this order
     or 31: the next XL-on-transfer tier
     (~/claude-plans/_reports/personal/pogo/xl-transfer-roi.md). Anything else: CANCEL. Never below 1,000,000 Stardust.
  3. Clean Trades -> tag Transfer.
-Tagging: the shortcut's search + &!#<tag>, long press, SELECT ALL, TAG (n). n must equal the search's count, and
+Tagging: the shortcut's search + &!#<tag> (PvpC1 and PvpC2 as they are: they already exclude tagged ones), long press, SELECT ALL, TAG (n). n must equal the search's count, and
 afterwards the same search must come back empty.
 --limit N powers up at most N Pokémon (the tagging still runs). Log in runs/<time>/.
 """
@@ -31,6 +31,7 @@ from shadows import Pass, press, swipe_next, settled_tiles, exact, owned
 from trades import sheet_rows, still_sheet
 
 TAGGING = [("PvpC1", "PvpC"), ("PvpC2", "PvpC"), ("IV Check", "IVC")]
+UNTAGGED_ONLY = {"PvpC1", "PvpC2"}  # their own search already has !#, and on the Pixel the bar is too full to add to
 CLEAN, TRANSFER = "Clean Trades", "Transfer"
 UNDER_360_XL = "&countcandyxl0-359"  # a count term eats what follows it: always last
 DUST_FLOOR = 1_000_000
@@ -181,7 +182,8 @@ def append(suffix):
 
 def tag_pile(name, tag):
     """tag everything in a shortcut's search (that doesn't have the tag yet)"""
-    n = run_shortcut(name, f"&!#{tag}")
+    suffix = "" if name in UNTAGGED_ONLY else f"&!#{tag}"
+    n = run_shortcut(name, suffix)
     if not n:
         return 0
     _, texts, _, bounds = look()
@@ -250,7 +252,7 @@ def tag_pile(name, tag):
     texts, _, bounds = still_sheet()
     press(next(t for t in texts if ui.norm(t[4]) == "DONE"), bounds)
     wait_for("list", timeout=8)
-    left = run_shortcut(name, f"&!#{tag}")
+    left = run_shortcut(name, suffix)
     if left:
         raise Stop(f"{name}: tagged {n} {tag}, but {left} still don't have it")
     log(f"{name}: tagged {n} {tag}")

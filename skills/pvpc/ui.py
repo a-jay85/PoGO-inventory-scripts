@@ -162,8 +162,10 @@ def classify(texts):
 
 def clean_name(s):
     """OCR sometimes reads the pencil icon after the name as ' /', a dot ('Shinx.') or a Cyrillic letter ('Raltsр').
-    No species name ends in punctuation; done names keep their * and ^"""
+    No species name ends in punctuation; done names keep their * and ^.
+    After a digit or + it can read as i or l ('Pvp Gs79i', 'Pvp Gs79 i'): no name ends in a letter stuck to a number"""
     s = re.sub(r"[\u0400-\u04ff]+$", "", s)
+    s = re.sub(r"(?<=[\d+]) ?[il]$", "", s)
     return re.sub(r"[\s/|\\.,:;'`’]+$", "", s).strip()
 
 

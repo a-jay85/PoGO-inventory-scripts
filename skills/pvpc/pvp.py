@@ -104,12 +104,22 @@ def lc_eligible(species):
     return "parent" not in fam and bool(evolutions(species))
 
 
-def all_ranks(species, ivs):
-    """[(league, rank, form)] for every eligible form/league."""
+def level_of(species, ivs, cpv, hpv):
+    """the level these IVs give this CP and HP at (the lowest, if two levels share them), or None"""
+    base = SPECIES[species]["baseStats"]
+    return next((lv for lv in LEVELS if cp(base, ivs, lv) == cpv and hp(base, ivs, lv) == hpv), None)
+
+
+def all_ranks(species, ivs, level=None):
+    """[(league, rank, form)] for every eligible form/league.
+    level: how far it's powered up now. Evolving keeps the level and nothing powers down, so a form whose CP
+    at that level is already over the cap can never play there: that league/form is left out."""
     out = []
     for s in family(species):
         for tag, cap in LEAGUES:
             if tag == "L" and not (s == species and lc_eligible(s)):
+                continue
+            if level is not None and cp(SPECIES[s]["baseStats"], ivs, level) > cap:
                 continue
             out.append((tag, rank(s, ivs, cap), s))
     return out
@@ -157,9 +167,9 @@ def eevee_name(ranks):
             return n, [f"left out {', '.join(text(*h) for h in hits[k:])}"] if k < len(hits) else []
 
 
-def make_name(species, ivs):
-    """Returns (name or None, notes)."""
-    ranks = all_ranks(species, ivs)
+def make_name(species, ivs, level=None):
+    """Returns (name or None, notes). level: see all_ranks"""
+    ranks = all_ranks(species, ivs, level)
     if species == "eevee":
         return eevee_name(ranks)
     notes = []
@@ -303,10 +313,10 @@ def name_slots(name, first):
     return out or None
 
 
-def iv_slots(species, ivs):
-    """{(league, form): rank} for every top-100 slot of an appraised Pokémon"""
+def iv_slots(species, ivs, level=None):
+    """{(league, form): rank} for every top-100 slot of an appraised Pokémon. level: see all_ranks"""
     out = {}
-    for tag, r, s in all_ranks(species, tuple(ivs)):
+    for tag, r, s in all_ranks(species, tuple(ivs), level):
         if r <= TOP and s in PLAIN:
             out[(tag, s)] = min(r, out.get((tag, s), r))
     return out
@@ -389,8 +399,8 @@ def fallen(mine, others, first):
     return True, why
 
 
-def fmt_ranks(species, ivs):
-    return " ".join(f"{t}{r}({display(s)})" for t, r, s in all_ranks(species, ivs) if r <= 500)
+def fmt_ranks(species, ivs, level=None):
+    return " ".join(f"{t}{r}({display(s)})" for t, r, s in all_ranks(species, ivs, level) if r <= 500)
 
 
 def cmd_check(species, cpv, hpv, stars, near=None):
@@ -405,10 +415,10 @@ def cmd_check(species, cpv, hpv, stars, near=None):
                     if near and max(abs(x - y) for x, y in zip((a, d, h), near)) > 1:
                         continue
                     if lo <= a + d + h <= hi and cp(base, (a, d, h), lv) == cpv and hp(base, (a, d, h), lv) == hpv:
-                        n, notes = make_name(species, (a, d, h))
+                        n, notes = make_name(species, (a, d, h), lv)
                         exact = near == (a, d, h)
                         rows.append((n or "NOPE", exact))
-                        print(f"L{lv:<5} {a:>2}/{d:>2}/{h:>2}{' *' if exact else '  '} {n or 'NOPE':<13} {fmt_ranks(species, (a, d, h))}  {'; '.join(notes)}")
+                        print(f"L{lv:<5} {a:>2}/{d:>2}/{h:>2}{' *' if exact else '  '} {n or 'NOPE':<13} {fmt_ranks(species, (a, d, h), lv)}  {'; '.join(notes)}")
     outcomes = sorted({r[0] for r in rows})
     exact = [r[0] for r in rows if r[1]]
     if not rows:

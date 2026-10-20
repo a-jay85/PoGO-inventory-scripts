@@ -171,9 +171,10 @@ def is_legendary(sp):
     return bool(tags & {"legendary", "mythical", "ultrabeast"})
 
 
-def pvp_candidate(sp, ivs):
-    """the /pvpc test: top 100 stat product in Little, Great or Ultra League for some form in the family"""
-    return any(r <= pvp.TOP for s in sp for _, r, _ in pvp.all_ranks(s, tuple(ivs)))
+def pvp_candidate(sp, ivs, cp, hp):
+    """the /pvpc test: top 100 stat product in Little, Great or Ultra League for some form in the family
+    that its level still fits under the cap"""
+    return any(r <= pvp.TOP for s in sp for _, r, _ in pvp.all_ranks(s, tuple(ivs), pvp.level_of(s, ivs, cp, hp)))
 
 
 # ---------- IVs ----------
@@ -225,7 +226,7 @@ def process(i, tile_name, tile_cp, dry):
     gym = any(s in ivc.GYM_DEFENDERS for s in sp)
     name = ivc.make_name(ivs, shadow=shadow, size=size, moves=moves, lucky=lucky, legendary=legendary, gym=gym)
     # IV too low to show but good for PvP: hand it to /pvpc instead (it'll get a Pvp name there)
-    if not ivc.shows_iv(ivs, shadow, lucky, legendary, gym) and pvp_candidate(sp, ivs):
+    if not ivc.shows_iv(ivs, shadow, lucky, legendary, gym) and pvp_candidate(sp, ivs, cp, info["hp"]):
         name = "->PvpC"
     flags = [f for f, on in (("shadow", shadow), ("lucky", lucky), ("legendary", legendary), ("gym", gym)) if on]
     what = (f"{tile_name} CP{cp} {'/'.join(map(str, ivs))}{''.join(' ' + f for f in flags)}"

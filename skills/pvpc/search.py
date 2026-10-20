@@ -159,7 +159,7 @@ def click(fx, fy, bounds, gap=0.0):
     x, y = base.to_points(fx, fy, bounds)
     base.tap_gap()
     time.sleep(max(0.0, base.last_tap + gap - time.time()))
-    ui.sh(ui.HELPER, "click", f"{x:.1f}", f"{y:.1f}", str(random.randint(50, 100)))
+    ui.sh(ui.HELPER, "click", f"{x:.1f}", f"{y:.1f}", str(ui.tap_ms()))
     base.last_tap = time.time()
 
 

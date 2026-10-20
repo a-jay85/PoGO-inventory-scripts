@@ -52,6 +52,11 @@ def remember(path, texts, bounds):
     _seen = (time.time(), copy, texts, list(bounds), classify(texts))
 
 
+def tap_ms():
+    """how long a tap holds. Through iPhone Mirroring 70+ ms often reads as a long press (5 of 10), even 35 ms once: 20-30 there"""
+    return random.randint(50, 100) if ANDROID else random.randint(20, 30)
+
+
 def sh(*a):
     global _seen, _older
     if a[:1] == (HELPER,) and len(a) > 1 and a[1] in TAPS:
@@ -672,7 +677,7 @@ def cmd_tap(target):
 def cmd_press(target):
     fx, fy, bounds, _ = plan(target)
     x, y, w, h = bounds
-    sh(HELPER, "click", f"{x + fx * w:.1f}", f"{y + fy * h:.1f}", str(random.randint(50, 100)))
+    sh(HELPER, "click", f"{x + fx * w:.1f}", f"{y + fy * h:.1f}", str(tap_ms()))
     print(f"pressed {target}")
 
 

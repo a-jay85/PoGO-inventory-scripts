@@ -292,13 +292,14 @@ def open_trade(phones):
         for p in phones:
             p.wait("picker", timeout=20)
     except Stop:
-        if not all(p.look() == "waiting" for p in phones):
+        if not all(p.look() in ("waiting", "expired") for p in phones):
             raise
-        # each waits for the other: the server never joined the two (seen after "Trading service unavailable").
-        # Leave on both, or the next round's to_friend skips a waiting phone and they wait again
+        # the server never joined the two: each waits for the other, or one has "Trading service unavailable" up.
+        # Leave on a waiting phone, or the next round's to_friend skips it and it waits again
         for p in phones:
-            p.tap(0.09, 0.115)  # the exit door
-        raise Expired("both phones wait for each other")
+            if p.screen == "waiting":
+                p.tap(0.09, 0.115)  # the exit door
+        raise Expired("the trading service didn't join the two phones")
 
 
 IN_TRADE = ("picker", "lobby", "sortmenu")

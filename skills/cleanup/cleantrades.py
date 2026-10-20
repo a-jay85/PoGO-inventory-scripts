@@ -2,6 +2,7 @@
 """Cleanup after trading: tag the saved searches, power up the Clean Trades ones that cross an XL tier, tag them Transfer.
 
   POGO_PHONE=android caffeinate -dimsu python3 cleantrades.py [--limit N]
+  caffeinate -dimsu python3 cleantrades.py [--limit N]    the iPhone, through iPhone Mirroring
   POGO_PHONE=android caffeinate -dimsu python3 cleantrades.py --look    only step 2, and it only reads: CANCEL every time
 
 Start with Pokémon GO on the Pokémon screen. Three steps, always in this order:
@@ -160,6 +161,8 @@ def append(suffix):
         return False
     if ui.ANDROID:
         ui.android.shell("input keyevent KEYCODE_MOVE_END")
+    else:
+        base.key("right", cmd=True)
     base.type_text(suffix)
     want = same_l(suffix)
     for i in range(6):

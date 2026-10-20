@@ -60,5 +60,5 @@ Tagging a shortcut: its search + `&!#<tag>`, long press a tile, SELECT ALL, TAG 
 
 Adding to a shortcut's search: tap the shortcut, tap the filled bar, jump to the end, type the extra part, Return. A `count…` term eats any text after it, so the XL part always goes last.
 
-**iPhone (HashTagAJay):** not tried yet. The cursor jump to the end of the bar, multi-select and the swipe are Android-only so far. Run `--look` first, then `--limit 1`.
+**iPhone (HashTagAJay):** run it without `POGO_PHONE=android`, with iPhone Mirroring open. Tagging and the jump to the end of the bar (Cmd+Right) ran on 2026-10-19. The power-up walk and the swipe haven't run on the iPhone yet, because none of its Clean Trades were under 360 XL. The first time some are, run `--look`, then `--limit 1`. Shortcut taps often land as a long press there. The script closes the box and taps again.
 

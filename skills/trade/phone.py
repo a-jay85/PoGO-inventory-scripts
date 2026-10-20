@@ -81,6 +81,7 @@ def main():
                 out = {"screen": home.start(storage=False)}
             elif op == "unstick":
                 home.backs = req["backs"]  # each trip to the friend page gets its own allowance
+                home.reopened = req["backs"] > 0  # iPhone: one reopen a trip too
                 home.unstick(req["texts"])
             else:
                 out = {"error": f"unknown op {op}"}

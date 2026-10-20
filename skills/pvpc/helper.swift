@@ -180,6 +180,8 @@ case "key":
         press(51, flags)
     } else if name == "return" {
         press(36, flags)
+    } else if name == "right" {  // (with cmd: the end of the line)
+        press(124, flags)
     } else if let (code, shift) = KEYS[Character(name)] {
         press(code, shift ? flags.union(.maskShift) : flags)
     } else {

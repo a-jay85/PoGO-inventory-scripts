@@ -7,9 +7,10 @@
 Start with Pokémon GO on the Pokémon screen. Three steps, always in this order:
  1. Shortcuts PvpC1 and PvpC2 -> tag PvpC. Shortcut IV Check -> tag IVC. A shortcut this account doesn't have is
     skipped. This goes first: Clean Trades only shows untagged ones (!#), so these drop out of it.
- 2. Clean Trades + &countcandyxl0-359 (under 360 Candy XL). Each one is opened and POWER UP tapped once: the dialog's
-    "CP a -> b" plus the max HP pin its exact level. At level 14, 19, 22 or 30 (or the half level after) it gets
-    1-2 power-ups to reach 15, 20, 23 or 31: the next XL-on-transfer tier
+ 2. Clean Trades + &countcandyxl0-359 (under 360 Candy XL). Each one is opened and POWER UP tapped: the dialog's
+    "CP a -> b" and Stardust cost narrow its level. Each + (one more power-up) shows new totals that narrow it
+    more. At level 14, 19, 22 or 30 (or the half level after) it gets 1-2 power-ups in one go, to reach 15, 20, 23
+    or 31: the next XL-on-transfer tier
     (~/claude-plans/_reports/personal/pogo/xl-transfer-roi.md). Anything else: CANCEL. Never below 1,000,000 Stardust.
  3. Clean Trades -> tag Transfer.
 Tagging: the shortcut's search + &!#<tag>, long press, SELECT ALL, TAG (n). n must equal the search's count, and
@@ -35,6 +36,11 @@ DUST_FLOOR = 1_000_000
 LOOK = False  # --look: read the levels, power up and tag nothing
 PLAYS = {14: 15, 19: 20, 22: 23, 30: 31}  # level -> the tier it crosses into (2 taps, or 1 from the half level)
 CANDY = {14: 2, 19: 2, 22: 3, 30: 4}  # candy per tap there (purified rounds up to the same)
+DUST = [(1, 200), (3, 400), (5, 600), (7, 800), (9, 1000), (11, 1300), (13, 1600), (15, 1900), (17, 2200),
+        (19, 2500), (21, 3000), (23, 3500), (25, 4000), (27, 4500), (29, 5000), (31, 6000), (33, 7000),
+        (35, 8000), (37, 9000), (39, 10000)]  # (from level, Stardust a power-up)
+DUST_RATE = (1, 0.5, 0.9, 0.45)  # normal, lucky, purified, both
+MAX_PLUS = 4  # + taps to find the level: from 19 the cost only jumps on the 5th power-up (at 21)
 
 
 def key(s):
@@ -292,32 +298,54 @@ def cp_levels(species, hp, cp):
     return sorted(out)
 
 
+def dust_at(lv):
+    """Stardust for one power-up from this level (before the lucky / purified discount)"""
+    return next(c for first, c in reversed(DUST) if lv >= first)
+
+
+def read_dialog(cp, after=None):
+    """the open power-up dialog. Wait until its first CP is the page's and (after a +) its 'after' CP has moved.
+    -> (CP after, total dust, POWER UP box, CANCEL box, + box, bounds, title)"""
+    for _ in range(25):
+        time.sleep(0.12)
+        _, texts, _, bounds = look()
+        head = next((t for t in texts if re.match(r"POWER UP\s*:", t[4].strip(), re.I)), None)
+        line = next((t for t in texts if re.fullmatch(r"CP\s*(\d+)\D+(\d+)", t[4].strip())), None)
+        ok = [t for t in texts if ui.norm(t[4]) == "POWER UP" and t[1] > 0.75]
+        no = exact(texts, "CANCEL")
+        if not (head and line and len(ok) == 1 and len(no) == 1):
+            continue
+        a, b = map(int, re.fullmatch(r"CP\s*(\d+)\D+(\d+)", line[4].strip()).groups())
+        if a != cp or b == after:  # (its CP must be the page's: 'CP 372 →385' can read as 'CP3 →72')
+            continue
+        dust = next((int(m.group(1).replace(",", "")) for t in texts if line[1] + 0.02 < t[1] < line[1] + 0.075
+                     and (m := re.fullmatch(r"\D{0,3}?(\d{1,2},\d{3}|\d{3})", t[4].strip()))), None)
+        plus = [t for t in texts if t[4].strip() == "+" and t[0] > 0.6 and line[1] < t[1] < ok[0][1]]
+        return b, dust, ok[0], no[0], plus[0] if plus else None, bounds, head[4]
+    keep_capture("powerdialog")
+    raise Stop("no power-up dialog, or its CP didn't move after +")
+
+
 def dialog(info):
-    """tap POWER UP on the detail page. -> (CP now, CP after, dust cost, the dialog's POWER UP box, CANCEL box)"""
+    """tap POWER UP on the detail page. -> read_dialog() without the title"""
     _, texts, _, bounds = look()
     btn = [t for t in texts if ui.norm(t[4]) == "POWER UP" and t[1] > 0.6]
     if len(btn) != 1:
         raise Pass("can't find POWER UP")
     press(btn[0], bounds)
-    for _ in range(25):
-        time.sleep(0.12)
-        _, texts, _, bounds = look()
-        head = next((t[4] for t in texts if re.match(r"POWER UP\s*:", t[4].strip(), re.I)), None)
-        cps = next((m for t in texts if (m := re.fullmatch(r"CP\s*(\d+)\D+(\d+)", t[4].strip()))), None)
-        ok = [t for t in texts if ui.norm(t[4]) == "POWER UP" and t[1] > 0.75]
-        cancel = exact(texts, "CANCEL")
-        if head and cps and len(ok) == 1 and len(cancel) == 1 and int(cps.group(1)) == info["cp"]:
-            break  # (its CP must be the page's: 'CP 372 →385' can read as 'CP3 →72')
-    else:
-        keep_capture("powerdialog")
-        raise Stop("no power-up dialog after tapping POWER UP")
+    *got, head = read_dialog(info["cp"])
     if ui.letters(head.split(":", 1)[1]) != ui.letters(info["name"]):
-        press(cancel[0], bounds)
+        press(got[3], got[5])
         raise Stop(f"the power-up dialog names someone else: {head!r} (wanted {info['name']})")
-    a, b = int(cps.group(1)), int(cps.group(2))
-    dust = next((int(m.group().replace(",", "")) for t in texts if cps.string not in t[4]
-                 and (m := re.search(r"\d{1,2},\d{3}", t[4]))), None)
-    return a, b, dust, ok[0], cancel[0], bounds
+    return got
+
+
+def more(cp, d):
+    """tap + in the dialog: one more power-up. -> read_dialog() with the new totals"""
+    if not d[4]:
+        raise Pass("no + in the power-up dialog")
+    press(d[4], d[5])
+    return read_dialog(cp, after=d[0])[:-1]
 
 
 def cancel(box, bounds):
@@ -325,19 +353,24 @@ def cancel(box, bounds):
     wait_for("detail")
 
 
-def by_bars(cands):
-    """appraise (and come back to the detail page): keep the candidates with the bars' IVs, else within 1 of them"""
-    try:
-        _, ivs, _, what = base.high_iv()
-    except base.Skip as e:
-        raise Pass(f"can't read its IV: {e}")
-    log(f"  appraised {what}")
-    exact_iv = [c for c in cands if c[1] == tuple(ivs)]
-    return exact_iv or [c for c in cands if max(abs(x - y) for x, y in zip(c[1], ivs)) <= 1]
+def fits(c, rows):
+    """does this (species, IVs, level) give every dialog row (n power-ups, CP after, total dust)?"""
+    sid, iv, lv = c
+    st = pvp.SPECIES[sid]["baseStats"]
+    if any(pvp.cp(st, iv, lv + 0.5 * n) != b for n, b, _ in rows):
+        return False
+    return any(all(t is None or t == sum(round(m * dust_at(lv + 0.5 * k)) for k in range(n)) for n, _, t in rows)
+               for m in DUST_RATE)
+
+
+def steps(cands):
+    """power-ups each possible level needs to reach its XL tier (None: not a play)"""
+    return {int((PLAYS[math.floor(lv)] - lv) * 2) if math.floor(lv) in PLAYS else None for _, _, lv in cands}
 
 
 def power_up(info, texts):
-    """1-2 power-ups if this one sits right under an XL tier. -> taps made. Raise Pass to leave it."""
+    """1-2 power-ups if this one sits right under an XL tier. -> power-ups made. Raise Pass to leave it.
+    Its level comes from the dialog: + adds a power-up, and each total (CP after, Stardust) rules levels out."""
     species = ui.species_for(info["name"], info["texts"])
     if not species:
         raise Pass(f"don't know the species of {info['name']!r}")
@@ -348,66 +381,58 @@ def power_up(info, texts):
     have_dust, have_candy = owned(texts)
     if have_dust < DUST_FLOOR:
         raise Stop(f"Stardust {have_dust:,} is under {DUST_FLOOR:,}: no more power-ups")
-    taps, cands = 0, None
-    while True:
-        a, b, dust, ok, no, bounds = dialog(info)
-        if cands is None:
-            cands = candidates(species, info["hp"], a, b)
-        else:  # one tap later: the CP must match, and the new 'after' narrows it again
-            cands = [(s, iv, lv + 0.5) for s, iv, lv in cands]
-            cands = [(s, iv, lv) for s, iv, lv in cands if pvp.cp(pvp.SPECIES[s]["baseStats"], iv, lv) == a
-                     and pvp.cp(pvp.SPECIES[s]["baseStats"], iv, lv + 0.5) == b]
-        lvs = sorted({lv for _, _, lv in cands})
-        if not taps:
-            goal = {PLAYS.get(math.floor(lv)) for lv in lvs}
-            if len(goal) > 1 and goal - {None}:  # some of its possible levels are a play, some aren't: the bars decide
-                cancel(no, bounds)
-                cands = by_bars(cands)
-                lvs = sorted({lv for _, _, lv in cands})
-                goal = {PLAYS.get(math.floor(lv)) for lv in lvs}
-                if not lvs or len(goal) != 1 or None in goal:  # (the dialog is closed already)
-                    raise Pass(f"appraised: level {lvs or '?'} (CP{a}->{b}): no XL tier one or two taps away")
-                a2, b2, dust, ok, no, bounds = dialog(info)
-                if (a2, b2) != (a, b):
-                    cancel(no, bounds)
-                    raise Stop(f"the power-up dialog read CP{a}->{b}, now CP{a2}->{b2}")
-            if not lvs or len(goal) != 1 or None in goal:
-                cancel(no, bounds)
-                raise Pass(f"level {lvs or '?'} (CP{a}->{b}): no XL tier one or two taps away")
-            target = goal.pop()
-            need = sum(CANDY[math.floor(lv)] for lv in (min(lvs), min(lvs) + 0.5) if lv < target)
-            if have_candy < need:
-                cancel(no, bounds)
-                raise Pass(f"level {lvs}: needs {need} candy, has {have_candy}")
-            if have_dust - 2 * (dust or 10000) < DUST_FLOOR:
-                cancel(no, bounds)
-                raise Stop(f"Stardust {have_dust:,} would drop under {DUST_FLOOR:,}: no more power-ups")
-            log(f"  level {lvs} -> {target}  (CP{a}->{b}, {dust} dust a tap)")
-            if LOOK:
-                cancel(no, bounds)
-                raise Pass(f"--look: would power up level {lvs} to {target}")
-        if lvs and all(lv >= target for lv in lvs):  # crossed: this dialog was only the check
-            cancel(no, bounds)
-            return taps
-        if taps >= 2:  # never a 3rd
-            cancel(no, bounds)
-            raise Stop(f"2 taps and the level reads {lvs}, still not {target}")
-        if any(lv >= target for lv in lvs) or not lvs:
-            cancel(no, bounds)
-            raise Pass(f"after {taps} tap(s) the level reads {lvs}: can't tell if it crossed {target}")
-        press(ok, bounds)
-        end = time.time() + 15
-        while time.time() < end:  # done = dialog gone, the detail shows the new CP
-            time.sleep(0.15)
-            screen, t2, _, _ = look()
-            if screen == "detail" and not any(re.match(r"POWER UP\s*:", t[4].strip(), re.I) for t in t2) \
-                    and ui.detail_info(t2)["cp"] == b:
-                break
-        else:
-            keep_capture("powerup")
-            raise Stop(f"the power-up to CP{b} didn't show in 15s")
-        taps += 1
-        info = {**info, "cp": b}
+    cp = info["cp"]
+    d = dialog(info)
+    rows = [(1, d[0], d[1])]
+    cands = [c for c in candidates(species, info["hp"], cp, d[0]) if fits(c, rows)]
+    while len(steps(cands)) > 1 and len(rows) < MAX_PLUS + 1:  # a play for some levels only: one more +
+        d = more(cp, d)
+        rows.append((len(rows) + 1, d[0], d[1]))
+        cands = [c for c in cands if fits(c, rows)]
+    lvs = sorted({lv for _, _, lv in cands})
+    need = steps(cands)
+    say = f"level {lvs or '?'} (CP{cp} -> " + ", ".join(f"{n}x: CP{b} {t} dust" for n, b, t in rows) + ")"
+    if len(need) != 1 or None in need:
+        cancel(d[3], d[5])
+        raise Pass(f"{say}: no XL tier one or two power-ups away")
+    n = need.pop()
+    target = PLAYS[math.floor(lvs[0])]
+    if n != len(rows):  # the dialog shows more power-ups than it needs: open it again and count up
+        cancel(d[3], d[5])
+        d = dialog(info)
+        for _ in range(n - 1):
+            d = more(cp, d)
+    after, total = d[0], d[1]
+    want = {pvp.cp(pvp.SPECIES[s]["baseStats"], iv, lv + 0.5 * n) for s, iv, lv in cands}
+    if want != {after}:
+        cancel(d[3], d[5])
+        raise Stop(f"{n} power-up(s) should give CP{sorted(want)}, the dialog says CP{after}")
+    candy = sum(CANDY[math.floor(lvs[0])] for _ in range(n))
+    if have_candy < candy:
+        cancel(d[3], d[5])
+        raise Pass(f"{say}: needs {candy} candy, has {have_candy}")
+    if total is None or have_dust - total < DUST_FLOOR:
+        cancel(d[3], d[5])
+        raise Stop(f"Stardust {have_dust:,} - {total} would drop under {DUST_FLOOR:,}: no more power-ups")
+    log(f"  {say} -> {target}: {n} power-up(s), CP{after}, {total:,} dust")
+    if LOOK:
+        cancel(d[3], d[5])
+        raise Pass(f"--look: would power up level {lvs} to {target}")
+    press(d[2], d[5])
+    end, sure = time.time() + 15, False
+    while time.time() < end:  # done = dialog gone, the detail shows the new CP
+        time.sleep(0.15)
+        screen, t2, _, b2 = look()
+        no = exact(t2, "NO")
+        if not sure and len(no) == 1 and any("really want to power up" in t[4] for t in t2):
+            press((no[0][0], no[0][1] - 0.078, no[0][2], no[0][3], "YES"), b2)  # (YES is white on green: OCR misses it)
+            sure = True
+            continue
+        if screen == "detail" and not any(re.match(r"POWER UP\s*:", t[4].strip(), re.I) for t in t2) \
+                and ui.detail_info(t2)["cp"] == after:
+            return n
+    keep_capture("powerup")
+    raise Stop(f"the power-up to CP{after} didn't show in 15s")
 
 
 def power_walk(limit):
@@ -438,7 +463,7 @@ def power_walk(limit):
             done += 1
             info2 = ui.detail_info(wait_for("detail")[1])
             seen.add((info2["name"], info2["cp"], info2["hp"]))
-            log(f"powered up {info['name']} CP{info['cp']} -> CP{info2['cp']}, {taps} tap(s)  ({time.time() - t0:.1f}s)")
+            log(f"powered up {info['name']} CP{info['cp']} -> CP{info2['cp']}, {taps} power-up(s)  ({time.time() - t0:.1f}s)")
         moved = False
         for attempt in range(2):  # next one; a swipe that does nothing twice = end of the list
             swipe_next(look()[3])

@@ -25,12 +25,18 @@ MAX_SKIPS_IN_A_ROW = 5
 END_AFTER_STALE = 3
 TAG = "IVC"
 GM = json.load(open(os.path.join(HERE, "..", "pvpc", "gamemaster.json")))
-DONE_LOOK = re.compile(r"\s*(\d|\*|[A-Z]{1,4}\*|xx[sl]\b|\^)", re.I)  # 87/96 A*, FP*, xxs, XXL
+DONE_LOOK = re.compile(r"\s*\$?(\d|\*|[A-Z]{1,4}\*|xx[sl]\b|\^)", re.I)  # 87/96 A*, FP*, xxs, XXL ($91 HA: OCR)
 odd = set()  # odd tile names already logged
+NOT_MINE = "a done or Pvp name"  # the Skip for a done name read in full on the detail: not counted as a skip
 SPECIES_NAMES = {p["speciesName"].split(" (")[0].lower() for p in GM["pokemon"]}
 
 
 # ---------- what's on the detail screen ----------
+
+def not_mine(name):
+    """renamed already, by /ivc (87/96 A*) or /pvpc (Pvp L35)"""
+    return bool(DONE_LOOK.match(name or "") or pvp.PVP_NAME.match((name or "").strip()))
+
 
 def untouched(name):
     """still named after its species, so not done yet. Done names (87/96 A*, FP*, xxs) never match."""
@@ -200,13 +206,16 @@ def process(i, tile_name, tile_cp, dry):
     open_tile(i)
     info, texts, _ = base.steady_detail()
     cp = info["cp"] or tile_cp
-    if not base.opened_right(info, tile_name, tile_cp):
+    # a tile name OCR cut short ('L+', 'He') needn't start the full one: there only the CP has to match
+    if not base.opened_right(info, tile_name, tile_cp) and untouched(tile_name):
         raise Skip(f"opened {info['name']!r} but tile said {tile_name!r}")
+    if not untouched(tile_name) and not_mine(info["name"]):
+        raise Skip(NOT_MINE)
     if not any(ui.norm(t) == TAG for t in info["tags"]):
         raise Skip(f"no {TAG} tag on detail: {info['tags']}")
     sp = ui.species_for(info["name"], info["texts"])
-    if not sp:
-        raise Skip("species unclear: ?")
+    if not sp:  # a nickname: the candy, the types and the CP tell the species
+        sp = base.species_from_candy(texts, cp, info["hp"])
     shadow, lucky, size = extras(texts)
     moves = []
     if any(ivc.elite_moves(s) for s in sp):
@@ -250,14 +259,16 @@ def process(i, tile_name, tile_cp, dry):
 # ---------- the list ----------
 
 def pick(ts, passed):
-    """first tile still named after its species, passing over ones skipped (or dry-run) earlier"""
+    """first tile still named after its species or with a nickname, passing over ones skipped (or dry-run)
+    earlier. A name that's neither (a nickname, or OCR cut it short) gets opened, and the detail reads it in full"""
     seen = Counter()
     for i, (n, c, _, _) in enumerate(ts, 1):
         if not untouched(n):
-            if not DONE_LOOK.match(n) and (n, c) not in odd:
+            if not_mine(n):
+                continue
+            if (n, c) not in odd:
                 odd.add((n, c))
-                log(f"  passing over {n!r} CP{c}: not a species name or a done name (OCR garble?)")
-            continue
+                log(f"  {n!r} CP{c}: not a species name or a done name, opening it to read the full name")
         seen[(n, c)] += 1
         if seen[(n, c)] > passed[(n, c)]:
             return i, n, c
@@ -311,12 +322,14 @@ def main(limit, dry):
         except (Skip, base.Lost) as e:
             if isinstance(e, base.Lost):
                 base.recover(e, f"{n} CP{c}")
+            elif str(e) == NOT_MINE:
+                log(f"  {n} CP{c} is {NOT_MINE}, passing it")
             else:
                 keep_capture(f"skip-{n}")
                 log(f"SKIP {n} CP{c}: {e}")
             passed[(n, c)] += 1
-            counts["skip"] += 1
-            skips_in_a_row += str(e) != base.GYM  # a row of gym defenders is nothing wrong
+            counts["skip"] += str(e) != NOT_MINE
+            skips_in_a_row += str(e) not in (base.GYM, NOT_MINE)  # a row of gym defenders is nothing wrong
             if skips_in_a_row >= MAX_SKIPS_IN_A_ROW:
                 raise Stop(f"{skips_in_a_row} skips in a row, something's off")
             back_to_list()

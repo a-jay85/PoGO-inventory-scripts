@@ -14,7 +14,7 @@ Uses the shared tapper and screen reader from /pvpc (`~/.claude/skills/pvpc`: `u
 Both phones run at once, each in its own process. `--phone ios` or `--phone android` runs one. Keep your hands off the Mac mouse while the iPhone runs: its taps go through the Mac pointer.
 
 - `--limit N`: at most N gifts per phone this run.
-- `--dry-run`: does everything except tap SEND and the nickname box's OK. It still taps the phone.
+- `--dry-run`: does everything except tap SEND. A nickname is typed into the box, then CANCEL instead of OK. It still taps the phone.
 - `python3 $S/gift.py --phone ios look`: what the script reads on the screen now. Taps nothing.
 
 ## Which gifts

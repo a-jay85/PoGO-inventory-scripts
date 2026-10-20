@@ -100,7 +100,7 @@ def classify():
         return "preview"
     if "GREETINGS FROM" in j and "OPEN" in w:
         return "giftpopup"
-    if "SET NICKNAME" in j and "OK" in w:
+    if "SET NICKNAME" in j and w & {"OK", "CANCEL"}:
         return "nickname"
     if "CAN RECEIVE A GIFT" in j and "FRIENDSHIP LEVEL" in j:
         return "sortmenu"
@@ -182,7 +182,7 @@ def count():
 def search_line():
     """the search box's text, when it's on screen (it scrolls away with the list)"""
     for t in texts:
-        if 0.18 < t[1] < 0.26 and t[0] < 0.3 and ("&" in t[4] or ui.norm(t[4]) == "TRAINER NICKNAME"):
+        if 0.18 < t[1] < 0.26 and t[0] < 0.25 and ui.norm(t[4]) not in ("ADD FRIEND", "SEARCH", "INVITE"):
             return t
     return None
 
@@ -308,6 +308,8 @@ def search(q):
             time.sleep(0.5)
         if n is None:
             raise Stop(f"no result count after the search: {summary()}")
+        box = search_line()
+        log(f"  search box reads {box[4] if box else None!r}")
         if n == 0 or rows():
             return n
         log(f"the search shows ({n}) but no rows: typing it again")  # Android, seen twice
@@ -342,13 +344,14 @@ def rows():
     out, last = [], None
     for t in col:
         if last is not None and t[1] - last[1] < 0.035:
-            continue  # the nickname line under the name
+            if out and out[-1][0] is last:
+                out[-1][1] = t[4].strip()  # the nickname line under the name
+            continue
         last = t
-        name = clean(t[4])
-        if len(name) >= 3:
-            out.append(t)
+        if len(clean(t[4])) >= 3:
+            out.append([t, ""])
     im = Image.open(path).convert("RGB")
-    return [{"name": clean(t[4]), "t": t, "badged": badged(im, t[1])} for t in out]
+    return [{"name": clean(t[4]), "nick": nick, "t": t, "badged": badged(im, t[1])} for t, nick in out]
 
 
 def same_name(a, b):
@@ -535,13 +538,15 @@ def cancel_nickname():
         time.sleep(1)
 
 
-def rename(tag, old):
+def rename(tag, old, listed):
+    """listed: the nickname as the friend list showed it. The box opens empty, so the old nickname is typed back
+    from what was read: both reads must agree, or a misread would wipe the user's zone tag"""
+    if re.sub(r"\s", "", old) != re.sub(r"\s", "", listed):  # (the list's OCR drops spaces: 'WAITLocal')
+        log(f"  the nickname reads {old!r} on the page, {listed!r} in the list: tag it {tag} by hand")
+        return False
     new = new_nickname(tag, old)
     if not TYPEABLE.fullmatch(new):
         log(f"  can't type nickname {new!r}: rename it to {tag} by hand")
-        return False
-    if DRY:
-        log(f"  DRY RUN: would rename {old!r} -> {new!r}")
         return False
     for _ in range(4):
         t = label("SET NICKNAME", 0.3, 0.95)
@@ -574,9 +579,17 @@ def rename(tag, old):
         log(f"  the nickname box reads {got!r}, wanted {new!r}: canceled, rename it to {tag} by hand")
         return False
     ok = label("OK", 0.5, 0.6)
+    cancel = label("CANCEL", 0.55, 0.7)
+    if not ok and cancel:  # OCR misses the OK (white on green) on the Android: it sits 0.073 above CANCEL
+        ok = (cancel[0], cancel[1] - 0.073, cancel[2], cancel[3], "OK")
     if not ok:
         cancel_nickname()
         raise Stop(f"no OK on the nickname box: {summary()}")
+    if DRY:
+        log(f"  DRY RUN: the box reads {got!r}: would rename {old!r} -> {new!r}, CANCEL instead")
+        cancel_nickname()
+        wait("friend", timeout=8)
+        return False
     tap_text(ok)
     wait("friend", timeout=8)
     log(f"  nickname {old!r} -> {new!r}")
@@ -602,12 +615,12 @@ def one_friend(row):
     n = meter()
     if n == 1:
         log(f"{name} ({nick}): 1 point to level up: no gift, tagging WAIT")
-        rename("WAIT", nick)
+        rename("WAIT", nick, row["nick"])
         return None
     title = send_gift()
-    log(f"{name} ({nick}): sent {title}")
+    log(f"{name} ({nick}): {'would send' if DRY else 'sent'} {title}")
     if n == 2:
-        rename("SENT", nick)
+        rename("SENT", nick, row["nick"])
     return title
 
 
@@ -627,7 +640,9 @@ def run_searches(limit):
                 set_sort()
             stale = 0
             while True:
-                look()
+                if look() != "friends":  # a drag that landed as a tap opened something: back first
+                    to_list()
+                    continue
                 todo = [r for r in rows() if r["name"] not in done]
                 if todo and todo[0]["badged"]:
                     break  # sorted can-receive first: from here down nobody can take a gift

@@ -733,6 +733,24 @@ def open_appraisal():
     go("dialog", "appraisal")
 
 
+def appraisal_species(detail_texts):
+    """the appraisal's 'This Meditite was caught on ...' line names the species whatever the nickname.
+    detail_texts: the detail screen's, whose type line tells regional forms apart. Leaves the appraisal open"""
+    for _ in range(6):
+        _, texts, _, _ = wait_for("appraisal")
+        m = re.search(r"\bThis (.+?) was\b", " ".join(t[4] for t in texts))
+        if m:
+            break
+        time.sleep(0.25)
+    else:
+        raise Skip("species unclear: no 'This ... was' line on the appraisal")
+    sp = ui.species_for(m.group(1), detail_texts)
+    if not sp:
+        raise Skip(f"species unclear: the appraisal says {m.group(1)!r}")
+    log(f"  the appraisal names it {m.group(1)}: {sp}")
+    return sp
+
+
 def exact_ivs(sp, cp, hp, ivs, raws):
     """bar reading checked against CP and HP: the names depend on exact IVs"""
     crisp = all(abs(r - round(r)) <= 0.3 for r in raws)
@@ -780,10 +798,10 @@ def process(i, tile_name, tile_cp):
     if not any(is_tag(t, "PvpC") for t in info["tags"]):
         raise Skip(f"no PvpC tag on detail: {info['tags']}")
     sp = ui.species_for(info["name"], info["texts"])
-    if not sp:
-        raise Skip("species unclear: ?")
     shadow = is_shadow(texts)
     open_appraisal()
+    if not sp:  # a name the user gave it ('L35'): the appraisal names the species
+        sp = appraisal_species(info["texts"])
     ivs, raws = appraise()
     name = decide_forms(sp, cp, info["hp"], ivs, raws)
     slots = new_slots(sp, cp, info["hp"], ivs, raws, name)

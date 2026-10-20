@@ -45,6 +45,10 @@ class Expired(Stop):
     """the game canceled the trade before both confirmed: nothing traded, the round can start over"""
 
 
+class ServiceDown(Expired):
+    """the trading server failed ("Trading service temporarily unavailable"): restart the game on both phones"""
+
+
 # ---------- the two phones ----------
 
 class Phone:
@@ -77,7 +81,7 @@ class Phone:
         self.screen = classify(self.texts, self.path)
         if self.live and self.screen == "expired":
             self.live = False
-            raise Expired(f"{self.name}: the trade expired")
+            self.expired()
         return self.screen
 
     def tap(self, fx, fy, fuzz=0.008):
@@ -96,14 +100,24 @@ class Phone:
 
     def wait(self, *screens, timeout=10):
         end = time.time() + timeout
+        grace = end + 30  # a blank loading screen (the server is slow) holds the timeout off, this long at most
         while True:
             if self.look() in screens:
                 return self.screen
             if self.screen == "expired":
-                raise Expired(f"{self.name}: the trade expired")
-            if time.time() > end:
+                self.expired()
+            if time.time() > end and not (self.screen == "blank" and time.time() < grace):
                 raise Stop(f"{self.name}: wanted {'/'.join(screens)}, screen is {self.screen}: {self.summary()}")
             time.sleep(0.3)
+
+    def expired(self):
+        if self.find(lambda t: "UNAVAILABLE" in up(t) or "ERROR FETCHING" in up(t)):
+            raise ServiceDown(f"{self.name}: the trading service failed: {self.summary()}")
+        raise Expired(f"{self.name}: the trade expired")
+
+    def restart(self):
+        self.call(op="restart")
+        self.live = False
 
     def find(self, pred):
         return [t for t in self.texts if pred(t)]
@@ -140,6 +154,8 @@ def classify(texts, path):
         return "exit"  # Android: "Do you want to exit Pokémon GO?"
     if "TRADE EXPIRED" in joined or "TRADE WAS CANCELED" in joined or "HAS EXPIRED" in joined:
         return "expired"  # a trade left open too long (or the other side left): OK
+    if "ERROR FETCHING TRADE" in joined or "TRADING SERVICE" in joined:
+        return "expired"  # the server lost the trade ("Trading service temporarily unavailable"): OK, start over
     if "CANCEL THIS TRADE" in joined:
         return "leave"  # "Do you want to cancel this trade?" after the exit door: YES / NO
     if "ARE YOU SURE YOU WANT TO TRADE" in joined:
@@ -173,6 +189,8 @@ def classify(texts, path):
         return "profile"
     if len(texts) <= 12 and pokeball(path):
         return "map"
+    if all(t[1] < 0.08 for t in texts):
+        return "blank"  # only the status bar: the game is loading
     return "unknown"
 
 
@@ -221,6 +239,8 @@ def to_friend(p):
             if not button:
                 raise Stop(f"{p.name}: {s} dialog without its button: {p.summary()}")
             p.tap_text(button)
+            if p.find(lambda t: "UNAVAILABLE" in up(t)):
+                raise ServiceDown(f"{p.name}: the trading service is down")
         elif s == "leave":
             p.tap_text(label(p, "YES"))
         elif s == "manage":
@@ -229,12 +249,13 @@ def to_friend(p):
             p.tap(*X_BUTTON)
         elif s == "map":
             p.tap(0.13, 0.91)
-        elif s == "profile":
-            p.tap_text(label(p, "FRIENDS"))
-        elif s == "friends":
+        elif s in ("profile", "friends"):
+            # a typed search hides ADD FRIEND, so a searched friend list reads as "profile": tap the row if it's there
             row = p.find(lambda t: t[4].strip().lower() == p.friend.lower() and t[0] > 0.2 and t[1] > 0.25)
             if row:
                 p.tap_text(row[0], dy=0.01)
+            elif s == "profile":
+                p.tap_text(label(p, "FRIENDS"))
             else:
                 search = label(p, "SEARCH")
                 if not search:
@@ -280,8 +301,18 @@ def open_trade(phones):
                 time.sleep(0.6)
                 if p.look() != "friend":
                     break
-    for p in phones:
-        p.wait("picker", timeout=20)
+    try:
+        for p in phones:
+            p.wait("picker", timeout=20)
+    except Stop:
+        if not all(p.look() in ("waiting", "expired") for p in phones):
+            raise
+        # the server never joined the two: each waits for the other, or one has "Trading service unavailable" up.
+        # Leave on a waiting phone, or the next round's to_friend skips it and it waits again
+        for p in phones:
+            if p.screen == "waiting":
+                p.tap(0.09, 0.115)  # the exit door
+        raise ServiceDown("the trading service didn't join the two phones")
 
 
 IN_TRADE = ("picker", "lobby", "sortmenu")
@@ -739,6 +770,20 @@ def finish(phones):
                 break
 
 
+def restart(phones):
+    """force-close and open the game on both, then wait until each is past the loading screens"""
+    for p in phones:
+        p.restart()
+    for p in phones:
+        end = time.time() + 120
+        while p.look() in ("unknown", "blank"):  # loading screens and their tips
+            if time.time() > end:
+                p.keep("restart")
+                raise Stop(f"{p.name}: the game didn't load after the restart: {p.summary()}")
+            time.sleep(3)
+    log("both phones restarted")
+
+
 def cmd_look(phones):
     for p in phones:
         s = p.look()
@@ -748,7 +793,7 @@ def cmd_look(phones):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", nargs="?", default="run", choices=("run", "look"))
+    ap.add_argument("cmd", nargs="?", default="run", choices=("run", "look", "restart"))
     ap.add_argument("--limit", type=int, default=PER_RUN)
     ap.add_argument("--done", type=int, help="trades already made today (sets the day's count)")
     a = ap.parse_args()
@@ -759,6 +804,8 @@ def main():
         if a.cmd == "look":
             return cmd_look(phones)
         base.new_run_dir(os.path.join(HERE, "runs"))
+        if a.cmd == "restart":
+            return restart(phones)
         if a.done is not None:
             set_made(a.done)
         made, n, specials, expired = made_today(), 0, {}, 0
@@ -773,7 +820,11 @@ def main():
                 expired += 1
                 if expired > 3:
                     raise Stop(f"{e}, {expired} times in a row")
-                log(f"{e}: starting the round over")
+                if isinstance(e, ServiceDown):  # closing and opening the game often clears it
+                    log(f"{e}: restarting Pokémon GO on both phones")
+                    restart(phones)
+                else:
+                    log(f"{e}: starting the round over")
                 continue
             expired = 0
             if not got:

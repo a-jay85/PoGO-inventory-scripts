@@ -16,6 +16,7 @@ Runs on its own. Keep both phones on, both games open, and keep your hands off t
 - `--limit N`: at most N trades this run (default 48). Two runs come to 96, still under the 99 a day. One run leaves trades free for other friends.
 - `--done N`: sets today's count, for trades made by hand before the run.
 - `python3 $S/trade.py look`: what screen each phone is on, and its text.
+- `python3 $S/trade.py restart`: force-closes Pokémon GO on both phones, opens it again and waits for it to load.
 
 ## What one trade does
 
@@ -28,6 +29,10 @@ Runs on its own. Keep both phones on, both games open, and keep your hands off t
    - The cost reads 100 in white on a dark blue box. Anything else (more than 100, purple digits, a pale box) is a special trade: it stops without confirming.
    - Both phones read the same distance. Under 100 km, the Android puts its pick back and tries its next one, up to 3 times, then stops.
 7. CONFIRM on the Android, then the iPhone. Closes the result screens.
+
+## When the trading service fails
+
+"Trading service temporarily unavailable", "Error fetching trade status", or both phones waiting for each other: the run restarts Pokémon GO on both phones and starts the round over. Closing and opening the game often clears it. After 4 failures in a row it stops. The iPhone reopens the game from the Poké Ball in its dock (third icon).
 
 ## The day's count
 

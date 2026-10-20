@@ -775,12 +775,12 @@ def restart(phones):
         p.restart()
     for p in phones:
         end = time.time() + 120
-        while p.look() not in ("map", "profile", "friends", "friend", "expired", "exit"):
+        while p.look() in ("unknown", "blank"):  # loading screens and their tips
             if time.time() > end:
                 p.keep("restart")
                 raise Stop(f"{p.name}: the game didn't load after the restart: {p.summary()}")
             time.sleep(3)
-    log("both phones back on the map")
+    log("both phones restarted")
 
 
 def cmd_look(phones):
@@ -792,7 +792,7 @@ def cmd_look(phones):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", nargs="?", default="run", choices=("run", "look"))
+    ap.add_argument("cmd", nargs="?", default="run", choices=("run", "look", "restart"))
     ap.add_argument("--limit", type=int, default=PER_RUN)
     ap.add_argument("--done", type=int, help="trades already made today (sets the day's count)")
     a = ap.parse_args()
@@ -803,6 +803,8 @@ def main():
         if a.cmd == "look":
             return cmd_look(phones)
         base.new_run_dir(os.path.join(HERE, "runs"))
+        if a.cmd == "restart":
+            return restart(phones)
         if a.done is not None:
             set_made(a.done)
         made, n, specials, expired = made_today(), 0, {}, 0

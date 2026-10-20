@@ -288,8 +288,17 @@ def open_trade(phones):
                 time.sleep(0.6)
                 if p.look() != "friend":
                     break
-    for p in phones:
-        p.wait("picker", timeout=20)
+    try:
+        for p in phones:
+            p.wait("picker", timeout=20)
+    except Stop:
+        if not all(p.look() == "waiting" for p in phones):
+            raise
+        # each waits for the other: the server never joined the two (seen after "Trading service unavailable").
+        # Leave on both, or the next round's to_friend skips a waiting phone and they wait again
+        for p in phones:
+            p.tap(0.09, 0.115)  # the exit door
+        raise Expired("both phones wait for each other")
 
 
 IN_TRADE = ("picker", "lobby", "sortmenu")

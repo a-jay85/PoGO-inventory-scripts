@@ -209,7 +209,7 @@ def tap(target, dry=False):
             return
         global last_tap
         tap_gap()
-        ui.sh(ui.HELPER, "click", f"{px:.1f}", f"{py:.1f}", str(random.randint(50, 100)))
+        ui.sh(ui.HELPER, "click", f"{px:.1f}", f"{py:.1f}", str(ui.tap_ms()))
         last_tap = time.time()
         return
     raise Stop(f"tap {target}: screen never stopped moving")

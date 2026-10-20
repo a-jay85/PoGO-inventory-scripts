@@ -34,7 +34,7 @@ def tap(fx, fy):
     base.front()  # iPhone: a click while another app is in front only brings the window forward, and is lost
     bounds = last or ui.capture()[1]
     x, y = base.to_points(fx, fy, bounds)
-    ui.sh(ui.HELPER, "click", f"{x:.1f}", f"{y:.1f}", str(random.randint(50, 100)))
+    ui.sh(ui.HELPER, "click", f"{x:.1f}", f"{y:.1f}", str(ui.tap_ms()))
 
 
 def restart():

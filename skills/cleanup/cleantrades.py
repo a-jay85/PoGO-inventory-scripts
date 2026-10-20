@@ -43,8 +43,8 @@ def key(s):
 
 
 def same_l(s):
-    """OCR mixes up l, i, I, 1 and | ('countcandyx10-359')"""
-    return re.sub(r"[il1|]", "l", re.sub(r"\s", "", s.lower()))
+    """OCR mixes up l, i, I, 1 and | ('countcandyx10-359'), and reads '!' as ':'"""
+    return re.sub(r"[il1|!:]", "l", re.sub(r"\s", "", s.lower()))
 
 
 # ---------- the saved searches ----------
@@ -203,7 +203,7 @@ def tag_pile(name, tag):
     wait_for("tags")
     texts, path, bounds = still_sheet()
     head = " ".join(t[4] for t in texts if t[1] < 0.15)
-    if not re.search(rf"TAG {n} POK", ui.norm(head)):
+    if not re.search(rf"TAG\s*{n}\s*POK", head.upper()):  # (ui.norm drops digits)
         close_sheet(texts, bounds)
         raise Stop(f"the tag sheet says {head!r}, wanted {n}")
     T, same = tag.upper(), 0
@@ -428,7 +428,7 @@ def power_walk(limit):
         seen.add(me)
         if done >= limit:
             log(f"--limit {limit} reached")
-            break
+            return None  # (the rest weren't checked)
         try:
             taps = power_up(info, texts)
         except Pass as e:
@@ -475,7 +475,9 @@ if __name__ == "__main__":
         for name, tag in TAGGING:  # first: Clean Trades (!#) must only see what's left untagged after these
             tag_pile(name, tag)
         try:
-            power_walk(limit)
+            if power_walk(limit) is None:
+                log(f"--limit {limit}: the rest weren't checked, so Clean Trades isn't tagged Transfer")
+                sys.exit(0)
         except Stop as e:
             if "Stardust" not in str(e):
                 raise

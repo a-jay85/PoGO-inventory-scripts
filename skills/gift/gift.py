@@ -102,6 +102,10 @@ def classify():
         return "giftpopup"
     if "SET NICKNAME" in j and w & {"OK", "CANCEL"}:
         return "nickname"
+    # the gift list scrolled past its header: two columns of city lines ('Chicago, IL, United States')
+    cities = [t for t in texts if t[1] > 0.12 and t[4].count(",") >= 1 and len(t[4]) > 8]
+    if "SEND GIFT" not in j and {t[0] < 0.4 for t in cities} == {True, False} and len(cities) >= 3:
+        return "picker"
     if "CAN RECEIVE A GIFT" in j and "FRIENDSHIP LEVEL" in j:
         return "sortmenu"
     if "SEND GIFT" in j:
@@ -154,11 +158,13 @@ def tap_text(t, dy=0.0):
     tap(x + w / 2, y + h / 2 + dy, fuzz=min(0.008, w / 4))
 
 
-def drag(fy1, fy2, ms=500):
+def drag(fy1, fy2, ms=500, x=None):
+    """scroll by dragging from fy1 to fy2. x: where to grab (the gift list: the gap between its two columns, as a
+    drag that starts on a card can land as a tap on it)"""
     base.front()
-    x = random.uniform(0.4, 0.6)
+    x = x if x is not None else random.uniform(0.4, 0.6)
     x1, y1 = base.to_points(x, fy1, bounds)
-    x2, y2 = base.to_points(x + random.uniform(-0.01, 0.01), fy2, bounds)
+    x2, y2 = base.to_points(x + random.uniform(-0.005, 0.005), fy2, bounds)
     ui.sh(ui.HELPER, "drag", f"{x1:.1f}", f"{y1:.1f}", f"{x2:.1f}", f"{y2:.1f}", str(ms))
     time.sleep(random.uniform(0.7, 1.0))
 
@@ -279,7 +285,7 @@ def to_top():
 
 def search(q):
     """type a search into the friend list -> its result count"""
-    for attempt in range(2):
+    for attempt in range(3):
         to_top()
         if search_line() and ui.norm(search_line()[4]) != "TRAINER NICKNAME":
             tap(*CLEAR_SEARCH, fuzz=0.004)
@@ -307,13 +313,14 @@ def search(q):
                 break
             time.sleep(0.5)
         if n is None:
-            raise Stop(f"no result count after the search: {summary()}")
+            log(f"no result count after the search (the box reads {search_line()[4] if search_line() else None!r}): typing it again")
+            continue
         box = search_line()
         log(f"  search box reads {box[4] if box else None!r}")
         if n == 0 or rows():
             return n
         log(f"the search shows ({n}) but no rows: typing it again")  # Android, seen twice
-    raise Stop(f"the search shows ({n}) but no rows")
+    raise Stop(f"the search {q!r} didn't take after 3 tries: {summary()}")
 
 
 def clean(name):
@@ -509,12 +516,15 @@ def send_gift():
                 s = look()
             keep_capture("after_send")
             raise Stop(f"after SEND the screen is {s}: {summary()}")
+        if classify() != "picker":
+            keep_capture("not_picker")
+            raise Stop(f"left the gift list while looking for our gifts: {summary()}")
         titles = tuple(sorted(u[4] for u in texts if u[1] > 0.2))
         if titles == seen:
             close()  # the end of the gifts, and none of ours
             raise OutOfGifts()
         seen = titles
-        drag(0.75, 0.4)
+        drag(0.75, 0.45, x=0.5 + random.uniform(-0.005, 0.005))
     raise Stop("scrolled the gift list 25 times without reaching its end")
 
 
@@ -682,7 +692,10 @@ def one_phone(a):
         return
     sent = 0
     try:
-        log(f"Pokémon GO up, on {home.start(storage=False)}")
+        s = look()
+        if s in ("unknown", "blank", "map"):  # (home.start reads a scrolled friend page, SET NICKNAME, as a rename box)
+            s = home.start(storage=False)
+        log(f"Pokémon GO up, on {s}")
         sent = run_searches(a.limit)
         log(f"done: {sent} gifts sent" + ("" if sent >= a.limit else ", nobody left who can take one"))
     except OutOfGifts:

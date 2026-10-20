@@ -42,7 +42,7 @@ Use this skill to clear its skips by hand.
 
 Every script (`/pvpc`, `/ivc`, `/ivcsort`, `/cleanup`, `/trade`) first runs `home.start()`. The phone can be on any screen.
 - Android: wakes the phone and opens Pokémon GO if it isn't in front. Waits out the loading screens. Presses Back on popups and on screens the scripts don't use, until the map or the Pokémon screens show (at most 12 Backs). "Exit Pokémon GO?" gets CANCEL. A locked phone, a sign-in screen or an "isn't responding" box stops the run with a message.
-- iPhone: on the iPhone's home screen, or a screen it doesn't know, it goes home and taps the game in the dock (once). A popup it still doesn't know stops the run: there's no Back key.
+- iPhone: on the iPhone's home screen (told by the game's icon in the dock: app names are hidden), or a screen it doesn't know, it goes home and taps the game in the dock (once). A popup it still doesn't know stops the run: there's no Back key.
 - A nickname box left open gets CANCEL (nothing saved). A tag sheet left open: DONE if something is ticked, stop if nothing is.
 - `POGO_PHONE=android python3 $S/home.py` does just this step.
 Taps come 0.1–0.25s apart (same as /ivc and /ivcsort). A short 0.7–1.3s pause stays, on the appraisal only.

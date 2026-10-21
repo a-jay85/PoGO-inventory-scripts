@@ -28,7 +28,9 @@ The friend list is sorted **Can receive a gift**, arrow down. Friends who can ta
 1. `iii`: no gift from me and haven't played with me today (`!?&!$&!WAIT&!OPEN&interactable&!EGG&`).
 2. `lll`: opened my gift or played with me today (`!WAIT&!OPEN&!interactable&!EGG&`).
 
-Inside each, the time zones farthest ahead go first. They are the user's iPhone text replacements, typed out in full on both phones: `lasia`, `leuro`, `latam`, then `ea`, `ce`, `mo`, then the search alone for everyone else.
+Inside each, the time zones farthest ahead go first. They are the user's iPhone text replacements: `lasia`, `leuro`, `latam`, then `ea`, `ce`, `mo`, then the search alone for everyone else.
+
+The iPhone types the shortcuts (`iii`, `lasia` ...) and lets iOS expand them. If the search box still shows a shortcut, it types every search out in full for the rest of the run. Android always types them out in full.
 
 ## Friends close to a level-up
 
@@ -39,6 +41,8 @@ Before each gift the script opens the friendship screen (the hearts on the frien
 - An old `WAIT` or `SENT` in front is replaced, not stacked.
 - Nicknames hold 12 characters. Too long: the space goes first, then letters off the end (`WAITSouthKor`).
 - A nickname the script can't type or read back cleanly is left alone, and the log says to tag it by hand.
+
+iPhone Mirroring sometimes freezes for a few seconds. On the iPhone the script waits 15 seconds for the gift preview and about 20 seconds or more after SEND before it stops. It never taps SEND twice.
 
 ## Runs
 

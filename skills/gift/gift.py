@@ -29,7 +29,8 @@ import run as base
 from run import Stop, keep_capture
 
 GIFTS = ("Mission Walk", "Mission Creek Park")  # never any other: the rest are kept for sending by hand
-# the user's text replacements on the iPhone ("iii", "lll", "lasia" ...), typed out in full on both phones
+# the user's text replacements on the iPhone ("iii", "lll", "lasia" ...): the iPhone types the shortcut and lets
+# iOS expand it, Android types them out in full
 FIRST = "!?&!$&!WAIT&!OPEN&interactable&!EGG&"  # iii: no gift from me yet, not played with today
 THEN = "!WAIT&!OPEN&!interactable&!EGG&"  # lll: played with me today / opened my gift
 ZONES = [  # farthest ahead of Pacific time first; "" (no zone) last picks up everyone else
@@ -41,6 +42,7 @@ ZONES = [  # farthest ahead of Pacific time first; "" (no zone) last picks up ev
     ("mountain", "mo"),
     ("rest", ""),
 ]
+SHORT = {FIRST: "iii", THEN: "lll", ZONES[0][1]: "lasia", ZONES[1][1]: "leuro", ZONES[2][1]: "latam"}
 NICK_MAX = 12  # the game keeps the first 12 characters of a friend nickname
 TYPEABLE = re.compile(r"[A-Za-z0-9 .,&!#+/*^=?$:;-]*")  # what the helper's keyboard (and adb) can type
 X_BUTTON = (0.5, 0.937)  # the round X at the bottom middle (friend page, friendship screen, picker, gift preview)
@@ -52,6 +54,8 @@ LEVELS = {"GOOD": 1, "GREAT": 2, "ULTRA": 3, "BEST": 4, "FOREVER": 5}  # ribbon 
 WATCH_FROM = 2  # hearts index (0-based) from which a level-up is watched: the 3rd, 4th and 5th heart
 PHONE = "android" if ui.ANDROID else "ios"
 DRY = False  # --dry-run: everything but SEND and the nickname box's OK
+shortcuts = not ui.ANDROID  # off for the rest of the run once a shortcut didn't expand
+LAG = 1 if ui.ANDROID else 2.5  # iPhone Mirroring now and then freezes for several seconds: wait longer there
 
 
 def log(msg):
@@ -283,9 +287,30 @@ def to_top():
     raise Stop(f"couldn't scroll back to the search box: {summary()}")
 
 
-def search(q):
-    """type a search into the friend list -> its result count"""
-    for attempt in range(3):
+def type_query(parts):
+    """iPhone: a part with a text replacement goes in as its shortcut and a space (iOS expands it on the space),
+    then the space comes off"""
+    for p in parts:
+        if shortcuts and p in SHORT:
+            base.type_text(SHORT[p] + " ")
+            time.sleep(0.3)
+            base.key("delete")
+        elif p:
+            base.type_text(p)
+
+
+def expanded(parts):
+    """after a search with shortcuts: False when the box still shows a shortcut ('iii lasia') or too little text"""
+    box = search_line()
+    t = ui.norm(box[4]).replace(" ", "") if box else ""
+    return len(t) > 12 and not any(SHORT[p].upper() in t for p in parts if p in SHORT)
+
+
+def search(*parts):
+    """type a search (its parts, joined) into the friend list -> its result count"""
+    global shortcuts
+    q = "".join(parts)
+    for attempt in range(4):
         to_top()
         if search_line() and ui.norm(search_line()[4]) != "TRAINER NICKNAME":
             tap(*CLEAR_SEARCH, fuzz=0.004)
@@ -297,7 +322,8 @@ def search(q):
         else:
             tap(0.45, 0.22)  # an empty box ("Trainer Nickname")
         time.sleep(1.2)
-        base.type_text(q)
+        short = shortcuts
+        type_query(parts)
         time.sleep(0.5)
         look()
         ok = find(lambda t: ui.norm(t[4]) == "OK" and t[0] > 0.75 and 0.5 < t[1] < 0.65)
@@ -317,10 +343,14 @@ def search(q):
             continue
         box = search_line()
         log(f"  search box reads {box[4] if box else None!r}")
+        if short and any(p in SHORT for p in parts) and not expanded(parts):
+            shortcuts = False
+            log("the text shortcuts didn't expand: typing searches out in full from now on")
+            continue
         if n == 0 or rows():
             return n
         log(f"the search shows ({n}) but no rows: typing it again")  # Android, seen twice
-    raise Stop(f"the search {q!r} didn't take after 3 tries: {summary()}")
+    raise Stop(f"the search {q!r} didn't take after 4 tries: {summary()}")
 
 
 def clean(name):
@@ -485,7 +515,7 @@ def send_gift():
         if cards:
             title, t = cards[0]
             tap(t[0] + t[2] / 2, t[1] - 0.11)  # the postcard above its title
-            wait("preview", timeout=6)
+            wait("preview", timeout=6 * LAG)
             time.sleep(0.5)
             look()
             ok, got = preview_ok(title)
@@ -508,8 +538,8 @@ def send_gift():
                 wait("friend", timeout=6)
                 return title
             tap_text(send)
-            s = wait("friend", "picker", "preview", "unknown", timeout=8)
-            for _ in range(10):
+            s = wait("friend", "picker", "preview", "unknown", timeout=8 * LAG)
+            for _ in range(int(10 * LAG)):
                 if s == "friend":
                     return title
                 time.sleep(0.6)
@@ -642,7 +672,7 @@ def run_searches(limit):
     set_sort()
     for first, base_q in (("iii", FIRST), ("lll", THEN)):
         for zone, zq in ZONES:
-            n = search(base_q + zq)
+            n = search(base_q, zq)
             log(f"{first} + {zone}: ({n})")
             if not n:
                 continue

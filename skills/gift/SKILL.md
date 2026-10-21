@@ -28,17 +28,23 @@ The friend list is sorted **Can receive a gift**, arrow down. Friends who can ta
 1. `iii`: no gift from me and haven't played with me today (`!?&!$&!WAIT&!OPEN&interactable&!EGG&`).
 2. `lll`: opened my gift or played with me today (`!WAIT&!OPEN&!interactable&!EGG&`).
 
-Inside each, the time zones farthest ahead go first. They are the user's iPhone text replacements, typed out in full on both phones: `lasia`, `leuro`, `latam`, then `ea`, `ce`, `mo`, then the search alone for everyone else.
+Inside each, the time zones farthest ahead go first. They are the user's iPhone text replacements: `lasia`, `leuro`, `latam`, then `ea`, `ce`, `mo`, then the search alone for everyone else.
+
+The iPhone types the shortcuts (`iii`, `lasia` ...) and lets iOS expand them. If the search box still shows a shortcut, it types every search out in full for the rest of the run. Android always types them out in full.
 
 ## Friends close to a level-up
 
-Before each gift the script opens the friendship screen (the hearts on the friend page). When the next level is the 3rd, 4th or 5th heart, it taps that heart to read "Earn N more friendship points". The Forever Friends bar shows its number without a tap.
+On the iPhone the script first reads the five small hearts on the friend page. A full heart is red, and the next one fills yellow from the left. If the next heart is the 1st or 2nd, or it's under 75% full, no level-up is close and it skips the friendship screen. Two points to go reads about 91%. Android doesn't do this yet, because its screenshots haven't been checked.
+
+Otherwise, before each gift the script opens the friendship screen (the hearts on the friend page). When the next level is the 3rd, 4th or 5th heart, it taps that heart to read "Earn N more friendship points". The Forever Friends bar shows its number without a tap.
 
 - 1 point to go: no gift. Nickname becomes `WAIT <old nickname>`.
 - 2 points to go: gift, then nickname `SENT <old nickname>`.
 - An old `WAIT` or `SENT` in front is replaced, not stacked.
 - Nicknames hold 12 characters. Too long: the space goes first, then letters off the end (`WAITSouthKor`).
 - A nickname the script can't type or read back cleanly is left alone, and the log says to tag it by hand.
+
+iPhone Mirroring sometimes freezes for a few seconds. On the iPhone the script waits 15 seconds for the gift preview and about 20 seconds or more after SEND before it stops. It never taps SEND twice.
 
 ## Runs
 

@@ -29,7 +29,8 @@ import run as base
 from run import Stop, keep_capture
 
 GIFTS = ("Mission Walk", "Mission Creek Park")  # never any other: the rest are kept for sending by hand
-# the user's text replacements on the iPhone ("iii", "lll", "lasia" ...), typed out in full on both phones
+# the user's text replacements on the iPhone ("iii", "lll", "lasia" ...): the iPhone types the shortcut and lets
+# iOS expand it, Android types them out in full
 FIRST = "!?&!$&!WAIT&!OPEN&interactable&!EGG&"  # iii: no gift from me yet, not played with today
 THEN = "!WAIT&!OPEN&!interactable&!EGG&"  # lll: played with me today / opened my gift
 ZONES = [  # farthest ahead of Pacific time first; "" (no zone) last picks up everyone else
@@ -41,6 +42,7 @@ ZONES = [  # farthest ahead of Pacific time first; "" (no zone) last picks up ev
     ("mountain", "mo"),
     ("rest", ""),
 ]
+SHORT = {FIRST: "iii", THEN: "lll", ZONES[0][1]: "lasia", ZONES[1][1]: "leuro", ZONES[2][1]: "latam"}
 NICK_MAX = 12  # the game keeps the first 12 characters of a friend nickname
 TYPEABLE = re.compile(r"[A-Za-z0-9 .,&!#+/*^=?$:;-]*")  # what the helper's keyboard (and adb) can type
 X_BUTTON = (0.5, 0.937)  # the round X at the bottom middle (friend page, friendship screen, picker, gift preview)
@@ -50,8 +52,11 @@ HEART_Y = 0.384 if ui.ANDROID else 0.397  # the five big hearts on the friendshi
 HEART_X = (0.222, 0.362, 0.50, 0.64, 0.778) if ui.ANDROID else (0.234, 0.369, 0.505, 0.635, 0.768)
 LEVELS = {"GOOD": 1, "GREAT": 2, "ULTRA": 3, "BEST": 4, "FOREVER": 5}  # ribbon -> hearts filled
 WATCH_FROM = 2  # hearts index (0-based) from which a level-up is watched: the 3rd, 4th and 5th heart
+HEART_NEAR = 0.75  # open the friendship screen only when the next small heart is this full (2 points to go reads ~91%, 11 read 56%)
 PHONE = "android" if ui.ANDROID else "ios"
 DRY = False  # --dry-run: everything but SEND and the nickname box's OK
+shortcuts = not ui.ANDROID  # off for the rest of the run once a shortcut didn't expand
+LAG = 1 if ui.ANDROID else 2.5  # iPhone Mirroring now and then freezes for several seconds: wait longer there
 
 
 def log(msg):
@@ -115,6 +120,8 @@ def classify():
     if "EXIT POK" in j:
         return "exit"
     if "FRIENDS" in w and ("ME" in w or "SOCIAL" in w):
+        if "TOTAL ACTIVITY" in j or w & {"SCRAPBOOK", "JOURNAL"}:
+            return "profile"  # the ME tab: its trainer name sits where the search box would be
         if w & {"ADD FRIEND", "INVITE", "TRAINER NICKNAME"} or search_line() or count() is not None:
             return "friends"
         return "profile"
@@ -188,7 +195,7 @@ def count():
 def search_line():
     """the search box's text, when it's on screen (it scrolls away with the list)"""
     for t in texts:
-        if 0.18 < t[1] < 0.26 and t[0] < 0.25 and ui.norm(t[4]) not in ("ADD FRIEND", "SEARCH", "INVITE"):
+        if 0.18 < t[1] < 0.26 and t[0] < 0.25 and ui.norm(t[4]) not in ("ADD FRIEND", "SEARCH", "INVITE", "OFFLINE"):
             return t
     return None
 
@@ -283,9 +290,30 @@ def to_top():
     raise Stop(f"couldn't scroll back to the search box: {summary()}")
 
 
-def search(q):
-    """type a search into the friend list -> its result count"""
-    for attempt in range(3):
+def type_query(parts):
+    """iPhone: a part with a text replacement goes in as its shortcut and a space (iOS expands it on the space),
+    then the space comes off"""
+    for p in parts:
+        if shortcuts and p in SHORT:
+            base.type_text(SHORT[p] + " ")
+            time.sleep(0.3)
+            base.key("delete")
+        elif p:
+            base.type_text(p)
+
+
+def expanded(parts):
+    """after a search with shortcuts: False when the box still shows a shortcut ('iii lasia') or too little text"""
+    box = search_line()
+    t = ui.norm(box[4]).replace(" ", "") if box else ""
+    return len(t) > 12 and not any(SHORT[p].upper() in t for p in parts if p in SHORT)
+
+
+def search(*parts):
+    """type a search (its parts, joined) into the friend list -> its result count"""
+    global shortcuts
+    q = "".join(parts)
+    for attempt in range(4):
         to_top()
         if search_line() and ui.norm(search_line()[4]) != "TRAINER NICKNAME":
             tap(*CLEAR_SEARCH, fuzz=0.004)
@@ -297,7 +325,8 @@ def search(q):
         else:
             tap(0.45, 0.22)  # an empty box ("Trainer Nickname")
         time.sleep(1.2)
-        base.type_text(q)
+        short = shortcuts
+        type_query(parts)
         time.sleep(0.5)
         look()
         ok = find(lambda t: ui.norm(t[4]) == "OK" and t[0] > 0.75 and 0.5 < t[1] < 0.65)
@@ -317,10 +346,14 @@ def search(q):
             continue
         box = search_line()
         log(f"  search box reads {box[4] if box else None!r}")
+        if short and any(p in SHORT for p in parts) and not expanded(parts):
+            shortcuts = False
+            log("the text shortcuts didn't expand: typing searches out in full from now on")
+            continue
         if n == 0 or rows():
             return n
         log(f"the search shows ({n}) but no rows: typing it again")  # Android, seen twice
-    raise Stop(f"the search {q!r} didn't take after 3 tries: {summary()}")
+    raise Stop(f"the search {q!r} didn't take after 4 tries: {summary()}")
 
 
 def clean(name):
@@ -409,9 +442,46 @@ def points_text():
     return int(m.group(1)) if m else None
 
 
+def heart_fill():
+    """the five small hearts under the name on the friend page -> (hearts full, how full the next one is, 0-1),
+    or None when they can't be read (a Forever Friend's smaller heart + bar, a lucky friend's swirl).
+    A full heart is red; the next one fills yellow from the left, the rest grey. The gaps between hearts are
+    sometimes grey too, so each heart is cut out by its spot, measured from the first one's left edge"""
+    im = Image.open(path).convert("RGB")
+    W, H = im.size
+
+    def kind(ps):
+        if any(p[0] > 230 and p[1] < 140 and p[2] < p[0] - 60 for p in ps):
+            return "R"
+        if any(p[0] > 230 and 140 <= p[1] < 215 and p[2] < p[0] - 60 for p in ps):
+            return "Y"
+        return "."
+
+    best = ""
+    for cy in range(int(H * 0.15), int(H * 0.23)):  # (a nickname above is orange-yellow text: count red only)
+        line = "".join(kind([im.getpixel((x, y)) for y in range(cy - 2, cy + 3)]) for x in range(int(W * 0.04), int(W * 0.32)))
+        if line.count("R") > best.count("R"):
+            best = line
+    if "R" not in best:
+        return None
+    a, pitch, width = best.index("R"), 0.0437 * W, round(0.0394 * W)  # iPhone: 16 px hearts, 17.7 px apart
+    if len(best[a:]) - len(best[a:].lstrip("R")) < 0.8 * width:
+        return None  # a Forever Friend: a smaller heart, then the bar
+    fill = []
+    for i in range(5):
+        seg = best[a + round(i * pitch):][:width]
+        fill.append((seg.count("R") >= 0.7 * width, (seg.count("R") + seg.count("Y")) / width))
+    full = next((i for i, (red, _) in enumerate(fill) if not red), 5)
+    return full, (fill[full][1] if full < 5 else 1.0)
+
+
 def meter():
     """-> friendship points to the next level when that level is the 3rd, 4th or 5th heart or the Forever bar,
     else None (a level-up there doesn't matter). Leaves the friend page showing again"""
+    hf = None if ui.ANDROID else heart_fill()  # (not checked on the Pixel's screenshots yet)
+    if hf and (hf[0] < WATCH_FROM or (hf[0] < 5 and hf[1] < HEART_NEAR)):
+        log(f"  {hf[0]} hearts + {hf[1]:.0%} of the next: no level-up close, friendship screen not opened")
+        return None
     nick, line = page_nickname()
     spots = [(0.12, line[1] + line[3] / 2)] if line else []
     spots += [(0.15, 0.177), (0.15, 0.204)]
@@ -439,7 +509,8 @@ def meter():
             n = points_text()
             if n is not None:
                 break  # (counts from now, so a later heart's number is bigger: the first one is the next level)
-    log(f"  {level or '?'} friend, {n if n is not None else '-'} points to the next watched level")
+    seen = f" (small hearts read {hf[0]} + {hf[1]:.0%})" if hf else " (small hearts not read)"
+    log(f"  {level or '?'} friend, {n if n is not None else '-'} points to the next watched level{seen}")
     close()
     wait("friend", timeout=6)
     return n
@@ -485,7 +556,7 @@ def send_gift():
         if cards:
             title, t = cards[0]
             tap(t[0] + t[2] / 2, t[1] - 0.11)  # the postcard above its title
-            wait("preview", timeout=6)
+            wait("preview", timeout=6 * LAG)
             time.sleep(0.5)
             look()
             ok, got = preview_ok(title)
@@ -508,8 +579,8 @@ def send_gift():
                 wait("friend", timeout=6)
                 return title
             tap_text(send)
-            s = wait("friend", "picker", "preview", "unknown", timeout=8)
-            for _ in range(10):
+            s = wait("friend", "picker", "preview", "unknown", timeout=8 * LAG)
+            for _ in range(int(10 * LAG)):
                 if s == "friend":
                     return title
                 time.sleep(0.6)
@@ -642,7 +713,7 @@ def run_searches(limit):
     set_sort()
     for first, base_q in (("iii", FIRST), ("lll", THEN)):
         for zone, zq in ZONES:
-            n = search(base_q + zq)
+            n = search(base_q, zq)
             log(f"{first} + {zone}: ({n})")
             if not n:
                 continue
@@ -689,6 +760,8 @@ def one_phone(a):
         s = look()
         print(f"{PHONE}: {s}  rows: {rows() if s == 'friends' else '-'}  arrow: {arrow()}")
         print("   ", summary())
+        if s == "friend":
+            print("    hearts:", heart_fill())
         return
     sent = 0
     try:

@@ -269,11 +269,14 @@ def arrow():
 def set_sort():
     """Can receive a gift, arrow down. Picking the sort that's already on flips its arrow: pick, read, again"""
     for attempt in range(4):
-        tap(*SORT_BUTTON, fuzz=0.004)
-        wait("sortmenu", timeout=6)
+        if look() != "sortmenu":
+            tap(*SORT_BUTTON, fuzz=0.004)
+            wait("sortmenu", timeout=6 * LAG)
         tap_text(label("CAN RECEIVE A GIFT"))
         time.sleep(1.2)
-        wait("friends", timeout=6)
+        if wait("friends", "sortmenu", timeout=6 * LAG) == "sortmenu":
+            log("the sort menu is still open: picking again")
+            continue  # (a lagging tap missed)
         way = arrow()
         if way == "down":
             log("sorted Can receive a gift, arrow down")

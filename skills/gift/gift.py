@@ -54,7 +54,9 @@ HEART_Y = 0.384 if ui.ANDROID else 0.397  # the five big hearts on the friendshi
 HEART_X = (0.222, 0.362, 0.50, 0.64, 0.778) if ui.ANDROID else (0.234, 0.369, 0.505, 0.635, 0.768)
 LEVELS = {"GOOD": 1, "GREAT": 2, "ULTRA": 3, "BEST": 4, "FOREVER": 5}  # ribbon -> hearts filled
 WATCH_FROM = 2  # hearts index (0-based) from which a level-up is watched: the 3rd, 4th and 5th heart
-HEART_NEAR = 0.75  # open the friendship screen only when the next small heart is this full (2 points to go reads ~91%, 11 read 56%)
+HEART_NEAR = {2: 0.9, 3: 0.97, 4: 0.97, 5: 0.95}  # by hearts full: open the friendship screen only when the next one is this full.
+# 3rd heart (~30 points): 1 to go read 100%, 2 read 94%, 5-6 read 81%. 4th/5th (~90-100 points, ~5 a pixel): 9 read 94%,
+# 11 read 88%, 26 read 75%, 5 read 100%. The Forever bar (5, ~90 points over ~47 pixels): 60 read 36%
 PHONE = "android" if ui.ANDROID else "ios"
 DRY = False  # --dry-run: everything but SEND and the nickname box's OK
 shortcuts = not ui.ANDROID  # off for the rest of the run once a shortcut didn't expand
@@ -513,7 +515,7 @@ def meter():
     """-> friendship points to the next level when that level is the 3rd, 4th or 5th heart or the Forever bar,
     else None (a level-up there doesn't matter). Leaves the friend page showing again"""
     hf = heart_fill()
-    if hf and (hf[0] < WATCH_FROM or hf[1] < HEART_NEAR):  # (5 full hearts read 100%: always opened)
+    if hf and (hf[0] < WATCH_FROM or hf[1] < HEART_NEAR[hf[0]]):  # (5 full hearts read 100%: always opened)
         log(f"  {hf[0]} hearts + {hf[1]:.0%} of the next: no level-up close, friendship screen not opened")
         return None
     nick, line = page_nickname()

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""/gift: send Mission Walk / Mission Creek Park gifts to every friend who can take one, the most useful first.
+"""/gift: send San Francisco gifts to every friend who can take one, the most useful first.
 
   caffeinate -dimsu python3 gift.py [--limit N]                 both phones at once
   caffeinate -dimsu python3 gift.py --phone ios|android [--limit N]
@@ -15,11 +15,12 @@ already-sent badge ends that search.
 
 Before each gift the friendship screen is checked. When the next heart is the 3rd, 4th or 5th, or it's the Forever
 Friends bar: 1 point to go -> no gift, nickname "WAIT <old>"; 2 points -> gift, nickname "SENT <old>".
-Only gifts titled exactly "Mission Walk" or "Mission Creek Park" are sent, with no sticker. When a phone has none
+Only gifts from San Francisco are sent (the city line under the title), never one with "lion", "tree" or "rock" in
+its title, and never with a sticker. When a phone has none
 left it stops (the iPhone quits iPhone Mirroring); the other phone carries on.
 Log and captures go in runs/<time>-<phone>/.
 """
-import argparse, os, random, re, subprocess, sys, time
+import argparse, difflib, os, random, re, subprocess, sys, time
 from PIL import Image
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -28,7 +29,8 @@ import ui
 import run as base
 from run import Stop, keep_capture
 
-GIFTS = ("Mission Walk", "Mission Creek Park")  # never any other: the rest are kept for sending by hand
+CITY = "SAN FRANCISCO"  # the only gifts sent: the rest (Chicago, North Carolina ...) are kept for sending by hand
+KEEP = re.compile(r"\b(lion|tree|(?<!mission )rock)", re.I)  # San Francisco gifts that are kept anyway (Lions, Trees, Rocky too; Mission Rock is sent)
 # the user's text replacements on the iPhone ("iii", "lll", "lasia" ...): the iPhone types the shortcut and lets
 # iOS expand it, Android types them out in full
 FIRST = "!?&!$&!WAIT&!OPEN&interactable&!EGG&"  # iii: no gift from me yet, not played with today
@@ -52,7 +54,9 @@ HEART_Y = 0.384 if ui.ANDROID else 0.397  # the five big hearts on the friendshi
 HEART_X = (0.222, 0.362, 0.50, 0.64, 0.778) if ui.ANDROID else (0.234, 0.369, 0.505, 0.635, 0.768)
 LEVELS = {"GOOD": 1, "GREAT": 2, "ULTRA": 3, "BEST": 4, "FOREVER": 5}  # ribbon -> hearts filled
 WATCH_FROM = 2  # hearts index (0-based) from which a level-up is watched: the 3rd, 4th and 5th heart
-HEART_NEAR = 0.75  # open the friendship screen only when the next small heart is this full (2 points to go reads ~91%, 11 read 56%)
+HEART_NEAR = {2: 0.9, 3: 0.97, 4: 0.97, 5: 0.95}  # by hearts full: open the friendship screen only when the next one is this full.
+# 3rd heart (~30 points): 1 to go read 100%, 2 read 94%, 5-6 read 81%. 4th/5th (~90-100 points, ~5 a pixel): 9 read 94%,
+# 11 read 88%, 26 read 75%, 5 read 100%. The Forever bar (5, ~90 points over ~47 pixels): 60 read 36%
 PHONE = "android" if ui.ANDROID else "ios"
 DRY = False  # --dry-run: everything but SEND and the nickname box's OK
 shortcuts = not ui.ANDROID  # off for the rest of the run once a shortcut didn't expand
@@ -105,6 +109,8 @@ def classify():
         return "preview"
     if "GREETINGS FROM" in j and "OPEN" in w:
         return "giftpopup"
+    if "TRAINER CODE" in j and "2D CODE" in j:
+        return "trainercode"  # (a tap on our own picture in the friend list)
     if "SET NICKNAME" in j and w & {"OK", "CANCEL"}:
         return "nickname"
     # the gift list scrolled past its header: two columns of city lines ('Chicago, IL, United States')
@@ -194,6 +200,8 @@ def count():
 
 def search_line():
     """the search box's text, when it's on screen (it scrolls away with the list)"""
+    if any(0.18 < t[1] < 0.26 and ui.norm(t[4]) in ("ADD FRIEND", "INVITE") for t in texts):
+        return None  # the button row: no search on, and under the picture sits the trainer's name or OFFLINE
     for t in texts:
         if 0.18 < t[1] < 0.26 and t[0] < 0.25 and ui.norm(t[4]) not in ("ADD FRIEND", "SEARCH", "INVITE", "OFFLINE"):
             return t
@@ -212,7 +220,7 @@ def to_list():
             tap_text(t) if t else tap(0.5, 0.09)
         elif s == "map":
             tap(0.13, 0.91)  # the profile picture
-        elif s in ("friend", "meter", "picker", "preview", "giftpopup"):
+        elif s in ("friend", "meter", "picker", "preview", "giftpopup", "trainercode"):
             close()
         elif s == "nickname":
             cancel_nickname()
@@ -267,11 +275,14 @@ def arrow():
 def set_sort():
     """Can receive a gift, arrow down. Picking the sort that's already on flips its arrow: pick, read, again"""
     for attempt in range(4):
-        tap(*SORT_BUTTON, fuzz=0.004)
-        wait("sortmenu", timeout=6)
+        if look() != "sortmenu":
+            tap(*SORT_BUTTON, fuzz=0.004)
+            wait("sortmenu", timeout=6 * LAG)
         tap_text(label("CAN RECEIVE A GIFT"))
         time.sleep(1.2)
-        wait("friends", timeout=6)
+        if wait("friends", "sortmenu", timeout=6 * LAG) == "sortmenu":
+            log("the sort menu is still open: picking again")
+            continue  # (a lagging tap missed)
         way = arrow()
         if way == "down":
             log("sorted Can receive a gift, arrow down")
@@ -283,10 +294,11 @@ def set_sort():
 
 def to_top():
     for _ in range(15):
+        if look() != "friends":
+            to_list()  # (a drag can land as a tap and open a friend's gift)
         if search_line() or label("SEARCH", 0.18, 0.28):
             return
         drag(0.35, 0.8, 350)
-        look()
     raise Stop(f"couldn't scroll back to the search box: {summary()}")
 
 
@@ -341,7 +353,12 @@ def search(*parts):
                 n = count()
                 break
             time.sleep(0.5)
+        box = search_line()
+        if n is None and box and len(ui.norm(box[4])) > 12 and ui.norm(box[4]) != "TRAINER NICKNAME" \
+                and not any(0.26 < t[1] < 0.85 for t in texts):
+            n = 0  # no one found: the list is empty and FRIENDS shows the total, with no '(0)'
         if n is None:
+            keep_capture("nocount")
             log(f"no result count after the search (the box reads {search_line()[4] if search_line() else None!r}): typing it again")
             continue
         box = search_line()
@@ -442,6 +459,27 @@ def points_text():
     return int(m.group(1)) if m else None
 
 
+def forever_fill(im, W, H):
+    """a Forever Friend's bar right of the small heart -> (5, how full, 0-1), or None. It fills orange from the left
+    over grey; each step is about 90 points (60 to go read 34%, 80 read 13%)"""
+    def kind(r, g, b):
+        if r > 220 and 90 < g < 200 and b < 120:
+            return "O"
+        if abs(r - g) < 14 and abs(g - b) < 14 and 140 < r < 230:
+            return "g"
+        return "."
+
+    best = None
+    for cy in range(int(H * 0.15), int(H * 0.23)):
+        line = "".join(kind(*im.getpixel((x, cy))) for x in range(int(W * 0.08), int(W * 0.35)))
+        for run in re.split(r"\.{2,}", line):  # (one stray pixel inside the bar is fine)
+            if len(run) > 0.08 * W and (best is None or len(run) > len(best)):
+                best = run
+    if best is None:
+        return None
+    return 5, best.count("O") / (best.count("O") + best.count("g"))
+
+
 def heart_fill():
     """the five small hearts under the name on the friend page -> (hearts full, how full the next one is, 0-1),
     or None when they can't be read (a Forever Friend's smaller heart + bar, a lucky friend's swirl).
@@ -464,9 +502,10 @@ def heart_fill():
             best = line
     if "R" not in best:
         return None
-    a, pitch, width = best.index("R"), 0.0437 * W, round(0.0394 * W)  # iPhone: 16 px hearts, 17.7 px apart
+    pitch = (0.0456 if ui.ANDROID else 0.0437) * W  # 18.5 / 17.7 px apart on a 406 px wide capture
+    a, width = best.index("R"), round(0.0394 * W)  # 16 px hearts
     if len(best[a:]) - len(best[a:].lstrip("R")) < 0.8 * width:
-        return None  # a Forever Friend: a smaller heart, then the bar
+        return forever_fill(im, W, H)  # a Forever Friend: a smaller heart, then the bar
     fill = []
     for i in range(5):
         seg = best[a + round(i * pitch):][:width]
@@ -478,8 +517,8 @@ def heart_fill():
 def meter():
     """-> friendship points to the next level when that level is the 3rd, 4th or 5th heart or the Forever bar,
     else None (a level-up there doesn't matter). Leaves the friend page showing again"""
-    hf = None if ui.ANDROID else heart_fill()  # (not checked on the Pixel's screenshots yet)
-    if hf and (hf[0] < WATCH_FROM or (hf[0] < 5 and hf[1] < HEART_NEAR)):
+    hf = heart_fill()
+    if hf and (hf[0] < WATCH_FROM or hf[1] < HEART_NEAR[hf[0]]):  # (5 full hearts read 100%: always opened)
         log(f"  {hf[0]} hearts + {hf[1]:.0%} of the next: no level-up close, friendship screen not opened")
         return None
     nick, line = page_nickname()
@@ -516,17 +555,32 @@ def meter():
     return n
 
 
+def title_block(t, lines, left=False):
+    """t and the lines under it in the same column (centred in the picker, left-aligned on the preview) -> (title, city), when t starts a gift's title. The
+    title can wrap onto a second line; the city line ('San Francisco, CA, United') is the first one with a comma"""
+    x = (lambda u: u[0]) if left else (lambda u: u[0] + u[2] / 2)
+    col = sorted((u for u in lines if abs(x(u) - x(t)) < (0.03 if left else 0.08)), key=lambda u: u[1])
+    if any(0 < t[1] - u[1] < 0.035 for u in col):
+        return None, None  # t is the second line of a title, or the city's 'States'
+    block, y = [t], t[1]
+    for u in col:
+        if 0 < u[1] - y < 0.035:
+            block.append(u)
+            y = u[1]
+    for i, u in enumerate(block[1:4], 1):
+        if "," in u[4]:
+            return " ".join(v[4].strip() for v in block[:i]), u[4].strip()
+    return None, None
+
+
+def ours(title, city):
+    return bool(title) and "," not in title and city.upper().startswith(CITY) and not KEEP.search(title)
+
+
 def card_title(t):
-    """the gift's exact title, if t is one of the two we may send. A long title wraps onto a second line: one
-    that only starts with the name isn't ours. The line under a full title is the city ('San Francisco, ...')"""
-    s = t[4].strip()
-    below = [u for u in texts if 0 < u[1] - t[1] < 0.035 and abs(u[0] - t[0]) < 0.06]
-    nxt = below[0][4].strip() if below else ""
-    if s == "Mission Creek" and nxt == "Park":
-        return "Mission Creek Park"
-    if s in GIFTS and (not nxt or "," in nxt or nxt.upper().startswith("SAN FRANCISCO")):
-        return s
-    return None
+    """the gift's title, if t starts the title of one we may send"""
+    title, city = title_block(t, texts)
+    return title if ours(title, city or "") else None
 
 
 def preview_ok(title):
@@ -534,11 +588,12 @@ def preview_ok(title):
     lines = sorted(texts, key=lambda t: t[1])
     for i, t in enumerate(lines):
         if "GREETINGS FROM" in up(t):
-            rest = [u[4].strip() for u in lines[i + 1:i + 3]]
-            got = rest[0] if rest else ""
-            if got == "Mission Creek" and len(rest) > 1 and rest[1] == "Park":
-                got = "Mission Creek Park"
-            return got == title, got
+            rest = [u for u in lines[i + 1:] if u[1] - t[1] < 0.15]
+            got, city = title_block(rest[0], rest, left=True) if rest else (None, None)
+            cut = title.rstrip(".… ")  # the picker cuts a long title short ('Modern spiral chandeli')
+            near = lambda a, b: difflib.SequenceMatcher(None, a.lower(), b.lower()).ratio() >= 0.9  # (a letter misread: 'Lot Al')
+            same = got is not None and (near(got, title) or (len(cut) >= 10 and near(got[:len(cut)], cut)))
+            return same and ours(got, city or "") and ours(title, city or ""), got
     return False, None
 
 
@@ -564,6 +619,7 @@ def send_gift():
                 keep_capture("preview")
                 close()
                 raise Stop(f"the gift preview reads {got!r}, wanted {title!r}: nothing sent")
+            title = got  # (the full title, when the picker cut it short)
             if find(lambda u: "STICKER" in up(u) and u[1] < 0.7):
                 keep_capture("sticker")
                 close()
@@ -772,7 +828,7 @@ def one_phone(a):
         sent = run_searches(a.limit)
         log(f"done: {sent} gifts sent" + ("" if sent >= a.limit else ", nobody left who can take one"))
     except OutOfGifts:
-        log("out of Mission Walk / Mission Creek Park gifts: stopping")
+        log("out of San Francisco gifts we may send: stopping")
         if not ui.ANDROID:
             to_list()
             quit_mirroring()

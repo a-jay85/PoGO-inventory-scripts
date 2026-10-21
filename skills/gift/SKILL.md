@@ -1,6 +1,6 @@
 ---
 name: gift
-description: Send Mission Walk and Mission Creek Park gifts to every friend who can take one, on both accounts (HashTagAJay on the iPhone through iPhone Mirroring, CyrillJan on the Android phone). Friends who haven't played with you today go first, far-ahead time zones first, and friends 1 point from a level-up are skipped and tagged WAIT. Use when the user says /gift or asks to send gifts.
+description: Send San Francisco gifts (not ones with lion, tree or rock in the name) to every friend who can take one, on both accounts (HashTagAJay on the iPhone through iPhone Mirroring, CyrillJan on the Android phone). Friends who haven't played with you today go first, far-ahead time zones first, and friends 1 point from a level-up are skipped and tagged WAIT. Use when the user says /gift or asks to send gifts.
 model: claude-sonnet-5-5
 ---
 
@@ -19,7 +19,7 @@ Both phones run at once, each in its own process. `--phone ios` or `--phone andr
 
 ## Which gifts
 
-Only gifts titled exactly **Mission Walk** or **Mission Creek Park**, with no sticker. The gift preview must read the same title before SEND. Every other gift is left for sending by hand. When a phone has neither one left, it stops. The iPhone also quits iPhone Mirroring. The other phone keeps going.
+Only gifts whose city line reads **San Francisco**, with no sticker. A title with **lion**, **tree** or **rock** in it is kept (Lions, Trees and Rocky too). Mission Rock gifts are sent anyway. The gift preview must read the same title and city before SEND. Every other gift (Chicago, North Carolina ...) is left for sending by hand. When a phone has none left, it stops. The iPhone also quits iPhone Mirroring. The other phone keeps going.
 
 ## Who goes first
 
@@ -34,7 +34,7 @@ The iPhone types the shortcuts (`iii`, `lasia` ...) and lets iOS expand them. If
 
 ## Friends close to a level-up
 
-On the iPhone the script first reads the five small hearts on the friend page. A full heart is red, and the next one fills yellow from the left. If the next heart is the 1st or 2nd, or it's under 75% full, no level-up is close and it skips the friendship screen. Two points to go reads about 91%. Android doesn't do this yet, because its screenshots haven't been checked.
+The script first reads the five small hearts on the friend page. A full heart is red, and the next one fills yellow from the left. If the next heart is the 1st or 2nd, no level-up there matters. Otherwise it opens the friendship screen only when the next heart is nearly full: 90% for the 3rd heart (2 points to go reads 94%), 97% for the 4th and 5th (they span about 90 points, about 5 a pixel, so 5 points to go can already read 100%). A Forever Friend has one small heart and a bar that fills orange over grey. Each bar step is about 90 points, and it opens at 95%.
 
 Otherwise, before each gift the script opens the friendship screen (the hearts on the friend page). When the next level is the 3rd, 4th or 5th heart, it taps that heart to read "Earn N more friendship points". The Forever Friends bar shows its number without a tap.
 

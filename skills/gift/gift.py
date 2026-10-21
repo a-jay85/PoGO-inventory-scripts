@@ -196,6 +196,8 @@ def count():
 
 def search_line():
     """the search box's text, when it's on screen (it scrolls away with the list)"""
+    if any(0.18 < t[1] < 0.26 and ui.norm(t[4]) in ("ADD FRIEND", "INVITE") for t in texts):
+        return None  # the button row: no search on, and under the picture sits the trainer's name or OFFLINE
     for t in texts:
         if 0.18 < t[1] < 0.26 and t[0] < 0.25 and ui.norm(t[4]) not in ("ADD FRIEND", "SEARCH", "INVITE", "OFFLINE"):
             return t

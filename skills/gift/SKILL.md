@@ -34,7 +34,9 @@ The iPhone types the shortcuts (`iii`, `lasia` ...) and lets iOS expand them. If
 
 ## Friends close to a level-up
 
-Before each gift the script opens the friendship screen (the hearts on the friend page). When the next level is the 3rd, 4th or 5th heart, it taps that heart to read "Earn N more friendship points". The Forever Friends bar shows its number without a tap.
+On the iPhone the script first reads the five small hearts on the friend page. A full heart is red, and the next one fills yellow from the left. If the next heart is the 1st or 2nd, or it's under 75% full, no level-up is close and it skips the friendship screen. Two points to go reads about 91%. Android doesn't do this yet, because its screenshots haven't been checked.
+
+Otherwise, before each gift the script opens the friendship screen (the hearts on the friend page). When the next level is the 3rd, 4th or 5th heart, it taps that heart to read "Earn N more friendship points". The Forever Friends bar shows its number without a tap.
 
 - 1 point to go: no gift. Nickname becomes `WAIT <old nickname>`.
 - 2 points to go: gift, then nickname `SENT <old nickname>`.

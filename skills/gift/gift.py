@@ -554,7 +554,9 @@ def preview_ok(title):
         if "GREETINGS FROM" in up(t):
             rest = [u for u in lines[i + 1:] if u[1] - t[1] < 0.15]
             got, city = title_block(rest[0], rest, left=True) if rest else (None, None)
-            return got == title and ours(got, city or ""), got
+            cut = title.rstrip(".… ")  # the picker cuts a long title short ('Modern spiral chandeli')
+            same = got == title or (got is not None and len(cut) >= 10 and got.startswith(cut))
+            return same and ours(got, city or ""), got
     return False, None
 
 
@@ -580,6 +582,7 @@ def send_gift():
                 keep_capture("preview")
                 close()
                 raise Stop(f"the gift preview reads {got!r}, wanted {title!r}: nothing sent")
+            title = got  # (the full title, when the picker cut it short)
             if find(lambda u: "STICKER" in up(u) and u[1] < 0.7):
                 keep_capture("sticker")
                 close()

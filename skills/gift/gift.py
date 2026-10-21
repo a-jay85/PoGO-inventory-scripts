@@ -109,6 +109,8 @@ def classify():
         return "preview"
     if "GREETINGS FROM" in j and "OPEN" in w:
         return "giftpopup"
+    if "TRAINER CODE" in j and "2D CODE" in j:
+        return "trainercode"  # (a tap on our own picture in the friend list)
     if "SET NICKNAME" in j and w & {"OK", "CANCEL"}:
         return "nickname"
     # the gift list scrolled past its header: two columns of city lines ('Chicago, IL, United States')
@@ -218,7 +220,7 @@ def to_list():
             tap_text(t) if t else tap(0.5, 0.09)
         elif s == "map":
             tap(0.13, 0.91)  # the profile picture
-        elif s in ("friend", "meter", "picker", "preview", "giftpopup"):
+        elif s in ("friend", "meter", "picker", "preview", "giftpopup", "trainercode"):
             close()
         elif s == "nickname":
             cancel_nickname()
@@ -356,6 +358,7 @@ def search(*parts):
                 and not any(0.26 < t[1] < 0.85 for t in texts):
             n = 0  # no one found: the list is empty and FRIENDS shows the total, with no '(0)'
         if n is None:
+            keep_capture("nocount")
             log(f"no result count after the search (the box reads {search_line()[4] if search_line() else None!r}): typing it again")
             continue
         box = search_line()

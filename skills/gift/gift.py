@@ -285,10 +285,11 @@ def set_sort():
 
 def to_top():
     for _ in range(15):
+        if look() != "friends":
+            to_list()  # (a drag can land as a tap and open a friend's gift)
         if search_line() or label("SEARCH", 0.18, 0.28):
             return
         drag(0.35, 0.8, 350)
-        look()
     raise Stop(f"couldn't scroll back to the search box: {summary()}")
 
 

@@ -349,6 +349,10 @@ def search(*parts):
                 n = count()
                 break
             time.sleep(0.5)
+        box = search_line()
+        if n is None and box and len(ui.norm(box[4])) > 12 and ui.norm(box[4]) != "TRAINER NICKNAME" \
+                and not any(0.26 < t[1] < 0.85 for t in texts):
+            n = 0  # no one found: the list is empty and FRIENDS shows the total, with no '(0)'
         if n is None:
             log(f"no result count after the search (the box reads {search_line()[4] if search_line() else None!r}): typing it again")
             continue

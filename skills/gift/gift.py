@@ -457,9 +457,8 @@ def forever_fill(im, W, H):
     best = None
     for cy in range(int(H * 0.15), int(H * 0.23)):
         line = "".join(kind(*im.getpixel((x, cy))) for x in range(int(W * 0.08), int(W * 0.35)))
-        for run in re.findall(r"O[O.]{0,2}[Og][Og.]*[Og]|g[g.]*g", line):
-            run = run.rstrip(".")
-            if run.count(".") <= 3 and len(run) > 0.08 * W and (best is None or len(run) > len(best)):
+        for run in re.split(r"\.{2,}", line):  # (one stray pixel inside the bar is fine)
+            if len(run) > 0.08 * W and (best is None or len(run) > len(best)):
                 best = run
     if best is None:
         return None

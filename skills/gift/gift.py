@@ -52,6 +52,7 @@ HEART_Y = 0.384 if ui.ANDROID else 0.397  # the five big hearts on the friendshi
 HEART_X = (0.222, 0.362, 0.50, 0.64, 0.778) if ui.ANDROID else (0.234, 0.369, 0.505, 0.635, 0.768)
 LEVELS = {"GOOD": 1, "GREAT": 2, "ULTRA": 3, "BEST": 4, "FOREVER": 5}  # ribbon -> hearts filled
 WATCH_FROM = 2  # hearts index (0-based) from which a level-up is watched: the 3rd, 4th and 5th heart
+HEART_NEAR = 0.75  # open the friendship screen only when the next small heart is this full (2 points to go reads ~91%, 11 read 56%)
 PHONE = "android" if ui.ANDROID else "ios"
 DRY = False  # --dry-run: everything but SEND and the nickname box's OK
 shortcuts = not ui.ANDROID  # off for the rest of the run once a shortcut didn't expand
@@ -119,6 +120,8 @@ def classify():
     if "EXIT POK" in j:
         return "exit"
     if "FRIENDS" in w and ("ME" in w or "SOCIAL" in w):
+        if "TOTAL ACTIVITY" in j or w & {"SCRAPBOOK", "JOURNAL"}:
+            return "profile"  # the ME tab: its trainer name sits where the search box would be
         if w & {"ADD FRIEND", "INVITE", "TRAINER NICKNAME"} or search_line() or count() is not None:
             return "friends"
         return "profile"
@@ -192,7 +195,7 @@ def count():
 def search_line():
     """the search box's text, when it's on screen (it scrolls away with the list)"""
     for t in texts:
-        if 0.18 < t[1] < 0.26 and t[0] < 0.25 and ui.norm(t[4]) not in ("ADD FRIEND", "SEARCH", "INVITE"):
+        if 0.18 < t[1] < 0.26 and t[0] < 0.25 and ui.norm(t[4]) not in ("ADD FRIEND", "SEARCH", "INVITE", "OFFLINE"):
             return t
     return None
 
@@ -439,9 +442,46 @@ def points_text():
     return int(m.group(1)) if m else None
 
 
+def heart_fill():
+    """the five small hearts under the name on the friend page -> (hearts full, how full the next one is, 0-1),
+    or None when they can't be read (a Forever Friend's smaller heart + bar, a lucky friend's swirl).
+    A full heart is red; the next one fills yellow from the left, the rest grey. The gaps between hearts are
+    sometimes grey too, so each heart is cut out by its spot, measured from the first one's left edge"""
+    im = Image.open(path).convert("RGB")
+    W, H = im.size
+
+    def kind(ps):
+        if any(p[0] > 230 and p[1] < 140 and p[2] < p[0] - 60 for p in ps):
+            return "R"
+        if any(p[0] > 230 and 140 <= p[1] < 215 and p[2] < p[0] - 60 for p in ps):
+            return "Y"
+        return "."
+
+    best = ""
+    for cy in range(int(H * 0.15), int(H * 0.23)):  # (a nickname above is orange-yellow text: count red only)
+        line = "".join(kind([im.getpixel((x, y)) for y in range(cy - 2, cy + 3)]) for x in range(int(W * 0.04), int(W * 0.32)))
+        if line.count("R") > best.count("R"):
+            best = line
+    if "R" not in best:
+        return None
+    a, pitch, width = best.index("R"), 0.0437 * W, round(0.0394 * W)  # iPhone: 16 px hearts, 17.7 px apart
+    if len(best[a:]) - len(best[a:].lstrip("R")) < 0.8 * width:
+        return None  # a Forever Friend: a smaller heart, then the bar
+    fill = []
+    for i in range(5):
+        seg = best[a + round(i * pitch):][:width]
+        fill.append((seg.count("R") >= 0.7 * width, (seg.count("R") + seg.count("Y")) / width))
+    full = next((i for i, (red, _) in enumerate(fill) if not red), 5)
+    return full, (fill[full][1] if full < 5 else 1.0)
+
+
 def meter():
     """-> friendship points to the next level when that level is the 3rd, 4th or 5th heart or the Forever bar,
     else None (a level-up there doesn't matter). Leaves the friend page showing again"""
+    hf = None if ui.ANDROID else heart_fill()  # (not checked on the Pixel's screenshots yet)
+    if hf and (hf[0] < WATCH_FROM or (hf[0] < 5 and hf[1] < HEART_NEAR)):
+        log(f"  {hf[0]} hearts + {hf[1]:.0%} of the next: no level-up close, friendship screen not opened")
+        return None
     nick, line = page_nickname()
     spots = [(0.12, line[1] + line[3] / 2)] if line else []
     spots += [(0.15, 0.177), (0.15, 0.204)]
@@ -469,7 +509,8 @@ def meter():
             n = points_text()
             if n is not None:
                 break  # (counts from now, so a later heart's number is bigger: the first one is the next level)
-    log(f"  {level or '?'} friend, {n if n is not None else '-'} points to the next watched level")
+    seen = f" (small hearts read {hf[0]} + {hf[1]:.0%})" if hf else " (small hearts not read)"
+    log(f"  {level or '?'} friend, {n if n is not None else '-'} points to the next watched level{seen}")
     close()
     wait("friend", timeout=6)
     return n
@@ -719,6 +760,8 @@ def one_phone(a):
         s = look()
         print(f"{PHONE}: {s}  rows: {rows() if s == 'friends' else '-'}  arrow: {arrow()}")
         print("   ", summary())
+        if s == "friend":
+            print("    hearts:", heart_fill())
         return
     sent = 0
     try:

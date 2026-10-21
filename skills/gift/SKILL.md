@@ -34,7 +34,7 @@ The iPhone types the shortcuts (`iii`, `lasia` ...) and lets iOS expand them. If
 
 ## Friends close to a level-up
 
-The script first reads the five small hearts on the friend page. A full heart is red, and the next one fills yellow from the left. If the next heart is the 1st or 2nd, or it's under 75% full, no level-up is close and it skips the friendship screen. Two points to go reads about 91%.
+The script first reads the five small hearts on the friend page. A full heart is red, and the next one fills yellow from the left. If the next heart is the 1st or 2nd, or it's under 75% full, no level-up is close and it skips the friendship screen. Two points to go reads about 91%. A Forever Friend has one small heart and a bar that fills orange over grey. Each bar step is about 90 points, and the same 75% rule applies to it.
 
 Otherwise, before each gift the script opens the friendship screen (the hearts on the friend page). When the next level is the 3rd, 4th or 5th heart, it taps that heart to read "Earn N more friendship points". The Forever Friends bar shows its number without a tap.
 

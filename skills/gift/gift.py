@@ -444,6 +444,28 @@ def points_text():
     return int(m.group(1)) if m else None
 
 
+def forever_fill(im, W, H):
+    """a Forever Friend's bar right of the small heart -> (5, how full, 0-1), or None. It fills orange from the left
+    over grey; each step is about 90 points (60 to go read 34%, 80 read 13%)"""
+    def kind(r, g, b):
+        if r > 220 and 90 < g < 200 and b < 120:
+            return "O"
+        if abs(r - g) < 14 and abs(g - b) < 14 and 140 < r < 230:
+            return "g"
+        return "."
+
+    best = None
+    for cy in range(int(H * 0.15), int(H * 0.23)):
+        line = "".join(kind(*im.getpixel((x, cy))) for x in range(int(W * 0.08), int(W * 0.35)))
+        for run in re.findall(r"O[O.]{0,2}[Og][Og.]*[Og]|g[g.]*g", line):
+            run = run.rstrip(".")
+            if run.count(".") <= 3 and len(run) > 0.08 * W and (best is None or len(run) > len(best)):
+                best = run
+    if best is None:
+        return None
+    return 5, best.count("O") / (best.count("O") + best.count("g"))
+
+
 def heart_fill():
     """the five small hearts under the name on the friend page -> (hearts full, how full the next one is, 0-1),
     or None when they can't be read (a Forever Friend's smaller heart + bar, a lucky friend's swirl).
@@ -469,7 +491,7 @@ def heart_fill():
     pitch = (0.0456 if ui.ANDROID else 0.0437) * W  # 18.5 / 17.7 px apart on a 406 px wide capture
     a, width = best.index("R"), round(0.0394 * W)  # 16 px hearts
     if len(best[a:]) - len(best[a:].lstrip("R")) < 0.8 * width:
-        return None  # a Forever Friend: a smaller heart, then the bar
+        return forever_fill(im, W, H)  # a Forever Friend: a smaller heart, then the bar
     fill = []
     for i in range(5):
         seg = best[a + round(i * pitch):][:width]
@@ -482,7 +504,7 @@ def meter():
     """-> friendship points to the next level when that level is the 3rd, 4th or 5th heart or the Forever bar,
     else None (a level-up there doesn't matter). Leaves the friend page showing again"""
     hf = heart_fill()
-    if hf and (hf[0] < WATCH_FROM or (hf[0] < 5 and hf[1] < HEART_NEAR)):
+    if hf and (hf[0] < WATCH_FROM or hf[1] < HEART_NEAR):  # (5 full hearts read 100%: always opened)
         log(f"  {hf[0]} hearts + {hf[1]:.0%} of the next: no level-up close, friendship screen not opened")
         return None
     nick, line = page_nickname()

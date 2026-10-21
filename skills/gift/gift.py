@@ -20,7 +20,7 @@ its title, and never with a sticker. When a phone has none
 left it stops (the iPhone quits iPhone Mirroring); the other phone carries on.
 Log and captures go in runs/<time>-<phone>/.
 """
-import argparse, os, random, re, subprocess, sys, time
+import argparse, difflib, os, random, re, subprocess, sys, time
 from PIL import Image
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -591,8 +591,9 @@ def preview_ok(title):
             rest = [u for u in lines[i + 1:] if u[1] - t[1] < 0.15]
             got, city = title_block(rest[0], rest, left=True) if rest else (None, None)
             cut = title.rstrip(".… ")  # the picker cuts a long title short ('Modern spiral chandeli')
-            same = got == title or (got is not None and len(cut) >= 10 and got.startswith(cut))
-            return same and ours(got, city or ""), got
+            near = lambda a, b: difflib.SequenceMatcher(None, a.lower(), b.lower()).ratio() >= 0.9  # (a letter misread: 'Lot Al')
+            same = got is not None and (near(got, title) or (len(cut) >= 10 and near(got[:len(cut)], cut)))
+            return same and ours(got, city or "") and ours(title, city or ""), got
     return False, None
 
 

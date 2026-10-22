@@ -68,6 +68,31 @@ def strict(got, q):
     return True
 
 
+def ios_start(q):
+    """iPhone: a long search shows only its end, after Return too. Open the bar, put the cursor at the start
+    (cmd+Left) and read that, then Return again (the same search)"""
+    bounds = look()[3]
+    search.click(0.45, 0.183, bounds, gap=search.BAR_GAP)
+    for _ in range(10):
+        time.sleep(0.3)
+        if ui.search_panel(ui.ocr(ui.capture()[0])):
+            break
+    else:
+        return
+    base.key("left", cmd=True)
+    for _ in range(6):
+        time.sleep(0.3)
+        got, _ = search.panel_text()
+        if strict(got, q) and _views[-1][0] in ("start", "all"):
+            break
+    base.key("return")
+    for _ in range(16):
+        time.sleep(0.25)
+        texts = look()[1]
+        if not ui.search_panel(texts) and ui.classify(texts) == "list":
+            return
+
+
 def search_exact(q):
     Q = re.sub(r"\s", "", q)
     for attempt in range(3):
@@ -76,6 +101,10 @@ def search_exact(q):
         got = {}
         for k, n in _views:
             got[k] = max(got.get(k, 0), n)
+        if not ui.ANDROID and "all" not in got and "start" not in got and got.get("end"):
+            ios_start(q)
+            for k, n in _views:
+                got[k] = max(got.get(k, 0), n)
         if "all" in got or got.get("start", 0) + got.get("end", 0) > len(Q):
             return
         log(f"only part of {q!r} read back ({got}): typing it again")

@@ -336,7 +336,9 @@ def parse(s):
 # ---------- Lucky: what a lucky Pokémon in storage could evolve into ----------
 
 REGIONS = {"_alolan": "alola", "_galarian": "galar", "_hisuian": "hisui", "_paldean": "paldea"}
-EXTRA_EDGES = {"corsola_galarian": ["cursola"]}  # the gamemaster has no family for it
+EXTRA_EDGES = {"corsola_galarian": ["cursola"],  # the gamemaster has no family for it
+               "poltchageist": ["sinistcha"]}  # ...and has this one backwards
+BAD_EDGES = {("sinistcha", "poltchageist")}
 GENDER = {413: "female", 414: "male", 416: "female", 475: "male", 478: "female", 758: "female"}  # only this gender evolves into it
 NO_EVOLVE = {589, 617}  # Escavalier, Accelgor: need a trade, and a lucky Pokémon can't be traded again
 UNSURE = {"wurmple": "Wurmple turns into Silcoon or Cascoon at random",
@@ -352,7 +354,7 @@ def evo_tree():
     parent = {}
     for sid, p in by.items():
         for c in (p.get("family") or {}).get("evolutions") or EXTRA_EDGES.get(sid, []):
-            if c in by:
+            if c in by and (sid, c) not in BAD_EDGES:
                 parent.setdefault(c, sid)
     return by, parent
 
@@ -430,7 +432,8 @@ def search_exact(q):
         box = ui.search_box(sharp)
         got = re.sub(r"\s", "", ui.search_text(box)) if box else ""
         got = re.sub(r"^.{0,3}?(?=lucky)", "", got, flags=re.I)  # the magnifier glued on (read as Q, 9, < or ,)
-        if got.lower() == q.lower():
+        bang = "".join("[!.|il1]" if ch == "!" else re.escape(ch) for ch in q)  # OCR reads a '!' as '.' or 'l'
+        if re.fullmatch(bang, got, flags=re.I):  # ...but one that's really gone leaves nothing there
             for texts in (texts, sharp, ui.ocr(ui.capture()[0])):
                 n = search.result_count(texts)
                 if n is not None:

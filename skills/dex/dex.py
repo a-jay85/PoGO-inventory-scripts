@@ -323,6 +323,181 @@ def searches(ns):
     return out + [cur] if cur else out
 
 
+def parse(s):
+    """'14,22,29-33' -> {14, 22, 29, ..., 33}"""
+    out = set()
+    for part in s.replace("\n", ",").split(","):
+        if part.strip():
+            a, _, b = part.strip().partition("-")
+            out |= set(range(int(a), int(b or a) + 1))
+    return out
+
+
+# ---------- Lucky: what a lucky Pokémon in storage could evolve into ----------
+
+REGIONS = {"_alolan": "alola", "_galarian": "galar", "_hisuian": "hisui", "_paldean": "paldea"}
+EXTRA_EDGES = {"corsola_galarian": ["cursola"]}  # the gamemaster has no family for it
+GENDER = {413: "female", 414: "male", 416: "female", 475: "male", 478: "female", 758: "female"}  # only this gender evolves into it
+NO_EVOLVE = {589, 617}  # Escavalier, Accelgor: need a trade, and a lucky Pokémon can't be traded again
+UNSURE = {"wurmple": "Wurmple turns into Silcoon or Cascoon at random",
+          "basculin": "only White-Striped Basculin evolves, and a search can't pick it out"}
+
+
+def evo_tree():
+    """child speciesId -> parent speciesId, from each entry's evolutions list (the 'parent' field has errors:
+    Carkol under Boltund, Mr. Rime under Mime Jr)"""
+    import json
+    gm = json.load(open(os.path.join(HERE, "..", "pvpc", "gamemaster.json")))["pokemon"]
+    by = {p["speciesId"]: p for p in gm if not re.search(r"_shadow|_mega|_xl$", p["speciesId"])}
+    parent = {}
+    for sid, p in by.items():
+        for c in (p.get("family") or {}).get("evolutions") or EXTRA_EDGES.get(sid, []):
+            if c in by:
+                parent.setdefault(c, sid)
+    return by, parent
+
+
+def form_terms(sid, by):
+    """the search terms that pick out this form of its species"""
+    suffix = next((x for x in REGIONS if x in sid), None)
+    if suffix:
+        return f"&{REGIONS[suffix]}"
+    dex = by[sid]["dex"]  # the plain form: leave out its regional forms
+    return "".join(f"&!{r}" for x, r in REGIONS.items() if any(p["dex"] == dex and x in o for o, p in by.items()))
+
+
+def source_query(sids, by, gender=None):
+    """the storage search for lucky copies of these species forms (same form terms) that can still evolve"""
+    dexes = ",".join(str(by[x]["dex"]) for x in sids)
+    return f"lucky&{dexes}&!costume{form_terms(sids[0], by)}" + (f"&{gender}" if gender else "")
+
+
+def ancestors(sid, parent):
+    out = []
+    while sid in parent:
+        sid = parent[sid]
+        out.append(sid)
+    return out
+
+
+def lines(missing):
+    """the families where a lucky Pokémon could evolve to fill a hole -> [(sources, targets)]: the species forms in
+    the page that a lucky copy could start from, and the missing forms one of them could reach"""
+    by, parent = evo_tree()
+    groups = {}
+    for sid, p in by.items():
+        if p["dex"] not in missing or sid not in parent or p["dex"] in NO_EVOLVE:
+            continue
+        chain = ancestors(sid, parent)
+        if all(by[a]["dex"] in missing for a in chain):
+            continue  # nothing above it on the page: no lucky copy to start from
+        srcs, ts = groups.setdefault(chain[-1], (set(), set()))
+        srcs |= {a for a in chain if by[a]["dex"] not in missing}
+        ts |= {a for a in [sid] + chain if by[a]["dex"] in missing}
+    return by, parent, list(groups.values())
+
+
+def route(src, dst, parent, by):
+    """evolving src all the way to dst -> (dex numbers it fills, the gender src has to be or None).
+    None if dst isn't below src."""
+    if src not in ancestors(dst, parent):
+        return None
+    fills, gender, s = set(), None, dst
+    while s != src:
+        fills.add(by[s]["dex"])
+        gender = gender or GENDER.get(by[s]["dex"])
+        s = parent[s]
+    return fills, gender
+
+
+def covered(targets, counts, parent, by):
+    """can these lucky copies fill every missing number in the line? counts: {(source, gender or None): n}.
+    Each copy evolves down one branch: try every way to send them."""
+    import itertools
+    want = {by[t]["dex"] for t in targets}
+    copies = []
+    for (src, gender), n in counts.items():
+        ways = [r[0] for t in targets if (r := route(src, t, parent, by)) and r[1] in (None, gender)]
+        copies += [ways] * min(n, len(want))
+    return any(want <= set().union(*pick) for pick in itertools.product(*[[set()] + w for w in copies]))
+
+
+def search_exact(q):
+    """type q and make sure the bar holds exactly q: a lost '!' would turn '!galar' into 'galar'. -> result count"""
+    for attempt in range(3):
+        path, texts, bounds = search.start_search(q)
+        sharp = ui.ocr(ui.android.sharp())
+        box = ui.search_box(sharp)
+        got = re.sub(r"\s", "", ui.search_text(box)) if box else ""
+        got = re.sub(r"^.{0,3}?(?=lucky)", "", got, flags=re.I)  # the magnifier glued on (read as Q, 9, < or ,)
+        if got.lower() == q.lower():
+            for texts in (texts, sharp, ui.ocr(ui.capture()[0])):
+                n = search.result_count(texts)
+                if n is not None:
+                    return n
+            log(f"  {q}: can't read the result count: typing it again")
+            continue
+        log(f"search bar reads {got!r}, wanted exactly {q!r}: typing it again")
+    keep_capture("search")
+    raise Stop(f"couldn't search exactly {q!r}")
+
+
+def to_storage():
+    """from the Pokédex to the Pokémon list"""
+    for _ in range(6):
+        screen, texts, path, bounds = look()
+        if screen not in ("grid", "dex-search", "regions"):
+            break
+        ui.android.key("back")
+        time.sleep(1.5)
+    home.start()
+
+
+def evolvable(missing):
+    """the missing numbers a lucky Pokémon in storage could evolve to fill, a whole line at a time.
+    -> (numbers to drop from the search, report lines)"""
+    by, parent, groups = lines(missing)
+    name = lambda sid: re.sub(r" \((Male|Female)\)$", "", by[sid]["speciesName"])
+    log(f"Lucky: {len(groups)} lines a lucky Pokémon could evolve into a missing number")
+    to_storage()
+    drop, report = set(), []
+    for srcs, targets in sorted(groups, key=lambda g: min(by[t]["dex"] for t in g[1])):
+        srcs = sorted(srcs, key=lambda x: by[x]["dex"])
+        routes = {(x, t): route(x, t, parent, by) for x in srcs for t in targets}
+        genders = {r[1] for r in routes.values() if r}
+        sexed = genders != {None}
+        genders = ("male", "female") if None in genders else sorted(genders)  # genderless never needs a gender
+        one_way = (not sexed and not set(srcs) & set(UNSURE) and all(routes.values())
+                   and len({form_terms(x, by) for x in srcs}) == 1
+                   and any(targets <= {e, *ancestors(e, parent)} for e in targets))
+        counts = {}
+        if one_way:  # every copy of every source runs through all the holes: one search for all of them
+            n = search_exact(source_query(srcs, by))
+            if n:
+                counts[(srcs[0], None)] = n  # (any copy fills them all)
+        else:
+            for x in srcs:
+                for gender in (genders if sexed else (None,)):
+                    n = search_exact(source_query([x], by, gender))
+                    if n:
+                        counts[(x, gender)] = n
+        log(f"  {','.join(ranges({by[t]['dex'] for t in targets}))}: lucky {counts}")
+        have = ", ".join(f"{n} {'/'.join(name(x) for x in srcs) if one_way else name(x)}" + (f" {g}" if g else "")
+                         for (x, g), n in counts.items())
+        what = f"{','.join(ranges({by[t]['dex'] for t in targets}))} " \
+               f"({', '.join(sorted({name(t) for t in targets}))})"
+        unsure = [x for x, g in counts if x in UNSURE]
+        sure = {k: n for k, n in counts.items() if k[0] not in UNSURE}
+        if sure and covered(targets, sure, parent, by):
+            drop |= {by[t]["dex"] for t in targets}
+            report.append(f"evolve: {what} from lucky {have}")
+        elif unsure:
+            report.append(f"kept, check by hand: {what}. You have lucky {have}, but {UNSURE[unsure[0]]}")
+        elif counts:
+            report.append(f"kept: {what}. Lucky {have} can't fill all of them")
+    return drop, report
+
+
 def run_page(page):
     label = PAGES[page]
     texts, bounds = to_regions()
@@ -344,9 +519,25 @@ def run_page(page):
         raise Stop(f"read {caught} caught but the page says {total}: not printing a search")
     if set(gaps) - NOT_LISTED:
         raise Stop(f"never read {ranges(set(gaps) - NOT_LISTED)}: not printing a search")
+    with open(os.path.join(base.RUN_DIR, f"page-{page}.txt"), "w") as f:
+        f.write(",".join(ranges(missing)) + "\n")
+    write_searches(page, missing)
+
+
+def write_searches(page, missing):
+    """the searches to paste, saved in the run folder. Lucky: first take out what a lucky Pokémon could evolve into"""
+    label, report = PAGES[page], []
+    if page == "lucky":
+        drop, report = evolvable(set(missing))
+        missing = sorted(set(missing) - drop)
+        with open(os.path.join(base.RUN_DIR, "evolve-lucky.txt"), "w") as f:
+            f.write("\n".join(report) + "\n")
     out = searches(missing)
     with open(os.path.join(base.RUN_DIR, f"missing-{page}.txt"), "w") as f:
         f.write("\n\n".join(out) + "\n")
+    if report:
+        print("\nLucky Pokémon you have that could evolve into a missing one:")
+        print("\n".join(f"  {r}" for r in report))
     print(f"\nMissing from the {label} page: {len(missing)} Pokémon, {len(out)} search(es)\n")
     for i, s in enumerate(out, 1):
         print(f"--- search {i} of {len(out)} ({len(s)} characters) ---\n{s}\n")
@@ -362,15 +553,36 @@ def cmd_look():
             print(f"  #{n:4}  y {y:.3f}  spread {s:5.1f}  {'MISSING' if m else 'caught'}")
 
 
+def cmd_evolve(run):
+    """the Lucky step again on a page already read: storage changed, or the rules did"""
+    runs = os.path.join(HERE, "runs")
+    if not run:
+        run = max((d for d in os.listdir(runs) if d.endswith("-lucky") and not d.endswith("-evolve-lucky")
+                   and any(os.path.exists(os.path.join(runs, d, f)) for f in ("page-lucky.txt", "missing-lucky.txt"))),
+                  default=None)
+        if not run:
+            sys.exit("no Lucky run yet: dex.py lucky")
+    run = os.path.join(runs, run) if not os.path.isabs(run) else run
+    page = next(os.path.join(run, f) for f in ("page-lucky.txt", "missing-lucky.txt") if os.path.exists(os.path.join(run, f)))
+    missing = sorted(parse(open(page).read()))
+    base.new_run_dir(None, os.path.join(runs, time.strftime("%Y%m%d-%H%M%S") + "-evolve-lucky"))
+    log(f"page from {page}: {len(missing)} missing")
+    write_searches("lucky", missing)
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("page", choices=(*PAGES, "look"))
+    ap.add_argument("page", choices=(*PAGES, "look", "evolve"))
+    ap.add_argument("run", nargs="?", help="evolve: a Lucky run's folder (default: the newest)")
     a = ap.parse_args()
     if not ui.ANDROID:
         sys.exit("Android only for now: POGO_PHONE=android")
     try:
         if a.page == "look":
             cmd_look()
+            return
+        if a.page == "evolve":
+            cmd_evolve(a.run)
             return
         base.new_run_dir(None, os.path.join(HERE, "runs", time.strftime("%Y%m%d-%H%M%S") + "-" + a.page))
         run_page(a.page)

@@ -19,6 +19,16 @@ It takes about 5 minutes and only taps to move around: it never changes anything
 
 The dex numbers missing from the page, as one storage search with ranges: `14,22,29-33,35`. The other account pastes it into its Pokémon search. Add filters after it, e.g. `&!lucky` or `&4*`.
 
+### Lucky: holes you can fill yourself
+
+On the Lucky page it then searches this account's storage for lucky Pokémon that could evolve into a missing one, e.g. a lucky Shellder for a missing Cloyster. Those numbers are left out of the search and printed as a to-evolve list (also in `runs/<time>-lucky/evolve-lucky.txt`). The page as read is in `page-lucky.txt`.
+
+- A whole family goes, or none of it. Applin needs 3 lucky copies to fill Flapple, Appletun and Dipplin/Hydrapple. With 2, all four stay in the search and the list says so.
+- It searches `lucky&<dex>&!costume`: many costumed Pokémon can't evolve. Regional forms count only for their own evolutions (Galarian Farfetch'd for Sirfetch'd).
+- Only the right gender counts for Vespiquen, Froslass, Salazzle, Mothim, Wormadam and Gallade.
+- Never left out: Escavalier and Accelgor (a lucky can't be traded again), Dustox from Wurmple (random) and Basculegion (a search can't pick out White-Striped Basculin). The last two are listed as "check by hand".
+- `POGO_PHONE=android caffeinate -dimsu python3 $S/dex.py evolve [run folder]` does this step again on a page already read (default: the newest Lucky run). Be on the same account.
+
 A search longer than 1,000 characters is split into several. The Pixel's search bar took 1,397 characters and failed at 1,497 (2026-10-21). The searches are also saved to `runs/<time>-<page>/missing-<page>.txt`.
 
 ## How it reads the page

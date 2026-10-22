@@ -380,6 +380,17 @@ def bar_shows(got, q):
     return False
 
 
+def allow_paste(texts, bounds):
+    """iOS sometimes asks before the game takes a paste from the Mac ('"Pokémon GO" would like to paste from ...').
+    The paste waits behind it, and taps meant for the game land on it. Tap Allow Paste. True if it was up"""
+    allow = next((t for t in texts if re.fullmatch(r"allow\s*past\S?", t[4].strip(), re.I)), None)
+    if not allow:
+        return False
+    log("  iOS asked to allow the paste: allowing it")
+    click(allow[0] + allow[2] / 2, allow[1] + allow[3] / 2, bounds)
+    return True
+
+
 def type_into_panel(q, bounds):
     """the panel doesn't always put the cursor in the bar, and a tap on the bar doesn't always either.
     Tap the bar, type, wait for the letters to show. False if they come out wrong (the caller starts over)."""
@@ -400,7 +411,9 @@ def type_into_panel(q, bounds):
         got = ""
         for i in range(16):
             time.sleep(0.25)
-            got, _ = panel_text()
+            got, texts = panel_text()
+            if clip is not None and allow_paste(texts, bounds):
+                continue
             if not got and i >= 4:
                 log("  nothing showed in the search bar after typing: again")
                 break  # nothing landed: tap and type again

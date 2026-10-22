@@ -436,28 +436,36 @@ def bar_read(texts):
 
 
 def bar_holds(got, q):
-    """does the bar's read show q? A long q runs off the bar's end: then what shows must be its start, and the hidden
-    rest can't hold a '!' (a lost one is what this guards against)"""
+    """does the bar's read show q? A long q runs off one end of the bar: then what shows must be its start or its end,
+    and the hidden part can't hold a '!' (a lost one is what this guards against)"""
     q = re.sub(r"\s", "", q)
-    # OCR reads a '!' as '.' or 'l', a '&' as '8'
-    pat = lambda s: "".join("[!.|il1]" if ch == "!" else "[&8]" if ch == "&" else re.escape(ch) for ch in s)
+    # OCR reads a '!' as '.' or 'l', a '&' as '8', a '*' as '"', a 0 as an o, an l as '|'
+    swaps = {"!": "[!.|il1]", "&": "[&8]", "*": '[*"]', "0": "[0o]", "l": "[l|1I]"}
+    pat = lambda s: "".join(swaps.get(ch) or re.escape(ch) for ch in s)
     magnifier = r"(?:q|9|[^\w&!*]){0,3}?"  # the magnifier glued on in front (read as Q, 9, < or ,)
     if re.fullmatch(magnifier + pat(q), got, flags=re.I):  # ...but one that's really gone leaves nothing there
         return True
+    if got != (g2 := re.sub(r"(?:\*,)+", "*,", re.sub(r"\*+", "*", re.sub(r"[x×⊗]$", "", got)))) and bar_holds(g2, q):
+        return True  # the bar's (x) glued on at the end, a '*' or '*,' read twice ('530&3**,4*&shadowx', '144&3*,*,4*&!galar')
     return any(re.fullmatch(magnifier + pat(q[:k]), got, flags=re.I) for k in range(len(q) - 1, 24, -1)
-               if "!" not in q[k:])
+               if "!" not in q[k:]) \
+        or any(re.fullmatch(magnifier + pat(q[k:]), got, flags=re.I) for k in range(1, len(q) - 24)
+               if "!" not in q[:k])  # ...or its start ran off, while it's being typed
 
 
 def search_exact(q):
     """type q and make sure the bar holds exactly q: a lost '!' would turn '!galar' into 'galar'. -> result count"""
     for attempt in range(3):
         path, texts, bounds = search.start_search(q)
-        sharp = ui.ocr(ui.android.sharp())
-        reads = [bar_read(sharp), bar_read(texts)]  # the sharp one first: it keeps the '!'s
-        got = next((g for g in reads if bar_holds(g, q)), reads[0])
+        got, sharp = bar_read(texts), None
+        if "!" in q or not bar_holds(got, q):  # the sharp read keeps the '!'s: the normal one can lose them
+            sharp = ui.ocr(ui.android.sharp())
+            reads = [bar_read(sharp), got]
+            got = next((g for g in reads if bar_holds(g, q)), reads[0])
         if bar_holds(got, q):
-            for texts in (texts, sharp, ui.ocr(ui.capture()[0])):
-                n = search.result_count(texts)
+            for look_ in (lambda: texts, lambda: sharp, lambda: ui.ocr(ui.capture()[0])):
+                seen = look_()
+                n = search.result_count(seen) if seen is not None else None
                 if n is not None:
                     return n
             log(f"  {q}: can't read the result count: typing it again")

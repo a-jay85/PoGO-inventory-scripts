@@ -290,7 +290,10 @@ def trainer():
             ui.android.key("back")  # (the keyboard and its own text box are up)
             time.sleep(1.0)
         elif ui.search_panel(texts):
-            search.close_panel(bounds)
+            if ui.ANDROID:  # an empty bar has no (x): a tap there opens the keyboard again
+                ui.android.key("back")
+            else:
+                search.close_panel(bounds)
             time.sleep(1.0)
         elif screen == "map":
             search.click(0.13, 0.91, bounds)  # the profile picture

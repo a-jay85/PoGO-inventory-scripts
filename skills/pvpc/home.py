@@ -303,8 +303,11 @@ def trainer():
         elif screen in ("list", "tag-tab"):
             search.click(*X_BUTTON, bounds)
             time.sleep(1.5)
-        elif screen == "mainmenu" and ui.ANDROID:
-            ui.android.key("back")
+        elif screen == "mainmenu":
+            if ui.ANDROID:
+                ui.android.key("back")
+            else:  # no Back key: the menu's own X at the bottom middle
+                search.click(*X_BUTTON, bounds)
             time.sleep(1.5)
         elif screen == "exit":
             press_text(texts, bounds, "CANCEL")

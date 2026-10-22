@@ -425,16 +425,37 @@ def covered(targets, counts, parent, by):
     return any(want <= set().union(*pick) for pick in itertools.product(*[[set()] + w for w in copies]))
 
 
+def bar_read(texts):
+    """the search bar's text, no spaces. OCR can split a long query in two boxes on the bar's line ('483*,' +
+    '4*&shadow'): join them"""
+    box = ui.search_box(texts)
+    if not box:
+        return ""
+    rest = sorted((t for t in texts if t is not box and t[0] > box[0] and abs(t[1] - box[1]) < 0.01), key=lambda t: t[0])
+    return re.sub(r"\s", "", ui.search_text(box) + "".join(t[4] for t in rest))
+
+
+def bar_holds(got, q):
+    """does the bar's read show q? A long q runs off the bar's end: then what shows must be its start, and the hidden
+    rest can't hold a '!' (a lost one is what this guards against)"""
+    q = re.sub(r"\s", "", q)
+    # OCR reads a '!' as '.' or 'l', a '&' as '8'
+    pat = lambda s: "".join("[!.|il1]" if ch == "!" else "[&8]" if ch == "&" else re.escape(ch) for ch in s)
+    magnifier = r"(?:q|9|[^\w&!*]){0,3}?"  # the magnifier glued on in front (read as Q, 9, < or ,)
+    if re.fullmatch(magnifier + pat(q), got, flags=re.I):  # ...but one that's really gone leaves nothing there
+        return True
+    return any(re.fullmatch(magnifier + pat(q[:k]), got, flags=re.I) for k in range(len(q) - 1, 24, -1)
+               if "!" not in q[k:])
+
+
 def search_exact(q):
     """type q and make sure the bar holds exactly q: a lost '!' would turn '!galar' into 'galar'. -> result count"""
     for attempt in range(3):
         path, texts, bounds = search.start_search(q)
         sharp = ui.ocr(ui.android.sharp())
-        box = ui.search_box(sharp)
-        got = re.sub(r"\s", "", ui.search_text(box)) if box else ""
-        got = re.sub(r"^.{0,3}?(?=lucky)", "", got, flags=re.I)  # the magnifier glued on (read as Q, 9, < or ,)
-        bang = "".join("[!.|il1]" if ch == "!" else re.escape(ch) for ch in q)  # OCR reads a '!' as '.' or 'l'
-        if re.fullmatch(bang, got, flags=re.I):  # ...but one that's really gone leaves nothing there
+        reads = [bar_read(sharp), bar_read(texts)]  # the sharp one first: it keeps the '!'s
+        got = next((g for g in reads if bar_holds(g, q)), reads[0])
+        if bar_holds(got, q):
             for texts in (texts, sharp, ui.ocr(ui.capture()[0])):
                 n = search.result_count(texts)
                 if n is not None:

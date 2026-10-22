@@ -28,7 +28,7 @@ On the Lucky page it then searches this account's storage for lucky Pokémon tha
 - Only the right gender counts for Vespiquen, Froslass, Salazzle, Mothim, Wormadam and Gallade.
 - Never left out: Escavalier and Accelgor (a lucky can't be traded again), Dustox from Wurmple (random) and Basculegion (a search can't pick out White-Striped Basculin). The last two are listed as "check by hand".
 - An evolution GO doesn't have yet (Duraludon to Archaludon, 2026-10) still counts: it will come.
-- The list ends with a search for those lucky Pokémon (`lucky&!costume&90,238,...`), to tag them so a cleanup doesn't transfer them before they're evolved. It also finds a few of the wrong form or gender (a Kanto Farfetch'd, a male Combee).
+- The list ends with a search for those lucky Pokémon (`lucky&!costume&90,238,...`), to tag them so a cleanup doesn't transfer them before they're evolved. It has every lucky that could help fill a hole still open, maybes too (Wurmple, Basculin, 2 Applin for 3 branches). It also finds a few of the wrong form or gender (a Kanto Farfetch'd, a male Combee).
 - Gimmighoul and Gholdengo are left out of the search: they show on the page but can't be traded.
 - `POGO_PHONE=android caffeinate -dimsu python3 $S/dex.py evolve [run folder]` does this step again on a page already read (default: the newest Lucky run). Be on the same account.
 

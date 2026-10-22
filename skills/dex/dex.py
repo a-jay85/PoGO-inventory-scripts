@@ -492,9 +492,11 @@ def evolvable(missing):
                f"({', '.join(sorted({name(t) for t in targets}))})"
         unsure = [x for x, g in counts if x in UNSURE]
         sure = {k: n for k, n in counts.items() if k[0] not in UNSURE}
+        # every lucky that could help, even a maybe (Wurmple) or too few (2 Applin for 3 branches): keep them
+        # all until the hole is filled
+        keep |= {by[x]["dex"] for x in srcs if one_way and counts or any(k[0] == x for k in counts)}
         if sure and covered(targets, sure, parent, by):
             drop |= {by[t]["dex"] for t in targets}
-            keep |= {by[x]["dex"] for x in srcs if x not in UNSURE and (one_way or any(k[0] == x for k in sure))}
             report.append(f"evolve: {what} from lucky {have}")
         elif unsure:
             report.append(f"kept, check by hand: {what}. You have lucky {have}, but {UNSURE[unsure[0]]}")

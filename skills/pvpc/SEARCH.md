@@ -161,3 +161,7 @@ Works for `cp`, `hp`, dex number, `year`, `age`, `distance`, `buddy`, `mega`, `c
 - "See more" shows the last 4 searches. Long-press one to save it as a favorite (12 max). Long-press a favorite to rename or delete it. You can't search by that name.
 - "Select all" only shows when the search doesn't return the whole storage.
 - Eggs in incubators count toward the total but never show in a search.
+
+## How long a search can be
+
+Tested on the Pixel 2026-10-21, typed with adb: 1,397 characters always worked. 1,497 failed. Lengths in between gave mixed results. /dex keeps each search to 1,000. Dex-number lists with ranges (`1-2,7-16,20`) work at that length.

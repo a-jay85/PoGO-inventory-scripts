@@ -69,9 +69,9 @@ class Model:
             return None
         f = "normal" if is_mega(a) else a["form"].lower()
         f = {"alola": "alolan", "a": "armored"}.get(f, f)
-        for s in cands:
-            if s.endswith("_" + f):
-                return s
+        hits = [s for s in cands if s.endswith("_" + f)]  # (Unova 'Standard' Darmanitan vs darmanitan_galarian_standard)
+        if hits:
+            return next((s for s in hits if (region(s) or "_")[1:] in f), hits[0])
         plain = [s for s in cands if not region(s)]
         return next((s for s in plain if "_" not in s), (plain or cands)[0])
 
@@ -302,7 +302,7 @@ def report(model, counts, unsure, out_dir):
 
     def team_lines(b):
         t = model.team(b, counts)
-        rows, last = [], None
+        rows = []
         for i, rat in t:
             a = attacker_name(model.A[i])
             if rows and rows[-1][0] == a:
@@ -340,10 +340,12 @@ def main():
     ap.add_argument("cmd", choices=("count", "report"))
     ap.add_argument("counts", nargs="?", help="count: carry on from this counts.json. report: which (default newest)")
     a = ap.parse_args()
-    data_path = newest("dialgadex-counters-*.json")
+    data_path = newest("dialgadex-counters-[0-9]*[0-9].json")  # (not a -test<n> pull)
     if not data_path:
         sys.exit("no counters yet: node pull.mjs")
     model = Model(json.load(open(data_path)))
+    if a.counts and not os.path.exists(a.counts):  # (runs/... is under the skill folder)
+        a.counts = os.path.join(HERE, a.counts)
     try:
         if a.cmd == "count":
             import ui
@@ -356,6 +358,12 @@ def main():
                 sys.exit("no counts yet: roster.py count")
             counts, unsure = load_counts(path)
             out = os.path.dirname(path)
+            need = set()
+            for b in model.bosses:
+                model.team(b, counts, need=need)
+            if need:  # a stopped count, or a newer pull with attackers it never counted
+                sys.exit(f"{path} misses {len(need)} piles ({', '.join(sorted({s for s, *_ in need})[:8])}...): "
+                         f"finish it with roster.py count {path.replace(HERE + os.sep, '')}")
         path, lines = report(model, counts, unsure, out)
         end = lines.index("## Reroll")
         print("\n".join(lines[:end]))

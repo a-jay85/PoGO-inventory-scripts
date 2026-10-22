@@ -51,8 +51,9 @@ const r = await p.evaluate(async ({ limit, DEPTH }) => {
   }
   return { params: sp, depth: DEPTH, attackers: atk, bosses };
 }, { limit, DEPTH });
-r.pulled = new Date().toISOString().slice(0, 10);
-const out = path.join(HERE, `dialgadex-counters-${r.pulled.replaceAll('-', '')}.json`);
+r.pulled = new Date().toLocaleDateString('sv');  // the local date, YYYY-MM-DD
+// (a cut-down test pull gets its own name: roster.py takes the newest dialgadex-counters-<date>.json)
+const out = path.join(HERE, `dialgadex-counters-${r.pulled.replaceAll('-', '')}${limit ? `-test${limit}` : ''}.json`);
 fs.writeFileSync(out, JSON.stringify(r));
 console.log(`${r.bosses.length} bosses, ${r.attackers.length} attackers -> ${out}`);
 await b.close();

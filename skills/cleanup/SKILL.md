@@ -82,7 +82,7 @@ One tag each, the first that fits:
 2. **Reroll**: a new copy would be #1 against some raid boss (/roster).
 3. **GIV**: missing from HashTagAJay's ★100% page (a 100 of a lower evolution counts as having it), PvPoke top 100 in Great, Ultra or Master with every rank 1 IV 5+, #2-#6 against some raid boss, or HashTagAJay has a lucky of the family and under 348 candy.
 4. **XLX**: level 29+ (a power-up costs 5,000 Stardust or more). Each one left is opened and read.
-5. **Transfer**: the rest.
+5. **Transfer**: the rest. A never-traded XXL or XXS one never gets Transfer: it's renamed XXL or xxs and tagged IVC first (see "XXL and XXS" below).
 
 The tag step: the `Tradeable` shortcut + each plan search + `&!#Luckydex&!#Reroll&!#GIV`, tagged like a cleantrades pile. Then it walks the tagged ones for power-ups, then the untagged ones for XLX and power-ups, then tags the rest Transfer.
 Power-ups are cleantrades' cheap jumps only (14->15, 19->20, 22->23, 30->31), never below 1,000,000 Stardust. The 360 Candy XL cap counts the account that will transfer it: HashTagAJay for the traded tags, CyrillJan for the rest. Out of Stardust: it goes on with XLX only.
@@ -92,3 +92,14 @@ If it can't tell whether one is level 29+ (or doesn't know the species), it tags
 If `read` stops partway, `read runs/<time>-read/searches.json` picks up where it left off.
 
 `read` ran on the Pixel on 2026-10-22. `tag` has never run. First time: `tag --limit 1`, with the user watching (it still tags every plan search).
+
+## XXL and XXS: never Transfer or Nope
+
+The rule (2026-10-22): a Pokémon that was never traded and is XXL or XXS never gets Transfer. It's renamed `XXL` or `xxs` and tagged IVC. `/ivc` counts those names as done, and `/ivcsort` leaves sized IVC ones for the user.
+
+- `tradeable.py tag` does it to its own pile before tagging the rest Transfer. Its Transfer search leaves out never-traded XXL/XXS ones.
+- `shadows.py` leaves XXL/XXS shadows out (shadows are never traded).
+- `cleantrades.py` and `trades.py` only tag traded ones Transfer, so the rule never applies there.
+- `POGO_PHONE=android caffeinate -dimsu python3 $S/sizes.py [--limit N]` sweeps what's already tagged: `#Transfer,#Nope&!traded&xxl`, then `xxs`. Each one is opened and its size badge must agree. Name -> `XXL`/`xxs` (a name that already says its size keeps it). Tags: IVC on, Transfer and Nope off. Run it once per account.
+
+`traded` may miss trades from before Oct 2020 (SEARCH.md), so a very old trade could slip in.

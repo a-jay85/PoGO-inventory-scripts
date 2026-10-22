@@ -15,7 +15,7 @@ One tag each, the first that fits:
     - a new copy would be #2-#6 against some raid boss
     - HashTagAJay has a lucky one of the family and under 348 candy (read)
  4. XLX: a power-up costs 5,000 Stardust or more (level 29+). Read one by one in the power-up dialog.
- 5. Transfer: everything else.
+ 5. Transfer: everything else, but a never-traded XXL or XXS one gets renamed XXL or xxs and tagged IVC (sizes.py).
 Legendary, Mythical and Ultra Beast never get Reroll or GIV from the raid rule (roster leaves them out). Shadows can't
 be traded.
 
@@ -42,6 +42,7 @@ import pvp
 import home
 import dex
 import cleantrades as ct
+import sizes
 from shadows import Pass, swipe_next, owned
 
 GIVER, TAKER = "CyrillJan", "HashTagAJay"  # Tradeable is the giver's; the taker's dex, candy and XL decide
@@ -399,6 +400,10 @@ def cmd_tag(limit):
     # (HashTagAJay's 360+ XL families are passed on the detail page: as '&!<dex>' terms they'd overflow the bar)
     traded = "&" + ",".join(f"#{t}" for t in TAGS)
     rest = NOT_TAGGED + f"&!#{XLX}&!#{TRANSFER}"
+    for size in sizes.NAMES:  # first: a never-traded XXL/XXS one is renamed and tagged IVC, never XLX or Transfer
+        q = rest + f"&!#{sizes.IVC}&!traded&{size}"
+        sizes.walk(lambda: ct.run_shortcut(SHORTCUT, q), size, 10 ** 9)
+    rest += "&traded,!xxl&traded,!xxs"  # (one passed over there stays out of Transfer too)
     unsure, power_ok = [], True
     # power-ups for the traded ones (HashTagAJay transfers them), then XLX and power-ups for the rest
     for suffix, xlx, power, skip in [(traded, False, True, set(plan["taker_xl_full"])),

@@ -5,7 +5,7 @@
   caffeinate -dimsu python3 shadows.py transfer <run dir>   only the bulk transfer, for a run that stopped before it
   POGO_PHONE=android caffeinate -dimsu python3 shadows.py ...   (Android phone over USB)
 
-Start with Pokémon GO on the Pokémon screen. Searches #Nope&shadow&!shiny&!costume, opens the first one and
+Start with Pokémon GO on the Pokémon screen. Searches #Nope&shadow&!shiny&!costume&!xxl&!xxs, opens the first one and
 swipes through them. Each one is purified only if: its only tag is Nope, no star, no XXL/XXS in the name, not
 legendary or mythical (by its candy), and there's enough candy and Stardust. Anything else is passed over.
 Then it searches #Nope&purified, taps SELECT ALL, and transfers only if the count is exactly what this run purified.
@@ -21,7 +21,7 @@ import run as base
 from run import Stop, log, keep_capture, go, look, wait_for, front, save, load, candy
 import search
 
-SHADOWS = "#Nope&shadow&!shiny&!costume"
+SHADOWS = "#Nope&shadow&!shiny&!costume&!xxl&!xxs"  # (sizes.py renames those and tags them IVC)
 PURIFIED = "#Nope&purified"
 GM = json.load(open(os.path.join(HERE, "..", "pvpc", "gamemaster.json")))
 SPECIAL = {p["speciesName"].split(" (")[0].upper() for p in GM["pokemon"]
@@ -173,8 +173,12 @@ def check(info, texts, path):
     tags = [ui.norm(t) for t in info["tags"]]
     if tags != ["NOPE"]:
         raise Pass(f"tags {info['tags']}: not just Nope")
-    if re.search(r"xx[ls]", info["name"] or "", re.I):
-        raise Pass("XXL/XXS in the name")
+    try:
+        sized = re.search(r"xx[ls]", info["name"] or "", re.I) or base.extras(texts)[2]
+    except base.Skip as e:  # both badges read
+        raise Pass(str(e))
+    if sized:
+        raise Pass("XXL/XXS: sizes.py's")
     star = ui.star_filled(path, texts)
     if star is None and ui.ANDROID:
         sp = ui.android.sharp()

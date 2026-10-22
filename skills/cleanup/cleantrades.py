@@ -338,6 +338,8 @@ def cost_levels(texts):
     rate, purified = DUST_RATE[1::2] if lucky else DUST_RATE[0::2]
     if cost == round(dust_at(PURIFIED_AT) * purified):
         return cost, [PURIFIED_AT]
+    if cost > round(DUST[-1][1] * rate):  # past the table: an XL Candy power-up, level 40+
+        return cost, [lv / 2 for lv in range(80, 100)]
     lvs = set()
     for i, (first, c) in enumerate(DUST):
         last = DUST[i + 1][0] if i + 1 < len(DUST) else 50

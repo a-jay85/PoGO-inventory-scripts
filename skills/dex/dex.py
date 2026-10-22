@@ -459,7 +459,7 @@ def search_exact(q):
         path, texts, bounds = search.start_search(q)
         got, sharp = bar_read(texts), None
         if "!" in q or not bar_holds(got, q):  # the sharp read keeps the '!'s: the normal one can lose them
-            sharp = ui.ocr(ui.android.sharp())
+            sharp = ui.ocr(ui.android.sharp() if ui.ANDROID else ui.capture()[0])  # (no sharper picture on the iPhone)
             reads = [bar_read(sharp), got]
             got = next((g for g in reads if bar_holds(g, q)), reads[0])
         if bar_holds(got, q):

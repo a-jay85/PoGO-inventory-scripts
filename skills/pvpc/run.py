@@ -254,6 +254,22 @@ def type_text(text):
     time.sleep(random.uniform(0.1, 0.25))
 
 
+def paste_text(text):
+    """iPhone: the whole text in one cmd+V (Mirroring passes the Mac's clipboard to the phone), not a key at a time.
+    -> what the Mac's clipboard held before: give it to restore_clipboard() once the text has landed (the phone
+    can fetch the clipboard a moment after the cmd+V)"""
+    front()
+    old = subprocess.run(["pbpaste"], capture_output=True).stdout
+    subprocess.run(["pbcopy"], input=text.encode())
+    ui.sh(ui.HELPER, "key", "v", "cmd")
+    time.sleep(random.uniform(0.1, 0.25))
+    return old
+
+
+def restore_clipboard(old):
+    subprocess.run(["pbcopy"], input=old)
+
+
 def scroll(bounds, how, up=False):
     """one screenful-ish down (or up) the list, from a random spot in the middle of the window"""
     front()

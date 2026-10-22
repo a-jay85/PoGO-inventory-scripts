@@ -12,7 +12,6 @@ One tag each, the first that fits:
  3. GIV: any of
     - missing from HashTagAJay's ★100% page, it or an evolution, and no lower evolution of that is there
     - PvPoke top 100 in Great, Ultra or Master League, with every rank 1 IV 5 or more (pvp-giv-<date>.json)
-    - its family hatches from 10 km or 12 km eggs (EGGS)
     - a new copy would be #2-#6 against some raid boss
     - HashTagAJay has a lucky one of the family and under 348 candy (read)
  4. XLX: a power-up costs 5,000 Stardust or more (level 29+). Read one by one in the power-up dialog.
@@ -26,7 +25,7 @@ CyrillJan for the rest.
 
 read (HashTagAJay): which families have a lucky one and under 348 candy, and which have 360+ Candy XL. Group searches
 ('lucky&1-151&countcandy0-347'), halved until each hit is one family. -> runs/<time>-read/read.json
-plan: the searches from the newest lucky and ★100% /dex runs of HashTagAJay, roster.json, read.json, pvp-giv and EGGS.
+plan: the searches from the newest lucky and ★100% /dex runs of HashTagAJay, roster.json, read.json and pvp-giv.
 tag (CyrillJan): the saved search 'Tradeable' + each plan search -> long press, SELECT ALL, tag. Then each one left is
 opened for XLX and power-ups, then the rest -> Transfer. Log in runs/<time>-tag/.
 """
@@ -54,10 +53,6 @@ XL_CAP = 360
 XLX_LEVEL = 29  # from here a power-up costs 5,000 Stardust or more
 MAX_SUFFIX = 300  # characters added to the saved search: it's already in the bar
 PVP_FLOOR = 5  # every rank 1 IV at least this
-# leekduck.com/eggs, updated September 14, 2026 (Twilight Trails). 10 km, 12 km, and the 10 km Adventure Sync ones
-EGGS = ["charcadet", "tinkatink", "honedge", "frigibax", "impidimp", "dratini", "larvesta",
-        "sandile", "vullaby", "shroodle", "pancham", "salandit", "varoom",
-        "gible", "toxel", "druddigon", "bagon", "drampa"]
 PVP_URL = "https://raw.githubusercontent.com/pvpoke/pvpoke/master/src/data/rankings/all/overall/rankings-%d.json"
 
 
@@ -276,15 +271,12 @@ def cmd_plan():
         if s in reroll:
             why.setdefault(s, ("Reroll", "#1 raid attacker: " + ", ".join(roster["species"][s]["bosses"][:3])))
     hund = hundred(m, set(hund_missing))
-    eggs = {x for e in EGGS if e in m.by for x in m.family(e)}
     low = {m.root(s) for s in m.by if m.dex(s) in read["lucky_low_candy"]}
     for s in ok:
         if s in hund:
             why.setdefault(s, ("GIV", "★100% hole"))
         elif s in pvp_giv:
             why.setdefault(s, ("GIV", "PvP " + " ".join(pvp_giv[s])))
-        elif s in eggs:
-            why.setdefault(s, ("GIV", "10/12 km egg family"))
         elif s in roster["giv"]:
             why.setdefault(s, ("GIV", "#2-#6 raid attacker"))
         elif m.root(s) in low:

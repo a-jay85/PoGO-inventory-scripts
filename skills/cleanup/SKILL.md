@@ -77,7 +77,7 @@ One tag each, the first that fits:
 
 1. **Luckydex**: HashTagAJay's lucky dex misses it, or an evolution of it (/dex's gender and form rules).
 2. **Reroll**: a new copy would be #1 against some raid boss (/roster).
-3. **GIV**: missing from HashTagAJay's ★100% page (a 100 of a lower evolution counts as having it), PvPoke top 100 in Great, Ultra or Master with every rank 1 IV 5+, a 10 km or 12 km egg family, #2-#6 against some raid boss, or HashTagAJay has a lucky of the family and under 348 candy.
+3. **GIV**: missing from HashTagAJay's ★100% page (a 100 of a lower evolution counts as having it), PvPoke top 100 in Great, Ultra or Master with every rank 1 IV 5+, #2-#6 against some raid boss, or HashTagAJay has a lucky of the family and under 348 candy.
 4. **XLX**: level 29+ (a power-up costs 5,000 Stardust or more). Each one left is opened and read.
 5. **Transfer**: the rest.
 

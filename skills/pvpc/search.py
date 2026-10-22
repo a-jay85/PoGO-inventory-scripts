@@ -388,7 +388,11 @@ def type_into_panel(q, bounds):
             time.sleep(0.15)
             key("delete")
             time.sleep(0.15)
-        type_text(q)
+        clip = None
+        if ui.ANDROID:
+            type_text(q)
+        else:
+            clip = base.paste_text(q)
         got = ""
         for i in range(16):
             time.sleep(0.25)
@@ -398,6 +402,8 @@ def type_into_panel(q, bounds):
                 break  # nothing landed: tap and type again
             if got and not (len(got) < len(q) and q.lower().startswith(re.sub(r"\s", "", got).lower())):
                 break  # the keys can land a little after they're sent: wait while only the start shows
+        if clip is not None:
+            base.restore_clipboard(clip)
         if got:
             if bar_shows(got, q):
                 return True

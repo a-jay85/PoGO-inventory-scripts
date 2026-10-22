@@ -263,11 +263,12 @@ def search_screen():
 
 
 def amp_as_8(got, want):
-    """OCR reads a '&' right after a digit as an 8 ('4&3' as '483'), and a 0 after letters as an o ('countcandyo-'):
-    put back what the query has there"""
+    """OCR reads a '&' right after a digit as an 8 ('4&3' as '483'), a 0 after letters as an o ('countcandyo-') and
+    an l as a 1 or | ('countcandyx1360-'): put back what the query has there"""
     out = []
     for op, i1, i2, j1, j2 in difflib.SequenceMatcher(None, got, want, autojunk=False).get_opcodes():
-        swap = op == "replace" and i2 - i1 == j2 - j1 and (set(got[i1:i2]), set(want[j1:j2])) in (({"8"}, {"&"}), ({"o"}, {"0"}))
+        swap = op == "replace" and i2 - i1 == j2 - j1 and (set(got[i1:i2]), set(want[j1:j2])) in (
+            ({"8"}, {"&"}), ({"o"}, {"0"}), ({"1"}, {"l"}), ({"|"}, {"l"}))
         out.append(want[j1:j2] if swap else got[i1:i2])
     return "".join(out)
 

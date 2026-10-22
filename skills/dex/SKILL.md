@@ -33,8 +33,10 @@ A search longer than 1,000 characters is split into several. The Pixel's search 
 - Each screen shares a number with the one before (no rows skipped).
 - A number skipped by the OCR gets a second read on a 3x screenshot.
 - Its caught count equals the page's "Caught:" total.
-- Every number from 1 to the last was read, except the species that are on neither page: the ones that can't be traded (Mew, Celebi, Jirachi, Deoxys, Phione to Arceus, Victini, Keldeo, Meloetta, Genesect, Zygarde to Volcanion, Magearna, Marshadow, Zeraora, Meltan, Melmetal, Zarude).
+- Every number from 1 to the last was read, except the species that may be missing from a page: the ones that can't be traded (Mew, Celebi, Jirachi, Deoxys, Phione to Arceus, Victini, Keldeo, Meloetta, Genesect, Zygarde to Volcanion, Magearna, Marshadow, Zeraora, Meltan, Melmetal, Zarude). Some still show on some accounts (HashTagAJay: Meltan on Lucky, Darkrai and Genesect on ★100%). Those are read like any other number.
 
 Any check that fails stops the run with no search printed. The log and a capture are in `runs/`.
 
 Tested 2026-10-21 on CyrillJan: Lucky 640 caught, 361 missing, `<search>&lucky` found 0. ★100% 165 caught, 836 missing, `<search>&4*` found 0.
+
+Tested 2026-10-21 on HashTagAJay: Lucky 853 caught, 149 missing, `<search>&lucky` found 0. ★100% 401 caught, 602 missing in 2 searches, each `<search>&4*` found 0. The 3x re-read fired once on each page and filled the gap.

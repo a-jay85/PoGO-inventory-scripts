@@ -263,10 +263,11 @@ def search_screen():
 
 
 def amp_as_8(got, want):
-    """OCR reads a '&' right after a digit as an 8 ('4&3' as '483'): put the '&' back where the query has one"""
+    """OCR reads a '&' right after a digit as an 8 ('4&3' as '483'), and a 0 after letters as an o ('countcandyo-'):
+    put back what the query has there"""
     out = []
     for op, i1, i2, j1, j2 in difflib.SequenceMatcher(None, got, want, autojunk=False).get_opcodes():
-        swap = op == "replace" and i2 - i1 == j2 - j1 and set(got[i1:i2]) == {"8"} and set(want[j1:j2]) == {"&"}
+        swap = op == "replace" and i2 - i1 == j2 - j1 and (set(got[i1:i2]), set(want[j1:j2])) in (({"8"}, {"&"}), ({"o"}, {"0"}))
         out.append(want[j1:j2] if swap else got[i1:i2])
     return "".join(out)
 
@@ -274,11 +275,11 @@ def amp_as_8(got, want):
 def same_query(got, want):
     """OCR of the search bar vs what was typed. OCR can drop or swap a symbol, but a leftover old query makes it much longer."""
     want = re.sub(r"\s", "", want).lower()  # (OCR drops the spaces in '@focus blast')
-    a = re.sub(r"\s", "", got or "").lower()
-    ends = [want]
-    if len(want) > 22 and 12 <= len(a) < len(want):  # a long search doesn't fit in the bar: only its end shows
-        ends = [want[-len(a):], want[:len(a)]]  # (Android shows its start once Return is pressed)
-    for a in (a, a[1:] if a.startswith("9") else a):  # the magnifier read as a 9
+    a0 = re.sub(r"\s", "", got or "").lower()
+    for a in (a0, a0[1:] if a0.startswith("9") else a0):  # the magnifier read as a 9
+        ends = [want]
+        if len(want) > 22 and 12 <= len(a) < len(want):  # a long search doesn't fit in the bar: only its end shows
+            ends = [want[-len(a):], want[:len(a)]]  # (Android shows its start once Return is pressed)
         for b in ends:
             a = amp_as_8(a, b)
             if difflib.SequenceMatcher(None, a, b).ratio() >= 0.8 and abs(len(a) - len(b)) <= 2 \

@@ -17,7 +17,7 @@ One tag each, the first that fits:
     - HashTagAJay has a lucky one of the family and under 348 candy (read)
  4. XLX: a power-up costs 5,000 Stardust or more (level 29+). Read one by one in the power-up dialog.
  5. GIV (evolved): a stage 2 (a baby isn't a stage), or a stage 1 that takes 100+ candy, a quest or an item to
-    evolve into (giv-evolved-<date>.json). Not Legendary, Mythical or Ultra Beast. Tagged after the XLX walk.
+    evolve into, or one GO can't evolve into yet (Kleavor, Alolan Marowak) (giv-evolved-<date>.json). Not Legendary, Mythical or Ultra Beast. Tagged after the XLX walk.
  6. Transfer: everything else, but a never-traded XXL or XXS one gets renamed XXL or xxs and tagged IVC (sizes.py).
 Legendary, Mythical and Ultra Beast never get Reroll or GIV from the raid rule (roster leaves them out). Shadows can't
 be traded.
@@ -96,25 +96,31 @@ def cmd_refresh():
 
 
 def hard_evolutions(gm):
-    """PokeMiners' game master -> {speciesId: why}: evolving into it costs HARD_CANDY+ candy, a quest or an item"""
-    out = {}
+    """PokeMiners' game master -> {speciesId: why}: evolving into it costs HARD_CANDY+ candy, a quest or an item, or
+    it evolves from something in the main games but can't be evolved into in GO yet (Kleavor, Alolan Marowak)"""
+    out, reached = {}, set()
     for x in gm:
         for b in (x["data"].get("pokemonSettings") or {}).get("evolutionBranch") or []:
             if "evolution" not in b or b.get("temporaryEvolution"):
                 continue
+            names = [re.sub(r"_alola$", "_alolan", n.lower().removesuffix("_normal"))
+                     for n in (b.get("form"), b["evolution"]) if n]  # (pvpoke: _alolan; an odd form: the species)
+            sid = next((n for n in names if n in pvp.SPECIES), None)
+            if not sid:
+                print(f"no {names[0]} in the gamemaster")
+                continue
+            reached.update(n for n in names if n in pvp.SPECIES)
             item = b.get("evolutionItemRequirement") or b.get("lureItemRequirement") or ""
             why = [w for w, ok in [(f"{b.get('candyCost')} candy", (b.get("candyCost") or 0) >= HARD_CANDY),
                                    ("quest", b.get("questDisplay")),
                                    (item.removeprefix("ITEM_").lower().replace("_", " "), item)] if ok]
-            if not why:
-                continue
-            names = [re.sub(r"_alola$", "_alolan", n.lower().removesuffix("_normal"))
-                     for n in (b.get("form"), b["evolution"]) if n]  # (pvpoke: _alolan; an odd form: the species)
-            sid = next((n for n in names if n in pvp.SPECIES), None)
-            if sid:
+            if why:
                 out.setdefault(sid, ", ".join(why))
-            else:
-                print(f"no {names[0]} in the gamemaster")
+    m = Model()
+    for sid in m.by:
+        par = m.parent_of(sid)
+        if par and sid not in reached and m.by[sid].get("released") and "duplicate" not in m.by[sid].get("tags", []):
+            out.setdefault(sid, f"can't evolve into it from {m.by[par]['speciesName']} in GO yet")
     return out
 
 
@@ -149,9 +155,19 @@ class Model:
     def terms(self, sid):
         return dex.form_terms(sid, self.by)
 
+    def parent_of(self, sid):
+        """what it evolves from, in GO or (gamemaster 'parent', for one GO can't evolve into yet) in the main games"""
+        p = self.parent.get(sid) or (self.by[sid].get("family") or {}).get("parent")
+        return p if p in self.by and (p, sid) not in dex.BAD_EDGES else None
+
     def stage(self, sid):
-        """0 for a family's first, 1 after one evolution, 2 after two. A baby isn't a stage: Raichu is 1"""
-        return sum(1 for a in dex.ancestors(sid, self.parent) if self.dex(a) not in BABIES)
+        """0 for a family's first, 1 after one evolution, 2 after two, counting evolutions GO doesn't have yet. A baby
+        isn't a stage: Raichu is 1"""
+        n, seen = 0, {sid}
+        while (sid := self.parent_of(sid)) and sid not in seen:
+            seen.add(sid)
+            n += self.dex(sid) not in BABIES
+        return n
 
     def special(self, sid):
         return any(t in (self.by[sid].get("tags") or []) for t in SPECIAL)

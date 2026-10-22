@@ -394,6 +394,15 @@ def allow_paste(texts, bounds):
 def type_into_panel(q, bounds):
     """the panel doesn't always put the cursor in the bar, and a tap on the bar doesn't always either.
     Tap the bar, type, wait for the letters to show. False if they come out wrong (the caller starts over)."""
+    clip_box = []  # iPhone: the Mac's clipboard from before the first paste. Put back only at the very end, also on
+    try:           # an error: a paste can land late, and then it must still paste q
+        return _type_into_panel(q, bounds, clip_box)
+    finally:
+        if clip_box:
+            base.restore_clipboard(clip_box[0])
+
+
+def _type_into_panel(q, bounds, clip_box):
     for attempt in range(4):
         if attempt:  # the tap that opened the panel already put the cursor in the bar: a 2nd tap can lose it
             click(random.uniform(0.35, 0.55), 0.183 + random.uniform(-0.003, 0.003), bounds, gap=BAR_GAP)
@@ -403,24 +412,23 @@ def type_into_panel(q, bounds):
             time.sleep(0.15)
             key("delete")
             time.sleep(0.15)
-        clip = None
         if ui.ANDROID:
             type_text(q)
         else:
-            clip = base.paste_text(q)
+            old = base.paste_text(q)
+            if not clip_box:
+                clip_box.append(old)
         got = ""
         for i in range(16):
             time.sleep(0.25)
             got, texts = panel_text()
-            if clip is not None and allow_paste(texts, bounds):
+            if not ui.ANDROID and allow_paste(texts, bounds):
                 continue
             if not got and i >= 4:
                 log("  nothing showed in the search bar after typing: again")
                 break  # nothing landed: tap and type again
             if got and not (len(got) < len(q) and q.lower().startswith(re.sub(r"\s", "", got).lower())):
                 break  # the keys can land a little after they're sent: wait while only the start shows
-        if clip is not None:
-            base.restore_clipboard(clip)
         if got:
             if bar_shows(got, q):
                 return True

@@ -347,7 +347,11 @@ def walk(suffix, xlx, power, limit, skip_dex=(), unsure=None):
                     return None
                 n = ct.power_up(info, texts)
                 done += 1
-                info2 = ui.detail_info(wait_for("detail")[1])
+                for _ in range(10):  # the new CP sparkles for a moment and can read blank
+                    info2 = ui.detail_info(wait_for("detail")[1])
+                    if info2["cp"] is not None:
+                        break
+                    time.sleep(0.2)
                 seen.add((info2["name"], info2["cp"], info2["hp"]))
                 log(f"powered up {info['name']} CP{info['cp']} -> CP{info2['cp']}, {n} power-up(s)")
         except (Pass, Skip) as e:

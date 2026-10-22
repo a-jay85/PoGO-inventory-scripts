@@ -249,9 +249,19 @@ def walk_grid():
             keep_capture("grid")
             raise Stop(f"not on the Pokédex grid any more ({screen})")
         got, rows = read_grid(path, texts)
-        # skipped numbers a row or more in from the edges (an edge row can be half in: missing numbers sit higher)
-        holes = lambda: [n for n in range(min(got) + 4, max(got) - 3) if n not in got and n not in NOT_LISTED] \
-            if got else []
+        def holes():
+            """skipped numbers in the rows between the top and bottom ones read: those can be half in (a missing
+            number sits higher than a caught one)"""
+            lines = []  # rows read, top to bottom
+            for n, y, *_ in sorted(rows, key=lambda r: r[1]):
+                if lines and y - lines[-1][0] < DROP + 0.02:
+                    lines[-1][1].append(n)
+                else:
+                    lines.append((y, [n]))
+            if len(lines) < 3:
+                return []
+            return [n for n in range(min(lines[1][1]), max(lines[-2][1]))
+                    if n not in got and n not in NOT_LISTED]
         if holes():  # the OCR skipped a number: read the phone's own screenshot at 3x
             log(f"  didn't read {holes()}: reading a sharper screenshot")
             got, rows = read_grid(path, ui.ocr(ui.android.sharp()))

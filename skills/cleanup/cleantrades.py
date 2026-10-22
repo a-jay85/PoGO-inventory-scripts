@@ -4,8 +4,10 @@
   POGO_PHONE=android caffeinate -dimsu python3 cleantrades.py [--limit N]
   caffeinate -dimsu python3 cleantrades.py [--limit N]    the iPhone, through iPhone Mirroring
   POGO_PHONE=android caffeinate -dimsu python3 cleantrades.py --look    only step 2, and it only reads: CANCEL every time
+  POGO_PHONE=android caffeinate -dimsu python3 cleantrades.py evo       steps 1 and 3
+  POGO_PHONE=android caffeinate -dimsu python3 cleantrades.py fix       #Transfer&traded + a trade evolution: Transfer -> Evo
 
-Start with Pokémon GO on the Pokémon screen. Three steps, always in this order:
+Start with Pokémon GO on the Pokémon screen. Four steps, always in this order:
  1. Shortcuts PvpC1 and PvpC2 -> tag PvpC. Shortcut IV Check -> tag IVC. A shortcut this account doesn't have is
     skipped. This goes first: Clean Trades only shows untagged ones (!#), so these drop out of it.
  2. Clean Trades + &countcandyxl0-359 (under 360 Candy XL). Each one is opened and POWER UP tapped: the dialog's
@@ -13,7 +15,9 @@ Start with Pokémon GO on the Pokémon screen. Three steps, always in this order
     more. At level 14, 19, 22 or 30 (or the half level after) it gets 1-2 power-ups in one go, to reach 15, 20, 23
     or 31: the next XL-on-transfer tier
     (~/claude-plans/_reports/personal/pogo/xl-transfer-roi.md). Anything else: CANCEL. Never below 1,000,000 Stardust.
- 3. Clean Trades -> tag Transfer.
+ 3. CyrillJan only (HashTagAJay doesn't need the XP): Clean Trades + a trade evolution (free once traded: Kadabra, Machoke, Graveler, Haunter, Boldore, Gurdurr,
+    Karrablast, Shelmet, Phantump, Pumpkaboo) -> tag Evo. Not the base forms (Abra...).
+ 4. Clean Trades -> tag Transfer.
 Tagging: the shortcut's search + &!#<tag> (PvpC1 and PvpC2 as they are: they already exclude tagged ones), long press, SELECT ALL, TAG (n). n must equal the search's count, and
 afterwards the same search must come back empty.
 --limit N powers up at most N Pokémon (the tagging still runs). Log in runs/<time>/.
@@ -28,7 +32,7 @@ from run import Stop, log, keep_capture, go, look, wait_for
 import search
 import pvp
 from shadows import Pass, press, swipe_next, settled_tiles, exact, owned
-from trades import sheet_rows, still_sheet
+from trades import sheet_rows, still_sheet, search_exact
 
 
 class Unsure(Pass):
@@ -36,7 +40,13 @@ class Unsure(Pass):
 
 TAGGING = [("PvpC1", "PvpC"), ("PvpC2", "PvpC"), ("IV Check", "IVC")]
 UNTAGGED_ONLY = {"PvpC1", "PvpC2"}  # their own search already has !#, and on the Pixel the bar is too full to add to
-CLEAN, TRANSFER = "Clean Trades", "Transfer"
+CLEAN, TRANSFER, EVO = "Clean Trades", "Transfer", "Evo"
+# evolve free once traded: Kadabra, Machoke, Graveler (Alolan too), Haunter, Boldore, Gurdurr, Karrablast, Shelmet,
+# Phantump, Pumpkaboo. Not the base forms (Abra...). Dex numbers:
+# the names make a search too long for the bar to read back
+TRADE_EVOS = "64,67,75,93,525,533,588,616,708,710"
+EVO_FOR = "CyrillJan"  # the account that wants the XP: HashTagAJay transfers them like the rest
+BIG = 10_000  # storage max: HashTagAJay 13,000, CyrillJan 7,875 (2026-10-22)
 UNDER_360_XL = "&countcandyxl0-359"  # a count term eats what follows it: always last
 DUST_FLOOR = 1_000_000
 LOOK = False  # --look: read the levels, power up and tag nothing
@@ -185,14 +195,33 @@ def append(suffix):
     return False
 
 
+def account():
+    """which account, by the storage max over the empty search ('7874 / 7875'): HashTagAJay's is thousands higher"""
+    for _ in range(3):
+        search.clear_search()
+        for _ in range(8):
+            time.sleep(0.3)
+            texts = look()[1]
+            got = [int(m.group(1).replace(",", "")) for t in texts if t[1] < 0.15
+                   and (m := re.fullmatch(r"\d[\d,]{2,}\s*/\s*(\d[\d,]{2,})", t[4].strip()))]  # (not the 10/12 shortcuts)
+            if len(got) == 1:
+                who = "HashTagAJay" if got[0] > BIG else EVO_FOR
+                log(f"storage {got[0]:,}: {who}")
+                return who
+    keep_capture("account")
+    raise Stop("can't read the storage max, so can't tell which account this is")
+
+
 # ---------- tagging a whole search ----------
 
-def tag_pile(name, tag, suffix=None):
-    """tag everything in a shortcut's search + suffix (default: the ones that don't have the tag yet). The suffix must
-    leave out the tag itself: afterwards the same search has to come back empty"""
+def tag_pile(name, tag, suffix=None, off=(), query=None):
+    """tag everything in a shortcut's search + suffix (default: the ones that don't have the tag yet), and take the
+    off tags away from them. query: a typed search instead of the shortcut. The search must leave out the tag itself:
+    afterwards the same search has to come back empty"""
     if suffix is None:
         suffix = "" if name in UNTAGGED_ONLY else f"&!#{tag}"
-    n = run_shortcut(name, suffix)
+    find = (lambda: (search_exact(query), results())[1]) if query else (lambda: run_shortcut(name, suffix))
+    n = find()
     if not n:
         return 0
     _, texts, _, bounds = look()
@@ -226,25 +255,33 @@ def tag_pile(name, tag, suffix=None):
     if not re.search(rf"TAG\s*{n}\s*POK", head.upper()):  # (ui.norm drops digits)
         close_sheet(texts, bounds)
         raise Stop(f"the tag sheet says {head!r}, wanted {n}")
-    T, same = tag.upper(), 0
+    left, same = {**{t.upper(): False for t in off}, tag.upper(): True}, 0  # tag -> the tick it should end with
     for _ in range(30):
         rows = sheet_rows(texts, path)
-        if T in rows:
+        T = next((T for T in left if T in rows), None)
+        if T:  # one at a time, then read the sheet again: a tick can move the rows
             box, ticked = rows[T]
-            if ticked:  # none of these have it (the search said so): a tick here is a misread or a partial mark
+            if ticked is left[T]:  # the search said none have tag and all have off: a tick here is a misread or a partial mark
                 close_sheet(texts, bounds)
-                raise Stop(f"{tag} already shows a tick for this lot: nothing tagged")
+                raise Stop(f"{T} already shows {'a' if ticked else 'no'} tick for this lot: nothing tagged")
             press(box, bounds)
             for _ in range(20):
                 time.sleep(0.15)
                 _, t2, p2, _ = wait_for("tags")
                 r = sheet_rows(t2, p2)
-                if T in r and r[T][1]:
+                if T in r and r[T][1] is left[T]:
                     break
             else:
                 keep_capture("tick")
                 close_sheet(t2, bounds)
-                raise Stop(f"tapped {tag} but its tick didn't come on")
+                raise Stop(f"tapped {T} but its tick didn't change")
+            del left[T]
+            if ui.ANDROID:
+                ui.android.fresh()
+            texts, path, bounds = still_sheet()
+            same = 0
+            continue
+        if not left:
             break
         before = [t[4] for t in texts]
         base.drag(0.3, 0.62, 0.3, 0.4, bounds)  # small steps: a big scroll skips rows
@@ -254,17 +291,17 @@ def tag_pile(name, tag, suffix=None):
         same = same + 1 if [t[4] for t in texts] == before else 0
         if same >= 2:
             close_sheet(texts, bounds)
-            raise Stop(f"no {tag} tag on this account: nothing tagged")
+            raise Stop(f"no {', '.join(left)} tag on this account: nothing tagged")
     else:
         close_sheet(texts, bounds)
-        raise Stop(f"couldn't find {tag} in the tag sheet")
+        raise Stop(f"couldn't find {', '.join(left)} in the tag sheet")
     texts, _, bounds = still_sheet()
     press(next(t for t in texts if ui.norm(t[4]) == "DONE"), bounds)
     wait_for("list", timeout=8)
-    left = run_shortcut(name, suffix)
-    if left:
-        raise Stop(f"{name}: tagged {n} {tag}, but {left} still don't have it")
-    log(f"{name}: tagged {n} {tag}")
+    rest = find()
+    if rest:
+        raise Stop(f"{name}: tagged {n} {tag}, but {rest} still don't have it")
+    log(f"{name}: tagged {n} {tag}" + "".join(f", took off {t}" for t in off))
     return n
 
 
@@ -547,7 +584,7 @@ def power_walk(limit):
 
 if __name__ == "__main__":
     a = sys.argv[1:]
-    if any(x not in ("--limit", "--look") and not x.isdigit() for x in a):
+    if any(x not in ("--limit", "--look", "evo", "fix") and not x.isdigit() for x in a):
         sys.exit(__doc__)
     LOOK = "--look" in a
     limit = int(a[a.index("--limit") + 1]) if "--limit" in a else 10 ** 9
@@ -555,8 +592,19 @@ if __name__ == "__main__":
     try:
         base.start()  # from anywhere, Pokémon GO closed too
         search.to_search_list()
+        who = None if LOOK else account()
+        if who != EVO_FOR and ("evo" in a or "fix" in a):
+            raise Stop(f"signed in as {who!r}: only {EVO_FOR} tags free evolutions Evo")
         if LOOK:
             power_walk(limit)
+            sys.exit(0)
+        if "evo" in a:  # steps 1 and 3: a PvpC/IVC one tagged Evo first would drop out of its shortcut (!#)
+            for name, tag in TAGGING:
+                tag_pile(name, tag)
+            tag_pile(CLEAN, EVO, f"&{TRADE_EVOS}&!#{EVO}")
+            sys.exit(0)
+        if "fix" in a:  # Transfer tags given before the Evo step: traded trade evolutions go Transfer -> Evo
+            tag_pile(TRANSFER, EVO, off=[TRANSFER], query=f"#{TRANSFER}&traded&{TRADE_EVOS}")
             sys.exit(0)
         for name, tag in TAGGING:  # first: Clean Trades (!#) must only see what's left untagged after these
             tag_pile(name, tag)
@@ -570,6 +618,8 @@ if __name__ == "__main__":
             log(f"stopped powering up: {e}")
             if look()[0] != "list":
                 go("close", "list")
+        if who == EVO_FOR:
+            tag_pile(CLEAN, EVO, f"&{TRADE_EVOS}&!#{EVO}")  # first: these drop out of Clean Trades (!#)
         tag_pile(CLEAN, TRANSFER)
     except Stop as e:
         log(f"STOP: {e}")

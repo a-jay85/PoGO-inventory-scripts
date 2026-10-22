@@ -54,7 +54,10 @@ It works off the saved search shortcuts, always in this order:
    - At 14, 19, 22 or 30 it sets the dialog to the 1 or 2 power-ups needed to reach 15, 20, 23 or 31, and taps POWER UP once. Those are the next XL-on-transfer tiers. The plays come from `~/claude-plans/_reports/personal/pogo/xl-transfer-roi.md`. The dialog's CP after must match the level math first. A "Do you really want to power up" box gets YES.
    - Never below 1,000,000 Stardust. Below that it stops powering up, but still tags.
    - `--limit N` stops after N power-ups. The rest weren't checked, so Clean Trades isn't tagged Transfer then.
-3. **Clean Trades** gets the Transfer tag. It doesn't transfer.
+3. CyrillJan only: **Clean Trades** + a trade evolution gets the Evo tag. HashTagAJay doesn't need the XP, so there they go to Transfer like the rest. It tells the accounts apart by the storage max over the empty search (`7874 / 7875`): over 10,000 is HashTagAJay (13,000 on 2026-10-22; CyrillJan 7,875). `--look` skips that. The list: Kadabra, Machoke, Graveler (Alolan too), Haunter, Boldore, Gurdurr, Karrablast, Shelmet, Phantump, Pumpkaboo. They evolve free once traded, whatever they were traded for. Not the base forms (Abra...). The search uses dex numbers (`64,67,75,93,525,533,588,616,708,710`): the names make it too long for the bar to read back. `tradeevolve` can't be used: it misses traded ones.
+4. **Clean Trades** gets the Transfer tag. It doesn't transfer.
+
+`cleantrades.py evo` runs steps 1 and 3 (step 1 first, or a PvpC one could end up Evo). `cleantrades.py fix` moves old ones from Transfer to Evo: `#Transfer&traded&<the dex numbers>`, untick Transfer, tick Evo. It ran on CyrillJan's Pixel on 2026-10-22 (1 moved, then 0 more once Karrablast and Shelmet were added). Both modes stop on HashTagAJay.
 
 Tagging a shortcut: its search + `&!#<tag>`, long press a tile, SELECT ALL, TAG (n). The n must equal the search's count, and the sheet must say "TAG n POKÉMON". The tag row is found by scrolling the sheet in small steps. Afterwards the same search must come back empty.
 PvpC1 and PvpC2 get no `&!#PvpC`: their own search already leaves out anything tagged. On the Pixel, HashTagAJay's PvpC1 search also fills the bar, so nothing more can be typed after it.

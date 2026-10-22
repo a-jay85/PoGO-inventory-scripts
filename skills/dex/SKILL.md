@@ -32,6 +32,10 @@ On the Lucky page it then searches this account's storage for lucky Pokémon tha
 - Gimmighoul and Gholdengo are left out of the search: they show on the page but can't be traded.
 - `POGO_PHONE=android caffeinate -dimsu python3 $S/dex.py evolve [run folder]` does this step again on a page already read (default: the newest Lucky run). Be on the same account.
 
+### Which account
+
+Each run first reads the signed-in trainer's name off the profile (`home.trainer()`, one of `home.TRAINERS`) and saves it to `runs/<time>-<page>/trainer.txt`. An `evolve` run copies it from the run it redoes. Other skills pick a run with `dex.latest(page, trainer)`: the newest run of that page for that account, as `(missing numbers, run folder)`. For `lucky`, an `evolve-lucky` run counts too. `POGO_PHONE=android python3 ~/.claude/skills/pvpc/home.py --trainer` prints the name alone.
+
 A search longer than 1,000 characters is split into several. The Pixel's search bar took 1,397 characters and failed at 1,497 (2026-10-21). The searches are also saved to `runs/<time>-<page>/missing-<page>.txt`.
 
 ## How it reads the page

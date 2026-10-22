@@ -556,6 +556,30 @@ def write_searches(page, missing):
     print(f"saved to {os.path.join(base.RUN_DIR, f'missing-{page}.txt')}")
 
 
+def save_trainer(name):
+    """which account this run read: other skills pick a run by it (latest())"""
+    with open(os.path.join(base.RUN_DIR, "trainer.txt"), "w") as f:
+        f.write(name + "\n")
+
+
+def trainer_of(run):
+    p = os.path.join(run, "trainer.txt")
+    return open(p).read().strip() if os.path.exists(p) else None
+
+
+def latest(page, trainer):
+    """-> (the newest run's missing numbers, its folder) for this page and account, or (None, None). Lucky: an
+    evolve-lucky run counts (its search already leaves out what a lucky Pokémon can evolve into)"""
+    runs = os.path.join(HERE, "runs")
+    ok = [d for d in sorted(os.listdir(runs), reverse=True) if os.path.isdir(os.path.join(runs, d))
+          and d.endswith("-" + page) and trainer_of(os.path.join(runs, d)) == trainer
+          and os.path.exists(os.path.join(runs, d, f"missing-{page}.txt"))]
+    if not ok:
+        return None, None
+    run = os.path.join(runs, ok[0])
+    return parse(open(os.path.join(run, f"missing-{page}.txt")).read()), run
+
+
 def cmd_look():
     screen, texts, path, bounds = look()
     print(f"screen: {screen}, band {band(texts)}")
@@ -578,7 +602,10 @@ def cmd_evolve(run):
     page = next(os.path.join(run, f) for f in ("page-lucky.txt", "missing-lucky.txt") if os.path.exists(os.path.join(run, f)))
     missing = sorted(parse(open(page).read()))
     base.new_run_dir(None, os.path.join(runs, time.strftime("%Y%m%d-%H%M%S") + "-evolve-lucky"))
-    log(f"page from {page}: {len(missing)} missing")
+    who = trainer_of(run)
+    if who:
+        save_trainer(who)
+    log(f"page from {page}: {len(missing)} missing" + (f" ({who})" if who else ""))
     write_searches("lucky", missing)
 
 
@@ -597,6 +624,7 @@ def main():
             cmd_evolve(a.run)
             return
         base.new_run_dir(None, os.path.join(HERE, "runs", time.strftime("%Y%m%d-%H%M%S") + "-" + a.page))
+        save_trainer(home.trainer())
         run_page(a.page)
     except Stop as e:
         log(f"STOPPED: {e}")

@@ -260,8 +260,61 @@ def start(storage=True):
         time.sleep(1.0)
 
 
+# ---------- who's signed in ----------
+
+TRAINERS = ("HashTagAJay", "CyrillJan")  # the user's two accounts
+X_BUTTON = (0.5, 0.937)  # the round X at the bottom middle: closes the profile and the Pokémon list
+
+
+def squash(s):
+    """OCR mixes up I, l, 1 and | in names: one letter for all of them, spaces out"""
+    return re.sub(r"[IL1|!]", "I", re.sub(r"\s+", "", s.upper()))
+
+
+def trainer():
+    """the signed-in trainer's name, read off the profile (ME tab) from the map. Starts anywhere, ends on the map"""
+    start(storage=False)
+    for _ in range(12):
+        screen, texts, path, bounds = look()
+        j = joined(texts)
+        if "FRIENDS" in j and ("TOTAL ACTIVITY" in j or "SCRAPBOOK" in j or "JOURNAL" in j):
+            got = [n for n in TRAINERS if squash(n) in squash(" ".join(t[4] for t in texts))]
+            if len(got) != 1:
+                keep_capture("trainer")
+                raise Stop(f"can't read the trainer name on the profile: {[t[4] for t in texts if t[1] < 0.3]}")
+            log(f"signed in: {got[0]}")
+            search.click(*X_BUTTON, bounds)
+            time.sleep(1.5)
+            return got[0]
+        if screen == "map":
+            search.click(0.13, 0.91, bounds)  # the profile picture
+            time.sleep(2.0)
+        elif screen in OPEN:
+            base.back_to_list()
+        elif screen in ("list", "tag-tab"):
+            search.click(*X_BUTTON, bounds)
+            time.sleep(1.5)
+        elif screen == "mainmenu" and ui.ANDROID:
+            ui.android.key("back")
+            time.sleep(1.5)
+        elif screen == "exit":
+            press_text(texts, bounds, "CANCEL")
+            time.sleep(1.5)
+        else:
+            unstick(texts)
+            time.sleep(1.0)
+    keep_capture("trainer")
+    raise Stop("couldn't get to the profile to read the trainer name")
+
+
 if __name__ == "__main__":
     base.new_run_dir(os.path.join(base.HERE, "runs"))
+    if "--trainer" in sys.argv[1:]:
+        try:
+            print(trainer())
+        except Stop as e:
+            sys.exit(f"STOPPED: {e}")
+        sys.exit(0)
     try:
         print(start("--trade" not in sys.argv[1:]))
     except Stop as e:

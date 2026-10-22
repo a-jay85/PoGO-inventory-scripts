@@ -270,7 +270,10 @@ def amp_as_8(got, want):
         swap = op == "replace" and i2 - i1 == j2 - j1 and (set(got[i1:i2]), set(want[j1:j2])) in (
             ({"8"}, {"&"}), ({"o"}, {"0"}), ({"1"}, {"l"}), ({"|"}, {"l"}))
         out.append(want[j1:j2] if swap else got[i1:i2])
-    return "".join(out)
+    out = "".join(out)
+    if len(out) == len(want):  # 'xl1' read as 'x11': difflib pairs the wrong 1s, so put the l back by position
+        out = "".join(w if w == "l" and c in "1|" else c for c, w in zip(out, want))
+    return out
 
 
 def same_query(got, want):

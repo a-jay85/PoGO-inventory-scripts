@@ -49,6 +49,12 @@ Before typing or building a storage search, read `skills/pvpc/SEARCH.md` (live a
 
 Scripts see the Android phone with its own screenshots (`adb exec-out screencap`, via `ui.capture()` / `android.capture()` in `skills/pvpc/android.py`). Never use scrcpy or a Mac window grab (`screencapture`) for it: scrcpy's picture freezes at random while the Mac is in use. New scripts reuse `ui.capture()` and don't add their own capture path. `POGO_SCRCPY=1` brings the old scrcpy window back, only if the user asks for it.
 
+When Claude needs to see the screen (a live look or a run's saved png), use `skills/pvpc/peek.py`. A picture costs about width × height / 750 tokens, and it stays in context for the rest of the session.
+
+1. Read the text first: `POGO_PHONE=android python3 ~/.claude/skills/pvpc/peek.py --text` (or `peek.py <png> --text`). That's often enough.
+2. If the text isn't enough, crop to the part you need: `peek.py [png] --crop top|mid|bottom|x0,y0,x1,y1`. Then Read `/tmp/peek.png`. A crop of a live Android capture comes from the full-size screenshot, so small text stays sharp.
+3. Don't Read the same picture twice. Don't Read the 3× `/tmp/pvpc_sharp.png` whole: the model shrinks anything over 1568 px anyway.
+
 ## Never commit
 
 The repo is public. These stay local and are in `.gitignore`:

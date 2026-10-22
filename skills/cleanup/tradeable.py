@@ -304,23 +304,8 @@ NOT_TAGGED = "".join(f"&!#{t}" for t in TAGS)
 
 
 def level_of(info, texts):
-    """-> the levels this one can be at: CP and HP first, then the power-up dialog (cancelled) if that isn't enough
-    to tell 29+ from under"""
-    species = ui.species_for(info["name"], info["texts"])
-    if not species:
-        raise Pass(f"don't know the species of {info['name']!r}")
-    lvs = ct.cp_levels(species, info["hp"], info["cp"])
-    if not lvs or min(lvs) >= XLX_LEVEL or max(lvs) < XLX_LEVEL:
-        return lvs
-    d = ct.dialog(info)
-    rows = [(1, d[0], d[1])]
-    cands = [c for c in ct.candidates(species, info["hp"], info["cp"], d[0]) if ct.fits(c, rows)]
-    while len({lv >= XLX_LEVEL for _, _, lv in cands}) > 1 and len(rows) < ct.MAX_PLUS + 1:
-        d = ct.more(info["cp"], d)
-        rows.append((len(rows) + 1, d[0], d[1]))
-        cands = [c for c in cands if ct.fits(c, rows)]
-    ct.cancel(d[3], d[5])
-    return sorted({lv for _, _, lv in cands})
+    """-> the levels this one can be at, from the power-up cost on the detail page. No taps"""
+    return ct.cost_levels(texts)[1]
 
 
 def walk(suffix, xlx, power, limit, skip_dex=(), unsure=None):
@@ -347,7 +332,8 @@ def walk(suffix, xlx, power, limit, skip_dex=(), unsure=None):
                     log(f"XLX {info['name']} CP{info['cp']}: level {lvs}")
                     raise Pass("tagged XLX")
                 if not lvs or max(lvs) >= XLX_LEVEL:
-                    raise Pass(f"level {lvs or '?'}: can't tell if it's {XLX_LEVEL}+, left for a look by hand")
+                    raise Pass(f"level {lvs or '?'} ({ct.page_cost(texts)} dust): can't tell if it's {XLX_LEVEL}+, "
+                               f"left for a look by hand")
                 checked = True
             if skip_dex:
                 sids = ui.species_for(info["name"], info["texts"])

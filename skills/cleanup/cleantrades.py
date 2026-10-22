@@ -42,6 +42,7 @@ DUST = [(1, 200), (3, 400), (5, 600), (7, 800), (9, 1000), (11, 1300), (13, 1600
         (19, 2500), (21, 3000), (23, 3500), (25, 4000), (27, 4500), (29, 5000), (31, 6000), (33, 7000),
         (35, 8000), (37, 9000), (39, 10000)]  # (from level, Stardust a power-up)
 DUST_RATE = (1, 0.5, 0.9, 0.45)  # normal, lucky, purified, both
+PURIFIED_AT = 25  # purifying sets the level to 25
 MAX_PLUS = 4  # + taps to find the level: from 19 the cost only jumps on the 5th power-up (at 21)
 
 
@@ -312,6 +313,35 @@ def dust_at(lv):
     return next(c for first, c in reversed(DUST) if lv >= first)
 
 
+def page_cost(texts):
+    """the Stardust next to POWER UP on the detail page, or None if it can't be read"""
+    btn = [t for t in texts if ui.norm(t[4]) == "POWER UP" and t[0] < 0.4 and t[1] > 0.6]
+    if len(btn) != 1:
+        return None
+    got = [int(re.sub(r"\D", "", m.group(1))) for t in texts if abs(t[1] - btn[0][1]) < 0.02 and 0.4 < t[0] < 0.7
+           and (m := re.fullmatch(r"\D{0,3}?(\d{1,2}[,.]\d{3}|\d{2,3})", t[4].strip()))]
+    return got[0] if len(got) == 1 else None
+
+
+def cost_levels(texts):
+    """-> (cost, every level the detail page's power-up cost fits). Lucky shows on the page. A purified one is always
+    level 25 (3,600, or 1,800 lucky): purifying puts it there and it's transferred from there. No levels = a cost no
+    table has"""
+    cost = page_cost(texts)
+    if cost is None:
+        return None, []
+    lucky = any(ui.norm(t[4]).startswith("LUCKY POK") for t in texts)
+    rate, purified = DUST_RATE[1::2] if lucky else DUST_RATE[0::2]
+    if cost == round(dust_at(PURIFIED_AT) * purified):
+        return cost, [PURIFIED_AT]
+    lvs = set()
+    for i, (first, c) in enumerate(DUST):
+        last = DUST[i + 1][0] if i + 1 < len(DUST) else 50
+        if round(c * rate) == cost:
+            lvs.update(first + k / 2 for k in range(int((last - first) * 2)))
+    return cost, sorted(lvs)
+
+
 def read_dialog(cp, after=None):
     """the open power-up dialog. Wait until its first CP is the page's and (after a +) its 'after' CP has moved.
     -> (CP after, total dust, POWER UP box, CANCEL box, + box, bounds, title)"""
@@ -352,6 +382,7 @@ def dialog(info):
 def more(cp, d):
     """tap + in the dialog: one more power-up. -> read_dialog() with the new totals"""
     if not d[4]:
+        cancel(d[3], d[5])
         raise Pass("no + in the power-up dialog")
     press(d[4], d[5])
     return read_dialog(cp, after=d[0])[:-1]
@@ -383,10 +414,13 @@ def power_up(info, texts):
     species = ui.species_for(info["name"], info["texts"])
     if not species:
         raise Pass(f"don't know the species of {info['name']!r}")
-    lvs = cp_levels(species, info["hp"], info["cp"])
-    if not any(math.floor(lv) in PLAYS for lv in lvs):  # its CP already rules out every play: no taps
-        raise Pass(f"CP{info['cp']} HP{info['hp']} means level {lvs[0] if lvs else '?'}-{lvs[-1] if lvs else '?'}: "
-                   f"none is {'/'.join(map(str, PLAYS))}")
+    cost, lvs = cost_levels(texts)
+    if not lvs:
+        raise Pass(f"can't read the power-up cost ({cost})")
+    if not any(math.floor(lv) in PLAYS for lv in lvs):  # the cost rules out every play: no taps
+        raise Pass(f"{cost} dust a power-up means level {lvs[0]}-{lvs[-1]}: none is {'/'.join(map(str, PLAYS))}")
+    if info["cp"] is None:
+        raise Pass("can't read its CP")
     have_dust, have_candy = owned(texts)
     if have_dust < DUST_FLOOR:
         raise Stop(f"Stardust {have_dust:,} is under {DUST_FLOOR:,}: no more power-ups")

@@ -180,9 +180,11 @@ def append(suffix):
 
 # ---------- tagging a whole search ----------
 
-def tag_pile(name, tag):
-    """tag everything in a shortcut's search (that doesn't have the tag yet)"""
-    suffix = "" if name in UNTAGGED_ONLY else f"&!#{tag}"
+def tag_pile(name, tag, suffix=None):
+    """tag everything in a shortcut's search + suffix (default: the ones that don't have the tag yet). The suffix must
+    leave out the tag itself: afterwards the same search has to come back empty"""
+    if suffix is None:
+        suffix = "" if name in UNTAGGED_ONLY else f"&!#{tag}"
     n = run_shortcut(name, suffix)
     if not n:
         return 0

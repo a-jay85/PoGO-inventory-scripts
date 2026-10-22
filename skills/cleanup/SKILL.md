@@ -63,3 +63,27 @@ Adding to a shortcut's search: tap the shortcut, tap the filled bar, jump to the
 
 **iPhone (HashTagAJay):** run it without `POGO_PHONE=android`, with iPhone Mirroring open. Tagging and the jump to the end of the bar (Cmd+Right) ran on 2026-10-19. The power-up walk and the swipe haven't run on the iPhone yet, because none of its Clean Trades were under 360 XL. The first time some are, run `--look`, then `--limit 1`. Shortcut taps often land as a long press there. The script closes the box and taps again.
 
+
+## Tradeable: tag CyrillJan's trade pile by what it's worth to HashTagAJay
+
+`S=~/.claude/skills/cleanup`. Four steps, in this order:
+
+1. `python3 $S/tradeable.py refresh` (the Mac): PvPoke's top 100s -> `pvp-giv-<date>.json`.
+2. `POGO_PHONE=android caffeinate -dimsu python3 $S/tradeable.py read`, HashTagAJay signed in. Only searches. Finds the families with a lucky one and under 348 candy, and those with 360+ Candy XL.
+3. `python3 $S/tradeable.py plan` (the Mac): every search to tag, in `runs/<time>-plan/plan.md`. Read it before step 4. It needs HashTagAJay's newest lucky and ★100% /dex runs, /roster's `roster.json` and step 2.
+4. `POGO_PHONE=android caffeinate -dimsu python3 $S/tradeable.py tag [--limit N]`, CyrillJan signed in. Tags and powers up.
+
+One tag each, the first that fits:
+
+1. **Luckydex**: HashTagAJay's lucky dex misses it, or an evolution of it (/dex's gender and form rules).
+2. **Reroll**: a new copy would be #1 against some raid boss (/roster).
+3. **GIV**: missing from HashTagAJay's ★100% page (a 100 of a lower evolution counts as having it), PvPoke top 100 in Great, Ultra or Master with every rank 1 IV 5+, a 10 km or 12 km egg family, #2-#6 against some raid boss, or HashTagAJay has a lucky of the family and under 348 candy.
+4. **XLX**: level 29+ (a power-up costs 5,000 Stardust or more). Each one left is opened and read.
+5. **Transfer**: the rest.
+
+The tag step: the `Tradeable` shortcut + each plan search + `&!#Luckydex&!#Reroll&!#GIV`, tagged like a cleantrades pile. Then it walks the tagged ones for power-ups, then the untagged ones for XLX and power-ups, then tags the rest Transfer.
+Power-ups are cleantrades' cheap jumps only (14->15, 19->20, 22->23, 30->31), never below 1,000,000 Stardust. The 360 Candy XL cap counts the account that will transfer it: HashTagAJay for the traded tags, CyrillJan for the rest.
+
+If `read` stops partway, `read runs/<time>-read/searches.json` picks up where it left off.
+
+`read` ran on the Pixel on 2026-10-22. `tag` has never run. First time: `tag --limit 1`, with the user watching.

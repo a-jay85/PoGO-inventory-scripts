@@ -44,6 +44,7 @@ SCROLL = 0.25  # of the screen per swipe, ~1.7 rows: the clear band shows ~4.5, 
 MAX_SCREENS = 400
 # not on the Lucky or the 100% page at all: the species that can't be traded (Mew, Celebi, Jirachi, Deoxys,
 # Phione to Arceus, the Unova and Kalos mythicals, Zygarde, Magearna, Marshadow, Zeraora, Meltan, Melmetal, Zarude)
+NEVER_TRADED = {999, 1000}  # Gimmighoul, Gholdengo: shown on the Lucky page, but can't be traded, so never lucky
 NOT_LISTED = {151, 251, 385, 386, *range(489, 495), 647, 648, 649, *range(718, 722), 801, 802, 807, 808, 809, 893}
 
 
@@ -463,7 +464,7 @@ def evolvable(missing):
     name = lambda sid: re.sub(r" \((Male|Female)\)$", "", by[sid]["speciesName"])
     log(f"Lucky: {len(groups)} lines a lucky Pokémon could evolve into a missing number")
     to_storage()
-    drop, report = set(), []
+    drop, report, keep = set(), [], set()
     for srcs, targets in sorted(groups, key=lambda g: min(by[t]["dex"] for t in g[1])):
         srcs = sorted(srcs, key=lambda x: by[x]["dex"])
         routes = {(x, t): route(x, t, parent, by) for x in srcs for t in targets}
@@ -493,12 +494,13 @@ def evolvable(missing):
         sure = {k: n for k, n in counts.items() if k[0] not in UNSURE}
         if sure and covered(targets, sure, parent, by):
             drop |= {by[t]["dex"] for t in targets}
+            keep |= {by[x]["dex"] for x in srcs if x not in UNSURE and (one_way or any(k[0] == x for k in sure))}
             report.append(f"evolve: {what} from lucky {have}")
         elif unsure:
             report.append(f"kept, check by hand: {what}. You have lucky {have}, but {UNSURE[unsure[0]]}")
         elif counts:
             report.append(f"kept: {what}. Lucky {have} can't fill all of them")
-    return drop, report
+    return drop, report, keep
 
 
 def run_page(page):
@@ -531,8 +533,13 @@ def write_searches(page, missing):
     """the searches to paste, saved in the run folder. Lucky: first take out what a lucky Pokémon could evolve into"""
     label, report = PAGES[page], []
     if page == "lucky":
-        drop, report = evolvable(set(missing))
-        missing = sorted(set(missing) - drop)
+        never = set(missing) & NEVER_TRADED
+        drop, report, keep = evolvable(set(missing) - never)
+        missing = sorted(set(missing) - drop - never)
+        if never:
+            report.append(f"left out, can't be traded: {','.join(ranges(never))}")
+        if keep:  # (it also finds the wrong form or gender of a few of them: those are fine to tag too)
+            report.append(f"tag these before you clean up, so they get evolved: lucky&!costume&{','.join(ranges(keep))}")
         with open(os.path.join(base.RUN_DIR, "evolve-lucky.txt"), "w") as f:
             f.write("\n".join(report) + "\n")
     out = searches(missing)

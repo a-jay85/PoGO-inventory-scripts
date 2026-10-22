@@ -27,6 +27,9 @@ On the Lucky page it then searches this account's storage for lucky Pokémon tha
 - It searches `lucky&<dex>&!costume`: many costumed Pokémon can't evolve. Regional forms count only for their own evolutions (Galarian Farfetch'd for Sirfetch'd).
 - Only the right gender counts for Vespiquen, Froslass, Salazzle, Mothim, Wormadam and Gallade.
 - Never left out: Escavalier and Accelgor (a lucky can't be traded again), Dustox from Wurmple (random) and Basculegion (a search can't pick out White-Striped Basculin). The last two are listed as "check by hand".
+- An evolution GO doesn't have yet (Duraludon to Archaludon, 2026-10) still counts: it will come.
+- The list ends with a search for those lucky Pokémon (`lucky&!costume&90,238,...`), to tag them so a cleanup doesn't transfer them before they're evolved. It also finds a few of the wrong form or gender (a Kanto Farfetch'd, a male Combee).
+- Gimmighoul and Gholdengo are left out of the search: they show on the page but can't be traded.
 - `POGO_PHONE=android caffeinate -dimsu python3 $S/dex.py evolve [run folder]` does this step again on a page already read (default: the newest Lucky run). Be on the same account.
 
 A search longer than 1,000 characters is split into several. The Pixel's search bar took 1,397 characters and failed at 1,497 (2026-10-21). The searches are also saved to `runs/<time>-<page>/missing-<page>.txt`.

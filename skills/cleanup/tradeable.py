@@ -331,9 +331,9 @@ def level_of(info, texts):
     return sorted({lv for _, _, lv in cands})
 
 
-def walk(suffix, xlx, power, limit):
-    """open each one in Tradeable + suffix: xlx -> tag it XLX if it's level 29+. power -> cleantrades' power-up.
-    -> power-ups made, or None if --limit stopped it"""
+def walk(suffix, xlx, power, limit, skip_dex=(), unsure=None):
+    """open each one in Tradeable + suffix: xlx -> tag it XLX if it's level 29+ (the ones it can't tell go in unsure).
+    power -> cleantrades' power-up, not for a family in skip_dex. -> power-ups made, or None if --limit stopped it"""
     if not ct.run_shortcut(SHORTCUT, suffix):
         return 0
     go("tile 1", "detail")
@@ -345,15 +345,22 @@ def walk(suffix, xlx, power, limit):
         if me in seen:
             break
         seen.add(me)
+        checked = not xlx  # its level is known to be under 29, or it's tagged XLX
         try:
             if xlx:
                 lvs = level_of(info, texts)
                 if lvs and min(lvs) >= XLX_LEVEL:
                     base.set_tags(on=(XLX,))
+                    checked = True
                     log(f"XLX {info['name']} CP{info['cp']}: level {lvs}")
                     raise Pass("tagged XLX")
-                if lvs and max(lvs) >= XLX_LEVEL:
-                    raise Pass(f"level {lvs}: can't tell if it's {XLX_LEVEL}+, left for a look by hand")
+                if not lvs or max(lvs) >= XLX_LEVEL:
+                    raise Pass(f"level {lvs or '?'}: can't tell if it's {XLX_LEVEL}+, left for a look by hand")
+                checked = True
+            if skip_dex:
+                sids = ui.species_for(info["name"], info["texts"])
+                if sids and all(pvp.SPECIES[x]["dex"] in skip_dex for x in sids):
+                    raise Pass(f"{TAKER} has {XL_CAP}+ Candy XL of the family")
             if power:
                 if done >= limit:
                     log(f"--limit {limit} reached")
@@ -366,13 +373,20 @@ def walk(suffix, xlx, power, limit):
                 log(f"powered up {info['name']} CP{info['cp']} -> CP{info2['cp']}, {n} power-up(s)")
         except (Pass, Skip) as e:
             log(f"pass {info['name']} CP{info['cp']}: {e}")
-        swipe_next(look()[3])
-        for _ in range(10):
-            time.sleep(0.12)
-            screen, texts, _, _ = look()
-            if screen == "detail" and (lambda i: (i["name"], i["cp"], i["hp"]))(ui.detail_info(texts)) not in seen:
+            if not checked and unsure is not None:
+                unsure.append(f"{info['name']} CP{info['cp']} HP{info['hp']}: {e}")
+        moved = False
+        for attempt in range(2):  # next one; a swipe that does nothing twice = end of the list
+            swipe_next(look()[3])
+            for _ in range(10):
+                time.sleep(0.12)
+                screen, texts, _, _ = look()
+                if screen == "detail" and (lambda i: (i["name"], i["cp"], i["hp"]))(ui.detail_info(texts)) not in seen:
+                    moved = True
+                    break
+            if moved:
                 break
-        else:
+        if not moved:
             break
     go("close", "list")
     return done
@@ -391,19 +405,32 @@ def cmd_tag(limit):
     for t in TAGS:  # each search leaves out all three tags: the first that fits wins, and a rerun skips what's done
         for q in plan["tags"][t]:
             ct.tag_pile(SHORTCUT, t, q + NOT_TAGGED)
-    full = "".join(f"&!{d}" for d in plan["taker_xl_full"])
-    traded = "&" + ",".join(f"#{t}" for t in TAGS) + full
+    # (HashTagAJay's 360+ XL families are passed on the detail page: as '&!<dex>' terms they'd overflow the bar)
+    traded = "&" + ",".join(f"#{t}" for t in TAGS)
     rest = NOT_TAGGED + f"&!#{XLX}&!#{TRANSFER}"
-    try:  # power-ups for the traded ones (HashTagAJay transfers them), then XLX and power-ups for the rest
-        for suffix, xlx, power in [(traded, False, True), (rest + ct.UNDER_360_XL, True, True),
-                                   (rest + f"&countcandyxl{XL_CAP}-", True, False)]:
-            if walk(suffix, xlx, power, limit) is None:
-                log("--limit: the rest weren't checked, so nothing is tagged Transfer")
-                return
-    except Stop as e:
-        if "Stardust" not in str(e):
-            raise
-        log(f"stopped powering up: {e}. XLX still needs a look before Transfer: stopping here")
+    unsure, power_ok = [], True
+    # power-ups for the traded ones (HashTagAJay transfers them), then XLX and power-ups for the rest
+    for suffix, xlx, power, skip in [(traded, False, True, set(plan["taker_xl_full"])),
+                                     (rest + ct.UNDER_360_XL, True, True, ()),
+                                     (rest + f"&countcandyxl{XL_CAP}-", True, False, ())]:
+        while xlx or (power and power_ok):
+            n = len(unsure)
+            try:
+                if walk(suffix, xlx, power and power_ok, limit, skip, unsure if xlx else None) is None:
+                    log("--limit: the rest weren't checked, so nothing is tagged Transfer")
+                    return
+                break
+            except Stop as e:
+                if "Stardust" not in str(e) or not power_ok:
+                    raise
+                log(f"stopped powering up: {e}. Going on with XLX only")
+                power_ok = False
+                del unsure[n:]  # this walk starts over
+                if look()[0] != "list":
+                    go("close", "list")
+    if unsure:
+        log(f"not tagging the rest Transfer: {len(unsure)} couldn't be checked for {XLX_LEVEL}+. Look at these by hand "
+            f"(tag each {XLX} or not), then run tag again:\n  " + "\n  ".join(unsure))
         return
     ct.tag_pile(SHORTCUT, TRANSFER, rest)
 

@@ -82,8 +82,10 @@ One tag each, the first that fits:
 5. **Transfer**: the rest.
 
 The tag step: the `Tradeable` shortcut + each plan search + `&!#Luckydex&!#Reroll&!#GIV`, tagged like a cleantrades pile. Then it walks the tagged ones for power-ups, then the untagged ones for XLX and power-ups, then tags the rest Transfer.
-Power-ups are cleantrades' cheap jumps only (14->15, 19->20, 22->23, 30->31), never below 1,000,000 Stardust. The 360 Candy XL cap counts the account that will transfer it: HashTagAJay for the traded tags, CyrillJan for the rest.
+Power-ups are cleantrades' cheap jumps only (14->15, 19->20, 22->23, 30->31), never below 1,000,000 Stardust. The 360 Candy XL cap counts the account that will transfer it: HashTagAJay for the traded tags, CyrillJan for the rest. Out of Stardust: it goes on with XLX only.
+If it can't tell whether one is level 29+ (or doesn't know the species), it tags nothing Transfer and lists those in the log. Tag them XLX by hand (or not), then run `tag` again.
+`--limit N` caps the power-ups in each walk. All the Luckydex, Reroll and GIV tagging still runs.
 
 If `read` stops partway, `read runs/<time>-read/searches.json` picks up where it left off.
 
-`read` ran on the Pixel on 2026-10-22. `tag` has never run. First time: `tag --limit 1`, with the user watching.
+`read` ran on the Pixel on 2026-10-22. `tag` has never run. First time: `tag --limit 1`, with the user watching (it still tags every plan search).

@@ -166,6 +166,8 @@ def append(suffix):
         base.key("right", cmd=True)
     base.type_text(suffix)
     want = same_l(suffix)
+    if len(want) > 24:  # a long one doesn't fit in the bar: only its end shows
+        want = want[-24:]
     for i in range(6):
         time.sleep(0.3)
         texts = ui.ocr(ui.android.sharp()) if ui.ANDROID and i % 2 else ui.ocr(ui.capture()[0])

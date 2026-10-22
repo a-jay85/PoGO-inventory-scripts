@@ -64,7 +64,7 @@ Python 3, standard library only.
 
 ## Skills
 
-`skills/` holds the Claude Code skills `/pvpc`, `/ivc`, `/ivcsort`, `/cleanup`, `/trade`, `/gift` and `/dex`. Each one has a `SKILL.md` that says what it does. They are used through symlinks at `~/.claude/skills/<name>`. How to work on them: `CLAUDE.md`.
+`skills/` holds the Claude Code skills `/pvpc`, `/ivc`, `/ivcsort`, `/cleanup`, `/trade`, `/gift`, `/dex` and `/roster`. Each one has a `SKILL.md` that says what it does. They are used through symlinks at `~/.claude/skills/<name>`. How to work on them: `CLAUDE.md`.
 
 ## Data files
 

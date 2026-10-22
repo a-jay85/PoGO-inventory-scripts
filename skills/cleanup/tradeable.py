@@ -17,10 +17,11 @@ One tag each, the first that fits:
     - HashTagAJay has a lucky one of the family and under 348 candy (read)
  4. XLX: a power-up costs 5,000 Stardust or more (level 29+). Read one by one in the power-up dialog.
  5. GIV (evolved): a stage 2 (a baby isn't a stage), or a stage 1 that takes 100+ candy, a quest or an item to
-    evolve into, or one GO can't evolve into yet (Kleavor, Alolan Marowak) (giv-evolved-<date>.json). Not Legendary, Mythical or Ultra Beast. Tagged after the XLX walk.
+    evolve into, or one GO can't evolve into yet (Kleavor, Alolan Marowak) (giv-evolved-<date>.json). Also gym
+    defenders (/ivc's GYM_DEFENDERS) and untraded Dynamax ones. Not Legendary, Mythical or Ultra Beast. Tagged after the XLX walk.
  6. Transfer: everything else, but a never-traded XXL or XXS one gets renamed XXL or xxs and tagged IVC (sizes.py).
 Legendary, Mythical and Ultra Beast never get Reroll or GIV from the raid rule (roster leaves them out). Shadows can't
-be traded.
+be traded. Gigantamax ones get no tag at all (special trades): the user tags them by hand.
 
 Power-ups: only cleantrades' cheap jumps (14->15, 19->20, 22->23, 30->31), never below 1,000,000 Stardust, and only while
 the account that will transfer it has under 360 Candy XL of the family: HashTagAJay (read) for the traded tags,
@@ -37,6 +38,7 @@ import json, math, os, re, sys, time
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
 sys.path.insert(0, os.path.join(HERE, "..", "dex"))
+sys.path.append(os.path.join(HERE, "..", "ivc"))  # last: its run.py isn't pvpc's
 import ui
 import run as base
 from run import Stop, Skip, log, go, look, wait_for
@@ -47,6 +49,7 @@ import dex
 import cleantrades as ct
 import sizes
 from shadows import Pass, swipe_next, owned
+from ivc import GYM_DEFENDERS
 
 GIVER, TAKER = "CyrillJan", "HashTagAJay"  # Tradeable is the giver's; the taker's dex, candy and XL decide
 SHORTCUT = "Tradeable"
@@ -62,6 +65,7 @@ PM_URL = "https://raw.githubusercontent.com/PokeMiners/game_masters/master/lates
 HARD_CANDY = 100  # a stage 1 that costs this much candy to evolve into counts for the evolved GIV rule
 BABIES = {172, 173, 174, 175, 236, 238, 239, 240, 298, 360, 406, 433, 438, 439, 440, 446, 447, 458, 848}  # not a stage
 SPECIAL = ("legendary", "mythical", "ultrabeast")  # traded by hand: never GIV from the evolved rule
+DYNAMAX = "&dynamax&!traded" + "".join(f"&!{t}" for t in SPECIAL)  # evolved GIV too (Gigantamax: see NOT_TAGGED)
 
 
 def newest(pattern):
@@ -350,11 +354,13 @@ def cmd_plan():
                 evolved[s] = "stage 2"
             elif m.stage(s) == 1 and s in hard:
                 evolved[s] = f"stage 1, {hard[s]}"
+            elif s in GYM_DEFENDERS:
+                evolved[s] = "gym defender"
     plan = {"from": {"lucky": lucky_run, "100": hund_run, "roster": roster_f, "read": read_f, "pvp": pvp_f,
                      "evolved": hard_f},
             "tags": {t: queries(m, [s for s, (w, _) in why.items() if w == t], lucky if t == "Luckydex" else None)
                      for t in TAGS},
-            "giv_evolved": queries(m, evolved, room=len(EVOLVED_REST) + 10),
+            "giv_evolved": queries(m, evolved, room=len(EVOLVED_REST) + 10) + [DYNAMAX],
             "taker_xl_full": sorted({m.dex(x) for s in m.by if m.dex(s) in read["xl_full"] for x in m.family(s)})}
     base.new_run_dir(None, os.path.join(HERE, "runs", time.strftime("%Y%m%d-%H%M%S") + "-plan"))
     json.dump(plan, open(os.path.join(base.RUN_DIR, "plan.json"), "w"), indent=1)
@@ -366,8 +372,9 @@ def cmd_plan():
                   for s, (w, r) in sorted(why.items(), key=lambda x: m.dex(x[0])) if w == t]
         lines += ["", "Searches (after the Tradeable search):", ""] + [f"    {q}" for q in plan["tags"][t]] + [""]
     lines += [f"## GIV (evolved, only after XLX): {len(evolved)} species forms", "",
-              "Stage 2, or a stage 1 that takes 100+ candy, a quest or an item. Tagged after the XLX walk, so a "
-              "level 29+ one gets XLX instead.", ""]
+              "Stage 2, a stage 1 that takes 100+ candy, a quest or an item, a gym defender, or (the last search) an "
+              "untraded Dynamax one. Tagged after the XLX walk, so a level 29+ one gets XLX instead. Gigantamax "
+              "ones get no tag at all: they're for you to tag.", ""]
     lines += [f"- {m.by[s]['speciesName']} (#{m.dex(s)}): {r}" for s, r in sorted(evolved.items(), key=lambda x: m.dex(x[0]))]
     lines += ["", f"Searches (after the Tradeable search, with {EVOLVED_REST}):", ""]
     lines += [f"    {q}" for q in plan["giv_evolved"]] + [""]
@@ -378,7 +385,8 @@ def cmd_plan():
 
 # ---------- tag (CyrillJan) ----------
 
-NOT_TAGGED = "".join(f"&!#{t}" for t in TAGS)
+# Gigantamax: special trades, like legendaries. Every tag search leaves them out: the user tags them by hand
+NOT_TAGGED = "&!gigantamax" + "".join(f"&!#{t}" for t in TAGS)
 REST = NOT_TAGGED + f"&!#{XLX}&!#{TRANSFER}"  # not tagged yet
 EVOLVED_REST = REST + "&traded,!xxl&traded,!xxs"  # and not a never-traded XXL/XXS one (those get IVC)
 

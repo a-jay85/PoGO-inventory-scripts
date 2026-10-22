@@ -323,7 +323,7 @@ def page_cost(texts):
     if len(btn) != 1:
         return None
     got = [int(re.sub(r"\D", "", m.group(1))) for t in texts if abs(t[1] - btn[0][1]) < 0.02 and 0.4 < t[0] < 0.7
-           and (m := re.fullmatch(r"\D{0,3}?(\d{1,2}[,.]\d{3}|\d{2,3})", t[4].strip()))]
+           and (m := re.fullmatch(r"(?:\S\s+|\D{0,3}?)(\d{1,2}[,.]\d{3}|\d{2,3})", t[4].strip()))]  # icon: '1 7,000'
     return got[0] if len(got) == 1 else None
 
 
@@ -365,10 +365,9 @@ def read_dialog(cp, after=None):
             continue
         dust = next((int(m.group(1).replace(",", "")) for t in texts if line[1] + 0.02 < t[1] < line[1] + 0.075
                      and (m := re.fullmatch(r"\D{0,3}?(\d{1,2},\d{3}|\d{3})", t[4].strip()))), None)
-        is_plus = lambda t: t[4].strip() == "+" and t[0] > 0.6 and line[1] < t[1] < ok[0][1]
-        plus = [t for t in texts if is_plus(t)]
-        if not plus and ui.ANDROID:  # the thin + on a pale ring often goes unread: the phone's own sharp shot has it
-            plus = [t for t in ui.ocr(ui.android.sharp()) if is_plus(t)]
+        plus = [t for t in texts if t[4].strip() == "+" and t[0] > 0.6 and line[1] < t[1] < ok[0][1]]
+        if not plus and ui.ANDROID:  # the thin + on its pale ring mostly goes unread: it sits right of the cost.
+            plus = [(0.723, line[1] + 0.058, 0.073, 0.04, "+?")]  # more() checks the CP moved
         return b, dust, ok[0], no[0], plus[0] if plus else None, bounds, head[4]
     keep_capture("powerdialog")
     raise Stop("no power-up dialog, or its CP didn't move after +")
@@ -394,12 +393,22 @@ def more(cp, d):
         cancel(d[3], d[5])
         raise Unsure("no + in the power-up dialog")
     press(d[4], d[5])
-    return read_dialog(cp, after=d[0])[:-1]
+    try:
+        return read_dialog(cp, after=d[0])[:-1]
+    except Stop:
+        if d[4][4] != "+?":
+            raise
+        cancel(d[3], d[5])
+        raise Unsure("tapped where + sits, but the dialog's CP didn't move")
 
 
 def cancel(box, bounds):
     press(box, bounds)
-    wait_for("detail")
+    for _ in range(20):  # the detail shows through the dialog as it fades: wait for its title to go, or X can't be found
+        texts = wait_for("detail")[1]
+        if not any(re.match(r"POWER UP\s*:", t[4].strip(), re.I) for t in texts):
+            return
+        time.sleep(0.15)
 
 
 def fits(c, rows):

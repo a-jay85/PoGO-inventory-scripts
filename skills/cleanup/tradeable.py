@@ -316,12 +316,13 @@ def walk(suffix, xlx, power, limit, skip_dex=(), unsure=None):
     go("tile 1", "detail")
     seen, done = set(), 0
     while True:
-        _, texts, _, _ = wait_for("detail")
+        _, texts, _, bounds = wait_for("detail")
         info = ui.detail_info(texts)
         me = (info["name"], info["cp"], info["hp"])
         if me in seen:
             break
         seen.add(me)
+        base.OPENED["who"] = base.who(info)  # the swipe moved here on purpose: set_tags checks against this one
         checked = not xlx  # its level is known to be under 29, or it's tagged XLX
         try:
             if xlx:
@@ -351,11 +352,11 @@ def walk(suffix, xlx, power, limit, skip_dex=(), unsure=None):
                 log(f"powered up {info['name']} CP{info['cp']} -> CP{info2['cp']}, {n} power-up(s)")
         except (Pass, Skip) as e:
             log(f"pass {info['name']} CP{info['cp']}: {e}")
-            if not checked and unsure is not None:
+            if (not checked or isinstance(e, ct.Unsure)) and unsure is not None:
                 unsure.append(f"{info['name']} CP{info['cp']} HP{info['hp']}: {e}")
         moved = False
         for attempt in range(2):  # next one; a swipe that does nothing twice = end of the list
-            swipe_next(look()[3])
+            swipe_next(bounds)  # (the bounds don't change on the detail page)
             for _ in range(10):
                 time.sleep(0.12)
                 screen, texts, _, _ = look()
@@ -380,9 +381,17 @@ def cmd_tag(limit):
     if who != GIVER:
         raise Stop(f"signed in as {who!r}: tag needs {GIVER}")
     search.to_search_list()
+    done_f = os.path.join(os.path.dirname(plan_f), "tagged.json")  # this plan's searches already tagged: a rerun
+    done = set(json.load(open(done_f))) if os.path.exists(done_f) else set()  # skips them (14 s each, even at 0)
     for t in TAGS:  # each search leaves out all three tags: the first that fits wins, and a rerun skips what's done
         for q in plan["tags"][t]:
+            if q + NOT_TAGGED in done:
+                continue
             ct.tag_pile(SHORTCUT, t, q + NOT_TAGGED)
+            done.add(q + NOT_TAGGED)
+            json.dump(sorted(done), open(done_f, "w"))
+    if done:
+        log(f"{len(done)} tag search(es) done for this plan (a new plan starts over)")
     # (HashTagAJay's 360+ XL families are passed on the detail page: as '&!<dex>' terms they'd overflow the bar)
     traded = "&" + ",".join(f"#{t}" for t in TAGS)
     rest = NOT_TAGGED + f"&!#{XLX}&!#{TRANSFER}"
@@ -407,8 +416,9 @@ def cmd_tag(limit):
                 if look()[0] != "list":
                     go("close", "list")
     if unsure:
-        log(f"not tagging the rest Transfer: {len(unsure)} couldn't be checked for {XLX_LEVEL}+. Look at these by hand "
-            f"(tag each {XLX} or not), then run tag again:\n  " + "\n  ".join(unsure))
+        log(f"not tagging the rest Transfer: {len(unsure)} couldn't be checked for {XLX_LEVEL}+ or a cheap power-up. "
+            f"Look at these by hand (tag each {XLX}, power it up, or leave it), then run tag again:\n  "
+            + "\n  ".join(unsure))
         return
     ct.tag_pile(SHORTCUT, TRANSFER, rest)
 

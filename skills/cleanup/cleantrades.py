@@ -30,6 +30,10 @@ import pvp
 from shadows import Pass, press, swipe_next, settled_tiles, exact, owned
 from trades import sheet_rows, still_sheet
 
+
+class Unsure(Pass):
+    """left because something couldn't be read: it may still want a power-up, so it isn't done with"""
+
 TAGGING = [("PvpC1", "PvpC"), ("PvpC2", "PvpC"), ("IV Check", "IVC")]
 UNTAGGED_ONLY = {"PvpC1", "PvpC2"}  # their own search already has !#, and on the Pixel the bar is too full to add to
 CLEAN, TRANSFER = "Clean Trades", "Transfer"
@@ -359,7 +363,10 @@ def read_dialog(cp, after=None):
             continue
         dust = next((int(m.group(1).replace(",", "")) for t in texts if line[1] + 0.02 < t[1] < line[1] + 0.075
                      and (m := re.fullmatch(r"\D{0,3}?(\d{1,2},\d{3}|\d{3})", t[4].strip()))), None)
-        plus = [t for t in texts if t[4].strip() == "+" and t[0] > 0.6 and line[1] < t[1] < ok[0][1]]
+        is_plus = lambda t: t[4].strip() == "+" and t[0] > 0.6 and line[1] < t[1] < ok[0][1]
+        plus = [t for t in texts if is_plus(t)]
+        if not plus and ui.ANDROID:  # the thin + on a pale ring often goes unread: the phone's own sharp shot has it
+            plus = [t for t in ui.ocr(ui.android.sharp()) if is_plus(t)]
         return b, dust, ok[0], no[0], plus[0] if plus else None, bounds, head[4]
     keep_capture("powerdialog")
     raise Stop("no power-up dialog, or its CP didn't move after +")
@@ -383,7 +390,7 @@ def more(cp, d):
     """tap + in the dialog: one more power-up. -> read_dialog() with the new totals"""
     if not d[4]:
         cancel(d[3], d[5])
-        raise Pass("no + in the power-up dialog")
+        raise Unsure("no + in the power-up dialog")
     press(d[4], d[5])
     return read_dialog(cp, after=d[0])[:-1]
 
@@ -411,16 +418,16 @@ def steps(cands):
 def power_up(info, texts):
     """1-2 power-ups if this one sits right under an XL tier. -> power-ups made. Raise Pass to leave it.
     Its level comes from the dialog: + adds a power-up, and each total (CP after, Stardust) rules levels out."""
-    species = ui.species_for(info["name"], info["texts"])
-    if not species:
-        raise Pass(f"don't know the species of {info['name']!r}")
     cost, lvs = cost_levels(texts)
     if not lvs:
-        raise Pass(f"can't read the power-up cost ({cost})")
+        raise Unsure(f"can't read the power-up cost ({cost})")
     if not any(math.floor(lv) in PLAYS for lv in lvs):  # the cost rules out every play: no taps
         raise Pass(f"{cost} dust a power-up means level {lvs[0]}-{lvs[-1]}: none is {'/'.join(map(str, PLAYS))}")
+    species = ui.species_for(info["name"], info["texts"])
+    if not species:
+        raise Unsure(f"{cost} dust: don't know the species of {info['name']!r}")
     if info["cp"] is None:
-        raise Pass("can't read its CP")
+        raise Unsure(f"{cost} dust: can't read its CP")
     have_dust, have_candy = owned(texts)
     if have_dust < DUST_FLOOR:
         raise Stop(f"Stardust {have_dust:,} is under {DUST_FLOOR:,}: no more power-ups")

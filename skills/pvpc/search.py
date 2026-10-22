@@ -273,7 +273,7 @@ def amp_as_8(got, want):
 
 def same_query(got, want):
     """OCR of the search bar vs what was typed. OCR can drop or swap a symbol, but a leftover old query makes it much longer."""
-    want = want.lower()
+    want = re.sub(r"\s", "", want).lower()  # (OCR drops the spaces in '@focus blast')
     a = re.sub(r"\s", "", got or "").lower()
     ends = [want]
     if len(want) > 22 and 12 <= len(a) < len(want):  # a long search doesn't fit in the bar: only its end shows

@@ -142,7 +142,9 @@ def classify(texts):
         return "appraise-intro"
     if any(w.startswith("APPRAISE") for w in words) and any(w.startswith("TRANSFER") for w in words):
         return "menu"
-    if any(re.search(r"\d+\s*/\s*\d+\s*HP", t[4]) for t in texts):
+    # (a hurt Pokémon's tile in the list shows '82/91 HP' too: the list has its TAGS / EGGS tabs and search bar)
+    if any(re.search(r"\d+\s*/\s*\d+\s*HP", t[4]) for t in texts) \
+            and not ({"TAGS", "EGGS"} <= set(words) and search_box(texts)):
         return "detail"
     # a Pokémon defending a gym opens its own screen: no HP line, tags or weight, just its gym record
     # ("Raid in progress!" shows only during a raid, so not that)

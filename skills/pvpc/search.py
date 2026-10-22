@@ -262,6 +262,15 @@ def search_screen():
     raise Stop("typed query never showed in the search bar")
 
 
+def amp_as_8(got, want):
+    """OCR reads a '&' right after a digit as an 8 ('4&3' as '483'): put the '&' back where the query has one"""
+    out = []
+    for op, i1, i2, j1, j2 in difflib.SequenceMatcher(None, got, want, autojunk=False).get_opcodes():
+        swap = op == "replace" and i2 - i1 == j2 - j1 and set(got[i1:i2]) == {"8"} and set(want[j1:j2]) == {"&"}
+        out.append(want[j1:j2] if swap else got[i1:i2])
+    return "".join(out)
+
+
 def same_query(got, want):
     """OCR of the search bar vs what was typed. OCR can drop or swap a symbol, but a leftover old query makes it much longer."""
     want = want.lower()
@@ -271,6 +280,7 @@ def same_query(got, want):
         ends = [want[-len(a):], want[:len(a)]]  # (Android shows its start once Return is pressed)
     for a in (a, a[1:] if a.startswith("9") else a):  # the magnifier read as a 9
         for b in ends:
+            a = amp_as_8(a, b)
             if difflib.SequenceMatcher(None, a, b).ratio() >= 0.8 and abs(len(a) - len(b)) <= 2 \
                     and re.sub(r"\D", "", a) == re.sub(r"\D", "", b):  # symbols can misread, dex numbers can't
                 return True

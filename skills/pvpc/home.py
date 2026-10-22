@@ -286,7 +286,13 @@ def trainer():
             search.click(*X_BUTTON, bounds)
             time.sleep(1.5)
             return got[0]
-        if screen == "map":
+        if ui.ANDROID and {"OK", "?123"} <= {t[4].strip().upper() for t in texts}:  # a run stopped while typing
+            ui.android.key("back")  # (the keyboard and its own text box are up)
+            time.sleep(1.0)
+        elif ui.search_panel(texts):
+            search.close_panel(bounds)
+            time.sleep(1.0)
+        elif screen == "map":
             search.click(0.13, 0.91, bounds)  # the profile picture
             time.sleep(2.0)
         elif screen in OPEN:

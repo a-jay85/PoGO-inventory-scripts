@@ -367,7 +367,25 @@ def page_cost(texts):
         return None
     got = [int(re.sub(r"\D", "", m.group(1))) for t in texts if abs(t[1] - btn[0][1]) < 0.02 and 0.4 < t[0] < 0.7
            and (m := re.fullmatch(r"(?:\S\s+|\D{0,3}?)(\d{1,2}[,.]\d{3}|\d{2,3})", t[4].strip()))]  # icon: '1 7,000'
+    if len(got) != 1:
+        return None
+    if got[0] > 10_000 and got[0] % 1000:  # the icon read as a 1 with no space ('12,200'): XL costs are whole thousands
+        return got[0] - 10_000
+    return got[0]
+
+
+def page_candy(texts):
+    """the Candy next to the Stardust on the detail page's POWER UP row, or None if it can't be read (it often can't)"""
+    btn = [t for t in texts if ui.norm(t[4]) == "POWER UP" and t[0] < 0.4 and t[1] > 0.6]
+    got = [int(t[4].strip()) for t in texts if btn and abs(t[1] - btn[0][1]) < 0.02 and t[0] > 0.68
+           and re.fullmatch(r"\d{1,2}", t[4].strip())]
     return got[0] if len(got) == 1 else None
+
+
+def candy_at(lv):
+    """Candy for one power-up from this level, under 40 (a purified one's rounds up to the same)"""
+    return next(c for first, c in ((39, 15), (37, 12), (35, 10), (33, 8), (31, 6), (26, 4), (21, 3), (11, 2), (1, 1))
+                if lv >= first)
 
 
 def cost_levels(texts, cp):
@@ -396,6 +414,9 @@ def cost_levels(texts, cp):
         last = DUST[i + 1][0] if i + 1 < len(DUST) else 50
         if round(c * rate) == cost:
             lvs.update(first + k / 2 for k in range(int((last - first) * 2)))
+    candy = page_candy(texts)  # splits a cost that spans a candy step: 4,000 is 3 Candy at 25-25.5, 4 at 26-26.5
+    if candy and {lv for lv in lvs if candy_at(lv) == candy}:
+        lvs = {lv for lv in lvs if candy_at(lv) == candy}
     return cost, sorted(lvs)
 
 

@@ -14,7 +14,7 @@
   POGO_PHONE=android python3 session.py open     wake and unlock the Pixel (iPhone: open iPhone Mirroring)
   POGO_PHONE=android python3 session.py close    lock the Pixel (iPhone: quit iPhone Mirroring)
 """
-import os, re, subprocess, sys, time
+import os, re, subprocess, sys, time, traceback
 
 import ui
 import run as base
@@ -23,8 +23,7 @@ from run import Stop, log, keep_capture
 PIN_FILE = os.path.expanduser("~/.config/pogo/android-pin")
 MIRRORING = "iPhone Mirroring"
 CONNECT_TIMEOUT = 30  # seconds for iPhone Mirroring to show the iPhone
-TROUBLE = ("IPHONE IN USE", "IPHONE IS LOCKED", "UNLOCK YOUR IPHONE", "UNABLE TO CONNECT", "CAN'T CONNECT",
-           "COULDN'T CONNECT", "NOT NEARBY")
+TROUBLE = ("IPHONE IN USE", "IPHONE IS LOCKED", "UNLOCK YOUR IPHONE")  # Mirroring can't reach the iPhone
 
 opened = False  # this run opened the phone: main() closes it at the end
 pin_failed = False  # the PIN didn't work once: never typed again this run
@@ -82,8 +81,11 @@ def unlock():
                    f"so the scripts can")
     if pin_failed:
         raise Stop("the phone is locked and its PIN didn't work earlier: unlock it by hand")
-    a.shell(f"input text {pin}")  # (never logged)
-    a.shell("input keyevent KEYCODE_ENTER")
+    try:
+        a.shell(f"input text {pin}", timeout=15)
+        a.shell("input keyevent KEYCODE_ENTER", timeout=15)
+    except subprocess.TimeoutExpired:  # its message holds the command, PIN and all: never let it reach a log
+        raise Stop("typing the PIN timed out: unlock the phone by hand") from None
     for _ in range(8):  # the lock screen takes a moment to go
         time.sleep(0.5)
         if not locked():
@@ -203,7 +205,7 @@ def main(body, *args):
         code = 130
     except Exception as e:
         keep_capture("crash")
-        log(f"CRASHED: {type(e).__name__}: {e}")
+        log(f"CRASHED: {type(e).__name__}: {e}\n{traceback.format_exc()}")
         code = 2
     finally:
         if opened:

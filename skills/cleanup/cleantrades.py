@@ -370,11 +370,19 @@ def page_cost(texts):
     return got[0] if len(got) == 1 else None
 
 
-def cost_levels(texts):
+def cost_levels(texts, cp):
     """-> (cost, every level the detail page's power-up cost fits). Lucky shows on the page. A purified one is always
     level 25 (3,600, or 1,800 lucky): purifying puts it there and it's transferred from there. No levels = a cost no
-    table has"""
+    table has, or no two looks in a row agreed on it"""
     cost = page_cost(texts)
+    for _ in range(6):  # right after a swipe the page still slides: a cost read then can be another's (2,200 read as
+        _, texts, _, _ = look()  # level 40+, 2026-10-23). Two looks in a row on this CP must agree
+        again = page_cost(texts)
+        if again == cost and ui.detail_info(texts)["cp"] == cp:
+            break
+        cost = again
+    else:
+        cost = None
     if cost is None:
         return None, []
     lucky = any(ui.norm(t[4]).startswith("LUCKY POK") for t in texts)
@@ -472,7 +480,7 @@ def steps(cands):
 def power_up(info, texts):
     """1-2 power-ups if this one sits right under an XL tier. -> power-ups made. Raise Pass to leave it.
     Its level comes from the dialog: + adds a power-up, and each total (CP after, Stardust) rules levels out."""
-    cost, lvs = cost_levels(texts)
+    cost, lvs = cost_levels(texts, info["cp"])
     if not lvs:
         raise Unsure(f"can't read the power-up cost ({cost})")
     if not any(math.floor(lv) in PLAYS for lv in lvs):  # the cost rules out every play: no taps

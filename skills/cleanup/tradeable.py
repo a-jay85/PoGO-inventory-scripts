@@ -397,7 +397,7 @@ EVOLVED_REST = REST + "&traded,!xxl&traded,!xxs"  # and not a never-traded XXL/X
 
 def level_of(info, texts):
     """-> the levels this one can be at, from the power-up cost on the detail page. No taps"""
-    return ct.cost_levels(texts)[1]
+    return ct.cost_levels(texts, info["cp"])[1]
 
 
 def walk(suffix, xlx, power, limit, skip_dex=(), unsure=None):

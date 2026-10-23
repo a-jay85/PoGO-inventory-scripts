@@ -415,6 +415,8 @@ def cost_levels(texts, cp):
         if round(c * rate) == cost:
             lvs.update(first + k / 2 for k in range(int((last - first) * 2)))
     candy = page_candy(texts)  # splits a cost that spans a candy step: 4,000 is 3 Candy at 25-25.5, 4 at 26-26.5
+    if candy is None and ui.ANDROID and len({candy_at(lv) for lv in lvs if lv < 40}) > 1:
+        candy = page_candy(ui.ocr(ui.android.sharp()))  # the small digit mostly reads only at full size
     if candy and {lv for lv in lvs if candy_at(lv) == candy}:
         lvs = {lv for lv in lvs if candy_at(lv) == candy}
     return cost, sorted(lvs)

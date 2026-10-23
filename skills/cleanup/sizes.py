@@ -12,17 +12,17 @@ Each one is opened. Its size badge must agree with the search, or it's passed ov
 /ivc counts an XXL/xxs name as done, and /ivcsort leaves sized IVC ones for the user.
 --limit N changes at most N. Log in runs/<time>-sizes/.
 """
-import os, re, sys, time
+import os, re, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
 import ui
 import run as base
-from run import Stop, Skip, log, go, look, wait_for
+from run import Stop, Skip, log, go, wait_for
 import search, session
 import cleantrades as ct
-from shadows import Pass, swipe_next, press
-from trades import search_exact, sheet_rows, still_sheet
+from shadows import Pass, next_one, press
+from trades import search_exact, sheet_rows, still_sheet, tick, sheet_down
 
 IVC, TRANSFER, NOPE = "IVC", "Transfer", "Nope"
 NAMES = {"xxl": "XXL", "xxs": "xxs"}  # search term -> nickname, as ivc.make_name spells them
@@ -53,18 +53,7 @@ def retag():
                 box, ticked = rows[T]
                 v = left.pop(T)
                 if ticked is not v:
-                    press(box, bounds)
-                    for _ in range(20):
-                        time.sleep(0.15)
-                        _, t2, p2, _ = wait_for("tags")
-                        r = sheet_rows(t2, p2)
-                        if T in r and r[T][1] is v:
-                            break
-                    else:
-                        base.keep_capture("tick")
-                        raise Stop(f"tapped {names[T]} but its tick didn't change")
-                    if ui.ANDROID:
-                        ui.android.fresh()
+                    tick(T, box, v, bounds, name=names[T])
                 same = 0
                 continue
             if not left:
@@ -74,9 +63,7 @@ def retag():
             if same >= 2:  # the bottom of the sheet
                 break
             before = now
-            base.drag(0.3, 0.62, 0.3, 0.4, bounds)  # small steps: a big scroll skips rows
-            if ui.ANDROID:
-                ui.android.fresh()
+            sheet_down(bounds)
         texts, _, bounds = still_sheet()
         press(next(t for t in texts if ui.norm(t[4]) == "DONE"), bounds)
         wait_for("detail")
@@ -121,18 +108,7 @@ def walk(find, size, limit):
             log(f"{old} CP{info['cp']} -> {new}, tagged {IVC}")
         except (Pass, Skip) as e:
             log(f"pass {info['name']} CP{info['cp']}: {e}")
-        moved = False
-        for attempt in range(2):  # next one; a swipe that does nothing twice = end of the list
-            swipe_next(bounds)
-            for _ in range(10):
-                time.sleep(0.12)
-                screen, texts, _, _ = look()
-                if screen == "detail" and (lambda i: (i["cp"], i["hp"]))(ui.detail_info(texts)) not in seen:
-                    moved = True
-                    break
-            if moved:
-                break
-        if not moved:
+        if not next_one(bounds, lambda t: (lambda i: (i["cp"], i["hp"]))(ui.detail_info(t)) not in seen):
             break
     go("close", "list")
     return done

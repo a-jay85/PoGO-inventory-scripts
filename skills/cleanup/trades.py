@@ -21,7 +21,7 @@ import ui
 import run as base
 from run import Stop, log, keep_capture, go, look, wait_for, save, load, candy
 import search, session
-from shadows import Pass, GM, press, swipe_next, settled_tiles, exact, not_high_iv
+from shadows import Pass, GM, press, next_one, reopen_top, settled_tiles, exact, not_high_iv
 
 OLD_DAYS = 300  # caught this many days ago or more -> Old (the game's age300-)
 LEGENDS = "#Nope&!traded&!shiny&!costume&legendary"
@@ -230,6 +230,31 @@ def still_sheet():
     return texts, path, bounds
 
 
+def tick(T, box, want, bounds, poll=0.15, name=None, on_fail=None):
+    """tap row T's box and wait until its tick reads want. on_fail(texts, bounds) backs out before the Stop"""
+    press(box, bounds)
+    for _ in range(20):
+        time.sleep(poll)
+        _, t2, p2, _ = wait_for("tags")
+        r = sheet_rows(t2, p2)
+        if T in r and r[T][1] is want:
+            break
+    else:
+        keep_capture("tick")
+        if on_fail:
+            on_fail(t2, bounds)
+        raise Stop(f"tapped {name or T} but its tick didn't change")
+    if ui.ANDROID:
+        ui.android.fresh()
+
+
+def sheet_down(bounds):
+    """scroll the tag sheet a small step: a big scroll skips rows"""
+    base.drag(0.3, 0.62, 0.3, 0.4, bounds)
+    if ui.ANDROID:
+        ui.android.fresh()
+
+
 def cancel_sheet():
     """leave the tag sheet unsaved. Android's sheet has no CANCEL, only the X under DONE"""
     _, texts, _, bounds = look()
@@ -297,25 +322,12 @@ def retag(on, me, off=("Nope",)):
         rows = sheet_rows(texts, path)
         for T in [T for T in left if T in rows]:
             if rows[T][1] is not left[T]:
-                press(rows[T][0], bounds)
-                for _ in range(20):
-                    time.sleep(0.15)
-                    _, t2, p2, _ = wait_for("tags")
-                    r = sheet_rows(t2, p2)
-                    if T in r and r[T][1] is left[T]:
-                        break
-                else:
-                    keep_capture("tick")
-                    raise Stop(f"tapped {T} but its tick didn't change")
-                if ui.ANDROID:
-                    ui.android.fresh()
+                tick(T, rows[T][0], left[T], bounds)
             del left[T]
         if not left:
             break
         before = [t[4] for t in texts]
-        base.drag(0.3, 0.62, 0.3, 0.4, bounds)
-        if ui.ANDROID:
-            ui.android.fresh()
+        sheet_down(bounds)
         sheet = still_sheet()  # (also the next round's read)
         after = [t[4] for t in sheet[0]]
         same = same + 1 if after == before else 0
@@ -377,30 +389,19 @@ def walk(q, decide, done, limit):
                 save("done.json", done)
                 log(f"retagged {info['name']} CP{info['cp']}: {' + '.join(tags)}, Nope off  ({time.time() - t0:.1f}s, #{len(done)})")
                 retagged = True
-        moved = False
-        for attempt in range(2):  # next one; a swipe that does nothing twice = end of the list
-            swipe_next(bounds)
-            for _ in range(10):
-                time.sleep(0.12)
-                screen, texts, _, bounds = look()
-                if screen == "detail" and who(texts)[1] != me and None not in who(texts)[1]:
-                    again = look()  # the same twice: a read mid-slide can mix two Pokémon
-                    if again[0] == "detail" and who(again[1])[1] == who(texts)[1]:
-                        moved = True
-                        break
-            if moved:
-                retagged = False
-                break
-        if not moved and retagged:  # it no longer fits the search: back to the list, open the top one again
-            texts = go("close", "list")[1]
-            if not ui.tiles(texts):
-                time.sleep(0.4)
-                if not settled_tiles():
-                    return
-            go("tile 1", "detail")
+        def moved(texts):
+            w = who(texts)[1]
+            if w == me or None in w:
+                return False
+            again = look()  # the same twice: a read mid-slide can mix two Pokémon
+            return again[0] == "detail" and who(again[1])[1] == w
+        if next_one(bounds, moved):
+            retagged = False
+        elif retagged:  # it no longer fits the search: back to the list, open the top one again
+            if not reopen_top():
+                return
             seen, retagged = set(), False
-            continue
-        if not moved:
+        else:
             break
     if len(done) >= limit:
         log(f"--limit {limit} reached")

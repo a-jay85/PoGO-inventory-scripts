@@ -31,8 +31,8 @@ import run as base
 from run import Stop, log, keep_capture, go, look, wait_for
 import search, session
 import pvp
-from shadows import Pass, press, swipe_next, settled_tiles, exact, owned
-from trades import sheet_rows, still_sheet, search_exact
+from shadows import Pass, press, next_one, select_all, settled_tiles, exact, owned
+from trades import sheet_rows, still_sheet, search_exact, tick, sheet_down
 
 
 class Unsure(Pass):
@@ -231,31 +231,12 @@ def tag_pile(name, tag, suffix=None, off=(), query=None):
     n = find()
     if not n:
         return 0
-    _, texts, _, bounds = look()
-    first = ui.tiles(texts)[0]
-    press((first[2] - 0.03, first[3] - 0.01, 0.06, 0.02, ""), bounds, hold=900)  # long press: multi-select
-    for _ in range(20):
-        time.sleep(search.POLL)
-        _, texts, _, bounds = look()
-        sel = exact(texts, "SELECT ALL")
-        if sel and any(re.fullmatch(r"TAG \(\d+\)", t[4].strip()) for t in texts):
-            break
-    else:
-        keep_capture("multiselect")
-        raise Stop("long press didn't start multi-select")
-    press(sel[0], bounds)
-    for _ in range(20):
-        time.sleep(search.POLL)
-        _, texts, _, bounds = look()
-        btn = [t for t in texts if re.fullmatch(r"TAG \((\d+)\)", t[4].strip())]
-        got = int(re.search(r"\d+", btn[0][4]).group()) if btn else None
-        if got == n:
-            break
+    btn, got, texts, bounds = select_all("TAG", n, poll=search.POLL)
     if got != n:
         keep_capture("count")
         search.leave_multiselect(texts, bounds)
         raise Stop(f"{name}: SELECT ALL picked {got}, but the search shows {n}: nothing tagged")
-    press(btn[0], bounds)
+    press(btn, bounds)
     wait_for("tags")
     texts, path, bounds = still_sheet()
     head = " ".join(t[4] for t in texts if t[1] < 0.15)
@@ -271,29 +252,15 @@ def tag_pile(name, tag, suffix=None, off=(), query=None):
             if ticked is left[T]:  # the search said none have tag and all have off: a tick here is a misread or a partial mark
                 close_sheet(texts, bounds)
                 raise Stop(f"{T} already shows {'a' if ticked else 'no'} tick for this lot: nothing tagged")
-            press(box, bounds)
-            for _ in range(20):
-                time.sleep(search.POLL)
-                _, t2, p2, _ = wait_for("tags")
-                r = sheet_rows(t2, p2)
-                if T in r and r[T][1] is left[T]:
-                    break
-            else:
-                keep_capture("tick")
-                close_sheet(t2, bounds)
-                raise Stop(f"tapped {T} but its tick didn't change")
+            tick(T, box, left[T], bounds, poll=search.POLL, on_fail=close_sheet)
             del left[T]
-            if ui.ANDROID:
-                ui.android.fresh()
             texts, path, bounds = still_sheet()
             same = 0
             continue
         if not left:
             break
         before = [t[4] for t in texts]
-        base.drag(0.3, 0.62, 0.3, 0.4, bounds)  # small steps: a big scroll skips rows
-        if ui.ANDROID:
-            ui.android.fresh()
+        sheet_down(bounds)
         texts, path, bounds = still_sheet()
         same = same + 1 if [t[4] for t in texts] == before else 0
         if same >= 2:
@@ -600,20 +567,8 @@ def power_walk(limit):
             info2 = ui.detail_info(wait_for("detail")[1])
             seen.add((info2["name"], info2["cp"], info2["hp"]))
             log(f"powered up {info['name']} CP{info['cp']} -> CP{info2['cp']}, {taps} power-up(s)  ({time.time() - t0:.1f}s)")
-        moved = False
-        for attempt in range(2):  # next one; a swipe that does nothing twice = end of the list
-            swipe_next(look()[3])
-            for _ in range(10):
-                time.sleep(search.POLL)
-                screen, texts, _, _ = look()
-                if screen == "detail":
-                    n = ui.detail_info(texts)
-                    if (n["name"], n["cp"], n["hp"]) not in seen:
-                        moved = True
-                        break
-            if moved:
-                break
-        if not moved:
+        if not next_one(None, lambda t: (lambda n: (n["name"], n["cp"], n["hp"]))(ui.detail_info(t)) not in seen,
+                        poll=search.POLL):
             break
     log(f"powered up {done}, passed {passed}, {time.time() - t_start:.0f}s")
     go("close", "list")

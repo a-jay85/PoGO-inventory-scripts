@@ -50,7 +50,7 @@ import home, session
 import dex
 import cleantrades as ct
 import sizes
-from shadows import Pass, swipe_next, owned
+from shadows import Pass, next_one, owned
 from ivc import GYM_DEFENDERS
 
 GIVER, TAKER = "CyrillJan", "HashTagAJay"  # Tradeable is the giver's; the taker's dex, candy and XL decide
@@ -432,18 +432,8 @@ def walk(suffix, xlx, power, limit, skip_dex=(), unsure=None):
             log(f"pass {info['name']} CP{info['cp']}: {e}")
             if (not checked or isinstance(e, ct.Unsure)) and unsure is not None:
                 unsure.append(f"{info['name']} CP{info['cp']} HP{info['hp']}: {e}")
-        moved = False
-        for attempt in range(2):  # next one; a swipe that does nothing twice = end of the list
-            swipe_next(bounds)  # (the bounds don't change on the detail page)
-            for _ in range(10):
-                time.sleep(0.12)
-                screen, texts, _, _ = look()
-                if screen == "detail" and (lambda i: (i["name"], i["cp"], i["hp"]))(ui.detail_info(texts)) not in seen:
-                    moved = True
-                    break
-            if moved:
-                break
-        if not moved:
+        # (the bounds don't change on the detail page)
+        if not next_one(bounds, lambda t: (lambda i: (i["name"], i["cp"], i["hp"]))(ui.detail_info(t)) not in seen):
             break
     go("close", "list")
     return done

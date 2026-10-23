@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
 import ui
 import run as base
 from run import Stop, log, keep_capture, go, look, wait_for, front, save, load, candy
-import search
+import search, session
 
 SHADOWS = "#Nope&shadow&!shiny&!costume&!xxl&!xxs"  # (sizes.py renames those and tags them IVC)
 PURIFIED = "#Nope&purified"
@@ -396,9 +396,15 @@ def transfer_all():
     log(f"transferred {n} ({time.time() - t0:.1f}s)")
 
 
+def script(a):
+    base.start()
+    if a[:1] != ["transfer"]:
+        purify_all(session.limit(a))
+    transfer_all()
+
+
 if __name__ == "__main__":
     a = sys.argv[1:]
-    limit = int(a[a.index("--limit") + 1]) if "--limit" in a else 10 ** 9
     runs = os.path.join(HERE, "runs")
     if a[:1] == ["transfer"] and len(a) > 1:
         base.new_run_dir(runs, os.path.abspath(a[1]))
@@ -406,13 +412,4 @@ if __name__ == "__main__":
         sys.exit(__doc__)
     else:
         base.new_run_dir(runs)
-    try:
-        base.start()
-        if a[:1] != ["transfer"]:
-            purify_all(limit)
-        transfer_all()
-    except Stop as e:
-        log(f"STOP: {e}")
-        sys.exit(1)
-    finally:
-        log(f"run folder: {base.RUN_DIR}")
+    session.main(script, a)

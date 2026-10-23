@@ -141,6 +141,11 @@ class Phone:
             shutil.copy(self.path, os.path.join(base.RUN_DIR, f"{time.strftime('%H%M%S')}-{self.name}-{tag}.png"))
 
     def close(self):
+        """the run's end: lock the Pixel or quit iPhone Mirroring, then end the phone's process"""
+        try:
+            self.call(op="close")
+        except Exception as e:
+            log(f"{self.name}: couldn't close the phone: {e}")
         try:
             self.proc.stdin.close()
             self.proc.wait(timeout=5)

@@ -78,7 +78,8 @@ def keep_capture(tag):
         return dst
 
 
-def new_run_dir(runs, d=None):
+def new_run_dir(runs, d=None, suffix=""):
+    """a new run folder in runs, named by the time (and suffix), or d if given"""
     global RUN_DIR
     if d:
         RUN_DIR = d
@@ -86,7 +87,7 @@ def new_run_dir(runs, d=None):
         return RUN_DIR
     os.makedirs(runs, exist_ok=True)
     while True:  # the other phone's run may have started this same second: never share its folder
-        RUN_DIR = os.path.join(runs, time.strftime("%Y%m%d-%H%M%S"))
+        RUN_DIR = os.path.join(runs, time.strftime("%Y%m%d-%H%M%S") + (f"-{suffix}" if suffix else ""))
         try:
             os.mkdir(RUN_DIR)
             return RUN_DIR
@@ -171,10 +172,17 @@ def idle_seconds():
 def front():
     """bring iPhone Mirroring forward. If the user switched to another app, wait until they've left the Mac
     alone for USER_IDLE seconds first, so their typing doesn't land on the phone.
-    Android: adb never touches the Mac's mouse or keyboard, so just check the phone."""
+    Android: adb never touches the Mac's mouse or keyboard, so just check the phone (and unlock it if it locked
+    itself mid-run)."""
     if ui.ANDROID:
         try:
             return ui.android.ready()
+        except ui.android.NotReady as e:
+            if not session.locked():
+                raise Stop(str(e))
+        session.unlock()
+        try:
+            return ui.android.ready(force=True)
         except ui.android.NotReady as e:
             raise Stop(str(e))
     if ui.sh(ui.HELPER, "front").strip() != "iPhone Mirroring" and idle_seconds() < USER_IDLE:
@@ -1270,7 +1278,7 @@ def act_fallen(limit):
     return done
 
 
-import search, fallen, home  # down here: they `import run`, which has to be all there first
+import search, fallen, home, session  # down here: they `import run`, which has to be all there first
 
 
 def start():
@@ -1343,61 +1351,37 @@ def main(limit, dry):
     return counts
 
 
+def script(cmd, limit, dry):
+    start()
+    if cmd == "fallen":
+        return fallen_step()
+    if cmd == "act-fallen":
+        return log(f"finished: {act_fallen(limit)} renamed or tagged")
+    counts = main(limit, dry)
+    at_end = counts.pop("end", 0)
+    log(f"finished: {dict(counts)}")
+    if at_end:  # and what earlier runs that stopped early renamed
+        try:
+            carry_over()
+        except Exception as e:  # never let it stop this run's own fallen-out step
+            log(f"no carry-over from earlier runs: {type(e).__name__}: {e}")
+    if at_end and load("renamed.json", []):  # still on the phone: check what the new names pushed out
+        try:
+            fallen_step()
+        except (Stop, Skip) as e:
+            keep_capture("fallen")
+            log(f"fallen out step STOPPED: {e} (run `run.py fallen {RUN_DIR}` to go on)")
+
+
 if __name__ == "__main__":
     a = sys.argv[1:]
-    limit = int(a[a.index("--limit") + 1]) if "--limit" in a else 10 ** 9
+    limit = session.limit(a)
     dry = "--dry-run" in a
     cmd = a[0] if a and a[0] in ("fallen", "act-fallen") else None
     if cmd:
         if len(a) < 2 or not os.path.isdir(a[1]):
             sys.exit(f"usage: run.py {cmd} <run dir>")
         new_run_dir(None, os.path.abspath(a[1]))
-    code = 0
-    try:
-        if cmd == "act-fallen" and not os.path.exists(os.path.join(RUN_DIR, "fallen-groups.json")):
-            sys.exit("run fallen first, and read fallen.txt")
-        start()
-        if cmd == "fallen":
-            fallen_step()
-            at_end, counts = 0, {}
-        elif cmd == "act-fallen":
-            log(f"finished: {act_fallen(limit)} renamed or tagged")
-            at_end, counts = 0, {}
-        else:
-            counts = main(limit, dry)
-            at_end = counts.pop("end", 0)
-            log(f"finished: {dict(counts)}")
-            if at_end:  # and what earlier runs that stopped early renamed
-                try:
-                    carry_over()
-                except Exception as e:  # never let it stop this run's own fallen-out step
-                    log(f"no carry-over from earlier runs: {type(e).__name__}: {e}")
-            if at_end and load("renamed.json", []):  # still on the phone: check what the new names pushed out
-                try:
-                    fallen_step()
-                except (Stop, Skip) as e:
-                    keep_capture("fallen")
-                    log(f"fallen out step STOPPED: {e} (run `run.py fallen {RUN_DIR}` to go on)")
-                    at_end = 0  # leave the phone where it is
-        if at_end and ui.ANDROID and not ui.android.NO_WINDOW:
-            log("closed the scrcpy window" if ui.android.close() else "couldn't close the scrcpy window")
-        elif at_end:
-            try:
-                ok = subprocess.run(["osascript", "-e", 'quit app "iPhone Mirroring"'], timeout=10).returncode == 0
-            except subprocess.TimeoutExpired:
-                ok = False
-            if not ok:
-                ok = subprocess.run(["pkill", "-x", "iPhone Mirroring"]).returncode == 0
-            log("quit iPhone Mirroring" if ok else "couldn't quit iPhone Mirroring")
-    except Stop as e:
-        keep_capture("stop")
-        log(f"STOPPED: {e}")
-        code = 1
-    except KeyboardInterrupt:
-        log("interrupted")
-        code = 130
-    except Exception as e:
-        keep_capture("crash")
-        log(f"CRASHED: {type(e).__name__}: {e}")
-        code = 2
-    sys.exit(code)
+    if cmd == "act-fallen" and not os.path.exists(os.path.join(RUN_DIR, "fallen-groups.json")):
+        sys.exit("run fallen first, and read fallen.txt")
+    session.main(script, cmd, limit, dry)

@@ -23,7 +23,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
 import ui
 import run as base
 from run import Stop, log, keep_capture
-import home, search
+import home, search, session
 
 PAGES = {"lucky": "LUCKY", "100": "100%"}  # page -> its chip's label
 MAX_CHARS = 1000  # per search. The Pixel's search bar took 1,397 characters and failed at 1,497 (2026-10-21)
@@ -630,12 +630,17 @@ def cmd_evolve(run):
     run = os.path.join(runs, run) if not os.path.isabs(run) else run
     page = next(os.path.join(run, f) for f in ("page-lucky.txt", "missing-lucky.txt") if os.path.exists(os.path.join(run, f)))
     missing = sorted(parse(open(page).read()))
-    base.new_run_dir(None, os.path.join(runs, time.strftime("%Y%m%d-%H%M%S") + "-evolve-lucky"))
+    base.new_run_dir(runs, suffix="evolve-lucky")
     who = trainer_of(run)
     if who:
         save_trainer(who)
     log(f"page from {page}: {len(missing)} missing" + (f" ({who})" if who else ""))
     write_searches("lucky", missing)
+
+
+def script(page):
+    save_trainer(home.trainer())
+    run_page(page)
 
 
 def main():
@@ -645,19 +650,12 @@ def main():
     a = ap.parse_args()
     if not ui.ANDROID:
         sys.exit("Android only for now: POGO_PHONE=android")
-    try:
-        if a.page == "look":
-            cmd_look()
-            return
-        if a.page == "evolve":
-            cmd_evolve(a.run)
-            return
-        base.new_run_dir(None, os.path.join(HERE, "runs", time.strftime("%Y%m%d-%H%M%S") + "-" + a.page))
-        save_trainer(home.trainer())
-        run_page(a.page)
-    except Stop as e:
-        log(f"STOPPED: {e}")
-        sys.exit(1)
+    if a.page == "look":
+        return cmd_look()
+    if a.page == "evolve":
+        return session.main(cmd_evolve, a.run)
+    base.new_run_dir(os.path.join(HERE, "runs"), suffix=a.page)
+    session.main(script, a.page)
 
 
 if __name__ == "__main__":

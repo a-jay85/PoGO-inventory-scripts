@@ -18,7 +18,7 @@ import ui, pvp
 import run as base
 from run import Stop, Skip, log, keep_capture, go, wait_for, appraise, think, back_to_list, scroll, front, settle, \
     extras, drag, open_tile, exact_ivs, do_rename
-import ivc
+import ivc, session
 
 base.RUN_DIR = os.path.join(HERE, "runs", time.strftime("%Y%m%d-%H%M%S"))
 MAX_SKIPS_IN_A_ROW = 5
@@ -336,25 +336,13 @@ def main(limit, dry):
     return counts
 
 
+def script(limit, dry):
+    base.start()
+    counts = main(limit, dry)
+    counts.pop("end", 0)
+    log(f"finished: {dict(counts)}")
+
+
 if __name__ == "__main__":
     a = sys.argv[1:]
-    limit = int(a[a.index("--limit") + 1]) if "--limit" in a else 10 ** 9
-    dry = "--dry-run" in a
-    code = 0
-    try:
-        base.start()
-        counts = main(limit, dry)
-        counts.pop("end", 0)
-        log(f"finished: {dict(counts)}")
-    except Stop as e:
-        keep_capture("stop")
-        log(f"STOPPED: {e}")
-        code = 1
-    except KeyboardInterrupt:
-        log("interrupted")
-        code = 130
-    except Exception as e:
-        keep_capture("crash")
-        log(f"CRASHED: {type(e).__name__}: {e}")
-        code = 2
-    sys.exit(code)
+    session.main(script, session.limit(a), "--dry-run" in a)

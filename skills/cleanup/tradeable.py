@@ -46,7 +46,7 @@ import run as base
 from run import Stop, Skip, log, go, look, wait_for
 import search
 import pvp
-import home
+import home, session
 import dex
 import cleantrades as ct
 import sizes
@@ -252,7 +252,7 @@ def find(fams, prefix, count, n, seen):
 
 def cmd_read(resume=None):
     """resume: a stopped run's searches.json, so its searches aren't typed again"""
-    base.new_run_dir(None, os.path.join(HERE, "runs", time.strftime("%Y%m%d-%H%M%S") + "-read"))
+    base.new_run_dir(os.path.join(HERE, "runs"), suffix="read")
     who = home.trainer()
     if who != TAKER:
         raise Stop(f"signed in as {who!r}: read needs {TAKER}")
@@ -366,7 +366,7 @@ def cmd_plan():
                                 room=len(NOT_TAGGED) + 10) for t in TAGS},
             "giv_evolved": queries(m, evolved, room=len(EVOLVED_REST) + 10) + [DYNAMAX],
             "taker_xl_full": sorted({m.dex(x) for s in m.by if m.dex(s) in read["xl_full"] for x in m.family(s)})}
-    base.new_run_dir(None, os.path.join(HERE, "runs", time.strftime("%Y%m%d-%H%M%S") + "-plan"))
+    base.new_run_dir(os.path.join(HERE, "runs"), suffix="plan")
     json.dump(plan, open(os.path.join(base.RUN_DIR, "plan.json"), "w"), indent=1)
     lines = [f"# Tradeable plan {time.strftime('%Y-%m-%d %H:%M')}", ""]
     lines += [f"- {k}: {v}" for k, v in plan["from"].items()] + [""]
@@ -478,7 +478,7 @@ def cmd_tag(limit):
     if not plan_f:
         sys.exit("no plan yet: python3 tradeable.py plan")
     plan = json.load(open(plan_f))
-    base.new_run_dir(None, os.path.join(HERE, "runs", time.strftime("%Y%m%d-%H%M%S") + "-tag"))
+    base.new_run_dir(os.path.join(HERE, "runs"), suffix="tag")
     who = home.trainer()
     if who != GIVER:
         raise Stop(f"signed in as {who!r}: tag needs {GIVER}")
@@ -541,16 +541,9 @@ if __name__ == "__main__":
     cmds = {"refresh": cmd_refresh, "plan": cmd_plan}
     if not a or a[0] not in (*cmds, "read", "tag"):
         sys.exit(__doc__)
-    try:
-        if a[0] == "read":
-            cmd_read(a[1] if len(a) > 1 else None)
-        elif a[0] == "tag":
-            cmd_tag(int(a[a.index("--limit") + 1]) if "--limit" in a else 10 ** 9)
-        else:
-            cmds[a[0]]()
-    except Stop as e:
-        log(f"STOPPED: {e}")
-        sys.exit(1)
-    finally:
-        if base.RUN_DIR:
-            log(f"run folder: {base.RUN_DIR}")
+    if a[0] == "read":
+        session.main(cmd_read, a[1] if len(a) > 1 else None)
+    elif a[0] == "tag":
+        session.main(cmd_tag, session.limit(a))
+    else:
+        session.main(cmds[a[0]])

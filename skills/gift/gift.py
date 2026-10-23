@@ -456,6 +456,37 @@ def search(*parts):
     raise Stop(f"the search {q!r} didn't take after 4 tries: {summary()}")
 
 
+def swap_zone(base_q, old, new):
+    """the box holds base_q + a short zone ('ea') and nobody left in it can take a gift: delete just that zone
+    and type the next ('ce', or nothing for the rest), rather than clearing the box and typing it all again
+    -> the result count, or None when it didn't take (then search() does it the long way)"""
+    global typed
+    tail = typed[len(base_q):]
+    if not typed.startswith(base_q) or tail.strip() != old:
+        return None  # the box holds something else
+    to_top()
+    box = search_line()
+    if not box or ui.norm(box[4]) == "TRAINER NICKNAME":
+        return None
+    tap_text(box)  # the cursor lands at the end (as for the ghost-rows space in search())
+    time.sleep(1.2)
+    for _ in tail:
+        base.key("delete")
+    if new:
+        base.type_text(new)
+    typed = base_q + new
+    n = commit_search()
+    box = search_line()
+    t = ui.norm(box[4]).replace(" ", "") if box else ""
+    log(f"  search box reads {box[4] if box else None!r}")
+    if n is None or (t.endswith(new.upper()) if new else t.endswith(old.upper())):
+        log(f"swapping {old!r} for {new!r} didn't take: typing the search again")
+        return None
+    if n and not rows():
+        return None  # the ghost-rows bug: search() knows what to do
+    return n
+
+
 def clean(name):
     return re.sub(r"[^A-Za-z0-9]+$", "", re.sub(r"^[^A-Za-z0-9]+", "", name.strip()))
 
@@ -921,9 +952,15 @@ def run_searches(limit):
     to_list()
     set_sort()
     for first, base_q in (("iii", FIRST), ("lll", THEN)):
+        prev = None
         for zone, zq in ZONES:
             t0 = time.time()
-            n = search(base_q, zq)
+            n = None
+            if prev is not None and len(prev) == 2 and len(zq) <= 2:
+                n = swap_zone(base_q, prev, zq)  # ea -> ce -> mo -> (none): change just the end
+            if n is None:
+                n = search(base_q, zq)
+            prev = zq
             log(f"{first} + {zone}: ({n}) ({time.time() - t0:.0f}s)")
             if not n:
                 continue

@@ -18,7 +18,7 @@ Start with Pokémon GO on the Pokémon screen. Four steps, always in this order:
  3. CyrillJan only (HashTagAJay doesn't need the XP): Clean Trades + a trade evolution (free once traded: Kadabra, Machoke, Graveler, Haunter, Boldore, Gurdurr,
     Karrablast, Shelmet, Phantump, Pumpkaboo) -> tag Evo. Not the base forms (Abra...).
  4. Clean Trades -> tag Transfer.
-Tagging: the shortcut's search + &!#<tag> (PvpC1 and PvpC2 as they are: they already exclude tagged ones), long press, SELECT ALL, TAG (n). n must equal the search's count, and
+Tagging: the shortcut's search + &!#<tag> (PvpC1, PvpC2 and Clean Trades as they are: they already exclude tagged ones), long press, SELECT ALL, TAG (n). n must equal the search's count, and
 afterwards the same search must come back empty.
 --limit N powers up at most N Pokémon (the tagging still runs). Log in runs/<time>/.
 """
@@ -39,8 +39,8 @@ class Unsure(Pass):
     """left because something couldn't be read: it may still want a power-up, so it isn't done with"""
 
 TAGGING = [("PvpC1", "PvpC"), ("PvpC2", "PvpC"), ("IV Check", "IVC")]
-UNTAGGED_ONLY = {"PvpC1", "PvpC2"}  # their own search already has !#, and on the Pixel the bar is too full to add to
 CLEAN, TRANSFER, EVO = "Clean Trades", "Transfer", "Evo"
+UNTAGGED_ONLY = {"PvpC1", "PvpC2", CLEAN}  # their own search already has !# (and on the Pixel PvpC1 fills the bar)
 # evolve free once traded: Kadabra, Machoke, Graveler (Alolan too), Haunter, Boldore, Gurdurr, Karrablast, Shelmet,
 # Phantump, Pumpkaboo. Not the base forms (Abra...). Dex numbers:
 # the names make a search too long for the bar to read back
@@ -639,7 +639,7 @@ if __name__ == "__main__":
         if "evo" in a:  # steps 1 and 3: a PvpC/IVC one tagged Evo first would drop out of its shortcut (!#)
             for name, tag in TAGGING:
                 tag_pile(name, tag)
-            tag_pile(CLEAN, EVO, f"&{TRADE_EVOS}&!#{EVO}")
+            tag_pile(CLEAN, EVO, f"&{TRADE_EVOS}")
             sys.exit(0)
         if "fix" in a:  # Transfer tags given before the Evo step: traded trade evolutions go Transfer -> Evo
             tag_pile(TRANSFER, EVO, off=[TRANSFER], query=f"#{TRANSFER}&traded&{TRADE_EVOS}")
@@ -657,7 +657,7 @@ if __name__ == "__main__":
             if look()[0] != "list":
                 go("close", "list")
         if who == EVO_FOR:
-            tag_pile(CLEAN, EVO, f"&{TRADE_EVOS}&!#{EVO}")  # first: these drop out of Clean Trades (!#)
+            tag_pile(CLEAN, EVO, f"&{TRADE_EVOS}")  # first: these drop out of Clean Trades (!#)
         tag_pile(CLEAN, TRANSFER)
     except Stop as e:
         log(f"STOP: {e}")

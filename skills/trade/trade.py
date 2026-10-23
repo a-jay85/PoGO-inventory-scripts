@@ -723,16 +723,29 @@ def trade_once(ios, android, specials):
         if p.name in specials and n < specials[p.name]:
             raise Stop(f"{p.name}: special trades left went from {specials[p.name]} to {n}")
         specials.setdefault(p.name, n)
-    have = {}
+    piles = specials.setdefault("piles", {})
     for p in phones:
-        open_panel(p)
-        have[p.name] = counts(p, specials.setdefault("piles", {}).setdefault(p.name, {}))
-    log(f"piles: iPhone {have['ios']}, Android {have['android']}")
-    pair = pairs(have["ios"], have["android"])
-    if not pair:
-        return None  # both phones are left in the picker: nothing picked, nothing to undo
+        piles.setdefault(p.name, {})
+    # after the first round the counts are known: each pick reads its pile's '(n)' and the trade takes one off.
+    # Read them off the panel again only when a pile the pair needs could be down to its last one
+    pair = pairs(piles["ios"], piles["android"]) if all(len(piles[p.name]) == 2 for p in phones) else None
+    if not (pair and piles["ios"][pair[0]] >= 2 and piles["android"][pair[1]] >= 2):
+        have = {}
+        for p in phones:
+            open_panel(p)
+            have[p.name] = counts(p, piles[p.name])
+        log(f"piles: iPhone {have['ios']}, Android {have['android']}")
+        pair = pairs(have["ios"], have["android"])
+        if not pair:
+            return None  # both phones are left in the picker: nothing picked, nothing to undo
     for p, pile in zip(phones, pair):
-        n = pick_pile(p, pile)
+        p.look()
+        # the last trade's search stays on in the list: its header has the count, no need to run it again
+        n = results(p) if p.screen == "picker" and not label(p, "FAVORITE") and in_bar(p, pile) else None
+        if not n:
+            open_panel(p)
+            n = pick_pile(p, pile)
+        piles[p.name][pile] = n - 1  # what's left once this trade goes through
         log(f"{p.name}: {pile} ({n})")
         if p.name not in specials.setdefault("sorted", []):  # once a run: the sort stays put between trades
             sort_recent(p)

@@ -139,6 +139,20 @@ def find(texts, pred):
     return [t for t in texts if pred(t[4])]
 
 
+def up(t):
+    return t[4].upper().strip()
+
+
+def joined(texts):
+    """all the screen's text in one upper-case line"""
+    return " ".join(t[4].upper() for t in texts)
+
+
+def summary(texts, n=250):
+    """the screen's text for a log line"""
+    return " | ".join(t[4] for t in texts)[:n]
+
+
 # OCR sometimes reads a Latin letter as its Cyrillic or Greek twin ('нootHooT'): map them back before dropping non A-Z
 LOOKALIKE = str.maketrans("АВСЕНІЈКМОРЅТХУаbesнікмопрѕтхуΑΒΕΗΙΚΜΝΟΡΤΧΥΖ",
                           "ABCEHIJKMOPSTXYabesнikmonpstxyABEHIKMNOPTXYZ".replace("н", "h"))

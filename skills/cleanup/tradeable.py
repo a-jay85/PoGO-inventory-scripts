@@ -72,13 +72,6 @@ NO_SPECIAL = "&!gigantamax&!shiny" + "".join(f"&!{t}" for t in SPECIAL)
 DYNAMAX = "&dynamax&!traded"  # evolved GIV too
 
 
-def newest(pattern):
-    """the newest file matching runs/*/<name> or <prefix>-<date>.json here"""
-    import glob
-    got = sorted(glob.glob(os.path.join(HERE, pattern)))
-    return got[-1] if got else None
-
-
 # ---------- refresh: PvPoke ----------
 
 def cmd_refresh():
@@ -259,25 +252,8 @@ def cmd_read(resume=None):
     dex.save_trainer(who)
     home.start()
     cache = json.load(open(resume)) if resume else {}
-    lost = [0]
-
-    def n(q):
-        """one search's count, saved as it goes. A search that loses its way goes back to the list and tries again:
-        twice per search, 20 times in all"""
-        for attempt in range(3):
-            if q in cache:
-                break
-            try:
-                cache[q] = dex.search_exact(q)
-            except Stop as e:
-                lost[0] += 1
-                if attempt == 2 or lost[0] > 20:
-                    raise
-                log(f"  {q}: {e}: back to the Pokémon list, again")
-                home.start()
-                continue
-            json.dump(cache, open(os.path.join(base.RUN_DIR, "searches.json"), "w"), indent=0)
-        return cache[q]
+    saved = os.path.join(base.RUN_DIR, "searches.json")
+    n = dex.counter(cache, lambda q, c: json.dump(cache, open(saved, "w"), indent=0))  # saved as it goes
     m = Model()
     fams = families_by_dex(m)
     chunks = [fams[i:i + 20] for i in range(0, len(fams), 20)]  # 20 families: a short search, and fewer splits
@@ -316,10 +292,10 @@ def cmd_plan():
     m = Model()
     lucky_missing, lucky_run = dex.latest("lucky", TAKER)  # (an evolve-lucky run counts too)
     hund_missing, hund_run = dex.latest("100", TAKER)
-    roster_f = newest(os.path.join("..", "roster", "runs", "*", "roster.json"))
-    read_f = newest(os.path.join("runs", "*-read", "read.json"))
-    pvp_f = newest("pvp-giv-*.json")
-    hard_f = newest("giv-evolved-*.json")
+    roster_f = base.newest(HERE, os.path.join("..", "roster", "runs", "*", "roster.json"))
+    read_f = base.newest(HERE, os.path.join("runs", "*-read", "read.json"))
+    pvp_f = base.newest(HERE, "pvp-giv-*.json")
+    hard_f = base.newest(HERE, "giv-evolved-*.json")
     lacking = [n for n, v in [("a lucky /dex run", lucky_run), ("a ★100% /dex run", hund_run),
                               ("roster.json", roster_f), ("read.json", read_f), ("pvp-giv", pvp_f),
                               ("giv-evolved (python3 tradeable.py refresh)", hard_f)] if not v]
@@ -474,7 +450,7 @@ def walk(suffix, xlx, power, limit, skip_dex=(), unsure=None):
 
 
 def cmd_tag(limit):
-    plan_f = newest(os.path.join("runs", "*-plan", "plan.json"))
+    plan_f = base.newest(HERE, os.path.join("runs", "*-plan", "plan.json"))
     if not plan_f:
         sys.exit("no plan yet: python3 tradeable.py plan")
     plan = json.load(open(plan_f))

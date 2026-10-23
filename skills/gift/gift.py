@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """/gift: send San Francisco gifts to every friend who can take one, the most useful first.
 
-  caffeinate -dimsu python3 gift.py [--limit N]                 both phones at once
-  caffeinate -dimsu python3 gift.py --phone ios|android [--limit N]
-  python3 gift.py --phone ios|android look                      what the script reads now; taps nothing
+  caffeinate -dimsu python3 gift.py [--limit N]                       the iPhone
+  POGO_PHONE=android caffeinate -dimsu python3 gift.py [--limit N]    the Android phone
+  POGO_PHONE=both caffeinate -dimsu python3 gift.py [--limit N]       both phones at once
+  [POGO_PHONE=android] python3 gift.py look                           what the script reads now; taps nothing
 
 HashTagAJay is on the iPhone (iPhone Mirroring, hands off the Mac mouse), CyrillJan on the Android phone (adb).
 Each phone runs in its own process (ui.py keeps one phone's state in module globals).
@@ -853,20 +854,16 @@ def one_phone(a):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("cmd", nargs="?", default="run", choices=("run", "look"))
-    ap.add_argument("--phone", choices=("ios", "android"))
     ap.add_argument("--limit", type=int, default=1000, help="at most N gifts per phone this run")
     ap.add_argument("--dry-run", action="store_true", help="everything but SEND and the nickname's OK")
     a = ap.parse_args()
-    if a.phone:
-        if (a.phone == "android") != ui.ANDROID:  # ui reads POGO_PHONE on import: start over with it set
-            env = dict(os.environ, POGO_PHONE="android" if a.phone == "android" else "")
-            sys.exit(subprocess.call([sys.executable] + sys.argv, env=env))
+    if os.environ.get("POGO_PHONE", "").lower() != "both":  # ui read POGO_PHONE on import: android, else the iPhone
         return one_phone(a)
     ui.ensure_helper()  # built once here, so the two phones don't both compile it
     procs = []
     for phone in ("ios", "android"):
-        env = dict(os.environ, POGO_PHONE="android" if phone == "android" else "")
-        cmd = [sys.executable, os.path.abspath(__file__), a.cmd, "--phone", phone, "--limit", str(a.limit)]
+        env = dict(os.environ, POGO_PHONE=phone)
+        cmd = [sys.executable, os.path.abspath(__file__), a.cmd, "--limit", str(a.limit)]
         cmd += ["--dry-run"] if a.dry_run else []
         procs.append(subprocess.Popen(cmd, env=env))
     codes = [p.wait() for p in procs]

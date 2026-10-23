@@ -655,12 +655,30 @@ def preview_ok(title):
     return False, None
 
 
+picker_drags = 0  # scrolls down the gift list the last gift took: ours sit at the same place next time
+
+
+def layout():
+    """where the gift list's city lines sit. OCR reads a title a little differently each look ('better tagether'),
+    the lines' places don't move unless the list does"""
+    return [u[1] for u in sorted(texts, key=lambda u: u[1]) if u[1] > 0.2 and "," in u[4]]
+
+
+def same_list(a, b):
+    """a, b: (layout(), the words) of two looks -> the same view of the gift list"""
+    return a is not None and len(a[0]) == len(b[0]) and all(abs(x - y) <= 0.012 for x, y in zip(a[0], b[0])) \
+        and difflib.SequenceMatcher(None, a[1], b[1]).ratio() > 0.8
+
+
 def send_gift():
     """from the friend page: picker -> one of our two gifts -> SEND. Raises OutOfGifts when neither is there"""
+    global picker_drags
     t = label("SEND GIFT")
     tap_text(t, dy=-0.04)
     wait("picker", timeout=8)
-    seen, dragged = None, None  # seen: the titles on the last look; dragged: the titles when it last scrolled
+    blind = max(0, picker_drags - 1)  # where the last gift was found, less one scroll (a sent gift can shift the list up)
+    drags = 0
+    seen, dragged = None, None  # seen: the last look's layout; dragged: the layout and titles when it last scrolled
     for i in range(40):
         if i:  # (the first pass reads the capture wait() just took)
             time.sleep(0.6)
@@ -668,6 +686,7 @@ def send_gift():
         cards = [(card_title(t), t) for t in texts if t[1] > 0.2]
         cards = [(n, t) for n, t in cards if n and t[1] - 0.11 > 0.18]
         if cards:
+            picker_drags = drags
             title, t = cards[0]
             tap(t[0] + t[2] / 2, t[1] - 0.11)  # the postcard above its title
             wait("preview", timeout=6 * LAG)
@@ -707,15 +726,27 @@ def send_gift():
         if classify() != "picker":
             keep_capture("not_picker")
             raise Stop(f"left the gift list while looking for our gifts: {summary()}")
-        titles = tuple(sorted(u[4] for u in texts if u[1] > 0.2))
-        if titles != seen:
-            seen = titles  # still loading or still moving: look again before scrolling
+        here = layout(), " ".join(u[4] for u in sorted(texts, key=lambda u: u[1]) if u[1] > 0.2)
+        if not same_list(seen, here):
+            seen = here  # still loading or still moving: look again before scrolling
             continue
-        if titles == dragged:
+        if same_list(dragged, here):
+            if blind:  # (the scrolls without a look went past ours?) once more from the top
+                log("  no gift of ours below the remembered spot: looking from the top")
+                picker_drags = 0
+                close()
+                wait("friend", timeout=6 * LAG)
+                return send_gift()
             close()  # a scroll moved nothing: the end of the gifts, and none of ours
             raise OutOfGifts()
-        dragged = titles
+        dragged = here
+        if drags == 0 and blind:  # the list has loaded: scroll down to where the last gift was, no looks between
+            for _ in range(blind - 1):
+                drag(0.75, 0.45, x=0.5 + random.uniform(-0.005, 0.005))
+            drags = blind - 1
+            dragged = None  # (these scrolls weren't checked: the next one mustn't read as the list's end)
         drag(0.75, 0.45, x=0.5 + random.uniform(-0.005, 0.005))
+        drags += 1
     raise Stop("looked through the gift list 40 times without reaching its end")
 
 

@@ -81,6 +81,59 @@ def swipe_next(bounds):
     base.ui._seen = base.ui._older = None
 
 
+def next_one(bounds, moved, poll=0.12):
+    """swipe on to the next Pokémon: True once a detail page shows one moved(texts) says is another. A swipe that does
+    nothing twice = the end of the list. bounds None: read them before each swipe"""
+    for attempt in range(2):
+        swipe_next(bounds or look()[3])
+        for _ in range(10):
+            time.sleep(poll)
+            screen, texts, _, _ = look()
+            if screen == "detail" and moved(texts):
+                return True
+    return False
+
+
+def reopen_top():
+    """one that was changed drops out of the search, and the swipe stops working: back to the list, open the top one
+    again. False when the list is empty now"""
+    texts = go("close", "list")[1]
+    if not ui.tiles(texts):
+        time.sleep(0.4)
+        if not settled_tiles():
+            return False
+    go("tile 1", "detail")
+    return True
+
+
+def select_all(button, n, poll=0.15):
+    """long press the first tile (multi-select), then SELECT ALL, and wait for '<button> (n)'.
+    -> (that button or None, the count it shows, texts, bounds): the caller backs out when the count is off"""
+    _, texts, _, bounds = look()
+    first = ui.tiles(texts)[0]
+    press((first[2] - 0.03, first[3] - 0.01, 0.06, 0.02, ""), bounds, hold=900)  # long press: multi-select
+    pat = rf"{button} \((\d+)\)"
+    for _ in range(20):
+        time.sleep(poll)
+        _, texts, _, bounds = look()
+        sel = exact(texts, "SELECT ALL")
+        if sel and any(re.fullmatch(pat, t[4].strip()) for t in texts):
+            break
+    else:
+        keep_capture("multiselect")
+        raise Stop("long press didn't start multi-select")
+    press(sel[0], bounds)
+    btn = got = None
+    for _ in range(20):
+        time.sleep(poll)
+        _, texts, _, bounds = look()
+        btn = next((t for t in texts if re.fullmatch(pat, t[4].strip())), None)
+        got = int(re.search(r"\d+", btn[4]).group()) if btn else None
+        if got == n:
+            break
+    return btn, got, texts, bounds
+
+
 # ---------- search ----------
 
 def search_exact(q):
@@ -293,35 +346,16 @@ def purify_all(limit):
             done.append({"name": info["name"], "cp_before": info["cp"], "cp": cp, "transferred": False})
             save("purified.json", done)
             log(f"purified {info['name']} CP{info['cp']} -> CP{cp}  ({time.time() - t0:.1f}s, #{len(done)})")
-            # it no longer fits the search, and the swipe stops working: back to the list, open the top one again
             t1 = time.time()
-            texts = go("close", "list")[1]
-            if not ui.tiles(texts):
-                time.sleep(0.4)
-                if not settled_tiles():
-                    break
-            go("tile 1", "detail")
+            if not reopen_top():
+                break
             seen = set()
             log(f"  timing: reopen {time.time() - t1:.1f}s")
             continue
-        moved = False
-        for attempt in range(2):  # next one; a swipe that does nothing twice = end of the list
-            t1 = time.time()
-            _, _, _, bounds = look()
-            swipe_next(bounds)
-            for _ in range(10):
-                time.sleep(0.12)
-                screen, texts, _, _ = look()
-                if screen == "detail":
-                    n = ui.detail_info(texts)
-                    if (n["name"], n["cp"], n["hp"]) != me:
-                        moved = True
-                        break
-            if moved:
-                log(f"  timing: swipe {time.time() - t1:.1f}s")
-                break
-        if not moved:
+        t1 = time.time()
+        if not next_one(None, lambda t: (lambda n: (n["name"], n["cp"], n["hp"]))(ui.detail_info(t)) != me):
             break
+        log(f"  timing: swipe {time.time() - t1:.1f}s")
     log(f"purified {len(done)}, passed over {len(passed)}, {time.time() - t_start:.0f}s")
     if look()[0] != "list":  # the last purify already went back to an empty list
         go("close", "list")
@@ -338,32 +372,12 @@ def transfer_all():
     ts = result_tiles(PURIFIED)
     if not ts:
         raise Stop(f"{PURIFIED} shows nothing, but this run purified {n}")
-    _, texts, path, bounds = look()
-    first = ui.tiles(texts)[0]
-    press((first[2] - 0.03, first[3] - 0.01, 0.06, 0.02, ""), bounds, hold=900)  # long press: multi-select
-    for _ in range(20):
-        time.sleep(0.15)
-        _, texts, _, bounds = look()
-        sel = exact(texts, "SELECT ALL")
-        if sel and any(re.fullmatch(r"TRANSFER \(\d+\)", t[4].strip()) for t in texts):
-            break
-    else:
-        keep_capture("multiselect")
-        raise Stop("long press didn't start multi-select")
-    press(sel[0], bounds)
-    got = None
-    for _ in range(20):
-        time.sleep(0.15)
-        _, texts, _, bounds = look()
-        btn = [t for t in texts if re.fullmatch(r"TRANSFER \((\d+)\)", t[4].strip())]
-        got = int(re.search(r"\d+", btn[0][4]).group()) if btn else None
-        if got == n:
-            break
+    btn, got, texts, bounds = select_all("TRANSFER", n)
     if got != n:
         keep_capture("count")
         search.leave_multiselect(texts, bounds) or press((0.08, 0.08, 0.04, 0.025, ""), bounds)
         raise Stop(f"SELECT ALL picked {got}, but this run purified {n}: nothing transferred")
-    press(btn[0], bounds)
+    press(btn, bounds)
     for _ in range(25):
         time.sleep(0.12)
         _, texts, _, bounds = look()

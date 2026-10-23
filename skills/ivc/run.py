@@ -16,7 +16,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
 import ui, pvp
 import run as base
-from run import Stop, Skip, log, keep_capture, go, wait_for, appraise, think, back_to_list, scroll, front, settle, \
+from run import Stop, Skip, log, keep_capture, go, wait_for, appraise, think, back_to_list, scroll_for_new, front, settle, \
     extras, drag, open_tile, exact_ivs, do_rename
 import ivc, session
 
@@ -292,18 +292,7 @@ def main(limit, dry):
         seen.update(t[1] for t in ts)
         p = pick(ts, passed)
         if not p:
-            before = [t[:2] for t in ts]
-            fresh = False
-            for how in ([scroll_how] + [h for h in ("wheel", "drag") if h != scroll_how]):
-                scroll(bounds, how)
-                _, texts, _, bounds = wait_for("list")
-                now = ui.tiles(texts)
-                if {t[1] for t in now} - seen:
-                    scroll_how, fresh = how, True
-                    break
-                if [t[:2] for t in now] == before:
-                    continue
-                break
+            fresh, scroll_how = scroll_for_new(ts, seen, bounds, scroll_how)
             stale = 0 if fresh else stale + 1
             if stale >= END_AFTER_STALE:
                 log("no new Pokémon after scrolling: end of list")

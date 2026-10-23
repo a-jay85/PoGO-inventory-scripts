@@ -1293,6 +1293,24 @@ def start():
     home.start()
 
 
+def scroll_for_new(ts, seen, bounds, how):
+    """scroll the list down a screen -> (fresh, how). fresh: a tile with a CP not in seen showed up. At the bottom
+    the list bounces back and OCR reads it a bit differently each time, so "did the tiles change" never settles:
+    look for tiles we haven't seen instead. A scroll that doesn't move the list at all tries the other way of
+    scrolling; how is the way that worked, for next time"""
+    before = [t[:2] for t in ts]
+    for way in ([how] + [h for h in ("wheel", "drag") if h != how]):
+        scroll(bounds, way)
+        _, texts, _, bounds = wait_for("list")
+        now = ui.tiles(texts)
+        if {t[1] for t in now} - seen:
+            return True, way
+        if [t[:2] for t in now] == before:
+            continue  # didn't move at all: try the other way of scrolling
+        break  # moved, but nothing new
+    return False, how
+
+
 def main(limit, dry):
     front()
     to_top()
@@ -1311,20 +1329,7 @@ def main(limit, dry):
             if dry:
                 log("DRY nothing to do on this screen, would scroll")
                 return counts
-            # at the bottom the list bounces back and OCR reads it a bit differently each time,
-            # so "did the tiles change" never settles: look for tiles we haven't seen instead
-            before = [t[:2] for t in ts]
-            fresh = False
-            for how in ([scroll_how] + [h for h in ("wheel", "drag") if h != scroll_how]):
-                scroll(bounds, how)
-                _, texts, _, bounds = wait_for("list")
-                now = ui.tiles(texts)
-                if {t[1] for t in now} - seen:
-                    scroll_how, fresh = how, True
-                    break
-                if [t[:2] for t in now] == before:
-                    continue  # didn't move at all: try the other way of scrolling
-                break  # moved, but nothing new
+            fresh, scroll_how = scroll_for_new(ts, seen, bounds, scroll_how)
             stale = 0 if fresh else stale + 1
             if stale >= END_AFTER_STALE:
                 log("no new Pokémon after scrolling: end of list")

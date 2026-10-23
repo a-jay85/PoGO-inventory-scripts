@@ -7,7 +7,7 @@ Claude doesn't need screenshots, and hands back fuzzed tap spots in screenshot c
   ui.py tap <target>      "x y" to click, in screenshot coords. Targets: tile N, menu, close, dialog,
                           pencil, field, search, star, or a word on screen (APPRAISE, TAG, DONE, OK, CANCEL,
                           PvpC, Nope, IVC, Pokémon tab)
-  ui.py look              save the window capture to /tmp/pvpc_cap.png (Read it if you must see it;
+  ui.py look              save the window capture to /tmp/pvpc_<phone>_cap.png (Read it if you must see it;
                           peek.py --text or peek.py --crop is cheaper)
   ui.py press <target>    plan a tap like `tap` and do it (Android: adb taps the phone, no clicking needed)
 
@@ -20,8 +20,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 HELPER = os.path.join(HERE, "helper")
 CALIB = os.path.join(HERE, ".calib.json")
 STATE = os.path.join(HERE, ".state.json")
-CAP = "/tmp/pvpc_cap.png"
 ANDROID = os.environ.get("POGO_PHONE", "").lower() == "android"
+# each phone its own temp pictures: a run on each phone at once must never read the other phone's screen
+TMP = "/tmp/pvpc_android" if ANDROID else "/tmp/pvpc_iphone"
+CAP = TMP + "_cap.png"
 if ANDROID:
     import android
 
@@ -48,7 +50,7 @@ def remember(path, texts, bounds):
     """keep a look so plan() can count it as its first one (no tap since, so it's still the screen)"""
     global _seen, _older
     _older = _seen  # the look before, if no tap came between: two that agree make plan()'s stillness check
-    copy = "/tmp/pvpc_seen%d.png" % (0 if _seen and _seen[1].endswith("1.png") else 1)  # take turns: _older keeps its own picture
+    copy = TMP + "_seen%d.png" % (0 if _seen and _seen[1].endswith("1.png") else 1)  # take turns: _older keeps its own picture
     shutil.copyfile(path, copy)
     _seen = (time.time(), copy, texts, list(bounds), classify(texts))
 

@@ -286,7 +286,9 @@ def trainer():
             search.click(*X_BUTTON, bounds)
             time.sleep(1.5)
             return got[0]
-        if ui.ANDROID and {"OK", "?123"} <= {t[4].strip().upper() for t in texts}:  # a run stopped while typing
+        if "FRIENDS" in j and "ADD FRIEND" in j and press_text(texts, bounds, "ME"):  # the profile opens on its
+            time.sleep(1.5)  # last tab: Friends after /gift
+        elif ui.ANDROID and {"OK", "?123"} <= {t[4].strip().upper() for t in texts}:  # a run stopped while typing
             ui.android.key("back")  # (the keyboard and its own text box are up)
             time.sleep(1.0)
         elif ui.search_panel(texts):

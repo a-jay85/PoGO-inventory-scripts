@@ -18,6 +18,7 @@ neither pair is left it stops. At most 99 trades a day (one is left for a specia
 Log and captures go in runs/<time>/.
 """
 import argparse, datetime, json, os, random, re, shutil, statistics, subprocess, sys, time
+from concurrent.futures import ThreadPoolExecutor
 from PIL import Image
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -145,6 +146,25 @@ class Phone:
             self.proc.wait(timeout=5)
         except Exception:
             self.proc.kill()
+
+
+def both(fn, *argsets):
+    """fn on both phones at once (each phone has its own process, so neither waits on the other). Waits for both,
+    then raises the worst error: the trading service down, then an expired trade, then any other"""
+    with ThreadPoolExecutor(len(argsets)) as ex:
+        futs = [ex.submit(fn, *a) for a in argsets]
+    out, errs = [], []
+    for f in futs:
+        try:
+            out.append(f.result())
+        except BaseException as e:
+            out.append(None)
+            errs.append(e)
+    for kind in (ServiceDown, Expired, BaseException):
+        for e in errs:
+            if isinstance(e, kind):
+                raise e
+    return out
 
 
 # ---------- reading screens ----------
@@ -295,7 +315,7 @@ def to_friend(p):
 
 def open_trade(phones):
     """LOCAL TRADE on both. The first one waits ("Waiting for ... to be available") until the second one taps too"""
-    for p in phones:
+    def tap_local(p):
         for attempt in range(4):
             s = p.wait("friend", "waiting", "picker", "expired", timeout=8)  # (a banner can cover it for a moment)
             if s == "expired":  # the box from an old trade can come up late, on the friend page
@@ -311,9 +331,9 @@ def open_trade(phones):
                 time.sleep(0.6)
                 if p.look() != "friend":
                     break
+    both(tap_local, *[(p,) for p in phones])
     try:
-        for p in phones:
-            p.wait("picker", timeout=20)
+        both(lambda p: p.wait("picker", timeout=20), *[(p,) for p in phones])
     except Stop:
         if not all(p.look() in ("waiting", "expired") for p in phones):
             raise
@@ -516,6 +536,24 @@ def arrow(path):
     return "up" if head_up > head_down else "down" if head_down > head_up else None
 
 
+RECENT_ICON = os.path.join(HERE, "recent_icon.png")  # the sort button's clock and down arrow, green on teal
+
+
+def sorted_recent(path):
+    """the sort button already shows Recent (the clock) with the arrow down: newest first, nothing to set"""
+    try:
+        want = Image.open(RECENT_ICON).convert("1")
+        im = Image.open(path).convert("RGB")
+    except OSError:
+        return False
+    if im.size != (406, 890):  # the template comes from a 406 x 890 capture
+        return False
+    have = {(x, y) for x in range(want.width) for y in range(want.height)
+            if (lambda c: c[1] > 150 and c[1] > c[0] + 40)(im.getpixel((325 + x, 805 + y)))}
+    need = {(x, y) for x in range(want.width) for y in range(want.height) if want.getpixel((x, y))}
+    return len(have & need) / max(1, len(have | need)) >= 0.6 and arrow(path) == "down"
+
+
 def sort_recent(p):
     """Recent, newest first. Picking RECENT when it's already the sort flips the order, so: pick it, read the
     arrow, and pick it once more if it points up"""
@@ -707,12 +745,10 @@ def trade_once(ios, android, specials):
     """one trade. specials: what the run remembers between trades (special trades left, phones already sorted)"""
     phones = (ios, android)
     if all(p.look() in IN_TRADE for p in phones):
-        for p in phones:  # both still in a trade from before: carry on in it
-            to_picker(p)
+        both(to_picker, *[(p,) for p in phones])  # both still in a trade from before: carry on in it
     else:
-        for p in phones:
-            if p.look() != "waiting":  # waiting already: LOCAL TRADE on the other phone lets it in
-                to_friend(p)
+        # waiting already: LOCAL TRADE on the other phone lets it in
+        both(lambda p: p.look() == "waiting" or to_friend(p), *[(p,) for p in phones])
         open_trade(phones)
     for p in phones:
         p.live = True
@@ -730,15 +766,16 @@ def trade_once(ios, android, specials):
     # Read them off the panel again only when a pile the pair needs could be down to its last one
     pair = pairs(piles["ios"], piles["android"]) if all(len(piles[p.name]) == 2 for p in phones) else None
     if not (pair and piles["ios"][pair[0]] >= 2 and piles["android"][pair[1]] >= 2):
-        have = {}
-        for p in phones:
+        def read(p):
             open_panel(p)
-            have[p.name] = counts(p, piles[p.name])
+            return counts(p, piles[p.name])
+        have = dict(zip(("ios", "android"), both(read, *[(p,) for p in phones])))
         log(f"piles: iPhone {have['ios']}, Android {have['android']}")
         pair = pairs(have["ios"], have["android"])
         if not pair:
             return None  # both phones are left in the picker: nothing picked, nothing to undo
-    for p, pile in zip(phones, pair):
+    def ready(p, pile):
+        """the pile's search on, sorted newest first, its top one picked"""
         p.look()
         # the last trade's search stays on in the list: its header has the count, no need to run it again
         n = results(p) if p.screen == "picker" and not label(p, "FAVORITE") and in_bar(p, pile) else None
@@ -748,13 +785,17 @@ def trade_once(ios, android, specials):
         piles[p.name][pile] = n - 1  # what's left once this trade goes through
         log(f"{p.name}: {pile} ({n})")
         if p.name not in specials.setdefault("sorted", []):  # once a run: the sort stays put between trades
-            sort_recent(p)
+            if sorted_recent(p.path):
+                log(f"{p.name}: already sorted Recent, newest first")
+            else:
+                sort_recent(p)
             specials["sorted"].append(p.name)
         elif arrow(p.path) != "down":
             sort_recent(p)
-    got = [choose(p) for p in phones]
+        return choose(p)
+    got = both(ready, *zip(phones, pair))
     for skip in range(SKIPS + 1):
-        reads = [check_confirm(p) for p in phones]
+        reads = both(check_confirm, *[(p,) for p in phones])
         d = reads[0][0]
         if abs(reads[0][0] - reads[1][0]) > 1:
             raise Stop(f"the phones read different distances: {reads}")
@@ -768,8 +809,11 @@ def trade_once(ios, android, specials):
         android.wait("picker", timeout=10)
         got[1] = choose(android, skip + 1)
     for p in (android, ios):  # the Android side first: its taps never miss, the iPhone's last tap starts the trade
-        p.look()
-        if p.screen != "confirm":
+        try:  # (the reader can miss a letter of CONFIRM on one capture)
+            p.wait("confirm", timeout=4)
+        except Expired:
+            raise
+        except Stop:
             raise Stop(f"{p.name}: left the confirm screen before CONFIRM: {p.summary()}")
         confirm(p)
     for p in phones:
@@ -779,11 +823,10 @@ def trade_once(ios, android, specials):
 
 def finish(phones):
     """wait out the animation, read what each got, close the result screens"""
-    for p in phones:
+    def close(p):
         if p.wait("result", "expired", timeout=45) == "expired":
             # seen on the Android once, while the iPhone got its Pokémon: the trade went through all the same
             log(f"{p.name}: says the trade expired after both confirmed: the next round clears it")
-    for p in phones:
         for _ in range(3):
             if p.screen != "result":
                 break
@@ -791,6 +834,7 @@ def finish(phones):
             time.sleep(1.5)
             if p.look() != "result":
                 break
+    both(close, *[(p,) for p in phones])
 
 
 def restart(phones):

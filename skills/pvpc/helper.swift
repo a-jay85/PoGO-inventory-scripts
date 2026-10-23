@@ -112,11 +112,12 @@ func ocr(_ path: String) -> [String] {
             return 1 - o.boundingBox.maxY < 0.1 && clock.firstMatch(in: s, range: NSRange(s.startIndex..., in: s)) != nil
         }
     }
-    // the Android clock is white on a light screen and often unread: then count right-way-up 'CP 123's too
+    // the Android clock is white on a light screen and often unread: then count right-way-up 'CP 123's and the
+    // search screens' headings too (without those, every search look was read twice: ~0.4 s more)
     func score(_ os: [VNRecognizedTextObservation]) -> Int {
         (hasClock(os) ? 100 : 0) + os.filter { o in
             let u = (o.topCandidates(1).first?.string ?? "").uppercased()
-            return ["CP", "DONE", "SEARCH", "TRANSFER", "THIS TAG"].contains { u.contains($0) }
+            return ["CP", "DONE", "SEARCH", "TRANSFER", "THIS TAG", "POKÉMON", "EGGS", "FAVORITE", "SELECT ALL"].contains { u.contains($0) }
         }.count
     }
     var obs = read(nil)

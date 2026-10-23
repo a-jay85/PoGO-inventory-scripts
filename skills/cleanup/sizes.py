@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
 import ui
 import run as base
 from run import Stop, Skip, log, go, look, wait_for
-import search
+import search, session
 import cleantrades as ct
 from shadows import Pass, swipe_next, press
 from trades import search_exact, sheet_rows, still_sheet
@@ -149,19 +149,16 @@ def sweep(limit):
             log(f"{q}: {left} still there (passed over or --limit): look at them by hand")
 
 
+def script(limit):
+    base.start()
+    search.to_search_list()
+    log(f"signed in as {ct.account()}")
+    sweep(limit)
+
+
 if __name__ == "__main__":
     a = sys.argv[1:]
     if any(x != "--limit" and not x.isdigit() for x in a):
         sys.exit(__doc__)
-    limit = int(a[a.index("--limit") + 1]) if "--limit" in a else 10 ** 9
-    base.new_run_dir(None, os.path.join(HERE, "runs", time.strftime("%Y%m%d-%H%M%S") + "-sizes"))
-    try:
-        base.start()
-        search.to_search_list()
-        log(f"signed in as {ct.account()}")
-        sweep(limit)
-    except Stop as e:
-        log(f"STOP: {e}")
-        sys.exit(1)
-    finally:
-        log(f"run folder: {base.RUN_DIR}")
+    base.new_run_dir(os.path.join(HERE, "runs"), suffix="sizes")
+    session.main(script, session.limit(a))

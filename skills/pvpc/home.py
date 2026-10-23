@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Start from anywhere: every script calls start() first, so the phone can be on any screen, or Pokémon GO not open.
 
-- Android: wakes the phone, opens Pokémon GO if it isn't in front, waits out the loading screens, and presses Back
+- First session.ready(): iPhone Mirroring open and connected, or the Pixel awake and unlocked (its PIN from a file).
+- Android: opens Pokémon GO if it isn't in front, waits out the loading screens, and presses Back
   on popups and on screens the scripts don't know until the map or the Pokémon screens show.
   Back on the map asks "exit Pokémon GO?": that's answered CANCEL.
-- iPhone: brings iPhone Mirroring forward. On the iPhone's home screen, or a screen it doesn't know, it goes to the
+- iPhone: brings iPhone Mirroring forward (opened again once if it loses the iPhone). On the iPhone's home screen, or a screen it doesn't know, it goes to the
   home screen and taps the game in the dock, which opens it or brings it back. No Back key there, so a popup it
   still doesn't know after that stops the run.
 - A tag sheet or a nickname box left open by an earlier run: the nickname box is canceled (nothing saved). The tag
@@ -20,7 +21,7 @@ import os, random, re, sys, time
 import ui
 import run as base
 from run import Stop, log, keep_capture
-import search
+import search, session
 
 STORAGE = ("list", "tag-tab", "detail", "menu", "appraisal", "appraise-intro", "gym")
 OPEN = ("detail", "menu", "appraisal", "appraise-intro", "gym")  # a Pokémon open: back_to_list() closes it
@@ -65,7 +66,9 @@ def where(path, texts):
         return "signin"
     if "ISN'T RESPONDING" in j or "KEEPS STOPPING" in j:
         return "anr"
-    if not ui.ANDROID and ("IPHONE IN USE" in j or "IPHONE IS LOCKED" in j or "UNLOCK YOUR IPHONE" in j):
+    if not ui.ANDROID and "CONNECTING" in j:
+        return "blank"  # iPhone Mirroring on its way to the iPhone
+    if not ui.ANDROID and any(w in j for w in session.TROUBLE):
         return "mirroring"  # iPhone Mirroring can't reach the phone
     if main_menu(texts):
         return "mainmenu"
@@ -95,18 +98,9 @@ def press_text(texts, bounds, word):
 # ---------- getting the game in front ----------
 
 def android_launch():
-    """phone awake and unlocked, Pokémon GO the app in front (opened if it wasn't). True if it had to open it."""
+    """Pokémon GO the app in front (opened if it wasn't). session.ready() has woken and unlocked the phone.
+    True if it had to open it."""
     a = ui.android
-    if a.adb("get-state").strip() != "device":
-        raise Stop("phone not connected: plug it in, turn on USB debugging, and tap Allow on the phone")
-    if "mWakefulness=Awake" not in a.shell("dumpsys power | grep -m1 mWakefulness="):
-        a.shell("input keyevent KEYCODE_WAKEUP")
-        time.sleep(1.5)
-    if re.search(r"mIsShowing=true", a.shell("dumpsys window | grep mIsShowing=")):
-        a.shell("input keyevent KEYCODE_MENU")  # a lock screen with no PIN opens with this
-        time.sleep(1.5)
-        if re.search(r"mIsShowing=true", a.shell("dumpsys window | grep mIsShowing=")):
-            raise Stop("the phone is locked: unlock it (turn on Stay awake in Developer options so it stays unlocked)")
     if a.PKG in a.shell("dumpsys activity activities | grep -E 'ResumedActivity'"):
         return False
     log("Pokémon GO isn't in front: opening it")
@@ -165,6 +159,7 @@ def unstick(texts):
 def start(storage=True):
     """from wherever the phone is to the Pokémon screens. storage=False (/trade): the game open and loaded, on any
     screen it knows or trade.py might (friend page, trade lobby...). -> the screen it ended on"""
+    session.ready()  # iPhone Mirroring open and connected, or the Pixel awake and unlocked
     opened = android_launch() if ui.ANDROID else False
     if ui.ANDROID:
         try:
@@ -175,7 +170,7 @@ def start(storage=True):
         base.front()
     t_open = time.time()
     end = t_open + LOAD_TIMEOUT
-    prev, same, unknowns = None, 0, 0
+    prev, same, unknowns, reconnected = None, 0, 0, False
     while True:
         try:
             screen, texts, path, bounds = look()
@@ -234,7 +229,14 @@ def start(storage=True):
             opened, t_open, end = True, time.time(), time.time() + LOAD_TIMEOUT
             time.sleep(3)
         elif screen == "mirroring":
-            raise Stop("iPhone Mirroring can't reach the iPhone: lock it and leave it alone, then run again")
+            if reconnected:
+                raise Stop("iPhone Mirroring can't reach the iPhone: lock it and leave it alone, then run again")
+            reconnected = True
+            log("iPhone Mirroring lost the iPhone: opening it again")
+            session.quit_mirroring()
+            time.sleep(2.0)
+            session.connect()
+            end = time.time() + LOAD_TIMEOUT
         elif screen == "signin":
             keep_capture("signin")
             raise Stop("Pokémon GO wants you to sign in: do that by hand")

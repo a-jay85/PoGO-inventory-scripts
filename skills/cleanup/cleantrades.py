@@ -29,7 +29,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
 import ui
 import run as base
 from run import Stop, log, keep_capture, go, look, wait_for
-import search
+import search, session
 import pvp
 from shadows import Pass, press, swipe_next, settled_tiles, exact, owned
 from trades import sheet_rows, still_sheet, search_exact
@@ -620,47 +620,45 @@ def power_walk(limit):
     return done
 
 
+def script(a):
+    limit = session.limit(a)
+    base.start()  # from anywhere, Pokémon GO closed too
+    search.to_search_list()
+    who = None if LOOK else account()
+    if who != EVO_FOR and ("evo" in a or "fix" in a):
+        raise Stop(f"signed in as {who!r}: only {EVO_FOR} tags free evolutions Evo")
+    if LOOK:
+        power_walk(limit)
+        return
+    if "evo" in a:  # steps 1 and 3: a PvpC/IVC one tagged Evo first would drop out of its shortcut (!#)
+        for name, tag in TAGGING:
+            tag_pile(name, tag)
+        tag_pile(CLEAN, EVO, f"&{TRADE_EVOS}&!#{EVO}")
+        return
+    if "fix" in a:  # Transfer tags given before the Evo step: traded trade evolutions go Transfer -> Evo
+        tag_pile(TRANSFER, EVO, off=[TRANSFER], query=f"#{TRANSFER}&traded&{TRADE_EVOS}")
+        return
+    for name, tag in TAGGING:  # first: Clean Trades (!#) must only see what's left untagged after these
+        tag_pile(name, tag)
+    try:
+        if power_walk(limit) is None:
+            log(f"--limit {limit}: the rest weren't checked, so Clean Trades isn't tagged Transfer")
+            return
+    except Stop as e:
+        if "Stardust" not in str(e):
+            raise
+        log(f"stopped powering up: {e}")
+        if look()[0] != "list":
+            go("close", "list")
+    if who == EVO_FOR:
+        tag_pile(CLEAN, EVO, f"&{TRADE_EVOS}&!#{EVO}")  # first: these drop out of Clean Trades (!#)
+    tag_pile(CLEAN, TRANSFER)
+
+
 if __name__ == "__main__":
     a = sys.argv[1:]
     if any(x not in ("--limit", "--look", "evo", "fix") and not x.isdigit() for x in a):
         sys.exit(__doc__)
     LOOK = "--look" in a
-    limit = int(a[a.index("--limit") + 1]) if "--limit" in a else 10 ** 9
     base.new_run_dir(os.path.join(HERE, "runs"))
-    try:
-        base.start()  # from anywhere, Pokémon GO closed too
-        search.to_search_list()
-        who = None if LOOK else account()
-        if who != EVO_FOR and ("evo" in a or "fix" in a):
-            raise Stop(f"signed in as {who!r}: only {EVO_FOR} tags free evolutions Evo")
-        if LOOK:
-            power_walk(limit)
-            sys.exit(0)
-        if "evo" in a:  # steps 1 and 3: a PvpC/IVC one tagged Evo first would drop out of its shortcut (!#)
-            for name, tag in TAGGING:
-                tag_pile(name, tag)
-            tag_pile(CLEAN, EVO, f"&{TRADE_EVOS}&!#{EVO}")
-            sys.exit(0)
-        if "fix" in a:  # Transfer tags given before the Evo step: traded trade evolutions go Transfer -> Evo
-            tag_pile(TRANSFER, EVO, off=[TRANSFER], query=f"#{TRANSFER}&traded&{TRADE_EVOS}")
-            sys.exit(0)
-        for name, tag in TAGGING:  # first: Clean Trades (!#) must only see what's left untagged after these
-            tag_pile(name, tag)
-        try:
-            if power_walk(limit) is None:
-                log(f"--limit {limit}: the rest weren't checked, so Clean Trades isn't tagged Transfer")
-                sys.exit(0)
-        except Stop as e:
-            if "Stardust" not in str(e):
-                raise
-            log(f"stopped powering up: {e}")
-            if look()[0] != "list":
-                go("close", "list")
-        if who == EVO_FOR:
-            tag_pile(CLEAN, EVO, f"&{TRADE_EVOS}&!#{EVO}")  # first: these drop out of Clean Trades (!#)
-        tag_pile(CLEAN, TRANSFER)
-    except Stop as e:
-        log(f"STOP: {e}")
-        sys.exit(1)
-    finally:
-        log(f"run folder: {base.RUN_DIR}")
+    session.main(script, a)

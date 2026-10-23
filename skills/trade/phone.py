@@ -11,6 +11,7 @@ Reads one JSON request a line on stdin, answers one JSON line on stdout:
   {"op": "restart"}                 force-close Pokémon GO and open it again (doesn't wait for it to load)
   {"op": "start", "run_dir"}        open Pokémon GO if it isn't, and wait until it's loaded -> {"screen"}
   {"op": "unstick", "texts", "backs"}  one step out of a screen nobody knows (Android: Back; iPhone: reopen the game)
+  {"op": "close"}                   the run's end: lock the Pixel, or quit iPhone Mirroring (if "start" opened it)
 Errors come back as {"error": "..."}.
 """
 import json, os, random, sys, time, traceback
@@ -19,7 +20,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
 import ui
 import run as base
-import home
+import home, session
 
 NAME = sys.argv[1]
 ui.CAP = f"/tmp/trade_{NAME}.png"  # each phone its own capture: with one shared file a phone could read the other's
@@ -83,6 +84,9 @@ def main():
                 home.backs = req["backs"]  # each trip to the friend page gets its own allowance
                 home.reopened = req["backs"] > 0  # iPhone: one reopen a trip too
                 home.unstick(req["texts"])
+            elif op == "close":
+                if session.opened:
+                    session.close()
             else:
                 out = {"error": f"unknown op {op}"}
         except (ui.Refused, base.Stop) as e:

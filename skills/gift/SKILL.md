@@ -25,7 +25,7 @@ Keep your hands off the Mac mouse while the iPhone runs: its taps go through the
 
 ## Which gifts
 
-Only gifts whose city line reads **San Francisco**, with no sticker. A title with **lion**, **tree** or **rock** in it is kept (Lions, Trees and Rocky too). Mission Rock gifts are sent anyway. The gift preview must read the same title and city before SEND. Every other gift (Chicago, North Carolina ...) is left for sending by hand. When a phone has none left, it stops. The iPhone also quits iPhone Mirroring. The other phone keeps going.
+Only gifts whose city line reads **San Francisco**, with no sticker. A title with **lion**, **tree** or **rock** in it is kept (Lions, Trees and Rocky too). Mission Rock gifts are sent anyway. The gift preview must read the same title and city before SEND. Every other gift (Chicago, North Carolina ...) is left for sending by hand. When a phone has none left, it stops. The other phone keeps going. At the end the iPhone quits iPhone Mirroring and the Pixel locks.
 
 ## Who goes first
 

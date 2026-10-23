@@ -23,14 +23,14 @@ sys.path.insert(0, os.path.join(HERE, "..", "ivc"))
 sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
 import ui
 import run as base
-from run import Stop, Skip, log, keep_capture, go, back_to_list, front, save, load, steady_detail, \
+from run import Stop, Skip, log, go, back_to_list, front, save, load, steady_detail, \
     extras, candy, type_line, dynamax, set_tags, set_star
 
 spec = importlib.util.spec_from_file_location("ivcrun", os.path.join(HERE, "..", "ivc", "run.py"))
 ivcrun = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(ivcrun)
 import sort
-import search, fallen
+import search, fallen, session
 from search import to_search_list, start_search, run_search, result_count, looks_same
 
 TAG = "IVC"
@@ -617,55 +617,45 @@ def act(limit):
     log(f"left over (not found in the list): {sum(todo.values())}, skipped: {len(skipped)}")
 
 
+def script(a, cmd, limit):
+    if cmd == "act-fallen" and not os.path.exists(os.path.join(base.RUN_DIR, "fallen-groups.json")):
+        sys.exit("run fallen first, and read plan.txt")
+    if cmd == "act":  # these checks before the phone moves
+        if not os.path.exists(os.path.join(base.RUN_DIR, "plan.json")):
+            sys.exit("run plan first, and read plan.txt")
+        if any(m.get("unrenamed") for m in load("plan.json")) and "--force" not in a:
+            sys.exit("some IVC Pokémon aren't renamed yet: run /ivc first (or --force)")
+        if not approved("--yes" in a):
+            sys.exit("not approved, nothing changed")
+    if cmd != "plan":  # every other step uses the phone
+        base.start()
+    if cmd == "scan":
+        scan(limit)
+    elif cmd == "pools":
+        pools()
+    elif cmd == "plan":
+        plan()
+    elif cmd == "fallen":
+        fallen.groups(iv_only=True)
+        plan()
+    elif cmd == "act-fallen":
+        act_fallen(limit)
+    elif cmd == "act":
+        act(limit)
+    elif cmd == "search":
+        front()
+        got, want = run_search(a[1])
+        for n, c in got:
+            print(f"CP{c:<5} {n}")
+        print(f"{len(got)} read, the game says {want}")
+
+
 if __name__ == "__main__":
     a = sys.argv[1:]
     if not a or a[0] not in ("scan", "pools", "plan", "fallen", "act", "act-fallen", "search"):
         sys.exit(__doc__)
-    limit = int(a[a.index("--limit") + 1]) if "--limit" in a else 10 ** 9
+    limit = session.limit(a)
     cmd = a[0]
     given = a[1] if len(a) > 1 and not a[1].startswith("--") and cmd != "search" else None
     new_run_dir(os.path.abspath(given) if given else None)
-    code = 0
-    try:
-        if cmd == "act-fallen" and not os.path.exists(os.path.join(base.RUN_DIR, "fallen-groups.json")):
-            sys.exit("run fallen first, and read plan.txt")
-        if cmd == "act":  # these checks before the phone moves
-            if not os.path.exists(os.path.join(base.RUN_DIR, "plan.json")):
-                sys.exit("run plan first, and read plan.txt")
-            if any(m.get("unrenamed") for m in load("plan.json")) and "--force" not in a:
-                sys.exit("some IVC Pokémon aren't renamed yet: run /ivc first (or --force)")
-            if not approved("--yes" in a):
-                sys.exit("not approved, nothing changed")
-        if cmd != "plan":  # every other step uses the phone
-            base.start()
-        if cmd == "scan":
-            scan(limit)
-        elif cmd == "pools":
-            pools()
-        elif cmd == "plan":
-            plan()
-        elif cmd == "fallen":
-            fallen.groups(iv_only=True)
-            plan()
-        elif cmd == "act-fallen":
-            act_fallen(limit)
-        elif cmd == "act":
-            act(limit)
-        elif cmd == "search":
-            front()
-            got, want = run_search(a[1])
-            for n, c in got:
-                print(f"CP{c:<5} {n}")
-            print(f"{len(got)} read, the game says {want}")
-    except Stop as e:
-        keep_capture("stop")
-        log(f"STOPPED: {e}")
-        code = 1
-    except KeyboardInterrupt:
-        log("interrupted")
-        code = 130
-    except Exception as e:
-        keep_capture("crash")
-        log(f"CRASHED: {type(e).__name__}: {e}")
-        code = 2
-    sys.exit(code)
+    session.main(script, a, cmd, limit)

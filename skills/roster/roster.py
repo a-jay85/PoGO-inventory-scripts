@@ -18,13 +18,14 @@ species. A new traded copy of a species (never shadow) helps against a boss if i
 Reroll, #2-#6 is GIV. Legendary, Mythical and Ultra Beast species are never tagged (traded by hand).
 Output in runs/<time>-count/: counts.json, roster.json (for /cleanup's tradeable.py) and report.md.
 """
-import argparse, glob, json, os, re, sys, time
+import argparse, glob, json, os, re, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
 sys.path.insert(0, os.path.join(HERE, "..", "dex"))
 import dex
 from run import Stop, log
+import session
 
 TRAINER = "HashTagAJay"
 GOOD = "3*,4*"
@@ -244,7 +245,7 @@ def load_counts(path):
 
 def cmd_count(model, resume):
     import home, run as base
-    base.new_run_dir(None, os.path.join(HERE, "runs", time.strftime("%Y%m%d-%H%M%S") + "-count"))
+    base.new_run_dir(os.path.join(HERE, "runs"), suffix="count")
     who = home.trainer()
     if who != TRAINER:
         raise Stop(f"{who} is signed in: /roster counts {TRAINER}'s Pokémon")
@@ -335,6 +336,30 @@ def report(model, counts, unsure, out_dir):
     return path, lines
 
 
+def script(a, model):
+    if a.cmd == "count":
+        import ui
+        if not ui.ANDROID:
+            sys.exit("Android only for now: POGO_PHONE=android")
+        counts, unsure, out = cmd_count(model, a.counts)
+    else:
+        path = a.counts or newest("runs/*-count/counts.json")
+        if not path:
+            sys.exit("no counts yet: roster.py count")
+        counts, unsure = load_counts(path)
+        out = os.path.dirname(path)
+        need = set()
+        for b in model.bosses:
+            model.team(b, counts, need=need)
+        if need:  # a stopped count, or a newer pull with attackers it never counted
+            sys.exit(f"{path} misses {len(need)} piles ({', '.join(sorted({s for s, *_ in need})[:8])}...): "
+                     f"finish it with roster.py count {path.replace(HERE + os.sep, '')}")
+    path, lines = report(model, counts, unsure, out)
+    end = lines.index("## Reroll")
+    print("\n".join(lines[:end]))
+    print(f"report: {path}")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("cmd", choices=("count", "report"))
@@ -346,31 +371,7 @@ def main():
     model = Model(json.load(open(data_path)))
     if a.counts and not os.path.exists(a.counts):  # (runs/... is under the skill folder)
         a.counts = os.path.join(HERE, a.counts)
-    try:
-        if a.cmd == "count":
-            import ui
-            if not ui.ANDROID:
-                sys.exit("Android only for now: POGO_PHONE=android")
-            counts, unsure, out = cmd_count(model, a.counts)
-        else:
-            path = a.counts or newest("runs/*-count/counts.json")
-            if not path:
-                sys.exit("no counts yet: roster.py count")
-            counts, unsure = load_counts(path)
-            out = os.path.dirname(path)
-            need = set()
-            for b in model.bosses:
-                model.team(b, counts, need=need)
-            if need:  # a stopped count, or a newer pull with attackers it never counted
-                sys.exit(f"{path} misses {len(need)} piles ({', '.join(sorted({s for s, *_ in need})[:8])}...): "
-                         f"finish it with roster.py count {path.replace(HERE + os.sep, '')}")
-        path, lines = report(model, counts, unsure, out)
-        end = lines.index("## Reroll")
-        print("\n".join(lines[:end]))
-        print(f"report: {path}")
-    except Stop as e:
-        log(f"STOPPED: {e}")
-        sys.exit(1)
+    session.main(script, a, model)
 
 
 if __name__ == "__main__":

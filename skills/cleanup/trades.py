@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
 import ui
 import run as base
 from run import Stop, log, keep_capture, go, look, wait_for, save, load, candy
-import search
+import search, session
 from shadows import Pass, GM, press, swipe_next, settled_tiles, exact, not_high_iv
 
 OLD_DAYS = 300  # caught this many days ago or more -> Old (the game's age300-)
@@ -413,13 +413,7 @@ def check_traded(info, texts, path, bounds, me):
     return ["Spot Transfer"]
 
 
-if __name__ == "__main__":
-    a = sys.argv[1:]
-    if any(x not in ("--limit", "--dry-run") and not x.isdigit() for x in a):
-        sys.exit(__doc__)
-    DRY = "--dry-run" in a
-    limit = int(a[a.index("--limit") + 1]) if "--limit" in a else 10 ** 9
-    base.new_run_dir(os.path.join(HERE, "runs"))
+def script(limit):
     done = []
     t_start = time.time()
     try:
@@ -427,9 +421,14 @@ if __name__ == "__main__":
         for q, decide in ((LEGENDS, check_trade), (BEASTS, check_trade)) + tuple((q, check_traded) for q in TRADED):
             if len(done) < limit:
                 walk(q, decide, done, limit)
-    except Stop as e:
-        log(f"STOP: {e}")
-        sys.exit(1)
     finally:
         log(f"retagged {len(done)} in {time.time() - t_start:.0f}s")
-        log(f"run folder: {base.RUN_DIR}")
+
+
+if __name__ == "__main__":
+    a = sys.argv[1:]
+    if any(x not in ("--limit", "--dry-run") and not x.isdigit() for x in a):
+        sys.exit(__doc__)
+    DRY = "--dry-run" in a
+    base.new_run_dir(os.path.join(HERE, "runs"))
+    session.main(script, session.limit(a))

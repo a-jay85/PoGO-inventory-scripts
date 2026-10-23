@@ -14,8 +14,8 @@ import os, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
 import run as base
-from run import Stop, Skip, log, go
-import search
+from run import Skip, log, go
+import search, session
 
 QUERIES = ("#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp",  # two of the three at 15
            "#Nope&shadow&3*,4*")
@@ -59,15 +59,11 @@ def main(limit, dry):
     log(f"appraised {looked[0]}, kept {len(kept)}: {[(k['name'], k['cp'], k['ivs']) for k in kept]}")
 
 
+def script(a):
+    base.start()
+    main(session.limit(a), "--dry-run" in a)
+
+
 if __name__ == "__main__":
-    a = sys.argv[1:]
-    limit = int(a[a.index("--limit") + 1]) if "--limit" in a else 10 ** 9
     base.new_run_dir(os.path.join(HERE, "runs"))
-    try:
-        base.start()
-        main(limit, "--dry-run" in a)
-    except Stop as e:
-        log(f"STOP: {e}")
-        sys.exit(1)
-    finally:
-        log(f"run folder: {base.RUN_DIR}")
+    session.main(script, sys.argv[1:])

@@ -64,7 +64,7 @@ PvpC1 and PvpC2 get no `&!#PvpC`: their own search already leaves out anything t
 
 Adding to a shortcut's search: tap the shortcut, tap the filled bar, jump to the end, type the extra part, Return. A `count…` term eats any text after it, so the XL part always goes last.
 
-**iPhone (HashTagAJay):** run it without `POGO_PHONE=android`, with iPhone Mirroring open. Tagging and the jump to the end of the bar (Cmd+Right) ran on 2026-10-19. The power-up walk and the swipe haven't run on the iPhone yet, because none of its Clean Trades were under 360 XL. The first time some are, run `--look`, then `--limit 1`. Shortcut taps often land as a long press there. The script closes the box and taps again.
+**iPhone (HashTagAJay):** run it without `POGO_PHONE=android` (it opens iPhone Mirroring itself). Tagging and the jump to the end of the bar (Cmd+Right) ran on 2026-10-19. The power-up walk and the swipe haven't run on the iPhone yet, because none of its Clean Trades were under 360 XL. The first time some are, run `--look`, then `--limit 1`. Shortcut taps often land as a long press there. The script closes the box and taps again.
 
 
 ## Tradeable: tag CyrillJan's trade pile by what it's worth to HashTagAJay

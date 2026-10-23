@@ -18,7 +18,7 @@ Before each gift the friendship screen is checked. When the next heart is the 3r
 Friends bar: 1 point to go -> no gift, nickname "WAIT <old>"; 2 points -> gift, nickname "SENT <old>".
 Only gifts from San Francisco are sent (the city line under the title), never one with "lion", "tree" or "rock" in
 its title, and never with a sticker. When a phone has none
-left it stops (the iPhone quits iPhone Mirroring); the other phone carries on.
+left it stops; the other phone carries on. At the end the iPhone quits iPhone Mirroring and the Pixel locks.
 Log and captures go in runs/<time>-<phone>/.
 """
 import argparse, difflib, os, random, re, subprocess, sys, time
@@ -29,6 +29,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
 import ui
 import run as base
 from run import Stop, keep_capture
+import session
 
 CITY = "SAN FRANCISCO"  # the only gifts sent: the rest (Chicago, North Carolina ...) are kept for sending by hand
 KEEP = re.compile(r"\b(lion|tree|(?<!mission )rock)", re.I)  # San Francisco gifts that are kept anyway (Lions, Trees, Rocky too; Mission Rock is sent)
@@ -1007,14 +1008,9 @@ def run_searches(limit):
     return sent
 
 
-def quit_mirroring():
-    subprocess.run(["osascript", "-e", 'tell application "iPhone Mirroring" to quit'], capture_output=True)
-
-
 def one_phone(a):
-    import home
     ui.CAP = f"/tmp/gift_{PHONE}.png"
-    base.new_run_dir(None, os.path.join(HERE, "runs", time.strftime("%Y%m%d-%H%M%S") + "-" + PHONE))
+    base.new_run_dir(os.path.join(HERE, "runs"), suffix=PHONE)
     global DRY
     DRY = a.dry_run
     if a.cmd == "look":
@@ -1024,27 +1020,26 @@ def one_phone(a):
         if s == "friend":
             print("    hearts:", heart_fill())
         return
-    sent = 0
+    session.main(script, a.limit)
+
+
+def script(limit):
+    import home
+    session.ready()  # iPhone Mirroring up (or the Pixel unlocked) before the first look
     try:
         s = look()
-        if s in ("unknown", "blank", "map"):  # (home.start reads a scrolled friend page, SET NICKNAME, as a rename box)
-            s = home.start(storage=False)
-        log(f"Pokémon GO up, on {s}")
-        sent = run_searches(a.limit)
-        log(f"done: {sent} gifts sent" + ("" if sent >= a.limit else ", nobody left who can take one"))
+    except ui.Refused:  # Android: another app in front
+        s = "unknown"
+    if s in ("unknown", "blank", "map"):  # (home.start reads a scrolled friend page, SET NICKNAME, as a rename box)
+        s = home.start(storage=False)
+    log(f"Pokémon GO up, on {s}")
+    try:
+        sent = run_searches(limit)
+        log(f"done: {sent} gifts sent" + ("" if sent >= limit else ", nobody left who can take one"))
     except OutOfGifts:
         log("out of San Francisco gifts we may send: stopping")
         if not ui.ANDROID:
             to_list()
-            quit_mirroring()
-            log("closed iPhone Mirroring")
-    except Stop as e:
-        log(f"STOPPED: {e}")
-        keep_capture("stop")
-        sys.exit(1)
-    except KeyboardInterrupt:
-        log("interrupted")
-        sys.exit(1)
 
 
 def main():

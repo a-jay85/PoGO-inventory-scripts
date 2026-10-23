@@ -259,35 +259,8 @@ def to_list():
 
 
 def arrow():
-    """'down' / 'up' / None: the small light arrow by the sort button. The gift icon has an arrow of its own:
-    the direction arrow is the right-most one"""
-    im = Image.open(path).convert("RGB")
-    W, H = im.size
-    light = {(x, y) for x in range(int(W * .86), int(W * .99)) for y in range(int(H * .89), int(H * .98))
-             if im.getpixel((x, y))[0] >= 120 and min(im.getpixel((x, y))) <= 200}
-    seen, found = set(), []
-    for p in light:
-        if p in seen:
-            continue
-        stack, blob = [p], []
-        seen.add(p)
-        while stack:
-            x, y = stack.pop()
-            blob.append((x, y))
-            for q in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
-                if q in light and q not in seen:
-                    seen.add(q)
-                    stack.append(q)
-        xs, ys = [b[0] for b in blob], [b[1] for b in blob]
-        w, h = max(xs) - min(xs) + 1, max(ys) - min(ys) + 1
-        if 6 <= w <= 14 and 6 <= h <= 14 and len(blob) >= 15:
-            found.append((min(xs), blob, min(ys), h))
-    if not found:
-        return None
-    _, blob, top, h = max(found)
-    head_up = sum(1 for x, y in blob if y < top + h / 3)
-    head_down = sum(1 for x, y in blob if y >= top + 2 * h / 3)
-    return "up" if head_up > head_down else "down" if head_down > head_up else None
+    """the sort button's arrow: 'down' / 'up' / None"""
+    return ui.sort_arrow(path, right_most=True)
 
 
 SORT_ICON = os.path.join(HERE, "gift_sort_icon.png")  # the sort button's gift-and-arrow, green on teal (406 x 890 capture)
@@ -297,25 +270,7 @@ SORT_ICON_AT = (336, 813) if ui.ANDROID else (330, 815)  # its top left in the c
 def sorted_gift():
     """the sort button already shows Can receive a gift (the gift icon) -> its arrow 'down' / 'up', else None.
     Other sorts' icons and other screens read 0.4 or less"""
-    try:
-        want = Image.open(SORT_ICON).convert("1")
-        im = Image.open(path).convert("RGB")
-    except OSError:
-        return None
-    if im.size != (406, 890):
-        return None
-    green = lambda c: c[1] > 150 and c[1] > c[0] + 40
-    ox, oy = SORT_ICON_AT
-    lit = {(x, y) for x in range(ox - 2, ox + want.width + 2) for y in range(oy - 2, oy + want.height + 2)
-           if green(im.getpixel((x, y)))}
-    need = {(x, y) for x in range(want.width) for y in range(want.height) if want.getpixel((x, y))}
-    best = 0
-    for dx in range(-2, 3):  # (a pixel or two off between captures)
-        for dy in range(-2, 3):
-            have = {(x - ox - dx, y - oy - dy) for x, y in lit
-                    if 0 <= x - ox - dx < want.width and 0 <= y - oy - dy < want.height}
-            best = max(best, len(have & need) / max(1, len(have | need)))
-    return arrow() if best >= 0.6 else None
+    return arrow() if (ui.icon_score(path, SORT_ICON, SORT_ICON_AT, slack=2) or 0) >= 0.6 else None
 
 
 def set_sort():

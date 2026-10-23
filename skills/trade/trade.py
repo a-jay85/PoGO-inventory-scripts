@@ -506,53 +506,12 @@ def pick_pile(p, pile):
     raise Stop(f"{p.name}: the search bar doesn't show {QUERY[pile]}: {bar(p)!r}, {p.summary()}")
 
 
-def arrow(path):
-    """'down' (newest first) / 'up' / None: the small arrow on the sort button, light teal on dark teal"""
-    im = Image.open(path).convert("RGB")
-    W, H = im.size
-    light = {(x, y) for x in range(int(W * .86), int(W * .99)) for y in range(int(H * .89), int(H * .98))
-             if im.getpixel((x, y))[0] >= 120 and min(im.getpixel((x, y))) <= 200}
-    seen, found = set(), []
-    for p in light:  # the arrow is a blob of its own, about 8-10 px square (Pixel and iPhone captures)
-        if p in seen:
-            continue
-        stack, blob = [p], []
-        seen.add(p)
-        while stack:
-            x, y = stack.pop()
-            blob.append((x, y))
-            for q in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
-                if q in light and q not in seen:
-                    seen.add(q)
-                    stack.append(q)
-        xs, ys = [b[0] for b in blob], [b[1] for b in blob]
-        w, h = max(xs) - min(xs) + 1, max(ys) - min(ys) + 1
-        if 6 <= w <= 14 and 6 <= h <= 14 and len(blob) >= 15:
-            found.append((blob, min(ys), h))
-    if len(found) != 1:
-        return None
-    blob, top, h = found[0]
-    head_up = sum(1 for x, y in blob if y < top + h / 3)
-    head_down = sum(1 for x, y in blob if y >= top + 2 * h / 3)
-    return "up" if head_up > head_down else "down" if head_down > head_up else None
-
-
 RECENT_ICON = os.path.join(HERE, "recent_icon.png")  # the sort button's clock and down arrow, green on teal
 
 
 def sorted_recent(path):
     """the sort button already shows Recent (the clock) with the arrow down: newest first, nothing to set"""
-    try:
-        want = Image.open(RECENT_ICON).convert("1")
-        im = Image.open(path).convert("RGB")
-    except OSError:
-        return False
-    if im.size != (406, 890):  # the template comes from a 406 x 890 capture
-        return False
-    have = {(x, y) for x in range(want.width) for y in range(want.height)
-            if (lambda c: c[1] > 150 and c[1] > c[0] + 40)(im.getpixel((325 + x, 805 + y)))}
-    need = {(x, y) for x in range(want.width) for y in range(want.height) if want.getpixel((x, y))}
-    return len(have & need) / max(1, len(have | need)) >= 0.6 and arrow(path) == "down"
+    return (ui.icon_score(path, RECENT_ICON, (325, 805)) or 0) >= 0.6 and ui.sort_arrow(path) == "down"
 
 
 def sort_recent(p):
@@ -575,7 +534,7 @@ def sort_recent(p):
                 break
         time.sleep(0.5)
         p.look()
-        way = arrow(p.path)
+        way = ui.sort_arrow(p.path)
         if way == "down":
             log(f"{p.name}: sorted Recent, newest first")
             return
@@ -800,7 +759,7 @@ def trade_once(ios, android, specials):
             else:
                 sort_recent(p)
             specials["sorted"].append(p.name)
-        elif arrow(p.path) != "down":
+        elif ui.sort_arrow(p.path) != "down":
             sort_recent(p)
         return choose(p)
     got = both(ready, *zip(phones, pair))

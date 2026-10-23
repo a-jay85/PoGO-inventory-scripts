@@ -536,6 +536,24 @@ def arrow(path):
     return "up" if head_up > head_down else "down" if head_down > head_up else None
 
 
+RECENT_ICON = os.path.join(HERE, "recent_icon.png")  # the sort button's clock and down arrow, green on teal
+
+
+def sorted_recent(path):
+    """the sort button already shows Recent (the clock) with the arrow down: newest first, nothing to set"""
+    try:
+        want = Image.open(RECENT_ICON).convert("1")
+        im = Image.open(path).convert("RGB")
+    except OSError:
+        return False
+    if im.size != (406, 890):  # the template comes from a 406 x 890 capture
+        return False
+    have = {(x, y) for x in range(want.width) for y in range(want.height)
+            if (lambda c: c[1] > 150 and c[1] > c[0] + 40)(im.getpixel((325 + x, 805 + y)))}
+    need = {(x, y) for x in range(want.width) for y in range(want.height) if want.getpixel((x, y))}
+    return len(have & need) / max(1, len(have | need)) >= 0.6 and arrow(path) == "down"
+
+
 def sort_recent(p):
     """Recent, newest first. Picking RECENT when it's already the sort flips the order, so: pick it, read the
     arrow, and pick it once more if it points up"""
@@ -767,7 +785,10 @@ def trade_once(ios, android, specials):
         piles[p.name][pile] = n - 1  # what's left once this trade goes through
         log(f"{p.name}: {pile} ({n})")
         if p.name not in specials.setdefault("sorted", []):  # once a run: the sort stays put between trades
-            sort_recent(p)
+            if sorted_recent(p.path):
+                log(f"{p.name}: already sorted Recent, newest first")
+            else:
+                sort_recent(p)
             specials["sorted"].append(p.name)
         elif arrow(p.path) != "down":
             sort_recent(p)
@@ -788,8 +809,11 @@ def trade_once(ios, android, specials):
         android.wait("picker", timeout=10)
         got[1] = choose(android, skip + 1)
     for p in (android, ios):  # the Android side first: its taps never miss, the iPhone's last tap starts the trade
-        p.look()
-        if p.screen != "confirm":
+        try:  # (the reader can miss a letter of CONFIRM on one capture)
+            p.wait("confirm", timeout=4)
+        except Expired:
+            raise
+        except Stop:
             raise Stop(f"{p.name}: left the confirm screen before CONFIRM: {p.summary()}")
         confirm(p)
     for p in phones:

@@ -125,7 +125,7 @@ def mirroring_screen():
         path = ui.capture()[0]
     except ui.Refused:
         return "none", ""
-    j = " ".join(t[4].upper() for t in ui.ocr(path))
+    j = ui.joined(ui.ocr(path))
     if "CONNECTING" in j:
         return "connecting", j
     if any(w in j for w in TROUBLE):

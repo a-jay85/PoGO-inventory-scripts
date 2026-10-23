@@ -95,6 +95,13 @@ def new_run_dir(runs, d=None, suffix=""):
             time.sleep(1)
 
 
+def newest(folder, pattern):
+    """the newest file matching folder/pattern (dated names sort by date), or None"""
+    import glob
+    got = sorted(glob.glob(os.path.join(folder, pattern)))
+    return got[-1] if got else None
+
+
 def save(name, data):
     with open(os.path.join(RUN_DIR, name), "w") as f:
         json.dump(data, f, indent=1, ensure_ascii=False)
@@ -155,7 +162,7 @@ def wait_for(*screens, timeout=10, capture=True):
                 end = max(end, time.time() + 3)
                 continue
             if screen == "unknown":
-                last += ": " + " | ".join(t[4] for t in texts)[:200]
+                last += ": " + ui.summary(texts, 200)
         time.sleep(0.12)
     if capture:
         keep_capture("stuck")

@@ -30,10 +30,6 @@ MAX_BACKS = 12  # Back presses (Android) on screens it doesn't know before it gi
 DOCK = (0.73, 0.926)  # iPhone: the Poké Ball in the dock, third icon (Spotlight doesn't list the app near the top)
 
 
-def joined(texts):
-    return " ".join(t[4].upper() for t in texts)
-
-
 def main_menu(texts):
     return {"POKDEX", "POKMON", "ITEMS", "SHOP"} <= {ui.norm(t[4]).replace("É", "") for t in texts}
 
@@ -59,7 +55,7 @@ def where(path, texts):
     screen = ui.classify(texts)
     if screen != "unknown":
         return screen
-    j = joined(texts)
+    j = ui.joined(texts)
     if "EXIT POK" in j:
         return "exit"  # Android: "Do you want to exit Pokémon GO?"
     if "RETURNING PLAYER" in j or "NEW PLAYER" in j or "SIGN IN WITH" in j:
@@ -136,7 +132,7 @@ def unstick(texts):
     """one step out of a screen the scripts don't know. Android: Back. iPhone: the home screen and the game's icon,
     once. Raises Stop when out of steps. -> True if the game was (re)opened"""
     global backs, reopened
-    seen = " | ".join(t[4] for t in texts)[:200]
+    seen = ui.summary(texts, 200)
     if ui.ANDROID:
         if backs >= MAX_BACKS:
             keep_capture("start")
@@ -278,7 +274,7 @@ def trainer():
     start(storage=False)
     for _ in range(12):
         screen, texts, path, bounds = look()
-        j = joined(texts)
+        j = ui.joined(texts)
         if "FRIENDS" in j and ("TOTAL ACTIVITY" in j or "SCRAPBOOK" in j or "JOURNAL" in j):
             got = [n for n in TRAINERS if squash(n) in squash(" ".join(t[4] for t in texts))]
             if len(got) != 1:

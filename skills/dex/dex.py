@@ -50,10 +50,6 @@ NOT_LISTED = {151, 251, 385, 386, *range(489, 495), 647, 648, 649, *range(718, 7
 
 # ---------- reading ----------
 
-def joined(texts):
-    return " ".join(t[4].upper() for t in texts)
-
-
 def numbers(texts):
     """the 4-digit Pokédex numbers on screen -> [(n, text box)]"""
     out = []
@@ -67,7 +63,7 @@ def numbers(texts):
 def band(texts):
     """the part of the grid nothing covers -> (top, bottom). The region header grows at the top and bottom of the
     grid, and the chips sit over the bottom rows."""
-    top = HEADER_BIG if "RECENTLY" in joined(texts) else HEADER_SMALL
+    top = HEADER_BIG if "RECENTLY" in ui.joined(texts) else HEADER_SMALL
     chips = [t[1] for t in texts if t[1] > 0.78 and re.search(r"SHINY|LUCKY|XXL|XXS|SHADOW|PURIFIED|100%|POK",
                                                               t[4].upper())]
     return top, (min(chips) if chips else CHIP_Y) - 0.025
@@ -136,7 +132,7 @@ def read_grid(path, texts):
 # ---------- getting there ----------
 
 def where(path, texts):
-    j = joined(texts)
+    j = ui.joined(texts)
     if numbers(texts) and "REGIONS" in j:
         return "grid"
     if "FILTER BY" in j:
@@ -475,6 +471,31 @@ def search_exact(q):
     raise Stop(f"couldn't search exactly {q!r}")
 
 
+def counter(cache, done=None):
+    """-> n(q): one search's count, kept in cache. A search that loses its way (a tap that lands on the map) goes
+    back to the Pokémon list and tries again: twice per search, 20 times in all. done(q, count) runs after each new
+    count"""
+    lost = [0]
+
+    def n(q):
+        for attempt in range(3):
+            if q in cache:
+                break
+            try:
+                cache[q] = search_exact(q)
+            except Stop as e:
+                lost[0] += 1
+                if attempt == 2 or lost[0] > 20:
+                    raise
+                log(f"  {q}: {e}: back to the Pokémon list, again")
+                home.start()
+                continue
+            if done:
+                done(q, cache[q])
+        return cache[q]
+    return n
+
+
 def to_storage():
     """from the Pokédex to the Pokémon list"""
     for _ in range(6):
@@ -539,10 +560,10 @@ def run_page(page):
     texts, bounds = to_regions()
     total, texts, bounds = pick_page(label)
     log(f"{label} page: {total} caught")
-    if not tap_text(texts, bounds, lambda t: t[4].upper().strip() == "KANTO"):
+    if not tap_text(texts, bounds, lambda t: ui.up(t) == "KANTO"):
         swipe(0.5, 0.3, 0.5, 0.75, bounds)  # region list scrolled down: back to the top
         screen, texts, path, bounds = look()
-        if not tap_text(texts, bounds, lambda t: t[4].upper().strip() == "KANTO"):
+        if not tap_text(texts, bounds, lambda t: ui.up(t) == "KANTO"):
             keep_capture("kanto")
             raise Stop("can't find KANTO on the region list")
     seen = walk_grid()

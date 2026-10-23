@@ -18,13 +18,13 @@ species. A new traded copy of a species (never shadow) helps against a boss if i
 Reroll, #2-#6 is GIV. Legendary, Mythical and Ultra Beast species are never tagged (traded by hand).
 Output in runs/<time>-count/: counts.json, roster.json (for /cleanup's tradeable.py) and report.md.
 """
-import argparse, glob, json, os, re, sys
+import argparse, json, os, re, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
 sys.path.insert(0, os.path.join(HERE, "..", "dex"))
 import dex
-from run import Stop, log
+from run import Stop, log, newest
 import session
 
 TRAINER = "HashTagAJay"
@@ -35,11 +35,6 @@ APEX = {249, 250}  # form "S" in DialgaDex: Apex Lugia and Ho-Oh (shadow or puri
 SPECIAL = ("legendary", "mythical", "ultrabeast")
 GATE = [(383, "Normal"), (382, "Normal"), (384, "Normal"), (150, "Normal"), (483, "Normal")]
 NO_MOVE_TERM = re.compile(r"^(count|dynamax|gigantamax)|[()]")  # see SEARCH.md: these break an @ search
-
-
-def newest(pattern):
-    paths = sorted(glob.glob(os.path.join(HERE, pattern)))
-    return paths[-1] if paths else None
 
 
 def is_mega(a):
@@ -252,25 +247,7 @@ def cmd_count(model, resume):
     counts, unsure = load_counts(resume) if resume else ({}, [])
     home.start()
     cache = {}
-
-    lost = [0]
-
-    def n(q):
-        """one search's count. A run that loses its way (a tap that lands on the map) goes back to the list and
-        searches again: twice per search, 20 times in all"""
-        for attempt in range(3):
-            if q in cache:
-                break
-            try:
-                cache[q] = dex.search_exact(q)
-                log(f"  {q}: {cache[q]}")
-            except Stop as e:
-                lost[0] += 1
-                if attempt == 2 or lost[0] > 20:
-                    raise
-                log(f"  {q}: {e}: back to the Pokémon list, again")
-                home.start()
-        return cache[q]
+    n = dex.counter(cache, lambda q, c: log(f"  {q}: {c}"))
 
     for rnd in range(1, 200):
         need = set()
@@ -343,7 +320,7 @@ def script(a, model):
             sys.exit("Android only for now: POGO_PHONE=android")
         counts, unsure, out = cmd_count(model, a.counts)
     else:
-        path = a.counts or newest("runs/*-count/counts.json")
+        path = a.counts or newest(HERE, "runs/*-count/counts.json")
         if not path:
             sys.exit("no counts yet: roster.py count")
         counts, unsure = load_counts(path)
@@ -365,7 +342,7 @@ def main():
     ap.add_argument("cmd", choices=("count", "report"))
     ap.add_argument("counts", nargs="?", help="count: carry on from this counts.json. report: which (default newest)")
     a = ap.parse_args()
-    data_path = newest("dialgadex-counters-[0-9]*[0-9].json")  # (not a -test<n> pull)
+    data_path = newest(HERE, "dialgadex-counters-[0-9]*[0-9].json")  # (not a -test<n> pull)
     if not data_path:
         sys.exit("no counters yet: node pull.mjs")
     model = Model(json.load(open(data_path)))

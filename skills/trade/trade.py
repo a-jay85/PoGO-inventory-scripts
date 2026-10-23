@@ -112,7 +112,7 @@ class Phone:
             time.sleep(0.3)
 
     def expired(self):
-        if self.find(lambda t: "UNAVAILABLE" in up(t) or "ERROR FETCHING" in up(t)):
+        if self.find(lambda t: "UNAVAILABLE" in ui.up(t) or "ERROR FETCHING" in ui.up(t)):
             raise ServiceDown(f"{self.name}: the trading service failed: {self.summary()}")
         raise Expired(f"{self.name}: the trade expired")
 
@@ -133,7 +133,7 @@ class Phone:
         return [t for t in self.texts if pred(t)]
 
     def summary(self):
-        return " | ".join(t[4] for t in self.texts)[:250]
+        return ui.summary(self.texts)
 
     def keep(self, tag):
         if self.path and os.path.exists(self.path):
@@ -174,12 +174,8 @@ def both(fn, *argsets):
 
 # ---------- reading screens ----------
 
-def up(t):
-    return t[4].upper().strip()
-
-
 def classify(texts, path):
-    raw = [up(t) for t in texts]
+    raw = [ui.up(t) for t in texts]
     words = {ui.norm(t[4]) for t in texts}
     joined = " ".join(raw)
     if "MANAGE FAVORITE" in joined:
@@ -266,7 +262,7 @@ def to_friend(p):
             if not button and s == "expired":
                 # the iPhone's "This trade with ... has expired." box: OCR can miss its white-on-green OK, which
                 # sits just under the message
-                msg = p.find(lambda t: "HAS EXPIRED" in up(t))
+                msg = p.find(lambda t: "HAS EXPIRED" in ui.up(t))
                 if msg:
                     p.tap(0.5, msg[0][1] + 0.077)
                     time.sleep(1)
@@ -274,7 +270,7 @@ def to_friend(p):
             if not button:
                 raise Stop(f"{p.name}: {s} dialog without its button: {p.summary()}")
             p.tap_text(button)
-            if p.find(lambda t: "UNAVAILABLE" in up(t)):
+            if p.find(lambda t: "UNAVAILABLE" in ui.up(t)):
                 raise ServiceDown(f"{p.name}: the trading service is down")
         elif s == "leave":
             p.tap_text(label(p, "YES"))
@@ -370,7 +366,7 @@ def to_picker(p):
 
 def specials_left(p):
     for t in p.texts:
-        m = re.search(r"SPECIAL TRADES REMAINING\W*(\d+)", up(t))
+        m = re.search(r"SPECIAL TRADES REMAINING\W*(\d+)", ui.up(t))
         if m:
             return int(m.group(1))
     return None
@@ -385,7 +381,7 @@ def open_panel(p):
             p.tap(0.5, 0.18)
             time.sleep(1.2)
             p.look()
-        keyboard = p.find(lambda t: up(t) in ("?123", "OK") and t[1] > 0.5)
+        keyboard = p.find(lambda t: ui.up(t) in ("?123", "OK") and t[1] > 0.5)
         if keyboard and p.name == "android":
             p.key("back")  # Android: hides the keyboard only, the panel stays
             time.sleep(1.0)
@@ -439,7 +435,7 @@ def counts(p, last=None):
 def long_pressed(p, pile):
     """the shortcut tap landed as a long press: the Manage Favorite Search box is up and the panel stays open.
     Close it and tap the shortcut again. True when it did"""
-    if not p.find(lambda t: "MANAGE FAVORITE" in up(t)):
+    if not p.find(lambda t: "MANAGE FAVORITE" in ui.up(t)):
         return False
     log(f"{p.name}: the shortcut tap was a long press: tapping again")
     p.tap(*MANAGE_X)
@@ -617,7 +613,7 @@ def choose(p, i=0):
                 raise
             log(f"{p.name}: the tile tap didn't open it: again")
     name = next((t[4] for t in sorted(p.texts, key=lambda t: t[1]) if t[1] > 0.09 and t[0] < 0.3), "?")
-    cp = next((up(t) for t in p.texts if re.search(r"CP\s*\d+\s*>", up(t))), "")
+    cp = next((ui.up(t) for t in p.texts if re.search(r"CP\s*\d+\s*>", ui.up(t))), "")
     log(f"{p.name}: {name.strip()} {cp.split('>')[0].strip()}")
     for attempt in range(3):
         nxt = label(p, "NEXT")
@@ -632,18 +628,18 @@ def choose(p, i=0):
         if s == "warning":
             warning(p)
             s = p.wait("confirm", "lobby", timeout=8)
-        if s == "confirm" or s == "lobby" and any(re.search(r"CP\s*\d+\s*-\s*\d+", up(t)) for t in p.texts):
+        if s == "confirm" or s == "lobby" and any(re.search(r"CP\s*\d+\s*-\s*\d+", ui.up(t)) for t in p.texts):
             return name.strip()  # (lobby: picked, waiting for the other side to pick)
     raise Stop(f"{p.name}: NEXT didn't lead to the confirm screen: {p.summary()}")
 
 
 def warning(p):
     """'Are you sure you want to trade this Pokémon?' plus the reasons: YES only if every reason is a known one"""
-    top = next(t[1] for t in p.texts if "ARE YOU SURE" in up(t))
+    top = next(t[1] for t in p.texts if "ARE YOU SURE" in ui.up(t))
     yes = label(p, "YES")
     if not yes:
         raise Stop(f"{p.name}: trade warning without YES: {p.summary()}")
-    lines = [re.sub(r"^[^A-Z]+", "", up(t)) for t in p.texts if top < t[1] < yes[1] - 0.01]
+    lines = [re.sub(r"^[^A-Z]+", "", ui.up(t)) for t in p.texts if top < t[1] < yes[1] - 0.01]
     reasons = [l for l in lines if l and "ARE YOU SURE" not in l and not l.startswith("THIS POK")]
     # (the bullet in front can read as a stray letter: "X MAX MOVE ...")
     unknown = [r for r in reasons if not any(r.startswith(k) or re.sub(r"^\S\s+", "", r).startswith(k)
@@ -697,7 +693,7 @@ def check_confirm(p):
             ok, why = cost_ok(p)
             d = km(p)
             if ok and d is not None:
-                candy = next((up(t) for t in p.texts if re.fullmatch(r"\+\d", up(t))), "?")
+                candy = next((ui.up(t) for t in p.texts if re.fullmatch(r"\+\d", ui.up(t))), "?")
                 return d, candy
             why += f", {d} km"
         time.sleep(0.5)

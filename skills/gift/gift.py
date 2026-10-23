@@ -79,16 +79,12 @@ class OutOfGifts(Exception):
 texts, path, bounds = [], None, None
 
 
-def up(t):
-    return t[4].upper().strip()
-
-
 def words():
     return {ui.norm(t[4]) for t in texts}
 
 
 def joined():
-    return " ".join(up(t) for t in texts)
+    return " ".join(ui.up(t) for t in texts)
 
 
 def find(pred):
@@ -101,7 +97,7 @@ def label(name, lo=0.0, hi=1.0):
 
 
 def summary():
-    return " | ".join(t[4] for t in texts)[:250]
+    return ui.summary(texts)
 
 
 def classify():
@@ -520,7 +516,7 @@ def rows():
     """the rows on screen, top down: {name, t, badged}. A row is the trainer name at x ~0.29, the nickname just
     under it; rows too low to see their badge are left for the next scroll"""
     col = sorted((t for t in texts if 0.26 < t[0] < 0.32 and 0.26 < t[1] < 0.85 and t[4].strip()
-                  and "SENT YOU" not in up(t) and "TRADE REQUEST" not in up(t)), key=lambda t: t[1])  # ('<name> sent you a Lucky Remote Trade request.')
+                  and "SENT YOU" not in ui.up(t) and "TRADE REQUEST" not in ui.up(t)), key=lambda t: t[1])  # ('<name> sent you a Lucky Remote Trade request.')
     out, last = [], None
     for t in col:
         if last is not None and t[1] - last[1] < 0.035:
@@ -591,7 +587,7 @@ def sent_away(t, before):
 
 def ribbon():
     for t in texts:
-        m = re.fullmatch(r"(GOOD|GREAT|ULTRA|BEST|FOREVER) FRIEND", up(t))
+        m = re.fullmatch(r"(GOOD|GREAT|ULTRA|BEST|FOREVER) FRIEND", ui.up(t))
         if m and 0.2 < t[1] < 0.36:
             return m.group(1)
     return None
@@ -732,7 +728,7 @@ def preview_ok(title):
     """the preview reads 'Greetings from' / the title / the city"""
     lines = sorted(texts, key=lambda t: t[1])
     for i, t in enumerate(lines):
-        if "GREETINGS FROM" in up(t):
+        if "GREETINGS FROM" in ui.up(t):
             rest = [u for u in lines[i + 1:] if u[1] - t[1] < 0.15]
             got, city = title_block(rest[0], rest, left=True) if rest else (None, None)
             cut = title.rstrip(".… ")  # the picker cuts a long title short ('Modern spiral chandeli')
@@ -787,7 +783,7 @@ def send_gift():
                 close()
                 raise Stop(f"the gift preview reads {got!r}, wanted {title!r}: nothing sent")
             title = got  # (the full title, when the picker cut it short)
-            if find(lambda u: "STICKER" in up(u) and u[1] < 0.7):
+            if find(lambda u: "STICKER" in ui.up(u) and u[1] < 0.7):
                 keep_capture("sticker")
                 close()
                 raise Stop("a sticker seems attached: nothing sent")
@@ -893,7 +889,7 @@ def rename(tag, old, listed):
             tap_text(ok[0])  # the input strip's OK: back to the dialog with the text kept
             time.sleep(1)
             look()
-    field = [t for t in texts if 0.42 < t[1] < 0.5 and "NICKNAME" not in up(t)]
+    field = [t for t in texts if 0.42 < t[1] < 0.5 and "NICKNAME" not in ui.up(t)]
     got = field[0][4].strip() if field else ""
     if re.sub(r"\s", "", got).lower() != re.sub(r"\s", "", new).lower():
         keep_capture("nickname")

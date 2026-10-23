@@ -83,7 +83,8 @@ One tag each, the first that fits:
 3. **GIV**: missing from HashTagAJay's ★100% page (a 100 of a lower evolution counts as having it), PvPoke top 100 in Great, Ultra or Master with every rank 1 IV 5+, #2-#6 against some raid boss, or HashTagAJay has a lucky of the family and under 348 candy.
 4. **XLX**: level 29+ (a power-up costs 5,000 Stardust or more). Each one left is opened and read.
 5. **GIV (evolved)**: a stage 2, or a stage 1 that takes 100+ candy, a quest or an item (any item, lures too) to evolve into. A stage 1 that GO can't evolve into yet counts too (Kleavor, Alolan Marowak, Alolan Raichu, Hisuian Braviary). Stages count those future evolutions, so Hisuian Typhlosion is stage 2. A baby isn't a stage: Raichu is stage 1. Also the gym defenders (Pokebattler top 6, `GYM_DEFENDERS` in /ivc: Blissey, Chansey, Snorlax, Slaking, Wobbuffet, Dondozo) and every untraded Dynamax one. Never Legendary, Mythical or Ultra Beast. It's tagged after the XLX walk, so a level 29+ one gets XLX instead. The list comes from PokeMiners' game master: `refresh` saves it as `giv-evolved-<date>.json`.
-6. **Transfer**: the rest.
+6. **GIV (far)**: never traded and caught 100 km or more away (`!traded&distance100-`), and no other tag fits (2026-10-22).
+7. **Transfer**: the rest.
 
 Gigantamax ones get no tag at all, not even Transfer. They're special trades, like legendaries, so the user tags them by hand. Every tag search ends in `&!gigantamax`. A never-traded XXL or XXS one never gets Transfer: it's renamed XXL or xxs and tagged IVC first (see "XXL and XXS" below).
 

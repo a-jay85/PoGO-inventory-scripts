@@ -600,8 +600,17 @@ def tile(p, i=0):
 
 def choose(p, i=0):
     """tile i -> its screen -> NEXT (-> YES on a known warning) -> the confirm screen. -> its name"""
-    p.tap_text(tile(p, i), dy=0.06)
-    p.wait("select", timeout=8)
+    for attempt in range(3):  # a tap on a list that's still settling can do nothing: tap again
+        p.tap_text(tile(p, i), dy=0.06)
+        try:
+            p.wait("select", timeout=4 if attempt < 2 else 8)
+            break
+        except Expired:
+            raise
+        except Stop:
+            if attempt == 2 or p.screen != "picker":
+                raise
+            log(f"{p.name}: the tile tap didn't open it: again")
     name = next((t[4] for t in sorted(p.texts, key=lambda t: t[1]) if t[1] > 0.09 and t[0] < 0.3), "?")
     cp = next((up(t) for t in p.texts if re.search(r"CP\s*\d+\s*>", up(t))), "")
     log(f"{p.name}: {name.strip()} {cp.split('>')[0].strip()}")

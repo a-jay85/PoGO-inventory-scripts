@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Tag CyrillJan's Tradeable saved search by what a trade to HashTagAJay is worth, and power them up for Candy XL.
 
-  python3 tradeable.py refresh            the Mac: PvPoke's rankings -> pvp-giv-<date>.json
+  python3 tradeable.py refresh            the Mac: PvPoke's rankings -> pvp-giv-<date>.json, PokeMiners' game master
+                                          -> giv-evolved-<date>.json
   POGO_PHONE=android caffeinate -dimsu python3 tradeable.py read [searches.json]   HashTagAJay signed in: only searches
   python3 tradeable.py plan               the Mac: every search to tag, in runs/<time>-plan/
   POGO_PHONE=android caffeinate -dimsu python3 tradeable.py tag [--limit N]   CyrillJan signed in: tags, power-ups
@@ -15,9 +16,12 @@ One tag each, the first that fits:
     - a new copy would be #2-#6 against some raid boss
     - HashTagAJay has a lucky one of the family and under 348 candy (read)
  4. XLX: a power-up costs 5,000 Stardust or more (level 29+). Read one by one in the power-up dialog.
- 5. Transfer: everything else, but a never-traded XXL or XXS one gets renamed XXL or xxs and tagged IVC (sizes.py).
+ 5. GIV (evolved): a stage 2 (a baby isn't a stage), or a stage 1 that takes 100+ candy, a quest or an item to
+    evolve into, or one GO can't evolve into yet (Kleavor, Alolan Marowak) (giv-evolved-<date>.json). Also gym
+    defenders (/ivc's GYM_DEFENDERS) and untraded Dynamax ones. Not Legendary, Mythical or Ultra Beast. Tagged after the XLX walk.
+ 6. Transfer: everything else, but a never-traded XXL or XXS one gets renamed XXL or xxs and tagged IVC (sizes.py).
 Legendary, Mythical and Ultra Beast never get Reroll or GIV from the raid rule (roster leaves them out). Shadows can't
-be traded.
+be traded. Gigantamax ones get no tag at all (special trades): the user tags them by hand.
 
 Power-ups: only cleantrades' cheap jumps (14->15, 19->20, 22->23, 30->31), never below 1,000,000 Stardust, and only while
 the account that will transfer it has under 360 Candy XL of the family: HashTagAJay (read) for the traded tags,
@@ -34,6 +38,7 @@ import json, math, os, re, sys, time
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
 sys.path.insert(0, os.path.join(HERE, "..", "dex"))
+sys.path.append(os.path.join(HERE, "..", "ivc"))  # last: its run.py isn't pvpc's
 import ui
 import run as base
 from run import Stop, Skip, log, go, look, wait_for
@@ -44,6 +49,7 @@ import dex
 import cleantrades as ct
 import sizes
 from shadows import Pass, swipe_next, owned
+from ivc import GYM_DEFENDERS
 
 GIVER, TAKER = "CyrillJan", "HashTagAJay"  # Tradeable is the giver's; the taker's dex, candy and XL decide
 SHORTCUT = "Tradeable"
@@ -55,6 +61,11 @@ XLX_LEVEL = 29  # from here a power-up costs 5,000 Stardust or more
 MAX_SUFFIX = 300  # characters added to the saved search: it's already in the bar
 PVP_FLOOR = 5  # every rank 1 IV at least this
 PVP_URL = "https://raw.githubusercontent.com/pvpoke/pvpoke/master/src/data/rankings/all/overall/rankings-%d.json"
+PM_URL = "https://raw.githubusercontent.com/PokeMiners/game_masters/master/latest/latest.json"
+HARD_CANDY = 100  # a stage 1 that costs this much candy to evolve into counts for the evolved GIV rule
+BABIES = {172, 173, 174, 175, 236, 238, 239, 240, 298, 360, 406, 433, 438, 439, 440, 446, 447, 458, 848}  # not a stage
+SPECIAL = ("legendary", "mythical", "ultrabeast")  # traded by hand: never GIV from the evolved rule
+DYNAMAX = "&dynamax&!traded" + "".join(f"&!{t}" for t in SPECIAL)  # evolved GIV too (Gigantamax: see NOT_TAGGED)
 
 
 def newest(pattern):
@@ -82,6 +93,39 @@ def cmd_refresh():
     out = os.path.join(HERE, f"pvp-giv-{time.strftime('%Y%m%d')}.json")
     json.dump(dict(sorted(keep.items())), open(out, "w"), indent=0)
     print(f"{len(keep)} species -> {out}")
+    hard = hard_evolutions(json.load(urllib.request.urlopen(PM_URL)))
+    out = os.path.join(HERE, f"giv-evolved-{time.strftime('%Y%m%d')}.json")
+    json.dump(dict(sorted(hard.items())), open(out, "w"), indent=0)
+    print(f"{len(hard)} hard evolutions -> {out}")
+
+
+def hard_evolutions(gm):
+    """PokeMiners' game master -> {speciesId: why}: evolving into it costs HARD_CANDY+ candy, a quest or an item, or
+    it evolves from something in the main games but can't be evolved into in GO yet (Kleavor, Alolan Marowak)"""
+    out, reached = {}, set()
+    for x in gm:
+        for b in (x["data"].get("pokemonSettings") or {}).get("evolutionBranch") or []:
+            if "evolution" not in b or b.get("temporaryEvolution"):
+                continue
+            names = [re.sub(r"_alola$", "_alolan", n.lower().removesuffix("_normal"))
+                     for n in (b.get("form"), b["evolution"]) if n]  # (pvpoke: _alolan; an odd form: the species)
+            sid = next((n for n in names if n in pvp.SPECIES), None)
+            if not sid:
+                print(f"no {names[0]} in the gamemaster")
+                continue
+            reached.update(n for n in names if n in pvp.SPECIES)
+            item = b.get("evolutionItemRequirement") or b.get("lureItemRequirement") or ""
+            why = [w for w, ok in [(f"{b.get('candyCost')} candy", (b.get("candyCost") or 0) >= HARD_CANDY),
+                                   ("quest", b.get("questDisplay")),
+                                   (item.removeprefix("ITEM_").lower().replace("_", " "), item)] if ok]
+            if why:
+                out.setdefault(sid, ", ".join(why))
+    m = Model()
+    for sid in m.by:
+        par = m.parent_of(sid)
+        if par and sid not in reached and m.by[sid].get("released") and "duplicate" not in m.by[sid].get("tags", []):
+            out.setdefault(sid, f"can't evolve into it from {m.by[par]['speciesName']} in GO yet")
+    return out
 
 
 # ---------- the family model ----------
@@ -114,6 +158,23 @@ class Model:
 
     def terms(self, sid):
         return dex.form_terms(sid, self.by)
+
+    def parent_of(self, sid):
+        """what it evolves from, in GO or (gamemaster 'parent', for one GO can't evolve into yet) in the main games"""
+        p = self.parent.get(sid) or (self.by[sid].get("family") or {}).get("parent")
+        return p if p in self.by and (p, sid) not in dex.BAD_EDGES else None
+
+    def stage(self, sid):
+        """0 for a family's first, 1 after one evolution, 2 after two, counting evolutions GO doesn't have yet. A baby
+        isn't a stage: Raichu is 1"""
+        n, seen = 0, {sid}
+        while (sid := self.parent_of(sid)) and sid not in seen:
+            seen.add(sid)
+            n += self.dex(sid) not in BABIES
+        return n
+
+    def special(self, sid):
+        return any(t in (self.by[sid].get("tags") or []) for t in SPECIAL)
 
     def tradeable(self, sid):
         return self.dex(sid) not in dex.NEVER_TRADED and not re.search(r"_shadow|_mega|_primal", sid)
@@ -228,8 +289,9 @@ def cmd_read(resume=None):
 
 # ---------- plan ----------
 
-def queries(m, sids, gender=None):
-    """species forms -> ['&<dexes><form terms>', ...], each under MAX_SUFFIX characters"""
+def queries(m, sids, gender=None, room=40):
+    """species forms -> ['&<dexes><form terms>', ...], each under MAX_SUFFIX characters with room left for the tag
+    terms"""
     groups = {}
     for s in sids:
         g = (gender or {}).get(s, "")
@@ -238,7 +300,7 @@ def queries(m, sids, gender=None):
     for terms, ds in sorted(groups.items()):
         part = []
         for r in dex.ranges(ds):
-            if part and len(",".join(part + [r])) + len(terms) + 1 > MAX_SUFFIX - 40:  # room for the tag terms
+            if part and len(",".join(part + [r])) + len(terms) + 1 > MAX_SUFFIX - room:
                 out.append(f"&{','.join(part)}{terms}")
                 part = []
             part.append(r)
@@ -253,8 +315,10 @@ def cmd_plan():
     roster_f = newest(os.path.join("..", "roster", "runs", "*", "roster.json"))
     read_f = newest(os.path.join("runs", "*-read", "read.json"))
     pvp_f = newest("pvp-giv-*.json")
+    hard_f = newest("giv-evolved-*.json")
     lacking = [n for n, v in [("a lucky /dex run", lucky_run), ("a ★100% /dex run", hund_run),
-                              ("roster.json", roster_f), ("read.json", read_f), ("pvp-giv", pvp_f)] if not v]
+                              ("roster.json", roster_f), ("read.json", read_f), ("pvp-giv", pvp_f),
+                              ("giv-evolved (python3 tradeable.py refresh)", hard_f)] if not v]
     if lacking:
         sys.exit(f"no {', '.join(lacking)} for {TAKER} yet")
     roster = json.load(open(roster_f))
@@ -282,9 +346,21 @@ def cmd_plan():
             why.setdefault(s, ("GIV", "#2-#6 raid attacker"))
         elif m.root(s) in low:
             why.setdefault(s, ("GIV", f"lucky family under {LUCKY_CANDY} candy"))
-    plan = {"from": {"lucky": lucky_run, "100": hund_run, "roster": roster_f, "read": read_f, "pvp": pvp_f},
+    hard = json.load(open(hard_f))
+    evolved = {}  # tagged GIV only after the XLX walk: XLX wins over these
+    for s in ok:
+        if s not in why and not m.special(s):
+            if m.stage(s) >= 2:
+                evolved[s] = "stage 2"
+            elif m.stage(s) == 1 and s in hard:
+                evolved[s] = f"stage 1, {hard[s]}"
+            elif s in GYM_DEFENDERS:
+                evolved[s] = "gym defender"
+    plan = {"from": {"lucky": lucky_run, "100": hund_run, "roster": roster_f, "read": read_f, "pvp": pvp_f,
+                     "evolved": hard_f},
             "tags": {t: queries(m, [s for s, (w, _) in why.items() if w == t], lucky if t == "Luckydex" else None)
                      for t in TAGS},
+            "giv_evolved": queries(m, evolved, room=len(EVOLVED_REST) + 10) + [DYNAMAX],
             "taker_xl_full": sorted({m.dex(x) for s in m.by if m.dex(s) in read["xl_full"] for x in m.family(s)})}
     base.new_run_dir(None, os.path.join(HERE, "runs", time.strftime("%Y%m%d-%H%M%S") + "-plan"))
     json.dump(plan, open(os.path.join(base.RUN_DIR, "plan.json"), "w"), indent=1)
@@ -295,13 +371,24 @@ def cmd_plan():
         lines += [f"- {m.by[s]['speciesName']} (#{m.dex(s)}): {r}"
                   for s, (w, r) in sorted(why.items(), key=lambda x: m.dex(x[0])) if w == t]
         lines += ["", "Searches (after the Tradeable search):", ""] + [f"    {q}" for q in plan["tags"][t]] + [""]
+    lines += [f"## GIV (evolved, only after XLX): {len(evolved)} species forms", "",
+              "Stage 2, a stage 1 that takes 100+ candy, a quest or an item, a gym defender, or (the last search) an "
+              "untraded Dynamax one. Tagged after the XLX walk, so a level 29+ one gets XLX instead. Gigantamax "
+              "ones get no tag at all: they're for you to tag.", ""]
+    lines += [f"- {m.by[s]['speciesName']} (#{m.dex(s)}): {r}" for s, r in sorted(evolved.items(), key=lambda x: m.dex(x[0]))]
+    lines += ["", f"Searches (after the Tradeable search, with {EVOLVED_REST}):", ""]
+    lines += [f"    {q}" for q in plan["giv_evolved"]] + [""]
     open(os.path.join(base.RUN_DIR, "plan.md"), "w").write("\n".join(lines))
-    log(f"plan: {', '.join(f'{t} {len(q)} searches' for t, q in plan['tags'].items())} -> {base.RUN_DIR}")
+    log(f"plan: {', '.join(f'{t} {len(q)} searches' for t, q in plan['tags'].items())}, "
+        f"evolved GIV {len(plan['giv_evolved'])} searches -> {base.RUN_DIR}")
 
 
 # ---------- tag (CyrillJan) ----------
 
-NOT_TAGGED = "".join(f"&!#{t}" for t in TAGS)
+# Gigantamax: special trades, like legendaries. Every tag search leaves them out: the user tags them by hand
+NOT_TAGGED = "&!gigantamax" + "".join(f"&!#{t}" for t in TAGS)
+REST = NOT_TAGGED + f"&!#{XLX}&!#{TRANSFER}"  # not tagged yet
+EVOLVED_REST = REST + "&traded,!xxl&traded,!xxs"  # and not a never-traded XXL/XXS one (those get IVC)
 
 
 def level_of(info, texts):
@@ -399,11 +486,11 @@ def cmd_tag(limit):
         log(f"{len(done)} tag search(es) done for this plan (a new plan starts over)")
     # (HashTagAJay's 360+ XL families are passed on the detail page: as '&!<dex>' terms they'd overflow the bar)
     traded = "&" + ",".join(f"#{t}" for t in TAGS)
-    rest = NOT_TAGGED + f"&!#{XLX}&!#{TRANSFER}"
+    rest = REST
     for size in sizes.NAMES:  # first: a never-traded XXL/XXS one is renamed and tagged IVC, never XLX or Transfer
         q = rest + f"&!#{sizes.IVC}&!traded&{size}"
         sizes.walk(lambda: ct.run_shortcut(SHORTCUT, q), size, 10 ** 9)
-    rest += "&traded,!xxl&traded,!xxs"  # (one passed over there stays out of Transfer too)
+    rest = EVOLVED_REST  # (one passed over there stays out of Transfer too)
     unsure, power_ok = [], True
     # power-ups for the traded ones (HashTagAJay transfers them), then XLX and power-ups for the rest
     for suffix, xlx, power, skip in [(traded, False, True, set(plan["taker_xl_full"])),
@@ -429,6 +516,12 @@ def cmd_tag(limit):
             f"Look at these by hand (tag each {XLX}, power it up, or leave it), then run tag again:\n  "
             + "\n  ".join(unsure))
         return
+    for q in plan.get("giv_evolved", []):  # after XLX: a level 29+ one has XLX by now and stays out
+        if rest + q in done:
+            continue
+        ct.tag_pile(SHORTCUT, "GIV", rest + q)
+        done.add(rest + q)
+        json.dump(sorted(done), open(done_f, "w"))
     ct.tag_pile(SHORTCUT, TRANSFER, rest)
 
 

@@ -71,7 +71,7 @@ Adding to a shortcut's search: tap the shortcut, tap the filled bar, jump to the
 
 `S=~/.claude/skills/cleanup`. Four steps, in this order:
 
-1. `python3 $S/tradeable.py refresh` (the Mac): PvPoke's top 100s -> `pvp-giv-<date>.json`.
+1. `python3 $S/tradeable.py refresh` (the Mac): PvPoke's top 100s -> `pvp-giv-<date>.json`, and the hard evolutions -> `giv-evolved-<date>.json`.
 2. `POGO_PHONE=android caffeinate -dimsu python3 $S/tradeable.py read`, HashTagAJay signed in. Only searches. Finds the families with a lucky one and under 348 candy, and those with 360+ Candy XL.
 3. `python3 $S/tradeable.py plan` (the Mac): every search to tag, in `runs/<time>-plan/plan.md`. Read it before step 4. It needs HashTagAJay's newest lucky and ★100% /dex runs, /roster's `roster.json` and step 2.
 4. `POGO_PHONE=android caffeinate -dimsu python3 $S/tradeable.py tag [--limit N]`, CyrillJan signed in. Tags and powers up.
@@ -82,9 +82,12 @@ One tag each, the first that fits:
 2. **Reroll**: a new copy would be #1 against some raid boss (/roster).
 3. **GIV**: missing from HashTagAJay's ★100% page (a 100 of a lower evolution counts as having it), PvPoke top 100 in Great, Ultra or Master with every rank 1 IV 5+, #2-#6 against some raid boss, or HashTagAJay has a lucky of the family and under 348 candy.
 4. **XLX**: level 29+ (a power-up costs 5,000 Stardust or more). Each one left is opened and read.
-5. **Transfer**: the rest. A never-traded XXL or XXS one never gets Transfer: it's renamed XXL or xxs and tagged IVC first (see "XXL and XXS" below).
+5. **GIV (evolved)**: a stage 2, or a stage 1 that takes 100+ candy, a quest or an item (any item, lures too) to evolve into. A stage 1 that GO can't evolve into yet counts too (Kleavor, Alolan Marowak, Alolan Raichu, Hisuian Braviary). Stages count those future evolutions, so Hisuian Typhlosion is stage 2. A baby isn't a stage: Raichu is stage 1. Also the gym defenders (Pokebattler top 6, `GYM_DEFENDERS` in /ivc: Blissey, Chansey, Snorlax, Slaking, Wobbuffet, Dondozo) and every untraded Dynamax one. Never Legendary, Mythical or Ultra Beast. It's tagged after the XLX walk, so a level 29+ one gets XLX instead. The list comes from PokeMiners' game master: `refresh` saves it as `giv-evolved-<date>.json`.
+6. **Transfer**: the rest.
 
-The tag step: the `Tradeable` shortcut + each plan search + `&!#Luckydex&!#Reroll&!#GIV`, tagged like a cleantrades pile. Then it walks the tagged ones for power-ups, then the untagged ones for XLX and power-ups, then tags the rest Transfer.
+Gigantamax ones get no tag at all, not even Transfer. They're special trades, like legendaries, so the user tags them by hand. Every tag search ends in `&!gigantamax`. A never-traded XXL or XXS one never gets Transfer: it's renamed XXL or xxs and tagged IVC first (see "XXL and XXS" below).
+
+The tag step: the `Tradeable` shortcut + each plan search + `&!#Luckydex&!#Reroll&!#GIV`, tagged like a cleantrades pile. Then it walks the tagged ones for power-ups, then the untagged ones for XLX and power-ups, then tags the evolved GIV ones, then tags the rest Transfer.
 Power-ups are cleantrades' cheap jumps only (14->15, 19->20, 22->23, 30->31), never below 1,000,000 Stardust. The 360 Candy XL cap counts the account that will transfer it: HashTagAJay for the traded tags, CyrillJan for the rest. Out of Stardust: it goes on with XLX only.
 If it can't tell whether one is level 29+ (or doesn't know the species), it tags nothing Transfer and lists those in the log. Tag them XLX by hand (or not), then run `tag` again.
 `--limit N` caps the power-ups in each walk. All the Luckydex, Reroll and GIV tagging still runs.

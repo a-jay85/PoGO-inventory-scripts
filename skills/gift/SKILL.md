@@ -9,13 +9,19 @@ model: claude-sonnet-5-5
 Uses the shared tapper and screen reader from /pvpc (`~/.claude/skills/pvpc`: `ui.py`, `run.py`, `home.py`).
 `S=~/.claude/skills/gift`.
 
-`caffeinate -dimsu python3 $S/gift.py [--limit N] [--dry-run]`
+`POGO_PHONE=android caffeinate -dimsu python3 $S/gift.py [--limit N] [--dry-run]`
 
-Both phones run at once, each in its own process. `--phone ios` or `--phone android` runs one. So does `POGO_PHONE=android` (or `POGO_PHONE=ios`) in front of the command. Keep your hands off the Mac mouse while the iPhone runs: its taps go through the Mac pointer.
+`POGO_PHONE` picks the phone, like the other skills:
+
+- `POGO_PHONE=android`: the Android phone only.
+- No `POGO_PHONE`: the iPhone only.
+- `POGO_PHONE=both`: both phones at once, each in its own process.
+
+Keep your hands off the Mac mouse while the iPhone runs: its taps go through the Mac pointer.
 
 - `--limit N`: at most N gifts per phone this run.
 - `--dry-run`: does everything except tap SEND. A nickname is typed into the box, then CANCEL instead of OK. It still taps the phone.
-- `python3 $S/gift.py --phone ios look`: what the script reads on the screen now. Taps nothing.
+- `POGO_PHONE=android python3 $S/gift.py look`: what the script reads on the screen now. Taps nothing.
 
 ## Which gifts
 

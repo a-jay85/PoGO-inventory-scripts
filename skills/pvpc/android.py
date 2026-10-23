@@ -100,7 +100,7 @@ def phone_shot():
 
 def sharp(path="/tmp/pvpc_sharp.png"):
     """the phone's own screenshot in the capture layout, 3x bigger: scrcpy's picture loses small symbols ('!', '&')"""
-    shape(phone_shot(), 3)[0].save(path)
+    shape(phone_shot(), 3)[0].save(path, compress_level=1)
     return path
 
 
@@ -169,7 +169,7 @@ def capture(path, retry=True, force=False):
     global bounds, _aligned, _restarts
     if NO_WINDOW:  # Mac "points" are the phone's own pixels here, so taps need no conversion
         im, top = shape(phone_shot())
-        im.save(path)
+        im.save(path, compress_level=1)  # (the default packing took ~100 ms a look)
         W, H = size()
         globals()["phone"] = [0.0, 0.0, float(W), float(H)]
         k = W / WIDTH

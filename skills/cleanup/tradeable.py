@@ -19,7 +19,8 @@ One tag each, the first that fits:
  5. GIV (evolved): a stage 2 (a baby isn't a stage), or a stage 1 that takes 100+ candy, a quest or an item to
     evolve into, or one GO can't evolve into yet (Kleavor, Alolan Marowak) (giv-evolved-<date>.json). Also gym
     defenders (/ivc's GYM_DEFENDERS) and untraded Dynamax ones. Not Legendary, Mythical or Ultra Beast. Tagged after the XLX walk.
- 6. Transfer: everything else, but a never-traded XXL or XXS one gets renamed XXL or xxs and tagged IVC (sizes.py).
+ 6. GIV (far): never traded and caught 100 km or more away ('distance100-'), and no other tag fits.
+ 7. Transfer: everything else, but a never-traded XXL or XXS one gets renamed XXL or xxs and tagged IVC (sizes.py).
 Legendary, Mythical and Ultra Beast never get Reroll or GIV from the raid rule (roster leaves them out). Shadows can't
 be traded. Gigantamax ones get no tag at all (special trades): the user tags them by hand.
 
@@ -522,7 +523,8 @@ def cmd_tag(limit):
         ct.tag_pile(SHORTCUT, "GIV", rest + q)
         done.add(rest + q)
         json.dump(sorted(done), open(done_f, "w"))
-    ct.tag_pile(SHORTCUT, TRANSFER, rest)
+    ct.tag_pile(SHORTCUT, "GIV", rest + "&!traded&distance100-")  # fits nothing else, but a far trade: GIV
+    ct.tag_pile(SHORTCUT, TRANSFER, rest)  # (rest leaves out #GIV)
 
 
 if __name__ == "__main__":

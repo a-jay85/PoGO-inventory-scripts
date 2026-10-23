@@ -300,6 +300,8 @@ def species_for(name, texts):
         base = p["speciesName"].split(" (")[0]
         if base.lower() == (name or "").lower():
             cands.append(p)
+    if not cands and re.fullmatch(r"nidoran\W*\w?", (name or "").strip(), re.I):  # its ♂/♀ reads as '7' etc:
+        cands = [p for p in gm["pokemon"] if p["speciesId"] in ("nidoran_female", "nidoran_male")]  # CP picks one
     if not cands and name:
         cands = loose_match(name, texts, gm)
     if (name or "").lower() == "pikachu":  # costumes all share Pikachu's base stats, so they rank the same

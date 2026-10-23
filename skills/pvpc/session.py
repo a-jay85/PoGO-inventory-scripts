@@ -4,8 +4,9 @@
 - iPhone: ready() opens iPhone Mirroring if it isn't open, and waits until it has connected to the iPhone. If it can't
   reach the iPhone, it quits and opens iPhone Mirroring once more. close() quits iPhone Mirroring.
 - Android: ready() wakes the phone and unlocks it. With a PIN on the phone, the PIN comes from PIN_FILE (one line,
-  digits only, outside the repo so it's never committed). Tried once a run: wrong PINs lock the phone out for longer
-  each time. close() locks the phone.
+  digits only, outside the repo so it's never committed). A PIN that fails is never typed again that run: wrong PINs
+  lock the phone out for longer each time. It's typed again only if the phone locks itself mid-run after it worked.
+  close() locks the phone.
 - main(body) runs a script's body: STOPPED / interrupted / CRASHED lines and exit codes 1 / 130 / 2, the run folder
   at the end, and close() if the run opened the phone. A run that never touched the phone (a usage error, a plan step)
   leaves it alone. POGO_KEEP_OPEN=1 leaves the phone as it is at the end.
@@ -94,12 +95,9 @@ def unlock():
 
 
 def lock():
-    """screen off and locked. KEYCODE_SLEEP only turns the screen off: it locks right away with the phone's
-    'Power button instantly locks' on, else after its 'Lock after screen timeout' time"""
-    a = ui.android
+    """screen off and locked (the Pixel 4 XL shows its lock screen at once: checked 2026-10-23)"""
     if awake():
-        a.shell("input keyevent KEYCODE_SLEEP")
-    return True
+        ui.android.shell("input keyevent KEYCODE_SLEEP")
 
 
 # ---------- iPhone ----------

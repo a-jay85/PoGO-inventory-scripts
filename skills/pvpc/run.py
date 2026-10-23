@@ -80,9 +80,18 @@ def keep_capture(tag):
 
 def new_run_dir(runs, d=None):
     global RUN_DIR
-    RUN_DIR = d or os.path.join(runs, time.strftime("%Y%m%d-%H%M%S"))
-    os.makedirs(RUN_DIR, exist_ok=True)
-    return RUN_DIR
+    if d:
+        RUN_DIR = d
+        os.makedirs(RUN_DIR, exist_ok=True)
+        return RUN_DIR
+    os.makedirs(runs, exist_ok=True)
+    while True:  # the other phone's run may have started this same second: never share its folder
+        RUN_DIR = os.path.join(runs, time.strftime("%Y%m%d-%H%M%S"))
+        try:
+            os.mkdir(RUN_DIR)
+            return RUN_DIR
+        except FileExistsError:
+            time.sleep(1)
 
 
 def save(name, data):

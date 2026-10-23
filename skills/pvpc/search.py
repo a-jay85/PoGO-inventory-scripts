@@ -12,7 +12,7 @@ import ui
 import run as base
 from run import Stop, Skip, Lost, GYM, log, keep_capture, go, tap, wait_for, key, type_text, back_to_list, scroll, front
 
-ZOOM = "/tmp/pvpc-zoom.png"
+ZOOM = ui.TMP + "_zoom.png"
 END_AFTER_STALE = 3
 # Pixel rows are 0.165 apart and a row down to ~0.83 still reads. A list whose lowest tile sits above this had room
 # for another row: that's its end, no drags needed (3 stale drags on a short list cost ~10s). iPhone: not measured

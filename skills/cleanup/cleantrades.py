@@ -209,7 +209,8 @@ def account():
             time.sleep(0.3)
             texts = look()[1]
             got = [int(m.group(1).replace(",", "")) for t in texts if t[1] < 0.15
-                   and (m := re.fullmatch(r"\d[\d,]{2,}\s*/\s*(\d[\d,]{2,})", t[4].strip()))]  # (not the 10/12 shortcuts)
+                   and (m := re.fullmatch(r"\d[\d,]{2,}\s*/\s*(\d[\d,]{2,})\W?", t[4].strip()))]  # (not the 10/12 shortcuts)
+            # \W?: on the iPhone the bar's edge can read as a '|' stuck on the end ('12900/12900|')
             if len(got) == 1:
                 who = "HashTagAJay" if got[0] > BIG else EVO_FOR
                 log(f"storage {got[0]:,}: {who}")

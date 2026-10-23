@@ -523,6 +523,63 @@ def search_text(box):
     return "" if t.lower() in ("search", "9", "q") else t
 
 
+def sort_arrow(path, right_most=False):
+    """'down' / 'up' / None: the small arrow on a sort button (bottom right), light teal on dark teal. It's a blob of
+    its own, about 8-10 px square (Pixel and iPhone captures). right_most: the friend list's gift icon has an arrow of
+    its own, so take the right-most blob. Else it has to be the only one"""
+    im = Image.open(path).convert("RGB")
+    W, H = im.size
+    light = {(x, y) for x in range(int(W * .86), int(W * .99)) for y in range(int(H * .89), int(H * .98))
+             if im.getpixel((x, y))[0] >= 120 and min(im.getpixel((x, y))) <= 200}
+    seen, found = set(), []
+    for p in light:
+        if p in seen:
+            continue
+        stack, blob = [p], []
+        seen.add(p)
+        while stack:
+            x, y = stack.pop()
+            blob.append((x, y))
+            for q in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+                if q in light and q not in seen:
+                    seen.add(q)
+                    stack.append(q)
+        xs, ys = [b[0] for b in blob], [b[1] for b in blob]
+        w, h = max(xs) - min(xs) + 1, max(ys) - min(ys) + 1
+        if 6 <= w <= 14 and 6 <= h <= 14 and len(blob) >= 15:
+            found.append((min(xs), blob, min(ys), h))
+    if not found or len(found) != 1 and not right_most:
+        return None
+    _, blob, top, h = max(found)
+    head_up = sum(1 for x, y in blob if y < top + h / 3)
+    head_down = sum(1 for x, y in blob if y >= top + 2 * h / 3)
+    return "up" if head_up > head_down else "down" if head_down > head_up else None
+
+
+def icon_score(path, icon, at, slack=0):
+    """how well the green picture on a sort button matches icon (a png cut from a 406 x 890 capture): 0 to 1.
+    at: the icon's top left in the capture. slack: how many pixels it may sit off. None: no picture, or another size"""
+    try:
+        want = Image.open(icon).convert("1")
+        im = Image.open(path).convert("RGB")
+    except OSError:
+        return None
+    if im.size != (406, 890):
+        return None
+    green = lambda c: c[1] > 150 and c[1] > c[0] + 40
+    ox, oy = at
+    lit = {(x, y) for x in range(ox - slack, ox + want.width + slack) for y in range(oy - slack, oy + want.height + slack)
+           if green(im.getpixel((x, y)))}
+    need = {(x, y) for x in range(want.width) for y in range(want.height) if want.getpixel((x, y))}
+    best = 0
+    for dx in range(-slack, slack + 1):
+        for dy in range(-slack, slack + 1):
+            have = {(x - ox - dx, y - oy - dy) for x, y in lit
+                    if 0 <= x - ox - dx < want.width and 0 <= y - oy - dy < want.height}
+            best = max(best, len(have & need) / max(1, len(have | need)))
+    return best
+
+
 def evo_box(texts):
     """the SHOW EVOLUTIONARY LINE tick circle under the search bar: (x, y) centre, or None"""
     t = [t for t in texts if t[1] < 0.4 and norm(t[4]) == "SHOW EVOLUTIONARY LINE"]

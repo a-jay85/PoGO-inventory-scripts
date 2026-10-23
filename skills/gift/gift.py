@@ -442,18 +442,56 @@ def search(*parts):
             continue
         if n == 0 or rows():
             return n
-        # a known game bug: a count with an empty list. A space added to the end runs the search again
-        log(f"the search shows ({n}) but no rows: adding a space")
-        box = search_line()
-        tap_text(box) if box else tap(0.45, 0.22)
-        time.sleep(1.2)
-        base.type_text(" ")
-        typed = q + " "
-        n = commit_search()
+        n = add_space(n)
         if n is not None and (n == 0 or rows()):
             return n
         log(f"still ({n}) and no rows: typing it again")
     raise Stop(f"the search {q!r} didn't take after 4 tries: {summary()}")
+
+
+def add_space(n):
+    """a known game bug: a count with an empty list. A space added to the end runs the search again -> the count"""
+    global typed
+    log(f"the search shows ({n}) but no rows: adding a space")
+    box = search_line()
+    tap_text(box) if box else tap(0.45, 0.22)
+    time.sleep(1.2)
+    base.type_text(" ")
+    typed += " "
+    return commit_search()
+
+
+def swap_zone(base_q, old, new):
+    """the box holds base_q + a short zone ('ea') and nobody left in it can take a gift: delete just that zone
+    and type the next ('ce', or nothing for the rest), rather than clearing the box and typing it all again
+    -> the result count, or None when it didn't take (then search() does it the long way)"""
+    global typed
+    tail = typed[len(base_q):]
+    if not typed.startswith(base_q) or tail.strip() != old:
+        return None  # the box holds something else
+    to_top()
+    box = search_line()
+    if not box or ui.norm(box[4]) == "TRAINER NICKNAME":
+        return None
+    tap_text(box)  # the cursor lands at the end (as for the ghost-rows space in search())
+    time.sleep(1.2)
+    for _ in tail:
+        base.key("delete")
+    if new:
+        base.type_text(new)
+    typed = base_q + new
+    n = commit_search()
+    box = search_line()
+    t = ui.norm(box[4]).replace(" ", "").rstrip("X") if box else ""  # (the read can end with the box's clear X)
+    log(f"  search box reads {box[4] if box else None!r}")
+    if n is None or (not t.endswith(new.upper()) if new else t.endswith(old.upper())):
+        log(f"swapping {old!r} for {new!r} didn't take: typing the search again")
+        return None
+    if n and not rows():
+        n = add_space(n)
+        if n is None or (n and not rows()):
+            return None
+    return n
 
 
 def clean(name):
@@ -921,9 +959,15 @@ def run_searches(limit):
     to_list()
     set_sort()
     for first, base_q in (("iii", FIRST), ("lll", THEN)):
+        prev = None
         for zone, zq in ZONES:
             t0 = time.time()
-            n = search(base_q, zq)
+            n = None
+            if prev is not None and len(prev) == 2 and len(zq) <= 2:
+                n = swap_zone(base_q, prev, zq)  # ea -> ce -> mo -> (none): change just the end
+            if n is None:
+                n = search(base_q, zq)
+            prev = zq
             log(f"{first} + {zone}: ({n}) ({time.time() - t0:.0f}s)")
             if not n:
                 continue

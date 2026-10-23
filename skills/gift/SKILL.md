@@ -36,6 +36,8 @@ The friend list is sorted **Can receive a gift**, arrow down. Friends who can ta
 
 Inside each, the time zones farthest ahead go first. They are the user's iPhone text replacements: `lasia`, `leuro`, `latam`, then `ea`, `ce`, `mo`, then the search alone for everyone else.
 
+Going from `ea` to `ce` to `mo` to the search alone, the script doesn't clear the box. It deletes the two letters and types the next two. If the box doesn't read right after that, it clears and types the whole search.
+
 The iPhone types the shortcuts (`iii`, `lasia` ...) and lets iOS expand them. If the search box still shows a shortcut (`iii`), it types every search out in full for the rest of the run. Android always types them out in full.
 
 ## Friends close to a level-up

@@ -18,11 +18,12 @@ One tag each, the first that fits:
  4. XLX: a power-up costs 5,000 Stardust or more (level 29+). Read one by one in the power-up dialog.
  5. GIV (evolved): a stage 2 (a baby isn't a stage), or a stage 1 that takes 100+ candy, a quest or an item to
     evolve into, or one GO can't evolve into yet (Kleavor, Alolan Marowak) (giv-evolved-<date>.json). Also gym
-    defenders (/ivc's GYM_DEFENDERS) and untraded Dynamax ones. Not Legendary, Mythical or Ultra Beast. Tagged after the XLX walk.
+    defenders (/ivc's GYM_DEFENDERS) and untraded Dynamax ones. Tagged after the XLX walk.
  6. GIV (far): never traded and caught 100 km or more away ('distance100-'), and no other tag fits.
  7. Transfer: everything else, but a never-traded XXL or XXS one gets renamed XXL or xxs and tagged IVC (sizes.py).
-Legendary, Mythical and Ultra Beast never get Reroll or GIV from the raid rule (roster leaves them out). Shadows can't
-be traded. Gigantamax ones get no tag at all (special trades): the user tags them by hand.
+Special trades get no tag at all and are never powered up: Legendary, Mythical, Ultra Beast, shiny and Gigantamax. The
+user trades them by hand, so a tag never lines one up for a trade that uses up the day's special trade. Shadows can't
+be traded.
 
 Power-ups: only cleantrades' cheap jumps (14->15, 19->20, 22->23, 30->31), never below 1,000,000 Stardust, and only while
 the account that will transfer it has under 360 Candy XL of the family: HashTagAJay (read) for the traded tags,
@@ -65,8 +66,10 @@ PVP_URL = "https://raw.githubusercontent.com/pvpoke/pvpoke/master/src/data/ranki
 PM_URL = "https://raw.githubusercontent.com/PokeMiners/game_masters/master/latest/latest.json"
 HARD_CANDY = 100  # a stage 1 that costs this much candy to evolve into counts for the evolved GIV rule
 BABIES = {172, 173, 174, 175, 236, 238, 239, 240, 298, 360, 406, 433, 438, 439, 440, 446, 447, 458, 848}  # not a stage
-SPECIAL = ("legendary", "mythical", "ultrabeast")  # traded by hand: never GIV from the evolved rule
-DYNAMAX = "&dynamax&!traded" + "".join(f"&!{t}" for t in SPECIAL)  # evolved GIV too (Gigantamax: see NOT_TAGGED)
+SPECIAL = ("legendary", "mythical", "ultrabeast")  # special trades by species: traded by hand, never tagged
+# every special trade: no search here tags or powers one up. (Not in the taker's dex is one too: the user checks that)
+NO_SPECIAL = "&!gigantamax&!shiny" + "".join(f"&!{t}" for t in SPECIAL)
+DYNAMAX = "&dynamax&!traded"  # evolved GIV too
 
 
 def newest(pattern):
@@ -326,7 +329,7 @@ def cmd_plan():
     read = json.load(open(read_f))
     pvp_giv = json.load(open(pvp_f))
 
-    ok = [s for s in m.by if m.tradeable(s)]
+    ok = [s for s in m.by if m.tradeable(s) and not m.special(s)]
     lucky = luckydex(m, set(lucky_missing))
     reroll = {s for s in roster["reroll"] if s in m.by}
     why = {}
@@ -350,7 +353,7 @@ def cmd_plan():
     hard = json.load(open(hard_f))
     evolved = {}  # tagged GIV only after the XLX walk: XLX wins over these
     for s in ok:
-        if s not in why and not m.special(s):
+        if s not in why:
             if m.stage(s) >= 2:
                 evolved[s] = "stage 2"
             elif m.stage(s) == 1 and s in hard:
@@ -359,8 +362,8 @@ def cmd_plan():
                 evolved[s] = "gym defender"
     plan = {"from": {"lucky": lucky_run, "100": hund_run, "roster": roster_f, "read": read_f, "pvp": pvp_f,
                      "evolved": hard_f},
-            "tags": {t: queries(m, [s for s, (w, _) in why.items() if w == t], lucky if t == "Luckydex" else None)
-                     for t in TAGS},
+            "tags": {t: queries(m, [s for s, (w, _) in why.items() if w == t], lucky if t == "Luckydex" else None,
+                                room=len(NOT_TAGGED) + 10) for t in TAGS},
             "giv_evolved": queries(m, evolved, room=len(EVOLVED_REST) + 10) + [DYNAMAX],
             "taker_xl_full": sorted({m.dex(x) for s in m.by if m.dex(s) in read["xl_full"] for x in m.family(s)})}
     base.new_run_dir(None, os.path.join(HERE, "runs", time.strftime("%Y%m%d-%H%M%S") + "-plan"))
@@ -374,8 +377,8 @@ def cmd_plan():
         lines += ["", "Searches (after the Tradeable search):", ""] + [f"    {q}" for q in plan["tags"][t]] + [""]
     lines += [f"## GIV (evolved, only after XLX): {len(evolved)} species forms", "",
               "Stage 2, a stage 1 that takes 100+ candy, a quest or an item, a gym defender, or (the last search) an "
-              "untraded Dynamax one. Tagged after the XLX walk, so a level 29+ one gets XLX instead. Gigantamax "
-              "ones get no tag at all: they're for you to tag.", ""]
+              "untraded Dynamax one. Tagged after the XLX walk, so a level 29+ one gets XLX instead. Special trades "
+              "(Legendary, Mythical, Ultra Beast, shiny, Gigantamax) get no tag at all: they're for you to trade.", ""]
     lines += [f"- {m.by[s]['speciesName']} (#{m.dex(s)}): {r}" for s, r in sorted(evolved.items(), key=lambda x: m.dex(x[0]))]
     lines += ["", f"Searches (after the Tradeable search, with {EVOLVED_REST}):", ""]
     lines += [f"    {q}" for q in plan["giv_evolved"]] + [""]
@@ -386,8 +389,8 @@ def cmd_plan():
 
 # ---------- tag (CyrillJan) ----------
 
-# Gigantamax: special trades, like legendaries. Every tag search leaves them out: the user tags them by hand
-NOT_TAGGED = "&!gigantamax" + "".join(f"&!#{t}" for t in TAGS)
+# every tag search and walk leaves special trades out: the user trades them by hand
+NOT_TAGGED = NO_SPECIAL + "".join(f"&!#{t}" for t in TAGS)
 REST = NOT_TAGGED + f"&!#{XLX}&!#{TRANSFER}"  # not tagged yet
 EVOLVED_REST = REST + "&traded,!xxl&traded,!xxs"  # and not a never-traded XXL/XXS one (those get IVC)
 
@@ -486,7 +489,7 @@ def cmd_tag(limit):
     if done:
         log(f"{len(done)} tag search(es) done for this plan (a new plan starts over)")
     # (HashTagAJay's 360+ XL families are passed on the detail page: as '&!<dex>' terms they'd overflow the bar)
-    traded = "&" + ",".join(f"#{t}" for t in TAGS)
+    traded = NO_SPECIAL + "&" + ",".join(f"#{t}" for t in TAGS)  # (one tagged before special trades were left out)
     rest = REST
     for size in sizes.NAMES:  # first: a never-traded XXL/XXS one is renamed and tagged IVC, never XLX or Transfer
         q = rest + f"&!#{sizes.IVC}&!traded&{size}"

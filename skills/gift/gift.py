@@ -442,18 +442,23 @@ def search(*parts):
             continue
         if n == 0 or rows():
             return n
-        # a known game bug: a count with an empty list. A space added to the end runs the search again
-        log(f"the search shows ({n}) but no rows: adding a space")
-        box = search_line()
-        tap_text(box) if box else tap(0.45, 0.22)
-        time.sleep(1.2)
-        base.type_text(" ")
-        typed = q + " "
-        n = commit_search()
+        n = add_space(n)
         if n is not None and (n == 0 or rows()):
             return n
         log(f"still ({n}) and no rows: typing it again")
     raise Stop(f"the search {q!r} didn't take after 4 tries: {summary()}")
+
+
+def add_space(n):
+    """a known game bug: a count with an empty list. A space added to the end runs the search again -> the count"""
+    global typed
+    log(f"the search shows ({n}) but no rows: adding a space")
+    box = search_line()
+    tap_text(box) if box else tap(0.45, 0.22)
+    time.sleep(1.2)
+    base.type_text(" ")
+    typed += " "
+    return commit_search()
 
 
 def swap_zone(base_q, old, new):
@@ -477,13 +482,15 @@ def swap_zone(base_q, old, new):
     typed = base_q + new
     n = commit_search()
     box = search_line()
-    t = ui.norm(box[4]).replace(" ", "") if box else ""
+    t = ui.norm(box[4]).replace(" ", "").rstrip("X") if box else ""  # (the read can end with the box's clear X)
     log(f"  search box reads {box[4] if box else None!r}")
-    if n is None or (t.endswith(new.upper()) if new else t.endswith(old.upper())):
+    if n is None or (not t.endswith(new.upper()) if new else t.endswith(old.upper())):
         log(f"swapping {old!r} for {new!r} didn't take: typing the search again")
         return None
     if n and not rows():
-        return None  # the ghost-rows bug: search() knows what to do
+        n = add_space(n)
+        if n is None or (n and not rows()):
+            return None
     return n
 
 

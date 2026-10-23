@@ -111,6 +111,8 @@ def classify():
         return "preview"
     if "GREETINGS FROM" in j and "OPEN" in w:
         return "giftpopup"
+    if "REVIEW LUCKY" in j:
+        return "luckytrade"  # a friend's Lucky Trade request over their page: its X shows the page
     if "TRAINER CODE" in j and "2D CODE" in j:
         return "trainercode"  # (a tap on our own picture in the friend list)
     if "SET NICKNAME" in j and w & {"OK", "CANCEL"}:
@@ -168,18 +170,19 @@ def wait(*screens, timeout=10):
         time.sleep(0.4)
 
 
-def tap(fx, fy, fuzz=0.008):
+def tap(fx, fy, fuzz=0.008, rest=None):
+    """rest: seconds to wait after the tap (default a short random pause)"""
     base.front()
     base.tap_gap()
     x, y = base.to_points(fx + random.uniform(-fuzz, fuzz), fy + random.uniform(-fuzz / 2, fuzz / 2), bounds)
     ui.sh(ui.HELPER, "click", f"{x:.1f}", f"{y:.1f}", str(ui.tap_ms()))
     base.last_tap = time.time()
-    time.sleep(random.uniform(0.25, 0.4))
+    time.sleep(random.uniform(0.25, 0.4) if rest is None else rest)
 
 
-def tap_text(t, dy=0.0):
+def tap_text(t, dy=0.0, rest=None):
     x, y, w, h, _ = t
-    tap(x + w / 2, y + h / 2 + dy, fuzz=min(0.008, w / 4))
+    tap(x + w / 2, y + h / 2 + dy, fuzz=min(0.008, w / 4), rest=rest)
 
 
 def drag(fy1, fy2, ms=500, x=None):
@@ -238,7 +241,7 @@ def to_list():
             tap_text(t) if t else tap(0.5, 0.09)
         elif s == "map":
             tap(0.13, 0.91)  # the profile picture
-        elif s in ("friend", "meter", "picker", "preview", "giftpopup", "trainercode"):
+        elif s in ("friend", "meter", "picker", "preview", "giftpopup", "luckytrade", "trainercode"):
             close()
         elif s == "nickname":
             cancel_nickname()
@@ -291,6 +294,7 @@ def arrow():
 
 
 SORT_ICON = os.path.join(HERE, "gift_sort_icon.png")  # the sort button's gift-and-arrow, green on teal (406 x 890 capture)
+SORT_ICON_AT = (336, 813) if ui.ANDROID else (330, 815)  # its top left in the capture
 
 
 def sorted_gift():
@@ -304,9 +308,17 @@ def sorted_gift():
     if im.size != (406, 890):
         return None
     green = lambda c: c[1] > 150 and c[1] > c[0] + 40
-    have = {(x, y) for x in range(want.width) for y in range(want.height) if green(im.getpixel((330 + x, 815 + y)))}
+    ox, oy = SORT_ICON_AT
+    lit = {(x, y) for x in range(ox - 2, ox + want.width + 2) for y in range(oy - 2, oy + want.height + 2)
+           if green(im.getpixel((x, y)))}
     need = {(x, y) for x in range(want.width) for y in range(want.height) if want.getpixel((x, y))}
-    return arrow() if len(have & need) / max(1, len(have | need)) >= 0.6 else None
+    best = 0
+    for dx in range(-2, 3):  # (a pixel or two off between captures)
+        for dy in range(-2, 3):
+            have = {(x - ox - dx, y - oy - dy) for x, y in lit
+                    if 0 <= x - ox - dx < want.width and 0 <= y - oy - dy < want.height}
+            best = max(best, len(have & need) / max(1, len(have | need)))
+    return arrow() if best >= 0.6 else None
 
 
 def set_sort():
@@ -375,6 +387,29 @@ def expanded(parts):
     return not any(SHORT[p].upper() in t for p in parts if p in SHORT)
 
 
+def commit_search():
+    """the search is typed: commit it -> its result count, or None when none shows"""
+    time.sleep(0.5)
+    ok = None
+    if ui.ANDROID:
+        look()
+        ok = find(lambda t: ui.norm(t[4]) == "OK" and t[0] > 0.75 and 0.5 < t[1] < 0.65)
+    if ok:
+        tap_text(ok[0])  # Android: the input strip's OK commits (Back would throw the text away)
+    else:
+        base.key("return")
+    time.sleep(0.8)  # (then the result count is polled)
+    for _ in range(8):
+        if look() == "friends" and count() is not None:
+            return count()
+        time.sleep(0.5)
+    box = search_line()
+    if box and len(ui.norm(box[4])) > 12 and ui.norm(box[4]) != "TRAINER NICKNAME" \
+            and not any(0.26 < t[1] < 0.85 for t in texts):
+        return 0  # no one found: the list is empty and FRIENDS shows the total, with no '(0)'
+    return None
+
+
 def search(*parts):
     """type a search (its parts, joined) into the friend list -> its result count"""
     global shortcuts, typed
@@ -394,26 +429,7 @@ def search(*parts):
         short = shortcuts
         typed = q
         type_query(parts)
-        time.sleep(0.5)
-        ok = None
-        if ui.ANDROID:
-            look()
-            ok = find(lambda t: ui.norm(t[4]) == "OK" and t[0] > 0.75 and 0.5 < t[1] < 0.65)
-        if ok:
-            tap_text(ok[0])  # Android: the input strip's OK commits (Back would throw the text away)
-        else:
-            base.key("return")
-        time.sleep(0.8)  # (then the result count is polled)
-        n = None
-        for _ in range(8):
-            if look() == "friends" and count() is not None:
-                n = count()
-                break
-            time.sleep(0.5)
-        box = search_line()
-        if n is None and box and len(ui.norm(box[4])) > 12 and ui.norm(box[4]) != "TRAINER NICKNAME" \
-                and not any(0.26 < t[1] < 0.85 for t in texts):
-            n = 0  # no one found: the list is empty and FRIENDS shows the total, with no '(0)'
+        n = commit_search()
         if n is None:
             keep_capture("nocount")
             log(f"no result count after the search (the box reads {search_line()[4] if search_line() else None!r}): typing it again")
@@ -426,7 +442,17 @@ def search(*parts):
             continue
         if n == 0 or rows():
             return n
-        log(f"the search shows ({n}) but no rows: typing it again")  # Android, seen twice
+        # a known game bug: a count with an empty list. A space added to the end runs the search again
+        log(f"the search shows ({n}) but no rows: adding a space")
+        box = search_line()
+        tap_text(box) if box else tap(0.45, 0.22)
+        time.sleep(1.2)
+        base.type_text(" ")
+        typed = q + " "
+        n = commit_search()
+        if n is not None and (n == 0 or rows()):
+            return n
+        log(f"still ({n}) and no rows: typing it again")
     raise Stop(f"the search {q!r} didn't take after 4 tries: {summary()}")
 
 
@@ -454,7 +480,8 @@ def badged(im, name_y):
 def rows():
     """the rows on screen, top down: {name, t, badged}. A row is the trainer name at x ~0.29, the nickname just
     under it; rows too low to see their badge are left for the next scroll"""
-    col = sorted((t for t in texts if 0.26 < t[0] < 0.32 and 0.26 < t[1] < 0.85 and t[4].strip()), key=lambda t: t[1])
+    col = sorted((t for t in texts if 0.26 < t[0] < 0.32 and 0.26 < t[1] < 0.85 and t[4].strip()
+                  and "SENT YOU" not in up(t) and "TRADE REQUEST" not in up(t)), key=lambda t: t[1])  # ('<name> sent you a Lucky Remote Trade request.')
     out, last = [], None
     for t in col:
         if last is not None and t[1] - last[1] < 0.035:
@@ -500,6 +527,27 @@ def gift_icon(t):
     yellow = sum(1 for x in range(x0, x1) for y in range(y0, y1)
                  if (lambda p: p[0] > 200 and p[1] > 150 and p[2] < 110)(im.getpixel((x, y))))
     return yellow > 20
+
+
+def send_button(t, p=None):
+    """the preview's SEND button pixels (every 3rd), around its label t"""
+    im = Image.open(p or path).convert("RGB")
+    W, H = im.size
+    cx, cy = (t[0] + t[2] / 2) * W, (t[1] + t[3] / 2) * H
+    return [im.getpixel((x, y)) for x in range(int(cx - 0.1 * W), int(cx + 0.1 * W), 3)
+            for y in range(int(cy - 0.02 * H), int(cy + 0.02 * H), 3)]
+
+
+def sent_away(t, before):
+    """after the SEND tap: captures (no OCR, for speed) until the SEND button changes. False if it never does"""
+    end = time.time() + 8 * LAG
+    while time.time() < end:
+        p, _ = ui.capture()
+        now = send_button(t, p)
+        diff = sum(abs(a - b) for u, v in zip(before, now) for a, b in zip(u, v)) / (3 * len(now))
+        if diff > 20:
+            return True
+    return False
 
 
 def ribbon():
@@ -714,8 +762,11 @@ def send_gift():
                 close()
                 wait("friend", timeout=6)
                 return title
-            tap_text(send)
-            s = wait("friend", "picker", "preview", "unknown", timeout=8 * LAG)
+            button = send_button(send)
+            tap_text(send, rest=0)
+            if sent_away(send, button):  # SEND is gone and the gift flies off: an X right now skips the animation
+                tap(*X_BUTTON, fuzz=0.004, rest=0)
+            s = wait("friend", "picker", "preview", "unknown", "blank", timeout=8 * LAG)
             for _ in range(int(10 * LAG)):
                 if s == "friend":
                     return title
@@ -832,9 +883,9 @@ def one_friend(row):
     """open the row's friend page, check, gift and/or tag. -> the gift sent, or None"""
     t0 = time.time()
     tap_text(row["t"])
-    s = wait("friend", "giftpopup", timeout=8)
-    if s == "giftpopup":
-        close()  # their gift to me: X, never OPEN
+    s = wait("friend", "giftpopup", "luckytrade", timeout=8)
+    if s in ("giftpopup", "luckytrade"):
+        close()  # their gift to me: X, never OPEN. A Lucky Trade request: X, left for the user
         wait("friend", timeout=6)
     name = page_name()
     if not name or not same_name(name, row["name"]):
@@ -843,6 +894,12 @@ def one_friend(row):
     nick, _ = page_nickname()
     t = label("SEND GIFT")
     if not gift_icon(t):
+        time.sleep(0.8)  # (or a Lucky Trade request fading in over the page: it pales the icon)
+        if look() == "luckytrade":
+            close()
+            wait("friend", timeout=6)
+        t = label("SEND GIFT")
+    if not t or not gift_icon(t):
         log(f"{name} ({nick}): their SEND GIFT is grey: skipped")
         return "grey"
     n = meter()

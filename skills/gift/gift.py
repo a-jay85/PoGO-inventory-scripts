@@ -61,6 +61,7 @@ HEART_NEAR = {2: 0.9, 3: 0.97, 4: 0.97, 5: 0.95}  # by hearts full: open the fri
 PHONE = "android" if ui.ANDROID else "ios"
 DRY = False  # --dry-run: everything but SEND and the nickname box's OK
 shortcuts = not ui.ANDROID  # off for the rest of the run once a shortcut didn't expand
+typed = ""  # the last search typed: the box shows its end ('ea', 'mo')
 LAG = 1 if ui.ANDROID else 2.5  # iPhone Mirroring now and then freezes for several seconds: wait longer there
 
 
@@ -144,9 +145,16 @@ def classify():
 
 def look():
     global texts, path, bounds
+    t0 = time.time()
     path, bounds = ui.capture()
+    t1 = time.time()
     texts = ui.ocr(path)
-    return classify()
+    s = classify()
+    if base.RUN_DIR:  # steps.txt: each look's capture and OCR seconds, to see where a run's time goes
+        caller = sys._getframe(1).f_code.co_name
+        with open(os.path.join(base.RUN_DIR, "steps.txt"), "a") as f:
+            f.write(f"{time.strftime('%H:%M:%S')}.{int(t0 % 1 * 10)} {caller:12} {s:10} cap {t1 - t0:.1f} ocr {time.time() - t1:.1f}\n")
+    return s
 
 
 def wait(*screens, timeout=10):
@@ -206,9 +214,10 @@ def search_line():
     if any(0.18 < t[1] < 0.26 and ui.norm(t[4]) in ("ADD FRIEND", "INVITE") for t in texts):
         return None  # the button row: no search on, and under the picture sits the trainer's name or OFFLINE
     clear_x = any(0.18 < t[1] < 0.26 and t[0] > 0.75 and t[4].strip() in ("X", "x", "×") for t in texts)
+    tail = lambda t: len(t[4].strip()) >= 2 and typed.lower().endswith(t[4].strip().lower())
     for t in texts:
         if 0.18 < t[1] < 0.26 and t[0] < 0.25 and ui.norm(t[4]) not in ("ADD FRIEND", "SEARCH", "INVITE", "OFFLINE") \
-                and (re.search(r"[&!:?$]", t[4]) or ui.norm(t[4]) == "TRAINER NICKNAME" or clear_x):
+                and (re.search(r"[&!:?$]", t[4]) or ui.norm(t[4]) == "TRAINER NICKNAME" or clear_x or tail(t)):
             return t  # (a search has '&' '!' ':', or the X that clears it. At the list's bottom a friend's row sits here: a tap opens its gift)
     return None
 
@@ -329,11 +338,19 @@ def set_sort():
 
 
 def to_top():
+    global typed
+    before = None
     for _ in range(15):
         if look() != "friends":
             to_list()  # (a drag can land as a tap and open a friend's gift)
         if search_line() or label("SEARCH", 0.18, 0.28):
             return
+        rows_now = [r["name"] for r in rows()]
+        box = [t for t in texts if 0.18 < t[1] < 0.26 and t[0] < 0.25 and len(t[4].strip()) >= 2]
+        if rows_now == before and count() is not None and box:
+            typed = box[0][4].strip()  # a scroll up moved nothing: the top, so this is the box (an older search's end, 'ea')
+            return
+        before = rows_now
         drag(0.35, 0.8, 350)
     raise Stop(f"couldn't scroll back to the search box: {summary()}")
 
@@ -360,7 +377,7 @@ def expanded(parts):
 
 def search(*parts):
     """type a search (its parts, joined) into the friend list -> its result count"""
-    global shortcuts
+    global shortcuts, typed
     q = "".join(parts)
     for attempt in range(4):
         to_top()
@@ -375,15 +392,18 @@ def search(*parts):
             tap(0.45, 0.22)  # an empty box ("Trainer Nickname")
         time.sleep(1.2)
         short = shortcuts
+        typed = q
         type_query(parts)
         time.sleep(0.5)
-        look()
-        ok = find(lambda t: ui.norm(t[4]) == "OK" and t[0] > 0.75 and 0.5 < t[1] < 0.65)
+        ok = None
+        if ui.ANDROID:
+            look()
+            ok = find(lambda t: ui.norm(t[4]) == "OK" and t[0] > 0.75 and 0.5 < t[1] < 0.65)
         if ok:
             tap_text(ok[0])  # Android: the input strip's OK commits (Back would throw the text away)
         else:
             base.key("return")
-        time.sleep(1.5)
+        time.sleep(0.8)  # (then the result count is polled)
         n = None
         for _ in range(8):
             if look() == "friends" and count() is not None:
@@ -450,7 +470,7 @@ def rows():
 
 def same_name(a, b):
     """the row's name and the page's: OCR reads them a little differently ('lycбo' / 'lyc60'). One letter off is ok"""
-    f = lambda s: re.sub(r"[il1|I]", "l", re.sub(r"[oO0]", "0", clean(s))).lower()
+    f = lambda s: re.sub(r"[il1|Iİı]", "l", re.sub(r"[oO0]", "0", clean(s))).lower()
     a, b = f(a), f(b)
     return a == b or len(a) == len(b) and sum(x != y for x, y in zip(a, b)) <= 1
 
@@ -640,8 +660,8 @@ def send_gift():
     t = label("SEND GIFT")
     tap_text(t, dy=-0.04)
     wait("picker", timeout=8)
-    seen = None
-    for i in range(25):
+    seen, dragged = None, None  # seen: the titles on the last look; dragged: the titles when it last scrolled
+    for i in range(40):
         if i:  # (the first pass reads the capture wait() just took)
             time.sleep(0.6)
             look()
@@ -688,12 +708,15 @@ def send_gift():
             keep_capture("not_picker")
             raise Stop(f"left the gift list while looking for our gifts: {summary()}")
         titles = tuple(sorted(u[4] for u in texts if u[1] > 0.2))
-        if titles == seen:
-            close()  # the end of the gifts, and none of ours
+        if titles != seen:
+            seen = titles  # still loading or still moving: look again before scrolling
+            continue
+        if titles == dragged:
+            close()  # a scroll moved nothing: the end of the gifts, and none of ours
             raise OutOfGifts()
-        seen = titles
+        dragged = titles
         drag(0.75, 0.45, x=0.5 + random.uniform(-0.005, 0.005))
-    raise Stop("scrolled the gift list 25 times without reaching its end")
+    raise Stop("looked through the gift list 40 times without reaching its end")
 
 
 def new_nickname(tag, old):

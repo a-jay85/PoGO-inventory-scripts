@@ -11,7 +11,7 @@ Uses the shared tapper and screen reader from /pvpc (`~/.claude/skills/pvpc`: `u
 
 `caffeinate -dimsu python3 $S/gift.py [--limit N] [--dry-run]`
 
-Both phones run at once, each in its own process. `--phone ios` or `--phone android` runs one. Keep your hands off the Mac mouse while the iPhone runs: its taps go through the Mac pointer.
+Both phones run at once, each in its own process. `--phone ios` or `--phone android` runs one. So does `POGO_PHONE=android` (or `POGO_PHONE=ios`) in front of the command. Keep your hands off the Mac mouse while the iPhone runs: its taps go through the Mac pointer.
 
 - `--limit N`: at most N gifts per phone this run.
 - `--dry-run`: does everything except tap SEND. A nickname is typed into the box, then CANCEL instead of OK. It still taps the phone.

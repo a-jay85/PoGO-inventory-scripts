@@ -3,6 +3,7 @@
 
   caffeinate -dimsu python3 gift.py [--limit N]                 both phones at once
   caffeinate -dimsu python3 gift.py --phone ios|android [--limit N]
+  POGO_PHONE=android|ios caffeinate -dimsu python3 gift.py [--limit N]   same as --phone
   python3 gift.py --phone ios|android look                      what the script reads now; taps nothing
 
 HashTagAJay is on the iPhone (iPhone Mirroring, hands off the Mac mouse), CyrillJan on the Android phone (adb).
@@ -857,6 +858,9 @@ def main():
     ap.add_argument("--limit", type=int, default=1000, help="at most N gifts per phone this run")
     ap.add_argument("--dry-run", action="store_true", help="everything but SEND and the nickname's OK")
     a = ap.parse_args()
+    env_phone = os.environ.get("POGO_PHONE", "").lower()
+    if not a.phone and env_phone in ("ios", "android"):  # POGO_PHONE=android means that phone only
+        a.phone = env_phone
     if a.phone:
         if (a.phone == "android") != ui.ANDROID:  # ui reads POGO_PHONE on import: start over with it set
             env = dict(os.environ, POGO_PHONE="android" if a.phone == "android" else "")

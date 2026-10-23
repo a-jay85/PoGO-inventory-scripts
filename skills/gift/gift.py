@@ -114,7 +114,9 @@ def classify():
     if "SET NICKNAME" in j and w & {"OK", "CANCEL"}:
         return "nickname"
     # the gift list scrolled past its header: two columns of city lines ('Chicago, IL, United States')
-    cities = [t for t in texts if t[1] > 0.12 and t[4].count(",") >= 1 and len(t[4]) > 8]
+    # (letters: the profile's ME tab has two columns of numbers like '145,619,768')
+    cities = [t for t in texts if t[1] > 0.12 and t[4].count(",") >= 1 and len(t[4]) > 8
+              and re.search(r"[^\W\d_]{3}", t[4])]
     if "SEND GIFT" not in j and {t[0] < 0.4 for t in cities} == {True, False} and len(cities) >= 3:
         return "picker"
     if "CAN RECEIVE A GIFT" in j and "FRIENDSHIP LEVEL" in j:

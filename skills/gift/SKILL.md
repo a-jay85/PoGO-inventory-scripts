@@ -29,14 +29,14 @@ Only gifts whose city line reads **San Francisco**, with no sticker. A title wit
 
 ## Who goes first
 
-The friend list is sorted **Can receive a gift**, arrow down. Friends who can take a gift come first, so the first row with the grey arrow badge on the avatar (a gift already sent) ends a search.
+The friend list is sorted **Can receive a gift**, arrow down. Friends who can take a gift come first, so the first row with the grey arrow badge on the avatar (a gift already sent) ends a search. When the sort button already shows the gift icon with the arrow down, the script leaves the sort alone.
 
 1. `iii`: no gift from me and haven't played with me today (`!?&!$&!WAIT&!OPEN&interactable&!EGG&`).
 2. `lll`: opened my gift or played with me today (`!WAIT&!OPEN&!interactable&!EGG&`).
 
 Inside each, the time zones farthest ahead go first. They are the user's iPhone text replacements: `lasia`, `leuro`, `latam`, then `ea`, `ce`, `mo`, then the search alone for everyone else.
 
-The iPhone types the shortcuts (`iii`, `lasia` ...) and lets iOS expand them. If the search box still shows a shortcut, it types every search out in full for the rest of the run. Android always types them out in full.
+The iPhone types the shortcuts (`iii`, `lasia` ...) and lets iOS expand them. If the search box still shows a shortcut (`iii`), it types every search out in full for the rest of the run. Android always types them out in full.
 
 ## Friends close to a level-up
 

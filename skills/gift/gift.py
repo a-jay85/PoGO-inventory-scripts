@@ -61,6 +61,7 @@ HEART_NEAR = {2: 0.9, 3: 0.97, 4: 0.97, 5: 0.95}  # by hearts full: open the fri
 PHONE = "android" if ui.ANDROID else "ios"
 DRY = False  # --dry-run: everything but SEND and the nickname box's OK
 shortcuts = not ui.ANDROID  # off for the rest of the run once a shortcut didn't expand
+typed = ""  # the last search typed: the box shows its end ('ea', 'mo')
 LAG = 1 if ui.ANDROID else 2.5  # iPhone Mirroring now and then freezes for several seconds: wait longer there
 
 
@@ -144,9 +145,16 @@ def classify():
 
 def look():
     global texts, path, bounds
+    t0 = time.time()
     path, bounds = ui.capture()
+    t1 = time.time()
     texts = ui.ocr(path)
-    return classify()
+    s = classify()
+    if base.RUN_DIR:  # steps.txt: each look's capture and OCR seconds, to see where a run's time goes
+        caller = sys._getframe(1).f_code.co_name
+        with open(os.path.join(base.RUN_DIR, "steps.txt"), "a") as f:
+            f.write(f"{time.strftime('%H:%M:%S')}.{int(t0 % 1 * 10)} {caller:12} {s:10} cap {t1 - t0:.1f} ocr {time.time() - t1:.1f}\n")
+    return s
 
 
 def wait(*screens, timeout=10):
@@ -205,20 +213,26 @@ def search_line():
     """the search box's text, when it's on screen (it scrolls away with the list)"""
     if any(0.18 < t[1] < 0.26 and ui.norm(t[4]) in ("ADD FRIEND", "INVITE") for t in texts):
         return None  # the button row: no search on, and under the picture sits the trainer's name or OFFLINE
+    clear_x = any(0.18 < t[1] < 0.26 and t[0] > 0.75 and t[4].strip() in ("X", "x", "×") for t in texts)
+    tail = lambda t: len(t[4].strip()) >= 2 and typed.lower().endswith(t[4].strip().lower())
     for t in texts:
         if 0.18 < t[1] < 0.26 and t[0] < 0.25 and ui.norm(t[4]) not in ("ADD FRIEND", "SEARCH", "INVITE", "OFFLINE") \
-                and (re.search(r"[&!:?$]", t[4]) or ui.norm(t[4]) == "TRAINER NICKNAME"):
-            return t  # (a search has '&' '!' ':'. At the list's bottom a friend's row sits here: a tap opens its gift)
+                and (re.search(r"[&!:?$]", t[4]) or ui.norm(t[4]) == "TRAINER NICKNAME" or clear_x or tail(t)):
+            return t  # (a search has '&' '!' ':', or the X that clears it. At the list's bottom a friend's row sits here: a tap opens its gift)
     return None
 
 
 def to_list():
-    unknown = 0
-    for _ in range(30):
+    unknown, acted, end = 0, (None, 0.0), time.time() + 90
+    while time.time() < end:
         s = look()
-        unknown = unknown + 1 if s == "unknown" else 0
         if s == "friends":
             return
+        if s == acted[0] and s != "unknown" and time.time() - acted[1] < 3 * LAG:
+            time.sleep(0.3)  # the last tap hasn't shown yet: look again, don't tap twice
+            continue
+        unknown = unknown + 1 if s == "unknown" else 0
+        acted = (s, time.time())
         if s == "profile":
             t = label("FRIENDS")
             tap_text(t) if t else tap(0.5, 0.09)
@@ -239,7 +253,7 @@ def to_list():
             import home
             home.unstick(texts)
             unknown = 0
-        time.sleep(1.2)
+        time.sleep(0.5)
     keep_capture("lost")
     raise Stop(f"couldn't get to the friend list: {summary()}")
 
@@ -276,8 +290,35 @@ def arrow():
     return "up" if head_up > head_down else "down" if head_down > head_up else None
 
 
+SORT_ICON = os.path.join(HERE, "gift_sort_icon.png")  # the sort button's gift-and-arrow, green on teal (406 x 890 capture)
+
+
+def sorted_gift():
+    """the sort button already shows Can receive a gift (the gift icon) -> its arrow 'down' / 'up', else None.
+    Other sorts' icons and other screens read 0.4 or less"""
+    try:
+        want = Image.open(SORT_ICON).convert("1")
+        im = Image.open(path).convert("RGB")
+    except OSError:
+        return None
+    if im.size != (406, 890):
+        return None
+    green = lambda c: c[1] > 150 and c[1] > c[0] + 40
+    have = {(x, y) for x in range(want.width) for y in range(want.height) if green(im.getpixel((330 + x, 815 + y)))}
+    need = {(x, y) for x in range(want.width) for y in range(want.height) if want.getpixel((x, y))}
+    return arrow() if len(have & need) / max(1, len(have | need)) >= 0.6 else None
+
+
 def set_sort():
-    """Can receive a gift, arrow down. Picking the sort that's already on flips its arrow: pick, read, again"""
+    """Can receive a gift, arrow down. Picking the sort that's already on flips its arrow: pick, read, again.
+    The sort button's picture shows when it's on already: nothing to tap, or one pick when only the arrow is up"""
+    if look() == "friends":
+        way = sorted_gift()
+        if way == "down":
+            log("already sorted Can receive a gift, arrow down")
+            return
+        if way == "up":
+            log("sorted Can receive a gift, arrow up: picking it once to flip it")
     for attempt in range(4):
         if look() != "sortmenu":
             tap(*SORT_BUTTON, fuzz=0.004)
@@ -297,11 +338,19 @@ def set_sort():
 
 
 def to_top():
+    global typed
+    before = None
     for _ in range(15):
         if look() != "friends":
             to_list()  # (a drag can land as a tap and open a friend's gift)
         if search_line() or label("SEARCH", 0.18, 0.28):
             return
+        rows_now = [r["name"] for r in rows()]
+        box = [t for t in texts if 0.18 < t[1] < 0.26 and t[0] < 0.25 and len(t[4].strip()) >= 2]
+        if rows_now == before and count() is not None and box:
+            typed = box[0][4].strip()  # a scroll up moved nothing: the top, so this is the box (an older search's end, 'ea')
+            return
+        before = rows_now
         drag(0.35, 0.8, 350)
     raise Stop(f"couldn't scroll back to the search box: {summary()}")
 
@@ -319,15 +368,16 @@ def type_query(parts):
 
 
 def expanded(parts):
-    """after a search with shortcuts: False when the box still shows a shortcut ('iii lasia') or too little text"""
+    """after a search with shortcuts: False only when the box still shows a shortcut ('iiilasia'). The box shows
+    just the end of a long search, so a short read ('mo') or no read at all says nothing"""
     box = search_line()
     t = ui.norm(box[4]).replace(" ", "") if box else ""
-    return len(t) > 12 and not any(SHORT[p].upper() in t for p in parts if p in SHORT)
+    return not any(SHORT[p].upper() in t for p in parts if p in SHORT)
 
 
 def search(*parts):
     """type a search (its parts, joined) into the friend list -> its result count"""
-    global shortcuts
+    global shortcuts, typed
     q = "".join(parts)
     for attempt in range(4):
         to_top()
@@ -342,15 +392,18 @@ def search(*parts):
             tap(0.45, 0.22)  # an empty box ("Trainer Nickname")
         time.sleep(1.2)
         short = shortcuts
+        typed = q
         type_query(parts)
         time.sleep(0.5)
-        look()
-        ok = find(lambda t: ui.norm(t[4]) == "OK" and t[0] > 0.75 and 0.5 < t[1] < 0.65)
+        ok = None
+        if ui.ANDROID:
+            look()
+            ok = find(lambda t: ui.norm(t[4]) == "OK" and t[0] > 0.75 and 0.5 < t[1] < 0.65)
         if ok:
             tap_text(ok[0])  # Android: the input strip's OK commits (Back would throw the text away)
         else:
             base.key("return")
-        time.sleep(1.5)
+        time.sleep(0.8)  # (then the result count is polled)
         n = None
         for _ in range(8):
             if look() == "friends" and count() is not None:
@@ -417,7 +470,7 @@ def rows():
 
 def same_name(a, b):
     """the row's name and the page's: OCR reads them a little differently ('lycбo' / 'lyc60'). One letter off is ok"""
-    f = lambda s: re.sub(r"[il1|I]", "l", re.sub(r"[oO0]", "0", clean(s))).lower()
+    f = lambda s: re.sub(r"[il1|Iİı]", "l", re.sub(r"[oO0]", "0", clean(s))).lower()
     a, b = f(a), f(b)
     return a == b or len(a) == len(b) and sum(x != y for x, y in zip(a, b)) <= 1
 
@@ -539,8 +592,9 @@ def meter():
     else:
         keep_capture("meter")
         raise Stop(f"the friendship screen didn't open: {summary()}")
-    time.sleep(0.8)
-    look()
+    if not ribbon():  # (still sliding in: wait() caught it early)
+        time.sleep(0.8)
+        look()
     level = ribbon()
     n = points_text()  # the Forever Friends bar shows its points with no tap
     if n is None and level != "GOOD":
@@ -601,24 +655,46 @@ def preview_ok(title):
     return False, None
 
 
+picker_drags = 0  # scrolls down the gift list the last gift took: ours sit at the same place next time
+
+
+def layout():
+    """where the gift list's city lines sit. OCR reads a title a little differently each look ('better tagether'),
+    the lines' places don't move unless the list does"""
+    return [u[1] for u in sorted(texts, key=lambda u: u[1]) if u[1] > 0.2 and "," in u[4]]
+
+
+def same_list(a, b):
+    """a, b: (layout(), the words) of two looks -> the same view of the gift list"""
+    return a is not None and len(a[0]) == len(b[0]) and all(abs(x - y) <= 0.012 for x, y in zip(a[0], b[0])) \
+        and difflib.SequenceMatcher(None, a[1], b[1]).ratio() > 0.8
+
+
 def send_gift():
     """from the friend page: picker -> one of our two gifts -> SEND. Raises OutOfGifts when neither is there"""
+    global picker_drags
     t = label("SEND GIFT")
     tap_text(t, dy=-0.04)
     wait("picker", timeout=8)
-    seen = None
-    for _ in range(25):
-        time.sleep(0.6)
-        look()
+    blind = max(0, picker_drags - 1)  # where the last gift was found, less one scroll (a sent gift can shift the list up)
+    drags = 0
+    seen, dragged = None, None  # seen: the last look's layout; dragged: the layout and titles when it last scrolled
+    for i in range(40):
+        if i:  # (the first pass reads the capture wait() just took)
+            time.sleep(0.6)
+            look()
         cards = [(card_title(t), t) for t in texts if t[1] > 0.2]
         cards = [(n, t) for n, t in cards if n and t[1] - 0.11 > 0.18]
         if cards:
+            picker_drags = drags
             title, t = cards[0]
             tap(t[0] + t[2] / 2, t[1] - 0.11)  # the postcard above its title
             wait("preview", timeout=6 * LAG)
-            time.sleep(0.5)
-            look()
             ok, got = preview_ok(title)
+            if not ok:  # (caught mid-animation: one more look)
+                time.sleep(0.5)
+                look()
+                ok, got = preview_ok(title)
             if not ok:
                 keep_capture("preview")
                 close()
@@ -650,13 +726,28 @@ def send_gift():
         if classify() != "picker":
             keep_capture("not_picker")
             raise Stop(f"left the gift list while looking for our gifts: {summary()}")
-        titles = tuple(sorted(u[4] for u in texts if u[1] > 0.2))
-        if titles == seen:
-            close()  # the end of the gifts, and none of ours
+        here = layout(), " ".join(u[4] for u in sorted(texts, key=lambda u: u[1]) if u[1] > 0.2)
+        if not same_list(seen, here):
+            seen = here  # still loading or still moving: look again before scrolling
+            continue
+        if same_list(dragged, here):
+            if blind:  # (the scrolls without a look went past ours?) once more from the top
+                log("  no gift of ours below the remembered spot: looking from the top")
+                picker_drags = 0
+                close()
+                wait("friend", timeout=6 * LAG)
+                return send_gift()
+            close()  # a scroll moved nothing: the end of the gifts, and none of ours
             raise OutOfGifts()
-        seen = titles
+        dragged = here
+        if drags == 0 and blind:  # the list has loaded: scroll down to where the last gift was, no looks between
+            for _ in range(blind - 1):
+                drag(0.75, 0.45, x=0.5 + random.uniform(-0.005, 0.005))
+            drags = blind - 1
+            dragged = None  # (these scrolls weren't checked: the next one mustn't read as the list's end)
         drag(0.75, 0.45, x=0.5 + random.uniform(-0.005, 0.005))
-    raise Stop("scrolled the gift list 25 times without reaching its end")
+        drags += 1
+    raise Stop("looked through the gift list 40 times without reaching its end")
 
 
 def new_nickname(tag, old):
@@ -739,6 +830,7 @@ def rename(tag, old, listed):
 
 def one_friend(row):
     """open the row's friend page, check, gift and/or tag. -> the gift sent, or None"""
+    t0 = time.time()
     tap_text(row["t"])
     s = wait("friend", "giftpopup", timeout=8)
     if s == "giftpopup":
@@ -759,7 +851,7 @@ def one_friend(row):
         rename("WAIT", nick, row["nick"])
         return None
     title = send_gift()
-    log(f"{name} ({nick}): {'would send' if DRY else 'sent'} {title}")
+    log(f"{name} ({nick}): {'would send' if DRY else 'sent'} {title} ({time.time() - t0:.0f}s)")
     if n == 2:
         rename("SENT", nick, row["nick"])
     return title
@@ -773,17 +865,18 @@ def run_searches(limit):
     set_sort()
     for first, base_q in (("iii", FIRST), ("lll", THEN)):
         for zone, zq in ZONES:
+            t0 = time.time()
             n = search(base_q, zq)
-            log(f"{first} + {zone}: ({n})")
+            log(f"{first} + {zone}: ({n}) ({time.time() - t0:.0f}s)")
             if not n:
                 continue
             if arrow() != "down":
                 set_sort()
-            stale = 0
+            stale, fresh = 0, True  # fresh: the last capture is the friend list as it is now (no look needed)
             while True:
-                if look() != "friends":  # a drag that landed as a tap opened something: back first
+                if not fresh and look() != "friends":  # a drag that landed as a tap opened something: back first
                     to_list()
-                    continue
+                fresh = False
                 todo = [r for r in rows() if r["name"] not in done]
                 if todo and todo[0]["badged"]:
                     break  # sorted can-receive first: from here down nobody can take a gift
@@ -794,6 +887,7 @@ def run_searches(limit):
                     stale = stale + 1 if [r["name"] for r in rows()] == before else 0
                     if stale:
                         break  # the bottom of the list
+                    fresh = classify() == "friends"
                     continue
                 row = todo[0]
                 done.add(row["name"])
@@ -808,6 +902,7 @@ def run_searches(limit):
                         log(f"{sent} gifts: the limit for this run")
                         return sent
                 to_list()
+                fresh = True
     return sent
 
 
@@ -823,7 +918,7 @@ def one_phone(a):
     DRY = a.dry_run
     if a.cmd == "look":
         s = look()
-        print(f"{PHONE}: {s}  rows: {rows() if s == 'friends' else '-'}  arrow: {arrow()}")
+        print(f"{PHONE}: {s}  rows: {rows() if s == 'friends' else '-'}  arrow: {arrow()}  gift sort: {sorted_gift()}")
         print("   ", summary())
         if s == "friend":
             print("    hearts:", heart_fill())

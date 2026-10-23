@@ -1,6 +1,7 @@
 // pvpc screen helper. Build: swiftc -O helper.swift -o helper
 //   helper win [owner [all]] -> "<id> <x> <y> <w> <h>" of the iPhone Mirroring (or owner's) window (points)
 //   helper ocr <png>    -> one line per text: "<x> <y> <w> <h>\t<text>" (0-1 fractions, top-left origin)
+//   helper ocrd         -> the same for each png path read from stdin, each answer ended by a "." line
 //   helper mouse        -> "<x> <y>" cursor position in points (top-left origin)
 //   helper front        -> name of the frontmost app
 //   helper click <x> <y> <hold_ms>              glide the cursor there, press, hold, release (points)
@@ -90,24 +91,10 @@ func press(_ code: CGKeyCode, _ flags: CGEventFlags) {
     post(u)
 }
 
-func pt(_ i: Int) -> CGPoint { CGPoint(x: Double(args[i])!, y: Double(args[i + 1])!) }
-switch args.count > 1 ? args[1] : "" {
-case "win":
-    // optional: another app's window (scrcpy for an Android phone); "all" finds it behind other windows or Spaces too
-    let owner = args.count > 2 ? args[2] : "iPhone Mirroring"
-    let opts: CGWindowListOption = args.count > 3 && args[3] == "all" ? [.excludeDesktopElements] : [.optionOnScreenOnly, .excludeDesktopElements]
-    let list = CGWindowListCopyWindowInfo(opts, kCGNullWindowID) as! [[String: Any]]
-    for w in list where (w[kCGWindowOwnerName as String] as? String) == owner && (w[kCGWindowLayer as String] as? Int) == 0 {
-        let b = w[kCGWindowBounds as String] as! [String: Any]
-        if (b["Width"] as? Double ?? 0) < 100 || (b["Height"] as? Double ?? 0) < 100 { continue }  // scrcpy's helper windows and bars
-        print(w[kCGWindowNumber as String]!, b["X"]!, b["Y"]!, b["Width"]!, b["Height"]!)
-        exit(0)
-    }
-    exit(1)
-case "ocr":
-    let img = NSImage(contentsOf: URL(fileURLWithPath: args[2]))!
+func ocr(_ path: String) -> [String] {
+    guard let img = NSImage(contentsOf: URL(fileURLWithPath: path)) else { return [] }
     var r = NSRect(origin: .zero, size: img.size)
-    let cg = img.cgImage(forProposedRect: &r, context: nil, hints: nil)!
+    guard let cg = img.cgImage(forProposedRect: &r, context: nil, hints: nil) else { return [] }
     func read(_ rev: Int?) -> [VNRecognizedTextObservation] {
         let req = VNRecognizeTextRequest()
         req.recognitionLevel = .accurate
@@ -125,11 +112,12 @@ case "ocr":
             return 1 - o.boundingBox.maxY < 0.1 && clock.firstMatch(in: s, range: NSRange(s.startIndex..., in: s)) != nil
         }
     }
-    // the Android clock is white on a light screen and often unread: then count right-way-up 'CP 123's too
+    // the Android clock is white on a light screen and often unread: then count right-way-up 'CP 123's and the
+    // search screens' headings too (without those, every search look was read twice: ~0.4 s more)
     func score(_ os: [VNRecognizedTextObservation]) -> Int {
         (hasClock(os) ? 100 : 0) + os.filter { o in
             let u = (o.topCandidates(1).first?.string ?? "").uppercased()
-            return ["CP", "DONE", "SEARCH", "TRANSFER", "THIS TAG"].contains { u.contains($0) }
+            return ["CP", "DONE", "SEARCH", "TRANSFER", "THIS TAG", "POKÉMON", "EGGS", "FAVORITE", "SELECT ALL"].contains { u.contains($0) }
         }.count
     }
     var obs = read(nil)
@@ -137,9 +125,35 @@ case "ocr":
         let old = read(VNRecognizeTextRequestRevision2)
         if score(old) > score(obs) { obs = old }
     }
-    for o in obs {
+    return obs.map { o in
         let b = o.boundingBox
-        print(String(format: "%.4f %.4f %.4f %.4f\t", b.minX, 1 - b.maxY, b.width, b.height) + (o.topCandidates(1).first?.string ?? ""))
+        return String(format: "%.4f %.4f %.4f %.4f\t", b.minX, 1 - b.maxY, b.width, b.height) + (o.topCandidates(1).first?.string ?? "")
+    }
+}
+
+func pt(_ i: Int) -> CGPoint { CGPoint(x: Double(args[i])!, y: Double(args[i + 1])!) }
+switch args.count > 1 ? args[1] : "" {
+case "win":
+    // optional: another app's window (scrcpy for an Android phone); "all" finds it behind other windows or Spaces too
+    let owner = args.count > 2 ? args[2] : "iPhone Mirroring"
+    let opts: CGWindowListOption = args.count > 3 && args[3] == "all" ? [.excludeDesktopElements] : [.optionOnScreenOnly, .excludeDesktopElements]
+    let list = CGWindowListCopyWindowInfo(opts, kCGNullWindowID) as! [[String: Any]]
+    for w in list where (w[kCGWindowOwnerName as String] as? String) == owner && (w[kCGWindowLayer as String] as? Int) == 0 {
+        let b = w[kCGWindowBounds as String] as! [String: Any]
+        if (b["Width"] as? Double ?? 0) < 100 || (b["Height"] as? Double ?? 0) < 100 { continue }  // scrcpy's helper windows and bars
+        print(w[kCGWindowNumber as String]!, b["X"]!, b["Y"]!, b["Width"]!, b["Height"]!)
+        exit(0)
+    }
+    exit(1)
+case "ocr":
+    for l in ocr(args[2]) { print(l) }
+case "ocrd":
+    // the same, kept running: one png path per line in, its lines out, then "." alone. Starting a helper
+    // and Vision for each read cost ~1 s more than the read itself
+    setvbuf(stdout, nil, _IOLBF, 0)
+    while let path = readLine() {
+        for l in ocr(path) { print(l) }
+        print(".")
     }
 case "mouse":
     let p = CGEvent(source: nil)!.location
@@ -204,6 +218,6 @@ case "type":
         nap(Double.random(in: lo...hi))
     }
 default:
-    print("usage: helper win | ocr <png> | mouse | front | click | scroll | drag | key | type")
+    print("usage: helper win | ocr <png> | ocrd | mouse | front | click | scroll | drag | key | type")
     exit(2)
 }

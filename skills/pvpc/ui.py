@@ -94,10 +94,35 @@ def capture():
     return CAP, bounds
 
 
+_ocrd = None  # a helper kept running for OCR: a fresh one per read cost ~1 s more than the read itself
+
+
+def ocr_lines(path):
+    """the helper's OCR lines for a png, from the kept-running helper (started again if it went away)"""
+    global _ocrd
+    for attempt in range(2):
+        if not _ocrd or _ocrd.poll() is not None:
+            _ocrd = subprocess.Popen([HELPER, "ocrd"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True,
+                                     bufsize=1)
+        try:
+            _ocrd.stdin.write(os.path.abspath(path) + "\n")
+            _ocrd.stdin.flush()
+            lines = []
+            while (line := _ocrd.stdout.readline()) and line != ".\n":
+                lines.append(line.rstrip("\n"))
+            if line:
+                return lines
+        except (BrokenPipeError, OSError):
+            pass
+        _ocrd.kill()
+        _ocrd = None
+    return sh(HELPER, "ocr", path).splitlines()
+
+
 def ocr(path):
     ensure_helper()
     out = []
-    for line in sh(HELPER, "ocr", path).splitlines():
+    for line in ocr_lines(path):
         box, _, text = line.partition("\t")
         x, y, w, h = map(float, box.split())
         out.append((x, y, w, h, text.strip().translate(LOOKALIKES)))

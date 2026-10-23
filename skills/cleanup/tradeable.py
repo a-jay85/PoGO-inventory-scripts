@@ -15,7 +15,7 @@ One tag each, the first that fits:
     - PvPoke top 100 in Great, Ultra or Master League, with every rank 1 IV 5 or more (pvp-giv-<date>.json)
     - a new copy would be #2-#6 against some raid boss
     - HashTagAJay has a lucky one of the family and under 348 candy (read)
- 4. XLX: a power-up costs 5,000 Stardust or more (level 29+). Read one by one in the power-up dialog.
+ 4. XLX: a power-up costs 4 Candy or more (level 26+: 4,000 Stardust with 4 Candy, or 4,500+). Read one by one in the power-up dialog.
  5. GIV (evolved): a stage 2 (a baby isn't a stage), or a stage 1 that takes 100+ candy, a quest or an item to
     evolve into, or one GO can't evolve into yet (Kleavor, Alolan Marowak) (giv-evolved-<date>.json). Also gym
     defenders (/ivc's GYM_DEFENDERS) and untraded Dynamax ones. Tagged after the XLX walk.
@@ -59,7 +59,7 @@ TAGS = ["Luckydex", "Reroll", "GIV"]  # by species, in this order
 XLX, TRANSFER = "XLX", "Transfer"
 LUCKY_CANDY = 348  # under this, a lucky one of the family wants a new copy's candy
 XL_CAP = 360
-XLX_LEVEL = 29  # from here a power-up costs 5,000 Stardust or more
+XLX_LEVEL = 26  # from here a power-up costs 4 Candy or more (4,000 Stardust at 26-26.5, 4,500+ after)
 MAX_SUFFIX = 300  # characters added to the saved search: it's already in the bar
 PVP_FLOOR = 5  # every rank 1 IV at least this
 PVP_URL = "https://raw.githubusercontent.com/pvpoke/pvpoke/master/src/data/rankings/all/overall/rankings-%d.json"
@@ -377,7 +377,7 @@ def cmd_plan():
         lines += ["", "Searches (after the Tradeable search):", ""] + [f"    {q}" for q in plan["tags"][t]] + [""]
     lines += [f"## GIV (evolved, only after XLX): {len(evolved)} species forms", "",
               "Stage 2, a stage 1 that takes 100+ candy, a quest or an item, a gym defender, or (the last search) an "
-              "untraded Dynamax one. Tagged after the XLX walk, so a level 29+ one gets XLX instead. Special trades "
+              "untraded Dynamax one. Tagged after the XLX walk, so a level 26+ one gets XLX instead. Special trades "
               "(Legendary, Mythical, Ultra Beast, shiny, Gigantamax) get no tag at all: they're for you to trade.", ""]
     lines += [f"- {m.by[s]['speciesName']} (#{m.dex(s)}): {r}" for s, r in sorted(evolved.items(), key=lambda x: m.dex(x[0]))]
     lines += ["", f"Searches (after the Tradeable search, with {EVOLVED_REST}):", ""]
@@ -396,12 +396,18 @@ EVOLVED_REST = REST + "&traded,!xxl&traded,!xxs"  # and not a never-traded XXL/X
 
 
 def level_of(info, texts):
-    """-> the levels this one can be at, from the power-up cost on the detail page. No taps"""
-    return ct.cost_levels(texts)[1]
+    """-> the levels this one can be at, from the power-up cost on the detail page. No taps. A cost on both sides of
+    XLX_LEVEL (4,000) needs its candy, which OCR often misses: a few more looks for it"""
+    for _ in range(4):
+        lvs = ct.cost_levels(texts, info["cp"])[1]
+        if not lvs or min(lvs) >= XLX_LEVEL or max(lvs) < XLX_LEVEL:
+            break
+        _, texts, _, _ = look()
+    return lvs
 
 
 def walk(suffix, xlx, power, limit, skip_dex=(), unsure=None):
-    """open each one in Tradeable + suffix: xlx -> tag it XLX if it's level 29+ (the ones it can't tell go in unsure).
+    """open each one in Tradeable + suffix: xlx -> tag it XLX if it's level 26+ (the ones it can't tell go in unsure).
     power -> cleantrades' power-up, not for a family in skip_dex. -> power-ups made, or None if --limit stopped it"""
     if not ct.run_shortcut(SHORTCUT, suffix):
         return 0
@@ -415,7 +421,7 @@ def walk(suffix, xlx, power, limit, skip_dex=(), unsure=None):
             break
         seen.add(me)
         base.OPENED["who"] = base.who(info)  # the swipe moved here on purpose: set_tags checks against this one
-        checked = not xlx  # its level is known to be under 29, or it's tagged XLX
+        checked = not xlx  # its level is known to be under 26, or it's tagged XLX
         try:
             if xlx:
                 lvs = level_of(info, texts)
@@ -520,7 +526,7 @@ def cmd_tag(limit):
             f"Look at these by hand (tag each {XLX}, power it up, or leave it), then run tag again:\n  "
             + "\n  ".join(unsure))
         return
-    for q in plan.get("giv_evolved", []):  # after XLX: a level 29+ one has XLX by now and stays out
+    for q in plan.get("giv_evolved", []):  # after XLX: a level 26+ one has XLX by now and stays out
         if rest + q in done:
             continue
         ct.tag_pile(SHORTCUT, "GIV", rest + q)

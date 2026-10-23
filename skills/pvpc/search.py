@@ -182,6 +182,7 @@ def leave_multiselect(texts, bounds):
 
 
 BAR_GAP = 0.7  # two taps on the bar closer than this act as a double-tap
+POLL = 0.0  # between looks while waiting for the screen: a look itself takes ~0.35 s, and waiting more saved nothing (Android, 2026-10-23)
 
 
 def empty_bar(texts):
@@ -195,7 +196,7 @@ def open_panel(bounds):
     """tap the search bar. True if the panel opened with an empty bar"""
     click(random.uniform(0.35, 0.55), 0.183 + random.uniform(-0.003, 0.003), bounds, gap=BAR_GAP)
     for _ in range(10 if ui.ANDROID else 5):  # Android's keyboard can take over 1.5s to come up
-        time.sleep(0.3)
+        time.sleep(POLL)
         got, texts = panel_text()
         if ui.search_panel(texts):
             return not got
@@ -297,7 +298,7 @@ def x_button(bounds):
     Then a tap on the bar opens the panel. True if it's open and empty."""
     click(0.905 + random.uniform(-0.006, 0.006), 0.183 + random.uniform(-0.003, 0.003), bounds, gap=BAR_GAP)
     for _ in range(12):  # the whole list reloads: a tap on the bar before it's back gets ignored
-        time.sleep(0.25)
+        time.sleep(POLL)
         texts = ui.ocr(ui.capture()[0])
         if any(t[1] < 0.15 and re.fullmatch(r"[\d,]+\s*/\s*[\d,]+", t[4].strip()) for t in texts):
             break  # 'POKÉMON 7816/7825' is back

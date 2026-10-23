@@ -9,7 +9,7 @@ then while the Mac is in use.
   POGO_PHONE=android python3 android.py type <text>
   POGO_PHONE=android python3 android.py key <delete|return|back|clear|one character>
 """
-import gzip, os, random, re, shlex, statistics, struct, subprocess, sys, time
+import gzip, os, random, re, shlex, statistics, struct, subprocess, sys, threading, time
 from PIL import Image
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -27,8 +27,14 @@ class NotReady(Exception):
     """phone, game or scrcpy window not in a state the scripts can work with"""
 
 
+_last_adb = [0.0]  # when the last adb command (a tap, key, swipe...) finished: an older screenshot is stale
+
+
 def adb(*a, timeout=30):
-    r = subprocess.run(["adb", *a], capture_output=True, text=True, timeout=timeout)
+    try:
+        r = subprocess.run(["adb", *a], capture_output=True, text=True, timeout=timeout)
+    finally:
+        _last_adb[0] = time.time()
     return r.stdout
 
 
@@ -90,17 +96,45 @@ def shape(im, scale=1):
     return out, top
 
 
-def phone_shot():
-    """the phone's own screenshot (slow, ~1.5s: only to check scrcpy's picture)"""
+def raw_shot():
+    """the phone's own screenshot (~0.3 s)"""
     raw = gzip.decompress(subprocess.run(["adb", "exec-out", "screencap | gzip -1"], capture_output=True,
                                          check=True, timeout=30).stdout)
     w, h = struct.unpack("<2I", raw[:8])
     return Image.frombuffer("RGBA", (w, h), raw[len(raw) - w * h * 4:], "raw", "RGBA", 0, 1).convert("RGB")
 
 
+PREFETCH_AGE = 0.3  # seconds: a screenshot started this recently (and after the last adb command) counts as now
+_next = [None]  # (when it started, its thread, [the picture or the error])
+
+
+def phone_shot():
+    """the phone's own screenshot. Each one starts the next in the background, so a look that follows (while the
+    last one was being read) gets it without waiting. Only one started after the last tap or key, and lately"""
+    pre, _next[0] = _next[0], None
+    im = None
+    if pre and pre[0] > _last_adb[0] and time.time() - pre[0] < PREFETCH_AGE:
+        pre[1].join()
+        if isinstance(pre[2][0], Image.Image):
+            im = pre[2][0]
+    if im is None:
+        im = raw_shot()
+    box = []
+
+    def take():
+        try:
+            box.append(raw_shot())
+        except Exception as e:  # (an error here only means no head start)
+            box.append(e)
+    th = threading.Thread(target=take, daemon=True)
+    _next[0] = (time.time(), th, box)
+    th.start()
+    return im
+
+
 def sharp(path="/tmp/pvpc_sharp.png"):
     """the phone's own screenshot in the capture layout, 3x bigger: scrcpy's picture loses small symbols ('!', '&')"""
-    shape(phone_shot(), 3)[0].save(path)
+    shape(phone_shot(), 3)[0].save(path, compress_level=1)
     return path
 
 
@@ -169,7 +203,7 @@ def capture(path, retry=True, force=False):
     global bounds, _aligned, _restarts
     if NO_WINDOW:  # Mac "points" are the phone's own pixels here, so taps need no conversion
         im, top = shape(phone_shot())
-        im.save(path)
+        im.save(path, compress_level=1)  # (the default packing took ~100 ms a look)
         W, H = size()
         globals()["phone"] = [0.0, 0.0, float(W), float(H)]
         k = W / WIDTH

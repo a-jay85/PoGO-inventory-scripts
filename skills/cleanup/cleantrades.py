@@ -73,19 +73,23 @@ def same_l(s):
 # ---------- the saved searches ----------
 
 def panel():
-    """the search panel with an empty bar and the shortcuts showing (Android: the keyboard put away) -> texts, bounds"""
+    """the search panel with an empty bar and the shortcuts showing -> texts, bounds. Android: the shortcuts show
+    above the keyboard too, so it stays up (the texts on and just above it are left out)"""
     for attempt in range(3):
         if search.clear_search() == "list":
             search.open_panel(look()[3])
         for _ in range(8):
-            time.sleep(0.3)
+            time.sleep(search.POLL)
             path, bounds = ui.capture()
             texts = ui.ocr(path)
-            if ui.ANDROID and any(t[4].strip() == "?123" and t[1] > 0.5 for t in texts):
+            fav = any(ui.norm(t[4]) == "FAVORITE" for t in texts)
+            kb = next((t[1] for t in texts if ui.ANDROID and t[4].strip() == "?123" and t[1] > 0.5), None)
+            if kb is not None:
+                if fav:
+                    return [t for t in texts if t[1] < kb - 0.3], bounds  # (its suggestion strip too)
                 base.key("back")  # hides the keyboard only: the panel stays
-                time.sleep(1.0)
                 continue
-            if any(ui.norm(t[4]) == "FAVORITE" for t in texts):
+            if fav:
                 return texts, bounds
     keep_capture("panel")
     raise Stop("the search panel with the saved shortcuts didn't show")
@@ -113,11 +117,13 @@ def labels(texts):
     return out
 
 
-def results():
-    """the search ran: panel closed, list showing. -> its count (0 when no tiles)"""
+def results(texts=None):
+    """the search ran: panel closed, list showing. -> its count (0 when no tiles). texts: a look taken after
+    the search, read first"""
     for _ in range(16):
-        time.sleep(0.25)
-        _, texts, _, _ = look()
+        if texts is None:
+            time.sleep(search.POLL)
+            _, texts, _, _ = look()
         if not ui.search_panel(texts) and ui.classify(texts) == "list":
             n = search.result_count(texts)
             if n is not None:
@@ -125,6 +131,7 @@ def results():
             if not ui.tiles(texts) and n is None:
                 if not settled_tiles():
                     return 0
+        texts = None
     keep_capture("results")
     raise Stop("the search didn't come back with a count")
 
@@ -144,18 +151,17 @@ def run_shortcut(name, suffix=""):
             search.close_panel(bounds)
             return 0
         search.click(t[0] + t[2] / 2, t[1] - 0.055, bounds)  # the round button above the label
-        time.sleep(0.6)
         _, texts, _, bounds = look()
         if any("MANAGE FAVORITE" in ui.norm(u[4]) for u in texts):  # the tap landed as a long press
             log(f"{name}: the shortcut tap was a long press: again")
             search.click(0.5, 0.937, bounds)  # the box's X
             time.sleep(1.0)
             continue
-        got = results()
+        got = results(texts)
         if not suffix:
             log(f"{name}: {got}")
             return got
-        if append(suffix):
+        if append(suffix, bounds):
             got2 = results()
             log(f"{name} {suffix}: {got2} (of {got})")
             if got2 > got:
@@ -165,12 +171,12 @@ def run_shortcut(name, suffix=""):
     raise Stop(f"couldn't run the {name!r} shortcut{' + ' + suffix if suffix else ''}")
 
 
-def append(suffix):
+def append(suffix, bounds=None):
     """tap the filled bar, type suffix at the end, Return. False if the bar doesn't end with it (cleared after)"""
-    bounds = look()[3]
+    bounds = bounds or look()[3]
     search.click(0.45, 0.183, bounds, gap=search.BAR_GAP)
     for _ in range(10):
-        time.sleep(0.3)
+        time.sleep(search.POLL)
         if ui.search_panel(ui.ocr(ui.capture()[0])):
             break
     else:
@@ -184,7 +190,7 @@ def append(suffix):
     if len(want) > 24:  # a long one doesn't fit in the bar: only its end shows
         want = want[-24:]
     for i in range(6):
-        time.sleep(0.3)
+        time.sleep(search.POLL)
         texts = ui.ocr(ui.android.sharp()) if ui.ANDROID and i % 2 else ui.ocr(ui.capture()[0])
         if any(same_l(t[4]).endswith(want) for t in texts):
             base.key("return")
@@ -228,7 +234,7 @@ def tag_pile(name, tag, suffix=None, off=(), query=None):
     first = ui.tiles(texts)[0]
     press((first[2] - 0.03, first[3] - 0.01, 0.06, 0.02, ""), bounds, hold=900)  # long press: multi-select
     for _ in range(20):
-        time.sleep(0.15)
+        time.sleep(search.POLL)
         _, texts, _, bounds = look()
         sel = exact(texts, "SELECT ALL")
         if sel and any(re.fullmatch(r"TAG \(\d+\)", t[4].strip()) for t in texts):
@@ -238,7 +244,7 @@ def tag_pile(name, tag, suffix=None, off=(), query=None):
         raise Stop("long press didn't start multi-select")
     press(sel[0], bounds)
     for _ in range(20):
-        time.sleep(0.15)
+        time.sleep(search.POLL)
         _, texts, _, bounds = look()
         btn = [t for t in texts if re.fullmatch(r"TAG \((\d+)\)", t[4].strip())]
         got = int(re.search(r"\d+", btn[0][4]).group()) if btn else None
@@ -266,7 +272,7 @@ def tag_pile(name, tag, suffix=None, off=(), query=None):
                 raise Stop(f"{T} already shows {'a' if ticked else 'no'} tick for this lot: nothing tagged")
             press(box, bounds)
             for _ in range(20):
-                time.sleep(0.15)
+                time.sleep(search.POLL)
                 _, t2, p2, _ = wait_for("tags")
                 r = sheet_rows(t2, p2)
                 if T in r and r[T][1] is left[T]:
@@ -361,14 +367,40 @@ def page_cost(texts):
         return None
     got = [int(re.sub(r"\D", "", m.group(1))) for t in texts if abs(t[1] - btn[0][1]) < 0.02 and 0.4 < t[0] < 0.7
            and (m := re.fullmatch(r"(?:\S\s+|\D{0,3}?)(\d{1,2}[,.]\d{3}|\d{2,3})", t[4].strip()))]  # icon: '1 7,000'
+    if len(got) != 1:
+        return None
+    if got[0] > 10_000 and got[0] % 1000:  # the icon read as a 1 with no space ('12,200'): XL costs are whole thousands
+        return got[0] - 10_000
+    return got[0]
+
+
+def page_candy(texts):
+    """the Candy next to the Stardust on the detail page's POWER UP row, or None if it can't be read (it often can't)"""
+    btn = [t for t in texts if ui.norm(t[4]) == "POWER UP" and t[0] < 0.4 and t[1] > 0.6]
+    got = [int(t[4].strip()) for t in texts if btn and abs(t[1] - btn[0][1]) < 0.02 and t[0] > 0.68
+           and re.fullmatch(r"\d{1,2}", t[4].strip())]
     return got[0] if len(got) == 1 else None
 
 
-def cost_levels(texts):
+def candy_at(lv):
+    """Candy for one power-up from this level, under 40 (a purified one's rounds up to the same)"""
+    return next(c for first, c in ((39, 15), (37, 12), (35, 10), (33, 8), (31, 6), (26, 4), (21, 3), (11, 2), (1, 1))
+                if lv >= first)
+
+
+def cost_levels(texts, cp):
     """-> (cost, every level the detail page's power-up cost fits). Lucky shows on the page. A purified one is always
     level 25 (3,600, or 1,800 lucky): purifying puts it there and it's transferred from there. No levels = a cost no
-    table has"""
+    table has, or no two looks in a row agreed on it"""
     cost = page_cost(texts)
+    for _ in range(6):  # right after a swipe the page still slides: a cost read then can be another's (2,200 read as
+        _, texts, _, _ = look()  # level 40+, 2026-10-23). Two looks in a row on this CP must agree
+        again = page_cost(texts)
+        if again == cost and ui.detail_info(texts)["cp"] == cp:
+            break
+        cost = again
+    else:
+        cost = None
     if cost is None:
         return None, []
     lucky = any(ui.norm(t[4]).startswith("LUCKY POK") for t in texts)
@@ -382,6 +414,11 @@ def cost_levels(texts):
         last = DUST[i + 1][0] if i + 1 < len(DUST) else 50
         if round(c * rate) == cost:
             lvs.update(first + k / 2 for k in range(int((last - first) * 2)))
+    candy = page_candy(texts)  # splits a cost that spans a candy step: 4,000 is 3 Candy at 25-25.5, 4 at 26-26.5
+    if candy is None and ui.ANDROID and len({candy_at(lv) for lv in lvs if lv < 40}) > 1:
+        candy = page_candy(ui.ocr(ui.android.sharp()))  # the small digit mostly reads only at full size
+    if candy and {lv for lv in lvs if candy_at(lv) == candy}:
+        lvs = {lv for lv in lvs if candy_at(lv) == candy}
     return cost, sorted(lvs)
 
 
@@ -389,7 +426,7 @@ def read_dialog(cp, after=None):
     """the open power-up dialog. Wait until its first CP is the page's and (after a +) its 'after' CP has moved.
     -> (CP after, total dust, POWER UP box, CANCEL box, + box, bounds, title)"""
     for _ in range(25):
-        time.sleep(0.12)
+        time.sleep(search.POLL)
         _, texts, _, bounds = look()
         head = next((t for t in texts if re.match(r"POWER UP\s*:", t[4].strip(), re.I)), None)
         line = next((t for t in texts if re.fullmatch(r"CP\s*(\d+)\D+(\d+)", t[4].strip())), None)
@@ -466,7 +503,7 @@ def steps(cands):
 def power_up(info, texts):
     """1-2 power-ups if this one sits right under an XL tier. -> power-ups made. Raise Pass to leave it.
     Its level comes from the dialog: + adds a power-up, and each total (CP after, Stardust) rules levels out."""
-    cost, lvs = cost_levels(texts)
+    cost, lvs = cost_levels(texts, info["cp"])
     if not lvs:
         raise Unsure(f"can't read the power-up cost ({cost})")
     if not any(math.floor(lv) in PLAYS for lv in lvs):  # the cost rules out every play: no taps
@@ -519,7 +556,7 @@ def power_up(info, texts):
     press(d[2], d[5])
     end, sure = time.time() + 15, False
     while time.time() < end:  # done = dialog gone, the detail shows the new CP
-        time.sleep(0.15)
+        time.sleep(search.POLL)
         screen, t2, _, b2 = look()
         no = exact(t2, "NO")
         if not sure and len(no) == 1 and any("really want to power up" in t[4] for t in t2):
@@ -566,7 +603,7 @@ def power_walk(limit):
         for attempt in range(2):  # next one; a swipe that does nothing twice = end of the list
             swipe_next(look()[3])
             for _ in range(10):
-                time.sleep(0.12)
+                time.sleep(search.POLL)
                 screen, texts, _, _ = look()
                 if screen == "detail":
                     n = ui.detail_info(texts)

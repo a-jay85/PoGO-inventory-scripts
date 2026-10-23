@@ -751,7 +751,7 @@ def one_friend(row):
     t = label("SEND GIFT")
     if not gift_icon(t):
         log(f"{name} ({nick}): their SEND GIFT is grey: skipped")
-        return None
+        return "grey"
     n = meter()
     if n == 1:
         log(f"{name} ({nick}): 1 point to level up: no gift, tagging WAIT")
@@ -767,7 +767,7 @@ def one_friend(row):
 # ---------- a run ----------
 
 def run_searches(limit):
-    sent, done = 0, set()
+    sent, done, greys = 0, set(), 0
     to_list()
     set_sort()
     for first, base_q in (("iii", FIRST), ("lll", THEN)):
@@ -796,7 +796,12 @@ def run_searches(limit):
                     continue
                 row = todo[0]
                 done.add(row["name"])
-                if one_friend(row):
+                got = one_friend(row)
+                greys = greys + 1 if got == "grey" else 0
+                if greys >= 3:  # a can-receive friend with a grey SEND GIFT: my bag has no gifts left
+                    log(f"3 grey SEND GIFTs in a row: out of gifts, done ({sent} sent)")
+                    return sent
+                if got and got != "grey":
                     sent += 1
                     if sent >= limit:
                         log(f"{sent} gifts: the limit for this run")

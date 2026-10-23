@@ -195,8 +195,10 @@ def classify(texts):
     if ("TAGS" in words or "EGGS" in words) and any("HAVE THIS TAG" in w for w in words) \
             or sum("HAVE THIS TAG" in w for w in words) >= 3:  # scrolled: header may be gone
         return "tag-tab"
-    # a typed search with few (or no) results: the search bar ("Q 4&shadow") is still on top
-    if search_box(texts) and not any(is_label(w, "ATTACK") for w in words):
+    # a typed search with few (or no) results: the search bar ("Q 4&shadow") is still on top.
+    # (A friend's page has a line where the bar sits too, its buddy '& Kyurem': SEND GIFT / TOTAL ACTIVITY tell it)
+    friend = any("SEND GIFT" in w or "TOTAL ACTIVITY" in w for w in words)
+    if search_box(texts) and not friend and not any(is_label(w, "ATTACK") for w in words):
         return "list"
     # list scrolled so the search bar is off screen (or a search is typed in): still a grid of CPs
     if sum(bool(re.fullmatch(r"CP\s*\d+", t[4].upper().replace(" ", ""))) for t in texts) >= 6:

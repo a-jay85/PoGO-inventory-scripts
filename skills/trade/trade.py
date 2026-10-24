@@ -725,8 +725,8 @@ def set_made(n):
 
 def plan(phones, left):
     """the first of PLANS with Pokémon left on both phones: its searches on, -> (iPhone search, Android search, why).
-    left: {phone: {search: how many}} from earlier rounds. A count can only go down (a trade takes one off a pile, and
-    the candy it gives can push a species off a needy search), so a search known to be empty is never run again"""
+    left: {phone: {search: how many}}, as last read off its results. A count can only go down (a trade takes one off a
+    pile, and the candy it gives can push a species off a needy search), so a search read empty is never run again"""
     for qi, qa, why in PLANS:
         qs = (qi, qa)
         if any(left[p.name].get(q, 1) < 1 for p, q in zip(phones, qs)):
@@ -762,10 +762,6 @@ def trade_once(ios, android, specials):
         return None  # both phones are left in the picker: nothing picked, nothing to undo
     qi, qa, why = pick
     log(f"pair: {why}")
-    for p, q in zip(phones, (qi, qa)):  # what's left once this trade goes through
-        for s in (q, q.replace(NEED, "")):  # (a needy one is in its plain pile too)
-            if s in left[p.name]:
-                left[p.name][s] -= 1
     def ready(p):
         """the search on (plan), sorted newest first, its top one picked"""
         p.look()

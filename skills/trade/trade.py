@@ -557,9 +557,12 @@ def sort_recent(p):
             time.sleep(0.3)
             if p.look() == "picker" and not p.find(lambda t: ui.norm(t[4]).startswith("COMBAT POWER")):
                 break
-        time.sleep(0.5)
-        p.look()
-        way = ui.sort_arrow(p.path)
+        for _ in range(4):  # no arrow read: the menu can still be fading out. Look again before tapping again
+            time.sleep(0.5)
+            p.look()
+            way = ui.sort_arrow(p.path)
+            if way:
+                break
         if way == "down":
             log(f"{p.name}: sorted Recent, newest first")
             return

@@ -274,10 +274,10 @@ def to_friend(p):
             button = label(p, "CANCEL" if s == "exit" else "OK")
             if not button and s == "expired":
                 # the iPhone's "This trade with ... has expired." box: OCR can miss its white-on-green OK, which
-                # sits just under the message
-                msg = p.find(lambda t: "HAS EXPIRED" in ui.up(t))
+                # sits just under the message (on the Android, "expired." gets a line of its own)
+                msg = p.find(lambda t: "EXPIRED" in ui.up(t))
                 if msg:
-                    p.tap(0.5, msg[0][1] + 0.077)
+                    p.tap(0.5, max(t[1] for t in msg) + 0.077)
                     time.sleep(1)
                     continue
             if not button:

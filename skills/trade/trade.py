@@ -15,7 +15,7 @@ spots must be 100+ km apart. Then CONFIRM on both, the result screens are closed
 friend page.
 Each account gets a trade's candy for the Pokémon it sends. A far-apart pair (one 0-100km, one 100+km) gives the
 most, so it goes where the candy is needed (under 2,500): PLANS, first one with Pokémon left on both phones wins.
-When only 0-100km ones are left on both, they're traded with each other. Then it stops, and the 100+km ones are kept
+When only 0-100km ones are left on both, they're traded with each other, the species with 2,500+ candy first. Then it stops, and the 100+km ones are kept
 for another day. At most 99 trades a day (one is left for a special trade by hand), counted in .state.json;
 --done N says N were already made today. --limit N: at most N trades this run.
 Log and captures go in runs/<time>/.
@@ -38,11 +38,20 @@ PER_RUN = 48  # a run makes at most this many (--limit): two runs (96) stay unde
 NEAR, FAR = "giv,xlx&distance0-100", "giv,xlx&distance100-"  # the two piles
 SAVED = {NEAR: "0-100km", FAR: "100+km"}  # their saved searches, on both accounts
 NEED = "&countcandy0-2499"  # typed after a pile: only species this account has under 2,500 candy of
+# typed: the 0-100km ones of species this account has 2,500+ candy of. A long search doesn't fit in the bar: the
+# iPhone shows its end, the Pixel its first ~30 characters. So the candy part goes last on the iPhone and right after
+# the distance on the Pixel: NEAR + NEED and NEAR + "&countcandy2500-" look the same for 30 characters
+RICH_I = NEAR + "&countcandy2500-"
+RICH_A = "distance0-100&countcandy2500-&giv,xlx"
 # (iPhone search, Android search, why), in order: the first with Pokémon left on both phones is traded. Each account
-# gets candy for the one it sends, so a needy search keeps the far-apart bonus for species that account needs
+# gets candy for the one it sends, so a needy search keeps the far-apart bonus for species that account needs.
+# 0-100km with 0-100km trades the 2,500+ candy ones first: the needy 0-100km ones are kept for a far-apart pair later
 PLANS = [(NEAR + NEED, FAR + NEED, "both need the candy"), (FAR + NEED, NEAR + NEED, "both need the candy"),
          (NEAR + NEED, FAR, "HashTagAJay needs the candy"), (FAR + NEED, NEAR, "HashTagAJay needs the candy"),
          (NEAR, FAR + NEED, "CyrillJan needs the candy"), (FAR, NEAR + NEED, "CyrillJan needs the candy"),
+         (RICH_I, RICH_A, "0-100km with 0-100km, both 2,500+ candy"),
+         (RICH_I, NEAR, "0-100km with 0-100km, HashTagAJay's 2,500+ candy"),
+         (NEAR, RICH_A, "0-100km with 0-100km, CyrillJan's 2,500+ candy"),
          (NEAR, NEAR, "0-100km with 0-100km")]  # no far-apart bonus: the 100+km ones are kept for another day
 MIN_KM = 100
 SKIPS = 3  # pairs caught under MIN_KM apart: how many of the Android's next ones to try before stopping
@@ -427,7 +436,7 @@ def long_pressed(p, name):
 def bar(p):
     for t in p.texts:
         s = re.sub(r"\s", "", t[4]).lower()
-        if t[1] < 0.24 and ("distance" in s or "countcandy" in s):
+        if t[1] < 0.24 and ("distance" in s or "candy" in s):  # ('conntcandy': OCR garbles the bar's letters too)
             return s
     return None
 
@@ -448,16 +457,58 @@ def same_l(s):
 def in_bar(p, q):
     """the bar shows exactly this search. OCR can miss a '-' (the piles still differ without: 'distance0100',
     'distance100'), and reads a '&' after a digit as an 8 or a 0 as an o. A long search doesn't fit in the bar: the
-    Pixel shows its first ~30 characters, the iPhone its last. Either counts once it's past where they all differ"""
+    Pixel shows its first ~30 characters, the iPhone its last. Either counts once it's past where they all differ.
+    A worse read still counts when it's clearly closest to q of this phone's searches (near_bar)"""
     got, want = same_l(bar(p) or "").replace("-", ""), same_l(q).replace("-", "")
-    if want[:3] in got:
-        got = got[got.find(want[:3]):]  # (the magnifier can read as a letter in front)
+    if 0 < got.find(want[:3]) <= 2:
+        got = got[got.find(want[:3]):]  # (the magnifier can read as a letter or two in front)
     for g in (got, got[1:]):
         if amp_as_8(g, want) == want:
             return True
         if len(g) >= 22 and any(amp_as_8(g, w) == w for w in (want[:len(g)], want[-len(g):])):
             return True
-    return False
+    return near_bar(p, q)
+
+
+def pile(s):
+    """which distance a search or a bar read is, by where the '-' sits after 'distance': NEAR ('0-100'), FAR
+    ('100-'), or None (no '-' read, or 'distance' cut off)"""
+    m = re.search(r"ance(.{0,5})", s) or re.search(r"^nce(.{0,5})", s) or re.search(r"^ce(.{0,5})", s)
+    if not m or "-" not in m.group(1):
+        return None
+    return {1: NEAR, 3: FAR}.get(m.group(1).index("-"))
+
+
+def edits(a, b):
+    """how many letters added, dropped or changed turn a into b"""
+    row = list(range(len(b) + 1))
+    for i, x in enumerate(a, 1):
+        prev, row[0] = row[0], i
+        for j, y in enumerate(b, 1):
+            prev, row[j] = row[j], min(row[j] + 1, row[j - 1] + 1, prev + (x != y))
+    return row[-1]
+
+
+def near_bar(p, q):
+    """a bar the OCR garbled ('giv,xl&distanceo-1i0&conntcandy' for the Pixel's giv,xlx&distance0-100&countcandy0-2499)
+    still shows q when the '-' puts it in q's pile and, of this phone's searches in that pile, q is the closest by 2+
+    edits. Keeps a search already on (from the last run, or a Return the OCR misread) from being cleared and typed
+    again"""
+    got = same_l(bar(p) or "")
+    if not got or pile(got) is None or pile(same_l(q)) != pile(got):
+        return False
+    col = 0 if p.name == "ios" else 1
+    def far(s):
+        w = same_l(s)
+        best = edits(amp_as_8(got, w), w)  # the whole search fits
+        for k in range(max(1, len(got) - 2), min(len(w), len(got) + 2) + 1):
+            part = w[-k:] if col == 0 else w[:k]  # the iPhone shows a long search's end, the Pixel its start
+            best = min(best, edits(amp_as_8(got, part), part))
+        return best
+    others = {plan[col] for plan in PLANS} - {q}
+    others = [far(s) for s in others if pile(same_l(s)) == pile(got)]
+    d = far(q)
+    return d <= max(3, len(got) // 8) and all(o >= d + 2 for o in others)
 
 
 def shown(p, q):

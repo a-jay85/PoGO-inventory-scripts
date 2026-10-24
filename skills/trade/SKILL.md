@@ -28,9 +28,11 @@ Before the first trade, each phone opens Pokémon GO if it isn't open, and waits
    1. Both need the candy: needy 0-100km with needy 100+km, either way round.
    2. HashTagAJay needs it: iPhone needy, Android plain, far-apart.
    3. CyrillJan needs it: iPhone plain, Android needy, far-apart.
-   4. 0-100km with 0-100km, plain. Any distance goes.
+   4. 0-100km with 0-100km. Any distance goes. The species an account has 2,500+ candy of go first, so the needy ones stay for a far-apart pair another day. A "rich" search is typed: `giv,xlx&distance0-100&countcandy2500-` on the iPhone, `distance0-100&countcandy2500-&giv,xlx` on the Android. A long search doesn't fit in the bar. The iPhone shows its end and the Pixel its first ~30 letters, so the candy part has to be where each one can see it. In order: rich with rich, iPhone rich with Android plain, iPhone plain with Android rich, plain with plain.
 
    Then it stops. The 100+km ones left are kept for another day. A search found empty isn't run again that run.
+
+   The picker keeps the last search, from the last trade or the last run. When the bar already shows the search it wants, it uses it as it is. A garbled read of the bar still counts when the `-` puts it in the right pile and it's clearly closest to that search, by 2+ letters, of the ones that phone can be asked for. Only then does it clear the bar and type.
 4. In each pair the iPhone's 0-100km side comes first, then the other way round.
 5. Sorts the list Recent, newest first (it reads the little arrow on the sort button), and picks the top one on each phone. On the "Are you sure" warning it taps YES only when every reason is a known one (Max Move levels reset). A new reason stops the run.
 6. Checks the confirm screen on both phones:

@@ -144,7 +144,9 @@ def search_exact(q):
         box = ui.search_box(sharp)
         got = re.sub(r"\s", "", ui.search_text(box)) if box else ""
         got = re.sub(r"^[<‹]?[Q9]?(?=#)", "", got)  # the magnifier glued on
-        if got == q:
+        # the Pixel's bar shows only the first ~30 characters of a long search: the rest is cut off, not lost
+        clipped = ui.ANDROID and len(got) >= 28 and q.startswith(got)
+        if got == q or clipped:
             return path, texts, bounds
         log(f"search bar reads {got!r}, wanted exactly {q!r}: typing it again")
     keep_capture("search")

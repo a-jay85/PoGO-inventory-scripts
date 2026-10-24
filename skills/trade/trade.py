@@ -30,6 +30,7 @@ import ui
 import run as base
 from run import Stop, log
 from search import pokeball, amp_as_8
+from home import main_menu
 
 STATE = os.path.join(HERE, ".state.json")
 PER_DAY = 99  # the game allows 100: one is kept for a special trade made by hand
@@ -227,6 +228,8 @@ def classify(texts, path):
         return "friends"
     if "ME" in words and "FRIENDS" in words:
         return "profile"
+    if main_menu(texts):
+        return "mainmenu"  # the Poké Ball's menu: POKÉDEX, POKÉMON, SHOP, ITEMS
     if len(texts) <= 12 and pokeball(path):
         return "map"
     if all(t[1] < 0.08 for t in texts):
@@ -286,7 +289,7 @@ def to_friend(p):
             p.tap_text(label(p, "YES"))
         elif s == "manage":
             p.tap(*MANAGE_X)
-        elif s in ("gift", "result"):
+        elif s in ("gift", "result", "mainmenu"):
             p.tap(*X_BUTTON)
         elif s == "map":
             p.tap(0.13, 0.91)

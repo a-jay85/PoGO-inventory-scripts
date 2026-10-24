@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""/trade: local trades between the user's two accounts, far-apart pairs only, regular trades only.
+"""/trade: local trades between the user's two accounts, regular trades only.
 
   caffeinate -dimsu python3 trade.py [--limit N] [--done N]
   caffeinate -dimsu python3 trade.py look          (what the script reads on each phone; taps nothing)
@@ -8,13 +8,16 @@ HashTagAJay plays on the iPhone (iPhone Mirroring on the Mac), CyrillJan on the 
 driven by its own phone.py process. The Mac's mouse has to be left alone while it runs: iPhone Mirroring takes it.
 
 Each round: both phones go to the other account's friend page (map -> profile -> FRIENDS -> SEARCH -> name -> X on
-the gift), both tap LOCAL TRADE, each picks the newest Pokémon of a saved search (the "0-100km" / "100+km"
-shortcuts), NEXT, and on the confirm screen both costs must read a regular 100 Stardust (white on blue; a special
-trade shows purple on pink) and the catch spots must be 100+ km apart. Then CONFIRM on both, the result screens
-are closed, and the next round starts from the friend page.
-Pairs: iPhone 0-100km with Android 100+km while both have some, then iPhone 100+km with Android 0-100km. When
-neither pair is left it stops. At most 99 trades a day (one is left for a special trade by hand), counted in
-.state.json; --done N says N were already made today. --limit N: at most N trades this run.
+the gift), both tap LOCAL TRADE, each picks the newest Pokémon of a search (the saved "0-100km" / "100+km"
+shortcuts, or one of them typed with '&countcandy0-2499' added), NEXT, and on the confirm screen both costs must read
+a regular 100 Stardust (white on blue; a special trade shows purple on pink) and, for a far-apart pair, the catch
+spots must be 100+ km apart. Then CONFIRM on both, the result screens are closed, and the next round starts from the
+friend page.
+Each account gets a trade's candy for the Pokémon it sends. A far-apart pair (one 0-100km, one 100+km) gives the
+most, so it goes where the candy is needed (under 2,500): PLANS, first one with Pokémon left on both phones wins.
+When only 0-100km ones are left on both, they're traded with each other. Then it stops, and the 100+km ones are kept
+for another day. At most 99 trades a day (one is left for a special trade by hand), counted in .state.json;
+--done N says N were already made today. --limit N: at most N trades this run.
 Log and captures go in runs/<time>/.
 """
 import argparse, datetime, json, os, random, re, shutil, statistics, subprocess, sys, time
@@ -26,13 +29,21 @@ sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
 import ui
 import run as base
 from run import Stop, log
-from search import pokeball
+from search import pokeball, amp_as_8
+from home import main_menu
 
 STATE = os.path.join(HERE, ".state.json")
 PER_DAY = 99  # the game allows 100: one is kept for a special trade made by hand
 PER_RUN = 48  # a run makes at most this many (--limit): two runs (96) stay under PER_DAY, one leaves trades for other friends
-NEAR, FAR = "0-100km", "100+km"  # the saved searches, on both accounts
-QUERY = {NEAR: "giv,xlx&distance0-100", FAR: "giv,xlx&distance100-"}  # what each one puts in the bar
+NEAR, FAR = "giv,xlx&distance0-100", "giv,xlx&distance100-"  # the two piles
+SAVED = {NEAR: "0-100km", FAR: "100+km"}  # their saved searches, on both accounts
+NEED = "&countcandy0-2499"  # typed after a pile: only species this account has under 2,500 candy of
+# (iPhone search, Android search, why), in order: the first with Pokémon left on both phones is traded. Each account
+# gets candy for the one it sends, so a needy search keeps the far-apart bonus for species that account needs
+PLANS = [(NEAR + NEED, FAR + NEED, "both need the candy"), (FAR + NEED, NEAR + NEED, "both need the candy"),
+         (NEAR + NEED, FAR, "HashTagAJay needs the candy"), (FAR + NEED, NEAR, "HashTagAJay needs the candy"),
+         (NEAR, FAR + NEED, "CyrillJan needs the candy"), (FAR, NEAR + NEED, "CyrillJan needs the candy"),
+         (NEAR, NEAR, "0-100km with 0-100km")]  # no far-apart bonus: the 100+km ones are kept for another day
 MIN_KM = 100
 SKIPS = 3  # pairs caught under MIN_KM apart: how many of the Android's next ones to try before stopping
 COST = 100  # Stardust for a regular trade between these two accounts
@@ -200,10 +211,11 @@ def classify(texts, path):
         return "lobby"  # in the trade, nothing picked: "Waiting for ... to select their Pokémon", picker button below
     # the trade's Pokémon list: only a POKÉMON header (storage has TAGS and EGGS tabs beside it). The SPECIAL TRADES
     # REMAINING line shows only while no search is on: the picker keeps the last search between trades. A pile
-    # search can leave fewer than 3 tiles, or none: then the distance search in the bar vouches for it
-    if "SPECIAL TRADES REMAINING" in joined or "POKMON" in words and not words & {"TAGS", "EGGS"} and (
+    # search can leave fewer than 3 tiles, or none: then the distance search in the bar vouches for it. (The iPhone
+    # can read the header POKÉMONI)
+    if "SPECIAL TRADES REMAINING" in joined or words & {"POKMON", "POKMONI"} and not words & {"TAGS", "EGGS"} and (
             sum(bool(re.fullmatch(r"CP\s*\d+", r.replace("С", "C"))) for r in raw) >= 3 or "FAVORITE" in words
-            or "DISTANCE" in joined):
+            or "DISTANCE" in joined or "COUNTCANDY" in joined):
         return "picker"
     if "NEXT" in words and any(re.search(r"CP\s*\d+\s*>", r) for r in raw):
         return "select"
@@ -217,6 +229,8 @@ def classify(texts, path):
         return "friends"
     if "ME" in words and "FRIENDS" in words:
         return "profile"
+    if main_menu(texts):
+        return "mainmenu"  # the Poké Ball's menu: POKÉDEX, POKÉMON, SHOP, ITEMS
     if len(texts) <= 12 and pokeball(path):
         return "map"
     if all(t[1] < 0.08 for t in texts):
@@ -261,10 +275,10 @@ def to_friend(p):
             button = label(p, "CANCEL" if s == "exit" else "OK")
             if not button and s == "expired":
                 # the iPhone's "This trade with ... has expired." box: OCR can miss its white-on-green OK, which
-                # sits just under the message
-                msg = p.find(lambda t: "HAS EXPIRED" in ui.up(t))
+                # sits just under the message (on the Android, "expired." gets a line of its own)
+                msg = p.find(lambda t: "EXPIRED" in ui.up(t))
                 if msg:
-                    p.tap(0.5, msg[0][1] + 0.077)
+                    p.tap(0.5, max(t[1] for t in msg) + 0.077)
                     time.sleep(1)
                     continue
             if not button:
@@ -276,7 +290,7 @@ def to_friend(p):
             p.tap_text(label(p, "YES"))
         elif s == "manage":
             p.tap(*MANAGE_X)
-        elif s in ("gift", "result"):
+        elif s in ("gift", "result", "mainmenu"):
             p.tap(*X_BUTTON)
         elif s == "map":
             p.tap(0.13, 0.91)
@@ -386,7 +400,7 @@ def open_panel(p):
             p.key("back")  # Android: hides the keyboard only, the panel stays
             time.sleep(1.0)
             p.look()
-        if label(p, "FAVORITE") and shortcut(p, NEAR) and shortcut(p, FAR):
+        if label(p, "FAVORITE") and shortcut(p, SAVED[NEAR]) and shortcut(p, SAVED[FAR]):
             return
     p.keep("panel")
     raise Stop(f"{p.name}: the search panel with the saved shortcuts didn't show: {p.summary()}")
@@ -397,42 +411,7 @@ def shortcut(p, name):
     return hits[0] if hits else None
 
 
-def shortcut_count(p, name):
-    t = shortcut(p, name)
-    below = p.find(lambda u: t[1] + 0.01 < u[1] < t[1] + 0.06 and abs((u[0] + u[2] / 2) - (t[0] + t[2] / 2)) < 0.08
-                   and re.fullmatch(r"[\d,]+", u[4].strip()))
-    return int(below[0][4].replace(",", "")) if below else None
-
-
-def counts(p, last=None):
-    """{NEAR: n, FAR: n} off the open panel, read twice the same. The reader often misses a lone digit under a
-    shortcut ('6', every '0'). Then: the bar's pile is the '(n)' in the header, the game's own count; the other
-    pile is what last held for it (the previous round's read), or, at a run's start, what its search shows.
-    last is updated with what was read"""
-    seen = None
-    for _ in range(4):
-        got = {n: shortcut_count(p, n) for n in (NEAR, FAR)}
-        for n in got:
-            if got[n] is None and shortcut(p, n):
-                if in_bar(p, n):
-                    got[n] = results(p)
-                elif last and n in last:
-                    got[n] = last[n]
-                else:
-                    got[n] = probe(p, n)
-                    if last is not None:
-                        last[n] = got[n]
-        if None not in got.values() and got == seen:
-            if last is not None:
-                last.update(got)
-            return got
-        seen = got
-        time.sleep(0.3)
-        p.look()
-    raise Stop(f"{p.name}: couldn't read the shortcut counts: {p.summary()}")
-
-
-def long_pressed(p, pile):
+def long_pressed(p, name):
     """the shortcut tap landed as a long press: the Manage Favorite Search box is up and the panel stays open.
     Close it and tap the shortcut again. True when it did"""
     if not p.find(lambda t: "MANAGE FAVORITE" in ui.up(t)):
@@ -441,31 +420,14 @@ def long_pressed(p, pile):
     p.tap(*MANAGE_X)
     time.sleep(1)
     p.look()
-    p.tap_text(shortcut(p, pile), dy=-0.055)
+    p.tap_text(shortcut(p, name), dy=-0.055)
     return True
-
-
-def probe(p, pile):
-    """run a pile's search to read its '(n)' off the header (0 too), then open the panel again"""
-    p.tap_text(shortcut(p, pile), dy=-0.055)
-    for _ in range(12):
-        time.sleep(0.4)
-        p.look()
-        if long_pressed(p, pile):
-            continue
-        if p.screen == "picker" and not label(p, "FAVORITE") and in_bar(p, pile) and results(p) is not None:
-            n = results(p)
-            log(f"{p.name}: {pile} count missed under its shortcut: its search shows {n}")
-            open_panel(p)
-            return n
-    p.keep("probe")
-    raise Stop(f"{p.name}: couldn't read the {pile} count: {bar(p)!r}, {p.summary()}")
 
 
 def bar(p):
     for t in p.texts:
         s = re.sub(r"\s", "", t[4]).lower()
-        if t[1] < 0.24 and "distance" in s:
+        if t[1] < 0.24 and ("distance" in s or "countcandy" in s):
             return s
     return None
 
@@ -479,31 +441,95 @@ def results(p):
 
 
 def same_l(s):
-    """OCR mixes up l, i, I, 1 and | in the bar ('xix' for 'xlx'): the two queries differ elsewhere"""
+    """OCR mixes up l, i, I, 1 and | in the bar ('xix' for 'xlx'): the searches differ elsewhere"""
     return re.sub(r"[il1|]", "l", s.lower())
 
 
-def in_bar(p, pile):
-    """the bar shows exactly this pile's search. OCR can miss the far pile's last '-': the two piles still differ
-    without it ('&distance100' is no tail of '&distance0-100')"""
-    got, want = same_l(bar(p) or "").rstrip("-"), same_l(QUERY[pile]).rstrip("-")
-    return got.endswith(want) and len(got) - len(want) <= 2
+def in_bar(p, q):
+    """the bar shows exactly this search. OCR can miss a '-' (the piles still differ without: 'distance0100',
+    'distance100'), and reads a '&' after a digit as an 8 or a 0 as an o. A long search doesn't fit in the bar: the
+    Pixel shows its first ~30 characters, the iPhone its last. Either counts once it's past where they all differ"""
+    got, want = same_l(bar(p) or "").replace("-", ""), same_l(q).replace("-", "")
+    if want[:3] in got:
+        got = got[got.find(want[:3]):]  # (the magnifier can read as a letter in front)
+    for g in (got, got[1:]):
+        if amp_as_8(g, want) == want:
+            return True
+        if len(g) >= 22 and any(amp_as_8(g, w) == w for w in (want[:len(g)], want[-len(g):])):
+            return True
+    return False
 
 
-def pick_pile(p, pile):
-    """tap the saved search and check the bar shows exactly it, with results"""
-    t = shortcut(p, pile)
-    p.tap_text(t, dy=-0.055)  # the round button above the label
+def shown(p, q):
+    """the picker shows q's results: -> how many, 0 too (None: not yet)"""
+    if p.screen == "picker" and not label(p, "FAVORITE") and in_bar(p, q):
+        return results(p)
+    return None
+
+
+def pick_pile(p, q):
+    """tap the saved search and check the bar shows exactly it. -> how many it found"""
+    name = SAVED[q]
+    p.tap_text(shortcut(p, name), dy=-0.055)  # the round button above the label
     for _ in range(12):
         time.sleep(0.4)
         p.look()
-        if long_pressed(p, pile):
+        if long_pressed(p, name):
             continue
-        if p.screen == "picker" and not label(p, "FAVORITE"):  # the panel closed and the search ran
-            if in_bar(p, pile) and results(p):
-                return results(p)
+        n = shown(p, q)  # the panel closed and the search ran
+        if n is not None:
+            return n
     p.keep("search")
-    raise Stop(f"{p.name}: the search bar doesn't show {QUERY[pile]}: {bar(p)!r}, {p.summary()}")
+    raise Stop(f"{p.name}: the search bar doesn't show {q}: {bar(p)!r}, {p.summary()}")
+
+
+def type_search(p, q):
+    """a search that isn't saved: empty the bar, type it, Return. -> how many it found"""
+    for attempt in range(3):
+        p.look()
+        if not label(p, "FAVORITE"):
+            p.tap(0.5, 0.18)  # the bar: opens the panel
+            time.sleep(1.2)
+            p.look()
+        box = ui.search_box(p.texts)
+        if box and ui.search_text(box):
+            p.tap(0.905, 0.183, fuzz=0.004)  # the (x) at the bar's right end: empties it
+            time.sleep(1.3)
+            p.look()
+            if not label(p, "FAVORITE"):
+                p.tap(0.5, 0.18)  # the (x) closed the panel too: open it again
+                time.sleep(1.2)
+                p.look()
+        if not label(p, "FAVORITE"):
+            log(f"{p.name}: the search panel didn't open: again")
+            continue
+        if not p.call(op="search", q=q)["ok"]:
+            log(f"{p.name}: the typed search came out wrong: again")
+            continue
+        p.key("return")
+        for _ in range(12):
+            time.sleep(0.4)
+            p.look()
+            n = shown(p, q)
+            if n is not None:
+                return n
+        log(f"{p.name}: the bar doesn't show {q} after Return: {bar(p)!r}")
+    p.keep("search")
+    raise Stop(f"{p.name}: couldn't type the search {q}: {bar(p)!r}, {p.summary()}")
+
+
+def search_for(p, q):
+    """q's results in the picker, its saved shortcut or typed. The last trade's search stays on in the list: then
+    nothing to run again. -> how many it found"""
+    p.look()
+    n = shown(p, q)
+    if n is None and q in SAVED:
+        open_panel(p)
+        n = pick_pile(p, q)
+    elif n is None:
+        n = type_search(p, q)
+    log(f"{p.name}: {q} ({n})")
+    return n
 
 
 RECENT_ICON = os.path.join(HERE, "recent_icon.png")  # the sort button's clock and down arrow, green on teal
@@ -511,7 +537,7 @@ RECENT_ICON = os.path.join(HERE, "recent_icon.png")  # the sort button's clock a
 
 def sorted_recent(path):
     """the sort button already shows Recent (the clock) with the arrow down: newest first, nothing to set"""
-    return (ui.icon_score(path, RECENT_ICON, (325, 805)) or 0) >= 0.6 and ui.sort_arrow(path) == "down"
+    return (ui.icon_score(path, RECENT_ICON, (325, 805)) or 0) >= 0.6 and ui.sort_arrow(path, right_most=True) == "down"
 
 
 def sort_recent(p):
@@ -532,9 +558,12 @@ def sort_recent(p):
             time.sleep(0.3)
             if p.look() == "picker" and not p.find(lambda t: ui.norm(t[4]).startswith("COMBAT POWER")):
                 break
-        time.sleep(0.5)
-        p.look()
-        way = ui.sort_arrow(p.path)
+        for _ in range(4):  # no arrow read: the menu can still be fading out. Look again before tapping again
+            time.sleep(0.5)
+            p.look()
+            way = ui.sort_arrow(p.path, right_most=True)
+            if way:
+                break
         if way == "down":
             log(f"{p.name}: sorted Recent, newest first")
             return
@@ -701,12 +730,18 @@ def set_made(n):
 
 # ---------- a run ----------
 
-def pairs(ios, android):
-    """which pile on which phone: iPhone 0-100km + Android 100+km first, then the other way round"""
-    if ios[NEAR] and android[FAR]:
-        return NEAR, FAR
-    if ios[FAR] and android[NEAR]:
-        return FAR, NEAR
+def plan(phones, left):
+    """the first of PLANS with Pokémon left on both phones: its searches on, -> (iPhone search, Android search, why).
+    left: {phone: {search: how many}}, as last read off its results. A count can only go down (a trade takes one off a
+    pile, and the candy it gives can push a species off a needy search), so a search read empty is never run again"""
+    for qi, qa, why in PLANS:
+        qs = (qi, qa)
+        if any(left[p.name].get(q, 1) < 1 for p, q in zip(phones, qs)):
+            continue
+        for p, q, n in zip(phones, qs, both(search_for, *zip(phones, qs))):
+            left[p.name][q] = n
+        if all(left[p.name][q] for p, q in zip(phones, qs)):
+            return qi, qa, why
     return None
 
 
@@ -728,47 +763,32 @@ def trade_once(ios, android, specials):
         if p.name in specials and n < specials[p.name]:
             raise Stop(f"{p.name}: special trades left went from {specials[p.name]} to {n}")
         specials.setdefault(p.name, n)
-    piles = specials.setdefault("piles", {})
-    for p in phones:
-        piles.setdefault(p.name, {})
-    # after the first round the counts are known: each pick reads its pile's '(n)' and the trade takes one off.
-    # Read them off the panel again only when a pile the pair needs could be down to its last one
-    pair = pairs(piles["ios"], piles["android"]) if all(len(piles[p.name]) == 2 for p in phones) else None
-    if not (pair and piles["ios"][pair[0]] >= 2 and piles["android"][pair[1]] >= 2):
-        def read(p):
-            open_panel(p)
-            return counts(p, piles[p.name])
-        have = dict(zip(("ios", "android"), both(read, *[(p,) for p in phones])))
-        log(f"piles: iPhone {have['ios']}, Android {have['android']}")
-        pair = pairs(have["ios"], have["android"])
-        if not pair:
-            return None  # both phones are left in the picker: nothing picked, nothing to undo
-    def ready(p, pile):
-        """the pile's search on, sorted newest first, its top one picked"""
+    left = specials.setdefault("left", {p.name: {} for p in phones})
+    pick = plan(phones, left)
+    if not pick:
+        return None  # both phones are left in the picker: nothing picked, nothing to undo
+    qi, qa, why = pick
+    log(f"pair: {why}")
+    def ready(p):
+        """the search on (plan), sorted newest first, its top one picked"""
         p.look()
-        # the last trade's search stays on in the list: its header has the count, no need to run it again
-        n = results(p) if p.screen == "picker" and not label(p, "FAVORITE") and in_bar(p, pile) else None
-        if not n:
-            open_panel(p)
-            n = pick_pile(p, pile)
-        piles[p.name][pile] = n - 1  # what's left once this trade goes through
-        log(f"{p.name}: {pile} ({n})")
         if p.name not in specials.setdefault("sorted", []):  # once a run: the sort stays put between trades
             if sorted_recent(p.path):
                 log(f"{p.name}: already sorted Recent, newest first")
             else:
                 sort_recent(p)
             specials["sorted"].append(p.name)
-        elif ui.sort_arrow(p.path) != "down":
+        elif ui.sort_arrow(p.path, right_most=True) != "down":
             sort_recent(p)
         return choose(p)
-    got = both(ready, *zip(phones, pair))
+    got = both(ready, *[(p,) for p in phones])
+    far = FAR in (qi.replace(NEED, ""), qa.replace(NEED, ""))  # 0-100km with 0-100km: any distance goes
     for skip in range(SKIPS + 1):
         reads = both(check_confirm, *[(p,) for p in phones])
         d = reads[0][0]
         if abs(reads[0][0] - reads[1][0]) > 1:
             raise Stop(f"the phones read different distances: {reads}")
-        if d >= MIN_KM:
+        if d >= MIN_KM or not far:
             break
         if skip == SKIPS:
             raise Stop(f"still under {MIN_KM} km after skipping {SKIPS} of the Android's: nothing confirmed")
@@ -866,7 +886,7 @@ def main():
                 continue
             expired = 0
             if not got:
-                log("no far-apart pairs left: done")
+                log("no pairs left (the 100+km ones are kept for another day): done")
                 break
             set_made(made_today() + 1)  # counted once both have confirmed: a missed result screen never undercounts
             n += 1

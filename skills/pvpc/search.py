@@ -392,6 +392,9 @@ def allow_paste(texts, bounds):
     return True
 
 
+PASTE = {"ok": True}  # iPhone: off for the rest of the run once a paste never lands (the Mac-to-iPhone clipboard hangs)
+
+
 def type_into_panel(q, bounds):
     """the panel doesn't always put the cursor in the bar, and a tap on the bar doesn't always either.
     Tap the bar, type, wait for the letters to show. False if they come out wrong (the caller starts over)."""
@@ -413,12 +416,13 @@ def _type_into_panel(q, bounds, clip_box):
             time.sleep(0.15)
             key("delete")
             time.sleep(0.15)
-        if ui.ANDROID:
-            type_text(q)
-        else:
+        pasted = not ui.ANDROID and PASTE["ok"]
+        if pasted:
             old = base.paste_text(q)
             if not clip_box:
                 clip_box.append(old)
+        else:
+            type_text(q)
         got = ""
         for i in range(16):
             time.sleep(0.25)
@@ -427,6 +431,9 @@ def _type_into_panel(q, bounds, clip_box):
                 continue
             if not got and i >= 4:
                 log("  nothing showed in the search bar after typing: again")
+                if pasted and attempt:  # two pastes lost: type the rest of this run's searches key by key
+                    log("  the paste isn't landing: typing searches key by key from now on")
+                    PASTE["ok"] = False
                 break  # nothing landed: tap and type again
             if got and not (len(got) < len(q) and q.lower().startswith(re.sub(r"\s", "", got).lower())):
                 break  # the keys can land a little after they're sent: wait while only the start shows

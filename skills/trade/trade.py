@@ -537,7 +537,7 @@ RECENT_ICON = os.path.join(HERE, "recent_icon.png")  # the sort button's clock a
 
 def sorted_recent(path):
     """the sort button already shows Recent (the clock) with the arrow down: newest first, nothing to set"""
-    return (ui.icon_score(path, RECENT_ICON, (325, 805)) or 0) >= 0.6 and ui.sort_arrow(path) == "down"
+    return (ui.icon_score(path, RECENT_ICON, (325, 805)) or 0) >= 0.6 and ui.sort_arrow(path, right_most=True) == "down"
 
 
 def sort_recent(p):
@@ -561,7 +561,7 @@ def sort_recent(p):
         for _ in range(4):  # no arrow read: the menu can still be fading out. Look again before tapping again
             time.sleep(0.5)
             p.look()
-            way = ui.sort_arrow(p.path)
+            way = ui.sort_arrow(p.path, right_most=True)
             if way:
                 break
         if way == "down":
@@ -778,7 +778,7 @@ def trade_once(ios, android, specials):
             else:
                 sort_recent(p)
             specials["sorted"].append(p.name)
-        elif ui.sort_arrow(p.path) != "down":
+        elif ui.sort_arrow(p.path, right_most=True) != "down":
             sort_recent(p)
         return choose(p)
     got = both(ready, *[(p,) for p in phones])

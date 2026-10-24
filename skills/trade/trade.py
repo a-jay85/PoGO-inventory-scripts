@@ -12,6 +12,8 @@ the gift), both tap LOCAL TRADE, each picks the newest Pokémon of a saved searc
 shortcuts), NEXT, and on the confirm screen both costs must read a regular 100 Stardust (white on blue; a special
 trade shows purple on pink) and the catch spots must be 100+ km apart. Then CONFIRM on both, the result screens
 are closed, and the next round starts from the friend page.
+Both searches keep only species the phone's own account has under 2,500 candy of (each side gets candy for the one
+it sends), so a far-apart trade is spent only when both sides need the candy.
 Pairs: iPhone 0-100km with Android 100+km while both have some, then iPhone 100+km with Android 0-100km. When
 neither pair is left it stops. At most 99 trades a day (one is left for a special trade by hand), counted in
 .state.json; --done N says N were already made today. --limit N: at most N trades this run.
@@ -32,7 +34,9 @@ STATE = os.path.join(HERE, ".state.json")
 PER_DAY = 99  # the game allows 100: one is kept for a special trade made by hand
 PER_RUN = 48  # a run makes at most this many (--limit): two runs (96) stay under PER_DAY, one leaves trades for other friends
 NEAR, FAR = "0-100km", "100+km"  # the saved searches, on both accounts
-QUERY = {NEAR: "giv,xlx&distance0-100", FAR: "giv,xlx&distance100-"}  # what each one puts in the bar
+# what each one puts in the bar. Each account gets a trade's candy for the Pokémon it sends, so each pile keeps only
+# species its own account has under 2,500 candy of: a far-apart pair is spent only when both sides need the candy
+QUERY = {NEAR: "giv,xlx&distance0-100&countcandy0-2499", FAR: "giv,xlx&distance100-&countcandy0-2499"}
 MIN_KM = 100
 SKIPS = 3  # pairs caught under MIN_KM apart: how many of the Android's next ones to try before stopping
 COST = 100  # Stardust for a regular trade between these two accounts
@@ -484,10 +488,12 @@ def same_l(s):
 
 
 def in_bar(p, pile):
-    """the bar shows exactly this pile's search. OCR can miss the far pile's last '-': the two piles still differ
-    without it ('&distance100' is no tail of '&distance0-100')"""
-    got, want = same_l(bar(p) or "").rstrip("-"), same_l(QUERY[pile]).rstrip("-")
-    return got.endswith(want) and len(got) - len(want) <= 2
+    """the bar shows exactly this pile's search. OCR can miss a '-': the two piles still differ without them
+    ('distance0100&', 'distance100&'). The Pixel's bar shows only the first ~30 characters of a long search: a
+    cut-off start counts, once it's past where the two piles differ"""
+    got, want = same_l(bar(p) or "").replace("-", ""), same_l(QUERY[pile]).replace("-", "")
+    got = got[got.find(want[:3]):] if want[:3] in got else got  # (the magnifier can read as a letter in front)
+    return got == want or len(got) >= 22 and want.startswith(got)
 
 
 def pick_pile(p, pile):
@@ -866,7 +872,7 @@ def main():
                 continue
             expired = 0
             if not got:
-                log("no far-apart pairs left: done")
+                log("no far-apart pairs left that both sides need candy for: done")
                 break
             set_made(made_today() + 1)  # counted once both have confirmed: a missed result screen never undercounts
             n += 1

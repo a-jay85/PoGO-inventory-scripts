@@ -142,6 +142,15 @@ def unstick(texts):
         ui.android.key("back")
         time.sleep(1.5)
         return False
+    if any(t[4].strip().upper() == "OH?" for t in texts) and backs < MAX_BACKS:  # an egg hatching: taps move it on
+        backs += 1
+        log("  an egg is hatching: tapping it along")
+        bounds = ui.capture()[1]
+        x, y = base.to_points(0.5, 0.5, bounds)
+        base.front()
+        ui.sh(ui.HELPER, "click", f"{x:.1f}", f"{y:.1f}", str(ui.tap_ms()))
+        time.sleep(2)
+        return False
     if reopened:
         keep_capture("start")
         raise Stop(f"don't know this screen (no Back key on the iPhone), close it by hand: {seen}")

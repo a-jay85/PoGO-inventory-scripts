@@ -435,8 +435,8 @@ def bar_holds(got, q):
     """does the bar's read show q? A long q runs off one end of the bar: then what shows must be its start or its end,
     and the hidden part can't hold a '!' (a lost one is what this guards against)"""
     q = re.sub(r"\s", "", q)
-    # OCR reads a '!' as '.' or 'l', a '&' as '8', a '*' as '"', a 0 as an o, an l as '|'
-    swaps = {"!": "[!.|il1]", "&": "[&8]", "*": '[*"]', "0": "[0o]", "l": "[l|1I]"}
+    # OCR reads a '!' as '.' or 'l', a '&' as '8', a '*' as '"', a 0 as an o, an l as '|' or '/'
+    swaps = {"!": "[!.|il1]", "&": "[&8]", "*": '[*"]', "0": "[0o]", "l": "[l|1I/]"}
     pat = lambda s: "".join(swaps.get(ch) or re.escape(ch) for ch in s)
     magnifier = r"(?:q|9|[^\w&!*]){0,3}?"  # the magnifier glued on in front (read as Q, 9, < or ,)
     if re.fullmatch(magnifier + pat(q), got, flags=re.I):  # ...but one that's really gone leaves nothing there

@@ -63,6 +63,9 @@ def main():
     proto = sys.stdout
     sys.stdout = sys.stderr  # run.log() prints: keep it off the answer line
     ui.ensure_helper()
+    # iPhone: type the searches key by key (about 2 s). The paste never landed in the trade picker (2026-10-24), and
+    # finding that out cost two lost pastes, 15-20 s, every run
+    search.PASTE["ok"] = False
     for line in sys.stdin:
         req = json.loads(line)
         out = {}
@@ -76,7 +79,7 @@ def main():
                 base.type_text(req["text"])
             elif op == "key":
                 base.key(req["name"])
-            elif op == "search":  # (iPhone: pasted, its "Allow Paste" box tapped; Android: adb types it)
+            elif op == "search":  # (iPhone: typed key by key; Android: adb types it)
                 out = {"ok": search.type_into_panel(req["q"], last or ui.capture()[1])}
             elif op == "restart":
                 restart()

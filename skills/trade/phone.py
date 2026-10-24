@@ -8,6 +8,7 @@ Reads one JSON request a line on stdin, answers one JSON line on stdout:
   {"op": "look"}                    -> {"path", "bounds", "texts": [[x, y, w, h, text], ...]}
   {"op": "tap", "fx", "fy"}         a tap at window fractions (iPhone: iPhone Mirroring brought forward first)
   {"op": "type", "text"}            {"op": "key", "name"}
+  {"op": "search", "q"}             type q into the open search panel's bar -> {"ok"}: the bar reads q
   {"op": "restart"}                 force-close Pokémon GO and open it again (doesn't wait for it to load)
   {"op": "start", "run_dir"}        open Pokémon GO if it isn't, and wait until it's loaded -> {"screen"}
   {"op": "unstick", "texts", "backs"}  one step out of a screen nobody knows (Android: Back; iPhone: reopen the game)
@@ -20,7 +21,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
 import ui
 import run as base
-import home, session
+import home, search, session
 
 NAME = sys.argv[1]
 ui.CAP = f"/tmp/trade_{NAME}.png"  # each phone its own capture: with one shared file a phone could read the other's
@@ -75,6 +76,8 @@ def main():
                 base.type_text(req["text"])
             elif op == "key":
                 base.key(req["name"])
+            elif op == "search":  # (iPhone: pasted, its "Allow Paste" box tapped; Android: adb types it)
+                out = {"ok": search.type_into_panel(req["q"], last or ui.capture()[1])}
             elif op == "restart":
                 restart()
             elif op == "start":

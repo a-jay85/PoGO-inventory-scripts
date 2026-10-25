@@ -110,6 +110,8 @@ def classify():
         return "giftpopup"
     if "REVIEW LUCKY" in j:
         return "luckytrade"  # a friend's Lucky Trade request over their page: its X shows the page
+    if "TOTAL DAYS SPENT TOGETHER" in j:
+        return "buddy"  # the buddy's history page (a stray tap on the ME tab's buddy): its X goes back
     if "TRAINER CODE" in j and "2D CODE" in j:
         return "trainercode"  # (a tap on our own picture in the friend list)
     if "SET NICKNAME" in j and w & {"OK", "CANCEL"}:
@@ -238,7 +240,7 @@ def to_list():
             tap_text(t) if t else tap(0.5, 0.09)
         elif s == "map":
             tap(0.13, 0.91)  # the profile picture
-        elif s in ("friend", "meter", "picker", "preview", "giftpopup", "luckytrade", "trainercode"):
+        elif s in ("friend", "meter", "picker", "preview", "giftpopup", "luckytrade", "trainercode", "buddy"):
             close()
         elif s == "nickname":
             cancel_nickname()
@@ -469,8 +471,10 @@ def badged(im, name_y):
 
 def rows():
     """the rows on screen, top down: {name, t, badged}. A row is the trainer name at x ~0.29, the nickname just
-    under it; rows too low to see their badge are left for the next scroll"""
-    col = sorted((t for t in texts if 0.26 < t[0] < 0.32 and 0.26 < t[1] < 0.85 and t[4].strip()
+    under it; rows too low to see their badge are left for the next scroll. Lines from 0.15 down are paired, so a
+    row whose name sits just above 0.26 keeps its nickname: else the nickname reads as a name, with that row's
+    badge under it, and the search ends there"""
+    col = sorted((t for t in texts if 0.26 < t[0] < 0.32 and 0.15 < t[1] < 0.85 and t[4].strip()
                   and "SENT YOU" not in ui.up(t) and "TRADE REQUEST" not in ui.up(t)), key=lambda t: t[1])  # ('<name> sent you a Lucky Remote Trade request.')
     out, last = [], None
     for t in col:
@@ -482,12 +486,12 @@ def rows():
         if len(clean(t[4])) >= 3:
             out.append([t, ""])
     im = Image.open(path).convert("RGB")
-    return [{"name": clean(t[4]), "nick": nick, "t": t, "badged": badged(im, t[1])} for t, nick in out]
+    return [{"name": clean(t[4]), "nick": nick, "t": t, "badged": badged(im, t[1])} for t, nick in out if t[1] > 0.26]
 
 
 def same_name(a, b):
     """the row's name and the page's: OCR reads them a little differently ('lycбo' / 'lyc60'). One letter off is ok"""
-    f = lambda s: re.sub(r"[il1|Iİı]", "l", re.sub(r"[oO0]", "0", clean(s))).lower()
+    f = lambda s: re.sub(r"[il1|Iİı]", "l", re.sub(r"[oO0]", "0", clean(s).replace("&", "8"))).lower()
     a, b = f(a), f(b)
     return a == b or len(a) == len(b) and sum(x != y for x, y in zip(a, b)) <= 1
 
@@ -496,7 +500,7 @@ def same_name(a, b):
 
 def page_name():
     top = [t for t in texts if 0.07 < t[1] < 0.16 and t[0] < 0.25 and '"' not in t[4]
-           and re.fullmatch(r"\w{3,}", clean(t[4]))]  # (below the status bar's clock)
+           and re.fullmatch(r"[\w&]{3,}", clean(t[4]))]  # (below the status bar's clock; OCR reads an 8 as &: "Gr&estGuyEver")
     return clean(sorted(top, key=lambda t: t[1])[0][4]) if top else None
 
 
@@ -926,16 +930,30 @@ def run_searches(limit):
             if arrow() != "down":
                 set_sort()
             stale, fresh = 0, True  # fresh: the last capture is the friend list as it is now (no look needed)
+            top = True  # the list is at its top, just sorted by a search: nothing scrolled, no gift sent since
             while True:
                 if not fresh and look() != "friends":  # a drag that landed as a tap opened something: back first
                     to_list()
                 fresh = False
-                todo = [r for r in rows() if r["name"] not in done]
+                on_screen = rows()
+                todo = [r for r in on_screen if r["name"] not in done]
                 if todo and todo[0]["badged"]:
-                    break  # sorted can-receive first: from here down nobody can take a gift
+                    if top:
+                        break  # sorted can-receive first, and the first friend not skipped has the arrow: nobody left
+                    # the list re-sorts only on a new search: the friends gifted this run keep their place, arrow
+                    # and all. Search again, then look at the top
+                    log(f"  {todo[0]['name']} has the arrow: searching again to re-sort")
+                    n = search(base_q, zq)
+                    if not n:
+                        break
+                    if arrow() != "down":
+                        set_sort()
+                    stale, fresh, top = 0, True, True
+                    continue
                 if not todo:
                     before = [r["name"] for r in rows()]
                     drag(0.75, 0.4)
+                    top = False
                     look()
                     stale = stale + 1 if [r["name"] for r in rows()] == before else 0
                     if stale:
@@ -951,6 +969,7 @@ def run_searches(limit):
                     return sent
                 if got and got != "grey":
                     sent += 1
+                    top = False  # their arrow now shows, but they keep their place until the next search
                     if sent >= limit:
                         log(f"{sent} gifts: the limit for this run")
                         return sent

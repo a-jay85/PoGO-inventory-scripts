@@ -29,7 +29,7 @@ Only gifts whose city line reads **San Francisco**, with no sticker. A title wit
 
 ## Who goes first
 
-The friend list is sorted **Can receive a gift**, arrow down. Friends who can take a gift come first, so the first row with the grey arrow badge on the avatar (a gift already sent) ends a search. When the sort button already shows the gift icon with the arrow down, the script leaves the sort alone.
+The friend list is sorted **Can receive a gift**, arrow down. Friends who can take a gift come first. The list re-sorts only on a new search, so a friend gifted this run keeps their place, now with the grey arrow badge on the avatar. A badge lower down makes the script search again. Only a badge on the first friend at the top of a freshly sorted list ends a search. When the sort button already shows the gift icon with the arrow down, the script leaves the sort alone.
 
 1. `iii`: no gift from me and haven't played with me today (`!?&!$&!WAIT&!OPEN&interactable&!EGG&`).
 2. `lll`: opened my gift or played with me today (`!WAIT&!OPEN&!interactable&!EGG&`).

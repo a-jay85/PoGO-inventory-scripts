@@ -147,15 +147,14 @@ def look():
 
 
 def tap_at(fx, fy, bounds, wait=(1.6, 2.2)):
-    search.click(fx + random.uniform(-0.006, 0.006), fy + random.uniform(-0.003, 0.003), bounds)
-    time.sleep(random.uniform(*wait))
+    base.click(fx, fy, bounds, fuzz=0.006, rest=tuple(wait))
 
 
 def tap_text(texts, bounds, pred, dy=0.0):
     t = next((t for t in texts if pred(t)), None)
     if not t:
         return False
-    tap_at(t[0] + t[2] / 2, t[1] + t[3] / 2 + dy, bounds)
+    base.tap_box(t, bounds, dy=dy, fuzz=0.006, rest=(1.6, 2.2))
     return True
 
 

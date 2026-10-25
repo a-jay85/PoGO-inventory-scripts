@@ -178,7 +178,7 @@ def start(storage=True):
         if not storage and screen in STORAGE:
             return screen  # trade.py closes a trade's result screen itself
         if screen in ("list", "tag-tab"):
-            if search.leave_panel(texts, bounds):
+            if search.leave_panel(texts, bounds) or search.leave_multiselect(texts, bounds):
                 continue
             if ui.ANDROID and keyboard_up():  # typing into the bar left the keyboard over the list: Back hides it
                 log("  the keyboard is up: hiding it")

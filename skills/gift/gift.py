@@ -110,6 +110,8 @@ def classify():
         return "giftpopup"
     if "REVIEW LUCKY" in j:
         return "luckytrade"  # a friend's Lucky Trade request over their page: its X shows the page
+    if "TOTAL DAYS SPENT TOGETHER" in j:
+        return "buddy"  # the buddy's history page (a stray tap on the ME tab's buddy): its X goes back
     if "TRAINER CODE" in j and "2D CODE" in j:
         return "trainercode"  # (a tap on our own picture in the friend list)
     if "SET NICKNAME" in j and w & {"OK", "CANCEL"}:
@@ -238,7 +240,7 @@ def to_list():
             tap_text(t) if t else tap(0.5, 0.09)
         elif s == "map":
             tap(0.13, 0.91)  # the profile picture
-        elif s in ("friend", "meter", "picker", "preview", "giftpopup", "luckytrade", "trainercode"):
+        elif s in ("friend", "meter", "picker", "preview", "giftpopup", "luckytrade", "trainercode", "buddy"):
             close()
         elif s == "nickname":
             cancel_nickname()
@@ -489,7 +491,7 @@ def rows():
 
 def same_name(a, b):
     """the row's name and the page's: OCR reads them a little differently ('lycбo' / 'lyc60'). One letter off is ok"""
-    f = lambda s: re.sub(r"[il1|Iİı]", "l", re.sub(r"[oO0]", "0", clean(s))).lower()
+    f = lambda s: re.sub(r"[il1|Iİı]", "l", re.sub(r"[oO0]", "0", clean(s).replace("&", "8"))).lower()
     a, b = f(a), f(b)
     return a == b or len(a) == len(b) and sum(x != y for x, y in zip(a, b)) <= 1
 
@@ -498,7 +500,7 @@ def same_name(a, b):
 
 def page_name():
     top = [t for t in texts if 0.07 < t[1] < 0.16 and t[0] < 0.25 and '"' not in t[4]
-           and re.fullmatch(r"\w{3,}", clean(t[4]))]  # (below the status bar's clock)
+           and re.fullmatch(r"[\w&]{3,}", clean(t[4]))]  # (below the status bar's clock; OCR reads an 8 as &: "Gr&estGuyEver")
     return clean(sorted(top, key=lambda t: t[1])[0][4]) if top else None
 
 

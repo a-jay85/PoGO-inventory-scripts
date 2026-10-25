@@ -51,11 +51,11 @@ class Again(Exception):
 
 def press(t, bounds, hold=None):
     """one tap in the middle of an OCR box (never go(): a 2nd tap after PURIFY lands on POWER UP).
-    hold: ms, a long press (no tap gap before it)"""
+    hold: ms, a long press"""
     if hold is None:
         base.tap_box(t, bounds, spread=0.15)
     else:
-        base.tap_box(t, bounds, spread=0.15, ms=hold, spaced=False)
+        base.tap_box(t, bounds, spread=0.15, ms=hold)
 
 
 def exact(texts, word):

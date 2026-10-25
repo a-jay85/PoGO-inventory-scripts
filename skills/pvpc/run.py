@@ -156,21 +156,54 @@ def step(t0, t1, screen):
     no folder"""
     if not os.path.isdir(RUN_DIR):
         return
-    f = sys._getframe(2)  # step <- look <- the caller, past any skill's own look() that wraps this one
-    while f.f_back and f.f_code.co_name == "look":
+    f = sys._getframe(2)  # step <- look <- the caller, past wrapping look()s and wait_for (it names who waited)
+    while f.f_back and f.f_code.co_name in ("look", "<lambda>", "wait_for"):
         f = f.f_back
     with open(os.path.join(RUN_DIR, "steps.txt"), "a") as out:
         out.write(f"{time.strftime('%H:%M:%S')}.{int(t0 % 1 * 10)} {f.f_code.co_name:12} {screen:10} "
                   f"cap {t1 - t0:.1f} ocr {time.time() - t1:.1f}\n")
 
 
-def wait_for(*screens, timeout=10, capture=True):
-    """poll until one of the screens shows up. Brief unknown screens (animations) are fine."""
+def poll_gap(ios):
+    """the pause between two looks while waiting for the screen. Android: none, a look itself takes ~0.35 s and
+    waiting more saved nothing (search.POLL, measured 2026-10-23). ios: the iPhone's pause, as it always was"""
+    return 0.0 if ui.ANDROID else ios
+
+
+LOOK_S = 0.35  # about how long one Android look takes (capture + OCR)
+
+
+def tries(n, ios):
+    """the turns of a wait loop that reads the screen each turn. iPhone: n turns, ios seconds apart, the pause first
+    (as it always was). Android: no pause, as many turns as fit in the time the n took there, n * (ios + LOOK_S),
+    so a slow screen gets as long as before. Only for loops that just read until the screen is right (the turn
+    number isn't used, and a turn never taps)"""
+    if not ui.ANDROID:
+        for i in range(n):
+            time.sleep(ios)
+            yield i
+        return
+    end, i = time.time() + n * (ios + LOOK_S), 0
+    while i == 0 or time.time() < end:
+        yield i
+        i += 1
+
+
+def wait_for(*screens, timeout=10, capture=True, look=None, poll=None, catch=True, detail=False):
+    """poll until one of the screens shows up. Brief unknown screens (animations) are fine. It always looks at least
+    once, and once more after the time is up, then raises Lost.
+    look: () -> (screen, texts, path, bounds) (default run.look). poll: seconds between looks (default poll_gap(0.12)).
+    catch: a Refused look (window gone for a moment) is waited out; False: it's raised. capture: keep a capture
+    when it gives up. detail: the error has the last screen's text even when it's a known screen"""
+    see = look or globals()["look"]
+    pause = poll_gap(0.12) if poll is None else poll
     end, last, nudges = time.time() + timeout, "?", 0
-    while time.time() < end:
+    while True:
         try:
-            screen, texts, path, bounds = look()
+            screen, texts, path, bounds = see()
         except Refused as e:  # window gone for a moment
+            if not catch:
+                raise
             last = str(e)
         else:
             if screen in screens:
@@ -183,9 +216,11 @@ def wait_for(*screens, timeout=10, capture=True):
                 scroll(bounds, "drag", up=True)
                 end = max(end, time.time() + 3)
                 continue
-            if screen == "unknown":
+            if screen == "unknown" or detail:
                 last += ": " + ui.summary(texts, 200)
-        time.sleep(0.12)
+        if time.time() >= end:
+            break
+        time.sleep(pause)
     if capture:
         keep_capture("stuck")
     raise Lost(f"wanted {screens}, screen is {last}")
@@ -355,7 +390,7 @@ def scroll(bounds, how, up=False):
     else:
         ui.sh(ui.HELPER, "drag", f"{x:.1f}", f"{y:.1f}", f"{x + random.uniform(-8, 8):.1f}", f"{y - dist:.1f}",
               str(random.randint(350, 600)))
-    time.sleep(random.uniform(0.6, 0.9) if not ui.ANDROID else random.uniform(0.35, 0.5))  # let the list settle before reading it (adb's drag pauses before lifting, so it glides less)
+    time.sleep(random.uniform(0.6, 0.9) if not ui.ANDROID else random.uniform(*LIST_SETTLE))  # let the list settle before reading it (adb's drag pauses before lifting, so it glides less)
 
 
 # ---------- one Pokémon ----------
@@ -813,12 +848,21 @@ def dynamax(texts):
     return any(ui.norm(t[4]) in ("DYNAMAX", "GIGANTAMAX") and hp[1] < t[1] < hp[1] + 0.3 for t in texts)
 
 
-def drag(fx, fy, tx, ty, bounds):
-    front()
+LIST_SETTLE = (0.35, 0.5)  # Android: a list or grid holds still this soon after a drag (adb's drag pauses before
+# lifting, so it doesn't glide on). Measured on the Pokémon list (scroll()); /gift and /dex scroll lists the same way
+
+
+def drag(fx, fy, tx, ty, bounds, ms=None, settle=(0.7, 0.9), android_settle=None, bring_front=True):
+    """a finger drag from (fx, fy) to (tx, ty), window fractions, then wait for it to stop moving.
+    ms: how long the drag takes (default 400-600). settle: (lo, hi) seconds after it. android_settle: on Android
+    that instead (LIST_SETTLE for a list; None keeps settle there too). bring_front: front() first"""
+    if bring_front:
+        front()
     x1, y1 = to_points(fx, fy, bounds)
     x2, y2 = to_points(tx, ty, bounds)
-    ui.sh(ui.HELPER, "drag", f"{x1:.1f}", f"{y1:.1f}", f"{x2:.1f}", f"{y2:.1f}", str(random.randint(400, 600)))
-    time.sleep(random.uniform(0.7, 0.9))
+    ui.sh(ui.HELPER, "drag", f"{x1:.1f}", f"{y1:.1f}", f"{x2:.1f}", f"{y2:.1f}",
+          str(random.randint(400, 600) if ms is None else ms))
+    time.sleep(random.uniform(*(android_settle if ui.ANDROID and android_settle else settle)))
 
 
 def open_tile(i):

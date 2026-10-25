@@ -159,10 +159,9 @@ def tap_text(texts, bounds, pred, dy=0.0):
 
 
 def swipe(fx1, fy1, fx2, fy2, bounds):
-    x1, y1 = base.to_points(fx1, fy1, bounds)
-    x2, y2 = base.to_points(fx2, fy2, bounds)
-    ui.sh(ui.HELPER, "drag", f"{x1:.1f}", f"{y1:.1f}", f"{x2:.1f}", f"{y2:.1f}", str(random.randint(450, 600)))
-    time.sleep(random.uniform(0.8, 1.1))
+    """the grid, the chip row and the region list: lists, so on Android they settle as fast as the Pokémon list"""
+    base.drag(fx1, fy1, fx2, fy2, bounds, ms=random.randint(450, 600), settle=(0.8, 1.1),
+              android_settle=base.LIST_SETTLE, bring_front=False)
 
 
 def to_regions():

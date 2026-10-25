@@ -558,8 +558,7 @@ def start_search(q, check=None):
         if not type_into_panel(q, bounds, check):
             continue
         key("return")
-        for _ in range(12):  # the panel closes and the results show
-            time.sleep(0.25)
+        for _ in base.tries(12, 0.25):  # the panel closes and the results show
             got, texts = panel_text()
             if not ui.search_panel(texts) and ui.classify(texts) == "list":
                 break

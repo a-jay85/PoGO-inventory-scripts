@@ -117,6 +117,24 @@ def labels(texts):
     return out
 
 
+def find_label(labs, name):
+    """name's label in labels() -> (its middle x, its top y, count or None), or None. Android OCR can read a
+    whole row of labels as one box ('1 years old IV Check Need Candy Lucky Dex'): then the name's middle x is
+    guessed from where its letters sit in the box, and its count is unknown"""
+    k = key(name)
+    if k in labs:
+        t, n = labs[k]
+        return t[0] + t[2] / 2, t[1], n
+    for t, _ in labs.values():
+        raw = t[4]
+        keyed = [(i, key(c)) for i, c in enumerate(raw) if key(c)]  # the raw index of each key letter
+        at = "".join(c for _, c in keyed).find(k)
+        if at >= 0:
+            first, last = keyed[at][0], keyed[at + len(k) - 1][0]
+            return t[0] + t[2] * (first + last + 1) / 2 / len(raw), t[1], None
+    return None
+
+
 def results(texts=None):
     """the search ran: panel closed, list showing. -> its count (0 when no tiles). texts: a look taken after
     the search, read first"""
@@ -140,17 +158,17 @@ def run_shortcut(name, suffix=""):
     """tap a saved search, then add suffix to its end. -> the count, or None if this account has no such shortcut"""
     for attempt in range(3):
         texts, bounds = panel()
-        lab = labels(texts).get(key(name))
+        lab = find_label(labels(texts), name)
         if not lab:
             log(f"no {name!r} shortcut on this account: {sorted(labels(texts))}")
             search.close_panel(bounds)
             return None
-        t, n = lab
+        x, y, n = lab
         if n == 0:  # (a suffix only narrows it)
             log(f"{name}: 0")
             search.close_panel(bounds)
             return 0
-        search.click(t[0] + t[2] / 2, t[1] - 0.055, bounds)  # the round button above the label
+        search.click(x, y - 0.055, bounds)  # the round button above the label
         _, texts, _, bounds = look()
         if any("MANAGE FAVORITE" in ui.norm(u[4]) for u in texts):  # the tap landed as a long press
             log(f"{name}: the shortcut tap was a long press: again")
@@ -522,20 +540,32 @@ def power_up(info, texts):
         cancel(d[3], d[5])
         raise Pass(f"--look: would power up level {lvs} to {target}")
     press(d[2], d[5])
-    end, sure = time.time() + 15, False
+    end, tapped = time.time() + 30, time.time()
     while time.time() < end:  # done = dialog gone, the detail shows the new CP
         time.sleep(search.POLL)
         screen, t2, _, b2 = look()
+        again = time.time() - tapped > 3  # a tap can miss: tap again while the same box is still up
         no = exact(t2, "NO")
-        if not sure and len(no) == 1 and any("really want to power up" in t[4] for t in t2):
-            press((no[0][0], no[0][1] - 0.078, no[0][2], no[0][3], "YES"), b2)  # (YES is white on green: OCR misses it)
-            sure = True
+        if len(no) == 1 and any("really want to power up" in t[4] for t in t2):
+            if again:
+                yes = exact(t2, "YES")  # (YES is white on green: OCR mostly misses it)
+                press(yes[0] if len(yes) == 1 else (no[0][0], no[0][1] - 0.078, no[0][2], no[0][3], "YES"), b2)
+                tapped = time.time()
             continue
-        if screen == "detail" and not any(re.match(r"POWER UP\s*:", t[4].strip(), re.I) for t in t2) \
-                and ui.detail_info(t2)["cp"] == after:
+        head = any(re.match(r"POWER UP\s*:", t[4].strip(), re.I) for t in t2)
+        if head:  # still the power-up box: retap POWER UP only while it shows this same power-up
+            same = any((m := re.fullmatch(r"CP\s*(\d+)\D+(\d+)", t[4].strip())) and m.groups() == (str(cp), str(after))
+                       for t in t2)
+            ok = [t for t in t2 if ui.norm(t[4]) == "POWER UP" and t[1] > 0.75]
+            if again and same and len(ok) == 1:
+                log(f"  the POWER UP tap didn't take: again")
+                press(ok[0], b2)
+                tapped = time.time()
+            continue
+        if screen == "detail" and ui.detail_info(t2)["cp"] == after:
             return n
     keep_capture("powerup")
-    raise Stop(f"the power-up to CP{after} didn't show in 15s")
+    raise Stop(f"the power-up to CP{after} didn't show in 30s")
 
 
 def power_walk(limit):

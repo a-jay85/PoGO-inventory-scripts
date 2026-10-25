@@ -273,14 +273,42 @@ def tiles(texts):
     return sorted(out, key=lambda t: (round(t[3] / 0.05), t[2]))
 
 
+OK_ABOVE_CANCEL = 0.07  # the dialog's OK sits this far above CANCEL (0.069-0.070 in every rename capture)
+
+
+def dialog_ok(texts):
+    """the Set Nickname dialog's OK box. Its white text on the light green button often doesn't OCR at all (Ralts
+    2026-10-25, Meowth 2026-10-20): then a stand-in box where it always sits, above CANCEL. None: no CANCEL either"""
+    ok = [t for t in texts if norm(t[4]) == "OK"]
+    if ok:
+        return ok[0]
+    cancel = next((t for t in texts if norm(t[4]) == "CANCEL"), None)
+    if cancel is None:
+        return None
+    return (0.44, cancel[1] - OK_ABOVE_CANCEL, 0.12, cancel[3], "")
+
+
+def green_button(path, box):
+    """is the green OK button behind this box? Most of a line across the dialog through its middle is green
+    (the button runs ~0.12-0.88 across, light green on the left to teal on the right)"""
+    im = Image.open(path).convert("RGB")
+    W, H = im.size
+    y = int((box[1] + box[3] / 2) * H)
+    xs = range(int(0.2 * W), int(0.8 * W), max(1, W // 100))
+    green = sum(1 for x in xs if (lambda r, g, b: g > r + 35 and g > b + 35)(*im.getpixel((x, y))))
+    return green > len(xs) * 0.8
+
+
 def nickname_field(texts):
-    """the text box in the Set Nickname dialog (a stand-in box if it's empty)"""
+    """the text box in the Set Nickname dialog (a stand-in box if it's empty). Only texts in the box's left half
+    count: whatever is behind the dialog can show through beside it ('GREAT BALL' over '87 A', 2026-10-23)"""
     top = next(t for t in texts if norm(t[4]).startswith("SET NICKNAME"))
-    ok = next(t for t in texts if norm(t[4]) == "OK")
-    inside = [t for t in texts if top[1] < t[1] < ok[1]]
+    ok = dialog_ok(texts)
+    bottom = ok[1] if ok else top[1] + 0.12
+    inside = [t for t in texts if top[1] < t[1] < bottom and t[0] < 0.5]
     if inside:
         return inside[0]
-    return (0.2, (top[1] + ok[1]) / 2, 0.4, 0.02, "")
+    return (0.2, (top[1] + bottom) / 2, 0.4, 0.02, "")
 
 
 def ticked_tags(path, texts):
@@ -736,6 +764,10 @@ def locate(T, path, texts, screen, aspect):
         # Android's keyboard brings its own text bar with an OK: that one keeps the typed text and hides the
         # keyboard (Back would throw the text away). The next OK tap then hits the dialog's own button.
         hits = [max(hits, key=lambda t: t[1])]
+    if screen == "rename" and T == "OK" and not hits:
+        box = dialog_ok(texts)  # OCR missed the OK: its stand-in above CANCEL, if the green button is there
+        if box and green_button(path, box):
+            hits = [box]
     if len(hits) != 1:
         raise Refused(f"REFUSED: found {len(hits)} matches for {T} on '{screen}': {[h[4] for h in hits]}")
     box = hits[0][:4]

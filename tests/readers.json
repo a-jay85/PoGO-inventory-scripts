@@ -7091,5 +7091,19 @@
    false,
    []
   ]
+ },
+ "ui.dialog_ok": {
+  "OK not read": 0.541,
+  "OK read": 0.5416,
+  "empty, OK not read": 0.541,
+  "item behind it": 0.5416,
+  "no CANCEL either": null
+ },
+ "ui.nickname_field": {
+  "OK not read": "Pvp U87",
+  "OK read": "Pvp U87",
+  "empty, OK not read": "",
+  "item behind it": "87 A",
+  "no CANCEL either": "Pvp U87"
  }
 }

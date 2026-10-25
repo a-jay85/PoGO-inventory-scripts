@@ -698,9 +698,10 @@ def field_text():
 def leave_rename(button, name=None, same=same_name):
     """after typing, the first tap only ends editing: tap again until the dialog closes"""
     for _ in range(3):
-        if name is not None and not same(field_text(), name):
+        got = field_text() if name is not None else None
+        if name is not None and not same(got, name):
             keep_capture("rename")
-            raise Stop(f"nickname box changed to {field_text()!r} before {button}")
+            raise Stop(f"nickname box changed to {got!r} before {button}")
         tap(button)
         try:
             wait_for("detail", timeout=3, capture=False)

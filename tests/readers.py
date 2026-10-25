@@ -125,6 +125,17 @@ COUNTS = {
     "two": texts((0.12, "Q (3)"), (0.13, "(9)")),
 }
 
+TITLE, CANCEL = (0.3842, 0.382, 0.2315, 0.0157, "Set Nickname"), (0.4235, 0.611, 0.153, 0.0185, "CANCEL")
+OK = (0.468, 0.5416, 0.064, 0.0157, "OK")
+RENAMES = {  # the Set Nickname dialog's OCR boxes, from run captures
+    "OK read": [TITLE, (0.1625, 0.4493, 0.1726, 0.0228, "Pvp U87"), OK, CANCEL],
+    "OK not read": [TITLE, (0.1625, 0.4493, 0.1726, 0.0228, "Pvp U87"), CANCEL],  # Ralts 2026-10-25
+    "empty, OK not read": [TITLE, CANCEL],
+    "item behind it": [TITLE, (0.6798, 0.4112, 0.1823, 0.0135, "GREAT BALL"),
+                       (0.1576, 0.4494, 0.0985, 0.018, "87 A"), (0.798, 0.4899, 0.069, 0.0112, "GIFT"), OK, CANCEL],
+    "no CANCEL either": [TITLE, (0.1625, 0.4493, 0.1726, 0.0228, "Pvp U87")],
+}
+
 # ---------- readers ----------
 
 
@@ -168,6 +179,10 @@ COUNTERS = {
     "search.result_count": search.result_count,
     "trade.results": lambda ts: trade.results(SimpleNamespace(texts=ts)),
 }
+DIALOGS = {
+    "ui.nickname_field": lambda ts: ui.nickname_field(ts)[4],
+    "ui.dialog_ok": lambda ts: (lambda b: b and round(b[1], 4))(ui.dialog_ok(ts)),
+}
 
 
 def answer(fn, *a):
@@ -187,6 +202,8 @@ def answers():
         out[name] = {f"{g}\t{w}": answer(fn, g, w) for g, w in NAMES}
     for name, fn in COUNTERS.items():
         out[name] = {k: answer(fn, ts) for k, ts in COUNTS.items()}
+    for name, fn in DIALOGS.items():
+        out[name] = {k: answer(fn, ts) for k, ts in RENAMES.items()}
     return json.loads(json.dumps(out))  # (tuples -> lists, as the file has them)
 
 

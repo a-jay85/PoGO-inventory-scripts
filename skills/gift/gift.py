@@ -928,16 +928,30 @@ def run_searches(limit):
             if arrow() != "down":
                 set_sort()
             stale, fresh = 0, True  # fresh: the last capture is the friend list as it is now (no look needed)
+            top = True  # the list is at its top, just sorted by a search: nothing scrolled, no gift sent since
             while True:
                 if not fresh and look() != "friends":  # a drag that landed as a tap opened something: back first
                     to_list()
                 fresh = False
-                todo = [r for r in rows() if r["name"] not in done]
+                on_screen = rows()
+                todo = [r for r in on_screen if r["name"] not in done]
                 if todo and todo[0]["badged"]:
-                    break  # sorted can-receive first: from here down nobody can take a gift
+                    if top:
+                        break  # sorted can-receive first, and the first friend not skipped has the arrow: nobody left
+                    # the list re-sorts only on a new search: the friends gifted this run keep their place, arrow
+                    # and all. Search again, then look at the top
+                    log(f"  {todo[0]['name']} has the arrow: searching again to re-sort")
+                    n = search(base_q, zq)
+                    if not n:
+                        break
+                    if arrow() != "down":
+                        set_sort()
+                    stale, fresh, top = 0, True, True
+                    continue
                 if not todo:
                     before = [r["name"] for r in rows()]
                     drag(0.75, 0.4)
+                    top = False
                     look()
                     stale = stale + 1 if [r["name"] for r in rows()] == before else 0
                     if stale:
@@ -953,6 +967,7 @@ def run_searches(limit):
                     return sent
                 if got and got != "grey":
                     sent += 1
+                    top = False  # their arrow now shows, but they keep their place until the next search
                     if sent >= limit:
                         log(f"{sent} gifts: the limit for this run")
                         return sent

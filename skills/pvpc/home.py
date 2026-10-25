@@ -84,7 +84,7 @@ def press_text(texts, bounds, word):
     hit = next((t for t in texts if ui.norm(t[4]) == word), None)
     if not hit:
         return False
-    search.click(hit[0] + hit[2] / 2, hit[1] + hit[3] / 2, bounds)
+    base.tap_box(hit, bounds)
     return True
 
 
@@ -114,10 +114,7 @@ def iphone_open():
     game, or brings it back where it was"""
     base.key("1", cmd=True)
     time.sleep(1.5)
-    bounds = ui.capture()[1]
-    x, y = base.to_points(*DOCK, bounds)
-    base.front()
-    ui.sh(ui.HELPER, "click", f"{x:.1f}", f"{y:.1f}", str(ui.tap_ms()))
+    base.click(*DOCK, ui.capture()[1], spaced=False)  # (front() first, as before; no tap gap, but it counts as a tap)
 
 
 # ---------- start ----------

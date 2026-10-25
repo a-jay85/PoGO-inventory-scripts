@@ -50,16 +50,12 @@ class Again(Exception):
 # ---------- tapping ----------
 
 def press(t, bounds, hold=None):
-    """one tap in the middle of an OCR box (never go(): a 2nd tap after PURIFY lands on POWER UP)"""
-    fx = t[0] + t[2] * random.uniform(0.35, 0.65)
-    fy = t[1] + t[3] * random.uniform(0.35, 0.65)
+    """one tap in the middle of an OCR box (never go(): a 2nd tap after PURIFY lands on POWER UP).
+    hold: ms, a long press"""
     if hold is None:
-        search.click(fx, fy, bounds)
-        return
-    front()
-    x, y = base.to_points(fx, fy, bounds)
-    ui.sh(ui.HELPER, "click", f"{x:.1f}", f"{y:.1f}", str(hold))
-    base.last_tap = time.time()
+        base.tap_box(t, bounds, spread=0.15)
+    else:
+        base.tap_box(t, bounds, spread=0.15, ms=hold)
 
 
 def exact(texts, word):

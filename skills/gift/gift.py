@@ -170,17 +170,11 @@ def wait(*screens, timeout=10):
 
 def tap(fx, fy, fuzz=0.008, rest=None):
     """rest: seconds to wait after the tap (default a short random pause)"""
-    base.front()
-    base.tap_gap()
-    x, y = base.to_points(fx + random.uniform(-fuzz, fuzz), fy + random.uniform(-fuzz / 2, fuzz / 2), bounds)
-    ui.sh(ui.HELPER, "click", f"{x:.1f}", f"{y:.1f}", str(ui.tap_ms()))
-    base.last_tap = time.time()
-    time.sleep(random.uniform(0.25, 0.4) if rest is None else rest)
+    base.click(fx, fy, bounds, fuzz=fuzz, rest=(0.25, 0.4) if rest is None else rest)
 
 
 def tap_text(t, dy=0.0, rest=None):
-    x, y, w, h, _ = t
-    tap(x + w / 2, y + h / 2 + dy, fuzz=min(0.008, w / 4), rest=rest)
+    base.tap_box(t, bounds, dy=dy, fuzz=min(0.008, t[2] / 4), rest=(0.25, 0.4) if rest is None else rest)
 
 
 def drag(fy1, fy2, ms=500, x=None):

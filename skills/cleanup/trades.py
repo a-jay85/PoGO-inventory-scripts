@@ -68,11 +68,10 @@ def strict(got, q):
 
 
 def search_exact(q):
-    search.bar_shows = strict
     Q = re.sub(r"\s", "", q)
     for attempt in range(3):
         _views.clear()
-        search.start_search(q)
+        search.start_search(q, check=strict)
         got = {}
         for k, n in _views:
             got[k] = max(got.get(k, 0), n)

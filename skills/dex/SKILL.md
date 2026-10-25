@@ -1,6 +1,6 @@
 ---
 name: dex
-description: Read one Pokédex page (Lucky or ★100%) on the Android phone and print a storage search of the Pokémon missing from it, for another account to paste. Use when the user says /dex or asks for a search of what's missing from a Pokédex page.
+description: Read one Pokédex page (Lucky or ★100%) on the Android phone and print a storage search of the Pokémon missing from it, for another account to paste. Also updates CyrillJan's Luckydex saved search to HashTagAJay's missing-lucky list. Use when the user says /dex, asks for a search of what's missing from a Pokédex page, or asks to update the Luckydex shortcut.
 model: claude-sonnet-5-5
 ---
 
@@ -37,6 +37,26 @@ On the Lucky page it then searches this account's storage for lucky Pokémon tha
 Each run first reads the signed-in trainer's name off the profile (`home.trainer()`, one of `home.TRAINERS`) and saves it to `runs/<time>-<page>/trainer.txt`. An `evolve` run copies it from the run it redoes. Other skills pick a run with `dex.latest(page, trainer)`: the newest run of that page for that account, as `(missing numbers, run folder)`. For `lucky`, an `evolve-lucky` run counts too. `POGO_PHONE=android python3 ~/.claude/skills/pvpc/home.py --trainer` prints the name alone.
 
 A search longer than 1,000 characters is split into several. The Pixel's search bar took 1,397 characters and failed at 1,497 (2026-10-21). The searches are also saved to `runs/<time>-<page>/missing-<page>.txt`.
+
+## The Luckydex saved search on CyrillJan
+
+`POGO_PHONE=android caffeinate -dimsu python3 $S/luckydex.py` (CyrillJan signed in on the Pixel)
+
+It puts HashTagAJay's newest lucky list (`dex.latest("lucky", "HashTagAJay")`) into CyrillJan's saved search **Luckydex**, with the user's safe terms after it: `&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&`. They keep the Pokémon that matter from being traded away. Run `dex.py lucky` on HashTagAJay first if its list is old. It takes about a minute.
+
+A saved search can't be edited, so it makes a new one:
+
+1. Types the list (checked whole on the bar), then the safe terms (checked on the bar's end). Clears the bar: only then does the search show under Recent.
+2. See More, then holds the newest Recent search. It's saved as a favorite, named after its start (`369,377,44...`).
+3. Holds the old Luckydex, Remove, YES. At 12 favorites this goes before step 2.
+4. Holds the new one, Rename, types `Luckydex`, OK.
+5. Runs Luckydex. Its count must match the typed search, its bar must start with the list and end with the safe terms. The game drops the last `&` when it saves. That doesn't change what it finds.
+
+- `luckydex.py check` does step 5 only. It changes nothing.
+- A favorite still named `369,377...` from a run that stopped early gets removed at the start of the next run.
+- It stops if the list needs more than one search: one saved search holds one.
+
+Tested 2026-10-24 on CyrillJan: 91 Pokémon (HashTagAJay's run of 2026-10-22), 283 characters. The list alone found 70, with the safe terms 0. The old Luckydex found 2.
 
 ## How it reads the page
 

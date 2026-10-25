@@ -40,7 +40,7 @@ TOO_MANY = ct.key("too many search")  # 'You have too many search queries favori
 
 def hold(fx, fy, bounds):
     """a long press: the Manage Favorite Search box on a favorite, a save on a Recent search"""
-    base.click(fx, fy, bounds, ms=HOLD_MS, bring_front=False)
+    base.click(fx, fy, bounds, ms=HOLD_MS)
 
 
 def read():

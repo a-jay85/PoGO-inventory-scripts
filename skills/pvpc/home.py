@@ -114,7 +114,7 @@ def iphone_open():
     game, or brings it back where it was"""
     base.key("1", cmd=True)
     time.sleep(1.5)
-    base.click(*DOCK, ui.capture()[1], spaced=False, counted=False)  # (front() first, as before; no tap gap)
+    base.click(*DOCK, ui.capture()[1], spaced=False)  # (front() first, as before; no tap gap, but it counts as a tap)
 
 
 # ---------- start ----------

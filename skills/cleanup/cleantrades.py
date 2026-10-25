@@ -117,6 +117,24 @@ def labels(texts):
     return out
 
 
+def find_label(labs, name):
+    """name's label in labels() -> (its middle x, its top y, count or None), or None. Android OCR can read a
+    whole row of labels as one box ('1 years old IV Check Need Candy Lucky Dex'): then the name's middle x is
+    guessed from where its letters sit in the box, and its count is unknown"""
+    k = key(name)
+    if k in labs:
+        t, n = labs[k]
+        return t[0] + t[2] / 2, t[1], n
+    for t, _ in labs.values():
+        raw = t[4]
+        keyed = [(i, key(c)) for i, c in enumerate(raw) if key(c)]  # the raw index of each key letter
+        at = "".join(c for _, c in keyed).find(k)
+        if at >= 0:
+            first, last = keyed[at][0], keyed[at + len(k) - 1][0]
+            return t[0] + t[2] * (first + last + 1) / 2 / len(raw), t[1], None
+    return None
+
+
 def results(texts=None):
     """the search ran: panel closed, list showing. -> its count (0 when no tiles). texts: a look taken after
     the search, read first"""
@@ -140,17 +158,17 @@ def run_shortcut(name, suffix=""):
     """tap a saved search, then add suffix to its end. -> the count, or None if this account has no such shortcut"""
     for attempt in range(3):
         texts, bounds = panel()
-        lab = labels(texts).get(key(name))
+        lab = find_label(labels(texts), name)
         if not lab:
             log(f"no {name!r} shortcut on this account: {sorted(labels(texts))}")
             search.close_panel(bounds)
             return None
-        t, n = lab
+        x, y, n = lab
         if n == 0:  # (a suffix only narrows it)
             log(f"{name}: 0")
             search.close_panel(bounds)
             return 0
-        search.click(t[0] + t[2] / 2, t[1] - 0.055, bounds)  # the round button above the label
+        search.click(x, y - 0.055, bounds)  # the round button above the label
         _, texts, _, bounds = look()
         if any("MANAGE FAVORITE" in ui.norm(u[4]) for u in texts):  # the tap landed as a long press
             log(f"{name}: the shortcut tap was a long press: again")

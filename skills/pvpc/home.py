@@ -76,10 +76,7 @@ def where(path, texts):
 
 
 def look():
-    path, bounds = ui.capture()
-    texts = ui.ocr(path)
-    ui.remember(path, texts, bounds)
-    return where(path, texts), texts, path, bounds
+    return base.look(where)
 
 
 def press_text(texts, bounds, word):

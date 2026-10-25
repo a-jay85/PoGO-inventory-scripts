@@ -145,16 +145,15 @@ def classify():
 
 
 def look():
-    global texts, path, bounds
-    t0 = time.time()
-    path, bounds = ui.capture()
-    t1 = time.time()
-    texts = ui.ocr(path)
-    s = classify()
-    if base.RUN_DIR:  # steps.txt: each look's capture and OCR seconds, to see where a run's time goes
-        caller = sys._getframe(1).f_code.co_name
-        with open(os.path.join(base.RUN_DIR, "steps.txt"), "a") as f:
-            f.write(f"{time.strftime('%H:%M:%S')}.{int(t0 % 1 * 10)} {caller:12} {s:10} cap {t1 - t0:.1f} ocr {time.time() - t1:.1f}\n")
+    """run.look with gift's own screens, kept in the module globals texts/path/bounds (run.look writes steps.txt)"""
+    global bounds
+
+    def where(p, t):
+        global texts, path
+        texts, path = t, p  # classify() reads them
+        return classify()
+
+    s, _, _, bounds = base.look(where, remember=False)
     return s
 
 

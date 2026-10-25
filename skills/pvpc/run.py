@@ -135,11 +135,33 @@ def think():
 
 # ---------- screen ----------
 
-def look():
+def look(where=None, remember=True):
+    """capture and OCR the screen. -> (screen, texts, path, bounds). where(path, texts): the screen's name (default
+    ui.classify, the storage screens; home.where and dex.where know more). remember: keep it for ui.plan() (/gift
+    never taps a named button, so it skips that). Each look's capture and OCR seconds go to RUN_DIR/steps.txt"""
+    t0 = time.time()
     path, bounds = ui.capture()
+    t1 = time.time()
     texts = ui.ocr(path)
-    ui.remember(path, texts, bounds)
-    return ui.classify(texts), texts, path, bounds
+    if remember:
+        ui.remember(path, texts, bounds)
+    screen = where(path, texts) if where else ui.classify(texts)
+    step(t0, t1, screen)
+    return screen, texts, path, bounds
+
+
+def step(t0, t1, screen):
+    """one line in steps.txt: when, who looked, the screen, capture and OCR (+ classify) seconds, to see where a
+    run's time goes. Only once the run folder is there (a log line or new_run_dir made it): a read-only look makes
+    no folder"""
+    if not os.path.isdir(RUN_DIR):
+        return
+    f = sys._getframe(2)  # step <- look <- the caller, past any skill's own look() that wraps this one
+    while f.f_back and f.f_code.co_name == "look":
+        f = f.f_back
+    with open(os.path.join(RUN_DIR, "steps.txt"), "a") as out:
+        out.write(f"{time.strftime('%H:%M:%S')}.{int(t0 % 1 * 10)} {f.f_code.co_name:12} {screen:10} "
+                  f"cap {t1 - t0:.1f} ocr {time.time() - t1:.1f}\n")
 
 
 def wait_for(*screens, timeout=10, capture=True):

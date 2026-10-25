@@ -159,6 +159,11 @@ Works for `cp`, `hp`, dex number, `year`, `age`, `distance`, `buddy`, `mega`, `c
 ## Saving searches
 
 - "See more" shows the last 4 searches. Long-press one to save it as a favorite (12 max). Long-press a favorite to rename or delete it. You can't search by that name.
+- A favorite's search can't be edited. To change one: save the new search, remove the old favorite, rename the new one (`skills/dex/luckydex.py` does this).
+- A search only shows under Recent once the bar is cleared with its (x). A new favorite is named after the search's start (`369,377,44...`).
+- At 12 favorites the game shows a banner for a few seconds: "You have too many search queries favorited". It blurs the labels under it.
+- Saving drops a trailing `&` (`...&!3*&` is saved as `...&!3*`). It finds the same Pokémon either way.
+- After a Rename or a Remove, the panel switches to its See More page (Recent).
 - "Select all" only shows when the search doesn't return the whole storage.
 - Eggs in incubators count toward the total but never show in a search.
 

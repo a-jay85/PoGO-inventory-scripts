@@ -172,11 +172,14 @@ def leave_multiselect(texts, bounds):
         click(0.5, sel[1] + sel[3] / 2 + 0.077, bounds)
         time.sleep(random.uniform(0.6, 0.8))
         return True
-    if not any(t[1] < 0.15 and ui.norm(t[4]) == "SELECT ALL" for t in texts):
+    # 'TAG (1)' and 'TRANSFER (1)' at the bottom, X top left. A search that finds the whole storage has no SELECT
+    # ALL, so they're the only sign. A tap at the bottom middle (the list's round X) then lands on TRANSFER
+    picked = any(t[1] > 0.7 and re.fullmatch(r"(?:TAG|TRANSFER)\s*\(\d[\d,]*\)\W?", t[4].strip().upper()) for t in texts)
+    if not picked and not any(t[1] < 0.15 and ui.norm(t[4]) == "SELECT ALL" for t in texts):
         return False
     x = next((t for t in texts if t[1] < 0.15 and t[4].strip() in ("X", "x", "×")), None)
     log("the list went into multi-select: leaving it")
-    click(x[0] + x[2] / 2 if x else 0.123, x[1] + x[3] / 2 if x else 0.13, bounds)
+    click(x[0] + x[2] / 2 if x else 0.11, x[1] + x[3] / 2 if x else 0.12, bounds)
     time.sleep(random.uniform(0.6, 0.8))
     return True
 
@@ -347,6 +350,9 @@ def clear_search():
         if screen not in ("list", "tag-tab"):
             back_to_list()
             screen, texts, _, bounds = wait_for("list", "tag-tab")
+        _, texts, _, bounds = base.look()  # the round X is where TRANSFER (n) sits in multi-select: look again first
+        if leave_multiselect(texts, bounds):
+            continue
         click(0.5 + random.uniform(-0.01, 0.01), 0.93 + random.uniform(-0.004, 0.004), bounds)
         time.sleep(random.uniform(1.6, 2.0))
         off_map()

@@ -160,7 +160,7 @@ def step(t0, t1, screen):
     while f.f_back and f.f_code.co_name in ("look", "<lambda>", "wait_for"):
         f = f.f_back
     with open(os.path.join(RUN_DIR, "steps.txt"), "a") as out:
-        out.write(f"{time.strftime('%H:%M:%S')}.{int(t0 % 1 * 10)} {f.f_code.co_name:12} {screen:10} "
+        out.write(f"{time.strftime('%H:%M:%S', time.localtime(t0))}.{int(t0 % 1 * 10)} {f.f_code.co_name:12} {screen:10} "
                   f"cap {t1 - t0:.1f} ocr {time.time() - t1:.1f}\n")
 
 

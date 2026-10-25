@@ -688,7 +688,8 @@ def preview_ok(title):
     lines = sorted(texts, key=lambda t: t[1])
     for i, t in enumerate(lines):
         if "GREETINGS FROM" in ui.up(t):
-            rest = [u for u in lines[i + 1:] if u[1] - t[1] < 0.15]
+            # (only 'Greetings from''s column: words printed on the postcard photo sit to its left, 'JACK LONDON')
+            rest = [u for u in lines[i + 1:] if u[1] - t[1] < 0.15 and abs(u[0] - t[0]) < 0.03]
             got, city = title_block(rest[0], rest, left=True) if rest else (None, None)
             cut = title.rstrip(".… ")  # the picker cuts a long title short ('Modern spiral chandeli')
             near = lambda a, b: difflib.SequenceMatcher(None, a.lower(), b.lower()).ratio() >= 0.9  # (a letter misread: 'Lot Al')

@@ -469,8 +469,10 @@ def badged(im, name_y):
 
 def rows():
     """the rows on screen, top down: {name, t, badged}. A row is the trainer name at x ~0.29, the nickname just
-    under it; rows too low to see their badge are left for the next scroll"""
-    col = sorted((t for t in texts if 0.26 < t[0] < 0.32 and 0.26 < t[1] < 0.85 and t[4].strip()
+    under it; rows too low to see their badge are left for the next scroll. Lines from 0.15 down are paired, so a
+    row whose name sits just above 0.26 keeps its nickname: else the nickname reads as a name, with that row's
+    badge under it, and the search ends there"""
+    col = sorted((t for t in texts if 0.26 < t[0] < 0.32 and 0.15 < t[1] < 0.85 and t[4].strip()
                   and "SENT YOU" not in ui.up(t) and "TRADE REQUEST" not in ui.up(t)), key=lambda t: t[1])  # ('<name> sent you a Lucky Remote Trade request.')
     out, last = [], None
     for t in col:
@@ -482,7 +484,7 @@ def rows():
         if len(clean(t[4])) >= 3:
             out.append([t, ""])
     im = Image.open(path).convert("RGB")
-    return [{"name": clean(t[4]), "nick": nick, "t": t, "badged": badged(im, t[1])} for t, nick in out]
+    return [{"name": clean(t[4]), "nick": nick, "t": t, "badged": badged(im, t[1])} for t, nick in out if t[1] > 0.26]
 
 
 def same_name(a, b):

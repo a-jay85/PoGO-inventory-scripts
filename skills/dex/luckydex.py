@@ -40,10 +40,7 @@ TOO_MANY = ct.key("too many search")  # 'You have too many search queries favori
 
 def hold(fx, fy, bounds):
     """a long press: the Manage Favorite Search box on a favorite, a save on a Recent search"""
-    x, y = base.to_points(fx, fy, bounds)
-    base.tap_gap()
-    ui.sh(ui.HELPER, "click", f"{x:.1f}", f"{y:.1f}", str(HOLD_MS))
-    base.last_tap = time.time()
+    base.click(fx, fy, bounds, ms=HOLD_MS, bring_front=False)
 
 
 def read():

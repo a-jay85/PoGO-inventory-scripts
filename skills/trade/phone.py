@@ -37,9 +37,8 @@ def look():
 
 def tap(fx, fy):
     base.front()  # iPhone: a click while another app is in front only brings the window forward, and is lost
-    bounds = last or ui.capture()[1]
-    x, y = base.to_points(fx, fy, bounds)
-    ui.sh(ui.HELPER, "click", f"{x:.1f}", f"{y:.1f}", str(ui.tap_ms()))
+    # (front() before the capture below, as before. trade.py spaces its own taps: no tap gap here, and none counted)
+    base.click(fx, fy, last or ui.capture()[1], bring_front=False, spaced=False, counted=False)
 
 
 def restart():

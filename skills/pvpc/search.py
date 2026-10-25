@@ -151,16 +151,7 @@ def off_map():
         time.sleep(random.uniform(1.5, 2.0))
 
 
-def click(fx, fy, bounds, gap=0.0):
-    """a tap at a spot (not a named button). It counts as a tap for the gap, so two quick taps on the search bar
-    can't turn into a double-tap (that selects the text and the bar stops taking keys). gap: at least this long
-    since the last tap."""
-    front()
-    x, y = base.to_points(fx, fy, bounds)
-    base.tap_gap()
-    time.sleep(max(0.0, base.last_tap + gap - time.time()))
-    ui.sh(ui.HELPER, "click", f"{x:.1f}", f"{y:.1f}", str(ui.tap_ms()))
-    base.last_tap = time.time()
+click = base.click  # a tap at a spot (not a named button): moved to run.py, every skill's taps share it
 
 
 def leave_multiselect(texts, bounds):

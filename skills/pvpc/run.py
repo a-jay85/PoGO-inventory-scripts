@@ -232,6 +232,37 @@ def to_points(fx, fy, bounds):
     return x + fx * w, y + fy * h
 
 
+def click(fx, fy, bounds, gap=0.0, ms=None, fuzz=0.0, rest=0.0, bring_front=True, spaced=True, counted=True):
+    """a tap at a spot (window fractions), not a named button: every skill's taps go through here.
+    gap: at least this long since the last tap (two quick taps on the search bar would make a double-tap).
+    ms: how long it holds (default ui.tap_ms(); 900 is a long press). fuzz: up to this much off in x, half that in y.
+    rest: seconds to wait after it, or a (lo, hi) range.
+    bring_front: front() first (iPhone: a click while another app is in front only brings the window forward, and
+    is lost). spaced: wait out tap_gap() and gap first. counted: it counts as the last tap for the next one's gap."""
+    global last_tap
+    if bring_front:
+        front()
+    x, y = to_points(fx + random.uniform(-fuzz, fuzz), fy + random.uniform(-fuzz / 2, fuzz / 2), bounds) if fuzz \
+        else to_points(fx, fy, bounds)
+    if spaced:
+        tap_gap()
+        time.sleep(max(0.0, last_tap + gap - time.time()))
+    ui.sh(ui.HELPER, "click", f"{x:.1f}", f"{y:.1f}", str(ui.tap_ms() if ms is None else ms))
+    if counted:
+        last_tap = time.time()
+    rest = random.uniform(*rest) if isinstance(rest, tuple) else rest
+    if rest:
+        time.sleep(rest)
+
+
+def tap_box(t, bounds, dy=0.0, spread=0.0, **kw):
+    """click() an OCR box (x, y, w, h, text): its middle (dy lower), or with spread anywhere within that much of the
+    middle (0.15: 35-65% across and down). kw: click()'s"""
+    fx = t[0] + t[2] * (random.uniform(0.5 - spread, 0.5 + spread) if spread else 0.5)
+    fy = t[1] + t[3] * (random.uniform(0.5 - spread, 0.5 + spread) if spread else 0.5) + dy
+    click(fx, fy, bounds, **kw)
+
+
 def tap(target, dry=False):
     for _ in range(8):
         front()
@@ -249,14 +280,11 @@ def tap(target, dry=False):
             if "never-tap" in str(e):
                 raise Stop(f"tap {target}: {e}")
             raise Lost(f"tap {target}: {e}")  # not there, or not on this screen
-        px, py = to_points(fx, fy, bounds)
         if dry:
+            px, py = to_points(fx, fy, bounds)
             log(f"DRY tap {target} on {screen} at {px:.0f},{py:.0f}")
             return
-        global last_tap
-        tap_gap()
-        ui.sh(ui.HELPER, "click", f"{px:.1f}", f"{py:.1f}", str(ui.tap_ms()))
-        last_tap = time.time()
+        click(fx, fy, bounds, bring_front=False)  # (front() ran at the top of this try)
         return
     raise Stop(f"tap {target}: screen never stopped moving")
 

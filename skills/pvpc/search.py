@@ -401,18 +401,19 @@ def allow_paste(texts, bounds):
 PASTE = {"ok": True}  # iPhone: off for the rest of the run once a paste never lands (the Mac-to-iPhone clipboard hangs)
 
 
-def type_into_panel(q, bounds):
+def type_into_panel(q, bounds, check=None):
     """the panel doesn't always put the cursor in the bar, and a tap on the bar doesn't always either.
-    Tap the bar, type, wait for the letters to show. False if they come out wrong (the caller starts over)."""
+    Tap the bar, type, wait for the letters to show. False if they come out wrong (the caller starts over).
+    check(got, q): does the bar's read show q (default bar_shows)"""
     clip_box = []  # iPhone: the Mac's clipboard from before the first paste. Put back only at the very end, also on
     try:           # an error: a paste can land late, and then it must still paste q
-        return _type_into_panel(q, bounds, clip_box)
+        return _type_into_panel(q, bounds, clip_box, check or bar_shows)
     finally:
         if clip_box:
             base.restore_clipboard(clip_box[0])
 
 
-def _type_into_panel(q, bounds, clip_box):
+def _type_into_panel(q, bounds, clip_box, check):
     for attempt in range(4):
         if attempt:  # the tap that opened the panel already put the cursor in the bar: a 2nd tap can lose it
             click(random.uniform(0.35, 0.55), 0.183 + random.uniform(-0.003, 0.003), bounds, gap=BAR_GAP)
@@ -444,7 +445,7 @@ def _type_into_panel(q, bounds, clip_box):
             if got and not (len(got) < len(q) and q.lower().startswith(re.sub(r"\s", "", got).lower())):
                 break  # the keys can land a little after they're sent: wait while only the start shows
         if got:
-            if bar_shows(got, q):
+            if check(got, q):
                 return True
             log(f"search bar says {got!r}, wanted {q!r}")
             return False
@@ -547,8 +548,10 @@ def drop_misreads(most, sightings, extra):
             del most[k]
 
 
-def start_search(q):
-    """type one search (Return, SHOW EVOLUTIONARY LINE unticked). -> (path, texts, bounds) of the results, at the top"""
+def start_search(q, check=None):
+    """type one search (Return, SHOW EVOLUTIONARY LINE unticked). -> (path, texts, bounds) of the results, at the top.
+    check(got, q): does the bar's read show q (default bar_shows; /cleanup's trades.strict is stricter)"""
+    check = check or bar_shows
     global scrolled
     t0 = time.time()
     for attempt in range(3):
@@ -561,7 +564,7 @@ def start_search(q):
         if not ui.search_panel(ui.ocr(path)):
             log("search panel didn't open")
             continue
-        if not type_into_panel(q, bounds):
+        if not type_into_panel(q, bounds, check):
             continue
         key("return")
         for _ in range(12):  # the panel closes and the results show
@@ -572,7 +575,7 @@ def start_search(q):
         else:
             log("the panel didn't close after Return")
             continue
-        if bar_shows(got, q):
+        if check(got, q):
             if not {"TAGS", "EGGS"} <= {ui.norm(t[4]) for t in texts}:  # typed in a tag's list: only searched that tag
                 log("  that searched inside a tag's list: going to the full Pokémon list")
                 to_search_list()

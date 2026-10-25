@@ -158,14 +158,10 @@ def look():
 
 
 def wait(*screens, timeout=10):
-    end = time.time() + timeout
-    while True:
-        s = look()
-        if s in screens:
-            return s
-        if time.time() > end:
-            raise Stop(f"wanted {'/'.join(screens)}, screen is {s}: {summary()}")
-        time.sleep(0.4)
+    """run.wait_for with gift's screens: a Refused look is raised, no capture kept (as gift always had it).
+    Between looks: 0.4 s on the iPhone, none on Android"""
+    return base.wait_for(*screens, timeout=timeout, look=lambda: (look(), texts, path, bounds),
+                         poll=base.poll_gap(0.4), catch=False, capture=False, detail=True)[0]
 
 
 def tap(fx, fy, fuzz=0.008, rest=None):
@@ -180,12 +176,9 @@ def tap_text(t, dy=0.0, rest=None):
 def drag(fy1, fy2, ms=500, x=None):
     """scroll by dragging from fy1 to fy2. x: where to grab (the gift list: the gap between its two columns, as a
     drag that starts on a card can land as a tap on it)"""
-    base.front()
     x = x if x is not None else random.uniform(0.4, 0.6)
-    x1, y1 = base.to_points(x, fy1, bounds)
-    x2, y2 = base.to_points(x + random.uniform(-0.005, 0.005), fy2, bounds)
-    ui.sh(ui.HELPER, "drag", f"{x1:.1f}", f"{y1:.1f}", f"{x2:.1f}", f"{y2:.1f}", str(ms))
-    time.sleep(random.uniform(0.7, 1.0))
+    base.drag(x, fy1, x + random.uniform(-0.005, 0.005), fy2, bounds, ms=ms, settle=(0.7, 1.0),
+              android_settle=base.LIST_SETTLE)
 
 
 def close():

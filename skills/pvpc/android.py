@@ -97,9 +97,17 @@ def shape(im, scale=1):
 
 
 def raw_shot():
-    """the phone's own screenshot (~0.3 s)"""
-    raw = gzip.decompress(subprocess.run(["adb", "exec-out", "screencap | gzip -1"], capture_output=True,
-                                         check=True, timeout=30).stdout)
+    """the phone's own screenshot (~0.3 s). adb can fail one now and then (exit 255, 2026-10-25, once looks came
+    back to back): one more try after a short pause before giving up"""
+    for attempt in range(2):
+        try:
+            raw = gzip.decompress(subprocess.run(["adb", "exec-out", "screencap | gzip -1"], capture_output=True,
+                                                 check=True, timeout=30).stdout)
+            break
+        except subprocess.CalledProcessError:
+            if attempt:
+                raise
+            time.sleep(0.5)
     w, h = struct.unpack("<2I", raw[:8])
     return Image.frombuffer("RGBA", (w, h), raw[len(raw) - w * h * 4:], "raw", "RGBA", 0, 1).convert("RGB")
 

@@ -953,16 +953,16 @@ def run_searches(limit):
                 greys = greys + 1 if got == "grey" else 0
                 if greys >= 3:  # a can-receive friend with a grey SEND GIFT: my bag has no gifts left
                     log(f"3 grey SEND GIFTs in a row: out of gifts, done ({sent} sent)")
-                    return sent
+                    return sent, "out of gifts"
                 if got and got != "grey":
                     sent += 1
                     top = False  # their arrow now shows, but they keep their place until the next search
                     if sent >= limit:
                         log(f"{sent} gifts: the limit for this run")
-                        return sent
+                        return sent, None
                 to_list()
                 fresh = True
-    return sent
+    return sent, "nobody left who can take one"
 
 
 def one_phone(a):
@@ -991,8 +991,8 @@ def script(limit):
         s = home.start(storage=False)
     log(f"Pokémon GO up, on {s}")
     try:
-        sent = run_searches(limit)
-        log(f"done: {sent} gifts sent" + ("" if sent >= limit else ", nobody left who can take one"))
+        sent, why = run_searches(limit)
+        log(f"done: {sent} gifts sent" + (f", {why}" if why else ""))
     except OutOfGifts:
         log("out of San Francisco gifts we may send: stopping")
         if not ui.ANDROID:

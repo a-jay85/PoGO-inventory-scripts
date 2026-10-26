@@ -7,10 +7,10 @@ model: claude-sonnet-5-5
 # /roster: the top 6 against every raid boss
 
 Uses the shared tapper and screen reader from /pvpc and /dex (`~/.claude/skills/pvpc`, `~/.claude/skills/dex`).
-`S=~/.claude/skills/roster`. Android only for now, with HashTagAJay signed in on the Pixel.
+`S=~/.claude/skills/roster`. Android only for now, with HashTagAJay (or CyrillJan) signed in on the Pixel.
 
 1. `node $S/pull.mjs`: DialgaDex's counters for every boss, into `dialgadex-counters-<date>.json` (about 2 minutes, the Mac only). Needs Playwright (loaded from the IBL5 checkout, `PLAYWRIGHT=` to point elsewhere).
-2. `POGO_PHONE=android caffeinate -dimsu python3 $S/roster.py count`: counts the good copies by search. It only searches and reads: it never changes anything in the game. It stops if the signed-in trainer isn't HashTagAJay. A stopped run goes on from where it was: `roster.py count runs/<time>-count/counts.json`.
+2. `POGO_PHONE=android caffeinate -dimsu python3 $S/roster.py count`: counts the good copies by search. It only searches and reads: it never changes anything in the game. It counts HashTagAJay or CyrillJan, whoever is signed in, and saves whose count it is. CyrillJan's count is for /cleanup's `tradeable.py plan --to CyrillJan`, and only HashTagAJay's feeds the normal plan. A stopped run goes on from where it was: `roster.py count runs/<time>-count/counts.json`.
 3. `python3 $S/roster.py report [counts.json]`: the top 6s and the trade lists again, the Mac only.
 
 Output in `runs/<time>-count/`: `counts.json`, `roster.json` (read by /cleanup's `tradeable.py`) and `report.md`.

@@ -11,8 +11,8 @@
 
 --nope: the same tags for everything tagged Nope, judged for the other account (the one it would be traded to). It
 runs rescue.py first (a 98%+ one gets the star, never a tag). A traded one can't trade again: Transfer only. Never
-touched: shadows, lucky, costumes, backgrounds, special trades, untraded 2016-2020 catches (GuaranteedLucky), and
-anything with another of the user's tags. Nope comes off once a new tag is on. HashTagAJay's Nope goes to CyrillJan,
+touched: shadows, lucky, costumes, backgrounds, special trades, and anything with another of the user's tags. An
+untraded 2016-2020 catch gets GuaranteedLucky (a trade makes it lucky). Nope comes off once a new tag is on. HashTagAJay's Nope goes to CyrillJan,
 which only wants good raid attackers and XL candy: plan --to CyrillJan has just GIV (top 6 against some raid boss,
 until CyrillJan has 6 good copies, 1 for a mega-only one, and a Dynamax one if it can; and an untraded Dynamax one of
 a family CyrillJan has none of) and XLX (5,000 Stardust+, level 29+). It reads CyrillJan's /roster count and dynamax.
@@ -529,10 +529,11 @@ REST = NOT_TAGGED + f"&!#{XLX}&!#{TRANSFER}"  # not tagged yet
 EVOLVED_REST = REST + "&traded,!xxl&traded,!xxs"  # and not a never-traded XXL/XXS one (those get IVC)
 NOPE = "Nope"
 OTHER_TAGS = ("IVC", "PvpC", "Old", "GuaranteedLucky", "Evo")  # a Nope with one of these is the user's to sort
-# never-Nope kinds, and an untraded 2016-2020 catch (a trade makes it lucky: GuaranteedLucky's, not these tags)
-NOPE_KEEP = "&!shadow&!lucky&!costume&!background" + "".join(f"&!#{t}" for t in OTHER_TAGS)
+NOPE_KEEP = "&!shadow&!lucky&!costume&!background" + "".join(f"&!#{t}" for t in OTHER_TAGS)  # never-Nope kinds
 NOPE_PILE = f"#{NOPE}&!traded&year2021-" + NOPE_KEEP  # the untraded ones: every rule, like Tradeable
 NOPE_TRADED = f"#{NOPE}&traded" + NOPE_KEEP + NO_SPECIAL + f"&!#{TRANSFER}"  # can't trade again: Transfer only
+GUARANTEED = "GuaranteedLucky"
+NOPE_OLD = f"#{NOPE}&!traded&year-2020" + NOPE_KEEP + NO_SPECIAL  # a trade makes it lucky: GuaranteedLucky
 PILE = None  # tag --nope: NOPE_PILE, typed in place of the Tradeable shortcut
 
 
@@ -638,6 +639,7 @@ def cmd_tag(limit, nope=False):
         search.to_search_list()
     if nope:  # a traded one can't trade again: Transfer, and Nope off
         ct.tag_pile(NOPE, TRANSFER, off=(NOPE,), query=NOPE_TRADED)
+        ct.tag_pile(NOPE, GUARANTEED, off=(NOPE,), query=NOPE_OLD)
     done_f = os.path.join(os.path.dirname(plan_f), f"tagged-nope-{who}.json" if nope else "tagged.json")  # this
     done = set(json.load(open(done_f))) if os.path.exists(done_f) else set()  # plan's searches already tagged: a
     for t in TAGS:  # rerun skips them (14 s each, even at 0). Each search leaves out all three tags: the first wins

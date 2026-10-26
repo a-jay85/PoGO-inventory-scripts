@@ -107,7 +107,7 @@ The rule (2026-10-25): anything in Nope gets the Tradeable tags, judged for the 
 2. **Traded** Nope: Transfer, Nope off. It can't trade again, so it gets no other tag (and no XLX: that's for untraded ones to trade away).
 3. **Untraded** Nope: every Tradeable step, with `#Nope&!traded&...` typed in place of the `Tradeable` shortcut. The tagged ones keep Nope until the end, because the walks find them by it. Then Nope comes off everything with a new tag.
 
-Never touched (they stay Nope): shadows (`shadows.py` does those), lucky, costumes, backgrounds, special trades, untraded catches from 2016-2020 (a trade makes them lucky), and anything that also has IVC, PvpC, Old, GuaranteedLucky or Evo.
+Never touched (they stay Nope): shadows (`shadows.py` does those), lucky, costumes, backgrounds, special trades, and anything that also has IVC, PvpC, Old, GuaranteedLucky or Evo. An untraded catch from 2016-2020 (not special) gets GuaranteedLucky and loses Nope: a trade makes it lucky. That pass runs right after the traded Transfer pass.
 
 Which plan it uses goes by who's signed in:
 

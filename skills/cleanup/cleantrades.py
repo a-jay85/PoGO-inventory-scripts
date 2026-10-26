@@ -219,6 +219,36 @@ def append(suffix, bounds=None):
     return False
 
 
+HEAD_MAX, PIECE_MAX = 28, 24  # what the Pixel's bar shows of a whole search, and what append() checks of its end
+
+
+def long_search(q):
+    """search_exact for a search too long to read back from the bar (it shows ~30 characters): type a head short
+    enough to read back whole, then append the rest a few '&' terms at a time, each one's end checked, and none may
+    grow the count. -> the count"""
+    if len(q) <= 2 * HEAD_MAX:
+        search_exact(q)
+        return results()
+    terms = re.split(r"(?=&)", q)
+    head = terms.pop(0)
+    while terms and len(head + terms[0]) <= HEAD_MAX:
+        head += terms.pop(0)
+    search_exact(head)
+    n = results()
+    while terms and n:  # (0 stays 0: an AND only narrows it)
+        piece = terms.pop(0)
+        while terms and len(piece + terms[0]) <= PIECE_MAX:
+            piece += terms.pop(0)
+        if not append(piece):
+            raise Stop(f"couldn't add {piece!r} to the search {q!r}")
+        n2 = results()
+        if n2 > n:
+            raise Stop(f"adding {piece!r} showed {n2}, more than {n}: it didn't land as an AND")
+        n = n2
+    log(f"{q}: {n}")
+    return n
+
+
 def account():
     """which account, by the storage max over the empty search ('7874 / 7875'): HashTagAJay's is thousands higher"""
     for _ in range(3):
@@ -245,7 +275,7 @@ def tag_pile(name, tag, suffix=None, off=(), query=None):
     search must leave out the tag itself (or have the off tags): afterwards the same search has to come back empty"""
     if suffix is None:
         suffix = "" if name in UNTAGGED_ONLY else f"&!#{tag}"
-    find = (lambda: (search_exact(query), results())[1]) if query else (lambda: run_shortcut(name, suffix))
+    find = (lambda: long_search(query)) if query else (lambda: run_shortcut(name, suffix))
     n = find()
     if not n:
         return 0

@@ -541,8 +541,7 @@ def run_pile(suffix):
     """the pile's search + suffix -> its count, or None if this account has no Tradeable shortcut"""
     if PILE is None:
         return ct.run_shortcut(SHORTCUT, suffix)
-    ct.search_exact(PILE + suffix)
-    return ct.results()
+    return ct.long_search(PILE + suffix)
 
 
 def tag_pile(tag, suffix):

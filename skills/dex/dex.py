@@ -438,8 +438,9 @@ def bar_holds(got, q):
     magnifier = r"(?:q|9|[^\w&!*]){0,3}?"  # the magnifier glued on in front (read as Q, 9, < or ,)
     if re.fullmatch(magnifier + pat(q), got, flags=re.I):  # ...but one that's really gone leaves nothing there
         return True
-    if got != (g2 := re.sub(r"(?:\*,)+", "*,", re.sub(r"\*+", "*", re.sub(r"[x×⊗]$", "", got)))) and bar_holds(g2, q):
-        return True  # the bar's (x) glued on at the end, a '*' or '*,' read twice ('530&3**,4*&shadowx', '144&3*,*,4*&!galar')
+    if got != (g2 := re.sub(r"(?:\*[,.])+\*,", "*,", re.sub(r"(?:\*,)+", "*,", re.sub(r"\*+", "*", re.sub(r"[x×⊗]$", "", got))))) \
+            and bar_holds(g2, q):  # the bar's (x) glued on at the end, a '*' or '*,' read twice
+        return True  # ('530&3**,4*&shadowx', '144&3*,*,4*&!galar', '555&3*.*,4*&galar')
     return any(re.fullmatch(magnifier + pat(q[:k]), got, flags=re.I) for k in range(len(q) - 1, 24, -1)
                if "!" not in q[k:]) \
         or any(re.fullmatch(magnifier + pat(q[k:]), got, flags=re.I) for k in range(1, len(q) - 24)

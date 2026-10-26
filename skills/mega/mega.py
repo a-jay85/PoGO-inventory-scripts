@@ -206,7 +206,12 @@ def close_sheet():
         if ui.ANDROID:
             ui.android.key("back")
         else:
-            _, _, _, bounds = look()
+            screen, texts, _, bounds = look()
+            if screen == "detail":
+                return
+            if not any(t[4].strip().endswith("Mega Level") for t in texts):  # the X there would close the Pokémon too
+                keep_capture("notsheet")
+                raise Stop(f"not on the Mega level page: {' | '.join(t[4] for t in texts)[:200]}")
             base.click(0.5, 0.937, bounds)
         for _ in range(15):
             time.sleep(0.15)
@@ -385,7 +390,7 @@ def walk(limit, dry):
             log("the swipe didn't move: end of the list")
             break
         pos += 1
-    log(f"done: {counts['done']} Mega Evolved, {counts['skip']} skipped, {time.time() - t_start:.0f}s")
+    log(f"done: {counts['done']} {'would Mega Evolve (dry run)' if dry else 'Mega Evolved'}, {counts['skip']} skipped, {time.time() - t_start:.0f}s")
     if look()[0] == "detail":
         base.go("close", "list")
 

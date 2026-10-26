@@ -120,7 +120,7 @@ def load(name, default=None):
 # quick taps, as /ivcsort had them: 0.1-0.25s since the last one (screen reading counts toward it).
 # The pause that looks like a person working something out is think(), on the appraisal only.
 last_tap = 0.0
-USER_IDLE = 20  # front() waits this long after the user's last key or click before taking the screen back
+USER_IDLE = 10  # front() waits this long after the user's last key or click before taking the screen back
 
 
 def tap_gap():

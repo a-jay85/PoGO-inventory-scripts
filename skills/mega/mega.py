@@ -206,7 +206,12 @@ def close_sheet():
         if ui.ANDROID:
             ui.android.key("back")
         else:
-            _, _, _, bounds = look()
+            screen, texts, _, bounds = look()
+            if screen == "detail":
+                return
+            if not any(t[4].strip().endswith("Mega Level") for t in texts):  # the X there would close the Pokémon too
+                keep_capture("notsheet")
+                raise Stop(f"not on the Mega level page: {' | '.join(t[4] for t in texts)[:200]}")
             base.click(0.5, 0.937, bounds)
         for _ in range(15):
             time.sleep(0.15)
@@ -284,7 +289,9 @@ def mega(info, dry):
         if ui.ANDROID:  # and off the phone's own screenshot: the bigger one
             asked = max(asked, ask_cost(sharp_texts()) or 0)
         yes, no = exact(texts, "YES"), exact(texts, "NO")
-        bad = (need_free and asked != 0) or (cost is not None and asked != cost)
+        # the energy icon in front of the page's number can read as one more digit: '915' for 15
+        glued = cost is not None and asked and len(str(cost)) == len(str(asked)) + 1 and str(cost).endswith(str(asked))
+        bad = (need_free and asked != 0) or (cost is not None and asked != cost and not glued)
         if bad or dry:
             press(no[0], bounds)
             time.sleep(0.8)
@@ -385,7 +392,7 @@ def walk(limit, dry):
             log("the swipe didn't move: end of the list")
             break
         pos += 1
-    log(f"done: {counts['done']} Mega Evolved, {counts['skip']} skipped, {time.time() - t_start:.0f}s")
+    log(f"done: {counts['done']} {'would Mega Evolve (dry run)' if dry else 'Mega Evolved'}, {counts['skip']} skipped, {time.time() - t_start:.0f}s")
     if look()[0] == "detail":
         base.go("close", "list")
 

@@ -31,7 +31,7 @@ It skips a Pokémon when:
 - the level page says "Daily level limit met": it was Mega Evolved today. The game shows this once a different Pokémon has been Mega Evolved since;
 - it's a Mewtwo and the Mega Evolution isn't free;
 - it's High Level, the page says "Mega Evolve <name> 1 more time" to Max Level, and it isn't free;
-- it's an X/Y species (Mewtwo, Charizard, Raichu) and the nickname doesn't end in ` X` or ` Y`. The nickname's letter picks the tab on the level page;
+- it's an X/Y species (Charizard, Raichu) and the nickname doesn't end in ` X` or ` Y`. The nickname's letter picks the tab on the level page. A Mewtwo with no letter tries both tabs and takes whichever one is free. While it rests after one form, the other tab is greyed out;
 - the level page has no MEGA EVOLVE button (Max Level).
 
 Free means no number next to the MEGA EVOLVE button, and no `xN` cost in the "Do you want to Mega Evolve" box. If the box's cost doesn't match the page's, it taps NO.

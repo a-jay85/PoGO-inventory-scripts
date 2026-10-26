@@ -12,7 +12,8 @@ On each page it opens the Mega level page (the round Mega badge under the types)
 - "Daily level limit met" on the level page: done today, skipped. Mega right now ("07:59 left"): skipped.
 - Mewtwo: only when it's free.
 - High Level with "Mega Evolve <name> 1 more time" to Max Level: only when it's free.
-- X/Y species (Mewtwo, Charizard, Raichu): the form is the nickname's last letter (' X' / ' Y'). None: skipped.
+- X/Y species (Mewtwo, Charizard, Raichu): the form is the nickname's last letter (' X' / ' Y'). None: a Mewtwo
+  takes whichever form is free; any other is skipped.
 - No MEGA EVOLVE button on the level page (Max Level): skipped.
 
 Free = no number next to the MEGA EVOLVE button, and no xN cost in the "Do you want to Mega Evolve" box.
@@ -27,6 +28,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "cleanup"))
 import ui
 import run as base
 from run import Stop, log, keep_capture, look, front
+import search
 import session
 from shadows import Pass, exact, press, next_one, settled_tiles, search_exact
 
@@ -185,15 +187,17 @@ def pick_form(form, texts, bounds):
     tab = [t for t in texts if re.fullmatch(rf"MEGA \S+ {form}[\WIl1]?", ui.norm(t[4])) and t[1] < 0.45]  # 'MEGA MEWTWO YI'
     if len(tab) != 1:
         raise Pass(f"can't find the Mega {form} tab: {[t[4] for t in texts if t[1] < 0.45]}")
-    press(tab[0], bounds)
 
-    def shows(texts):  # the energy line under LEVEL UP names the form: 'MEGA MEWTWO X MEGA ENERGY 9,147' (OCR splits it)
+    def shows(texts):  # the energy line under LEVEL UP names the form: 'MEGA MEWTWO X N ENERGY 9,147', or 'XN'
         line = " ".join(ui.norm(r) for y, r in rows(texts) if "ENERGY" in ui.norm(r) and y > 0.45)
-        return sheet_key(texts) if re.search(rf"MEGA \S+ {form}\b", line) else None
-    got, texts, bounds = steady(shows)
+        return sheet_key(texts) if re.search(rf"MEGA \S+ {form}", line) else None
+    if shows(texts) is None:  # (the page opens on the form it last used)
+        press(tab[0], bounds)
+    got, texts, bounds = steady(shows, tries=12)
     if got is not None:
         return sheet(texts), texts, bounds
-    raise Pass(f"the level page doesn't show the {form} form after tapping its tab")
+    # while it rests after one form, the other form's tab is greyed out and a tap does nothing
+    raise Pass(f"the {form} tab is greyed out (resting after the other form)")
 
 
 def close_sheet():
@@ -216,41 +220,62 @@ def close_sheet():
 # ---------- one Pokémon ----------
 
 def check(info, texts):
-    """-> (needs free, form or None). Raises Pass for one to leave alone"""
+    """-> (Mewtwo, the forms to try: [] for a one-form species). Raises Pass for one to leave alone"""
     if TAG not in [t.strip() for t in info["tags"]]:
         raise Pass(f"tags {info['tags']}: no exact {TAG}")
     b = badge(texts)
     if b and "left" in b[4].lower():
         raise Pass(f"Mega Evolved right now ({b[4].strip()})")
-    form = None
-    if two_forms(texts):
-        form = form_of(info["name"])
-        if not form:
-            raise Pass("X/Y species and the nickname doesn't end in X or Y")
     mewtwo = "MEWTWO" in " ".join(ui.norm(t[4]) for t in texts)
-    return mewtwo, form
+    if not two_forms(texts):
+        return mewtwo, []
+    form = form_of(info["name"])
+    if form:
+        return mewtwo, [form]
+    if mewtwo:  # a Mewtwo with no letter: whichever form is free (the user, 2026-10-26)
+        return mewtwo, ["X", "Y"]
+    raise Pass("X/Y species and the nickname doesn't end in X or Y")
+
+
+def can(s, mewtwo):
+    """the level page (one form) -> (page cost, needs free, why). Raises Pass when it can't or mustn't Mega Evolve"""
+    if s["done_today"]:
+        raise Pass("daily level limit met: done today")
+    if s["mega_now"]:
+        raise Pass("Mega Evolved right now")
+    if not s["button"]:
+        raise Pass(f"{s['level']} Level: no MEGA EVOLVE on the level page")
+    cost = page_cost(s)
+    one_more = s["level"] == "High" and s["more"] == 1
+    need_free = mewtwo or one_more
+    why = "Mewtwo" if mewtwo else "1 more time to Max Level" if one_more else ""
+    if need_free and cost != 0:
+        raise Pass(f"{why}: only when free, costs {cost}")
+    return cost, need_free, why
 
 
 def mega(info, dry):
     """on a Pokémon's page: decide, and Mega Evolve it from its level page. -> what happened (a log line)"""
     _, texts, _, bounds = look()
-    mewtwo, form = check(info, texts)
+    mewtwo, forms = check(info, texts)
     s, texts, bounds = open_sheet(texts, bounds)
     try:
-        if form:
-            s, texts, bounds = pick_form(form, texts, bounds)
-        if s["done_today"]:
-            raise Pass("daily level limit met: done today")
-        if s["mega_now"]:
-            raise Pass("Mega Evolved right now")
-        if not s["button"]:
-            raise Pass(f"{s['level']} Level: no MEGA EVOLVE on the level page")
-        cost = page_cost(s)
-        one_more = s["level"] == "High" and s["more"] == 1
-        need_free = mewtwo or one_more
-        why = "Mewtwo" if mewtwo else "1 more time to Max Level" if one_more else ""
-        if need_free and cost != 0:
-            raise Pass(f"{why}: only when free, costs {cost}")
+        if not forms:
+            cost, need_free, why = can(s, mewtwo)
+        else:
+            nope = []
+            for form in forms:
+                try:
+                    s, texts, bounds = pick_form(form, texts, bounds)
+                    cost, need_free, why = can(s, mewtwo)
+                    break
+                except Pass as e:
+                    nope.append(f"{form}: {e}")
+                    _, texts, _, bounds = look()
+            else:
+                raise Pass("; ".join(nope))
+            if len(forms) > 1:
+                why = f"{why}, Mega {form}"
         press(s["button"], bounds)
         asked, texts, bounds = steady(box_key)
         if asked is None:
@@ -265,10 +290,10 @@ def mega(info, dry):
             time.sleep(0.8)
             if bad:
                 raise Pass(f"the box says x{asked}, the page said {cost}{' (' + why + ': only free)' if need_free else ''}: NO")
-            return f"DRY would Mega Evolve for {asked} energy ({s['level']} Level, {s['more']} more)"
+            return f"DRY would Mega Evolve for {asked} energy ({s['level']} Level, {s['more']} more{', ' + why if why else ''})"
         press(yes[0], bounds)
         finish()
-        return f"Mega Evolved for {asked} energy ({s['level']} Level, {s['more']} more)"
+        return f"Mega Evolved for {asked} energy ({s['level']} Level, {s['more']} more{', ' + why if why else ''})"
     finally:
         if look()[0] != "detail":
             close_sheet()
@@ -300,6 +325,7 @@ def finish():
             continue
         b = badge(texts)
         if screen == "detail" and b and "left" in b[4].lower():
+            time.sleep(1.5)  # the CP still changes a moment after the badge reads 'left': a swipe then doesn't take
             return
     keep_capture("finish")
     raise Stop("the Mega Evolution didn't finish in 45 s: check by hand")
@@ -312,8 +338,11 @@ def walk(limit, dry):
     if not settled_tiles_after(SEARCH):
         log(f"nothing in {SEARCH}")
         return
+    # how many: a Mega Evolved one's CP reads differently look to look, so a swipe at the end can seem to move
+    total = search.result_count(look()[1])
     base.go("tile 1", "detail")
     seen, counts, t_start = set(), {"done": 0, "skip": 0}, time.time()
+    pos = 1  # its tile number: the swipe order is the list order
     while True:
         _, texts, _, _ = base.wait_for("detail")
         info = ui.detail_info(texts)
@@ -327,17 +356,38 @@ def walk(limit, dry):
             if counts["done"] >= limit:
                 log(f"--limit {limit} reached")
                 break
-            log(f"{label}: {mega(info, dry)}")
+            did = mega(info, dry)
+            log(f"{label}: {did}")
             counts["done"] += 1
+            if not dry:
+                # the page after a Mega Evolution won't swipe: back to the list, open the next tile
+                pos += 1
+                if total and pos > total:
+                    log(f"all {total} seen")
+                    break
+                base.go("close", "list")
+                if not settled_tiles():
+                    break
+                try:
+                    base.go(f"tile {pos}", "detail")
+                except base.Lost:
+                    log(f"no tile {pos} on the list: end of the list")
+                    break
+                continue
         except Pass as e:
             log(f"skip {label}: {e}")
             counts["skip"] += 1
-        now = key(base.wait_for("detail")[1])  # (a Mega Evolution changed its CP)
-        if not next_one(None, lambda t: key(t) != now):
+        if total and pos >= total:
+            log(f"all {total} seen")
+            break
+        now = key(base.wait_for("detail")[1])
+        if not next_one(None, lambda t: key(t)[1] is not None and key(t) != now):
             log("the swipe didn't move: end of the list")
             break
+        pos += 1
     log(f"done: {counts['done']} Mega Evolved, {counts['skip']} skipped, {time.time() - t_start:.0f}s")
-    base.go("close", "list")
+    if look()[0] == "detail":
+        base.go("close", "list")
 
 
 def key(texts):

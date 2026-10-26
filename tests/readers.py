@@ -16,11 +16,11 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SKILLS = os.path.join(ROOT, "skills")
 GOLD = os.path.join(ROOT, "tests", "readers.json")
 os.environ.pop("POGO_PHONE", None)  # the iPhone path: every reader stays on the text it's given (no screenshot)
-for d in ("pvpc", "cleanup", "dex", "trade", "gift", "ivc", "ivcsort"):  # (pvpc first: its run.py is `run`)
+for d in ("pvpc", "cleanup", "dex", "trade", "gift", "mega", "ivc", "ivcsort"):  # (pvpc first: its run.py is `run`)
     sys.path.append(os.path.join(SKILLS, d))
 
 import run, search, ui  # noqa: E402  (pvpc's run.py: first on the path)
-import trades, cleantrades, dex, trade, gift  # noqa: E402
+import trades, cleantrades, dex, trade, gift, mega  # noqa: E402
 
 
 def by_path(name, rel):
@@ -136,6 +136,35 @@ RENAMES = {  # the Set Nickname dialog's OCR boxes, from run captures
     "no CANCEL either": [TITLE, (0.1625, 0.4493, 0.1726, 0.0228, "Pvp U87")],
 }
 
+SHEETS = {  # the Mega level page and the Mega Evolve box, from the Pixel 2026-10-26 (rows as OCR read them)
+    "base, 2 more": texts((0.27, "6 Days 2 Hours"), (0.30, "REST PERIOD"), (0.33, "100's Mega Level"),
+                          (0.38, "Base Level"), (0.54, "To Reach High Level:"),
+                          (0.57, "Mega Evolve Manectric 2 more times."), (0.62, "MEGA EVOLVE"), (0.78, "LEVEL UP")),
+    "high, 13 more": texts((0.33, "100's Mega Level"), (0.39, "High Level"), (0.53, "To Reach Max Level:"),
+                           (0.57, "Mega Evolve Camerupt 13 more times."), (0.62, "MEGA EVOLVE")),
+    "high, 1 more": texts((0.33, "100's Mega Level"), (0.39, "High Level"),
+                          (0.57, "Mega Evolve Camerupt 1 more time."), (0.62, "MEGA EVOLVE")),
+    "done today": texts((0.33, "100's Mega Level"), (0.38, "Base Level"),
+                        (0.57, "Mega Evolve Manectric 1 more time."),
+                        (0.61, "Daily level limit met. You can make additional progress"), (0.63, "tomorrow.")),
+    "mega now": texts((0.27, "07:59:23"), (0.30, "REMAINING MEGA EVOLUTION PERIOD"), (0.33, "100's Mega Level"),
+                      (0.38, "Base Level")),
+    "max": texts((0.27, "100's Mega Level"), (0.32, "MEGA RAICHU X"), (0.40, "Max Level"),
+                 (0.55, "To Reach Super Max Level:"), (0.63, "LEVEL UP")),
+    "detail page": texts((0.5, "CP 1234"), (0.6, "MEGA EVOLVE")),
+}
+SHEETS["base, 2 more"].append((0.75, 0.615, 0.06, 0.02, "• 18"))  # the cost, right of the button
+SHEETS["high, 13 more"].append((0.75, 0.615, 0.06, 0.02, "17"))
+ASKS = {
+    "x18": texts((0.32, "Do you want to Mega Evolve 100?"), (0.43, "x18"), (0.66, "YES"), (0.72, "NO")),
+    "no cost": texts((0.32, "Do you want to Mega Evolve 100?"), (0.66, "YES"), (0.72, "NO")),
+    "x7,500": texts((0.32, "Do you want to Mega Evolve 100?"), (0.43, "x7,500")),
+    "not the box": texts((0.39, "Do you really want to Mega"), (0.48, "Your 100 will no longer be Mega Evolved!")),
+}
+NICKS = ["98 AD C* X", "93 D PsyS* Y", "GGB X", "Mewtwo", "100", "OpenGiftOnCD", "Max", "X", ""]
+BADGES = {k: texts((0.69, v)) for k, v in {"days": "5 DAYS", "1 day": "1 DAY", "left": "07:59 left",
+                                           "none": "WEIGHT", "hours": "6 HOURS"}.items()}
+
 # ---------- readers ----------
 
 
@@ -204,6 +233,12 @@ def answers():
         out[name] = {k: answer(fn, ts) for k, ts in COUNTS.items()}
     for name, fn in DIALOGS.items():
         out[name] = {k: answer(fn, ts) for k, ts in RENAMES.items()}
+    out["mega.sheet"] = {k: answer(lambda ts: (lambda r: r and {x: r[x] for x in ("done_today", "mega_now", "level",
+                                                                                 "more", "cost")} | {"button": bool(r["button"])})(mega.sheet(ts)), ts)
+                         for k, ts in SHEETS.items()}
+    out["mega.ask_cost"] = {k: answer(mega.ask_cost, ts) for k, ts in ASKS.items()}
+    out["mega.form_of"] = {n: answer(mega.form_of, n) for n in NICKS}
+    out["mega.badge"] = {k: answer(lambda ts: (lambda b: b and b[4])(mega.badge(ts)), ts) for k, ts in BADGES.items()}
     return json.loads(json.dumps(out))  # (tuples -> lists, as the file has them)
 
 

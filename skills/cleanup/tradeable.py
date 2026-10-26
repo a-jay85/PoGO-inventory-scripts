@@ -2,7 +2,8 @@
 """Tag CyrillJan's Tradeable saved search by what a trade to HashTagAJay is worth, and power them up for Candy XL.
 
   python3 tradeable.py refresh            the Mac: PvPoke's rankings -> pvp-giv-<date>.json, PokeMiners' game master
-                                          -> giv-evolved-<date>.json
+                                          -> giv-evolved-<date>.json and dynamax-<date>.json
+  POGO_PHONE=android caffeinate -dimsu python3 tradeable.py dynamax   CyrillJan signed in: only searches, for plan --to
   POGO_PHONE=android caffeinate -dimsu python3 tradeable.py read [searches.json]   HashTagAJay signed in: only searches
   python3 tradeable.py plan [--to CyrillJan]   the Mac: every search to tag, in runs/<time>-plan/
   POGO_PHONE=android caffeinate -dimsu python3 tradeable.py tag [--limit N]   CyrillJan signed in: tags, power-ups
@@ -13,7 +14,8 @@ runs rescue.py first (a 98%+ one gets the star, never a tag). A traded one can't
 touched: shadows, lucky, costumes, backgrounds, special trades, untraded 2016-2020 catches (GuaranteedLucky), and
 anything with another of the user's tags. Nope comes off once a new tag is on. HashTagAJay's Nope goes to CyrillJan,
 which only wants good raid attackers and XL candy: plan --to CyrillJan has just GIV (top 6 against some raid boss,
-whatever CyrillJan owns, and untraded Dynamax) and XLX (5,000 Stardust+, level 29+).
+until CyrillJan has 6 good copies, 1 for a mega-only one, and a Dynamax one if it can; and an untraded Dynamax one of
+a family CyrillJan has none of) and XLX (5,000 Stardust+, level 29+). It reads CyrillJan's /roster count and dynamax.
 
 One tag each, the first that fits:
  1. Luckydex: HashTagAJay's newest lucky /dex run misses it, or an evolution of it (dex's gender and form rules).
@@ -101,10 +103,22 @@ def cmd_refresh():
     out = os.path.join(HERE, f"pvp-giv-{time.strftime('%Y%m%d')}.json")
     json.dump(dict(sorted(keep.items())), open(out, "w"), indent=0)
     print(f"{len(keep)} species -> {out}")
-    hard = hard_evolutions(json.load(urllib.request.urlopen(PM_URL)))
+    gm = json.load(urllib.request.urlopen(PM_URL))
+    hard = hard_evolutions(gm)
     out = os.path.join(HERE, f"giv-evolved-{time.strftime('%Y%m%d')}.json")
     json.dump(dict(sorted(hard.items())), open(out, "w"), indent=0)
     print(f"{len(hard)} hard evolutions -> {out}")
+    can = dynamax_species(gm)
+    out = os.path.join(HERE, f"dynamax-{time.strftime('%Y%m%d')}.json")
+    json.dump(can, open(out, "w"))
+    print(f"{len(can)} dex numbers can Dynamax -> {out}")
+
+
+def dynamax_species(gm):
+    """PokeMiners' game master -> [dex numbers that can Dynamax] (a 'BREAD_MODE' override: 'bread' is Max)"""
+    return sorted({int(re.search(r"V(\d{4})_", x["templateId"]).group(1)) for x in gm
+                   if any(o.get("breadMode") == "BREAD_MODE"
+                          for o in (x["data"].get("pokemonExtendedSettings") or {}).get("breadOverrides") or [])})
 
 
 def hard_evolutions(gm):
@@ -289,16 +303,17 @@ def newest_for(pattern, who, key="trainer", default=None):
     return None
 
 
-def pve(m):
-    """-> {sid: why}: a traded copy (never shadow) would be in DialgaDex's top PVE_TOP against some raid boss, or
-    evolve into one that is. Special trades left out of the top: they're never tagged. A mega counts as its species"""
+def pve(m, enough=lambda s, mega_only: False):
+    """-> ({sid: why}, {sid: why dropped}): a traded copy (never shadow) would be in DialgaDex's top PVE_TOP against
+    some raid boss, or evolve into one that is. Special trades left out of the top: they're never tagged. A mega counts
+    as its species. enough(sid, only in as a mega) -> why the taker needs no more of it, or None"""
     sys.path.append(os.path.join(HERE, "..", "roster"))
     import roster
     data_f = base.newest(HERE, os.path.join("..", "roster", "dialgadex-counters-[0-9]*[0-9].json"))
     if not data_f:
         sys.exit("no DialgaDex counters yet: node ../roster/pull.mjs")
     rm = roster.Model(json.load(open(data_f)))
-    out = {}
+    tops, plain = {}, set()
     for b in rm.bosses:
         top = []
         for i, *_ in b["list"]:
@@ -307,14 +322,25 @@ def pve(m):
                 continue
             if s not in top:
                 top.append(s)
+                if not roster.is_mega(a):
+                    plain.add(s)  # in some top as itself: a mega-only one is only ever in as its mega
             if len(top) >= PVE_TOP:
                 break
         boss = b["name"] + ("" if b["form"] == "Normal" else f" ({b['form']})")
         for s in top:
-            for x in [s, *rm.ancestors(s)]:
-                out.setdefault(x, []).append(boss)
-    return {s: "top %d vs %s" % (PVE_TOP, ", ".join(bs[:3]) + (f" +{len(bs) - 3}" if len(bs) > 3 else ""))
-            for s, bs in out.items() if s in m.by}
+            tops.setdefault(s, []).append(boss)
+    out, dropped = {}, {}
+    for s, bs in tops.items():
+        if s not in m.by:
+            continue
+        if why := enough(s, s not in plain):
+            dropped[s] = why
+            continue
+        for x in [s, *rm.ancestors(s)]:
+            out.setdefault(x, []).extend(bs)
+    why = {s: "top %d vs %s" % (PVE_TOP, ", ".join(bs[:3]) + (f" +{len(bs) - 3}" if len(bs) > 3 else ""))
+           for s, bs in out.items() if s in m.by}
+    return why, dropped
 
 
 def queries(m, sids, gender=None, room=40):
@@ -416,28 +442,83 @@ def cmd_plan(to=TAKER):
         f"evolved GIV {len(plan['giv_evolved'])} searches -> {base.RUN_DIR}")
 
 
+def can_dynamax():
+    """dex numbers that can Dynamax (refresh's dynamax-<date>.json)"""
+    f = base.newest(HERE, "dynamax-[0-9]*[0-9].json")
+    if not f:
+        sys.exit("no dynamax-<date>.json yet: python3 tradeable.py refresh")
+    return set(json.load(open(f)))
+
+
+def cmd_dynamax():
+    """CyrillJan signed in: how many Dynamax ones of each family that can Dynamax (only searches)"""
+    base.new_run_dir(os.path.join(HERE, "runs"), suffix="dynamax")
+    who = home.trainer()
+    if who != GIVER:
+        raise Stop(f"signed in as {who!r}: dynamax counts {GIVER}'s")
+    m, can = Model(), can_dynamax()
+    home.start()
+    n = dex.counter({}, lambda q, c: log(f"  {q}: {c}"))
+    out = {}
+    for lo, ds in families_by_dex(m):
+        if can & set(ds):
+            out[lo] = n(",".join(dex.ranges(ds)) + "&dynamax")
+            json.dump({"trainer": who, "families": out}, open(os.path.join(base.RUN_DIR, "dynamax.json"), "w"))
+    log(f"{sum(1 for v in out.values() if v)} of {len(out)} families have a Dynamax one -> {base.RUN_DIR}")
+
+
 def plan_for_giver():
-    """HashTagAJay's Nope -> CyrillJan: only good raid attackers (GIV) and Candy XL (XLX). No dex or roster count"""
-    m = Model()
+    """HashTagAJay's Nope -> CyrillJan: only good raid attackers (GIV) and Candy XL (XLX). No dex rules"""
+    sys.path.append(os.path.join(HERE, "..", "roster"))
+    import roster
+    m, can = Model(), can_dynamax()
     read_f = newest_for(os.path.join("*-read", "read.json"), GIVER)  # (only its 360+ XL families: none without)
     xl_full = json.load(open(read_f))["xl_full"] if read_f else []
-    why = {s: r for s, r in pve(m).items() if m.tradeable(s) and not m.special(s)}
-    plan = {"taker": GIVER, "xlx_level": XLX_FOR[GIVER], "from": {"read": read_f},
+    counts_f = newest_for(os.path.join("..", "..", "roster", "runs", "*-count", "counts.json"), GIVER, default=TAKER)
+    dmax_f = newest_for(os.path.join("*-dynamax", "dynamax.json"), GIVER)
+    good = {}
+    for (s, _, shadow), v in (roster.load_counts(counts_f)[0] if counts_f else {}).items():
+        if not shadow:
+            good[s] = good.get(s, 0) + v
+    fam_of = {d: lo for lo, ds in families_by_dex(m) for d in ds}
+    dmax = {int(lo): v for lo, v in json.load(open(dmax_f))["families"].items()} if dmax_f else {}
+    has_dmax = lambda s: dmax.get(fam_of.get(m.dex(s)), 0) > 0
+
+    def enough(s, mega_only):
+        """CyrillJan has PVE_TOP good copies (1 for one that's only in as a mega: one mega per team), and a Dynamax
+        one of the family if it can Dynamax. (Not counted is 0: /roster stops counting once a team is full)"""
+        need = 1 if mega_only else PVE_TOP
+        if good.get(s, 0) >= need and (m.dex(s) not in can or has_dmax(s)):
+            return f"{GIVER} has {good[s]} good" + (", and a Dynamax one" if m.dex(s) in can else "")
+        return None
+
+    picked, dropped = pve(m, enough)
+    why = {s: r for s, r in picked.items() if m.tradeable(s) and not m.special(s)}
+    no_dmax = [s for s in m.by if m.dex(s) in can and not has_dmax(s) and m.tradeable(s) and not m.special(s)]
+    plan = {"taker": GIVER, "xlx_level": XLX_FOR[GIVER], "from": {"read": read_f, "counts": counts_f, "dynamax": dmax_f},
             "tags": {"Luckydex": [], "Reroll": [], "GIV": queries(m, why, room=len(NOT_TAGGED) + 10)},
-            "giv_evolved": [DYNAMAX],
+            "giv_evolved": [q + DYNAMAX for q in queries(m, no_dmax, room=len(EVOLVED_REST + DYNAMAX) + 10)],
             "taker_xl_full": sorted({m.dex(x) for s in m.by if m.dex(s) in xl_full for x in m.family(s)})}
     base.new_run_dir(os.path.join(HERE, "runs"), suffix="plan")
     json.dump(plan, open(os.path.join(base.RUN_DIR, "plan.json"), "w"), indent=1)
+    name = lambda s: f"{m.by[s]['speciesName']} (#{m.dex(s)})"
     lines = [f"# Nope plan for {GIVER} {time.strftime('%Y-%m-%d %H:%M')}", "",
-             f"- read: {read_f or f'none ({GIVER} signed in: tradeable.py read), so no family counts as 360+ XL'}", "",
+             f"- read: {read_f or f'none ({GIVER} signed in: tradeable.py read), so no family counts as 360+ XL'}",
+             f"- good copies: {counts_f or f'none ({GIVER} signed in: roster.py count), so nothing is enough yet'}",
+             f"- Dynamax: {dmax_f or f'none ({GIVER} signed in: tradeable.py dynamax), so no family has one yet'}", "",
              f"## GIV: {len(why)} species forms", "",
              f"In DialgaDex's top {PVE_TOP} against some raid boss (no shadows, megas as their species, special trades "
-             f"left out), or an earlier stage of one. Then (after XLX) every untraded Dynamax one.", ""]
-    lines += [f"- {m.by[s]['speciesName']} (#{m.dex(s)}): {r}" for s, r in sorted(why.items(), key=lambda x: m.dex(x[0]))]
+             f"left out), or an earlier stage of one. Not once {GIVER} has {PVE_TOP} good (3★/4★) copies (1 for one "
+             f"that's only in as a mega) and a Dynamax one if it can Dynamax. Then (after XLX) an untraded Dynamax one "
+             f"of a family {GIVER} has no Dynamax one of.", ""]
+    lines += [f"- {name(s)}: {r}" for s, r in sorted(why.items(), key=lambda x: m.dex(x[0]))]
+    lines += ["", f"Enough already ({len(dropped)}):", ""]
+    lines += [f"- {name(s)}: {r}" for s, r in sorted(dropped.items(), key=lambda x: m.dex(x[0]))]
     lines += ["", "Searches (after the Nope search):", ""] + [f"    {q}" for q in plan["tags"]["GIV"]] + [""]
     lines += [f"## XLX: level {XLX_FOR[GIVER]}+ (a power-up costs 5,000 Stardust or more)", ""]
     open(os.path.join(base.RUN_DIR, "plan.md"), "w").write("\n".join(lines))
-    log(f"plan for {GIVER}: GIV {len(why)} species forms, {len(plan['tags']['GIV'])} searches -> {base.RUN_DIR}")
+    log(f"plan for {GIVER}: GIV {len(why)} species forms ({len(dropped)} enough already), "
+        f"{len(plan['tags']['GIV'])} searches -> {base.RUN_DIR}")
 
 
 # ---------- tag (CyrillJan's Tradeable, or either account's Nope) ----------
@@ -616,6 +697,7 @@ def cmd_tag(limit, nope=False):
 if __name__ == "__main__":
     a = sys.argv[1:]
     cmds = {"refresh": cmd_refresh}
+    cmds["dynamax"] = cmd_dynamax
     if not a or a[0] not in (*cmds, "plan", "read", "tag"):
         sys.exit(__doc__)
     if a[0] == "read":

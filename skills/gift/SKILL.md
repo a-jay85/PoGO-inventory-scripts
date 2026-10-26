@@ -25,7 +25,7 @@ Keep your hands off the Mac mouse while the iPhone runs: its taps go through the
 
 ## Which gifts
 
-Only gifts whose city line reads **San Francisco**, with no sticker. A title with **lion**, **tree** or **rock** in it is kept (Lions, Trees and Rocky too). Mission Rock gifts are sent anyway. The gift preview must read the same title and city before SEND. Every other gift (Chicago, North Carolina ...) is left for sending by hand. When a phone has none left, it stops. The other phone keeps going. At the end the iPhone quits iPhone Mirroring and the Pixel locks.
+Only gifts whose city line reads **San Francisco**, with no sticker. A title with **lion**, **tree** or **rock** in it is kept (Lions, Trees and Rocky too). Mission Rock gifts are sent anyway. The gift preview must read the same title and city before SEND. Every other gift (Chicago, North Carolina ...) is left for sending by hand. When a phone has none left, it stops. The other phone keeps going. A grey SEND GIFT only skips that friend: some friends can't take a gift for a while. On every 3rd grey in a row the script taps it anyway. If the gift list opens, it sends as usual and stops there once the list has none of ours. After 9 greys in a row it stops too. At the end the iPhone quits iPhone Mirroring and the Pixel locks.
 
 ## Who goes first
 

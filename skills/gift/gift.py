@@ -860,8 +860,32 @@ def rename(tag, old, listed):
     return True
 
 
-def one_friend(row):
-    """open the row's friend page, check, gift and/or tag. -> the gift sent, or None"""
+def grey_check(t):
+    """tap a grey SEND GIFT anyway. -> "picker" (the gift list opened: the grey read was wrong, now closed again),
+    "empty" (the game says I have no gifts) or None (nothing opened: that friend just can't take one now)"""
+    tap_text(t, dy=-0.04)
+    s = wait("picker", "friend", "unknown", timeout=4)
+    if s != "picker":
+        time.sleep(1.0)
+        s = look()
+    if s == "picker":
+        close()
+        wait("friend", timeout=6)
+        return "picker"
+    j = joined()
+    log(f"  tapped the grey SEND GIFT: {s}: {summary()}")
+    keep_capture("grey_tap")
+    if s != "friend":
+        close()
+        wait("friend", timeout=6)
+    if "NO GIFT" in j or "DON'T HAVE" in j or "DO NOT HAVE" in j:
+        return "empty"
+    return None
+
+
+def one_friend(row, check=False):
+    """open the row's friend page, check, gift and/or tag. -> the gift sent, None, "grey" or "empty".
+    check: on a grey SEND GIFT, tap it anyway to see whether my bag is empty"""
     t0 = time.time()
     tap_text(row["t"])
     s = wait("friend", "giftpopup", "luckytrade", timeout=8)
@@ -881,8 +905,14 @@ def one_friend(row):
             wait("friend", timeout=6)
         t = label("SEND GIFT")
     if not t or not gift_icon(t):
-        log(f"{name} ({nick}): their SEND GIFT is grey: skipped")
-        return "grey"
+        keep_capture("grey")
+        got = grey_check(t) if t and check else None
+        if got == "empty":
+            return "empty"
+        if got != "picker":
+            log(f"{name} ({nick}): their SEND GIFT is grey: skipped")
+            return "grey"
+        log(f"{name} ({nick}): SEND GIFT read grey, but the gift list opened: going on")
     n = meter()
     if n == 1:
         log(f"{name} ({nick}): 1 point to level up: no gift, tagging WAIT")
@@ -949,11 +979,16 @@ def run_searches(limit):
                     continue
                 row = todo[0]
                 done.add(row["name"])
-                got = one_friend(row)
-                greys = greys + 1 if got == "grey" else 0
-                if greys >= 3:  # a can-receive friend with a grey SEND GIFT: my bag has no gifts left
-                    log(f"3 grey SEND GIFTs in a row: out of gifts, done ({sent} sent)")
+                # a grey SEND GIFT alone proves nothing (that friend may not take one now). Every 3rd grey in a row,
+                # tap it anyway: the gift list opening, or send_gift's OutOfGifts, tells whether the bag is empty
+                got = one_friend(row, check=greys % 3 == 2)
+                if got == "empty":
+                    log(f"the game says I have no gifts: out of gifts, done ({sent} sent)")
                     return sent, "out of gifts"
+                greys = greys + 1 if got == "grey" else 0
+                if greys >= 9:
+                    log(f"9 grey SEND GIFTs in a row: likely out of gifts, done ({sent} sent)")
+                    return sent, "likely out of gifts (9 grey SEND GIFTs in a row)"
                 if got and got != "grey":
                     sent += 1
                     top = False  # their arrow now shows, but they keep their place until the next search
@@ -994,7 +1029,7 @@ def script(limit):
         sent, why = run_searches(limit)
         log(f"done: {sent} gifts sent" + (f", {why}" if why else ""))
     except OutOfGifts:
-        log("out of San Francisco gifts we may send: stopping")
+        log("done: out of gifts (none from San Francisco we may send left): stopping")
         if not ui.ANDROID:
             to_list()
 

@@ -27,7 +27,8 @@ import dex
 from run import Stop, log, newest
 import session
 
-TRAINER = "HashTagAJay"
+TRAINER = "HashTagAJay"  # the default; CyrillJan can be counted too (tradeable.py plan --to CyrillJan)
+TRAINERS = (TRAINER, "CyrillJan")
 GOOD = "3*,4*"
 TEAM = 6
 POPULAR = 15  # a branch is "on a boss list" when it's in the top this many
@@ -229,22 +230,26 @@ def count_class(model, d, sids, n, unsure):
     return got
 
 
-def save(path, counts, unsure):
-    json.dump({"counts": [[*k, v] for k, v in counts.items()], "unsure": unsure}, open(path, "w"), indent=0)
+def save(path, counts, unsure, who):
+    json.dump({"trainer": who, "counts": [[*k, v] for k, v in counts.items()], "unsure": unsure}, open(path, "w"),
+              indent=0)
 
 
 def load_counts(path):
+    """-> (counts, unsure, whose). One saved before counts had a trainer is HashTagAJay's"""
     j = json.load(open(path))
-    return {(s, g, bool(sh)): v for s, g, sh, v in j["counts"]}, j.get("unsure", [])
+    return {(s, g, bool(sh)): v for s, g, sh, v in j["counts"]}, j.get("unsure", []), j.get("trainer", TRAINER)
 
 
 def cmd_count(model, resume):
     import home, run as base
     base.new_run_dir(os.path.join(HERE, "runs"), suffix="count")
     who = home.trainer()
-    if who != TRAINER:
-        raise Stop(f"{who} is signed in: /roster counts {TRAINER}'s Pokémon")
-    counts, unsure = load_counts(resume) if resume else ({}, [])
+    if who not in TRAINERS:
+        raise Stop(f"{who} is signed in: /roster counts {' or '.join(TRAINERS)}'s Pokémon")
+    counts, unsure, was = load_counts(resume) if resume else ({}, [], who)
+    if was != who:
+        raise Stop(f"{resume} is {was}'s count, but {who} is signed in")
     home.start()
     cache = {}
     n = dex.counter(cache, lambda q, c: log(f"  {q}: {c}"))
@@ -259,21 +264,21 @@ def cmd_count(model, resume):
         log(f"round {rnd}: {len(todo)} species to count")
         for d, r, sids in todo:
             counts.update(count_class(model, d, sids, n, unsure))
-            save(os.path.join(base.RUN_DIR, "counts.json"), counts, unsure)
+            save(os.path.join(base.RUN_DIR, "counts.json"), counts, unsure, who)
     log(f"counted {len(cache)} searches")
-    return counts, unsure, base.RUN_DIR
+    return counts, unsure, who, base.RUN_DIR
 
 
 # ---------- report ----------
 
-def report(model, counts, unsure, out_dir):
+def report(model, counts, unsure, who, out_dir):
     best = model.helps(counts)
     reroll = sorted(s for s, (p, _) in best.items() if p == 1 and not model.special(s))
     giv = sorted(s for s, (p, _) in best.items() if 2 <= p <= TEAM and not model.special(s))
     seen = {s for s in model.sid if s and not model.special(s)}
     stop = sorted(seen - set(reroll) - set(giv))
     name = lambda s: model.by[s]["speciesName"]
-    json.dump({"pulled": model.data.get("pulled"), "trainer": TRAINER,
+    json.dump({"pulled": model.data.get("pulled"), "trainer": who,
                "species": {s: {"place": p, "bosses": bs[:10], "special": model.special(s)} for s, (p, bs) in best.items()},
                "reroll": reroll, "giv": giv},
               open(os.path.join(out_dir, "roster.json"), "w"), indent=1)
@@ -290,7 +295,7 @@ def report(model, counts, unsure, out_dir):
         return ", ".join(f"{a}{f' x{k}' if k > 1 else ''} ({r:.0f})" for a, k, r in rows) + \
             (f"  [only {len(t)}]" if len(t) < TEAM else "")
 
-    lines = [f"# /roster: {TRAINER}'s top 6 per raid boss",
+    lines = [f"# /roster: {who}'s top 6 per raid boss",
              f"DialgaDex counters pulled {model.data.get('pulled')}. Good copy = 3★/4★. Rating = DialgaDex's.", "",
              "## Check these first", ""]
     for d, f in GATE:
@@ -318,12 +323,12 @@ def script(a, model):
         import ui
         if not ui.ANDROID:
             sys.exit("Android only for now: POGO_PHONE=android")
-        counts, unsure, out = cmd_count(model, a.counts)
+        counts, unsure, who, out = cmd_count(model, a.counts)
     else:
         path = a.counts or newest(HERE, "runs/*-count/counts.json")
         if not path:
             sys.exit("no counts yet: roster.py count")
-        counts, unsure = load_counts(path)
+        counts, unsure, who = load_counts(path)
         out = os.path.dirname(path)
         need = set()
         for b in model.bosses:
@@ -331,7 +336,7 @@ def script(a, model):
         if need:  # a stopped count, or a newer pull with attackers it never counted
             sys.exit(f"{path} misses {len(need)} piles ({', '.join(sorted({s for s, *_ in need})[:8])}...): "
                      f"finish it with roster.py count {path.replace(HERE + os.sep, '')}")
-    path, lines = report(model, counts, unsure, out)
+    path, lines = report(model, counts, unsure, who, out)
     end = lines.index("## Reroll")
     print("\n".join(lines[:end]))
     print(f"report: {path}")

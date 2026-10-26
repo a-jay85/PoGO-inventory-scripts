@@ -344,7 +344,7 @@ def cmd_plan(to=TAKER):
     m = Model()
     lucky_missing, lucky_run = dex.latest("lucky", TAKER)  # (an evolve-lucky run counts too)
     hund_missing, hund_run = dex.latest("100", TAKER)
-    roster_f = base.newest(HERE, os.path.join("..", "roster", "runs", "*", "roster.json"))
+    roster_f = newest_for(os.path.join("..", "..", "roster", "runs", "*", "roster.json"), TAKER, default=TAKER)
     read_f = newest_for(os.path.join("*-read", "read.json"), TAKER)
     pvp_f = base.newest(HERE, "pvp-giv-*.json")
     hard_f = base.newest(HERE, "giv-evolved-*.json")

@@ -241,8 +241,8 @@ def account():
 
 def tag_pile(name, tag, suffix=None, off=(), query=None):
     """tag everything in a shortcut's search + suffix (default: the ones that don't have the tag yet), and take the
-    off tags away from them. query: a typed search instead of the shortcut. The search must leave out the tag itself:
-    afterwards the same search has to come back empty"""
+    off tags away from them. query: a typed search instead of the shortcut. tag None: only take the off tags away. The
+    search must leave out the tag itself (or have the off tags): afterwards the same search has to come back empty"""
     if suffix is None:
         suffix = "" if name in UNTAGGED_ONLY else f"&!#{tag}"
     find = (lambda: (search_exact(query), results())[1]) if query else (lambda: run_shortcut(name, suffix))
@@ -261,7 +261,7 @@ def tag_pile(name, tag, suffix=None, off=(), query=None):
     if not re.search(rf"TAG\s*{n}\s*POK", head.upper()):  # (ui.norm drops digits)
         close_sheet(texts, bounds)
         raise Stop(f"the tag sheet says {head!r}, wanted {n}")
-    left, same = {**{t.upper(): False for t in off}, tag.upper(): True}, 0  # tag -> the tick it should end with
+    left, same = {**{t.upper(): False for t in off}, **({tag.upper(): True} if tag else {})}, 0  # tag -> its last tick
     for _ in range(30):
         rows = sheet_rows(texts, path)
         T = next((T for T in left if T in rows), None)
@@ -292,8 +292,8 @@ def tag_pile(name, tag, suffix=None, off=(), query=None):
     wait_for("list", timeout=8)
     rest = find()
     if rest:
-        raise Stop(f"{name}: tagged {n} {tag}, but {rest} still don't have it")
-    log(f"{name}: tagged {n} {tag}" + "".join(f", took off {t}" for t in off))
+        raise Stop(f"{name}: tagged {n} {tag or ''}, but {rest} are still in the search")
+    log(f"{name}: tagged {n} {tag or ''}" + "".join(f", took off {t}" for t in off))
     return n
 
 

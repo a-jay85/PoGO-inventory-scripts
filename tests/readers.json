@@ -1867,6 +1867,81 @@
   "y&Icostume&!xxl&!xxs": "y&icostume&!xxl&!xxs",
   "y&Icostume&legendary": "y&icostume&legendary"
  },
+ "mega.ask_cost": {
+  "no cost": 0,
+  "not the box": null,
+  "x18": 18,
+  "x7,500": 7500
+ },
+ "mega.badge": {
+  "1 day": "1 DAY",
+  "days": "5 DAYS",
+  "hours": "6 HOURS",
+  "left": "07:59 left",
+  "none": null
+ },
+ "mega.form_of": {
+  "": null,
+  "100": null,
+  "93 D PsyS* Y": "Y",
+  "98 AD C* X": "X",
+  "GGB X": "X",
+  "Max": null,
+  "Mewtwo": null,
+  "OpenGiftOnCD": null,
+  "X": null
+ },
+ "mega.sheet": {
+  "base, 2 more": {
+   "button": true,
+   "cost": 18,
+   "done_today": false,
+   "level": "Base",
+   "mega_now": false,
+   "more": 2
+  },
+  "detail page": null,
+  "done today": {
+   "button": false,
+   "cost": null,
+   "done_today": true,
+   "level": "Base",
+   "mega_now": false,
+   "more": 1
+  },
+  "high, 1 more": {
+   "button": true,
+   "cost": 0,
+   "done_today": false,
+   "level": "High",
+   "mega_now": false,
+   "more": 1
+  },
+  "high, 13 more": {
+   "button": true,
+   "cost": 17,
+   "done_today": false,
+   "level": "High",
+   "mega_now": false,
+   "more": 13
+  },
+  "max": {
+   "button": false,
+   "cost": null,
+   "done_today": false,
+   "level": "Max",
+   "mega_now": false,
+   "more": null
+  },
+  "mega now": {
+   "button": false,
+   "cost": null,
+   "done_today": false,
+   "level": "Base",
+   "mega_now": true,
+   "more": null
+  }
+ },
  "run.same_name": {
   "\t": false,
   "\t96": false,

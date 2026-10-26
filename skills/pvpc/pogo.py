@@ -37,6 +37,7 @@ STEPS = {
     "luckydex":    ("dex/luckydex.py", {"check"}, set()),
     "gift":        ("gift/gift.py", {"run", "look"}, set()),
     "trade":       ("trade/trade.py", {"run", "look", "restart"}, set()),
+    "mega":        ("mega/mega.py", set(), set()),
     "roster":      ("roster/roster.py", {"count", "report"}, {"report"}),
 }
 NEEDS_WORD = {"ivcsort", "tradeable", "dex", "roster"}  # these have no default: the first word is a must

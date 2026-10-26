@@ -289,7 +289,9 @@ def mega(info, dry):
         if ui.ANDROID:  # and off the phone's own screenshot: the bigger one
             asked = max(asked, ask_cost(sharp_texts()) or 0)
         yes, no = exact(texts, "YES"), exact(texts, "NO")
-        bad = (need_free and asked != 0) or (cost is not None and asked != cost)
+        # the energy icon in front of the page's number can read as one more digit: '915' for 15
+        glued = cost is not None and asked and len(str(cost)) == len(str(asked)) + 1 and str(cost).endswith(str(asked))
+        bad = (need_free and asked != 0) or (cost is not None and asked != cost and not glued)
         if bad or dry:
             press(no[0], bounds)
             time.sleep(0.8)

@@ -231,7 +231,8 @@ def long_search(q):
         return results()
     terms = re.split(r"(?=&)", q)
     head = terms.pop(0)  # (an AND's order doesn't matter: the terms that narrow it go first, the `&!` ones last,
-    terms = sorted(dict.fromkeys(terms), key=lambda t: t.startswith("&!"))  # so an empty one stops early. No repeats)
+    terms = sorted(dict.fromkeys(terms), key=lambda t: (t.startswith("&count"), t.startswith("&!")))  # so an empty
+    # one stops early. No repeats. A count term eats what follows it: it goes after everything)
     while terms and len(head + terms[0]) <= HEAD_MAX:
         head += terms.pop(0)
     search_exact(head)

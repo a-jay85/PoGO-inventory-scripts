@@ -15,7 +15,11 @@ touched: shadows, lucky, costumes, backgrounds, special trades, and anything wit
 untraded 2016-2020 catch gets GuaranteedLucky (a trade makes it lucky). Nope comes off once a new tag is on. HashTagAJay's Nope goes to CyrillJan,
 which only wants good raid attackers and XL candy: plan --to CyrillJan has just GIV (top 6 against some raid boss,
 until CyrillJan has 6 good copies, 1 for a mega-only one, and a Dynamax one if it can; and an untraded Dynamax one of
-a family CyrillJan has none of) and XLX (5,000 Stardust+, level 29+). It reads CyrillJan's /roster count and dynamax.
+a family CyrillJan has none of), XLX (5,000 Stardust+, level 29+) and GIV (evolved). It reads CyrillJan's /roster
+count and dynamax. HashTagAJay's untraded Nope also gets, right after Old: GIV for a tiny Rattata (2.41 kg or less)
+or a big Magikarp (13.13 kg or more), for any account's medals; then 2XL for one with under 360 Candy XL (a Friendship
+Friday trade gives a sure 2 Candy XL), over every other GIV and XLX. --resort: the untraded Transfer ones go back to
+Nope first, to be judged again.
 
 One tag each, the first that fits:
  1. Luckydex: HashTagAJay's newest lucky /dex run misses it, or an evolution of it (dex's gender and form rules).
@@ -363,6 +367,21 @@ def queries(m, sids, gender=None, room=40):
     return out
 
 
+def evolved_giv(m, ok, why, hard):
+    """-> {sid: why} for the GIV (evolved) rule: stage 2, a hard stage 1 (hard: giv-evolved-<date>.json) or a gym
+    defender, of the ok ones not in why. Tagged GIV only after the XLX walk: XLX wins over these"""
+    out = {}
+    for s in ok:
+        if s not in why:
+            if m.stage(s) >= 2:
+                out[s] = "stage 2"
+            elif m.stage(s) == 1 and s in hard:
+                out[s] = f"stage 1, {hard[s]}"
+            elif s in GYM_DEFENDERS:
+                out[s] = "gym defender"
+    return out
+
+
 def cmd_plan(to=TAKER):
     if to == GIVER:
         return plan_for_giver()
@@ -405,16 +424,7 @@ def cmd_plan(to=TAKER):
             why.setdefault(s, ("GIV", "#2-#6 raid attacker"))
         elif m.root(s) in low:
             why.setdefault(s, ("GIV", f"lucky family under {LUCKY_CANDY} candy"))
-    hard = json.load(open(hard_f))
-    evolved = {}  # tagged GIV only after the XLX walk: XLX wins over these
-    for s in ok:
-        if s not in why:
-            if m.stage(s) >= 2:
-                evolved[s] = "stage 2"
-            elif m.stage(s) == 1 and s in hard:
-                evolved[s] = f"stage 1, {hard[s]}"
-            elif s in GYM_DEFENDERS:
-                evolved[s] = "gym defender"
+    evolved = evolved_giv(m, ok, why, json.load(open(hard_f)))
     plan = {"taker": TAKER, "xlx_level": XLX_FOR[TAKER],
             "from": {"lucky": lucky_run, "100": hund_run, "roster": roster_f, "read": read_f, "pvp": pvp_f,
                      "evolved": hard_f},
@@ -493,12 +503,19 @@ def plan_for_giver():
             return f"{GIVER} has {good[s]} good" + (", and a Dynamax one" if m.dex(s) in can else "")
         return None
 
+    hard_f = base.newest(HERE, "giv-evolved-*.json")
+    if not hard_f:
+        sys.exit("no giv-evolved yet: python3 tradeable.py refresh")
     picked, dropped = pve(m, enough)
-    why = {s: r for s, r in picked.items() if m.tradeable(s) and not m.special(s)}
-    no_dmax = [s for s in m.by if m.dex(s) in can and not has_dmax(s) and m.tradeable(s) and not m.special(s)]
-    plan = {"taker": GIVER, "xlx_level": XLX_FOR[GIVER], "from": {"read": read_f, "counts": counts_f, "dynamax": dmax_f},
+    ok = [s for s in m.by if m.tradeable(s) and not m.special(s)]
+    why = {s: r for s, r in picked.items() if s in ok}
+    evolved = evolved_giv(m, ok, why, json.load(open(hard_f)))
+    no_dmax = [s for s in ok if m.dex(s) in can and not has_dmax(s)]
+    plan = {"taker": GIVER, "xlx_level": XLX_FOR[GIVER],
+            "from": {"read": read_f, "counts": counts_f, "dynamax": dmax_f, "evolved": hard_f},
             "tags": {"Luckydex": [], "Reroll": [], "GIV": queries(m, why, room=len(NOT_TAGGED) + 10)},
-            "giv_evolved": [q + DYNAMAX for q in queries(m, no_dmax, room=len(EVOLVED_REST + DYNAMAX) + 10)],
+            "giv_evolved": queries(m, evolved, room=len(EVOLVED_REST) + 10)
+                           + [q + DYNAMAX for q in queries(m, no_dmax, room=len(EVOLVED_REST + DYNAMAX) + 10)],
             "taker_xl_full": sorted({m.dex(x) for s in m.by if m.dex(s) in xl_full for x in m.family(s)})}
     base.new_run_dir(os.path.join(HERE, "runs"), suffix="plan")
     json.dump(plan, open(os.path.join(base.RUN_DIR, "plan.json"), "w"), indent=1)
@@ -517,6 +534,11 @@ def plan_for_giver():
     lines += [f"- {name(s)}: {r}" for s, r in sorted(dropped.items(), key=lambda x: m.dex(x[0]))]
     lines += ["", "Searches (after the Nope search):", ""] + [f"    {q}" for q in plan["tags"]["GIV"]] + [""]
     lines += [f"## XLX: level {XLX_FOR[GIVER]}+ (a power-up costs 5,000 Stardust or more)", ""]
+    lines += [f"## GIV (evolved, only after XLX): {len(evolved)} species forms", "",
+              "Stage 2, a stage 1 that takes 100+ candy, a quest or an item, or a gym defender. 2XL (under 360 Candy XL) "
+              "comes first, so these only get GIV in a family with 360+ Candy XL.", ""]
+    lines += [f"- {name(s)}: {r}" for s, r in sorted(evolved.items(), key=lambda x: m.dex(x[0]))]
+    lines += ["", f"Searches (with {EVOLVED_REST}):", ""] + [f"    {q}" for q in plan["giv_evolved"]] + [""]
     open(os.path.join(base.RUN_DIR, "plan.md"), "w").write("\n".join(lines))
     log(f"plan for {GIVER}: GIV {len(why)} species forms ({len(dropped)} enough already), "
         f"{len(plan['tags']['GIV'])} searches -> {base.RUN_DIR}")
@@ -538,6 +560,14 @@ NOPE_OLD = f"#{NOPE}&!traded&year-2020" + NOPE_KEEP + NO_SPECIAL  # a trade make
 SUSPECT_PILE = f"#{NOPE}&!traded" + NOPE_KEEP + NO_SPECIAL  # suspects.py checks these before any tag
 OLD, OLD_AGE = "Old", "&age300-"  # caught 300+ days ago: after Luckydex, before Reroll, GIV and XLX
 PILE = None  # tag --nope: NOPE_PILE, typed in place of the Tradeable shortcut
+# HashTagAJay's Nope only, after Old: medal ones (by weight, read on the detail page) -> GIV, for any other account.
+# The Youngster medal counts tiny Rattata (any region), the Fisherman medal big Magikarp
+MEDALS = [("Rattata", "&19&xxs,xs", lambda kg: kg <= 2.41), ("Magikarp", "&129", lambda kg: kg >= 13.13)]
+# then 2XL: under 360 Candy XL, for a Friendship Friday trade (a sure 2 Candy XL). Beats every other GIV and XLX. A
+# never-traded XXL/XXS one is left for sizes.py's IVC
+TWO_XL = "2XL"
+TWO_XL_PILE = NOPE_PILE + NOT_TAGGED + "&!xxl&!xxs" + ct.UNDER_360_XL  # (the count term last)
+RESORT = f"#{TRANSFER}&!traded&!#{NOPE}" + NOPE_KEEP + NO_SPECIAL  # --resort: Nope back on, Transfer off
 
 
 def run_pile(suffix):
@@ -621,7 +651,37 @@ def walk(suffix, xlx, power, limit, skip_dex=(), unsure=None):
     return done
 
 
-def cmd_tag(limit, nope=False):
+def medal_walk(unsure):
+    """HashTagAJay's Nope: open each Rattata and Magikarp in MEDALS' searches and tag GIV the ones whose weight fits.
+    One whose weight doesn't read goes in unsure"""
+    for name, q, fits in MEDALS:
+        if not run_pile(q + NOT_TAGGED):
+            continue
+        go("tile 1", "detail")
+        seen = set()
+        while True:
+            _, texts, _, bounds = wait_for("detail")
+            info = ui.detail_info(texts)
+            me = (info["name"], info["cp"], info["hp"])
+            if me in seen:
+                break
+            seen.add(me)
+            base.OPENED["who"] = base.who(info)
+            kg = base.OPENED["who"][2]
+            if kg is None:
+                log(f"pass {info['name']} CP{info['cp']}: no weight read")
+                unsure.append(f"{name} {info['name']} CP{info['cp']} HP{info['hp']}: no weight read")
+            elif fits(kg):
+                base.set_tags(on=("GIV",))
+                log(f"GIV {name} {info['name']} CP{info['cp']}: {kg} kg")
+            else:
+                log(f"pass {name} {info['name']} CP{info['cp']}: {kg} kg")
+            if not next_one(bounds, lambda t: (lambda i: (i["name"], i["cp"], i["hp"]))(ui.detail_info(t)) not in seen):
+                break
+        go("close", "list")
+
+
+def cmd_tag(limit, nope=False, resort=False):
     global PILE, XLX_LEVEL
     base.new_run_dir(os.path.join(HERE, "runs"), suffix="tag")
     who = home.trainer()
@@ -635,6 +695,9 @@ def cmd_tag(limit, nope=False):
     XLX_LEVEL = plan.get("xlx_level", XLX_LEVEL)
     log(f"{who}: tagging for {to} from {plan_f}, XLX at level {XLX_LEVEL}+")
     search.to_search_list()
+    if resort:  # the untraded ones tagged Transfer before a rule changed: back in the Nope pile, judged again
+        ct.tag_pile(NOPE, NOPE, off=(TRANSFER,), query=RESORT)
+        search.to_search_list()
     if nope:
         rescue.main(10 ** 9, False)  # first: a 98%+ one in Nope gets the star and loses Nope, so it's never tagged here
         PILE = NOPE_PILE
@@ -652,10 +715,18 @@ def cmd_tag(limit, nope=False):
         search.to_search_list()
         ct.tag_pile(NOPE, GUARANTEED, off=(NOPE,), query=NOPE_OLD)
     done_f = os.path.join(os.path.dirname(plan_f), f"tagged-nope-{who}.json" if nope else "tagged.json")  # this
-    done = set(json.load(open(done_f))) if os.path.exists(done_f) else set()  # plan's searches already tagged: a
+    done = set(json.load(open(done_f))) if os.path.exists(done_f) and not resort else set()  # plan's searches already tagged: a
     for t in TAGS:  # rerun skips them (14 s each, even at 0). Each search leaves out all three tags: the first wins
         if nope and t == "Reroll":  # Old: under Luckydex, over Reroll, GIV and XLX
             ct.tag_pile(NOPE, OLD, off=(NOPE,), query=NOPE_PILE + OLD_AGE + NOT_TAGGED)
+            if who == TAKER:  # then medal GIV, then 2XL: both over every other GIV and XLX
+                medal_unsure = []
+                medal_walk(medal_unsure)
+                if medal_unsure:
+                    log("not tagging 2XL or the rest: these medal ones had no weight read. Look at each by hand (GIV "
+                        "if it fits, or leave it), then run tag --nope again:\n  " + "\n  ".join(medal_unsure))
+                    return
+                ct.tag_pile(NOPE, TWO_XL, off=(NOPE,), query=TWO_XL_PILE)
         for q in plan["tags"][t]:
             if q + NOT_TAGGED in done:
                 continue
@@ -718,7 +789,9 @@ if __name__ == "__main__":
     if a[0] == "read":
         session.main(cmd_read, a[1] if len(a) > 1 else None)
     elif a[0] == "tag":
-        session.main(cmd_tag, session.limit(a), "--nope" in a)
+        if "--resort" in a and "--nope" not in a:
+            sys.exit("--resort goes with tag --nope")
+        session.main(cmd_tag, session.limit(a), "--nope" in a, "--resort" in a)
     elif a[0] == "plan":
         session.main(cmd_plan, a[a.index("--to") + 1] if "--to" in a else TAKER)
     else:

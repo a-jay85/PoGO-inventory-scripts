@@ -17,6 +17,10 @@ On each page it opens the Mega level page (the round Mega badge under the types)
 - No MEGA EVOLVE button on the level page (Max Level): skipped.
 
 Free = no number next to the MEGA EVOLVE button, and no xN cost in the "Do you want to Mega Evolve" box.
+
+Then it searches mega2 and Mega Evolves any of those, any tag, only when it's free. That ends the Mega Evolution
+just made, so its rest timer starts now instead of in 8 hours. One Mega right now ("07:59 left") is skipped.
+An X/Y one there takes its nickname's form, or with no letter whichever form is free.
 --dry-run goes as far as that box and taps NO. It still taps the phone.
 Log in runs/<time>-<phone>/log.txt.
 """
@@ -35,6 +39,7 @@ from shadows import Pass, exact, press, next_one, settled_tiles, search_exact
 TAG = "TODO"
 SEARCH = "#TODO&mega&!#TODO4"  # mega = mega0-: only species that can Mega Evolve. Not last: a search ending in
 # "mega" shows suggestion chips that push the first row of tiles out of reach
+FREE_SEARCH = "mega2"  # after the TODO ones: Mega Evolve any of these that's free (the user, 2026-10-26)
 PHONE = "android" if ui.ANDROID else "iphone"
 
 
@@ -224,9 +229,10 @@ def close_sheet():
 
 # ---------- one Pokémon ----------
 
-def check(info, texts):
-    """-> (Mewtwo, the forms to try: [] for a one-form species). Raises Pass for one to leave alone"""
-    if TAG not in [t.strip() for t in info["tags"]]:
+def check(info, texts, free_only=False):
+    """-> (Mewtwo, the forms to try: [] for a one-form species). Raises Pass for one to leave alone.
+    free_only (the mega2 pass): any tag, and an X/Y one with no letter takes whichever form is free"""
+    if not free_only and TAG not in [t.strip() for t in info["tags"]]:
         raise Pass(f"tags {info['tags']}: no exact {TAG}")
     b = badge(texts)
     if b and "left" in b[4].lower():
@@ -237,12 +243,12 @@ def check(info, texts):
     form = form_of(info["name"])
     if form:
         return mewtwo, [form]
-    if mewtwo:  # a Mewtwo with no letter: whichever form is free (the user, 2026-10-26)
+    if mewtwo or free_only:  # a Mewtwo with no letter: whichever form is free (the user, 2026-10-26)
         return mewtwo, ["X", "Y"]
     raise Pass("X/Y species and the nickname doesn't end in X or Y")
 
 
-def can(s, mewtwo):
+def can(s, mewtwo, free_only=False):
     """the level page (one form) -> (page cost, needs free, why). Raises Pass when it can't or mustn't Mega Evolve"""
     if s["done_today"]:
         raise Pass("daily level limit met: done today")
@@ -252,27 +258,27 @@ def can(s, mewtwo):
         raise Pass(f"{s['level']} Level: no MEGA EVOLVE on the level page")
     cost = page_cost(s)
     one_more = s["level"] == "High" and s["more"] == 1
-    need_free = mewtwo or one_more
-    why = "Mewtwo" if mewtwo else "1 more time to Max Level" if one_more else ""
+    need_free = mewtwo or one_more or free_only
+    why = "mega2" if free_only else "Mewtwo" if mewtwo else "1 more time to Max Level" if one_more else ""
     if need_free and cost != 0:
         raise Pass(f"{why}: only when free, costs {cost}")
     return cost, need_free, why
 
 
-def mega(info, dry):
+def mega(info, dry, free_only=False):
     """on a Pokémon's page: decide, and Mega Evolve it from its level page. -> what happened (a log line)"""
     _, texts, _, bounds = look()
-    mewtwo, forms = check(info, texts)
+    mewtwo, forms = check(info, texts, free_only)
     s, texts, bounds = open_sheet(texts, bounds)
     try:
         if not forms:
-            cost, need_free, why = can(s, mewtwo)
+            cost, need_free, why = can(s, mewtwo, free_only)
         else:
             nope = []
             for form in forms:
                 try:
                     s, texts, bounds = pick_form(form, texts, bounds)
-                    cost, need_free, why = can(s, mewtwo)
+                    cost, need_free, why = can(s, mewtwo, free_only)
                     break
                 except Pass as e:
                     nope.append(f"{form}: {e}")
@@ -323,6 +329,13 @@ def finish():
                 press(yes[0], bounds)
                 time.sleep(0.8)
                 continue
+        if "Mega Level" in j and "increased" in j:  # a level up (High -> Max): Back, or its round X at the bottom
+            if ui.ANDROID:
+                ui.android.key("back")
+            else:
+                base.click(0.5, 0.937, bounds)
+            time.sleep(1.0)
+            continue
         tap_line = [t for t in texts if "TAP TO MEGA" in ui.norm(t[4])]
         if tap_line and tapped < 6:
             t = tap_line[0]
@@ -340,10 +353,11 @@ def finish():
 
 # ---------- the run ----------
 
-def walk(limit, dry):
+def walk(q, limit, dry, free_only=False):
     front()
-    if not settled_tiles_after(SEARCH):
-        log(f"nothing in {SEARCH}")
+    log(f"--- {q}{' (only free)' if free_only else ''}")
+    if not settled_tiles_after(q):
+        log(f"nothing in {q}")
         return
     # how many: a Mega Evolved one's CP reads differently look to look, so a swipe at the end can seem to move
     total = search.result_count(look()[1])
@@ -363,7 +377,7 @@ def walk(limit, dry):
             if counts["done"] >= limit:
                 log(f"--limit {limit} reached")
                 break
-            did = mega(info, dry)
+            did = mega(info, dry, free_only)
             log(f"{label}: {did}")
             counts["done"] += 1
             if not dry:
@@ -410,7 +424,9 @@ def settled_tiles_after(q):
 
 def script(limit, dry):
     base.start()
-    walk(limit, dry)
+    walk(SEARCH, limit, dry)
+    # then a free one from mega2 ends the last Mega Evolution, so its rest timer starts now. --limit counts each pass
+    walk(FREE_SEARCH, limit, dry, free_only=True)
 
 
 def main():

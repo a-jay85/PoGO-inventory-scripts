@@ -230,7 +230,8 @@ def long_search(q):
         search_exact(q)
         return results()
     terms = re.split(r"(?=&)", q)
-    head = terms.pop(0)
+    head = terms.pop(0)  # (an AND's order doesn't matter: the terms that narrow it go first, the `&!` ones last,
+    terms = sorted(dict.fromkeys(terms), key=lambda t: t.startswith("&!"))  # so an empty one stops early. No repeats)
     while terms and len(head + terms[0]) <= HEAD_MAX:
         head += terms.pop(0)
     search_exact(head)
@@ -320,7 +321,7 @@ def tag_pile(name, tag, suffix=None, off=(), query=None):
     texts, _, bounds = still_sheet()
     press(next(t for t in texts if ui.norm(t[4]) == "DONE"), bounds)
     wait_for("list", timeout=8)
-    rest = find()
+    rest = results() and find()  # the list may drop them on its own: then no need to type the search again
     if rest:
         raise Stop(f"{name}: tagged {n} {tag or ''}, but {rest} are still in the search")
     log(f"{name}: tagged {n} {tag or ''}" + "".join(f", took off {t}" for t in off))

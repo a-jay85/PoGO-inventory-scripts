@@ -563,6 +563,7 @@ PILE = None  # tag --nope: NOPE_PILE, typed in place of the Tradeable shortcut
 # HashTagAJay's Nope only, after Old: medal ones (by weight, read on the detail page) -> GIV, for any other account.
 # The Youngster medal counts tiny Rattata (any region), the Fisherman medal big Magikarp
 MEDALS = [("Rattata", "&19&xxs,xs", lambda kg: kg <= 2.41), ("Magikarp", "&129", lambda kg: kg >= 13.13)]
+MEDAL_KG = {"Rattata": (0.5, 10), "Magikarp": (2, 30)}  # a weight outside this is a misread (a lost decimal point)
 # then 2XL: under 360 Candy XL, for a Friendship Friday trade (a sure 2 Candy XL). Beats every other GIV and XLX. A
 # never-traded XXL/XXS one is left for sizes.py's IVC
 TWO_XL = "2XL"
@@ -668,9 +669,10 @@ def medal_walk(unsure):
             seen.add(me)
             base.OPENED["who"] = base.who(info)
             kg = base.OPENED["who"][2]
-            if kg is None:
-                log(f"pass {info['name']} CP{info['cp']}: no weight read")
-                unsure.append(f"{name} {info['name']} CP{info['cp']} HP{info['hp']}: no weight read")
+            lo, hi = MEDAL_KG[name]
+            if kg is None or not lo <= kg <= hi:
+                log(f"pass {info['name']} CP{info['cp']}: weight read {kg}")
+                unsure.append(f"{name} {info['name']} CP{info['cp']} HP{info['hp']}: weight read {kg}")
             elif fits(kg):
                 base.set_tags(on=("GIV",))
                 log(f"GIV {name} {info['name']} CP{info['cp']}: {kg} kg")

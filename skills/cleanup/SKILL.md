@@ -133,6 +133,8 @@ HashTagAJay needs the GIV, 2XL, XLX and Transfer tags. `tag --nope` stops if one
 - `#Nope&traded&!shadow&!lucky&!costume&!background&!#IVC&!#PvpC&!#Old&!#GuaranteedLucky&!#Evo&!gigantamax&!shiny&!legendary&!mythical&!ultrabeast&!#Transfer`: these get Transfer straight away.
 - `#Nope&!traded&year2021-&!shadow&!lucky&!costume&!background&!#IVC&!#PvpC&!#Old&!#GuaranteedLucky&!#Evo`: the untraded pile. Next to `#Nope&!traded`, the gap should be the 2016-2020 catches and the kinds left out. 0, or a huge gap, means a term (a tag the account doesn't have, or `year2021-`) isn't read the way it's meant.
 
+On HashTagAJay, also count (print them with `python3 -c "import tradeable as t; print(t.RESORT)"`, and `t.TWO_XL_PILE`, and `t.NOPE_PILE + q + t.NOT_TAGGED` for each `q` in `t.MEDALS`): the `--resort` pile, the two medal piles and the 2XL pile. And `#Nope&#2XL`: it must be 0, or the 2XL pass stops on a tick it didn't expect.
+
 Then `tag --nope --limit 1`, with the user watching.
 
 ## XXL and XXS: never Transfer or Nope

@@ -293,7 +293,8 @@ def tag_pile(name, tag, suffix=None, off=(), query=None):
     if not re.search(rf"TAG\s*{n}\s*POK", head.upper()):  # (ui.norm drops digits)
         close_sheet(texts, bounds)
         raise Stop(f"the tag sheet says {head!r}, wanted {n}")
-    left, same = {**{t.upper(): False for t in off}, **({tag.upper(): True} if tag else {})}, 0  # tag -> its last tick
+    # tag -> its last tick, keyed like sheet_rows' names (ui.norm drops digits: 2XL is XL there)
+    left, same = {**{ui.norm(t): False for t in off}, **({ui.norm(tag): True} if tag else {})}, 0
     for _ in range(30):
         rows = sheet_rows(texts, path)
         T = next((T for T in left if T in rows), None)

@@ -708,7 +708,9 @@ def send_gift():
     blind = max(0, picker_drags - 1)  # where the last gift was found, less one scroll (a sent gift can shift the list up)
     drags = 0
     seen, dragged = None, None  # seen: the last look's layout; dragged: the layout and titles when it last scrolled
-    for i in range(40):
+    for i in range(200):  # (about 3 looks a scroll: the first look after one still catches the list moving)
+        if drags >= 60:  # (a full bag is a long list: 12 scrolls weren't enough on 2026-10-26)
+            break
         if i:  # (the first pass reads the capture wait() just took)
             time.sleep(0.6)
             look()
@@ -779,7 +781,7 @@ def send_gift():
             dragged = None  # (these scrolls weren't checked: the next one mustn't read as the list's end)
         drag(0.75, 0.45, x=0.5 + random.uniform(-0.005, 0.005))
         drags += 1
-    raise Stop("looked through the gift list 40 times without reaching its end")
+    raise Stop(f"scrolled the gift list {drags} times without reaching its end")
 
 
 def new_nickname(tag, old):

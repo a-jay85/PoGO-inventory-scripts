@@ -18,8 +18,8 @@ chain stops at the first step that doesn't end well (stopped, crashed, interrupt
 """
 import os, subprocess, sys, time
 
-HERE = os.path.dirname(os.path.realpath(__file__))  # realpath: ~/.claude/skills/pvpc is a symlink
-SKILLS = os.path.dirname(HERE)
+HERE = os.path.dirname(os.path.realpath(__file__))  # the repo root
+SKILLS = os.path.join(HERE, "skills")
 SEP = "+"
 
 # step -> (script under skills/, first words it takes (a flag or nothing is always fine), the ones that stay on the Mac)
@@ -129,7 +129,7 @@ def close(used):
     for phone in sorted(used):
         env = dict(os.environ, POGO_PHONE=phone)
         env.pop("POGO_KEEP_OPEN", None)
-        subprocess.run([sys.executable, os.path.join(HERE, "session.py"), "close"], env=env)
+        subprocess.run([sys.executable, os.path.join(SKILLS, "pvpc", "session.py"), "close"], env=env)
 
 
 def main(argv):

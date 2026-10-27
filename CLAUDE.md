@@ -13,7 +13,7 @@ Claude Code skills that sort a Pokémon GO storage: `/pvpc`, `/ivc`, `/ivcsort`,
 
 The skills import each other by relative path (`HERE/../pvpc`), so they must stay siblings under `skills/`.
 
-`skills/pvpc/pogo.py` is the one front door: it runs any skill's script by step name, and chains steps with `+` (`pogo.py pvpc --limit 5 + ivc`). Each step is its own process. A new script gets a line in its `STEPS` table. Code two skills both need goes in `skills/pvpc/` (the shared library), never copied.
+`pogo.py` (at the repo root) is the one front door: it runs any skill's script by step name, and chains steps with `+` (`pogo.py pvpc --limit 5 + ivc`). Each step is its own process. A new script gets a line in its `STEPS` table. Code two skills both need goes in `skills/pvpc/` (the shared library), never copied.
 
 ## Every change goes in a worktree, a PR and a squash-merge
 

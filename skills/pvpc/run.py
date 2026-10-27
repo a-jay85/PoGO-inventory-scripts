@@ -189,6 +189,41 @@ def tries(n, ios):
         i += 1
 
 
+SIZE_CARD = (95, 206, 250)  # the card's sky blue
+
+
+def size_record(path):
+    """a 'New Size Record' card: it slides up over a Pokémon's detail page the first time it's opened after the
+    record, and covers the bottom third. Its words fade in after it lands, so it's told by its blue: a row of it,
+    edge to edge, where the detail page is white"""
+    im = ui.Image.open(path).convert("RGB")
+    W, H = im.size
+    return all(sum(abs(a - b) for a, b in zip(im.getpixel((int(fx * W), int(0.78 * H))), SIZE_CARD)) < 30
+               for fx in (0.05, 0.3, 0.5, 0.7, 0.95))
+
+
+def size_title(texts):
+    return next((t for t in texts if ui.norm(t[4]).startswith("NEW SIZE RECORD")), None)
+
+
+def close_size_record(texts, path, bounds):
+    """tap the card's own X, a pale circle at the bottom centre, under its height and weight lines. It sits about
+    where the detail page's X does, so it's found on the picture, never guessed"""
+    title = size_title(texts)
+    low = max(t[1] + t[3] for t in texts if t[1] > title[1])  # the bottom of the card's last line (the weight)
+    im = ui.Image.open(path).convert("RGB")
+    W, H = im.size
+    x, y0 = W // 2, int((low + 0.02) * H)
+    bg = im.getpixel((x, y0))  # the card's blue
+    ys = [y for y in range(y0, H) if sum(abs(a - b) for a, b in zip(im.getpixel((x, y)), bg)) > 60]
+    ys = [y for i, y in enumerate(ys) if all(b - a < 0.01 * H for a, b in zip(ys[:i], ys[1:i + 1]))]  # the circle only
+    if not ys or not 0.02 * H < ys[-1] - ys[0] < 0.12 * H:
+        keep_capture("size_record")
+        raise Lost("a New Size Record card is up and its X isn't where it should be")
+    log("  a New Size Record card is up: closing it")
+    click(0.5, (ys[0] + ys[-1]) / 2 / H, bounds)
+
+
 def wait_for(*screens, timeout=10, capture=True, look=None, poll=None, catch=True, detail=False):
     """poll until one of the screens shows up. Brief unknown screens (animations) are fine. It always looks at least
     once, and once more after the time is up, then raises Lost.
@@ -197,7 +232,7 @@ def wait_for(*screens, timeout=10, capture=True, look=None, poll=None, catch=Tru
     when it gives up. detail: the error has the last screen's text even when it's a known screen"""
     see = look or globals()["look"]
     pause = poll_gap(0.12) if poll is None else poll
-    end, last, nudges = time.time() + timeout, "?", 0
+    end, last, nudges, cards = time.time() + timeout, "?", 0, 0
     while True:
         try:
             screen, texts, path, bounds = see()
@@ -206,6 +241,14 @@ def wait_for(*screens, timeout=10, capture=True, look=None, poll=None, catch=Tru
                 raise
             last = str(e)
         else:
+            if screen == "detail" and cards < 10 and size_record(path):
+                cards += 1  # a "New Size Record" card slid up over the detail: it hides the candy and the X
+                if size_title(texts):
+                    close_size_record(texts, path, bounds)
+                else:
+                    time.sleep(0.3)  # still blank: its words and X are fading in
+                end = max(end, time.time() + 3)
+                continue
             if screen in screens:
                 return screen, texts, path, bounds
             last = screen

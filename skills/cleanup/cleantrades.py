@@ -231,7 +231,8 @@ def long_search(q):
         return results()
     terms = re.split(r"(?=&)", q)
     head = terms.pop(0)  # (an AND's order doesn't matter: the terms that narrow it go first, the `&!` ones last,
-    terms = sorted(dict.fromkeys(terms), key=lambda t: t.startswith("&!"))  # so an empty one stops early. No repeats)
+    terms = sorted(dict.fromkeys(terms), key=lambda t: (t.startswith("&count"), t.startswith("&!")))  # so an empty
+    # one stops early. No repeats. A count term eats what follows it: it goes after everything)
     while terms and len(head + terms[0]) <= HEAD_MAX:
         head += terms.pop(0)
     search_exact(head)
@@ -292,7 +293,8 @@ def tag_pile(name, tag, suffix=None, off=(), query=None):
     if not re.search(rf"TAG\s*{n}\s*POK", head.upper()):  # (ui.norm drops digits)
         close_sheet(texts, bounds)
         raise Stop(f"the tag sheet says {head!r}, wanted {n}")
-    left, same = {**{t.upper(): False for t in off}, **({tag.upper(): True} if tag else {})}, 0  # tag -> its last tick
+    # tag -> its last tick, keyed like sheet_rows' names (ui.norm drops digits: 2XL is XL there)
+    left, same = {**{ui.norm(t): False for t in off}, **({ui.norm(tag): True} if tag else {})}, 0
     for _ in range(30):
         rows = sheet_rows(texts, path)
         T = next((T for T in left if T in rows), None)

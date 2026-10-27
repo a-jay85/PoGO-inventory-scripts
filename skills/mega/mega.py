@@ -329,6 +329,13 @@ def finish():
                 press(yes[0], bounds)
                 time.sleep(0.8)
                 continue
+        if "Mega Level" in j and "increased" in j:  # a level up (High -> Max): Back, or its round X at the bottom
+            if ui.ANDROID:
+                ui.android.key("back")
+            else:
+                base.click(0.5, 0.937, bounds)
+            time.sleep(1.0)
+            continue
         tap_line = [t for t in texts if "TAP TO MEGA" in ui.norm(t[4])]
         if tap_line and tapped < 6:
             t = tap_line[0]

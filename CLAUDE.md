@@ -22,8 +22,9 @@ The skills import each other by relative path (`HERE/../pvpc`), so they must sta
 2. Enter it with `EnterWorktree(path=...)`. Don't `cd` into it.
 3. Commit, then push in a separate command. Never chain `git commit && git push`.
 4. Open a PR with `gh pr create`. Squash-merge only: `gh pr merge --squash --delete-branch`.
-5. Pull the main checkout (above), then remove the worktree:
-   `git -C ~/PoGO-inventory-scripts worktree remove ~/PoGO-inventory-scripts-worktrees/<slug>`
+5. Claude does this step itself and never hands it to the user. Leave the worktree (`ExitWorktree` with `keep`), pull the main checkout (above), then remove every merged worktree:
+   `python3 ~/PoGO-inventory-scripts/wt_cleanup.py`
+   It removes only worktrees whose PR merged, with nothing uncommitted and no process inside, and it saves their `runs/` folders to `~/claude-plans/_backups/worktree-runs/` first. It also sweeps leftovers from other sessions. `--dry-run` shows what it would do.
 
 `main` is linear. A merged branch's SHAs never land on `main`, because the squash makes a new commit. Confirm a merge by content, not by SHA. Start the next branch fresh from `origin/main`. Stacking on a branch that later squash-merges means rebasing with `git rebase --onto origin/main <old-parent-tip> <branch>`.
 

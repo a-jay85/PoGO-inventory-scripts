@@ -827,8 +827,7 @@ def cmd_tag(limit, nope=False, resort=False):
     tag_pile("GIV", rest + "&!traded&distance100-")  # fits nothing else, but a far trade: GIV
     tag_pile(TRANSFER, rest)  # (rest leaves out #GIV)
     if nope:  # every one has its new tag: Nope off
-        for t in (*TAGS, XLX, TRANSFER):
-            ct.tag_pile(NOPE, None, off=(NOPE,), query=f"#{NOPE}&#{t}")
+        ct.tag_pile(NOPE, None, off=(NOPE,), query=f"#{NOPE}&" + ",".join(f"#{t}" for t in (*TAGS, XLX, TRANSFER)))
 
 
 if __name__ == "__main__":

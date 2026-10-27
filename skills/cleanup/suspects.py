@@ -314,7 +314,6 @@ def run(pile, who, dry=False):
 
 
 def script(a):
-    import tradeable
     who = home.trainer()
     if who not in (tradeable.GIVER, tradeable.TAKER):
         raise Stop(f"signed in as {who!r}")
@@ -325,5 +324,6 @@ def script(a):
 
 
 if __name__ == "__main__":
+    import tradeable  # it imports this file again, and that resets the run folder: load it before making ours
     base.new_run_dir(os.path.join(HERE, "runs"), suffix="suspects")
     session.main(script, sys.argv[1:])

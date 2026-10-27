@@ -41,10 +41,10 @@ One command, after /ivc: `POGO_PHONE=android caffeinate -dimsu python3 ~/PoGO-in
 
 1. It counts `#IVC&!xxl&!xxs`. Up to 60 (`SMALL`): one search reads them all. More: it goes 50 dex numbers at a time (`#IVC&!xxl&!xxs&1-50`, ...), and each block is tagged before the next is read.
 2. It opens each IVC Pokémon in the block and reads it (`scan.json`). One that /ivc renamed in the last 12 hours on this phone isn't opened: /ivc saved what its detail screen showed (`ivc/runs/<time>/read.json`).
-3. It types the searches for their families only (`pools.json`). A family's searches are typed once a run. It reads again (up to 2 more times) any search whose miscount could turn a KEEP or NOPE into LEAVE.
-4. It decides (`plan.txt`), then searches the ones to change and favorites + unticks IVC, or Nopes (`act.json`).
+3. Then one family at a time: it types that family's searches (`pools.json`), once a run. It reads again (up to 2 more times) any search whose miscount could turn a KEEP or NOPE into LEAVE. The search most of the family's IVC ones show in goes last.
+4. It decides (`plan.txt`) and, on that last list still on screen, favorites + unticks IVC, or Nopes (`act.json`). An IVC one in another of the family's lists (a shadow, say) gets that list typed. A tile with the same name and CP but no IVC tag is an older keeper: it's passed. Then the next family.
 
-A stop loses nothing: `run.py sort $S/runs/<time>` carries on, the same way it started (blocks done are in `sorted.json`). `--limit N` stops after N changes. `--look` does steps 1-3 and writes `plan.txt`, changing nothing.
+A stop loses nothing: `run.py sort $S/runs/<time>` carries on, the same way it started (blocks done are in `sorted.json`, families in `families.json`). `--limit N` stops after N changes. `--look` does steps 1-3 and writes `plan.txt`, changing nothing.
 
 An IVC Pokémon still named after its species has no IV in the pools, so it could beat a KEEP. Every KEEP its block could hold becomes LEAVE until /ivc renames it. A NOPE stays.
 

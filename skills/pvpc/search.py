@@ -627,15 +627,23 @@ def sort_menu(texts):
 
 def sort_by(label, bounds):
     """open the sort menu, pick RECENT / FAVORITE / NUMBER / HP / NAME / COMBAT POWER, wait for the list"""
-    click(SORT_BUTTON[0] + random.uniform(-0.01, 0.01), SORT_BUTTON[1] + random.uniform(-0.004, 0.004), bounds)
-    for _ in range(12):
-        time.sleep(0.25)
-        path, bounds = ui.capture()
-        texts = ui.ocr(path)
-        row = [t for t in texts if sort_row(t, label)]
-        if row and any(sort_row(t, "COMBAT POWER") for t in texts):
+    opened = False
+    for attempt in range(2):
+        click(SORT_BUTTON[0] + random.uniform(-0.01, 0.01), SORT_BUTTON[1] + random.uniform(-0.004, 0.004), bounds)
+        end = time.time() + 10  # a slow iPhone has opened it 5+ s after the tap: a 2nd tap then lands on its X
+        while time.time() < end:
+            time.sleep(0.25)
+            path, bounds = ui.capture()
+            texts = ui.ocr(path)
+            row = [t for t in texts if sort_row(t, label)]
+            if row and any(sort_row(t, "COMBAT POWER") for t in texts):
+                opened = True
+                break
+        # iPhone Mirroring drops a tap now and then: still the plain list with no menu at all -> tap it once more
+        if opened or attempt or sort_menu(texts) or ui.classify(texts) != "list":
             break
-    else:
+        log("  the sort menu didn't open: tapping the sort button again")
+    if not opened:
         keep_capture("sortmenu")
         if sort_menu(texts):  # open after all, but the row wasn't read: its X (where the sort button was) shuts it
             click(SORT_BUTTON[0] + random.uniform(-0.01, 0.01), SORT_BUTTON[1] + random.uniform(-0.004, 0.004), bounds)

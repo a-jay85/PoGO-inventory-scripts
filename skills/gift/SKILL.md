@@ -1,6 +1,6 @@
 ---
 name: gift
-description: Send San Francisco gifts (not ones with lion, tree or rock in the name) to every friend who can take one, on both accounts (HashTagAJay on the iPhone through iPhone Mirroring, CyrillJan on the Android phone). Friends who haven't played with you today go first, far-ahead time zones first, and friends 1 point from a level-up are skipped and tagged WAIT. Use when the user says /gift or asks to send gifts.
+description: Send San Francisco gifts, plus every gift after the account's last held one (HashTagAJay: Mrs. Pig), never ones with lion, tree or rock in the name, to every friend who can take one, on both accounts (HashTagAJay on the iPhone through iPhone Mirroring, CyrillJan on the Android phone). Friends who haven't played with you today go first, far-ahead time zones first, and friends 1 point from a level-up are skipped and tagged WAIT. Use when the user says /gift or asks to send gifts.
 model: claude-sonnet-5-5
 ---
 
@@ -9,7 +9,7 @@ model: claude-sonnet-5-5
 Uses the shared tapper and screen reader from /pvpc (`~/.claude/skills/pvpc`: `ui.py`, `run.py`, `home.py`).
 `S=~/.claude/skills/gift`.
 
-`POGO_PHONE=android caffeinate -dimsu python3 $S/gift.py [--limit N] [--dry-run]`
+`POGO_PHONE=android caffeinate -dimsu python3 $S/gift.py [--limit N] [--dry-run] [--last-held NAME]`
 
 `POGO_PHONE` picks the phone, like the other skills:
 
@@ -25,7 +25,20 @@ Keep your hands off the Mac mouse while the iPhone runs: its taps go through the
 
 ## Which gifts
 
-Only gifts whose city line reads **San Francisco**, with no sticker. A title with **lion**, **tree** or **rock** in it is kept (Lions, Trees and Rocky too). Mission Rock gifts are sent anyway. The gift preview must read the same title and city before SEND. Every other gift (Chicago, North Carolina ...) is left for sending by hand. When a phone has none left, it stops. The other phone keeps going. A grey SEND GIFT only skips that friend: some friends can't take a gift for a while. On every 3rd grey in a row the script taps it anyway. If the gift list opens, it sends as usual and stops there once the list has none of ours. After 9 greys in a row it stops too. At the end the iPhone quits iPhone Mirroring and the Pixel locks.
+Only gifts whose city line reads **San Francisco**, with no sticker. A title with **lion**, **tree** or **rock** in it is kept (Lions, Trees and Rocky too). Mission Rock gifts are sent anyway.
+
+An account can also name its **last held gift**. Every gift after that one in the gift list is sent too, whatever its city. Lion, tree and rock still keep a gift. The names live in `LAST_HELD` at the top of `gift.py`:
+
+- HashTagAJay: `Mrs. Pig`. So Cute Pets Mural, Paul Bunyan Hydrant and the rest of the Belmont gifts go. Tree Rings Mural stays.
+- CyrillJan: none. San Francisco only.
+
+The gift list on screen isn't steady: cards swap places, and an old card can show in the wrong spot. On 2026-10-26 that sent a Chicago gift. So a gift after the last held one must also pass these, on the list and again on the preview:
+
+- Never from Chicago, Raleigh or North Carolina.
+- Never a title, or a city, seen above the last held gift.
+- Only titles first seen after it on a pass down from the top of the list.
+
+The script reads whose account it is from the ME tab, once at the start. `--last-held "NAME"` overrides it for one run (`--last-held none`: San Francisco only). If the named gift isn't in the gift list, only San Francisco gifts go. The gift preview must read the same title and city before SEND. Every other gift (Chicago, North Carolina ...) is left for sending by hand. When a phone has none left, it stops. The other phone keeps going. A grey SEND GIFT only skips that friend: some friends can't take a gift for a while. On every 3rd grey in a row the script taps it anyway. If the gift list opens, it sends as usual and stops there once the list has none of ours. After 9 greys in a row it stops too. At the end the iPhone quits iPhone Mirroring and the Pixel locks.
 
 ## Who goes first
 

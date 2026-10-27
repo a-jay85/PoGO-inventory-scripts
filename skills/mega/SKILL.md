@@ -10,7 +10,7 @@ Uses the shared tapper and screen reader from /pvpc (`~/.claude/skills/pvpc`). `
 
 `POGO_PHONE=android caffeinate -dimsu python3 $S/mega.py [--limit N] [--dry-run]`
 
-Or through the front door: `POGO_PHONE=android caffeinate -dimsu python3 ~/.claude/skills/pvpc/pogo.py mega`.
+Or through the front door: `POGO_PHONE=android caffeinate -dimsu python3 ~/PoGO-inventory-scripts/pogo.py mega`.
 
 `POGO_PHONE` picks the phone, like the other skills:
 

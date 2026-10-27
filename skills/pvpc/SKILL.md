@@ -40,9 +40,9 @@ Use this skill to clear its skips by hand.
 
 ### One front door: pogo.py
 
-`$S/pogo.py` runs any skill's script by step name, and several in a row with `+` between them. A step takes the same args as its script. `python3 $S/pogo.py list` shows every step.
+`~/PoGO-inventory-scripts/pogo.py` runs any skill's script by step name, and several in a row with `+` between them. A step takes the same args as its script. `python3 ~/PoGO-inventory-scripts/pogo.py list` shows every step.
 
-- `POGO_PHONE=android caffeinate -dimsu python3 $S/pogo.py pvpc --limit 5 + ivc --limit 5`
+- `POGO_PHONE=android caffeinate -dimsu python3 ~/PoGO-inventory-scripts/pogo.py pvpc --limit 5 + ivc --limit 5`
 - `last` is the run folder an earlier step of the same skill folder made: `pogo.py ivcsort scan + ivcsort pools last + ivcsort plan last`.
 - The whole chain is checked before step 1. It stops at the first step that doesn't end well, with that step's exit code.
 - Each step is its own python3 process. The phone stays up between steps and is closed once at the end.

@@ -61,6 +61,7 @@ import dex
 import cleantrades as ct
 import sizes
 import rescue
+import suspects
 from shadows import Pass, next_one, owned
 from ivc import GYM_DEFENDERS
 
@@ -534,6 +535,8 @@ NOPE_PILE = f"#{NOPE}&!traded&year2021-" + NOPE_KEEP  # the untraded ones: every
 NOPE_TRADED = f"#{NOPE}&traded" + NOPE_KEEP + NO_SPECIAL + f"&!#{TRANSFER}"  # can't trade again: Transfer only
 GUARANTEED = "GuaranteedLucky"
 NOPE_OLD = f"#{NOPE}&!traded&year-2020" + NOPE_KEEP + NO_SPECIAL  # a trade makes it lucky: GuaranteedLucky
+SUSPECT_PILE = f"#{NOPE}&!traded" + NOPE_KEEP + NO_SPECIAL  # suspects.py checks these before any tag
+OLD, OLD_AGE = "Old", "&age300-"  # caught 300+ days ago: after Luckydex, before Reroll, GIV and XLX
 PILE = None  # tag --nope: NOPE_PILE, typed in place of the Tradeable shortcut
 
 
@@ -638,10 +641,21 @@ def cmd_tag(limit, nope=False):
         search.to_search_list()
     if nope:  # a traded one can't trade again: Transfer, and Nope off
         ct.tag_pile(NOPE, TRANSFER, off=(NOPE,), query=NOPE_TRADED)
+        # an untraded one that may still be a keeper gets no tag until it's checked (suspects.py)
+        left = suspects.run(SUSPECT_PILE, who)
+        if left:
+            log(f"not tagging the untraded Nope: {len(left)} suspect(s) still unresolved. Sort these by hand (keep: "
+                f"star on and Nope off; or blank the name), then run tag --nope again:\n  "
+                + "\n  ".join(f"{v['tile']} CP{v['cp']}: {(v.get('why') or ['?'])[0] if isinstance(v.get('why'), list) else v['why']}"
+                              for v in left))
+            return
+        search.to_search_list()
         ct.tag_pile(NOPE, GUARANTEED, off=(NOPE,), query=NOPE_OLD)
     done_f = os.path.join(os.path.dirname(plan_f), f"tagged-nope-{who}.json" if nope else "tagged.json")  # this
     done = set(json.load(open(done_f))) if os.path.exists(done_f) else set()  # plan's searches already tagged: a
     for t in TAGS:  # rerun skips them (14 s each, even at 0). Each search leaves out all three tags: the first wins
+        if nope and t == "Reroll":  # Old: under Luckydex, over Reroll, GIV and XLX
+            ct.tag_pile(NOPE, OLD, off=(NOPE,), query=NOPE_PILE + OLD_AGE + NOT_TAGGED)
         for q in plan["tags"][t]:
             if q + NOT_TAGGED in done:
                 continue

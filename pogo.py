@@ -32,6 +32,7 @@ STEPS = {
     "cleantrades": ("cleanup/cleantrades.py", {"evo", "fix"}, set()),
     "sizes":       ("cleanup/sizes.py", set(), set()),
     "rescue":      ("cleanup/rescue.py", set(), set()),
+    "suspects":    ("cleanup/suspects.py", set(), set()),
     "tradeable":   ("cleanup/tradeable.py", {"refresh", "read", "plan", "tag"}, {"refresh", "plan"}),
     "dex":         ("dex/dex.py", {"lucky", "100", "look", "evolve"}, set()),
     "luckydex":    ("dex/luckydex.py", {"check"}, set()),

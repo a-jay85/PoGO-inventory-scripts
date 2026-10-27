@@ -121,6 +121,8 @@ def classify():
         return "giftpopup"
     if "REVIEW LUCKY" in j:
         return "luckytrade"  # a friend's Lucky Trade request over their page: its X shows the page
+    if "REMOTE RAID PASS" in j and "BATTLE" in w:
+        return "raid"  # a raid's gym screen (2026-10-27: a friend-row tap opened one). Its X leaves; never BATTLE
     if "TOTAL DAYS SPENT TOGETHER" in j:
         return "buddy"  # the buddy's history page (a stray tap on the ME tab's buddy): its X goes back
     if "TRAINER CODE" in j and "2D CODE" in j:
@@ -274,7 +276,7 @@ def to_list():
             tap_text(t) if t else tap(0.5, 0.09)
         elif s == "map":
             tap(0.13, 0.91)  # the profile picture
-        elif s in ("friend", "meter", "picker", "preview", "giftpopup", "luckytrade", "trainercode", "buddy"):
+        elif s in ("friend", "meter", "picker", "preview", "giftpopup", "luckytrade", "trainercode", "buddy", "raid"):
             close()
         elif s == "nickname":
             cancel_nickname()
@@ -982,7 +984,11 @@ def one_friend(row, check=False):
     """open the row's friend page, check, gift and/or tag. -> the gift sent, None, "grey" or "empty".
     check: on a grey SEND GIFT, tap it anyway to see whether my bag is empty"""
     t0 = time.time()
-    s = tap_into(row["t"], "friend", "giftpopup", "luckytrade")
+    s = tap_into(row["t"], "friend", "giftpopup", "luckytrade", "raid")
+    if s == "raid":
+        keep_capture("raid")
+        log(f"  tapping {row['name']!r} opened a raid: left it, skipped")
+        return None  # (run_searches' to_list() closes it)
     if s in ("giftpopup", "luckytrade"):
         close_popup("friend")  # their gift to me: X, never OPEN. A Lucky Trade request: X, left for the user
     name = page_name()

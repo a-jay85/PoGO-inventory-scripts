@@ -53,6 +53,7 @@ def strict(got, q):
     s = re.sub(r"^[<‹]?[q9]?(?=#)", "", s)  # the magnifier glued on
     s = re.sub(r"^[,.'`]+", "", s)  # the panel's cursor end can read as a stray ","
     Q = re.sub(r"\s", "", q).lower()
+    s, Q = re.sub(r"[i|]", "l", s), re.sub(r"[i|]", "l", Q)  # OCR reads 'xxl' as 'xxI' or 'xx|': one letter here
     bang = re.sub(r"^[q9]?[il|]", "!", s)  # the end of a long search: a '!' at its start reads as 'I' or 'QI'
     if bang != s and len(s) >= 15 and Q.endswith(bang):
         s = bang

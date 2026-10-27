@@ -128,6 +128,9 @@ def unstick(texts):
     global backs, reopened
     seen = ui.summary(texts, 200)
     if ui.ANDROID:
+        if not reopened and android_launch():  # the phone's home screen (the game went to the back): Back won't help
+            reopened = True
+            return True
         if backs >= MAX_BACKS:
             keep_capture("start")
             raise Stop(f"pressed Back {backs} times and still don't know this screen: {seen}")

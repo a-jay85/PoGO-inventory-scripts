@@ -652,11 +652,11 @@ def sort_all(limit, look):
             plan()  # every scanned one so far: the earlier chunks' are done already (act.json)
             if not look:
                 left -= act(left)
-        done.append(key)
-        save("sorted.json", done)
-        if left <= 0:
+        if left <= 0:  # the chunk may have more to change: not done (a rerun passes over what act.json has)
             log(f"--limit {limit} reached: `sort {base.RUN_DIR}` carries on")
             return
+        done.append(key)
+        save("sorted.json", done)
     counts = Counter(m["verdict"] for m in load("plan.json")) if os.path.exists(
         os.path.join(base.RUN_DIR, "plan.json")) else {}
     log(f"sorted every chunk{' (look only: nothing changed)' if look else ''}: {dict(counts)}. "

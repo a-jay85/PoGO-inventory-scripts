@@ -1112,7 +1112,7 @@ def script(limit):
     log(f"Pokémon GO up, on {s}")
     try:
         sent, why = run_searches(limit)
-        log(f"done: {sent} gifts sent" + (f", {why}" if why else ""))
+        log(f"done: {sent} gifts {'would be sent (dry run)' if DRY else 'sent'}" + (f", {why}" if why else ""))
     except OutOfGifts:
         log("done: out of gifts (none we may send left): stopping")
         if not ui.ANDROID:

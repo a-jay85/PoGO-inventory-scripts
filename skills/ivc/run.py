@@ -200,6 +200,19 @@ def retag(new):
     base.set_tags(on=[new], off=[TAG])
 
 
+READ = "read.json"  # what each renamed one's detail screen showed: /ivcsort's sort takes it instead of opening it again
+
+
+def remember(name, cp, info, texts, shadow, lucky, size):
+    path = os.path.join(base.RUN_DIR, READ)
+    read = json.load(open(path)) if os.path.exists(path) else []
+    read.append({"name": name, "cp": cp, "hp": info["hp"], "candy": base.candy(texts), "types": sorted(base.type_line(texts)),
+                 "shadow": shadow, "lucky": lucky, "size": size, "dynamax": base.dynamax(texts),
+                 "tags": info["tags"], "phone": "android" if ui.ANDROID else "ios", "at": time.time()})
+    with open(path, "w") as f:
+        json.dump(read, f, indent=1)
+
+
 # ---------- one Pokémon ----------
 
 def process(i, tile_name, tile_cp, dry):
@@ -250,6 +263,7 @@ def process(i, tile_name, tile_cp, dry):
         retag("PvpC")
     else:
         do_rename(name, same_name)
+        remember(name, cp, info, texts, shadow, lucky, size)
     if not dry:
         log(f"DONE {what}")
     go("close", "list")

@@ -12,7 +12,7 @@
 Run /ivc first: an IVC Pokémon still named after its species blocks every KEEP it could beat. Start with Pokémon GO
 open. A run writes into runs/<time>/ (scan.json, pools.json, plan.txt, plan.json, act.json, log.txt).
 """
-import importlib.util, os, re, sys, time
+import glob, importlib.util, json, os, re, sys, time
 from collections import Counter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -66,6 +66,31 @@ def read_member(tile_name, tile_cp, ivc=True):
          "types": sorted(type_line(texts)), "shadow": shadow, "lucky": lucky, "size": size, "dynamax": dynamax(texts), "tags": info["tags"]}
     m["species_options"] = sort.identify(m["candy"], set(m["types"]), m["cp"], m["hp"], sort.value(m["name"], shadow))
     m["species"] = sort.pick_species(m["species_options"])
+    return m
+
+
+IVC_FRESH = 12 * 3600  # /ivc's reads this recent stand in for opening the Pokémon (CP or name changed: no match)
+ivc_reads = []
+
+
+def from_ivc(tile_name, tile_cp):
+    """what /ivc read on this one's detail screen when it renamed it (its runs' read.json, same phone, last
+    IVC_FRESH seconds), as read_member would give it. Each read stands in for one tile. None: open it"""
+    if not ivc_reads:
+        phone, now = "android" if ui.ANDROID else "ios", time.time()
+        for f in sorted(glob.glob(os.path.join(HERE, "..", "ivc", "runs", "*", ivcrun.READ))):
+            ivc_reads.extend(r for r in json.load(open(f)) if r["phone"] == phone and now - r["at"] < IVC_FRESH)
+        ivc_reads.append(None)  # loaded (none left reads as "nothing to match")
+    r = next((r for r in ivc_reads if r and r["cp"] == tile_cp and same_name(r["name"], tile_name)), None)
+    if r is None:
+        return None
+    m = {"tile": tile_name, "name": r["name"], "cp": r["cp"], "hp": r["hp"], "candy": r["candy"], "types": r["types"],
+         "shadow": r["shadow"], "lucky": r["lucky"], "size": r["size"], "dynamax": r["dynamax"], "tags": r["tags"]}
+    m["species_options"] = sort.identify(m["candy"], set(m["types"]), m["cp"], m["hp"], sort.value(m["name"], m["shadow"]))
+    m["species"] = sort.pick_species(m["species_options"])
+    if not m["species"]:  # the candy or types weren't read: open it after all
+        return None
+    ivc_reads.remove(r)
     return m
 
 
@@ -172,6 +197,11 @@ def scan(limit=10 ** 9, only=None):
             found.append({"tile": n, "cp": c, "unrenamed": True, "dex_range": list(in_range) or None})
             save("scan.json", found)
             return False
+        m = from_ivc(n, c)
+        if m is not None:
+            log(f"tile {i}: {n} CP{c}: /ivc read it just now, not opening it")
+            add(m)
+            return False
         log(f"tile {i}: {n} CP{c}")
         try:
             ivcrun.open_tile(i)
@@ -183,6 +213,10 @@ def scan(limit=10 ** 9, only=None):
             m = read_member(n, c)
         finally:
             back_to_list()
+        add(m)
+        return False
+
+    def add(m):
         if in_range and len(m["species_options"] or []) > 1:  # the search was by dex number: drop the others
             fit = [s for s in m["species_options"] if in_range[0] <= sort.SPECIES[s]["dex"] <= in_range[1]]
             if fit:

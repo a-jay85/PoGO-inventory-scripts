@@ -40,7 +40,7 @@ Search terms and their bugs: `~/.claude/skills/pvpc/SEARCH.md`. Read it before b
 One command, after /ivc: `POGO_PHONE=android caffeinate -dimsu python3 ~/PoGO-inventory-scripts/pogo.py ivc + ivcsort`. Or on its own: `caffeinate -dimsu python3 $S/run.py [--limit N] [--look]`. It doesn't ask first (2026-10-27): the 98%+ appraisal and `/cleanup`'s suspects pass catch a wrong Nope.
 
 1. It counts `#IVC&!xxl&!xxs`. Up to 60 (`SMALL`): one search reads them all. More: it goes 50 dex numbers at a time (`#IVC&!xxl&!xxs&1-50`, ...), and each block is tagged before the next is read.
-2. It opens each IVC Pokémon in the block and reads it (`scan.json`).
+2. It opens each IVC Pokémon in the block and reads it (`scan.json`). One that /ivc renamed in the last 12 hours on this phone isn't opened: /ivc saved what its detail screen showed (`ivc/runs/<time>/read.json`).
 3. It types the searches for their families only (`pools.json`). A family's searches are typed once a run. It reads again (up to 2 more times) any search whose miscount could turn a KEEP or NOPE into LEAVE.
 4. It decides (`plan.txt`), then searches the ones to change and favorites + unticks IVC, or Nopes (`act.json`).
 

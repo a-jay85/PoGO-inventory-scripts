@@ -4,7 +4,7 @@
 Types a search into the Pokémon list's search bar (start_search), reads every tile of the results
 (run_search), or visits each tile once (walk_list). Tapping and timing come from run.py.
 """
-import difflib, random, re, time
+import difflib, json, os, random, re, time
 from collections import Counter
 from PIL import Image
 
@@ -389,7 +389,24 @@ def allow_paste(texts, bounds):
     return True
 
 
-PASTE = {"ok": True}  # iPhone: off for the rest of the run once a paste never lands (the Mac-to-iPhone clipboard hangs)
+PASTE_FILE = os.path.join(ui.HERE, ".paste.json")  # the day the paste last failed: every pogo.py step is a new process
+
+
+def paste_broke_today():
+    try:
+        return json.load(open(PASTE_FILE)).get("broke") == time.strftime("%Y-%m-%d")
+    except (OSError, ValueError):
+        return False
+
+
+def paste_broke():
+    """the Mac-to-iPhone clipboard (Universal Clipboard) can hang for hours: type key by key for the rest of the day,
+    not two lost pastes (about 12 s) in every step. Tried again the next day"""
+    PASTE["ok"] = False
+    json.dump({"broke": time.strftime("%Y-%m-%d")}, open(PASTE_FILE, "w"))
+
+
+PASTE = {"ok": not paste_broke_today()}  # iPhone: off once a paste never lands (the Mac-to-iPhone clipboard hangs)
 
 
 def type_into_panel(q, bounds, check=None):
@@ -430,8 +447,8 @@ def _type_into_panel(q, bounds, clip_box, check):
             if not got and i >= 4:
                 log("  nothing showed in the search bar after typing: again")
                 if pasted and attempt:  # two pastes lost: type the rest of this run's searches key by key
-                    log("  the paste isn't landing: typing searches key by key from now on")
-                    PASTE["ok"] = False
+                    log("  the paste isn't landing: typing searches key by key for the rest of today")
+                    paste_broke()
                 break  # nothing landed: tap and type again
             if got and not (len(got) < len(q) and q.lower().startswith(re.sub(r"\s", "", got).lower())):
                 break  # the keys can land a little after they're sent: wait while only the start shows

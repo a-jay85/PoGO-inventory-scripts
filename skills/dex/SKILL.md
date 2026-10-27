@@ -19,6 +19,17 @@ It takes about 5 minutes and only taps to move around: it never changes anything
 
 The dex numbers missing from the page, as one storage search with ranges: `14,22,29-33,35`. The other account pastes it into its Pokémon search. Add filters after it, e.g. `&!lucky` or `&4*`.
 
+### ★100%: later stages count for earlier ones
+
+The game never added the 100s caught before the ★100% page came out. So the search counts a later stage on the page for the earlier ones (`hundred_useful`, the user's rule from 2026-10-27):
+
+- Pidgeot on the page: Pidgey and Pidgeotto are filled, even if the page shows them empty.
+- Each 100 on the page counts as one copy, and a copy evolves down one branch. A 100 Eevee fills one missing Eeveelution. Each other missing one wants another Eevee, so Eevee goes in the search even when it's on the page. The same goes for Scyther, Clamperl and Charcadet.
+- A lower stage on the page still fills one missing later stage: a 100 Pidgey on the page fills a missing Pidgeot.
+- Two forms with one number (Raichu, Alolan Raichu) are one hole.
+
+The run prints what it left out and what it added. `page-100.txt` keeps the page as read, and other skills read that (`/cleanup`'s GIV rule uses the same `hundred_useful`).
+
 ### Lucky: holes you can fill yourself
 
 On the Lucky page it then searches this account's storage for lucky Pokémon that could evolve into a missing one, e.g. a lucky Shellder for a missing Cloyster. Those numbers are left out of the search and printed as a to-evolve list (also in `runs/<time>-lucky/evolve-lucky.txt`). The page as read is in `page-lucky.txt`.

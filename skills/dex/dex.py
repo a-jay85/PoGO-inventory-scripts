@@ -374,6 +374,43 @@ def ancestors(sid, parent):
     return out
 
 
+# ---------- ★100%: which new copies fill a hole ----------
+
+def hundred_useful(missing, by=None, parent=None):
+    """-> the species forms a new 100% copy of would fill a ★100% hole with, itself or by evolving.
+    The page never got the 100s caught before it came out, so a later stage on the page counts for the earlier
+    ones: Pidgeot there, Pidgey's hole is filled. Each 100 on the page is one copy, and a copy goes down one
+    branch: a 100 Eevee fills one missing Eeveelution, and each other missing one wants a new Eevee. Two forms
+    with one number (Raichu, Alolan Raichu) are one hole"""
+    if by is None:
+        by, parent = evo_tree()
+    kids = {}
+    for c, p in parent.items():
+        kids.setdefault(p, []).append(c)
+
+    def short(sid, extra):
+        """how many more 100 copies of sid its line still wants, with one more of extra"""
+        have = (by[sid]["dex"] not in missing) + (sid == extra)
+        if sid not in kids:
+            return max(0, 1 - have)
+        per_dex = {}
+        for k in kids[sid]:
+            d = by[k]["dex"]
+            per_dex[d] = min(per_dex.get(d, 99), short(k, extra))
+        want = sum(per_dex.values())
+        return max(0, want - have)  # nothing wanted below: a later stage on the page fills this one
+
+    roots = {}
+    for sid in by:
+        roots.setdefault((ancestors(sid, parent) or [sid])[-1], []).append(sid)
+    out = set()
+    for r, family in roots.items():
+        now = short(r, None)
+        if now:
+            out |= {s for s in family if short(r, s) < now}
+    return out
+
+
 def lines(missing):
     """the families where a lucky Pokémon could evolve to fill a hole -> [(sources, targets)]: the species forms in
     the page that a lucky copy could start from, and the missing forms one of them could reach"""
@@ -592,13 +629,25 @@ def write_searches(page, missing):
             report.append(f"tag these before you clean up, so they get evolved: lucky&!costume&{','.join(ranges(keep))}")
         with open(os.path.join(base.RUN_DIR, "evolve-lucky.txt"), "w") as f:
             f.write("\n".join(report) + "\n")
+    if page == "100":
+        by, parent = evo_tree()
+        want = {by[s]["dex"] for s in hundred_useful(set(missing), by, parent)}
+        known = {p["dex"] for p in by.values()}
+        filled = sorted(n for n in missing if n in known and n not in want)
+        extra = sorted(want - set(missing))
+        missing = sorted(want | {n for n in missing if n not in known})
+        if filled:
+            report.append(f"left out, a later stage is on the page: {','.join(ranges(filled))}")
+        if extra:
+            report.append(f"added, on the page but a missing branch wants another copy: {','.join(ranges(extra))}")
     out = searches(missing)
     with open(os.path.join(base.RUN_DIR, f"missing-{page}.txt"), "w") as f:
         f.write("\n\n".join(out) + "\n")
     if report:
-        print("\nLucky Pokémon you have that could evolve into a missing one:")
+        print("\nLucky Pokémon you have that could evolve into a missing one:" if page == "lucky" else
+              "\nThe page, with later stages counted for earlier ones:")
         print("\n".join(f"  {r}" for r in report))
-    print(f"\nMissing from the {label} page: {len(missing)} Pokémon, {len(out)} search(es)\n")
+    print(f"\nWanted for the {label} page: {len(missing)} Pokémon, {len(out)} search(es)\n")
     for i, s in enumerate(out, 1):
         print(f"--- search {i} of {len(out)} ({len(s)} characters) ---\n{s}\n")
     print(f"saved to {os.path.join(base.RUN_DIR, f'missing-{page}.txt')}")
@@ -625,7 +674,8 @@ def latest(page, trainer):
     if not ok:
         return None, None
     run = os.path.join(runs, ok[0])
-    return parse(open(os.path.join(run, f"missing-{page}.txt")).read()), run
+    f = "page-100.txt" if page == "100" and os.path.exists(os.path.join(run, "page-100.txt")) else f"missing-{page}.txt"
+    return parse(open(os.path.join(run, f)).read()), run  # ★100%: the page as read (callers use hundred_useful)
 
 
 def cmd_look():

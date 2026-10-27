@@ -25,7 +25,8 @@ One tag each, the first that fits:
  1. Luckydex: HashTagAJay's newest lucky /dex run misses it, or an evolution of it (dex's gender and form rules).
  2. Reroll: a new copy would be #1 against some raid boss (/roster's roster.json).
  3. GIV: any of
-    - missing from HashTagAJay's ★100% page, it or an evolution, and no lower evolution of that is there
+    - a new 100 would fill a hole on HashTagAJay's ★100% page, itself or by evolving (dex.hundred_useful: a later
+      stage on the page counts for the earlier ones, and each missing branch wants its own copy)
     - PvPoke top 100 in Great, Ultra or Master League, with every rank 1 IV 5 or more (pvp-giv-<date>.json)
     - a new copy would be #2-#6 against some raid boss
     - HashTagAJay has a lucky one of the family and under 348 candy (read)
@@ -222,17 +223,6 @@ def luckydex(m, missing):
     return out
 
 
-def hundred(m, missing):
-    """sids a new copy could fill a ★100% hole with: it or an evolution is missing, and nothing below that is there"""
-    out = set()
-    for sid in m.by:
-        for d in m.down(sid):
-            if all(m.dex(x) in missing for x in [d, *dex.ancestors(d, m.parent)]):
-                out.add(sid)
-                break
-    return out
-
-
 # ---------- read: HashTagAJay's candy ----------
 
 def families_by_dex(m):
@@ -413,7 +403,7 @@ def cmd_plan(to=TAKER):
     for s in ok:
         if s in reroll:
             why.setdefault(s, ("Reroll", "#1 raid attacker: " + ", ".join(roster["species"][s]["bosses"][:3])))
-    hund = hundred(m, set(hund_missing))
+    hund = dex.hundred_useful(set(hund_missing), m.by, m.parent)
     low = {m.root(s) for s in m.by if m.dex(s) in read["lucky_low_candy"]}
     for s in ok:
         if s in hund:

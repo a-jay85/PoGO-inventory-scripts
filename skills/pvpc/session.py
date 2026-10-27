@@ -45,7 +45,10 @@ def awake():
 
 
 def locked():
-    out = ui.android.shell("dumpsys window | grep -E 'isKeyguardShowing=|mIsShowing='")
+    # only these two sections: plain 'dumpsys window' starts with the last ANR's snapshot, which can hold an old
+    # isKeyguardShowing=true for as long as no other app hangs (2026-10-27)
+    out = ui.android.shell("dumpsys window displays | grep isKeyguardShowing=; "
+                           "dumpsys window policy | grep mIsShowing=")
     return "=true" in out
 
 

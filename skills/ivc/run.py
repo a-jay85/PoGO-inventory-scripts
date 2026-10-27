@@ -263,7 +263,10 @@ def process(i, tile_name, tile_cp, dry):
         retag("PvpC")
     else:
         do_rename(name, same_name)
-        remember(name, cp, info, texts, shadow, lucky, size)
+        try:  # only saves /ivcsort an open: never worth stopping a run for
+            remember(name, cp, info, texts, shadow, lucky, size)
+        except Exception as e:
+            log(f"  couldn't save what was read ({e!r}): /ivcsort will open it")
     if not dry:
         log(f"DONE {what}")
     go("close", "list")

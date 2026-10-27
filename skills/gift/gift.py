@@ -217,6 +217,23 @@ def close():
     time.sleep(1.0)
 
 
+def close_popup(*screens, timeout=6):
+    """X on a gift or Lucky Trade popup over a friend page -> one of the screens. The X can miss (a dropped tap, or
+    the popup still sliding in): while the popup still shows, X again, twice at most"""
+    for attempt in range(3):
+        close()
+        try:
+            return wait(*screens, timeout=timeout)
+        except base.Lost:
+            time.sleep(1.0)  # a fresh look, as in tap_into
+            s = look()
+            if s in screens:
+                return s
+            if attempt == 2 or s not in ("giftpopup", "luckytrade"):
+                raise
+            log(f"  the {s} popup's X didn't land: again")
+
+
 # ---------- the friend list ----------
 
 def count():
@@ -967,8 +984,7 @@ def one_friend(row, check=False):
     t0 = time.time()
     s = tap_into(row["t"], "friend", "giftpopup", "luckytrade")
     if s in ("giftpopup", "luckytrade"):
-        close()  # their gift to me: X, never OPEN. A Lucky Trade request: X, left for the user
-        wait("friend", timeout=6)
+        close_popup("friend")  # their gift to me: X, never OPEN. A Lucky Trade request: X, left for the user
     name = page_name()
     if not name or not same_name(name, row["name"]):
         log(f"  opened {name!r}, wanted {row['name']!r}: skipped")
@@ -978,8 +994,7 @@ def one_friend(row, check=False):
     if not gift_icon(t):
         time.sleep(0.8)  # (or a Lucky Trade request fading in over the page: it pales the icon)
         if look() == "luckytrade":
-            close()
-            wait("friend", timeout=6)
+            close_popup("friend")
         t = label("SEND GIFT")
     if not t or not gift_icon(t):
         keep_capture("grey")

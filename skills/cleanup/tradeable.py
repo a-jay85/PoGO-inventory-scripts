@@ -652,10 +652,55 @@ def walk(suffix, xlx, power, limit, skip_dex=(), unsure=None):
     return done
 
 
-def medal_walk(unsure):
+SMALL_PILE = 40  # a pile this small is opened once to read its species: searches for species not in it are skipped
+
+
+def dexes_of(q):
+    """'&1-3,7&!galar' -> {1, 2, 3, 7}: the dex numbers a plan search is for. None if it has none (&dynamax)"""
+    for term in q.split("&"):
+        if term and re.fullmatch(r"[\d,\-]+", term):
+            out = set()
+            for r in term.split(","):
+                a, _, b = r.partition("-")
+                out.update(range(int(a), int(b or a) + 1))
+            return out
+    return None
+
+
+def survey():
+    """-> the dex numbers in the pile, opening each one once. None if the pile is big (searching is quicker then) or
+    one's species can't be told from its name (a nickname): then every search runs"""
+    n = run_pile("")
+    if not n or n > SMALL_PILE:
+        return set() if n == 0 else None
+    go("tile 1", "detail")
+    seen, out = set(), set()
+    while True:
+        _, texts, _, bounds = wait_for("detail")
+        info = ui.detail_info(texts)
+        me = (info["name"], info["cp"], info["hp"])
+        if me in seen:
+            break
+        seen.add(me)
+        sids = ui.species_for(info["name"], info["texts"])
+        if not sids:
+            log(f"survey: can't tell the species of {info['name']} CP{info['cp']}: every search runs")
+            go("close", "list")
+            return None
+        out |= {pvp.SPECIES[x]["dex"] for x in sids}
+        if not next_one(bounds, lambda t: (lambda i: (i["name"], i["cp"], i["hp"]))(ui.detail_info(t)) not in seen):
+            break
+    go("close", "list")
+    log(f"survey: {len(seen)} in the pile, dex {sorted(out)}")
+    return out
+
+
+def medal_walk(unsure, have=None):
     """HashTagAJay's Nope: open each Rattata and Magikarp in MEDALS' searches and tag GIV the ones whose weight fits.
     One whose weight doesn't read goes in unsure"""
     for name, q, fits in MEDALS:
+        if have is not None and not dexes_of(q) & have:
+            continue
         if not run_pile(q + NOT_TAGGED):
             continue
         go("tile 1", "detail")
@@ -716,6 +761,8 @@ def cmd_tag(limit, nope=False, resort=False):
             return
         search.to_search_list()
         ct.tag_pile(NOPE, GUARANTEED, off=(NOPE,), query=NOPE_OLD)
+    have = survey()  # a small pile: only the searches for species in it run
+    wanted = lambda q: have is None or (d := dexes_of(q)) is None or bool(d & have)
     done_f = os.path.join(os.path.dirname(plan_f), f"tagged-nope-{who}.json" if nope else "tagged.json")  # this
     done = set(json.load(open(done_f))) if os.path.exists(done_f) and not resort else set()  # plan's searches already tagged: a
     for t in TAGS:  # rerun skips them (14 s each, even at 0). Each search leaves out all three tags: the first wins
@@ -723,14 +770,14 @@ def cmd_tag(limit, nope=False, resort=False):
             ct.tag_pile(NOPE, OLD, off=(NOPE,), query=NOPE_PILE + OLD_AGE + NOT_TAGGED)
             if who == TAKER:  # then medal GIV, then 2XL: both over every other GIV and XLX
                 medal_unsure = []
-                medal_walk(medal_unsure)
+                medal_walk(medal_unsure, have)
                 if medal_unsure:
                     log("not tagging 2XL or the rest: these medal ones had no weight read. Look at each by hand (GIV "
                         "if it fits, or leave it), then run tag --nope again:\n  " + "\n  ".join(medal_unsure))
                     return
                 ct.tag_pile(NOPE, TWO_XL, off=(NOPE,), query=TWO_XL_PILE)
         for q in plan["tags"][t]:
-            if q + NOT_TAGGED in done:
+            if q + NOT_TAGGED in done or not wanted(q):
                 continue
             tag_pile(t, q + NOT_TAGGED)
             done.add(q + NOT_TAGGED)
@@ -746,9 +793,11 @@ def cmd_tag(limit, nope=False, resort=False):
     rest = EVOLVED_REST  # (one passed over there stays out of Transfer too)
     unsure, power_ok = [], True
     # power-ups for the tagged ones (the taker transfers them), then XLX and power-ups for the rest
-    for suffix, xlx, power, skip in [(traded, False, True, set(plan["taker_xl_full"])),
-                                     (rest + ct.UNDER_360_XL, True, True, ()),
-                                     (rest + f"&countcandyxl{XL_CAP}-", True, False, ())]:
+    walks = [(traded, False, True, set(plan["taker_xl_full"])), (rest + ct.UNDER_360_XL, True, True, ()),
+             (rest + f"&countcandyxl{XL_CAP}-", True, False, ())]
+    if nope and who == TAKER:  # 2XL took every one under 360 Candy XL (a never-traded XXL/XXS one is IVC by now)
+        del walks[1]
+    for suffix, xlx, power, skip in walks:
         while xlx or (power and power_ok):
             n = len(unsure)
             try:
@@ -770,7 +819,7 @@ def cmd_tag(limit, nope=False, resort=False):
             + "\n  ".join(unsure))
         return
     for q in plan.get("giv_evolved", []):  # after XLX: an XLX_LEVEL+ one has XLX by now and stays out
-        if rest + q in done:
+        if rest + q in done or not wanted(q):
             continue
         tag_pile("GIV", rest + q)
         done.add(rest + q)

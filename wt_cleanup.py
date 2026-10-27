@@ -8,9 +8,10 @@ A worktree goes only when all of these hold:
     and its tip is the PR's head or an ancestor of it (nothing was committed after the merge);
     a detached HEAD whose tip is already on origin/main needs no PR,
   - `git status` shows nothing changed or untracked,
-  - no process has its working directory inside it (a live Claude session or a phone run).
+  - nothing is using it: no process inside it or naming it, no live Claude session in it or on its branch.
 Anything else is skipped with the reason. Its run folders (skills/*/runs/, ignored by git) are copied to
 ~/claude-plans/_backups/worktree-runs/<slug>/ first, then the worktree and its local branch are removed.
+Other ignored files in it (.state.json, .calib.json, .claude/) go with it; the main checkout has its own.
 The main checkout is never touched.
 """
 import glob, json, os, shutil, subprocess, sys
@@ -62,19 +63,49 @@ def tip_in_pr(tip, pr):
     return git("merge-base", "--is-ancestor", tip, head, check=False).returncode == 0
 
 
-def in_use(path):
-    """True if any process's working directory is inside path. Unsure (lsof missing) counts as in use."""
+def _inside(p, real):
+    p = os.path.realpath(p)
+    return p == real or p.startswith(real + os.sep)
+
+
+def _alive(pid):
     try:
-        r = subprocess.run(["lsof", "-a", "-d", "cwd", "-Fn"], capture_output=True, text=True)
-    except FileNotFoundError:
-        return True
+        os.kill(int(pid), 0)
+    except (OSError, TypeError, ValueError):
+        return False
+    return True
+
+
+def in_use(path, branch):
+    """Why path looks in use, or None. Unsure (a check that can't run) counts as in use.
+
+    Three looks: a process's working directory inside it; a process whose command line names it (a phone
+    run started from elsewhere); a live Claude session in the session registry that sits in it or on its
+    branch (an EnterWorktree session's own process cwd stays where it launched)."""
     real = os.path.realpath(path)
-    for line in r.stdout.splitlines():
-        if line.startswith("n"):
-            cwd = os.path.realpath(line[1:])
-            if cwd == real or cwd.startswith(real + os.sep):
-                return True
-    return False
+    try:
+        lsof = subprocess.run(["lsof", "-a", "-d", "cwd", "-Fn"], capture_output=True, text=True).stdout
+        ps = subprocess.run(["ps", "-axo", "command="], capture_output=True, text=True).stdout
+    except FileNotFoundError as e:
+        return f"can't check ({e.filename} missing)"
+    if any(line.startswith("n") and _inside(line[1:], real) for line in lsof.splitlines()):
+        return "a process is running inside it"
+    if any(path in cmd or real in cmd for cmd in ps.splitlines()):
+        return "a running command names it"
+    reg = os.path.expanduser("~/.claude/session-registry/active.json")
+    try:
+        sessions = json.load(open(reg)).values() if os.path.exists(reg) else []
+    except (OSError, ValueError):
+        return "can't read the session registry"
+    gitdir = os.path.realpath(os.path.join(git("rev-parse", "--path-format=absolute", "--git-common-dir").stdout.strip()))
+    for s in sessions:
+        if not _alive(s.get("pid")):
+            continue
+        if any(s.get(k) and _inside(s[k], real) for k in ("cwd", "repo")):
+            return f"Claude session {s.get('name', s.get('id'))} is in it"
+        if branch and s.get("branch") == branch and os.path.realpath(s.get("gitdir") or "") == gitdir:
+            return f"Claude session {s.get('name', s.get('id'))} is on its branch"
+    return None
 
 
 def backup_runs(path):
@@ -114,8 +145,9 @@ def main():
         if git("status", "--porcelain", cwd=path).stdout.strip():
             skip("uncommitted or untracked files")
             continue
-        if in_use(path):
-            skip("a process is running inside it")
+        busy = in_use(path, branch)
+        if busy:
+            skip(busy)
             continue
         if dry:
             print(f"would  {name}: {why}")

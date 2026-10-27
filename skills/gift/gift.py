@@ -184,6 +184,26 @@ def tap_text(t, dy=0.0, rest=None):
     base.tap_box(t, bounds, dy=dy, fuzz=min(0.008, t[2] / 4), rest=(0.25, 0.4) if rest is None else rest)
 
 
+def tap_into(t, *screens, dy=0.0, timeout=8, on="friends"):
+    """tap a word that opens another screen. iPhone Mirroring now and then drops a tap (the row lights up, or the
+    button just sits there): when the screen is still `on`, with that word in the same spot, tap it again, twice at
+    most. (A tap that only landed late at worst opens a gift's preview or a friend page: nothing is sent by it)"""
+    for attempt in range(3):
+        tap_text(t, dy=dy)
+        try:
+            return wait(*screens, timeout=timeout)
+        except base.Lost:
+            time.sleep(1.0)  # a fresh look: Mirroring's picture can freeze for a few seconds while the phone moved on
+            s = look()
+            if s in screens:
+                return s
+            same = find(lambda u: clean(u[4]) == clean(t[4]) and abs(u[0] - t[0]) < 0.02 and abs(u[1] - t[1]) < 0.01)
+            if attempt == 2 or s != on or not same:
+                raise
+            log(f"  tap on {t[4].strip()!r} didn't land: again")
+            t = same[0]
+
+
 def drag(fy1, fy2, ms=500, x=None):
     """scroll by dragging from fy1 to fy2. x: where to grab (the gift list: the gap between its two columns, as a
     drag that starts on a card can land as a tap on it)"""
@@ -745,8 +765,7 @@ def send_gift():
     """from the friend page: picker -> one of our two gifts -> SEND. Raises OutOfGifts when neither is there"""
     global picker_drags
     t = label("SEND GIFT")
-    tap_text(t, dy=-0.04)
-    wait("picker", timeout=8)
+    tap_into(t, "picker", dy=-0.04, on="friend")
     blind = max(0, picker_drags - 1)  # where the last gift was found, less one scroll (a sent gift can shift the list up)
     drags = 0
     seen, dragged = None, None  # seen: the last look's layout; dragged: the layout and titles when it last scrolled
@@ -946,8 +965,7 @@ def one_friend(row, check=False):
     """open the row's friend page, check, gift and/or tag. -> the gift sent, None, "grey" or "empty".
     check: on a grey SEND GIFT, tap it anyway to see whether my bag is empty"""
     t0 = time.time()
-    tap_text(row["t"])
-    s = wait("friend", "giftpopup", "luckytrade", timeout=8)
+    s = tap_into(row["t"], "friend", "giftpopup", "luckytrade")
     if s in ("giftpopup", "luckytrade"):
         close()  # their gift to me: X, never OPEN. A Lucky Trade request: X, left for the user
         wait("friend", timeout=6)
@@ -995,8 +1013,7 @@ def whose():
     me = None
     t = label("ME", 0.0, 0.12)
     if t:
-        tap_text(t)
-        if wait("profile", timeout=6 * LAG) == "profile":
+        if tap_into(t, "profile", timeout=6 * LAG) == "profile":
             time.sleep(0.5)
             look()
             me = next((k for k in LAST_HELD if any(k.lower() in u[4].lower() for u in texts if u[1] < 0.4)), None)

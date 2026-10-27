@@ -691,7 +691,10 @@ def survey():
         if not next_one(bounds, lambda t: (lambda i: (i["name"], i["cp"], i["hp"]))(ui.detail_info(t)) not in seen):
             break
     go("close", "list")
-    log(f"survey: {len(seen)} in the pile, dex {sorted(out)}")
+    log(f"survey: {len(seen)} of {n} seen, dex {sorted(out)}: " + ", ".join(f"{a} CP{b}" for a, b, _ in seen))
+    if len(seen) < n:  # the walk stopped short: one not seen could need a skipped search
+        log("survey: missed some: every search runs")
+        return None
     return out
 
 

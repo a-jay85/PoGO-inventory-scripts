@@ -363,8 +363,8 @@ def unrenamed_check(m, scanned, verdict, why):
     """an IVC Pokémon still named after its species has no IV in the pools: it could beat a KEEP. A KEEP whose
     searches could show one (same dex chunk) is left until /ivc has renamed it. A NOPE stays a NOPE: one more
     rival can only push it further down."""
-    if verdict != "KEEP":
-        return verdict, why
+    if verdict != "KEEP" or not re.search(r"\bspot\b", why[0] if why else ""):  # 98%+, own form, Elite TM, gym CP:
+        return verdict, why  # no IV ranking that an unknown IV could beat
     ranges = [r for r in (u.get("dex_range") for u in scanned if u.get("unrenamed")) if r]
     hit = sorted({d for q in sort.searches_for(m) for d in dexes_of(q) if any(a <= d <= b for a, b in ranges)})
     if not hit:

@@ -1,21 +1,18 @@
 #!/usr/bin/env python3
 """Unattended /ivcsort: keep the best IVC Pokémon (favorite + untick IVC), Nope the rest. Rules in sort.py.
 
-  caffeinate -dimsu python3 run.py scan [<run dir>] [--limit N]  1. read every IVC Pokémon (changes nothing), one
-                                                            dex-number search at a time (chunks.json). Give the
-                                                            run dir to carry on: done chunks are passed over
-  caffeinate -dimsu python3 run.py pools <run dir>          2. type the pool searches, read every tile (changes nothing)
-  python3 run.py plan <run dir>                             3. decide offline -> <run dir>/plan.txt (no phone)
-  caffeinate -dimsu python3 run.py fallen <run dir>         3b. sort the fallen-out ones into groups (changes nothing)
-  caffeinate -dimsu python3 run.py act <run dir> [--limit N] [--yes]  4. favorite+untag or Nope, as plan.json says.
-                                                            Lists the NOPEs and asks first (--yes: don't ask)
-  caffeinate -dimsu python3 run.py act-fallen <run dir> [--limit N]  5. tag the fallen-out ones (after act)
+  caffeinate -dimsu python3 run.py [sort [<run dir>]] [--limit N] [--look]
+        read the IVC Pokémon, type their families' searches, decide, favorite or Nope. Up to SMALL IVC ones: one
+        search for all of them. More: 50 dex numbers at a time, each tagged before the next is read. Give the run dir
+        to carry on after a stop. --limit N: change N, then stop. --look: decide only (plan.txt), change nothing
+  caffeinate -dimsu python3 run.py fallen <run dir>         sort the fallen-out ones into groups (changes nothing)
+  caffeinate -dimsu python3 run.py act-fallen <run dir> [--limit N]  tag the fallen-out ones
   python3 run.py search "<query>"                           type one search and print the tiles (testing)
 
-Start with Pokémon GO open on the Pokémon screen. Every step writes into runs/<time>/ (scan.json, pools.json,
-plan.txt, plan.json, log.txt). Only `act` changes anything, and only after the user says yes to its NOPE list.
+Run /ivc first: an IVC Pokémon still named after its species blocks every KEEP it could beat. Start with Pokémon GO
+open. A run writes into runs/<time>/ (scan.json, pools.json, plan.txt, plan.json, act.json, log.txt).
 """
-import hashlib, importlib.util, os, re, sys, time
+import importlib.util, os, re, sys, time
 from collections import Counter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -134,8 +131,12 @@ def chunk_of(m, a, b):
     return bool(opts) and not m.get("size") and all(a <= sort.SPECIES[s]["dex"] <= b for s in opts)
 
 
-def scan(limit):
-    """carries on from an earlier scan.json in the same run dir: tiles already read are passed over"""
+CHUNKS = [(a, min(a + CHUNK - 1, MAX_DEX)) for a in range(1, MAX_DEX + 1, CHUNK)]
+
+
+def scan(limit=10 ** 9, only=None):
+    """read the IVC Pokémon of every dex chunk (only: just these chunks). Carries on from an earlier scan.json in
+    the same run dir: tiles already read are passed over"""
     path = os.path.join(base.RUN_DIR, "scan.json")
     found = load("scan.json") if os.path.exists(path) else []
     before = len(found)
@@ -204,7 +205,7 @@ def scan(limit):
     front()
     to_search_list()
     chunks = load("chunks.json") if os.path.exists(os.path.join(base.RUN_DIR, "chunks.json")) else {}
-    every = [(a, min(a + CHUNK - 1, MAX_DEX)) for a in range(1, MAX_DEX + 1, CHUNK)]
+    every = only or CHUNKS
     query = lambda ab: f"#{TAG}&!xxl&!xxs&{ab[0]}-{ab[1]}"
     # chunks never searched first; the ones that came up short get their retry at the end
     for a, b in sorted(every, key=lambda ab: query(ab) in chunks):
@@ -241,8 +242,9 @@ def scan(limit):
 
 # ---------- 2. pools (search) ----------
 
-def pools():
-    members = [m for m in load("scan.json") if m.get("species")]
+def pools(members=None):
+    """type the searches these members need (default: every scanned one) that the run hasn't typed yet"""
+    members = [m for m in members or load("scan.json") if m.get("species")]
     queries = list(dict.fromkeys(q for m in members for q in sort.searches_for(m)))
     done = load("pools.json") if os.path.exists(os.path.join(base.RUN_DIR, "pools.json")) else {}
     wants = load("counts.json") if os.path.exists(os.path.join(base.RUN_DIR, "counts.json")) else {}
@@ -352,6 +354,25 @@ def twin_check(m, results, verdict, why):
     return "LEAVE", [f"would be NOPE, but {', '.join(pairs)} may be one Pokémon read twice"] + why
 
 
+def dexes_of(q):
+    """'25,26&!alola&!#Nope&!shadow' -> {25, 26}"""
+    return {int(d) for d in q.split("&")[0].split(",")}
+
+
+def unrenamed_check(m, scanned, verdict, why):
+    """an IVC Pokémon still named after its species has no IV in the pools: it could beat a KEEP. A KEEP whose
+    searches could show one (same dex chunk) is left until /ivc has renamed it. A NOPE stays a NOPE: one more
+    rival can only push it further down."""
+    if verdict != "KEEP" or not re.search(r"\bspot\b", why[0] if why else ""):  # 98%+, own form, Elite TM, gym CP:
+        return verdict, why  # no IV ranking that an unknown IV could beat
+    ranges = [r for r in (u.get("dex_range") for u in scanned if u.get("unrenamed")) if r]
+    hit = sorted({d for q in sort.searches_for(m) for d in dexes_of(q) if any(a <= d <= b for a, b in ranges)})
+    if not hit:
+        return verdict, why
+    return "LEAVE", [f"would be KEEP, but an IVC Pokémon still named after its species could be dex {hit}: "
+                     "run /ivc first"] + why
+
+
 def plan():
     scanned, results = load("scan.json"), {k: [tuple(x) for x in v] for k, v in load("pools.json").items()}
     wants = load("counts.json") if os.path.exists(os.path.join(base.RUN_DIR, "counts.json")) else {}
@@ -367,6 +388,7 @@ def plan():
             verdict, why = sort.decide(m, results)
             verdict, why = recheck(m, results, wants, verdict, why)
             verdict, why = twin_check(m, results, verdict, why)
+            verdict, why = unrenamed_check(m, scanned, verdict, why)
         counts[verdict] += 1
         out.append(dict(m, verdict=verdict, why=why))
         flags = " ".join(f for f in ("shadow", "lucky", "dynamax") if m.get(f))
@@ -390,30 +412,6 @@ def plan():
         f.write("\n".join(head + lines) + "\n")
     print("\n".join(head))
     print(f"table: {os.path.join(base.RUN_DIR, 'plan.txt')}")
-
-
-def approved(yes):
-    """show the NOPE list and ask once per plan. The answer is kept (approved.txt holds the plan's hash),
-    so restarting act on the same plan doesn't ask again. --yes says yes without asking."""
-    raw = open(os.path.join(base.RUN_DIR, "plan.json"), "rb").read()
-    digest = hashlib.sha256(raw).hexdigest()
-    ok_path = os.path.join(base.RUN_DIR, "approved.txt")
-    if os.path.exists(ok_path) and open(ok_path).read().strip() == digest:
-        return True
-    plan_ = load("plan.json")
-    nopes = [m for m in plan_ if m["verdict"] == "NOPE"]
-    keeps = sum(m["verdict"] == "KEEP" for m in plan_)
-    for m in nopes:
-        print(f"NOPE  {m.get('name') or m['tile']!r:16} CP{m['cp']:<5} {m.get('species') or '?':20} {(m.get('why') or [''])[0]}")
-    print(f"{len(nopes)} to Nope, {keeps} to keep (favorite + untick IVC). Full table: {os.path.join(base.RUN_DIR, 'plan.txt')}")
-    if not yes:
-        if not sys.stdin.isatty():
-            sys.exit("act needs a yes: run it in a terminal, or add --yes once the user has said yes to this list")
-        if input("Go ahead? [y/N] ").strip().lower() not in ("y", "yes"):
-            return False
-    with open(ok_path, "w") as f:
-        f.write(digest + "\n")
-    return True
 
 
 # ---------- fallen out ----------
@@ -607,7 +605,7 @@ def act(limit):
     left = [m for k, ms in want.items() if k not in skipped for m in ms]
     if not left:
         log("nothing left to change")
-        return
+        return 0
     front()
     to_search_list()
     q = act_query(left)
@@ -615,33 +613,69 @@ def act(limit):
     log(f"{q}: the game says {result_count(texts)}")
     walk_list(visit, stop=lambda n: opened[0] >= limit)  # --limit counts the ones opened, not the ones passed
     log(f"left over (not found in the list): {sum(todo.values())}, skipped: {len(skipped)}")
+    return opened[0]
+
+
+# ---------- sort: one dex chunk at a time ----------
+
+SMALL = 60  # an IVC pile this size or less is read in one search, not in 50-dex chunks
+
+
+def chunks_for(done):
+    """a small IVC pile: one chunk, the whole dex (one search, its families typed once). A big one: 50-dex chunks,
+    so each is tagged before the next is read. A run keeps the way it started (sorted.json)"""
+    began = done or [q.rsplit("&", 1)[1] for q in (load("chunks.json") if os.path.exists(
+        os.path.join(base.RUN_DIR, "chunks.json")) else {})]
+    if began:  # carrying on: the same way, or the Pokémon read so far wouldn't be in any chunk
+        return [(1, MAX_DEX)] if set(began) == {f"1-{MAX_DEX}"} else CHUNKS
+    front()
+    to_search_list()
+    q = f"#{TAG}&!xxl&!xxs"
+    _, texts, _ = start_search(q)
+    n = result_count(texts)
+    log(f"{q}: the game says {n}")
+    return [(1, MAX_DEX)] if n is not None and n <= SMALL else CHUNKS
+def sort_all(limit, look):
+    """per 50-dex chunk: read its IVC Pokémon, type their families' searches, decide, then favorite or Nope them.
+    A chunk is done before the next one is read, so a stop loses nothing: `sort <run dir>` carries on.
+    look: decide only (plan.txt), change nothing"""
+    done = load("sorted.json") if os.path.exists(os.path.join(base.RUN_DIR, "sorted.json")) else []
+    left = limit
+    for a, b in chunks_for(done):
+        key = f"{a}-{b}"
+        if key in done:
+            continue
+        scan(only=[(a, b)])
+        members = [m for m in load("scan.json") if m.get("species") and chunk_of(m, a, b)]
+        if members:
+            pools(members)
+            plan()  # every scanned one so far: the earlier chunks' are done already (act.json)
+            if not look:
+                left -= act(left)
+        if left <= 0:  # the chunk may have more to change: not done (a rerun passes over what act.json has)
+            log(f"--limit {limit} reached: `sort {base.RUN_DIR}` carries on")
+            return
+        done.append(key)
+        save("sorted.json", done)
+    counts = Counter(m["verdict"] for m in load("plan.json")) if os.path.exists(
+        os.path.join(base.RUN_DIR, "plan.json")) else {}
+    log(f"sorted every chunk{' (look only: nothing changed)' if look else ''}: {dict(counts)}. "
+        f"Table: {os.path.join(base.RUN_DIR, 'plan.txt')}")
 
 
 def script(a, cmd, limit):
     if cmd == "act-fallen" and not os.path.exists(os.path.join(base.RUN_DIR, "fallen-groups.json")):
         sys.exit("run fallen first, and read plan.txt")
-    if cmd == "act":  # these checks before the phone moves
-        if not os.path.exists(os.path.join(base.RUN_DIR, "plan.json")):
-            sys.exit("run plan first, and read plan.txt")
-        if any(m.get("unrenamed") for m in load("plan.json")) and "--force" not in a:
-            sys.exit("some IVC Pokémon aren't renamed yet: run /ivc first (or --force)")
-        if not approved("--yes" in a):
-            sys.exit("not approved, nothing changed")
-    if cmd != "plan":  # every other step uses the phone
-        base.start()
-    if cmd == "scan":
-        scan(limit)
-    elif cmd == "pools":
-        pools()
-    elif cmd == "plan":
-        plan()
+    if cmd == "fallen" and not os.path.exists(os.path.join(base.RUN_DIR, "pools.json")):
+        sys.exit("fallen needs a sort run's folder")
+    base.start()
+    if cmd == "sort":
+        sort_all(limit, "--look" in a)
     elif cmd == "fallen":
         fallen.groups(iv_only=True)
         plan()
     elif cmd == "act-fallen":
         act_fallen(limit)
-    elif cmd == "act":
-        act(limit)
     elif cmd == "search":
         front()
         got, want = run_search(a[1])
@@ -652,7 +686,9 @@ def script(a, cmd, limit):
 
 if __name__ == "__main__":
     a = sys.argv[1:]
-    if not a or a[0] not in ("scan", "pools", "plan", "fallen", "act", "act-fallen", "search"):
+    if not a or a[0].startswith("--"):
+        a = ["sort"] + a
+    if a[0] not in ("sort", "fallen", "act-fallen", "search"):
         sys.exit(__doc__)
     limit = session.limit(a)
     cmd = a[0]

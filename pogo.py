@@ -3,7 +3,7 @@
 
   caffeinate -dimsu python3 pogo.py <step> [args] [+ <step> [args]]...
   POGO_PHONE=android caffeinate -dimsu python3 pogo.py pvpc --limit 5 + ivc --limit 5
-  POGO_PHONE=android caffeinate -dimsu python3 pogo.py ivcsort scan + ivcsort pools last + ivcsort plan last
+  POGO_PHONE=android caffeinate -dimsu python3 pogo.py ivc + ivcsort + ivcsort fallen last
   python3 pogo.py list                       every step and what it runs
 
 A step's args are the same as its own script's (see its SKILL.md). `last` in a step's args is the run folder that
@@ -26,7 +26,7 @@ SEP = "+"
 STEPS = {
     "pvpc":        ("pvpc/run.py", {"fallen", "act-fallen"}, set()),
     "ivc":         ("ivc/run.py", set(), set()),
-    "ivcsort":     ("ivcsort/run.py", {"scan", "pools", "plan", "fallen", "act", "act-fallen", "search"}, {"plan"}),
+    "ivcsort":     ("ivcsort/run.py", {"sort", "fallen", "act-fallen", "search"}, set()),
     "shadows":     ("cleanup/shadows.py", {"transfer"}, set()),
     "trades":      ("cleanup/trades.py", set(), set()),
     "cleantrades": ("cleanup/cleantrades.py", {"evo", "fix"}, set()),
@@ -41,7 +41,7 @@ STEPS = {
     "mega":        ("mega/mega.py", set(), set()),
     "roster":      ("roster/roster.py", {"count", "report"}, {"report"}),
 }
-NEEDS_WORD = {"ivcsort", "tradeable", "dex", "roster"}  # these have no default: the first word is a must
+NEEDS_WORD = {"tradeable", "dex", "roster"}  # these have no default: the first word is a must
 BOTH = {"trade"}  # drives the iPhone and the Pixel, whatever POGO_PHONE says
 
 

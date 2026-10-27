@@ -38,6 +38,14 @@ Free means no number next to the MEGA EVOLVE button, and no `xN` cost in the "Do
 
 After YES the game wants a tap on the energy crystal. If another Pokémon is Mega Evolved, a 2nd box asks "Your <name> will no longer be Mega Evolved!": the script taps YES. Done is the badge reading `HH:MM left`.
 
+## Then mega2, free only
+
+When the TODO ones are done, it clears the bar and searches `mega2`. It Mega Evolves any of those, whatever the tag, only when it's free. That ends the Mega Evolution it just made, so that one's rest timer starts now instead of when its 8 hours run out.
+
+The same skips apply, minus the tag rule: Mega right now, done today, no MEGA EVOLVE button, not free. An X/Y one takes its nickname's form. With no letter, it takes whichever form is free.
+
+`--limit N` counts each search on its own: `--limit 1` can Mega Evolve one TODO and one mega2.
+
 Never tapped: the level page's LEVEL UP button (it spends energy to skip levels).
 
 ## Runs

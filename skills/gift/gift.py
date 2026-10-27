@@ -16,8 +16,9 @@ already-sent badge ends that search.
 
 Before each gift the friendship screen is checked. When the next heart is the 3rd, 4th or 5th, or it's the Forever
 Friends bar: 1 point to go -> no gift, nickname "WAIT <old>"; 2 points -> gift, nickname "SENT <old>".
-Only gifts from San Francisco are sent (the city line under the title), never one with "lion", "tree" or "rock" in
-its title, and never with a sticker. When a phone has none
+Only gifts from San Francisco are sent (the city line under the title), plus every gift after the account's last held
+one in the gift list (LAST_HELD, --last-held), never one with "lion", "tree" or "rock" in its title, and never with
+a sticker. When a phone has none
 left it stops; the other phone carries on. At the end the iPhone quits iPhone Mirroring and the Pixel locks.
 Log and captures go in runs/<time>-<phone>/.
 """
@@ -33,6 +34,16 @@ import session
 
 CITY = "SAN FRANCISCO"  # the only gifts sent: the rest (Chicago, North Carolina ...) are kept for sending by hand
 KEEP = re.compile(r"\b(lion|tree|(?<!mission )rock)", re.I)  # San Francisco gifts that are kept anyway (Lions, Trees, Rocky too; Mission Rock is sent)
+# per account: the last gift held back. Every gift after it in the gift list goes too, whatever its city (lion, tree
+# and rock are still kept). An account not here sends San Francisco gifts only. --last-held overrides it
+LAST_HELD = {"HashTagAJay": "Mrs. Pig"}
+last_held = None  # this phone's, picked once the friend list shows whose account it is
+# The gift list isn't steady: cards swap places and an old card can show in the wrong spot (2026-10-26: a Chicago
+# card read as after Mrs. Pig, and went). So a late gift must pass every guard below, on the picker and the preview
+NEVER = ("CHICAGO", "RALEIGH", "NORTH CAROLINA")  # cities never sent, wherever the list shows them
+later = []  # titles seen after last_held, in a look down from the list's top
+early = []  # titles seen above last_held (and last_held itself): never late, even if they show up after it later
+early_cities = set()  # their cities ('Chicago'): a late gift from one of these is held
 # the user's text replacements on the iPhone ("iii", "lll", "lasia" ...): the iPhone types the shortcut and lets
 # iOS expand it, Android types them out in full
 FIRST = "!?&!$&!WAIT&!OPEN&interactable&!EGG&"  # iii: no gift from me yet, not played with today
@@ -659,17 +670,49 @@ def title_block(t, lines, left=False):
     return None, None
 
 
-def ours(title, city):
-    return bool(title) and "," not in title and city.upper().startswith(CITY) and not KEEP.search(title)
+def city_name(city):
+    return city.split(",")[0].strip().upper()
 
 
-def card_title(t):
-    """the gift's title, if t starts the title of one we may send"""
-    title, city = title_block(t, texts)
-    return title if ours(title, city or "") else None
+def late_city(city):
+    """a city a late gift may come from: none we hold"""
+    return bool(city_name(city)) and city_name(city) not in early_cities and not any(n in city.upper() for n in NEVER)
 
 
-def preview_ok(title):
+def ours(title, city, late=False):
+    """late: the title comes after last_held in the gift list, so any city but a held one goes"""
+    if not title or "," in title or KEEP.search(title):
+        return False
+    return city.upper().startswith(CITY) or (late and late_city(city))
+
+
+def near(a, b):
+    return difflib.SequenceMatcher(None, a.lower(), b.lower()).ratio() >= 0.9  # (a letter misread: 'Lot Al')
+
+
+def is_late(title):
+    return any(near(title, u) for u in later) and not any(near(title, u) for u in early)
+
+
+def picker_cards():
+    """the gift list's cards on screen, in its order (row by row, left then right) -> [(title, city, its first line)]"""
+    found = []
+    for t in texts:
+        if t[1] > 0.12:
+            title, city = title_block(t, texts)
+            if title:
+                found.append((title, city or "", t))
+    found.sort(key=lambda c: c[2][1])
+    rows_ = []
+    for c in found:
+        if rows_ and c[2][1] - rows_[-1][0][2][1] < 0.02:
+            rows_[-1].append(c)
+        else:
+            rows_.append([c])
+    return [c for r in rows_ for c in sorted(r, key=lambda c: c[2][0])]
+
+
+def preview_ok(title, late=False):
     """the preview reads 'Greetings from' / the title / the city"""
     lines = sorted(texts, key=lambda t: t[1])
     for i, t in enumerate(lines):
@@ -678,9 +721,8 @@ def preview_ok(title):
             rest = [u for u in lines[i + 1:] if u[1] - t[1] < 0.15 and abs(u[0] - t[0]) < 0.03]
             got, city = title_block(rest[0], rest, left=True) if rest else (None, None)
             cut = title.rstrip(".… ")  # the picker cuts a long title short ('Modern spiral chandeli')
-            near = lambda a, b: difflib.SequenceMatcher(None, a.lower(), b.lower()).ratio() >= 0.9  # (a letter misread: 'Lot Al')
             same = got is not None and (near(got, title) or (len(cut) >= 10 and near(got[:len(cut)], cut)))
-            return same and ours(got, city or "") and ours(title, city or ""), got
+            return same and ours(got, city or "", late) and ours(title, city or "", late), got
     return False, None
 
 
@@ -708,24 +750,37 @@ def send_gift():
     blind = max(0, picker_drags - 1)  # where the last gift was found, less one scroll (a sent gift can shift the list up)
     drags = 0
     seen, dragged = None, None  # seen: the last look's layout; dragged: the layout and titles when it last scrolled
+    past = False  # last_held seen above this look, this visit
+    learn = blind == 0  # only a look down from the top knows what's above last_held
     for i in range(200):  # (about 3 looks a scroll: the first look after one still catches the list moving)
         if drags >= 60:  # (a full bag is a long list: 12 scrolls weren't enough on 2026-10-26)
             break
         if i:  # (the first pass reads the capture wait() just took)
             time.sleep(0.6)
             look()
-        cards = [(card_title(t), t) for t in texts if t[1] > 0.2]
-        cards = [(n, t) for n, t in cards if n and t[1] - 0.11 > 0.18]
+        cards = []
+        for title, city, t in picker_cards():
+            if learn and last_held and not past:
+                if not any(near(title, u) for u in early):
+                    early.append(title)
+                early_cities.add(city_name(city))
+                past = near(title, last_held)
+                continue
+            if learn and past and not any(near(title, u) for u in later):
+                later.append(title)
+            late = is_late(title)
+            if ours(title, city, late) and t[1] > 0.2 and t[1] - 0.11 > 0.18:
+                cards.append((title, t, late))
         if cards:
             picker_drags = drags
-            title, t = cards[0]
+            title, t, late = cards[0]
             tap(t[0] + t[2] / 2, t[1] - 0.11)  # the postcard above its title
             wait("preview", timeout=6 * LAG)
-            ok, got = preview_ok(title)
+            ok, got = preview_ok(title, late)
             if not ok:  # (caught mid-animation: one more look)
                 time.sleep(0.5)
                 look()
-                ok, got = preview_ok(title)
+                ok, got = preview_ok(title, late)
             if not ok:
                 keep_capture("preview")
                 close()
@@ -772,6 +827,8 @@ def send_gift():
                 wait("friend", timeout=6 * LAG)
                 return send_gift()
             close()  # a scroll moved nothing: the end of the gifts, and none of ours
+            if last_held and not past and not later:
+                log(f"  {last_held!r} isn't in the gift list: only San Francisco gifts went")
             raise OutOfGifts()
         dragged = here
         if drags == 0 and blind:  # the list has loaded: scroll down to where the last gift was, no looks between
@@ -929,9 +986,32 @@ def one_friend(row, check=False):
 
 # ---------- a run ----------
 
+def whose():
+    """from the friend list: our trainer name on the ME tab -> this account's last_held. ("" when it can't be read:
+    San Francisco gifts only)"""
+    global last_held
+    if last_held is not None:
+        return
+    me = None
+    t = label("ME", 0.0, 0.12)
+    if t:
+        tap_text(t)
+        if wait("profile", timeout=6 * LAG) == "profile":
+            time.sleep(0.5)
+            look()
+            me = next((k for k in LAST_HELD if any(k.lower() in u[4].lower() for u in texts if u[1] < 0.4)), None)
+        to_list()
+    last_held = LAST_HELD.get(me, "")
+    if last_held:
+        log(f"account {me}: gifts after {last_held!r} in the gift list go too")
+    else:
+        log(f"account {me or 'not in LAST_HELD'}: San Francisco gifts only")
+
+
 def run_searches(limit):
     sent, done, greys = 0, set(), 0
     to_list()
+    whose()
     set_sort()
     for first, base_q in (("iii", FIRST), ("lll", THEN)):
         prev = None
@@ -1007,6 +1087,9 @@ def one_phone(a):
     base.new_run_dir(os.path.join(HERE, "runs"), suffix=PHONE)
     global DRY
     DRY = a.dry_run
+    if a.last_held is not None:
+        global last_held
+        last_held = "" if a.last_held.lower() == "none" else a.last_held
     if a.cmd == "look":
         s = look()
         print(f"{PHONE}: {s}  rows: {rows() if s == 'friends' else '-'}  arrow: {arrow()}  gift sort: {sorted_gift()}")
@@ -1031,7 +1114,7 @@ def script(limit):
         sent, why = run_searches(limit)
         log(f"done: {sent} gifts sent" + (f", {why}" if why else ""))
     except OutOfGifts:
-        log("done: out of gifts (none from San Francisco we may send left): stopping")
+        log("done: out of gifts (none we may send left): stopping")
         if not ui.ANDROID:
             to_list()
 
@@ -1041,6 +1124,8 @@ def main():
     ap.add_argument("cmd", nargs="?", default="run", choices=("run", "look"))
     ap.add_argument("--limit", type=int, default=1000, help="at most N gifts per phone this run")
     ap.add_argument("--dry-run", action="store_true", help="everything but SEND and the nickname's OK")
+    ap.add_argument("--last-held", help="the last gift held back: every gift after it in the gift list goes too "
+                                        "('none': San Francisco only). Default: per account, LAST_HELD")
     a = ap.parse_args()
     if os.environ.get("POGO_PHONE", "").lower() != "both":  # ui read POGO_PHONE on import: android, else the iPhone
         return one_phone(a)
@@ -1050,6 +1135,7 @@ def main():
         env = dict(os.environ, POGO_PHONE=phone)
         cmd = [sys.executable, os.path.abspath(__file__), a.cmd, "--limit", str(a.limit)]
         cmd += ["--dry-run"] if a.dry_run else []
+        cmd += ["--last-held", a.last_held] if a.last_held is not None else []
         procs.append(subprocess.Popen(cmd, env=env))
     codes = [p.wait() for p in procs]
     sys.exit(max(codes))

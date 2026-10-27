@@ -29,20 +29,24 @@ Search terms and their bugs: `~/.claude/skills/pvpc/SEARCH.md`. Read it before b
 - **Weak lines:** a line is strong if any species in it (its mega or shadow form too) reaches `STRONG_AT` (90) on DialgaDex for any type. Data: `dialgadex-20261007.json`, pulled with `~/claude-plans/_scripts/dialgadex-scrape.mjs`. A weak line's final gets 1 spot (ties keep). The lucky and Dynamax rules still apply (`WEAK_EXTRAS`), and a name with an Elite TM move (`*`) keeps. Never weak: gym defender lines, legendary/mythical/Ultra Beast lines, lines with a mega DialgaDex doesn't rate yet, and species missing from DialgaDex. `meta-overrides.txt` marks lines by hand.
 - **Vivillon patterns** (`COLLECT`): a NOPE in the Scatterbug line becomes LEAVE so the user picks.
 - **Keep** = favorite (star) + untick IVC. **Fail** = untick IVC + tick Nope. If it also has PvpC, only IVC gets unticked (no Nope): /pvpc decides.
-- Nope isn't the end: `/cleanup`'s `tradeable.py tag --nope` swaps each Nope for GIV, XLX or Transfer (see /cleanup's "Nope" section). Chain it after `act`: `pogo.py ivcsort act <dir> + tradeable tag --nope`.
+- Nope isn't the end: `/cleanup`'s `tradeable.py tag --nope` swaps each Nope for GIV, XLX or Transfer (see /cleanup's "Nope" section). Chain it after the sort: `pogo.py ivc + ivcsort + tradeable tag --nope`.
 - A fail with XXL/xxs in the name is left alone for the user. A name with no IV and no size (`FP*`) gets Nope.
-- **98%/100% never get Nope**, whatever the name says. `act` and the fallen-out step appraise each one before tagging Nope. A 98%+ one (a shadow: once purified) is kept instead.
-- **Fallen out:** older Pokémon with an /ivc name and no IVC tag that now fall outside the top (`fallen.json`, listed at the end of plan.txt). Shiny and costume ones are never touched. Not traded + caught 2016–2020 → tag GuaranteedLucky. Not traded + older than 300 days → tag Old. Anything else (traded, since a Pokémon trades only once, or newer) → star off + Nope. Each one is judged again on its detail screen before anything changes. Steps: `run.py fallen <dir>` (read-only, sorts them into groups), then `run.py act-fallen <dir>` after `act`.
+- **98%/100% never get Nope**, whatever the name says. The sort and the fallen-out step appraise each one before tagging Nope. A 98%+ one (a shadow: once purified) is kept instead.
+- **Fallen out:** older Pokémon with an /ivc name and no IVC tag that now fall outside the top (`fallen.json`, listed at the end of plan.txt). Shiny and costume ones are never touched. Not traded + caught 2016–2020 → tag GuaranteedLucky. Not traded + older than 300 days → tag Old. Anything else (traded, since a Pokémon trades only once, or newer) → star off + Nope. Each one is judged again on its detail screen before anything changes. Steps: `run.py fallen <dir>` (read-only, sorts them into groups), then `run.py act-fallen <dir>`, on a sort run's folder (`pogo.py ivcsort + ivcsort fallen last + ivcsort act-fallen last`).
 - It never renames or transfers.
 
 ## Running it
 
-Four steps. Only the last one changes anything.
+One command, after /ivc: `POGO_PHONE=android caffeinate -dimsu python3 ~/PoGO-inventory-scripts/pogo.py ivc + ivcsort`. Or on its own: `caffeinate -dimsu python3 $S/run.py [--limit N] [--look]`. It doesn't ask first (2026-10-27): the 98%+ appraisal and `/cleanup`'s suspects pass catch a wrong Nope.
 
-1. `caffeinate -dimsu python3 $S/run.py scan` opens every IVC Pokémon and writes `runs/<time>/scan.json`.
-2. `caffeinate -dimsu python3 $S/run.py pools $S/runs/<time>` types the pool searches and writes `pools.json`. You can rerun it to carry on. At the end it reads again (up to 2 more times) any search whose miscount could turn a KEEP or NOPE into LEAVE.
-3. `python3 $S/run.py plan $S/runs/<time>` writes `plan.txt`.
-4. `caffeinate -dimsu python3 $S/run.py act $S/runs/<time>` lists the NOPEs and asks `Go ahead? [y/N]` in the terminal, then favorites and untags, or Nopes. It asks once per plan. Without a terminal it stops and prints the NOPE list instead. Show that list to the user. Rerun with `--yes` only after the user says yes.
+1. It counts `#IVC&!xxl&!xxs`. Up to 60 (`SMALL`): one search reads them all. More: it goes 50 dex numbers at a time (`#IVC&!xxl&!xxs&1-50`, ...), and each block is tagged before the next is read.
+2. It opens each IVC Pokémon in the block and reads it (`scan.json`).
+3. It types the searches for their families only (`pools.json`). A family's searches are typed once a run. It reads again (up to 2 more times) any search whose miscount could turn a KEEP or NOPE into LEAVE.
+4. It decides (`plan.txt`), then searches the ones to change and favorites + unticks IVC, or Nopes (`act.json`).
+
+A stop loses nothing: `run.py sort $S/runs/<time>` carries on, the same way it started (blocks done are in `sorted.json`). `--limit N` stops after N changes. `--look` does steps 1-3 and writes `plan.txt`, changing nothing.
+
+An IVC Pokémon still named after its species has no IV in the pools, so it could beat a KEEP. Every KEEP its block could hold becomes LEAVE until /ivc renames it. A NOPE stays.
 
 To test one search, run `python3 $S/run.py search "4&!#Nope&shadow"`.
 
@@ -53,6 +57,6 @@ To test one search, run `python3 $S/run.py search "4&!#Nope&shadow"`.
 - To clear the search bar, it closes the Pokémon screen and reopens it. A fresh screen always has an empty bar. A new search typed over a scrolled list starts scrolled too, so after a search that scrolled it puts the list back at the top and keeps the search. On Android it holds the slider on the right edge and pulls it to the top (about 3s). If that fails, or on the iPhone, it sorts by HP and then by Name again (about 6s). The list should be sorted by Name.
 - After each search it reads the game's count `Q (n)` and saves it in `counts.json`.
 - If the tiles it read don't match that count, `plan` tries the worst case. If the worst case flips KEEP/NOPE, the verdict becomes LEAVE.
-- A search that shows no tiles and no count isn't saved. That Pokémon is SKIP until `pools` is run again.
+- A search that shows no tiles and no count isn't saved. That Pokémon is SKIP until the sort is run again.
 - Tile names get cleaned before matching. The tag icon reads as `9`, `$` or `•` (`993 H` is `93 H`). `13h` and `13 h` are the same name.
 - Species guesses on the same line (Tentacool or Tentacruel) sort the same, so it picks one. Gym defenders must be exact.

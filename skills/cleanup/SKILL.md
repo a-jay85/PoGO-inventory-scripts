@@ -1,6 +1,6 @@
 ---
 name: cleanup
-description: Cleanup rules for Pokémon GO run on the phone. First rule: purify every shadow tagged Nope, then transfer them in one go. After trading: tag the PvpC1/PvpC2/IV Check shortcuts, power up Clean Trades ones sitting right under an XL-transfer tier, tag Clean Trades Transfer. Use when the user says /cleanup, asks to purify and transfer their Nope shadows, or to clean up after trading.
+description: Cleanup rules for Pokémon GO run on the phone. First rule: purify every shadow tagged Nope, then transfer them in one go. After trading: tag the PvpC1/PvpC2/IV Check shortcuts, power up Clean Trades ones sitting right under an XL-transfer tier, tag Clean Trades Transfer. Tag every Nope GIV, XLX or Transfer (tradeable.py tag --nope). Use when the user says /cleanup, asks to purify and transfer their Nope shadows, to sort their Nope pile, or to clean up after trading.
 model: claude-sonnet-5-5
 ---
 
@@ -96,6 +96,37 @@ If it can't tell whether one is level 26+ (or doesn't know the species), it tags
 If `read` stops partway, `read runs/<time>-read/searches.json` picks up where it left off.
 
 `read` ran on the Pixel on 2026-10-22. `tag` has never run. First time: `tag --limit 1`, with the user watching (it still tags every plan search).
+
+## Nope: the same tags for everything tagged Nope, on both accounts
+
+The rule (2026-10-25): anything in Nope gets the Tradeable tags, judged for the other account (the one it would be traded to). Nope comes off once its new tag is on.
+
+`POGO_PHONE=android caffeinate -dimsu python3 $S/tradeable.py tag --nope [--limit N]`, either account signed in:
+
+1. It runs `rescue.py` first. A 98%+ one in Nope gets the star and loses Nope, so it never gets a tag here.
+2. **Traded** Nope: Transfer, Nope off. It can't trade again, so it gets no other tag (and no XLX: that's for untraded ones to trade away).
+3. **Suspects** (2026-10-26): an untraded Nope one that may still belong in its species' top IV or PvP spots. It still has an /ivc name or a `Pvp` name, or it's 93%+. `suspects.py` judges each one in place, with the /ivcsort and /pvpc rules against what the account owns now:
+   - Still belongs: star on, Nope off (PvpC on for a PvP keeper, and its /ivc or Pvp name if it had none). No other tag.
+   - Falls out: the nickname goes blank, so the game shows the species name. That means checked and cleared. It stays in Nope and gets the tags below.
+   - Can't tell (a branching line, a missing search, an unreadable tile): nothing is tagged. `tag --nope` lists them and stops. Sort those by hand, then run it again.
+   Already-cleared ones with a species name are remembered in `runs/checked-<trainer>.json`, so a rerun doesn't appraise them again. `suspects.py --dry-run` judges and writes `suspects.txt` without changing anything.
+4. **Untraded** Nope: the first tag that fits wins. HashTagAJay: GuaranteedLucky > Old > GIV / XLX > Transfer. CyrillJan: GuaranteedLucky > Luckydex > Old > Reroll > GIV / XLX > Transfer. **Old** = caught 300+ days ago (`age300-`). Every Tradeable step runs, with `#Nope&!traded&...` typed in place of the `Tradeable` shortcut. The tagged ones keep Nope until the end, because the walks find them by it. Then Nope comes off everything with a new tag.
+
+Never touched (they stay Nope): shadows (`shadows.py` does those), lucky, costumes, backgrounds, special trades, and anything that also has IVC, PvpC, Old, GuaranteedLucky or Evo. An untraded catch from 2016-2020 (not special) gets GuaranteedLucky and loses Nope: a trade makes it lucky. That pass runs right after the traded Transfer pass.
+
+Which plan it uses goes by who's signed in:
+
+- **CyrillJan's Nope** goes to HashTagAJay: the normal `plan`, the same rules as the Tradeable pile.
+- **HashTagAJay's Nope** goes to CyrillJan: `python3 $S/tradeable.py plan --to CyrillJan`. CyrillJan isn't a completionist account. It only wants good raid attackers and Candy XL, so there's no Luckydex, Reroll, ★100%, evolved or gym-defender rule. **GIV**: in DialgaDex's top 6 against some raid boss (`/roster`'s `dialgadex-counters-<date>.json`; no shadows, a mega counts as its species, special trades left out), or an earlier stage of one. Not once CyrillJan has enough: 6 good (3★/4★) copies, or 1 for a species that's only in a top 6 as its mega (a team has one mega), and a Dynamax one of the family if it can Dynamax. After XLX, an untraded Dynamax one also gets GIV if CyrillJan has no Dynamax one of its family. The counts come from CyrillJan's own runs, both only searches: `POGO_PHONE=android caffeinate -dimsu python3 ~/.claude/skills/roster/roster.py count` and `... tradeable.py dynamax` (which families can Dynamax: `dynamax-<date>.json`, from `refresh`). Without them, nothing counts as enough. `plan.md` lists what was left out and why. **XLX**: level 29+ (a power-up costs 5,000 Stardust or more). GIV (far) and Transfer are as above. `read` with CyrillJan signed in adds its 360+ Candy XL families. Without it, none count as full.
+
+HashTagAJay needs the GIV, XLX and Transfer tags. `tag --nope` stops if one is missing.
+
+`tag --nope` has never run. `--limit` only caps power-ups: rescue, the traded Transfer pass and every GIV search still run in full. So first count these on each account with `python3 ~/.claude/skills/ivcsort/run.py search "<q>"` (only searches) and show the user:
+
+- `#Nope&traded&!shadow&!lucky&!costume&!background&!#IVC&!#PvpC&!#Old&!#GuaranteedLucky&!#Evo&!gigantamax&!shiny&!legendary&!mythical&!ultrabeast&!#Transfer`: these get Transfer straight away.
+- `#Nope&!traded&year2021-&!shadow&!lucky&!costume&!background&!#IVC&!#PvpC&!#Old&!#GuaranteedLucky&!#Evo`: the untraded pile. Next to `#Nope&!traded`, the gap should be the 2016-2020 catches and the kinds left out. 0, or a huge gap, means a term (a tag the account doesn't have, or `year2021-`) isn't read the way it's meant.
+
+Then `tag --nope --limit 1`, with the user watching.
 
 ## XXL and XXS: never Transfer or Nope
 

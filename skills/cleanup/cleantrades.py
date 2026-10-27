@@ -219,6 +219,37 @@ def append(suffix, bounds=None):
     return False
 
 
+HEAD_MAX, PIECE_MAX = 28, 24  # what the Pixel's bar shows of a whole search, and what append() checks of its end
+
+
+def long_search(q):
+    """search_exact for a search too long to read back from the bar (it shows ~30 characters): type a head short
+    enough to read back whole, then append the rest a few '&' terms at a time, each one's end checked, and none may
+    grow the count. -> the count"""
+    if len(q) <= 2 * HEAD_MAX:
+        search_exact(q)
+        return results()
+    terms = re.split(r"(?=&)", q)
+    head = terms.pop(0)  # (an AND's order doesn't matter: the terms that narrow it go first, the `&!` ones last,
+    terms = sorted(dict.fromkeys(terms), key=lambda t: t.startswith("&!"))  # so an empty one stops early. No repeats)
+    while terms and len(head + terms[0]) <= HEAD_MAX:
+        head += terms.pop(0)
+    search_exact(head)
+    n = results()
+    while terms and n:  # (0 stays 0: an AND only narrows it)
+        piece = terms.pop(0)
+        while terms and len(piece + terms[0]) <= PIECE_MAX:
+            piece += terms.pop(0)
+        if not append(piece):
+            raise Stop(f"couldn't add {piece!r} to the search {q!r}")
+        n2 = results()
+        if n2 > n:
+            raise Stop(f"adding {piece!r} showed {n2}, more than {n}: it didn't land as an AND")
+        n = n2
+    log(f"{q}: {n}")
+    return n
+
+
 def account():
     """which account, by the storage max over the empty search ('7874 / 7875'): HashTagAJay's is thousands higher"""
     for _ in range(3):
@@ -241,11 +272,11 @@ def account():
 
 def tag_pile(name, tag, suffix=None, off=(), query=None):
     """tag everything in a shortcut's search + suffix (default: the ones that don't have the tag yet), and take the
-    off tags away from them. query: a typed search instead of the shortcut. The search must leave out the tag itself:
-    afterwards the same search has to come back empty"""
+    off tags away from them. query: a typed search instead of the shortcut. tag None: only take the off tags away. The
+    search must leave out the tag itself (or have the off tags): afterwards the same search has to come back empty"""
     if suffix is None:
         suffix = "" if name in UNTAGGED_ONLY else f"&!#{tag}"
-    find = (lambda: (search_exact(query), results())[1]) if query else (lambda: run_shortcut(name, suffix))
+    find = (lambda: long_search(query)) if query else (lambda: run_shortcut(name, suffix))
     n = find()
     if not n:
         return 0
@@ -261,7 +292,7 @@ def tag_pile(name, tag, suffix=None, off=(), query=None):
     if not re.search(rf"TAG\s*{n}\s*POK", head.upper()):  # (ui.norm drops digits)
         close_sheet(texts, bounds)
         raise Stop(f"the tag sheet says {head!r}, wanted {n}")
-    left, same = {**{t.upper(): False for t in off}, tag.upper(): True}, 0  # tag -> the tick it should end with
+    left, same = {**{t.upper(): False for t in off}, **({tag.upper(): True} if tag else {})}, 0  # tag -> its last tick
     for _ in range(30):
         rows = sheet_rows(texts, path)
         T = next((T for T in left if T in rows), None)
@@ -290,10 +321,10 @@ def tag_pile(name, tag, suffix=None, off=(), query=None):
     texts, _, bounds = still_sheet()
     press(next(t for t in texts if ui.norm(t[4]) == "DONE"), bounds)
     wait_for("list", timeout=8)
-    rest = find()
+    rest = results() and find()  # the list may drop them on its own: then no need to type the search again
     if rest:
-        raise Stop(f"{name}: tagged {n} {tag}, but {rest} still don't have it")
-    log(f"{name}: tagged {n} {tag}" + "".join(f", took off {t}" for t in off))
+        raise Stop(f"{name}: tagged {n} {tag or ''}, but {rest} are still in the search")
+    log(f"{name}: tagged {n} {tag or ''}" + "".join(f", took off {t}" for t in off))
     return n
 
 

@@ -5876,8 +5876,13 @@
    []
   ],
   "1-26,172&countcandyx|360-\t1-26,172&countcandyxl360-": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     25
+    ]
+   ]
   ],
   "1-26,1728countcandyxl360-\t1-26,172&countcandyxl360-": [
    false,

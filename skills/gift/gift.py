@@ -121,6 +121,8 @@ def classify():
         return "giftpopup"
     if "REVIEW LUCKY" in j:
         return "luckytrade"  # a friend's Lucky Trade request over their page: its X shows the page
+    if "REMOTE RAID PASS" in j and "BATTLE" in w:
+        return "raid"  # a raid's gym screen (2026-10-27: a friend-row tap opened one). Its X leaves; never BATTLE
     if "TOTAL DAYS SPENT TOGETHER" in j:
         return "buddy"  # the buddy's history page (a stray tap on the ME tab's buddy): its X goes back
     if "TRAINER CODE" in j and "2D CODE" in j:
@@ -184,6 +186,26 @@ def tap_text(t, dy=0.0, rest=None):
     base.tap_box(t, bounds, dy=dy, fuzz=min(0.008, t[2] / 4), rest=(0.25, 0.4) if rest is None else rest)
 
 
+def tap_into(t, *screens, dy=0.0, timeout=8, on="friends"):
+    """tap a word that opens another screen. iPhone Mirroring now and then drops a tap (the row lights up, or the
+    button just sits there): when the screen is still `on`, with that word in the same spot, tap it again, twice at
+    most. (A tap that only landed late at worst opens a gift's preview or a friend page: nothing is sent by it)"""
+    for attempt in range(3):
+        tap_text(t, dy=dy)
+        try:
+            return wait(*screens, timeout=timeout)
+        except base.Lost:
+            time.sleep(1.0)  # a fresh look: Mirroring's picture can freeze for a few seconds while the phone moved on
+            s = look()
+            if s in screens:
+                return s
+            same = find(lambda u: clean(u[4]) == clean(t[4]) and abs(u[0] - t[0]) < 0.02 and abs(u[1] - t[1]) < 0.01)
+            if attempt == 2 or s != on or not same:
+                raise
+            log(f"  tap on {t[4].strip()!r} didn't land: again")
+            t = same[0]
+
+
 def drag(fy1, fy2, ms=500, x=None):
     """scroll by dragging from fy1 to fy2. x: where to grab (the gift list: the gap between its two columns, as a
     drag that starts on a card can land as a tap on it)"""
@@ -195,6 +217,23 @@ def drag(fy1, fy2, ms=500, x=None):
 def close():
     tap(*X_BUTTON, fuzz=0.004)  # (the preview's SEND sits just above: keep the X tap tight)
     time.sleep(1.0)
+
+
+def close_popup(*screens, timeout=6):
+    """X on a gift or Lucky Trade popup over a friend page -> one of the screens. The X can miss (a dropped tap, or
+    the popup still sliding in): while the popup still shows, X again, twice at most"""
+    for attempt in range(3):
+        close()
+        try:
+            return wait(*screens, timeout=timeout)
+        except base.Lost:
+            time.sleep(1.0)  # a fresh look, as in tap_into
+            s = look()
+            if s in screens:
+                return s
+            if attempt == 2 or s not in ("giftpopup", "luckytrade"):
+                raise
+            log(f"  the {s} popup's X didn't land: again")
 
 
 # ---------- the friend list ----------
@@ -237,7 +276,7 @@ def to_list():
             tap_text(t) if t else tap(0.5, 0.09)
         elif s == "map":
             tap(0.13, 0.91)  # the profile picture
-        elif s in ("friend", "meter", "picker", "preview", "giftpopup", "luckytrade", "trainercode", "buddy"):
+        elif s in ("friend", "meter", "picker", "preview", "giftpopup", "luckytrade", "trainercode", "buddy", "raid"):
             close()
         elif s == "nickname":
             cancel_nickname()
@@ -745,8 +784,7 @@ def send_gift():
     """from the friend page: picker -> one of our two gifts -> SEND. Raises OutOfGifts when neither is there"""
     global picker_drags
     t = label("SEND GIFT")
-    tap_text(t, dy=-0.04)
-    wait("picker", timeout=8)
+    tap_into(t, "picker", dy=-0.04, on="friend")
     blind = max(0, picker_drags - 1)  # where the last gift was found, less one scroll (a sent gift can shift the list up)
     drags = 0
     seen, dragged = None, None  # seen: the last look's layout; dragged: the layout and titles when it last scrolled
@@ -946,11 +984,13 @@ def one_friend(row, check=False):
     """open the row's friend page, check, gift and/or tag. -> the gift sent, None, "grey" or "empty".
     check: on a grey SEND GIFT, tap it anyway to see whether my bag is empty"""
     t0 = time.time()
-    tap_text(row["t"])
-    s = wait("friend", "giftpopup", "luckytrade", timeout=8)
+    s = tap_into(row["t"], "friend", "giftpopup", "luckytrade", "raid")
+    if s == "raid":
+        keep_capture("raid")
+        log(f"  tapping {row['name']!r} opened a raid: left it, skipped")
+        return None  # (run_searches' to_list() closes it)
     if s in ("giftpopup", "luckytrade"):
-        close()  # their gift to me: X, never OPEN. A Lucky Trade request: X, left for the user
-        wait("friend", timeout=6)
+        close_popup("friend")  # their gift to me: X, never OPEN. A Lucky Trade request: X, left for the user
     name = page_name()
     if not name or not same_name(name, row["name"]):
         log(f"  opened {name!r}, wanted {row['name']!r}: skipped")
@@ -960,8 +1000,7 @@ def one_friend(row, check=False):
     if not gift_icon(t):
         time.sleep(0.8)  # (or a Lucky Trade request fading in over the page: it pales the icon)
         if look() == "luckytrade":
-            close()
-            wait("friend", timeout=6)
+            close_popup("friend")
         t = label("SEND GIFT")
     if not t or not gift_icon(t):
         keep_capture("grey")
@@ -995,8 +1034,7 @@ def whose():
     me = None
     t = label("ME", 0.0, 0.12)
     if t:
-        tap_text(t)
-        if wait("profile", timeout=6 * LAG) == "profile":
+        if tap_into(t, "profile", timeout=6 * LAG) == "profile":
             time.sleep(0.5)
             look()
             me = next((k for k in LAST_HELD if any(k.lower() in u[4].lower() for u in texts if u[1] < 0.4)), None)

@@ -53,6 +53,20 @@ def splash(texts):
     return "POKÉMON COMPANY" in ui.joined(texts) or "POKEMON COMPANY" in ui.joined(texts)
 
 
+def passenger(texts, bounds):
+    """'You're going too fast!' (the phone moving): tap I'M A PASSENGER -> True if it was up. OCR runs the words
+    together ('I'M APASSENGER', 2026-10-28)"""
+    if "TOO FAST" not in ui.joined(texts):
+        return False
+    hit = next((t for t in texts if "PASSENGER" in ui.up(t)), None)
+    if not hit:
+        return False
+    log("  'going too fast' popup: tapping I'M A PASSENGER")
+    base.tap_box(hit, bounds)
+    time.sleep(1.5)
+    return True
+
+
 def where(path, texts):
     """the screens start() cares about: a storage screen, tags/rename, map, mainmenu, exit, signin, anr, ios-home,
     mirroring, blank, unknown"""
@@ -266,6 +280,8 @@ def start(storage=True):
         elif screen == "anr":
             keep_capture("anr")
             raise Stop("the phone says Pokémon GO isn't responding: close it by hand")
+        elif screen == "unknown" and passenger(texts, bounds):
+            pass
         elif screen == "unknown" and (step := through_hatch(texts, bounds, hatched)) is not None:
             hatched = step
         elif screen == "unknown" and storage and search.sort_menu(texts):  # a stop left the sort menu up (a slow

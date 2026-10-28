@@ -297,6 +297,8 @@ def to_list():
             tap_text(label("CAN RECEIVE A GIFT"))  # set_sort() checks the arrow after
         elif s == "exit":
             tap_text(label("CANCEL"))
+        elif s == "unknown" and home.passenger(texts, bounds):
+            unknown = 0
         elif s == "unknown" and (step := home.through_hatch(texts, bounds, hatched)) is not None:
             hatched, unknown = step, 0
         elif s == "unknown" and ui.classify(texts) in ("list", "tag-tab", "detail"):

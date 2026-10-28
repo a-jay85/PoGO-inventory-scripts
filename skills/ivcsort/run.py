@@ -8,7 +8,7 @@
         to carry on after a stop. --limit N: change N, then stop. --look: decide only (plan.txt), change nothing
   caffeinate -dimsu python3 run.py fallen <run dir>         sort the fallen-out ones into groups (changes nothing)
   caffeinate -dimsu python3 run.py act-fallen <run dir> [--limit N]  tag the fallen-out ones
-  python3 run.py search "<query>"                           type one search and print the tiles (testing)
+  python3 run.py search "<query>" [...]                     type searches and print the tiles (testing; later ones edit the bar's end)
 
 Run /ivc first: an IVC Pokémon still named after its species blocks every KEEP it could beat. Start with Pokémon GO
 open. A run writes into runs/<time>/ (scan.json, pools.json, plan.txt, plan.json, act.json, log.txt).
@@ -971,10 +971,11 @@ def script(a, cmd, limit):
         act_fallen(limit)
     elif cmd == "search":
         front()
-        got, want = run_search(a[1])
-        for n, c in got:
-            print(f"CP{c:<5} {n}")
-        print(f"{len(got)} read, the game says {want}")
+        for q in a[1:]:  # (more than one: each after the first edits the bar's end, like a family's searches)
+            got, want = run_search(q, edit=True)
+            for n, c in got:
+                print(f"CP{c:<5} {n}")
+            print(f"{q}: {len(got)} read, the game says {want}")
 
 
 if __name__ == "__main__":

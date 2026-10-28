@@ -285,7 +285,7 @@ SHOWN = {"q": None}  # the search in the bar now: a family's last search is the 
 
 
 def read_search(q, iv_only):
-    got, want = run_search(q, iv_only)
+    got, want = run_search(q, iv_only, edit=True)
     SHOWN["q"] = q
     return got, want
 

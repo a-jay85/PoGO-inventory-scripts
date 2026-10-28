@@ -213,6 +213,7 @@ def leave_panel(texts, bounds):
 
 def to_search_list():
     """the full Pokémon list with its search bar: Tags tab, then the POKÉMON tab (switching tabs puts the list back at the top)"""
+    LAST["q"] = None
     path, bounds = ui.capture()
     leave_panel(ui.ocr(path), bounds)
     if base.look()[0] == "tags":  # cut off with the tag sheet open
@@ -590,7 +591,11 @@ def edit_tail(prev, q, check):
     k = len(os.path.commonprefix([prev, q]))
     if k < len(q) / 2:  # little in common: typing it whole is as quick
         return None
-    bounds = ui.capture()[1]
+    screen, texts, _, bounds = base.look()  # the full list, its bar holding prev, before any tap
+    box = ui.search_box(texts)
+    if screen != "list" or not {"TAGS", "EGGS"} <= {ui.norm(t[4]) for t in texts} or not box \
+            or not check(ui.search_text(box), prev):
+        return None
     click(random.uniform(0.35, 0.55), 0.183 + random.uniform(-0.003, 0.003), bounds, gap=BAR_GAP)
     for _ in range(10):
         time.sleep(POLL)
@@ -633,14 +638,15 @@ def edit_tail(prev, q, check):
     return texts
 
 
-def start_search(q, check=None):
+def start_search(q, check=None, edit=False):
     """type one search (Return, SHOW EVOLUTIONARY LINE unticked). -> (path, texts, bounds) of the results, at the top.
-    check(got, q): does the bar's read show q (default bar_shows; /cleanup's trades.strict is stricter)"""
+    check(got, q): does the bar's read show q (default bar_shows; /cleanup's trades.strict is stricter).
+    edit: if the bar still holds the last search and its list didn't scroll, edit its end (edit_tail)"""
     check = check or bar_shows
     global scrolled
     t0 = time.time()
     prev, LAST["q"] = LAST["q"], None
-    if prev and prev != q and not scrolled and edit_tail(prev, q, check):
+    if edit and prev and prev != q and not scrolled and edit_tail(prev, q, check):
         log(f"  timing: edited the end, {time.time() - t0:.1f}s")
         attempts = []  # (no clear, no typing it whole)
     else:
@@ -808,11 +814,11 @@ def to_top(bounds):
     return got
 
 
-def run_search(q, iv_only=False):
+def run_search(q, iv_only=False, edit=False):
     """type one search, read every tile. -> [(name, cp)], duplicates counted by the most seen on one screen.
     iv_only: the list is sorted by name, so IV names ('96 HA') come first: stop at the plain names. The count
-    can't be checked then, so want comes back None."""
-    path, texts, bounds = start_search(q)
+    can't be checked then, so want comes back None. edit: see start_search"""
+    path, texts, bounds = start_search(q, edit=edit)
     if leave_multiselect(texts, bounds):
         path, bounds = ui.capture()
         texts = ui.ocr(path)

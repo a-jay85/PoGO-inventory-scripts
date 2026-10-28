@@ -153,6 +153,28 @@ def berry_menu(texts):
     return out
 
 
+def menu_counts(menu, texts, path):
+    """berry_menu() with each count it missed read again from a close crop of path. OCR of the whole screen misses a
+    1-digit count ('x5' in its small bubble, the Razz at 5 on 2026-10-28). The bubble sits at the berry's lower
+    left, left of its name's middle"""
+    from PIL import Image
+    im = Image.open(path)
+    W, H = im.size
+    out = dict(menu)
+    for kind, (count, spot) in menu.items():
+        if count is not None:
+            continue
+        t = next(t for t in texts if t[1] >= 0.6 and ui.norm(t[4]).startswith(kind))
+        cx = t[0] + t[2] / 2
+        x0, y0, x1, y1 = max(0.0, cx - 0.17), t[1] - 0.05, cx, t[1] - 0.002
+        crop = im.crop((int(x0 * W), int(y0 * H), int(x1 * W), int(y1 * H)))
+        crop.resize((crop.width * 2, crop.height * 2)).save("/tmp/gymfeed_menu_count.png")
+        nums = [m for c in ui.ocr("/tmp/gymfeed_menu_count.png") for m in [re.fullmatch(r"[xX×]?\s*(\d{1,4})", c[4].strip())] if m]
+        if len(nums) == 1:
+            out[kind] = (int(nums[0].group(1)), spot)
+    return out
+
+
 def who(texts):
     """one gym Pokémon's page -> (its name, its trainer): the name at the top, the trainer beside its CP"""
     top = [t for t in texts if (0.05 if ui.ANDROID else 0.08) < t[1] < 0.13 and not re.fullmatch(r"\W*[cC][pP]?\s*\d+\W*", t[4].strip())]
@@ -372,11 +394,13 @@ def choose():
     seen = []
     while len(seen) < 2 or seen[-1] != seen[-2]:  # it slides up: two reads in a row must agree
         time.sleep(0.4)
-        _, texts, _, bounds = look()
+        _, texts, path, bounds = look()
         menu = berry_menu(texts)
         seen.append({k: c for k, (c, _) in menu.items()})
         if len(seen) > 6:
             break
+    menu = menu_counts(menu, texts, path)
+    seen[-1] = {k: c for k, (c, _) in menu.items()}
     log("    bag: " + ", ".join(f"{k} {c}" for k, c in seen[-1].items()))
     for kind, floor in FEEDABLE.items():
         count, spot = menu.get(kind, (None, None))

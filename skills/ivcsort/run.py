@@ -303,12 +303,7 @@ def pools(members=None):
     The search most of them show in goes last: its list is still on screen for act"""
     members = [m for m in members or load("scan.json") if m.get("species")]
     homes = Counter(home(m) for m in members)
-    queries = list(dict.fromkeys(q for m in members for q in sort.searches_for(m)))
-    head = lambda q: q.rsplit("&", 1)[0]  # searches that differ only in the last term go side by side: the next one
-    top = {}                              # edits the bar's end (search.edit_tail), it isn't typed whole
-    for q in queries:
-        top[head(q)] = max(top.get(head(q), 0), homes[q])
-    queries.sort(key=lambda q: (top[head(q)], head(q), homes[q], q))
+    queries = sorted(dict.fromkeys(q for m in members for q in sort.searches_for(m)), key=lambda q: homes[q])
     done = load("pools.json") if os.path.exists(os.path.join(base.RUN_DIR, "pools.json")) else {}
     wants = load("counts.json") if os.path.exists(os.path.join(base.RUN_DIR, "counts.json")) else {}
     log(f"{len(queries)} searches, {len(done)} done already")

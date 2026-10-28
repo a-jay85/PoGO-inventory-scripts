@@ -55,7 +55,6 @@ To test one search, run `python3 $S/run.py search "4&!#Nope&shadow"`.
 
 ## How reading works
 
-- A family's searches that differ only in the last term are typed side by side. When the list didn't scroll, the next one taps the bar, deletes back to where they differ and types only the new end (`search.edit_tail`, about `timing: edited the end` in the log). If the bar doesn't read right, it clears and types the whole search.
 - To clear the search bar, it closes the Pokémon screen and reopens it. A fresh screen always has an empty bar. A new search typed over a scrolled list starts scrolled too, so after a search that scrolled it puts the list back at the top and keeps the search. On Android it holds the slider on the right edge and pulls it to the top (about 3s). If that fails, or on the iPhone, it sorts by HP and then by Name again (about 6s). The list should be sorted by Name.
 - After each search it reads the game's count `Q (n)` and saves it in `counts.json`.
 - If the tiles it read don't match that count, `plan` tries the worst case. If the worst case flips KEEP/NOPE, the verdict becomes LEAVE.

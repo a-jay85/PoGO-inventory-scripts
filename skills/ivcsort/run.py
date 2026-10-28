@@ -721,8 +721,7 @@ def act(limit, members):
 # An untraded Nope that still has an /ivc or Pvp name fell out of the top once and kept its name. Right after a
 # family's IVC ones, its named Nopes are judged again, IV and PvP, with /cleanup's suspects.py. Still belongs: star
 # on, Nope off. Fell out: name cleared, Nope stays (/cleanup tags it next, in its usual order).
-# The whole pile is searched once a run. Empty: no family looks. Small: each named one is read then, and a family
-# judges its own with no search (one more only to change one). Big: each family searches its own.
+# The whole pile is searched once a run first, its named tiles listed. None (or all judged): no family searches.
 
 def cleanup_mods():
     sys.path.append(os.path.join(HERE, "..", "cleanup"))
@@ -759,57 +758,34 @@ def without(results, fresh):
     return out
 
 
-NOPES_READ_MAX = 30  # a named-Nope pile this size or less is read once, up front. A bigger one: family by family
-
-
 def is_fresh(fresh, n, c):
     return any(k[1] == c and same_name(k[0], n) for k in fresh)
 
 
-def nope_mode(fresh):
-    """how this run finds its named Nopes, decided once by one search of the whole pile (named_nopes.json):
-    'none' (it's empty: no family searches), 'read' (small: each named one is opened and read now, into nopes.json,
-    and a family judges its own with no search), 'family' (big: each family searches its own)"""
+NAMED_READ_MAX = 60  # a pile this size or less gets its tile names read once; a bigger one: each family searches
+
+
+def named_nopes(fresh):
+    """the run's named Nopes, from one search of the whole pile, once a run (named_nopes.json). -> [(tile, CP)] of
+    the named ones this run didn't just make, or None (too many to list: each family searches its own)"""
     if os.path.exists(os.path.join(base.RUN_DIR, "named_nopes.json")):
-        state = load("named_nopes.json")
-        if state.get("done"):
-            return state["mode"]
+        got = load("named_nopes.json")
+        return None if got is None else [tuple(x) for x in got]
     sus, tradeable = cleanup_mods()
     SHOWN["q"] = None
     log("named Nopes: the whole pile, once")
     n = sus.ct.long_search(tradeable.SUSPECT_PILE)
-    mode = "none" if not n else "read" if n <= NOPES_READ_MAX else "family"
-    save("named_nopes.json", {"mode": mode, "count": n})
-    if mode == "read":
-        seen = load("nopes.json") if os.path.exists(os.path.join(base.RUN_DIR, "nopes.json")) else []
-
+    found = [] if n <= NAMED_READ_MAX else None
+    if n and found is not None:
         def visit(i, t, c):
-            if not sus.named(t) or is_fresh(fresh, t, c) or \
-                    any(s["tile"] == t and s["cp"] == c and s["verdict"] != "UNREAD" for s in seen):
-                return False
-            log(f"tile {i}: {t} CP{c}: a named Nope, reading it")
-            ivcrun.open_tile(i)
-            v = {"tile": t, "cp": c, "q": "all", "verdict": "UNREAD", "why": []}
-            try:
-                m = sus.read_one(t, c)
-                v = dict(m, tile=t, q="all", verdict=None, keep={}, why=["read up front: judged in its family's step"])
-                log(f"  {t} CP{c}: {m['species']} {m['ivs']}")
-            except Skip as e:
-                v["why"] = [str(e)]
-                raise
-            finally:
-                seen[:] = [s for s in seen if (s["tile"], s["cp"]) != (t, c)] + [v]
-                save("nopes.json", seen)
-                back_to_list()
+            if sus.named(t) and not is_fresh(fresh, t, c):
+                found.append((t, c))
             return False
 
         search.walk_list(visit, odd=lambda t: not sus.named(t))
-        unread = [s["tile"] for s in seen if s["verdict"] == "UNREAD"]
-        if unread:  # (a rerun reads them again)
-            log(f"  named Nopes not read: {unread}")
-            return mode
-    save("named_nopes.json", {"mode": mode, "count": n, "done": True})
-    return mode
+    log(f"  named Nopes: {found if found is not None else f'{n}, too many to list'}")
+    save("named_nopes.json", found)
+    return found
 
 
 def recheck_nopes(fam, limit, trainer):
@@ -817,21 +793,15 @@ def recheck_nopes(fam, limit, trainer):
     (read only when there are named Nopes). -> (opened, unresolved)"""
     sus, tradeable = cleanup_mods()
     fresh = fresh_nopes()
-    mode = nope_mode(fresh)
-    if mode == "none":
-        return 0, 0
+    seen = load("nopes.json") if os.path.exists(os.path.join(base.RUN_DIR, "nopes.json")) else []
+    named = named_nopes(fresh)
+    if named is not None and all(any(s["tile"] == t and s["cp"] == c and (s.get("done") or s["verdict"] == "LEAVE")
+                                     for s in seen) for t, c in named):
+        return 0, 0  # none, or every one judged already: no search
     SHOWN["q"] = None  # (the searches below change what's showing)
     who = trainer()
-    fam_dexes = {d for m in fam for q in sort.searches_for(m) for d in dexes_of(q)}
-    dexes = dex_terms(fam_dexes)
+    dexes = dex_terms({d for m in fam for q in sort.searches_for(m) for d in dexes_of(q)})
     q = f"{dexes}&{tradeable.SUSPECT_PILE}"
-    seen = load("nopes.json") if os.path.exists(os.path.join(base.RUN_DIR, "nopes.json")) else []
-    if mode == "read":  # read up front: this family's own ones are judged below, with no search
-        for v in seen:
-            if v.get("q") == "all" and v["verdict"] is None and sort.SPECIES[v["species"]]["dex"] in fam_dexes \
-                    and not is_fresh(fresh, v["tile"], v["cp"]):
-                v["q"] = q
-        save("nopes.json", seen)
     wants = load("counts.json") if os.path.exists(os.path.join(base.RUN_DIR, "counts.json")) else {}
     pooled = lambda: without({k: [tuple(x) for x in v] for k, v in load("pools.json").items()}, fresh)
     results, opened = pooled(), [0]
@@ -869,10 +839,9 @@ def recheck_nopes(fam, limit, trainer):
             back_to_list()
         return v["verdict"] == "KEEP"
 
-    if mode == "family":
-        log(f"named Nopes: {q}")
-        if sus.ct.long_search(q):  # (Pvp names sort among the species names: no order to stop at)
-            search.walk_list(visit, stop=lambda n: opened[0] >= limit, odd=lambda n: not sus.named(n))
+    log(f"named Nopes: {q}")
+    if sus.ct.long_search(q):  # (Pvp names sort among the species names: no order to stop at)
+        search.walk_list(visit, stop=lambda n: opened[0] >= limit, odd=lambda n: not sus.named(n))
     later = [v for v in seen if v.get("q") == q and v["verdict"] is None]
     if later and opened[0] < limit:  # their PvP lines' searches first, then judge, then find them again
         sus.pools(later)

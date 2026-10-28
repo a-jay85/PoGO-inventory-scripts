@@ -271,7 +271,9 @@ def to_list():
             continue
         unknown = unknown + 1 if s == "unknown" else 0
         acted = (s, time.time())
-        if s == "profile":
+        if s == "profile" and find(lambda u: "SENT YOU A GIFT" in ui.up(u) or "DAYS AGO" in ui.up(u)):
+            drag(0.35, 0.8, 350)  # the friend list, scrolled down past its search box: back up to it
+        elif s == "profile":
             t = label("FRIENDS")
             tap_text(t) if t else tap(0.5, 0.09)
         elif s == "map":

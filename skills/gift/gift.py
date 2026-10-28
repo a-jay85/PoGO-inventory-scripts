@@ -75,6 +75,7 @@ DRY = False  # --dry-run: everything but SEND and the nickname box's OK
 shortcuts = not ui.ANDROID  # off for the rest of the run once a shortcut didn't expand
 typed = ""  # the last search typed: the box shows its end ('ea', 'mo')
 LAG = 1 if ui.ANDROID else 2.5  # iPhone Mirroring now and then freezes for several seconds: wait longer there
+MAX_LOST = 3  # lost screens in a row (each on a friend's page, backed out of) before the run stops
 
 
 def log(msg):
@@ -260,8 +261,13 @@ def search_line():
     return None
 
 
+REOPEN_LOAD = 45  # seconds the game gets to load after home.unstick reopened it (its loading tips read unknown)
+
+
 def to_list():
+    import home
     unknown, acted, end = 0, (None, 0.0), time.time() + 90
+    loading, hatched = 0.0, 0.0  # loading: until when unknown screens are the game loading after a reopen
     while time.time() < end:
         s = look()
         if s == "friends":
@@ -286,12 +292,15 @@ def to_list():
             tap_text(label("CAN RECEIVE A GIFT"))  # set_sort() checks the arrow after
         elif s == "exit":
             tap_text(label("CANCEL"))
+        elif s == "unknown" and (step := home.through_hatch(texts, bounds, hatched)) is not None:
+            hatched, unknown = step, 0
         elif s == "unknown" and ui.classify(texts) in ("list", "tag-tab", "detail"):
             close()  # Pokémon storage: its X goes back to the map
-        elif s == "unknown" and unknown > 2:
+        elif s == "unknown" and unknown > 2 and time.time() > loading:
             keep_capture("lost")
-            import home
-            home.unstick(texts)
+            if home.unstick(texts):  # (raises Stop when it's out of steps)
+                loading = time.time() + REOPEN_LOAD  # the game reopened: wait out its loading screens
+                end = max(end, loading + 30)
             unknown = 0
         time.sleep(0.5)
     keep_capture("lost")
@@ -852,7 +861,8 @@ def send_gift():
             tap_text(send, rest=0)
             if sent_away(send, button):  # SEND is gone and the gift flies off: an X right now skips the animation
                 tap(*X_BUTTON, fuzz=0.004, rest=0)
-            s = wait("friend", "picker", "preview", "unknown", "blank", timeout=8 * LAG)
+            with base.changing("sending a gift"):  # (the gift may be gone: a lost screen stops the run, no retry)
+                s = wait("friend", "picker", "preview", "unknown", "blank", timeout=8 * LAG)
             for _ in range(int(10 * LAG)):
                 if s == "friend":
                     return title
@@ -1029,7 +1039,11 @@ def one_friend(row, check=False):
     title = send_gift()
     log(f"{name} ({nick}): {'would send' if DRY else 'sent'} {title} ({time.time() - t0:.0f}s)")
     if n == 2:
-        rename("SENT", nick, row["nick"])
+        try:
+            rename("SENT", nick, row["nick"])
+        except base.Lost as e:  # (the gift went: count it, run_searches' to_list() takes it from wherever this is)
+            keep_capture("lost_rename")
+            log(f"  lost while tagging SENT ({e}): tag it by hand")
     return title
 
 
@@ -1058,6 +1072,7 @@ def whose():
 
 def run_searches(limit):
     sent, done, greys = 0, set(), 0
+    lost, retried = 0, set()  # lost: one_friend's lost screens in a row; retried: friends already given a 2nd try
     to_list()
     whose()
     set_sort()
@@ -1111,7 +1126,30 @@ def run_searches(limit):
                 done.add(row["name"])
                 # a grey SEND GIFT alone proves nothing (that friend may not take one now). Every 3rd grey in a row,
                 # tap it anyway: the gift list opening, or send_gift's OutOfGifts, tells whether the bag is empty
-                got = one_friend(row, check=greys % 3 == 2)
+                try:
+                    got = one_friend(row, check=greys % 3 == 2)
+                except base.Lost as e:
+                    # a late iPhone tap (two X's landing at once closed the friend page, 2026-10-28) left a screen
+                    # nobody expected. Nothing was sent unseen: after SEND a lost screen is a Stop. Back to the list, the
+                    # search typed again (the way back can pass the map), and this friend tried once more
+                    lost += 1
+                    if lost >= MAX_LOST:
+                        raise Stop(f"lost {lost} times in a row: {e}") from e
+                    keep_capture("lost_friend")
+                    log(f"  lost on {row['name']!r} ({e}): back to the list")
+                    time.sleep(2 * LAG)  # (a tap still on its way lands before the next look)
+                    to_list()
+                    if row["name"] not in retried:
+                        retried.add(row["name"])
+                        done.discard(row["name"])  # (gifted after all: their SEND GIFT reads grey next time)
+                    n = search(base_q, zq)
+                    if not n:
+                        break
+                    if arrow() != "down":
+                        set_sort()
+                    stale, fresh, top = 0, True, True
+                    continue
+                lost = 0
                 if got == "empty":
                     log(f"the game says I have no gifts: out of gifts, done ({sent} sent)")
                     return sent, "out of gifts"

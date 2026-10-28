@@ -25,8 +25,7 @@ NAME_LEN = 12
 
 RANK_URL = "https://raw.githubusercontent.com/pvpoke/pvpoke/master/src/data/rankings/{}.json"
 RANK_LISTS = {"L": "little/overall/rankings-500", "G": "all/overall/rankings-1500",
-              "U": "all/overall/rankings-2500", "M": "all/overall/rankings-10000"}
-ML_CAP = 10000  # no cap: everything at level 50
+              "U": "all/overall/rankings-2500"}
 VIABLE_TOP = 100  # a form is viable in a league if it's in PvPoke's top this many there
 
 
@@ -92,7 +91,7 @@ def rank(species, ivs, cap):
 
 @lru_cache(None)
 def meta(league):
-    """PvPoke's overall ranking for a league (L G U M), best first, as of the last update"""
+    """PvPoke's overall ranking for a league (L G U), best first, as of the last update"""
     return json.load(open(os.path.join(HERE, "rankings.json")))[league]
 
 

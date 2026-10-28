@@ -10,9 +10,8 @@ Steps, in the tag run's dir:
   pools  the searches /ivcsort and /pvpc compare with (everything owned in the line, minus Nope) -> pools.json
   judge  offline. IV: /ivcsort's judge() on its /ivc name (or the name /ivc would give it). PvP: pvp.fallen() on
          its top-100 slots against every Pvp name in the line. CyrillJan (no PvP there) counts only giver_slots():
-         top 20 in a league the form is viable in, Master League too. -> verdicts.json
-  act    KEEP (either side keeps): star on, Nope off. A PvP keeper gets PvpC back, like /pvpc's keepers (not a
-         Master League one: /pvpc doesn't rank that). One with
+         top 20 in a league the form is viable in. -> verdicts.json
+  act    KEEP (either side keeps): star on, Nope off. A PvP keeper gets PvpC back, like /pvpc's keepers. One with
          neither kind of name gets the one /ivc (or /pvpc) would give it.
          CLEARED: nickname blanked, so the game shows the species name. Nope stays: tag --nope tags it next.
          LEAVE: unsure (a misread search, a branching line, XXL/xxs): nothing changes.
@@ -149,15 +148,15 @@ def iv_name(m):
 
 
 def slots(m):
-    """{(league, form): rank} for its top-100 PvP slots, the line's first stage, and what it is now"""
+    """{(league, form): rank} for its top-100 PvP slots, and the line's first stage"""
     sp = [s for s in m["species_options"] if s in pvp.PLAIN]
     if not sp:
-        return {}, None, None
+        return {}, None
     try:
         sl, s = base.slots_of(sp, m["cp"], m["hp"], tuple(m["ivs"]))
     except Skip:
-        return {}, None, None
-    return sl, pvp.root(s), s
+        return {}, None
+    return sl, pvp.root(s)
 
 
 def searches(m):
@@ -165,7 +164,7 @@ def searches(m):
     out = []
     if iv_name(m):
         out += [(q, not q.endswith(sort.NOT_NOPE)) for q in sort.searches_for(dict(m, name=iv_name(m)))]
-    sl, first, _ = slots(m)
+    sl, first = slots(m)
     if sl and first and pvp.letters(first) is not None:
         out += [(q, False) for q in pvp.line_searches(pvp.tree(first), pool_kind(m))]
     return out
@@ -194,15 +193,11 @@ def pools(found):
     return {k: [tuple(x) for x in v] for k, v in results.items()}, wants
 
 
-def giver_slots(m, sl, now):
+def giver_slots(m, sl):
     """CyrillJan doesn't play PvP. It keeps one only for a slot that's top GIVER_PVP_TOP of all 4,096 IVs, in a league
-    the form is viable in (PvPoke's top pvp.VIABLE_TOP there), Master League too (what it is now or evolves into).
-    -> (those of sl, [Master forms])"""
-    good = lambda s, t, r: r <= GIVER_PVP_TOP and pvp.viable(s, t, m["shadow"])
-    sl = {(t, s): r for (t, s), r in sl.items() if good(s, t, r)}
-    ml = [s for s in (pvp.family(now) if now else []) if s in pvp.PLAIN
-          and good(s, "M", pvp.rank(s, tuple(m["ivs"]), pvp.ML_CAP))]
-    return sl, ml
+    the form is viable in (PvPoke's top pvp.VIABLE_TOP there). No Master League: that wants perfect IVs, so the IV
+    side covers it."""
+    return {(t, s): r for (t, s), r in sl.items() if r <= GIVER_PVP_TOP and pvp.viable(s, t, m["shadow"])}
 
 
 def judge(m, results, wants, who=None):
@@ -219,15 +214,12 @@ def judge(m, results, wants, who=None):
             unsure = True
     else:
         why.append("IV: /ivc would show nothing")
-    sl, first, now = slots(m)
+    sl, first = slots(m)
     import tradeable  # (it imports this file: by now it has loaded)
-    giver, ml = who == tradeable.GIVER, []
+    giver = who == tradeable.GIVER
     if giver:
-        sl, ml = giver_slots(m, sl, now)
-    if ml:  # no name shows a Master League slot, so there's no rival to compare with
-        why.append(f"PvP: Master League top {GIVER_PVP_TOP} as " + ", ".join(pvp.display(s) for s in ml))
-        keep["pvp"] = m["name"] if named(m["name"]) else pvp.slots_name(first, sl) if sl else name
-    elif sl and pvp.letters(first) is None:
+        sl = giver_slots(m, sl)
+    if sl and pvp.letters(first) is None:
         why.append(f"PvP: the {pvp.display(first)} line branches, its names can't be compared")
         unsure = True
     elif sl:
@@ -294,8 +286,7 @@ def act(verdicts, pile, who):
                 raise Skip(f"not the one judged: HP{now['hp']} {now['tags']}")
             if v["verdict"] == "KEEP":
                 base.set_star(True)
-                # (a Master League keeper has no Pvp name: PvpC would send it to /pvpc, which ranks only L/G/U)
-                base.set_tags(on=["PvpC"] if pvp_name(v["keep"].get("pvp")) else [], off=["Nope"])
+                base.set_tags(on=["PvpC"] if "pvp" in v["keep"] else [], off=["Nope"])
                 new = v["keep"].get("iv") or v["keep"].get("pvp")
                 if new and not named(now["name"]):
                     base.do_rename(new, base.same_name if pvp_name(new) else isr.ivcrun.same_name)

@@ -187,6 +187,19 @@ def empty_bar(texts):
     return bool(bar) and all(b in ("Q", "9", "<", "‹", "< Q", "‹ Q", "< 9", "‹ 9") for b in bar) and (whole or "Q" in bar)
 
 
+def bare_pill(texts, path):
+    """an empty bar OCR reads nothing in (not even the magnifier): the POKÉMON count up top, no words in the bar
+    row, and the bar's pale green pill there (iPhone 2026-10-28)"""
+    if any(0.15 < t[1] < 0.2 for t in texts):
+        return False
+    if not any(t[1] < 0.15 and re.fullmatch(r"[\d,]+\s*/\s*[\d,]+", t[4].strip()) for t in texts):
+        return False
+    im = Image.open(path).convert("RGB")
+    w, h = im.size
+    pts = [im.getpixel((int(w * fx), int(h * fy))) for fx in (0.3, 0.4, 0.5, 0.6, 0.7) for fy in (0.177, 0.188)]
+    return all(200 < r < 235 and 215 < g < 245 and 195 < b < 228 and g > r + 5 and g > b + 10 for r, g, b in pts)
+
+
 def open_panel(bounds):
     """tap the search bar. True if the panel opened with an empty bar"""
     click(random.uniform(0.35, 0.55), 0.183 + random.uniform(-0.003, 0.003), bounds, gap=BAR_GAP)
@@ -268,8 +281,8 @@ def pokemon_tab():
 def bar_seen():
     """the list's search bar, read over ~1s: OCR now and then misses it on one look"""
     for _ in range(4):
-        _, texts, _, _ = wait_for("list")
-        if ui.search_box(texts) or empty_bar(texts):
+        _, texts, path, _ = wait_for("list")
+        if ui.search_box(texts) or empty_bar(texts) or bare_pill(texts, path):
             return True
         time.sleep(0.25)
     return False

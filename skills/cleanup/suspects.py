@@ -437,9 +437,10 @@ def act(verdicts, pile, who):
     todo = {(v["tile"], v["cp"]): v for v in verdicts if v["verdict"] in ("KEEP", "CLEARED") and not v.get("done")}
 
     def visit(i, n, c):
-        v = todo.get((n, c))
-        if not v:
+        t = same_tile(n, c, list(todo))  # (OCR may read the name a bit differently from the first walk: '93 HP' / '93 H')
+        if not t:
             return False
+        v, (n, c) = todo[t], t
         log(f"tile {i}: {n} CP{c}: {v['verdict']}")
         base.open_tile(i)
         try:

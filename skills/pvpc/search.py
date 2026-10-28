@@ -225,13 +225,37 @@ def to_search_list():
         base.to_tags_tab()
         time.sleep(random.uniform(0.8, 1.0))  # a tab tap during the tab animation gets ignored
         if wait_for("list", "tag-tab")[0] == "tag-tab":  # POKÉMON only ever on the Tags tab: on the list it's REFUSED
-            go("POKMON", "list")
+            if ui.ANDROID:  # (not seen on the Pixel: its own recovery stays)
+                go("POKMON", "list")
+            elif pokemon_tab() == "panel":
+                break
         if bar_seen():
             break
         log("  no search bar yet: back to the Tags tab, POKÉMON again")
     else:
         keep_capture("nosearch")
         raise Stop("no search bar on the Pokémon list")
+
+
+def pokemon_tab():
+    """Tags tab -> POKÉMON. -> "list", "panel" or None (didn't land). The iPhone has opened it with the search panel
+    up (empty bar, the tag shortcuts, no keyboard) every time once a run left the panel open, and its < goes back to
+    the Tags tab (2026-10-27). An empty panel is where a search gets typed anyway: leave it up"""
+    for attempt in range(3):
+        if attempt:
+            log("  tap POKMON didn't land, again")
+            if ui.classify(texts) != "tag-tab":
+                return None
+        tap("POKMON")
+        for _ in range(16):
+            time.sleep(0.25)
+            got, texts = panel_text()
+            if ui.search_panel(texts) and not got:
+                log("  the POKÉMON tab opened with the search panel up: typing there")
+                return "panel"
+            if ui.classify(texts) == "list":
+                return "list"
+    return None
 
 
 def bar_seen():

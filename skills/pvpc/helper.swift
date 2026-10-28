@@ -182,7 +182,9 @@ case "drag":
     glide(to: a)
     nap(Double.random(in: 40...100))
     mouse(.leftMouseDown, a)
-    nap(Double.random(in: 20...40))  // short: a long press would start multi-select in the list
+    // short: a long press would start multi-select in the list. An 8th arg holds that long first (a gym's
+    // Pokémon behind another one only follows a finger that held still)
+    nap(args.count > 7 ? Double(args[7])! : Double.random(in: 20...40))
     let n = 20, ms = Double(args[6])!
     for i in 1...n {
         let f = Double(i) / Double(n), e = f * f * (3 - 2 * f)

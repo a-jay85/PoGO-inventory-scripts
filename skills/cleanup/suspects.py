@@ -9,8 +9,10 @@ Steps, in the tag run's dir:
   find   open and appraise each one -> suspects.json (and unsure.json: ones it couldn't read)
   pools  the searches /ivcsort and /pvpc compare with (everything owned in the line, minus Nope) -> pools.json
   judge  offline. IV: /ivcsort's judge() on its /ivc name (or the name /ivc would give it). PvP: pvp.fallen() on
-         its top-100 slots against every Pvp name in the line. -> verdicts.json
-  act    KEEP (either side keeps): star on, Nope off. A PvP keeper gets PvpC back, like /pvpc's keepers. One with
+         its top-100 slots against every Pvp name in the line. CyrillJan (no PvP there) counts only giver_slots():
+         top 20 in a league the form is viable in, Master League too. -> verdicts.json
+  act    KEEP (either side keeps): star on, Nope off. A PvP keeper gets PvpC back, like /pvpc's keepers (not a
+         Master League one: /pvpc doesn't rank that). One with
          neither kind of name gets the one /ivc (or /pvpc) would give it.
          CLEARED: nickname blanked, so the game shows the species name. Nope stays: tag --nope tags it next.
          LEAVE: unsure (a misread search, a branching line, XXL/xxs): nothing changes.
@@ -54,6 +56,9 @@ def pvp_name(n):
 
 def named(n):
     return isr.ivc_name(n) or pvp_name(n)
+
+
+GIVER_PVP_TOP = 20  # CyrillJan doesn't play PvP: it keeps a Nope for PvP only if it's this good (the user, 2026-10-27)
 
 
 def checked_file(who):
@@ -144,15 +149,15 @@ def iv_name(m):
 
 
 def slots(m):
-    """{(league, form): rank} for its top-100 PvP slots, and the line's first stage"""
+    """{(league, form): rank} for its top-100 PvP slots, the line's first stage, and what it is now"""
     sp = [s for s in m["species_options"] if s in pvp.PLAIN]
     if not sp:
-        return {}, None
+        return {}, None, None
     try:
         sl, s = base.slots_of(sp, m["cp"], m["hp"], tuple(m["ivs"]))
     except Skip:
-        return {}, None
-    return sl, pvp.root(s)
+        return {}, None, None
+    return sl, pvp.root(s), s
 
 
 def searches(m):
@@ -160,7 +165,7 @@ def searches(m):
     out = []
     if iv_name(m):
         out += [(q, not q.endswith(sort.NOT_NOPE)) for q in sort.searches_for(dict(m, name=iv_name(m)))]
-    sl, first = slots(m)
+    sl, first, _ = slots(m)
     if sl and first and pvp.letters(first) is not None:
         out += [(q, False) for q in pvp.line_searches(pvp.tree(first), pool_kind(m))]
     return out
@@ -189,8 +194,20 @@ def pools(found):
     return {k: [tuple(x) for x in v] for k, v in results.items()}, wants
 
 
-def judge(m, results, wants):
-    """-> (KEEP | CLEARED | LEAVE, what keeps it {'iv': name, 'pvp': name}, [why])"""
+def giver_slots(m, sl, now):
+    """CyrillJan doesn't play PvP. It keeps one only for a slot that's top GIVER_PVP_TOP of all 4,096 IVs, in a league
+    the form is viable in (PvPoke's top pvp.VIABLE_TOP there), Master League too (what it is now or evolves into).
+    -> (those of sl, [Master forms])"""
+    good = lambda s, t, r: r <= GIVER_PVP_TOP and pvp.viable(s, t, m["shadow"])
+    sl = {(t, s): r for (t, s), r in sl.items() if good(s, t, r)}
+    ml = [s for s in (pvp.family(now) if now else []) if s in pvp.PLAIN
+          and good(s, "M", pvp.rank(s, tuple(m["ivs"]), pvp.ML_CAP))]
+    return sl, ml
+
+
+def judge(m, results, wants, who=None):
+    """-> (KEEP | CLEARED | LEAVE, what keeps it {'iv': name, 'pvp': name}, [why]). who: the giver's PvP side is
+    giver_slots()"""
     keep, why, unsure = {}, [], False
     name = iv_name(m)
     if name:
@@ -202,8 +219,15 @@ def judge(m, results, wants):
             unsure = True
     else:
         why.append("IV: /ivc would show nothing")
-    sl, first = slots(m)
-    if sl and pvp.letters(first) is None:
+    sl, first, now = slots(m)
+    import tradeable  # (it imports this file: by now it has loaded)
+    giver, ml = who == tradeable.GIVER, []
+    if giver:
+        sl, ml = giver_slots(m, sl, now)
+    if ml:  # no name shows a Master League slot, so there's no rival to compare with
+        why.append(f"PvP: Master League top {GIVER_PVP_TOP} as " + ", ".join(pvp.display(s) for s in ml))
+        keep["pvp"] = m["name"] if named(m["name"]) else pvp.slots_name(first, sl) if sl else name
+    elif sl and pvp.letters(first) is None:
         why.append(f"PvP: the {pvp.display(first)} line branches, its names can't be compared")
         unsure = True
     elif sl:
@@ -217,6 +241,8 @@ def judge(m, results, wants):
             why += [f"PvP: {'fallen' if fell else 'keeps'}"] + w[:2]
             if not fell:
                 keep["pvp"] = m["name"] if pvp_name(m["name"]) else pvp.slots_name(first, sl)
+    elif giver:
+        why.append(f"PvP: no top-{GIVER_PVP_TOP} slot in a league it's viable in")
     else:
         why.append("PvP: no top-100 slot")
     return ("KEEP" if keep else "LEAVE" if unsure else "CLEARED"), keep, why
@@ -268,10 +294,11 @@ def act(verdicts, pile, who):
                 raise Skip(f"not the one judged: HP{now['hp']} {now['tags']}")
             if v["verdict"] == "KEEP":
                 base.set_star(True)
-                base.set_tags(on=["PvpC"] if "pvp" in v["keep"] else [], off=["Nope"])
+                # (a Master League keeper has no Pvp name: PvpC would send it to /pvpc, which ranks only L/G/U)
+                base.set_tags(on=["PvpC"] if pvp_name(v["keep"].get("pvp")) else [], off=["Nope"])
                 new = v["keep"].get("iv") or v["keep"].get("pvp")
                 if new and not named(now["name"]):
-                    base.do_rename(new, isr.ivcrun.same_name if "iv" in v["keep"] else base.same_name)
+                    base.do_rename(new, base.same_name if pvp_name(new) else isr.ivcrun.same_name)
             elif not is_species_name(now["name"], v):
                 clear_name(v)
                 checked.append([sort.base_name(v["species"]).title(), c, sum(v["ivs"])])
@@ -299,7 +326,7 @@ def run(pile, who, dry=False):
     known = {(v["tile"], v["cp"]) for v in verdicts}
     for m in found:
         if (m["tile"], m["cp"]) not in known:
-            verdict, keep, why = judge(m, results, wants)
+            verdict, keep, why = judge(m, results, wants, who)
             verdicts.append(dict(m, verdict=verdict, keep=keep, why=why))
     base.save("verdicts.json", verdicts)
     lines = [f"{v['verdict']:8} {v['tile']!r:16} CP{v['cp']:<5} {v['species']:20} {v['why'][0]}"

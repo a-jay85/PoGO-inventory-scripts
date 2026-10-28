@@ -8,7 +8,7 @@
   pvp.py name <species> <atk> <def> <hp>     -> the nickname (or NOPE)
   pvp.py slots <species> "<Pvp name>"         -> the (league, form) ranks a name shows, for the fallen-out check
   pvp.py test                                -> names read back into the slots they came from
-  pvp.py update                              -> re-download PvPoke game data
+  pvp.py update                              -> re-download PvPoke game data and league rankings (rankings.json)
 """
 import json, math, os, re, sys, urllib.request
 from functools import lru_cache
@@ -23,9 +23,19 @@ TOP = 100
 NAME_LEN = 12
 
 
+RANK_URL = "https://raw.githubusercontent.com/pvpoke/pvpoke/master/src/data/rankings/{}.json"
+RANK_LISTS = {"L": "little/overall/rankings-500", "G": "all/overall/rankings-1500",
+              "U": "all/overall/rankings-2500", "M": "all/overall/rankings-10000"}
+ML_CAP = 10000  # no cap: everything at level 50
+VIABLE_TOP = 100  # a form is viable in a league if it's in PvPoke's top this many there
+
+
 def update():
     urllib.request.urlretrieve(GM_URL, os.path.join(HERE, "gamemaster.json"))
     urllib.request.urlretrieve(JS_URL, os.path.join(HERE, "Pokemon.js"))
+    lists = {t: [p["speciesId"] for p in json.load(urllib.request.urlopen(RANK_URL.format(path)))]
+             for t, path in RANK_LISTS.items()}
+    json.dump(lists, open(os.path.join(HERE, "rankings.json"), "w"), indent=0)
 
 
 if len(sys.argv) > 1 and sys.argv[1] == "update":
@@ -78,6 +88,18 @@ def rank(species, ivs, cap):
     rows = table(species, cap)
     sp = next(r[0] for r in rows if r[2] == ivs)
     return 1 + sum(1 for r in rows if r[0] > sp + 1e-9)  # ties share the better rank
+
+
+@lru_cache(None)
+def meta(league):
+    """PvPoke's overall ranking for a league (L G U M), best first, as of the last update"""
+    return json.load(open(os.path.join(HERE, "rankings.json")))[league]
+
+
+def viable(species, league, shadow=False, top=VIABLE_TOP):
+    """species (its shadow, if shadow and PvPoke ranks one) is in PvPoke's top in that league"""
+    ids = meta(league)[:top]
+    return (f"{species}_shadow" if shadow and f"{species}_shadow" in meta(league) else species) in ids
 
 
 def evolutions(species):

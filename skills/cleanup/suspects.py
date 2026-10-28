@@ -269,10 +269,25 @@ def clear_name(m):
             raise Stop(f"after OK the name reads {got!r}, wanted the species name")
 
 
+def apply(v, now, who):
+    """on its detail screen (now: read_member's read of it). KEEP: star on, Nope off, PvpC back for a PvP keeper, a
+    name if it has none. CLEARED: nickname blanked, Nope stays"""
+    if v["verdict"] == "KEEP":
+        base.set_star(True)
+        base.set_tags(on=["PvpC"] if "pvp" in v["keep"] else [], off=["Nope"])
+        new = v["keep"].get("iv") or v["keep"].get("pvp")
+        if new and not named(now["name"]):
+            base.do_rename(new, base.same_name if pvp_name(new) else isr.ivcrun.same_name)
+    elif not is_species_name(now["name"], v):
+        clear_name(v)
+        checked = json.load(open(checked_file(who))) if os.path.exists(checked_file(who)) else []
+        checked.append([sort.base_name(v["species"]).title(), v["cp"], sum(v["ivs"])])
+        json.dump(checked, open(checked_file(who), "w"))
+
+
 def act(verdicts, pile, who):
     """-> the ones still unresolved after this"""
     todo = {(v["tile"], v["cp"]): v for v in verdicts if v["verdict"] in ("KEEP", "CLEARED") and not v.get("done")}
-    checked = json.load(open(checked_file(who))) if os.path.exists(checked_file(who)) else []
 
     def visit(i, n, c):
         v = todo.get((n, c))
@@ -284,16 +299,7 @@ def act(verdicts, pile, who):
             now = isr.read_member(n, c, ivc=False)
             if now["hp"] != v["hp"] or not any(base.is_tag(t, "Nope") for t in now["tags"]):
                 raise Skip(f"not the one judged: HP{now['hp']} {now['tags']}")
-            if v["verdict"] == "KEEP":
-                base.set_star(True)
-                base.set_tags(on=["PvpC"] if "pvp" in v["keep"] else [], off=["Nope"])
-                new = v["keep"].get("iv") or v["keep"].get("pvp")
-                if new and not named(now["name"]):
-                    base.do_rename(new, base.same_name if pvp_name(new) else isr.ivcrun.same_name)
-            elif not is_species_name(now["name"], v):
-                clear_name(v)
-                checked.append([sort.base_name(v["species"]).title(), c, sum(v["ivs"])])
-                json.dump(checked, open(checked_file(who), "w"))
+            apply(v, now, who)
             v["done"] = True
             base.save("verdicts.json", verdicts)
             del todo[(n, c)]

@@ -439,10 +439,15 @@ def judge_pool(m, results, pool, what, mine, r, me_in_pool=True, extra=()):
     return False, f"{what}: no spot, of {total}. " + ("; ".join(full) or "nothing it can become"), notes
 
 def hd(name):
-    """how many of HP and Defense an /ivc name marks 15 (its capitals, '96 HD' -> 2, '96HA' -> 1). A gym defender's
-    IV tie goes to the one with more: HP and Defense matter more than Attack there"""
-    got = re.match(r"\d{1,3}(?:\s*/\s*\d{1,3})?\s*([HAD]*)", clean_name(name))
-    return sum(ch in "HD" for ch in got.group(1)) if got else 0
+    """how many of HP and Defense an /ivc name marks 15 (its capitals, '96 HD' -> 2, '96HA' -> 1; older names spell
+    them out, '98 ATK DEF' -> 1). A gym defender's IV tie goes to the one with more: HP and Defense matter more than
+    Attack there"""
+    got = re.match(r"\d{1,3}(?:\s*/\s*\d{1,3})?\s*((?:(?:HP|ATK|DEF)\b\s*)+|[HAD]*)", clean_name(name))
+    if not got:
+        return 0
+    words = got.group(1).split()
+    return sum(w in ("HP", "DEF") for w in words) if words and words[0] in ("HP", "ATK", "DEF") else \
+        sum(ch in "HD" for ch in got.group(1))
 
 
 def gym_keep(m, tiles):
@@ -675,7 +680,8 @@ def test():
     gym[S("chansey", "gym")] = [("40 h", 500)]
     check("Chansey doesn't fill Blissey's 20", decide(dict(bl, species="chansey", name="40 h", cp=500),
           by_fam(gym, "chansey"))[0], "KEEP")
-    check("hd", [hd(n) for n in ("96 HD", "96HA", "93 hd", "87/96 D", "Blissey", "100")], [2, 1, 0, 1, 0, 0])
+    check("hd", [hd(n) for n in ("96 HD", "96HA", "93 hd", "87/96 D", "Blissey", "100", "98 ATK DEF",
+                                         "96 HP DEF", "84 atk def", "93 all", "96 HP BG*")], [2, 1, 0, 1, 0, 0, 1, 2, 0, 0, 1])
     gym[S("blissey", "gym")] = [("80", 3500)] * 18 + [("80", 0)] * 3
     check("gym hidden CPs could push it out: leave", decide(bl, by_fam(gym, "blissey"))[0], "LEAVE")
     gym[S("blissey", "gym")] = [("Blissey", 3500)] * 10 + [("Blissey", 0)] * 3 + [("40 h", 0)]

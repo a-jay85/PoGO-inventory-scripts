@@ -744,16 +744,22 @@ def sort_by(label, bounds):
         if sort_menu(texts):  # open after all, but the row wasn't read: its X (where the sort button was) shuts it
             click(SORT_BUTTON[0] + random.uniform(-0.01, 0.01), SORT_BUTTON[1] + random.uniform(-0.004, 0.004), bounds)
         raise Stop("the sort menu didn't open")
-    click(0.868 + random.uniform(-0.01, 0.01), row[0][1] + row[0][3] / 2 + random.uniform(-0.004, 0.004), bounds)
-    for _ in range(12):  # the menu fades out: a tap on the button before it's gone gets lost
-        time.sleep(0.25)
-        path, bounds = ui.capture()
-        texts = ui.ocr(path)
-        # every label gone: half faded, RECENT / FAVORITE still cover the top row, which is read only once.
-        # Loose here ('RECENT.' counts): a label read wrong only means waiting a moment longer
-        if not any(t[1] > 0.3 and ui.norm(t[4]).startswith(l) for t in texts for l in ("RECENT", "FAVORITE", "NUMBER", "COMBAT POWER")) \
-                and ui.classify(texts) == "list":
-            return path, texts, bounds
+    for attempt in range(2):
+        click(0.868 + random.uniform(-0.01, 0.01), row[0][1] + row[0][3] / 2 + random.uniform(-0.004, 0.004), bounds)
+        for _ in range(12):  # the menu fades out: a tap on the button before it's gone gets lost
+            time.sleep(0.25)
+            path, bounds = ui.capture()
+            texts = ui.ocr(path)
+            # every label gone: half faded, RECENT / FAVORITE still cover the top row, which is read only once.
+            # Loose here ('RECENT.' counts): a label read wrong only means waiting a moment longer
+            if not any(t[1] > 0.3 and ui.norm(t[4]).startswith(l) for t in texts for l in ("RECENT", "FAVORITE", "NUMBER", "COMBAT POWER")) \
+                    and ui.classify(texts) == "list":
+                return path, texts, bounds
+        # iPhone Mirroring dropped the tap on the row: the whole menu still up, 3 s on (a fade takes under 1 s)
+        row = [t for t in texts if sort_row(t, label)]
+        if attempt or not (row and any(sort_row(t, "COMBAT POWER") for t in texts)):
+            break
+        log(f"  the tap on {label} didn't take: tapping it again")
     keep_capture("sortmenu")
     raise Stop(f"the list didn't come back after sorting by {label}")
 

@@ -56,6 +56,13 @@ Every script (`/pvpc`, `/ivc`, `/ivcsort`, `/cleanup`, `/trade`, `/gift`, `/dex`
 - iPhone: on the iPhone's home screen (told by the game's icon in the dock: app names are hidden), or a screen it doesn't know, it goes home and taps the game in the dock (once). A popup it still doesn't know stops the run: there's no Back key.
 - A nickname box left open gets CANCEL (nothing saved). A tag sheet left open: DONE if something is ticked, stop if nothing is.
 - `POGO_PHONE=android python3 $S/home.py` does just this step.
+
+### Switching accounts (Pixel)
+
+`POGO_PHONE=android python3 $S/account.py [HashTagAJay|CyrillJan]` (or `pogo.py account ...`) signs the Pixel's game out and back in with the other Google account (or the one named; nothing happens if it's already on). The way: main menu -> Settings gear -> scroll to the bottom -> Sign Out -> YES -> RETURNING PLAYER -> Sign in with Google -> the account's row in Google's picker. It reads the trainer name after to be sure. Started on the sign-in screen, it signs in (an account name is a must then). `--who` only says who's on.
+- Which Google account is which trainer: `~/.config/pogo/accounts.json` (`{"HashTagAJay": "...", "CyrillJan": "..."}`), outside the repo.
+- Every tap lands at a random spot near its target, held 45-120 ms, drifting 1-6 px like a thumb. Swipes start, slant and move at random. Waits vary.
+- Google asking to verify (or any screen it doesn't know after signing out) stops the run: sign in by hand.
 Taps come 0.1–0.25s apart (same as /ivc and /ivcsort). A short 0.7–1.3s pause stays, on the appraisal only.
 
 ### Fallen out and trims

@@ -41,6 +41,7 @@ STEPS = {
     "mega":        ("mega/mega.py", set(), set()),
     "roster":      ("roster/roster.py", {"count", "report"}, {"report"}),
     "gymfeed":     ("gymfeed/gymfeed.py", set(), set()),
+    "account":     ("pvpc/account.py", {"HashTagAJay", "CyrillJan"}, set()),
 }
 NEEDS_WORD = {"tradeable", "dex", "roster"}  # these have no default: the first word is a must
 BOTH = {"trade"}  # drives the iPhone and the Pixel, whatever POGO_PHONE says

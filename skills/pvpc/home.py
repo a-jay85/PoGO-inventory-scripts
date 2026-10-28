@@ -120,6 +120,7 @@ def iphone_open():
 # ---------- start ----------
 
 backs, reopened = 0, False  # this run's steps out of screens nobody knows
+HATCH_SCREENS = 40  # seconds after an egg's "Oh?" when an unknown screen is its rewards, its Pokémon or the eggs
 
 
 def unstick(texts):
@@ -163,7 +164,7 @@ def start(storage=True):
         base.front()
     t_open = time.time()
     end = t_open + LOAD_TIMEOUT
-    prev, same, unknowns, reconnected = None, 0, 0, False
+    prev, same, unknowns, reconnected, hatched = None, 0, 0, False, 0
     while True:
         try:
             screen, texts, path, bounds = look()
@@ -236,6 +237,16 @@ def start(storage=True):
         elif screen == "anr":
             keep_capture("anr")
             raise Stop("the phone says Pokémon GO isn't responding: close it by hand")
+        elif screen == "unknown" and any(t[4].strip() == "Oh?" for t in texts):  # an egg hatching (on the way to the map)
+            log("  an egg is hatching: tapping through it")
+            hatched = time.time()
+            search.click(0.5 + random.uniform(-0.02, 0.02), 0.6 + random.uniform(-0.02, 0.02), bounds)
+            time.sleep(2.0)
+        elif screen == "unknown" and (time.time() < hatched + HATCH_SCREENS or re.search(  # its Pokémon's page, the eggs: X
+                r"\b\d+(\.\d+)?\s*/\s*\d+\s*km\b", " ".join(t[4] for t in texts))):
+            log(f"  after the hatch: closing {ui.summary(texts, 60)}")
+            search.click(*X_BUTTON, bounds)
+            time.sleep(2.0)
         elif screen == "unknown" and storage and not ui.ANDROID and ui.search_panel(texts):  # left with the panel open
             search.leave_panel(texts, bounds)  # (an empty bar shows tags and Recommended, no tiles: no list)
         elif screen == "unknown":

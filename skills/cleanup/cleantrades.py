@@ -66,8 +66,8 @@ def key(s):
 
 
 def same_l(s):
-    """OCR mixes up l, i, I, 1 and | ('countcandyx10-359'), and reads '!' as ':'"""
-    return re.sub(r"[il1|!:]", "l", re.sub(r"\s", "", s.lower()))
+    """OCR mixes up l, i, I, 1 and | ('countcandyx10-359'), and reads '!' as ':', and sees a dot for it or next to it ('&.!ultrabeast')"""
+    return re.sub(r"[il1|!:]", "l", re.sub(r"&\.!?", "&!", re.sub(r"\s", "", s.lower())))
 
 
 # ---------- the saved searches ----------

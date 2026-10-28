@@ -145,12 +145,17 @@ def classify():
     if "EXIT POK" in j:
         return "exit"
     if "FRIENDS" in w and ("ME" in w or "SOCIAL" in w):
-        if "TOTAL ACTIVITY" in j or w & {"SCRAPBOOK", "JOURNAL"}:
-            return "profile"  # the ME tab: its trainer name sits where the search box would be
+        if "TOTAL ACTIVITY" in j or "START DATE" in j or w & {"SCRAPBOOK", "JOURNAL", "GYM BADGES", "RECENTLY VISITED"}:
+            # the ME tab: its trainer name sits where the search box would be. Scrolled down it still shows
+            # the friend search's '(34)' under FRIENDS, and 'Start Date:' in the box's spot (2026-10-28)
+            return "profile"
         if w & {"ADD FRIEND", "INVITE", "TRAINER NICKNAME"} or search_line() or count() is not None:
             return "friends"
         return "profile"
     from search import pokeball
+    from home import splash
+    if splash(texts):
+        return "blank"  # the game still loading: wait, no Back
     if len(texts) <= 12 and path and pokeball(path):
         return "map"
     if all(t[1] < 0.08 for t in texts):
@@ -292,6 +297,8 @@ def to_list():
             tap_text(label("CAN RECEIVE A GIFT"))  # set_sort() checks the arrow after
         elif s == "exit":
             tap_text(label("CANCEL"))
+        elif s == "unknown" and home.passenger(texts, bounds):
+            unknown = 0
         elif s == "unknown" and (step := home.through_hatch(texts, bounds, hatched)) is not None:
             hatched, unknown = step, 0
         elif s == "unknown" and ui.classify(texts) in ("list", "tag-tab", "detail"):

@@ -47,6 +47,12 @@ def dock_icon(path):
         and all(min(p) > 200 for p in white)
 
 
+def splash(texts):
+    """the game's loading picture ('SCOPELY  The Pokémon Company' at the bottom): Back there closes the game
+    (2026-10-28), so it's waited out"""
+    return "POKÉMON COMPANY" in ui.joined(texts) or "POKEMON COMPANY" in ui.joined(texts)
+
+
 def where(path, texts):
     """the screens start() cares about: a storage screen, tags/rename, map, mainmenu, exit, signin, anr, ios-home,
     mirroring, blank, unknown"""
@@ -56,6 +62,8 @@ def where(path, texts):
     if screen != "unknown":
         return screen
     j = ui.joined(texts)
+    if splash(texts):
+        return "blank"
     if "EXIT POK" in j:
         return "exit"  # Android: "Do you want to exit Pokémon GO?"
     if "RETURNING PLAYER" in j or "NEW PLAYER" in j or "SIGN IN WITH" in j:
@@ -98,10 +106,12 @@ def android_launch():
         return False
     log("Pokémon GO isn't in front: opening it")
     a.shell(f"monkey -p {a.PKG} -c android.intent.category.LAUNCHER 1")
-    for _ in range(15):  # a cold start takes a few seconds to put the game in front
+    for i in range(40):  # a cold start takes a few seconds to put the game in front
         time.sleep(1)
         if a.PKG in a.shell("dumpsys activity activities | grep -E 'ResumedActivity'"):
             return True
+        if i == 15:  # (right after a Back closed it, the first launch can go nowhere: 2026-10-28)
+            a.shell(f"monkey -p {a.PKG} -c android.intent.category.LAUNCHER 1")
     raise Stop("opened Pokémon GO but it never came to the front")
 
 

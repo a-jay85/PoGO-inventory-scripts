@@ -153,6 +153,9 @@ def classify():
             return "friends"
         return "profile"
     from search import pokeball
+    from home import splash
+    if splash(texts):
+        return "blank"  # the game still loading: wait, no Back
     if len(texts) <= 12 and path and pokeball(path):
         return "map"
     if all(t[1] < 0.08 for t in texts):

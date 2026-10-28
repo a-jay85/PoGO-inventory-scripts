@@ -226,7 +226,9 @@ def append(suffix, bounds=None, before=None):
         if attempt or not old or not any(same_l(t[4]).endswith(old) for t in texts):
             break
         log(f"  {suffix!r} didn't land in the bar: typing it again")
-        if not ui.ANDROID:
+        if not ui.ANDROID:  # the panel can be up with no keyboard (a late 2nd bar tap): a tap in the bar brings it back
+            search.click(0.45, 0.183, bounds, gap=search.BAR_GAP)
+            time.sleep(0.8)
             base.key("right", cmd=True)
     keep_capture("append")
     log(f"the bar doesn't end with {suffix!r}: {[t[4] for t in texts if t[1] < 0.62 and '&' in t[4]]}")

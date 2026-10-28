@@ -69,7 +69,8 @@ def swipe_next(bounds):
     y = 0.33 + random.uniform(-0.02, 0.02)
     if ui.ANDROID:  # a quick plain swipe: android.drag's pause before lifting kills the fling
         W, H = ui.android.size()
-        ui.android.shell(f"input swipe {int(W * 0.87)} {int(H * y)} {int(W * 0.1)} {int(H * y)} 150")
+        x1, x2, y2 = W * random.uniform(0.85, 0.89), W * random.uniform(0.08, 0.12), y + random.uniform(-0.01, 0.01)
+        ui.android.shell(f"input swipe {int(x1)} {int(H * y)} {int(x2)} {int(H * y2)} {random.randint(130, 175)}")
     else:
         x1, y1 = base.to_points(0.85, y, bounds)
         x2, y2 = base.to_points(0.12, y, bounds)

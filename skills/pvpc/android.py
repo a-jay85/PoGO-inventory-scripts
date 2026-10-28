@@ -372,10 +372,20 @@ def has_motionevent():
     return _motion
 
 
+def slide():
+    """(dx, dy) phone pixels a tap's finger moves while it's down: 0-3 each way, never both 0"""
+    while True:
+        dx, dy = random.randint(-3, 3), random.randint(-3, 3)
+        if dx or dy:
+            return dx, dy
+
+
 def drag(p1, p2, ms, hold=None):
     """finger down, slide, pause, lift: the pause stops the list sliding on after the finger lifts.
     hold: ms to hold still first (a gym's Pokémon behind another one only follows a finger that held still)"""
     (x1, y1), (x2, y2) = p1, p2
+    x2, y2 = x2 + random.randint(-4, 4), y2 + random.randint(-4, 4)
+    bow = random.uniform(-0.04, 0.04)  # a thumb's path bends a little: this much of the length, sideways
     if not has_motionevent():
         shell(f"input swipe {x1} {y1} {x2} {y2} {int(ms)}")
         return
@@ -384,7 +394,9 @@ def drag(p1, p2, ms, hold=None):
     for i in range(1, n + 1):
         f = i / n
         e = f * f * (3 - 2 * f)
-        steps.append(f"input motionevent MOVE {round(x1 + (x2 - x1) * e)} {round(y1 + (y2 - y1) * e)}")
+        b = bow * 4 * e * (1 - e)
+        steps.append(f"input motionevent MOVE {round(x1 + (x2 - x1) * e - (y2 - y1) * b)} "
+                     f"{round(y1 + (y2 - y1) * e + (x2 - x1) * b)}")
     steps += [f"sleep {random.uniform(0.12, 0.2):.2f}", f"input motionevent MOVE {x2} {y2}",
               f"input motionevent UP {x2} {y2}"]
     shell("; ".join(steps))
@@ -395,6 +407,7 @@ def hold_drag(fx1, fy1, fx2, fy2):
     held still first: a plain swipe on it moves nothing (Pixel, 2026-10-09)"""
     W, H = size()
     x1, y1, x2, y2 = round(fx1 * W), round(fy1 * H), round(fx2 * W), round(fy2 * H)
+    x2, y2 = x2 + random.randint(-4, 4), y2 + random.randint(-4, 4)
     steps = [f"input motionevent DOWN {x1} {y1}", f"sleep {random.uniform(0.35, 0.45):.2f}"]
     n = random.randint(4, 6)
     for i in range(1, n + 1):
@@ -444,7 +457,8 @@ def act(cmd, *a):
     global _tapped
     if cmd == "click":  # x y hold_ms: a swipe that doesn't move is a press held that long
         x, y = to_px(a[0], a[1])
-        shell(f"input swipe {x} {y} {x} {y} {int(float(a[2]))}")
+        dx, dy = slide()  # a thumb rolls a pixel or two while it's down: well under the ~20 px that makes it a drag
+        shell(f"input swipe {x} {y} {x + dx} {y + dy} {int(float(a[2]))}")
         _tapped = time.time()
     elif cmd == "drag":  # x1 y1 x2 y2 ms [hold_ms]
         drag(to_px(a[0], a[1]), to_px(a[2], a[3]), float(a[4]), float(a[5]) if len(a) > 5 else None)

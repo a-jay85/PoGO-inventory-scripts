@@ -24,6 +24,7 @@ MAX_SKIPS_IN_A_ROW = 5
 # and then by Name again. Both keep the search. A run can start on a list an earlier run left scrolled, so the first
 # search does it too
 scrolled = True
+LAST = {"q": None}  # the search start_search last left in the bar (None: unknown, or cleared since)
 SORT_BUTTON = (0.838, 0.937)  # the round sort button, bottom right
 
 
@@ -329,6 +330,7 @@ def x_button(bounds):
 def clear_search():
     """typing only lands in an empty search bar, and the game empties it when the Pokémon screen reopens:
     close it with the X at the bottom, then Poké Ball -> POKÉMON"""
+    LAST["q"] = None
     want = ("list", "tag-tab", "detail", "menu", "appraisal", "gym")
     for _ in range(3):
         screen, texts, _, bounds = base.look()
@@ -486,6 +488,7 @@ def _type_into_panel(q, bounds, clip_box, check):
 
 def close_panel(bounds):
     """the panel's (x) empties the bar and closes the panel"""
+    LAST["q"] = None
     click(0.905 + random.uniform(-0.006, 0.006), 0.183 + random.uniform(-0.003, 0.003), bounds, gap=BAR_GAP)
     time.sleep(random.uniform(1.2, 1.5))
 
@@ -580,13 +583,69 @@ def drop_misreads(most, sightings, extra):
             del most[k]
 
 
+def edit_tail(prev, q, check):
+    """the bar holds prev and its list isn't scrolled: tap the bar, delete back to where q starts to differ, type the
+    rest, Return. Skips the clear and most of the typing ('...&!shadow' -> '...&lucky'). -> the results' texts, or
+    None (the panel is closed again: start over the usual way)"""
+    k = len(os.path.commonprefix([prev, q]))
+    if k < len(q) / 2:  # little in common: typing it whole is as quick
+        return None
+    bounds = ui.capture()[1]
+    click(random.uniform(0.35, 0.55), 0.183 + random.uniform(-0.003, 0.003), bounds, gap=BAR_GAP)
+    for _ in range(10):
+        time.sleep(POLL)
+        got, texts = panel_text()
+        if ui.search_panel(texts):
+            break
+    else:
+        return None
+    if not check(got, prev):
+        log(f"  the bar holds {got!r}, not {prev!r}: typing the search whole")
+        close_panel(bounds)
+        return None
+    if ui.ANDROID:
+        ui.android.shell("input keyevent KEYCODE_MOVE_END " + " ".join(["67"] * (len(prev) - k)))
+    else:
+        key("right", cmd=True)
+        type_text("A")  # the first shifted keys after the tap lose their shift: wake it up (see _type_into_panel)
+        for _ in range(len(prev) - k + 1):  # (+1: the A)
+            key("delete")
+    type_text(q[k:])
+    for i in range(16):
+        time.sleep(0.25)
+        got, texts = panel_text()
+        if got and check(got, q):
+            break
+    else:
+        log(f"  editing the search's end: the bar says {got!r}, wanted {q!r}")
+        close_panel(bounds)
+        return None
+    key("return")
+    for _ in base.tries(12, 0.25):
+        got, texts = panel_text()
+        if not ui.search_panel(texts) and ui.classify(texts) == "list":
+            break
+    else:
+        log("the panel didn't close after Return")
+        return None
+    if not check(got, q) or not {"TAGS", "EGGS"} <= {ui.norm(t[4]) for t in texts}:
+        return None
+    return texts
+
+
 def start_search(q, check=None):
     """type one search (Return, SHOW EVOLUTIONARY LINE unticked). -> (path, texts, bounds) of the results, at the top.
     check(got, q): does the bar's read show q (default bar_shows; /cleanup's trades.strict is stricter)"""
     check = check or bar_shows
     global scrolled
     t0 = time.time()
-    for attempt in range(3):
+    prev, LAST["q"] = LAST["q"], None
+    if prev and prev != q and not scrolled and edit_tail(prev, q, check):
+        log(f"  timing: edited the end, {time.time() - t0:.1f}s")
+        attempts = []  # (no clear, no typing it whole)
+    else:
+        attempts = range(3)
+    for attempt in attempts:
         c = clear_search()
         t1 = time.time()
         if c == "list":
@@ -615,8 +674,9 @@ def start_search(q, check=None):
             break
         log(f"search bar says {got!r}, wanted {q!r}: typing it again")
     else:
-        keep_capture("search")
-        raise Stop(f"search bar never showed {q!r}")
+        if attempts:
+            keep_capture("search")
+            raise Stop(f"search bar never showed {q!r}")
     for _ in range(3):  # SHOW EVOLUTIONARY LINE would pull in the whole family
         path, bounds = ui.capture()
         texts = ui.ocr(path)
@@ -636,6 +696,7 @@ def start_search(q, check=None):
         scrolled = False
     if scrolled:
         path, texts, bounds = to_top(bounds)
+    LAST["q"] = q
     return path, texts, bounds
 
 

@@ -229,8 +229,13 @@ def to_search_list():
         if wait_for("list", "tag-tab")[0] == "tag-tab":  # POKÉMON only ever on the Tags tab: on the list it's REFUSED
             if ui.ANDROID:  # (not seen on the Pixel: its own recovery stays)
                 go("POKMON", "list")
-            elif pokemon_tab() == "panel":
-                break
+            else:
+                tab = pokemon_tab()
+                if tab == "panel":
+                    break
+                if tab is None:  # still the Tags tab, or between tabs: no bar to wait for
+                    log("  POKÉMON didn't open: the Tags tab again")
+                    continue
         if bar_seen():
             break
         log("  no search bar yet: back to the Tags tab, POKÉMON again")

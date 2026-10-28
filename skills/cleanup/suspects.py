@@ -4,7 +4,9 @@ checks every one before it tags anything (the user's rule: no tag until it's cle
 
 A suspect is in the untraded Nope pile and either
   - still has an /ivc name ('96 HD') or a Pvp name: it was named once, so it may still be a keeper, or
-  - 93%+ (an IV sum of 42+) whatever its name. Every stat 11+ and 3* finds those; the appraisal tells.
+  - 93%+ (an IV sum of 42+) whatever its name. Every stat 11+ and 3* finds those; the appraisal tells, or
+  - a gym defender (GYM_DEFENDERS), whatever its name or IVs, traded ones too: it may be top 20 CP or top 20 IV of
+    its species (/ivcsort's gym rule). Each run judges them again: their rank moves as the pool changes.
 Steps, in the tag run's dir (find does the first four in one walk, opening each suspect once):
   list   walk the pile with no taps: the named ones, and the unnamed 82%+ ones to appraise
   pools  the searches /ivcsort and /pvpc compare with (everything owned in the line, minus Nope) -> pools.json.
@@ -47,6 +49,8 @@ import cleantrades as ct
 
 HIGH = 42  # IV sum of 93%
 HIGH_TERMS = "&3*&3-4attack&3-4defense&3-4hp"  # every stat 11+ and 82%+: holds for every 93%+ one
+GYM_DEX = ",".join(str(d) for d in sorted({sort.SPECIES[s]["dex"] for s in ivc.GYM_DEFENDERS}))
+GYM_TERMS = "&" + GYM_DEX
 
 
 def load(name, default=None):
@@ -78,6 +82,10 @@ def add_checked(who, row):
     checked = load_checked(who)
     checked.append(row)
     json.dump(checked, open(checked_file(who), "w"))
+
+
+def is_gym(m):
+    return any(s in ivc.GYM_DEFENDERS for s in m["species_options"] or [])
 
 
 def pool_kind(m):
@@ -232,8 +240,10 @@ def find(pile, who, dry=False):
 
     names = list_tiles(pile, lambda n, c: named(n))
     high = list_tiles(pile + HIGH_TERMS, lambda n, c: not named(n) and (n.lower(), c) not in low)
-    todo = [t for t in names + high if t not in seen]
-    log(f"suspects: {len(names)} named, {len(high)} unnamed 82%+ ones to appraise, {len(todo)} not done yet")
+    gym = list_tiles(pile + GYM_TERMS, lambda n, c: not named(n))  # (never left out by checked: its rank moves)
+    todo = list(dict.fromkeys(t for t in names + high + gym if t not in seen))
+    log(f"suspects: {len(names)} named, {len(high)} unnamed 82%+ ones to appraise, {len(gym)} unnamed gym "
+        f"defenders, {len(todo)} not done yet")
     if not todo and not later:
         return verdicts, unsure
     top = tops(pile) if any(named(n) and f"{n}|{c}" not in reads for n, c in todo) else None
@@ -255,7 +265,7 @@ def find(pile, who, dry=False):
                 save_read(reads, who, m)
             iv = sum(m["ivs"]) if m.get("ivs") else None
             log(f"  {m['name']!r} {m['species']} {'/'.join(map(str, m['ivs'] or '???'))} ({m['how']})")
-            if not named(n) and iv < HIGH:
+            if not named(n) and iv < HIGH and not is_gym(m):
                 add_checked(who, [n, c, iv])
                 return False
             if any(q not in results for q, _ in searches(m)):

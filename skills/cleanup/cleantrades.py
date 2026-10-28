@@ -189,31 +189,47 @@ def run_shortcut(name, suffix=""):
     raise Stop(f"couldn't run the {name!r} shortcut{' + ' + suffix if suffix else ''}")
 
 
-def append(suffix, bounds=None):
-    """tap the filled bar, type suffix at the end, Return. False if the bar doesn't end with it (cleared after)"""
+def append(suffix, bounds=None, before=None):
+    """tap the filled bar, type suffix at the end, Return. False if the bar doesn't end with it (cleared after).
+    before: the search already in the bar. When the bar still ends with it, nothing landed (the iPhone has lost a
+    whole typed piece now and then): it types the piece once more"""
     search.LAST["q"] = None  # (the bar won't hold start_search's last one)
     bounds = bounds or look()[3]
-    search.click(0.45, 0.183, bounds, gap=search.BAR_GAP)
-    for _ in range(10):
-        time.sleep(search.POLL)
-        if ui.search_panel(ui.ocr(ui.capture()[0])):
-            break
-    else:
-        return False
+    for tap in range(2):  # the iPhone drops a bar tap now and then: the list stays up, no panel
+        search.click(0.45, 0.183, bounds, gap=search.BAR_GAP)
+        for _ in range(10):
+            time.sleep(search.POLL)
+            if ui.search_panel(ui.ocr(ui.capture()[0])):
+                break
+        else:
+            if tap:
+                return False
+            log("  the tap on the search bar didn't open it: tapping it again")
+            continue
+        break
     if ui.ANDROID:
         ui.android.shell("input keyevent KEYCODE_MOVE_END")
     else:
         base.key("right", cmd=True)
-    base.type_text(suffix)
     want = same_l(suffix)
     if len(want) > 24:  # a long one doesn't fit in the bar: only its end shows
         want = want[-24:]
-    for i in range(6):
-        time.sleep(search.POLL)
-        texts = ui.ocr(ui.android.sharp()) if ui.ANDROID and i % 2 else ui.ocr(ui.capture()[0])
-        if any(same_l(t[4]).endswith(want) for t in texts):
-            base.key("return")
-            return True
+    old = same_l(before)[-16:] if before else None
+    for attempt in range(2):
+        base.type_text(suffix)
+        for i in range(6):
+            time.sleep(search.POLL)
+            texts = ui.ocr(ui.android.sharp()) if ui.ANDROID and i % 2 else ui.ocr(ui.capture()[0])
+            if any(same_l(t[4]).endswith(want) for t in texts):
+                base.key("return")
+                return True
+        if attempt or not old or not any(same_l(t[4]).endswith(old) for t in texts):
+            break
+        log(f"  {suffix!r} didn't land in the bar: typing it again")
+        if not ui.ANDROID:  # the panel can be up with no keyboard (a late 2nd bar tap): a tap in the bar brings it back
+            search.click(0.45, 0.183, bounds, gap=search.BAR_GAP)
+            time.sleep(0.8)
+            base.key("right", cmd=True)
     keep_capture("append")
     log(f"the bar doesn't end with {suffix!r}: {[t[4] for t in texts if t[1] < 0.62 and '&' in t[4]]}")
     search.close_panel(bounds)
@@ -238,12 +254,14 @@ def long_search(q):
         head += terms.pop(0)
     search_exact(head)
     n = results()
+    done = head
     while terms and n:  # (0 stays 0: an AND only narrows it)
         piece = terms.pop(0)
         while terms and len(piece + terms[0]) <= PIECE_MAX:
             piece += terms.pop(0)
-        if not append(piece):
+        if not append(piece, before=done):
             raise Stop(f"couldn't add {piece!r} to the search {q!r}")
+        done += piece
         n2 = results()
         if n2 > n:
             raise Stop(f"adding {piece!r} showed {n2}, more than {n}: it didn't land as an AND")

@@ -1055,19 +1055,29 @@ def whose():
     global last_held
     if last_held is not None:
         return
+    import home
     me = None
     t = label("ME", 0.0, 0.12)
     if t:
         if tap_into(t, "profile", timeout=6 * LAG) == "profile":
-            time.sleep(0.5)
-            look()
-            me = next((k for k in LAST_HELD if any(k.lower() in u[4].lower() for u in texts if u[1] < 0.4)), None)
+            # the name can show a moment after the tab (2026-10-27: one look 0.7 s in read none, so a HashTagAJay
+            # run went San Francisco only). OCR mixes up I, l, 1 and |: home.squash, as home.trainer() reads it
+            for _ in range(int(4 * LAG)):
+                time.sleep(0.5)
+                look()
+                top = home.squash(" ".join(u[4] for u in texts if u[1] < 0.4))
+                me = next((k for k in home.TRAINERS if home.squash(k) in top), None)
+                if me:
+                    break
+            else:
+                keep_capture("whose")
+                log(f"  can't read the trainer name on the ME tab: {[u[4] for u in texts if u[1] < 0.4]}")
         to_list()
     last_held = LAST_HELD.get(me, "")
     if last_held:
         log(f"account {me}: gifts after {last_held!r} in the gift list go too")
     else:
-        log(f"account {me or 'not in LAST_HELD'}: San Francisco gifts only")
+        log(f"account {me or 'unread'}: San Francisco gifts only")
 
 
 def run_searches(limit):

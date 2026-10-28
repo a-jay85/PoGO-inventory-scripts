@@ -335,7 +335,8 @@ def to_badge_list():
 
 def into_gym():
     """a badge open -> "gym" once in its gym view. "none": no TIME DEFENDING (none of yours is in it). "raid": a raid
-    is on there (the tap shows 'Raid in progress! Your Pokémon will return to the Gym once the raid is over.')"""
+    is on there (the tap shows 'Raid in progress! Your Pokémon will return to the Gym once the raid is over.').
+    "shut": two taps and no gym view"""
     screen, texts, _, bounds = base.wait_for("badge", look=look, timeout=20)  # it loads slowly now and then
     time.sleep(0.6)  # the defender and its timer fade in
     _, texts, _, bounds = look()
@@ -353,7 +354,7 @@ def into_gym():
             if "RAID IN PROGRESS" in ui.joined(texts).upper():
                 return "raid"
     keep_capture("nogym")
-    raise Stop("tapped TIME DEFENDING twice and the gym didn't open")
+    return "shut"  # a raid whose words came and went, most likely: the next run tries again
 
 
 # ---------- one Pokémon ----------
@@ -482,8 +483,8 @@ def feed_here(seen, total, limit):
 
 
 def open_at(cx, cy, bounds, seen):
-    """in the gym view: tap a Pokémon at TAP_DROPS under its CP label until one not seen yet opens -> True on its
-    page. False: back in the gym view, nothing new opened"""
+    """in the gym view: tap a Pokémon at TAP_DROPS under its CP label until one not seen yet opens -> the drop that
+    opened it, on its page. None: back in the gym view, nothing new opened"""
     for drop in TAP_DROPS:
         base.click(cx, cy + drop, bounds, fuzz=0.01)
         if not wait_feed():
@@ -491,12 +492,12 @@ def open_at(cx, cy, bounds, seen):
             continue
         me = who(look()[1])
         if me not in seen:
-            return True
+            return drop
         log(f"    tap {cx:.2f},{cy + drop:.2f}: {me[0]} again")
         base.click(*X_BUTTON, look()[3], fuzz=0.006)  # one already fed: the tap went to the one in front
         _, _, _, bounds = base.wait_for("gymview", look=look, timeout=8)
         time.sleep(0.8)
-    return False
+    return None
 
 
 def gym(total, limit):
@@ -505,17 +506,27 @@ def gym(total, limit):
     _, _, _, bounds = look()
     n = len(labels)
     log(f"  {n} Pokémon in the gym view")
-    seen, fed, missed = set(), 0, []
-    for cx, cy in labels:  # right-most first
-        if total + fed >= limit or out_of_berries:
-            return fed
-        if not open_at(cx, cy, bounds, seen):
-            missed.append((cx, cy))
-            continue
-        fed += feed_here(seen, total + fed, limit)
-        base.click(*X_BUTTON, look()[3], fuzz=0.006)
-        _, _, _, bounds = base.wait_for("gymview", look=look, timeout=8)
-        time.sleep(0.8)
+    seen, fed, todo = set(), 0, labels
+    # right-most first. A label whose first tap opened nothing new may have opened the one in front of it (not seen
+    # yet then): a 2nd pass over those, with the front ones seen, reaches the one behind
+    for _ in range(2):
+        missed = []
+        for cx, cy in todo:
+            if total + fed >= limit or out_of_berries:
+                return fed
+            drop = open_at(cx, cy, bounds, seen)
+            if drop is None:
+                missed.append((cx, cy))
+                continue
+            if drop != TAP_DROPS[0]:
+                missed.append((cx, cy))  # unsure it's this label's one
+            fed += feed_here(seen, total + fed, limit)
+            base.click(*X_BUTTON, look()[3], fuzz=0.006)
+            _, _, _, bounds = base.wait_for("gymview", look=look, timeout=8)
+            time.sleep(0.8)
+        if len(seen) >= n or not missed:
+            break
+        todo = missed
     if len(seen) >= n or total + fed >= limit or out_of_berries:
         return fed
     log(f"  {len(missed)} didn't open on a tap: looking by swiping")
@@ -603,8 +614,8 @@ def script(limit):
         if inside == "none":
             log(f"{name}: no TIME DEFENDING, so no gym of yours is left")
             break
-        if inside == "raid":
-            log(f"{name}: a raid is on there, skipped")
+        if inside != "gym":
+            log(f"{name}: " + ("a raid is on there" if inside == "raid" else "the gym didn't open") + ", skipped")
             continue
         log(f"--- {name}")
         total += gym(total, limit)

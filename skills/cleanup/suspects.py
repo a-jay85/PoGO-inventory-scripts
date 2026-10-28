@@ -122,8 +122,7 @@ def load_reads(who):
 
 
 def save_read(reads, who, m):
-    keep = ("tile", "name", "cp", "hp", "shadow", "lucky", "size", "species_options", "species", "ivs", "moves")
-    reads[f"{m['tile']}|{m['cp']}"] = {k: m[k] for k in keep if k in m}
+    reads[f"{m['tile']}|{m['cp']}"] = {k: v for k, v in m.items() if k not in ("tags", "how")}
     json.dump(reads, open(reads_file(who), "w"))
 
 

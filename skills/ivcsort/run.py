@@ -579,7 +579,8 @@ def plan_key(m):
 
 def act(limit, members):
     """tag one family's KEEPs and NOPEs on its own search lists (an IVC Pokémon isn't Nope, so it shows there):
-    the list still on screen from pools first, then any other list that holds one. -> how many were opened"""
+    the list still on screen from pools first, then any other list that holds one. -> (how many were opened,
+    how many weren't found: the family isn't done then, a rerun walks its lists again)"""
     mine = {plan_key(m) for m in members}
     lists = {}
     for m in load("plan.json"):
@@ -597,9 +598,9 @@ def act(limit, members):
     skipped = {tuple(k) for k in progress["skipped"]}
     lists = {q: ms for q, ms in lists.items() if any((sort.clean_name(m["tile"]), m["cp"]) not in skipped for m in ms)}
     if not lists:
-        return 0
+        return 0, 0
     pooled = []  # pools and counts, loaded the first time a Pokémon has to be judged again
-    opened = [0]
+    opened, missed = [0], 0
     todo, want = Counter(), {}
 
     def visit(i, n, c):
@@ -690,12 +691,20 @@ def act(limit, members):
             start_search(q)
             SHOWN["q"] = q
         log(f"{q}: {sum(todo.values())} to change")
-        digits = all(re.match(r"\d", n) for n, _ in todo)  # IV names sort first: a plain name ends them
+        # sorted by Name, IV names come first: a plain name after them ends them. Only after one: a list not sorted
+        # by Name (seen 2026-10-27, 'Dodrio' on top) is walked to its end
+        digits, iv_seen = all(re.match(r"\d", n) for n, _ in todo), [False]
         left = lambda: sum(v for k, v in todo.items() if k not in skipped)
-        walk_list(visit, stop=lambda n: opened[0] >= limit or not left() or (digits and not re.match(r"\d", n)))
-        if left():
+
+        def stop(n):
+            iv = bool(re.match(r"\d", n))
+            iv_seen[0] |= iv
+            return opened[0] >= limit or not left() or (digits and iv_seen[0] and not iv)
+        walk_list(visit, stop=stop)
+        if left() and opened[0] < limit:
             log(f"  left over on {q} (not found): {left()}")
-    return opened[0]
+            missed += left()
+    return opened[0], missed
 
 
 # ---------- sort: one dex chunk at a time ----------
@@ -741,6 +750,7 @@ def sort_all(limit, look):
         if key in done:
             continue
         scan(only=[(a, b)])
+        unfinished = False
         SHOWN["q"] = None  # scan typed its own search
         members = [m for m in load("scan.json") if m.get("species") and chunk_of(m, a, b)]
         for qs, fam in families(members):
@@ -752,14 +762,21 @@ def sort_all(limit, look):
             verdicts = Counter(m["verdict"] for m in load("plan.json") if plan_key(m) in {plan_key(f) for f in fam})
             log(f"family {sorted({m['species'] for m in fam})}: {dict(verdicts)}")
             if not look:
-                left -= act(left, fam)
+                n, missed = act(left, fam)
+                left -= n
             if left <= 0:  # the family may have more to change: not done (a rerun passes over what act.json has)
                 log(f"--limit {limit} reached: `sort {base.RUN_DIR}` carries on")
                 return
+            if not look and missed:  # not done: a rerun walks its lists again
+                unfinished = True
+                continue
             fams_done.append(fkey)
             save("families.json", fams_done)
         if members:
             plan()  # this chunk's members that need nothing typed (SKIP) get their line in plan.txt too
+        if unfinished:
+            log(f"{key}: an IVC Pokémon wasn't found on its family's list: `sort {base.RUN_DIR}` tries again")
+            continue
         done.append(key)
         save("sorted.json", done)
     counts = Counter(m["verdict"] for m in load("plan.json")) if os.path.exists(

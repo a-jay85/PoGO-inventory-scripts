@@ -158,15 +158,25 @@ def arrow(path, cy):
     from PIL import Image
     im = Image.open(path).convert("RGB")
     W, H = im.size
+    ys = range(int((cy - 0.02) * H), int((cy + 0.02) * H))
+    bright = lambda fx, fy: min(im.getpixel((fx, fy))) > 150
+    cols = [fx for fx in range(int(0.86 * W), int(0.97 * W)) if any(bright(fx, fy) for fy in ys)]
+    if not cols:
+        return None
+    # the arrow is the right-most blob of columns; the shield's edge can show at the left (Android)
+    x1 = x0 = cols[-1]
+    while x0 - 1 in cols or x0 - 2 in cols:
+        x0 -= 1
     rows = []
-    for fy in range(int((cy - 0.02) * H), int((cy + 0.02) * H)):
-        n = sum(min(im.getpixel((fx, fy))) > 150 for fx in range(int(0.86 * W), int(0.97 * W)))
+    for fy in ys:
+        n = sum(bright(fx, fy) for fx in range(x0, x1 + 1))
         if n:
             rows.append((fy, n))
     if len(rows) < 5:
         return None
-    widest = max(rows, key=lambda r: r[1])[0]  # the arrow's head
-    return "down" if widest > (rows[0][0] + rows[-1][0]) / 2 else "up"
+    # the head holds most of the ink: its weight sits below the middle on a down arrow
+    weight = sum(fy * n for fy, n in rows) / sum(n for _, n in rows)
+    return "down" if weight > (rows[0][0] + rows[-1][0]) / 2 else "up"
 
 
 def sort_defending():
@@ -176,10 +186,15 @@ def sort_defending():
         _, _, _, bounds = base.wait_for("badgelist", look=look, timeout=8)
         base.click(*SORT_BUTTON, bounds, fuzz=0.01)
         base.wait_for("sortmenu", look=look, timeout=6)
-        time.sleep(0.8)  # the menu slides in
-        _, texts, path, bounds = look()
-        hit = next(t for t in texts if ui.norm(t[4]) == "DEFENDING")
-        if arrow(path, hit[1] + hit[3] / 2) == "down":
+        seen = []
+        while len(seen) < 2 or seen[-1] != seen[-2]:  # the menu slides in: two reads in a row must agree
+            time.sleep(0.6)
+            _, texts, path, bounds = look()
+            hit = next(t for t in texts if ui.norm(t[4]) == "DEFENDING")
+            seen.append(arrow(path, hit[1] + hit[3] / 2))
+            if len(seen) > 6:
+                break
+        if seen[-1] == "down":
             base.click(*SORT_BUTTON, bounds, fuzz=0.01)  # its X sits where the sort button was
             time.sleep(1.0)
             base.wait_for("badgelist", look=look, timeout=6)

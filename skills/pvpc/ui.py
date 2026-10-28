@@ -550,6 +550,7 @@ def search_panel(texts):
 def search_text(box):
     """what's typed in the search bar, as OCR reads it ('' if it just says Search)"""
     t = re.sub(r"^(?:[<‹]\s*[Q9]|Q)[\s,.]+|^[<‹]\s*Q?|^Q(?=\d)|^9\s+", "", box[4]).strip()  # 9: the magnifier misread
+    t = re.sub(r"\s*\|$", "", t)  # the blinking text cursor, read as a last | ('#Nope&4hp|', iPhone 2026-10-28)
     return "" if t.lower() in ("search", "9", "q") else t
 
 

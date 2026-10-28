@@ -372,13 +372,14 @@ def has_motionevent():
     return _motion
 
 
-def drag(p1, p2, ms):
-    """finger down, slide, pause, lift: the pause stops the list sliding on after the finger lifts"""
+def drag(p1, p2, ms, hold=None):
+    """finger down, slide, pause, lift: the pause stops the list sliding on after the finger lifts.
+    hold: ms to hold still first (a gym's Pokémon behind another one only follows a finger that held still)"""
     (x1, y1), (x2, y2) = p1, p2
     if not has_motionevent():
         shell(f"input swipe {x1} {y1} {x2} {y2} {int(ms)}")
         return
-    steps = [f"input motionevent DOWN {x1} {y1}"]
+    steps = [f"input motionevent DOWN {x1} {y1}"] + ([f"sleep {hold / 1000:.2f}"] if hold else [])
     n = random.randint(5, 7)
     for i in range(1, n + 1):
         f = i / n
@@ -445,8 +446,8 @@ def act(cmd, *a):
         x, y = to_px(a[0], a[1])
         shell(f"input swipe {x} {y} {x} {y} {int(float(a[2]))}")
         _tapped = time.time()
-    elif cmd == "drag":  # x1 y1 x2 y2 ms
-        drag(to_px(a[0], a[1]), to_px(a[2], a[3]), float(a[4]))
+    elif cmd == "drag":  # x1 y1 x2 y2 ms [hold_ms]
+        drag(to_px(a[0], a[1]), to_px(a[2], a[3]), float(a[4]), float(a[5]) if len(a) > 5 else None)
     elif cmd == "scroll":  # x y dy steps: no wheel on a phone, drag the same way (dy < 0 moves the list down)
         drag(to_px(a[0], a[1]), to_px(a[0], float(a[1]) + float(a[2])), 500)
     elif cmd == "key":

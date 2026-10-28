@@ -896,16 +896,17 @@ LIST_SETTLE = (0.35, 0.5)  # Android: a list or grid holds still this soon after
 # lifting, so it doesn't glide on). Measured on the Pokémon list (scroll()); /gift and /dex scroll lists the same way
 
 
-def drag(fx, fy, tx, ty, bounds, ms=None, settle=(0.7, 0.9), android_settle=None, bring_front=True):
+def drag(fx, fy, tx, ty, bounds, ms=None, settle=(0.7, 0.9), android_settle=None, bring_front=True, hold=None):
     """a finger drag from (fx, fy) to (tx, ty), window fractions, then wait for it to stop moving.
     ms: how long the drag takes (default 400-600). settle: (lo, hi) seconds after it. android_settle: on Android
-    that instead (LIST_SETTLE for a list; None keeps settle there too). bring_front: front() first"""
+    that instead (LIST_SETTLE for a list; None keeps settle there too). bring_front: front() first.
+    hold: ms the finger holds still before it moves (default a few ms: a long press starts multi-select in the list)"""
     if bring_front:
         front()
     x1, y1 = to_points(fx, fy, bounds)
     x2, y2 = to_points(tx, ty, bounds)
     ui.sh(ui.HELPER, "drag", f"{x1:.1f}", f"{y1:.1f}", f"{x2:.1f}", f"{y2:.1f}",
-          str(random.randint(400, 600) if ms is None else ms))
+          str(random.randint(400, 600) if ms is None else ms), *([str(int(hold))] if hold else []))
     time.sleep(random.uniform(*(android_settle if ui.ANDROID and android_settle else settle)))
 
 

@@ -128,7 +128,7 @@ def golden(path):
 
 def who(texts):
     """one gym Pokémon's page -> (its name, its trainer): the name at the top, the trainer beside its CP"""
-    top = [t for t in texts if 0.05 < t[1] < 0.13 and not re.fullmatch(r"\W*[cC][pP]?\s*\d+\W*", t[4].strip())]
+    top = [t for t in texts if (0.05 if ui.ANDROID else 0.08) < t[1] < 0.13 and not re.fullmatch(r"\W*[cC][pP]?\s*\d+\W*", t[4].strip())]
     name = " ".join(t[4].strip() for t in sorted(top, key=lambda t: t[0]))
     mid = [t[4].strip() for t in texts if 0.3 < t[1] < 0.5 and not CP_RE.match(t[4].strip())
            and not re.fullmatch(r"[\d\W]+", t[4].strip()) and len(t[4].strip()) > 2]
@@ -277,7 +277,8 @@ def to_badge_list():
             if lst and lst[0][1] < 0.85:
                 base.tap_box(lst[0], bounds, dy=-0.03)  # the green diamond over LIST >
                 time.sleep(2.0)
-            elif "FRIENDS" in ui.joined(texts) and "ADD FRIEND" in ui.joined(texts):
+            elif re.search(r"ADD FRIEND|SENT YOU A GIFT|DAYS AGO|HOURS? AGO|MINUTES? AGO", ui.joined(texts).upper()):
+                # the FRIENDS tab (where /gift leaves it), maybe scrolled past its ADD FRIEND
                 home.press_text(texts, bounds, "ME")  # the profile opens on its last tab
                 time.sleep(1.5)
             elif scrolls < 8:

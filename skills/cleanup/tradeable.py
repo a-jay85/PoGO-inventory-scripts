@@ -77,6 +77,9 @@ XLX, TRANSFER = "XLX", "Transfer"
 LUCKY_CANDY = 348  # under this, a lucky one of the family wants a new copy's candy
 XL_CAP = 360
 XLX_LEVEL = 26  # from here a power-up costs 4 Candy or more (4,000 Stardust at 26-26.5, 4,500+ after)
+# CyrillJan's pile only: GIV where it would get Transfer (tagged after XLX, like the evolved GIV ones)
+GIV_FOR_TAKER = {"tandemaus": "HashTagAJay still wants the family of 3 Maushold (and CyrillJan gets candy from the "
+                              "trade if it ever wants one)"}
 XLX_FOR = {TAKER: XLX_LEVEL, GIVER: 29}  # by who'd get it. CyrillJan: 5,000 Stardust+, likely to drop a Candy XL
 PVE_TOP = 6  # plan --to CyrillJan: GIV if a traded copy would be this high against some raid boss
 MAX_SUFFIX = 300  # characters added to the saved search: it's already in the bar
@@ -415,6 +418,7 @@ def cmd_plan(to=TAKER):
         elif m.root(s) in low:
             why.setdefault(s, ("GIV", f"lucky family under {LUCKY_CANDY} candy"))
     evolved = evolved_giv(m, ok, why, json.load(open(hard_f)))
+    evolved.update({s: r for s, r in GIV_FOR_TAKER.items() if s in ok and s not in why})
     plan = {"taker": TAKER, "xlx_level": XLX_FOR[TAKER],
             "from": {"lucky": lucky_run, "100": hund_run, "roster": roster_f, "read": read_f, "pvp": pvp_f,
                      "evolved": hard_f},

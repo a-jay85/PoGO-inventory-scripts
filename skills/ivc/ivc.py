@@ -18,7 +18,7 @@ NAME_LEN = 12
 SHOW_FROM = 93  # below this IV% (rounded) only shadows, luckies and legendaries show IV and stat letters
 PURIFY_FROM = 84  # shadow IV% (rounded) at which the purified IV% is shown
 STAT_COMBOS = {"H", "A", "D", "HA", "HD", "AD", "HAD"}  # move initials that would read as stat letters
-# gym defenders always show their IV, so /ivcsort can rank them (top 5/6 IV or top 20 CP). User's Pokebattler top 6.
+# gym defenders always show their IV, so /ivcsort can rank them (top 20 IV or top 20 CP). User's Pokebattler top 6.
 GYM_DEFENDERS = {"blissey", "chansey", "snorlax", "slaking", "wobbuffet", "dondozo"}
 
 

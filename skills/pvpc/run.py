@@ -318,18 +318,22 @@ def to_points(fx, fy, bounds):
     return x + fx * w, y + fy * h
 
 
+TAP_WOBBLE = 0.002  # every tap lands up to this far off (x; half in y), under the tightest fuzz (0.004, gift's X)
+
+
 def click(fx, fy, bounds, gap=0.0, ms=None, fuzz=0.0, rest=0.0, bring_front=True, spaced=True, counted=True):
     """a tap at a spot (window fractions), not a named button: every skill's taps go through here.
     gap: at least this long since the last tap (two quick taps on the search bar would make a double-tap).
-    ms: how long it holds (default ui.tap_ms(); 900 is a long press). fuzz: up to this much off in x, half that in y.
+    ms: how long it holds (default ui.tap_ms(); 900 is a long press). fuzz: up to this much off in x, half that in y,
+    on top of TAP_WOBBLE, which every tap gets so no two land on the same pixel.
     rest: seconds to wait after it, or a (lo, hi) range.
     bring_front: front() first (iPhone: a click while another app is in front only brings the window forward, and
     is lost). spaced: wait out tap_gap() and gap first. counted: it counts as the last tap for the next one's gap."""
     global last_tap
     if bring_front:
         front()
-    x, y = to_points(fx + random.uniform(-fuzz, fuzz), fy + random.uniform(-fuzz / 2, fuzz / 2), bounds) if fuzz \
-        else to_points(fx, fy, bounds)
+    fuzz = max(fuzz, TAP_WOBBLE)
+    x, y = to_points(fx + random.uniform(-fuzz, fuzz), fy + random.uniform(-fuzz / 2, fuzz / 2), bounds)
     if spaced:
         tap_gap()
         time.sleep(max(0.0, last_tap + gap - time.time()))
@@ -613,7 +617,9 @@ def lift_tag_row(T):
     _, texts, _, _ = wait_for("tags")
     row = next((t for t in texts if ui.norm(t[4].lstrip("•· ")) == T), None)
     if row and row[1] > 0.7:
-        ui.android.shell("input swipe 720 2000 720 1600 600")
+        x, y = random.randint(650, 790), random.randint(1960, 2040)
+        ui.android.shell(f"input swipe {x} {y} {x + random.randint(-8, 8)} {y - random.randint(370, 430)} "
+                         f"{random.randint(520, 680)}")
         time.sleep(0.5)  # the loop below waits for the rows to hold still
         ui.android.fresh()  # a tap off a picture from before the scroll lands a row off (ticked PvpC for Nope)
         last = None

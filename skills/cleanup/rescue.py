@@ -6,10 +6,10 @@
 
 A wrong name ('FP*' on a 98% lucky) could land a 98% one in Nope. 98%+ means two stats at 15, so two of
 4attack/4defense/4hp hold: that's the first search. A shadow is 98%+ once purified from 12/13/13 (84%), so shadows
-get their own search, #Nope&shadow&3*,4* (3* is 82-98%). It opens each one and appraises it. 98%+ (a shadow: once purified) gets the star and loses Nope; its other tags stay. The rest are
+get their own search, #Nope&shadow&3*,4* (3* is 82-98%). It opens each one and appraises it, unless its /ivc name already says under 98% (rescue.under). 98%+ (a shadow: once purified) gets the star and loses Nope; its other tags stay. The rest are
 left alone. --dry-run appraises and logs, changes nothing. Log in runs/<time>/.
 """
-import os, sys
+import os, re, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
@@ -21,10 +21,21 @@ QUERIES = ("#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp",  # two of 
            "#Nope&shadow&3*,4*")
 
 
+def under(n, shadow):
+    """its /ivc name already says under 98% ('96 AD'; a shadow: '84/96 hd' once purified), so no appraisal. The name's %
+    matched the appraisal 460 times of 460 in the logs (2026-10-27)"""
+    m = re.match(r"(\d{1,3})(?:/(\d{1,3}))?(?:\s|$)", n or "")
+    if not m or (shadow and not m[2]):
+        return False
+    return int(m[2] if shadow else m[1]) < 98
+
+
 def main(limit, dry):
     kept, looked = [], [0]
 
-    def visit(i, n, c):
+    def visit(i, n, c, shadow):
+        if under(n, shadow):
+            return False
         base.open_tile(i)
         info, _, _ = base.steady_detail()
         bare = dict(info, name=(info["name"] or "").replace(" ", ""))  # OCR drops or adds spaces: '91H' / '91 H'
@@ -55,7 +66,7 @@ def main(limit, dry):
             break
         log(f"--- {q}")
         search.start_search(q)
-        search.walk_list(visit, limit - looked[0])
+        search.walk_list(lambda i, n, c: visit(i, n, c, "&shadow" in q), limit - looked[0])
     log(f"appraised {looked[0]}, kept {len(kept)}: {[(k['name'], k['cp'], k['ivs']) for k in kept]}")
 
 

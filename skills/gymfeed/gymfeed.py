@@ -501,7 +501,12 @@ def script(limit):
         log(f"--limit {limit} reached")
     log(f"done: {total} berries fed, {time.time() - t0:.0f}s")
     to_badge_list()  # out of the gym
-    base.click(*X_BUTTON, look()[3], fuzz=0.006)
+    for _ in range(4):  # badge list -> profile -> map: the next script starts from the map
+        screen, _, _, bounds = look()
+        if screen not in ("badgelist", "profile"):
+            break
+        base.click(*X_BUTTON, bounds, fuzz=0.006)
+        time.sleep(1.5)
 
 
 def main():

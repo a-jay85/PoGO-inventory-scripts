@@ -9,7 +9,7 @@
 - Opens the first badge that isn't gold and wasn't done this run. A gold badge has no meter under it.
 - Taps TIME DEFENDING on the badge to go into the gym. A badge with no TIME DEFENDING: none of yours left in a gym,
   so the run ends.
-- Taps each Pokémon in the gym view, right-most first. On its page it taps the floating berry every 2.5 s until the
+- Taps each Pokémon in the gym view, right-most first. On its page it taps the floating berry every 1.5 s until the
   berry goes away (full for today), then the round X back to the gym view.
 - A Pokémon a tap can't open (one in the back row, behind another) is found by swiping from the ones it did open.
   Some swipes only take with the finger held still first, on the spot where the hidden one shows.
@@ -32,7 +32,9 @@ PHONE = "android" if ui.ANDROID else "iphone"
 X_BUTTON = (0.5, 0.937)  # the round X at the bottom middle: closes a Pokémon, the gym, the badge, the badge list
 SORT_BUTTON = (0.85, 0.93)  # the badge list's sort button, bottom right; its menu's X sits in the same spot
 BERRY = (0.5, 0.80)  # the floating berry on a gym Pokémon's page
-FEED_GAP = float(os.environ.get("GYMFEED_GAP", 2.5))  # seconds from one berry tap to the next
+FEED_GAP = 1.5  # seconds from one berry tap to the next. Tested on the Pixel 2026-10-28, seconds per Pokémon for
+# 10-11 berries: 2.5 s -> 26-28, 2.0 -> 30-34 (the count reads late), 1.5 -> 24 (about 1 tap in 12 lost), 1.0 -> 30
+# (half the taps lost)
 LIMIT = 100
 MAX_SWIPES = 24  # per gym, looking for Pokémon a tap didn't open
 

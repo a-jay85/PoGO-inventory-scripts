@@ -604,6 +604,9 @@ def act(limit, members):
     todo, want = Counter(), {}
 
     def visit(i, n, c):
+        if not todo[(n, c)]:  # the scan read the tile another way ('89 al' for '89 a'): same CP, either name close
+            n = next((k[0] for k, v in todo.items() if v and k[1] == c and any(
+                same_name(n, x) for p in want[k] for x in (k[0], p["name"]))), n)
         if not todo[(n, c)] or (n, c) in skipped:
             return False
         try:

@@ -480,7 +480,7 @@ def gym_keep(m, tiles):
         key = (mine, hd(m["name"]))
         ahead = sorted(((v, hd(n)) for v, n, _ in pool_values(tiles, m["shadow"]) if (v, hd(n)) > key), reverse=True)
         if len(ahead) < TOP_GYM_IV:
-            return "KEEP", [f"gym: {pct(mine)} ({key[1]} of HP/Defense at 15) is top {TOP_GYM_IV} IV {of}"]
+            return "KEEP", [f"gym: {pct(mine)} ({key[1]} of HP/Defense at 15) gets a top {TOP_GYM_IV} IV spot {of}"]
         why.append(f"gym: {len(ahead)} with more IV ({TOP_GYM_IV}th: {pct(ahead[TOP_GYM_IV - 1][0])})")
     return ("LEAVE" if unsure else None), why
 

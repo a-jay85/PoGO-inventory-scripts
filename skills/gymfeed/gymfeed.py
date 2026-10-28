@@ -9,7 +9,7 @@
 - Opens the first badge that isn't gold and wasn't done this run. A gold badge has no meter under it.
 - Taps TIME DEFENDING on the badge to go into the gym. A badge with no TIME DEFENDING: none of yours left in a gym,
   so the run ends.
-- Taps each Pokémon in the gym view, right-most first. On its page it taps the floating berry every 2.5 s until the
+- Taps each Pokémon in the gym view, right-most first. On its page it taps the floating berry every 1.5 s until the
   berry goes away (full for today), then the round X back to the gym view.
 - A Pokémon a tap can't open (one in the back row, behind another) is found by swiping from the ones it did open.
   Some swipes only take with the finger held still first, on the spot where the hidden one shows.
@@ -32,7 +32,9 @@ PHONE = "android" if ui.ANDROID else "iphone"
 X_BUTTON = (0.5, 0.937)  # the round X at the bottom middle: closes a Pokémon, the gym, the badge, the badge list
 SORT_BUTTON = (0.85, 0.93)  # the badge list's sort button, bottom right; its menu's X sits in the same spot
 BERRY = (0.5, 0.80)  # the floating berry on a gym Pokémon's page
-FEED_GAP = 2.5  # seconds from one berry tap to the next (the user's pace)
+FEED_GAP = 1.5  # seconds from one berry tap to the next. Tested on the Pixel 2026-10-28, seconds per Pokémon for
+# 10-11 berries: 2.5 s -> 26-28, 2.0 -> 30-34 (the count reads late), 1.5 -> 24 (about 1 tap in 12 lost), 1.0 -> 30
+# (half the taps lost)
 LIMIT = 100
 MAX_SWIPES = 24  # per gym, looking for Pokémon a tap didn't open
 
@@ -215,30 +217,27 @@ def arrow(path, cy):
 
 
 def sort_defending():
-    """the badge list sorted by Defending, arrow down. It opens on Recent; a tap on DEFENDING sorts by it (arrow
-    down), a 2nd tap turns the arrow up. So: read the arrow in the menu, tap until it's down, close the menu"""
-    for _ in range(3):
-        _, _, _, bounds = base.wait_for("badgelist", look=look, timeout=8)
-        base.click(*SORT_BUTTON, bounds, fuzz=0.01)
-        base.wait_for("sortmenu", look=look, timeout=6)
-        seen = []
-        while len(seen) < 2 or seen[-1] != seen[-2]:  # the menu slides in: two reads in a row must agree
-            time.sleep(0.6)
-            _, texts, path, bounds = look()
-            hit = next(t for t in texts if ui.norm(t[4]) == "DEFENDING")
-            seen.append(arrow(path, hit[1] + hit[3] / 2))
-            if len(seen) > 6:
-                break
-        if seen[-1] == "down":
-            base.click(*SORT_BUTTON, bounds, fuzz=0.01)  # its X sits where the sort button was
-            time.sleep(1.0)
-            base.wait_for("badgelist", look=look, timeout=6)
-            time.sleep(0.8)  # the tiles shuffle into place
-            return
+    """the badge list sorted by Defending, arrow down. The menu shows DEFENDING with no arrow (another sort) or arrow
+    up; one tap on it makes it arrow down and shuts the menu (every run that opened the menu again to check saw it
+    down). A 2nd tap would turn it up, so: read the arrow first, tap only when it isn't down"""
+    _, _, _, bounds = base.wait_for("badgelist", look=look, timeout=8)
+    base.click(*SORT_BUTTON, bounds, fuzz=0.01)
+    base.wait_for("sortmenu", look=look, timeout=6)
+    seen = []
+    while len(seen) < 2 or seen[-1] != seen[-2]:  # the menu slides in: two reads in a row must agree
+        time.sleep(0.6)
+        _, texts, path, bounds = look()
+        hit = next(t for t in texts if ui.norm(t[4]) == "DEFENDING")
+        seen.append(arrow(path, hit[1] + hit[3] / 2))
+        if len(seen) > 6:
+            break
+    if seen[-1] == "down":
+        base.click(*SORT_BUTTON, bounds, fuzz=0.01)  # its X sits where the sort button was
+        time.sleep(1.0)
+    else:
         base.tap_box(hit, bounds)
-        time.sleep(1.5)
-    keep_capture("sort")
-    raise Stop("couldn't sort the gym badges by Defending, arrow down")
+    base.wait_for("badgelist", look=look, timeout=6)
+    time.sleep(0.8)  # the tiles shuffle into place
 
 
 def pick(done):
@@ -330,10 +329,11 @@ def feed(left):
     A berry counts when the number under it goes down. When one kind runs out the next kind floats in"""
     _, texts, path, bounds = look()
     count = berry_count(texts)
-    fed, stuck = 0, 0
+    fed, stuck, taps, start = 0, 0, 0, time.time()
     while count is not None and fed < left and not golden(path):
         t0 = time.time()
         base.click(*BERRY, bounds, fuzz=0.02)
+        taps += 1
         time.sleep(max(0.0, t0 + FEED_GAP - time.time() - 0.6))
         _, texts, path, bounds = look()
         now = berry_count(texts)
@@ -356,6 +356,7 @@ def feed(left):
                 log(f"    the berry count stayed {count} for {stuck} taps: moving on")
                 break
         count = now
+    log(f"    {taps} taps in {time.time() - start:.0f}s")
     return fed
 
 

@@ -150,6 +150,25 @@ def unstick(texts):
     return True
 
 
+def through_hatch(texts, bounds, hatched):
+    """one step through an egg hatching (on the way to the map): its 'Oh?' gets a tap, the screens after it (its
+    Pokémon's page, the eggs) an X. hatched: when the last 'Oh?' was seen (0: never). -> the new hatched time when a
+    step was taken, None when this unknown screen is neither"""
+    if any(t[4].strip() == "Oh?" for t in texts):
+        log("  an egg is hatching: tapping through it")
+        hatched = time.time()
+        search.click(0.5 + random.uniform(-0.02, 0.02), 0.6 + random.uniform(-0.02, 0.02), bounds)
+        time.sleep(2.0)
+        return hatched
+    if time.time() < hatched + HATCH_SCREENS or re.search(r"\b\d+(\.\d+)?\s*/\s*\d+\s*km\b",
+                                                          " ".join(t[4] for t in texts)):
+        log(f"  after the hatch: closing {ui.summary(texts, 60)}")
+        search.click(*X_BUTTON, bounds)
+        time.sleep(2.0)
+        return hatched
+    return None
+
+
 def start(storage=True):
     """from wherever the phone is to the Pokémon screens. storage=False (/trade): the game open and loaded, on any
     screen it knows or trade.py might (friend page, trade lobby...). -> the screen it ended on"""
@@ -237,16 +256,8 @@ def start(storage=True):
         elif screen == "anr":
             keep_capture("anr")
             raise Stop("the phone says Pokémon GO isn't responding: close it by hand")
-        elif screen == "unknown" and any(t[4].strip() == "Oh?" for t in texts):  # an egg hatching (on the way to the map)
-            log("  an egg is hatching: tapping through it")
-            hatched = time.time()
-            search.click(0.5 + random.uniform(-0.02, 0.02), 0.6 + random.uniform(-0.02, 0.02), bounds)
-            time.sleep(2.0)
-        elif screen == "unknown" and (time.time() < hatched + HATCH_SCREENS or re.search(  # its Pokémon's page, the eggs: X
-                r"\b\d+(\.\d+)?\s*/\s*\d+\s*km\b", " ".join(t[4] for t in texts))):
-            log(f"  after the hatch: closing {ui.summary(texts, 60)}")
-            search.click(*X_BUTTON, bounds)
-            time.sleep(2.0)
+        elif screen == "unknown" and (step := through_hatch(texts, bounds, hatched)) is not None:
+            hatched = step
         elif screen == "unknown" and storage and search.sort_menu(texts):  # a stop left the sort menu up (a slow
             log("  the sort menu is open: closing it")                 # iPhone opened it after giving up)
             search.click(search.SORT_BUTTON[0], search.SORT_BUTTON[1], bounds)  # its X sits where the button was

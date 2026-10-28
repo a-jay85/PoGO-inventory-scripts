@@ -232,7 +232,7 @@ def wait_for(*screens, timeout=10, capture=True, look=None, poll=None, catch=Tru
     when it gives up. detail: the error has the last screen's text even when it's a known screen"""
     see = look or globals()["look"]
     pause = poll_gap(0.12) if poll is None else poll
-    end, last, nudges, cards = time.time() + timeout, "?", 0, 0
+    end, last, nudges, cards, nos = time.time() + timeout, "?", 0, 0, 0
     while True:
         try:
             screen, texts, path, bounds = see()
@@ -251,6 +251,14 @@ def wait_for(*screens, timeout=10, capture=True, look=None, poll=None, catch=Tru
                 continue
             if screen in screens:
                 return screen, texts, path, bounds
+            no = [t for t in texts if ui.up(t) == "NO"]
+            if screen == "unknown" and no and nos < 2 and "WANT TO EVOLVE" in ui.joined(texts):
+                nos += 1  # a late tap (the iPhone has sat on one ~4s) landed on EVOLVE: never evolve, say NO
+                log("  an 'evolve?' box came up: NO")
+                click(no[0][0] + no[0][2] / 2, no[0][1] + no[0][3] / 2, bounds)
+                time.sleep(1.0)
+                end = max(end, time.time() + 3)
+                continue
             last = screen
             words = {ui.norm(t[4]) for t in texts}
             if "detail" in screens and screen == "unknown" and "STARDUST" in words and \

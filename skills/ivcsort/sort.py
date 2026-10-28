@@ -17,7 +17,8 @@ Keep if ANY of these passes (ties with the last place keep):
   purified    a shadow with no shadow spot, whose purified IV (84/96 -> 96) gets a non-shadow spot
   lucky       a lucky spot: 1 per final
   Dynamax     a Dynamax/Gigantamax spot: 3 per final
-  gym         top 20 CP among all of that species (GYM_DEFENDERS)
+  gym         top 20 CP or top 20 IV among all of that species (GYM_DEFENDERS; Chansey and Blissey apart).
+              IV ties: more of HP and Defense at 15 wins
 N = 6 if any species in that final's line can mega evolve (released in GO or not), else 5.
 Always keep: 98% or 100% (a shadow's own IV, or its purified IV). Armored Mewtwo (no search can split it out).
 Weak lines (no species, mega or shadow form of the line reaches STRONG_AT% on DialgaDex for any type):
@@ -39,7 +40,7 @@ from pvp import REGIONS, NOT_NOPE, base_name, region, parent, children, search
 from ui import tile_name as clean_name
 from ivc import GYM_DEFENDERS
 
-TOP, TOP_MEGA, TOP_LUCKY, TOP_DMAX, TOP_GYM_CP = 5, 6, 1, 3, 20
+TOP, TOP_MEGA, TOP_LUCKY, TOP_DMAX, TOP_GYM_CP, TOP_GYM_IV = 5, 6, 1, 3, 20, 20
 ALWAYS = 44  # IV sum of 98%: 98% and 100% always keep
 STRONG_AT = 90  # DialgaDex % (vs its budget pick for the type) a line needs somewhere to keep top 5/6
 WEAK_EXTRAS = True  # weak lines: also keep the best lucky / top 3 Dynamax (user: yes, as before)
@@ -437,6 +438,53 @@ def judge_pool(m, results, pool, what, mine, r, me_in_pool=True, extra=()):
                     (" ..." if len(held[k]) > 3 else ""))
     return False, f"{what}: no spot, of {total}. " + ("; ".join(full) or "nothing it can become"), notes
 
+def hd(name):
+    """how many of HP and Defense an /ivc name marks 15 (its capitals, '96 HD' -> 2, '96HA' -> 1; older names spell
+    them out, '98 ATK DEF' -> 1). A gym defender's IV tie goes to the one with more: HP and Defense matter more than
+    Attack there"""
+    got = re.match(r"\d{1,3}(?:\s*/\s*\d{1,3})?\s*((?:(?:HP|ATK|DEF)\b\s*)+|[HAD]*)", clean_name(name))
+    if not got:
+        return 0
+    words = got.group(1).split()
+    return sum(w in ("HP", "DEF") for w in words) if words and words[0] in ("HP", "ATK", "DEF") else \
+        sum(ch in "HD" for ch in got.group(1))
+
+
+def gym_keep(m, tiles):
+    """the gym defender rule (the user, 2026-10-27): top TOP_GYM_CP by CP or top TOP_GYM_IV by IV, among every
+    one of that species in tiles (Chansey and Blissey each get their own). IV ties go to more 15s in HP and Defense;
+    still tied, it keeps. A tile with no IV name doesn't count on the IV side (the safe side: more keep).
+    tiles: [(name, cp)], its own tile may be among them. -> (KEEP | LEAVE (hidden CPs could go either way) | None,
+    [why])"""
+    sid = m["species"]
+    tiles = list(tiles)
+    me = next((i for i, (n, c) in enumerate(tiles) if c == m["cp"]), None)
+    if me is None:  # its own tile may be a top-row one with the CP hidden
+        me = next((i for i, (n, c) in enumerate(tiles) if c == 0 and n == m["name"]), None)
+    if me is not None:
+        tiles.pop(me)
+    of = f"of {len(tiles) + 1} {base_name(sid).title()}"
+    why, unsure = [], False
+    cps = [(c, n, c) for n, c in tiles if c]
+    hidden = len(tiles) - len(cps)  # CP unreadable: could be above or below
+    ok, better = beaten(m["cp"], cps, TOP_GYM_CP)
+    if ok and len(better) + hidden < TOP_GYM_CP:
+        return "KEEP", [f"gym: CP{m['cp']} is top {TOP_GYM_CP} {of}"]
+    if ok:
+        unsure = True
+        why.append(f"gym: {len(better)} with more CP, {hidden} with the CP hidden")
+    else:
+        why.append(f"gym: {len(better)} with more CP ({TOP_GYM_CP}th: CP{better[TOP_GYM_CP - 1][0]})")
+    mine = value(m["name"], m["shadow"])
+    if mine is not None:
+        key = (mine, hd(m["name"]))
+        ahead = sorted(((v, hd(n)) for v, n, _ in pool_values(tiles, m["shadow"]) if (v, hd(n)) > key), reverse=True)
+        if len(ahead) < TOP_GYM_IV:
+            return "KEEP", [f"gym: {pct(mine)} ({key[1]} of HP/Defense at 15) gets a top {TOP_GYM_IV} IV spot {of}"]
+        why.append(f"gym: {len(ahead)} with more IV ({TOP_GYM_IV}th: {pct(ahead[TOP_GYM_IV - 1][0])})")
+    return ("LEAVE" if unsure else None), why
+
+
 def decide(m, results):
     """m: dict species, cp, name, shadow, lucky, dynamax. results: search string -> [(tile name, cp)].
     -> (KEEP | NOPE | LEAVE, [reasons])"""
@@ -446,22 +494,11 @@ def decide(m, results):
     gym_unsure = False
     sid = m["species"]
     if sid in GYM_DEFENDERS:
-        tiles = list(results[search(sid, "gym")])
-        me = next((i for i, (n, c) in enumerate(tiles) if c == m["cp"]), None)
-        if me is None:  # its own tile may be a top-row one with the CP hidden
-            me = next((i for i, (n, c) in enumerate(tiles) if c == 0 and n == m["name"]), None)
-        if me is not None:
-            tiles.pop(me)
-        cps = [(c, n, c) for n, c in tiles if c]
-        hidden = len(tiles) - len(cps)  # CP unreadable: could be above or below
-        ok, better = beaten(m["cp"], cps, TOP_GYM_CP)
-        if ok and len(better) + hidden < TOP_GYM_CP:
-            return "KEEP", [f"gym: CP{m['cp']} is top {TOP_GYM_CP} of {len(tiles) + 1} {base_name(sid).title()}"]
-        if ok:
-            gym_unsure = True
-            why.append(f"gym: {len(better)} with more CP, {hidden} with the CP hidden")
-        else:
-            why.append(f"gym: {len(better)} with more CP (20th: CP{better[TOP_GYM_CP - 1][0]})")
+        verdict, w = gym_keep(m, results[search(sid, "gym")])
+        if verdict == "KEEP":
+            return "KEEP", w
+        gym_unsure = verdict == "LEAVE"
+        why += w
     mine = value(m["name"], m["shadow"])
     if mine is None:
         return ("LEAVE" if sized or gym_unsure else "NOPE"), why + [f"no IV in the name {m['name']!r}"]
@@ -625,9 +662,27 @@ def test():
            S("happiny", "plain"): []}
     check("gym 20th by CP keeps", decide(bl, by_fam(gym, "blissey"))[0], "KEEP")
     gym[S("blissey", "gym")] = [("Blissey", 3500)] * 20
-    check("gym 21st by CP, low IV nopes", decide(bl, by_fam(gym, "blissey"))[0], "NOPE")
+    check("gym 21st by CP, but nothing named above it: top 20 IV", decide(bl, by_fam(gym, "blissey"))[0], "KEEP")
+    gym[S("blissey", "gym")] = [("80", 3500)] * 20
+    check("gym 21st by CP and by IV nopes", decide(bl, by_fam(gym, "blissey"))[0], "NOPE")
     check("gym IV still counts", decide(dict(bl, name="100"), by_fam(gym, "blissey"))[0], "KEEP")
-    gym[S("blissey", "gym")] = [("Blissey", 3500)] * 18 + [("Blissey", 0)] * 3
+    gym[S("blissey", "gym")] = [("91 H", 3500)] * 19 + [("40 h", 3000)]
+    check("gym 20th by IV keeps", decide(dict(bl, name="89 h", cp=2000), by_fam(gym, "blissey"))[0], "KEEP")
+    gym[S("blissey", "gym")] = [("91 H", 3500)] * 20
+    check("gym 21st by IV nopes", decide(dict(bl, name="89 h", cp=2000), by_fam(gym, "blissey"))[0], "NOPE")
+    gym[S("blissey", "gym")] = [("96 AH", 3500)] * 20
+    check("gym IV tie: HD beats AH", decide(dict(bl, name="96 HD", cp=2000), by_fam(gym, "blissey"))[0], "KEEP")
+    check("gym IV tie: squeezed name", decide(dict(bl, name="96HD*", cp=2000), by_fam(gym, "blissey"))[0], "KEEP")
+    gym[S("blissey", "gym")] = [("96 HD", 3500)] * 20
+    check("gym IV tie: AH loses to HD", decide(dict(bl, name="96 AH", cp=2000), by_fam(gym, "blissey"))[0], "NOPE")
+    check("gym IV tie: same letters keeps", decide(dict(bl, name="96 HD", cp=2000), by_fam(gym, "blissey"))[0], "KEEP")
+    gym[S("blissey", "gym")] = [("96 HD", 3500)] * 20
+    gym[S("chansey", "gym")] = [("40 h", 500)]
+    check("Chansey doesn't fill Blissey's 20", decide(dict(bl, species="chansey", name="40 h", cp=500),
+          by_fam(gym, "chansey"))[0], "KEEP")
+    check("hd", [hd(n) for n in ("96 HD", "96HA", "93 hd", "87/96 D", "Blissey", "100", "98 ATK DEF",
+                                         "96 HP DEF", "84 atk def", "93 all", "96 HP BG*")], [2, 1, 0, 1, 0, 0, 1, 2, 0, 0, 1])
+    gym[S("blissey", "gym")] = [("80", 3500)] * 18 + [("80", 0)] * 3
     check("gym hidden CPs could push it out: leave", decide(bl, by_fam(gym, "blissey"))[0], "LEAVE")
     gym[S("blissey", "gym")] = [("Blissey", 3500)] * 10 + [("Blissey", 0)] * 3 + [("40 h", 0)]
     check("gym own tile CP hidden, still top 20", decide(bl, by_fam(gym, "blissey"))[0], "KEEP")

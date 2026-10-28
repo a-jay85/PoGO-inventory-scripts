@@ -24,7 +24,7 @@ Search terms and their bugs: `~/.claude/skills/pvpc/SEARCH.md`. Read it before b
   - purified: a shadow with no shadow spot whose purified IV (`84/96` → 96) gets a non-shadow spot. The family's other spot-less shadows compete there too, at their purified IV.
   - lucky: a lucky spot
   - Dynamax/Gigantamax: a Dynamax spot
-  - gym defender (`GYM_DEFENDERS` in `ivc/ivc.py`): top 20 CP of that species
+  - gym defender (`GYM_DEFENDERS` in `ivc/ivc.py`): top 20 CP or top 20 IV of that species (Chansey and Blissey each get their own 20). An IV tie goes to the one with more of HP and Defense at 15 (the name's capitals); still tied, it keeps.
 - **Always keep:** 98% or 100%. A shadow whose purified IV (`84/98`) is 98% or 100%. Armored Mewtwo (`OWN_FORM`: no search splits it from Mewtwo).
 - **Weak lines:** a line is strong if any species in it (its mega or shadow form too) reaches `STRONG_AT` (90) on DialgaDex for any type. Data: `dialgadex-20261007.json`, pulled with `~/claude-plans/_scripts/dialgadex-scrape.mjs`. A weak line's final gets 1 spot (ties keep). The lucky and Dynamax rules still apply (`WEAK_EXTRAS`), and a name with an Elite TM move (`*`) keeps. Never weak: gym defender lines, legendary/mythical/Ultra Beast lines, lines with a mega DialgaDex doesn't rate yet, and species missing from DialgaDex. `meta-overrides.txt` marks lines by hand.
 - **Vivillon patterns** (`COLLECT`): a NOPE in the Scatterbug line becomes LEAVE so the user picks.

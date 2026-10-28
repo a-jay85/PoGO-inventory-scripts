@@ -69,6 +69,17 @@ def checked_file(who):
     return os.path.join(HERE, "runs", f"checked-{who}.json")
 
 
+def load_checked(who):
+    return json.load(open(checked_file(who))) if os.path.exists(checked_file(who)) else []
+
+
+def add_checked(who, row):
+    """read the file again first: a cleared one is added mid-walk too, and an older copy would drop it"""
+    checked = load_checked(who)
+    checked.append(row)
+    json.dump(checked, open(checked_file(who), "w"))
+
+
 def pool_kind(m):
     return "shadow" if m["shadow"] else "plain"
 
@@ -216,8 +227,7 @@ def find(pile, who, dry=False):
     verdicts, unsure = load("verdicts.json", []), load("unsure.json", [])
     later = load("later.json", [])  # read, waiting for their pool searches
     seen = {(v["tile"], v["cp"]) for v in verdicts + unsure + later}
-    checked = json.load(open(checked_file(who))) if os.path.exists(checked_file(who)) else []
-    low = {(n.lower(), c) for n, c, _ in checked}
+    low = {(n.lower(), c) for n, c, _ in load_checked(who)}
     reads = load_reads(who)
 
     names = list_tiles(pile, lambda n, c: named(n))
@@ -246,8 +256,7 @@ def find(pile, who, dry=False):
             iv = sum(m["ivs"]) if m.get("ivs") else None
             log(f"  {m['name']!r} {m['species']} {'/'.join(map(str, m['ivs'] or '???'))} ({m['how']})")
             if not named(n) and iv < HIGH:
-                checked.append([n, c, iv])
-                json.dump(checked, open(checked_file(who), "w"))
+                add_checked(who, [n, c, iv])
                 return False
             if any(q not in results for q, _ in searches(m)):
                 later.append(m)
@@ -427,9 +436,7 @@ def apply(v, now, who):
             base.do_rename(new, base.same_name if pvp_name(new) else isr.ivcrun.same_name)
     elif not is_species_name(now["name"], v):
         clear_name(v)
-        checked = json.load(open(checked_file(who))) if os.path.exists(checked_file(who)) else []
-        checked.append([sort.base_name(v["species"]).title(), v["cp"], sum(v["ivs"]) if v.get("ivs") else None])
-        json.dump(checked, open(checked_file(who), "w"))
+        add_checked(who, [sort.base_name(v["species"]).title(), v["cp"], sum(v["ivs"]) if v.get("ivs") else None])
 
 
 def act(verdicts, pile, who):

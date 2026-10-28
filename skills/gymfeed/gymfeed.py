@@ -83,17 +83,52 @@ def cp_labels(texts):
 
 
 def berries(texts):
-    """the number under the floating berry (berries left), or None: no berry, this one's full"""
+    """the number under the floating berry (Android: lower right of it), or None: not read. OCR often misses a
+    small 1-digit count on Android: berry_count() looks closer"""
     for t in texts:
         s = t[4].strip()
-        if re.fullmatch(r"\d{1,4}", s) and 0.84 < t[1] < 0.92 and 0.38 < t[0] + t[2] / 2 < 0.62:
+        if re.fullmatch(r"\d{1,4}", s) and 0.84 < t[1] < 0.92 and 0.38 < t[0] + t[2] / 2 < 0.72:
             return int(s)
     return None
 
 
+def berry_count(texts):
+    """berries() from a look, or on Android from a sharp crop of the count: OCR of the whole screen often misses a
+    small 1-digit count there"""
+    count = berries(texts)
+    if count is None and ui.ANDROID:
+        from PIL import Image
+        im = Image.open(ui.android.sharp())
+        W, H = im.size
+        x0, y0, x1, y1 = 0.38, 0.84, 0.78, 0.93
+        crop = im.crop((int(x0 * W), int(y0 * H), int(x1 * W), int(y1 * H)))
+        crop.resize((crop.width * 2, crop.height * 2)).save("/tmp/gymfeed_count.png")
+        for t in ui.ocr("/tmp/gymfeed_count.png"):
+            if re.fullmatch(r"\d{1,4}", t[4].strip()):
+                return int(t[4].strip())
+    return count
+
+
+def golden(path):
+    """True when the floating berry is a Golden Razz (never fed: they're worth more): most of the bright, coloured
+    pixels where it floats are gold, and there are a lot of them (a Nanab's stem is gold too, but small)"""
+    from PIL import Image
+    im = Image.open(path).convert("RGB")
+    W, H = im.size
+    hit = gold = n = 0
+    for fy in range(int(0.66 * H), int(0.86 * H), 2):
+        for fx in range(int(0.36 * W), int(0.64 * W), 2):
+            r, g, b = im.getpixel((fx, fy))
+            n += 1
+            if max(r, g, b) - min(r, g, b) > 90 and max(r, g, b) > 120:
+                hit += 1
+                gold += r > 170 and g > 130 and b < 100
+    return hit / n > 0.1 and gold / hit > 0.8
+
+
 def who(texts):
     """one gym Pokémon's page -> (its name, its trainer): the name at the top, the trainer beside its CP"""
-    top = [t for t in texts if 0.08 < t[1] < 0.13]
+    top = [t for t in texts if 0.05 < t[1] < 0.13 and not re.fullmatch(r"\W*[cC][pP]?\s*\d+\W*", t[4].strip())]
     name = " ".join(t[4].strip() for t in sorted(top, key=lambda t: t[0]))
     mid = [t[4].strip() for t in texts if 0.3 < t[1] < 0.5 and not CP_RE.match(t[4].strip())
            and not re.fullmatch(r"[\d\W]+", t[4].strip()) and len(t[4].strip()) > 2]
@@ -290,25 +325,29 @@ def into_gym():
 # ---------- one Pokémon ----------
 
 def feed(left):
-    """on a gym Pokémon's page: the berry every FEED_GAP s until it goes away, at most `left` berries -> berries fed"""
-    _, texts, _, bounds = look()
-    count = berries(texts)
+    """on a gym Pokémon's page: the berry every FEED_GAP s until it goes away, at most `left` berries -> berries fed.
+    A berry counts when the number under it goes down. When one kind runs out the next kind floats in"""
+    _, texts, path, bounds = look()
+    count = berry_count(texts)
     fed, stuck = 0, 0
-    while count is not None and fed < left:
+    while count is not None and fed < left and not golden(path):
         t0 = time.time()
         base.click(*BERRY, bounds, fuzz=0.02)
         time.sleep(max(0.0, t0 + FEED_GAP - time.time() - 0.6))
-        _, texts, _, bounds = look()
-        now = berries(texts)
+        _, texts, path, bounds = look()
+        now = berry_count(texts)
         if now is None:  # gone, or a "+30 stardust" banner over it: look once more
             time.sleep(0.6)
-            _, texts, _, bounds = look()
-            now = berries(texts)
+            _, texts, path, bounds = look()
+            now = berry_count(texts)
         if now is not None and now < count:
             fed += count - now
             stuck = 0
         elif now is None:
             fed += 1  # the last one: the berry goes as it's eaten
+            time.sleep(1.2)  # or that kind ran out and the next kind floats in
+            _, texts, path, bounds = look()
+            now = berry_count(texts)
         else:
             stuck += 1
             if stuck >= 4:
@@ -330,15 +369,20 @@ def wait_feed(timeout=4):
 
 def feed_here(seen, total, limit):
     """on a gym Pokémon's page: feed it if it's new -> berries fed"""
-    _, texts, _, _ = look()
+    _, texts, path, _ = look()
     me = who(texts)
     if me in seen:
         return 0
     seen.add(me)
     if total >= limit:
         return 0
-    if berries(texts) is None:
-        log(f"  {me[0]} ({me[1]}): full")
+    count = berry_count(texts)
+    if count is None:  # it floats in late
+        time.sleep(1.0)
+        _, texts, path, _ = look()
+        count = berry_count(texts)
+    if count is None or golden(path):
+        log(f"  {me[0]} ({me[1]}): " + ("full" if count is None else "only Golden Razz left: not fed"))
         return 0
     got = feed(limit - total)
     log(f"  {me[0]} ({me[1]}): fed {got}")

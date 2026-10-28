@@ -145,8 +145,10 @@ def classify():
     if "EXIT POK" in j:
         return "exit"
     if "FRIENDS" in w and ("ME" in w or "SOCIAL" in w):
-        if "TOTAL ACTIVITY" in j or w & {"SCRAPBOOK", "JOURNAL"}:
-            return "profile"  # the ME tab: its trainer name sits where the search box would be
+        if "TOTAL ACTIVITY" in j or "START DATE" in j or w & {"SCRAPBOOK", "JOURNAL", "GYM BADGES", "RECENTLY VISITED"}:
+            # the ME tab: its trainer name sits where the search box would be. Scrolled down it still shows
+            # the friend search's '(34)' under FRIENDS, and 'Start Date:' in the box's spot (2026-10-28)
+            return "profile"
         if w & {"ADD FRIEND", "INVITE", "TRAINER NICKNAME"} or search_line() or count() is not None:
             return "friends"
         return "profile"

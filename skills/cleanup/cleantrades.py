@@ -195,13 +195,18 @@ def append(suffix, bounds=None, before=None):
     whole typed piece now and then): it types the piece once more"""
     search.LAST["q"] = None  # (the bar won't hold start_search's last one)
     bounds = bounds or look()[3]
-    search.click(0.45, 0.183, bounds, gap=search.BAR_GAP)
-    for _ in range(10):
-        time.sleep(search.POLL)
-        if ui.search_panel(ui.ocr(ui.capture()[0])):
-            break
-    else:
-        return False
+    for tap in range(2):  # the iPhone drops a bar tap now and then: the list stays up, no panel
+        search.click(0.45, 0.183, bounds, gap=search.BAR_GAP)
+        for _ in range(10):
+            time.sleep(search.POLL)
+            if ui.search_panel(ui.ocr(ui.capture()[0])):
+                break
+        else:
+            if tap:
+                return False
+            log("  the tap on the search bar didn't open it: tapping it again")
+            continue
+        break
     if ui.ANDROID:
         ui.android.shell("input keyevent KEYCODE_MOVE_END")
     else:

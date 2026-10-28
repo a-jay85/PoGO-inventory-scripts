@@ -27,6 +27,17 @@ Or through the front door: `POGO_PHONE=android caffeinate -dimsu python3 ~/PoGO-
 6. On a Pokémon's page it opens the berry menu (round button, lower left) and picks a berry (below). Then it taps the floating berry every 1.5 s until the berry goes away. A Pokémon takes about 10 at a time, and about 10 more half an hour later. Then the round X back to the gym view.
 7. A Pokémon a tap can't open (one in the back row, behind another) is found by swiping from the ones it did open. Swipes go only part way along a gym, and some only take with the finger held still first, on the spot where the hidden Pokémon shows.
 8. Back to the badge list, sorted again, the next badge. It ends after N berries or when no gym is left.
+9. It logs `gyms to feed: yes|none|not sure` and tells the timer (below).
+
+## The timer
+
+A run that wasn't stopped ends by running `~/.config/pogo/gymfeed_timer on` or `off`, if that file is there. It lives outside the repo and turns the local every-30-minutes timer on or off.
+
+- `on`: a gym of yours isn't gold. That covers a fed gym, one whose Pokémon were all full, and one with a raid on. The same goes for a run that hit `--limit` or ran out of spare berries.
+- `off`: every badge was gold, or none of yours is in a gym any more.
+- Nothing: a gym didn't open, or the run stopped. The timer is left as it is.
+
+The timer only turns back on through a run that finds a gym. Switching accounts doesn't turn it on.
 
 ## Berries
 

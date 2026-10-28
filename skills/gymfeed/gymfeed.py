@@ -19,8 +19,12 @@
   gym is left.
 
 A berry counts when the number under it goes down. Log in runs/<time>-<phone>/log.txt.
+
+At the end of a run that wasn't stopped, it tells a local timer whether any gym is left to feed: it runs
+~/.config/pogo/gymfeed_timer with "on" (a gym of yours that isn't gold: fed, full, or a raid on) or "off" (every
+badge gold, or none of yours in a gym). A gym that didn't open leaves the timer as it is. No such file: nothing.
 """
-import argparse, os, re, sys, time
+import argparse, os, re, subprocess, sys, time
 from collections import deque
 
 HERE = os.path.dirname(os.path.realpath(__file__))
@@ -46,6 +50,7 @@ FEED_GAP = 1.5  # seconds from one berry tap to the next. Tested on the Pixel 20
 # 10-11 berries: 2.5 s -> 26-28, 2.0 -> 30-34 (the count reads late), 1.5 -> 24 (about 1 tap in 12 lost), 1.0 -> 30
 # (half the taps lost)
 LIMIT = 100
+TIMER = os.path.expanduser("~/.config/pogo/gymfeed_timer")  # the local timer's on/off switch, out of the repo
 MAX_SWIPES = 24  # per gym, looking for Pokémon a tap didn't open
 
 # swipes on a gym Pokémon's page: (x1, y1, x2, y2, hold ms). Left to right goes one way along the gym, right to
@@ -310,7 +315,7 @@ def pick(done):
 def to_badge_list():
     """from wherever (a gym, a badge, the profile, the map) to the gym badge list"""
     scrolls = 0
-    for _ in range(25):
+    for _ in range(35):
         screen, texts, path, bounds = look()
         if screen == "badgelist":
             return
@@ -327,9 +332,12 @@ def to_badge_list():
                 # the FRIENDS tab (where /gift leaves it), maybe scrolled past its ADD FRIEND
                 home.press_text(texts, bounds, "ME")  # the profile opens on its last tab
                 time.sleep(1.5)
-            elif scrolls < 8:
+            elif gb or scrolls < 8:
                 scrolls += 1
                 base.drag(0.5, 0.85, 0.5, 0.45 if gb else 0.3, bounds)
+            elif scrolls < 20:  # the profile keeps its scroll: /gift can leave it down in the medals, past the badges
+                scrolls += 1
+                base.drag(0.5, 0.3, 0.5, 0.85, bounds)
             else:
                 keep_capture("nobadges")
                 raise Stop("scrolled the profile and found no GYM BADGES ... LIST")
@@ -621,8 +629,13 @@ def route(edges, start):
 
 # ---------- the run ----------
 
+feedable = None  # after a run: True, a gym is left to feed; False, none; None, not sure (timer left alone)
+
+
 def script(limit):
+    global feedable
     total, done, t0 = 0, set(), time.time()
+    found, unsure = False, False  # a gym to feed seen; a gym that didn't open
     home.start(storage=False)
     while total < limit:
         to_badge_list()
@@ -638,6 +651,8 @@ def script(limit):
         if inside == "none":
             log(f"{name}: no TIME DEFENDING, so no gym of yours is left")
             break
+        found |= inside in ("gym", "raid")
+        unsure |= inside == "shut"
         if inside != "gym":
             log(f"{name}: " + ("a raid is on there" if inside == "raid" else "the gym didn't open") + ", skipped")
             continue
@@ -648,6 +663,8 @@ def script(limit):
             break
     if total >= limit:
         log(f"--limit {limit} reached")
+    feedable = True if found else (None if unsure else False)
+    log("gyms to feed: " + {True: "yes", False: "none", None: "not sure"}[feedable])
     log(f"done: {total} berries fed, {time.time() - t0:.0f}s")
     to_badge_list()  # out of the gym
     for _ in range(4):  # badge list -> profile -> map: the next script starts from the map
@@ -663,7 +680,11 @@ def main():
     ap.add_argument("--limit", type=int, default=LIMIT, help=f"at most N berries this run (default {LIMIT})")
     a = ap.parse_args()
     base.new_run_dir(os.path.join(HERE, "runs"), suffix=PHONE)
-    session.main(script, a.limit)
+    try:
+        session.main(script, a.limit)
+    finally:  # after the phone is closed: turning the timer off can end the timer's own run
+        if feedable is not None and os.access(TIMER, os.X_OK):
+            subprocess.Popen([TIMER, "on" if feedable else "off"], start_new_session=True)
 
 
 if __name__ == "__main__":

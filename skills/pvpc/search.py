@@ -225,7 +225,9 @@ def to_search_list():
         base.to_tags_tab()
         time.sleep(random.uniform(0.8, 1.0))  # a tab tap during the tab animation gets ignored
         if wait_for("list", "tag-tab")[0] == "tag-tab":  # POKÉMON only ever on the Tags tab: on the list it's REFUSED
-            if pokemon_tab() == "panel":
+            if ui.ANDROID:  # (not seen on the Pixel: its own recovery stays)
+                go("POKMON", "list")
+            elif pokemon_tab() == "panel":
                 break
         if bar_seen():
             break

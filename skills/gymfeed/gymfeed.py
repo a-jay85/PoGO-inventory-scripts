@@ -51,7 +51,8 @@ SWIPES = [
 ]
 
 CP_RE = re.compile(r"^\W*[cC][pP]\s*\d{2,4}\W*$")
-DEFEND_RE = re.compile(r"\b[0-9O]+d\s*\d+h\s*\d+m")  # '0d 3h 7m' (OCR: 'Od 3h 7m.') on a gym Pokémon's page
+# '0d 3h 7m' on a gym Pokémon's page. OCR reads any 0 as O: 'Od 3h 7m.', 'Od 12h Om'
+DEFEND_RE = re.compile(r"\b[0-9O]+d\s*[0-9O]+h\s*[0-9O]+m")
 
 
 # ---------- reading ----------

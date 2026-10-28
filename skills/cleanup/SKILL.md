@@ -106,7 +106,7 @@ The rule (2026-10-25): anything in Nope gets the Tradeable tags, judged for the 
 1. It runs `rescue.py` first. A 98%+ one in Nope gets the star and loses Nope, so it never gets a tag here.
 2. **Traded** Nope: Transfer, Nope off. It can't trade again, so it gets no other tag (and no XLX: that's for untraded ones to trade away).
 3. **Suspects** (2026-10-26): an untraded Nope one that may still belong in its species' top IV or PvP spots. It still has an /ivc name or a `Pvp` name, or it's 93%+. `suspects.py` judges each one in place, with the /ivcsort and /pvpc rules against what the account owns now:
-   - Still belongs: star on, Nope off (PvpC on for a PvP keeper, and its /ivc or Pvp name if it had none). No other tag.
+   - Still belongs: star on, Nope off (PvpC on for a PvP keeper, and its /ivc or Pvp name if it had none). No other tag. CyrillJan doesn't play PvP, so it keeps a Nope for PvP only if a slot is top 20 of all 4,096 IVs and the form is viable in that league (PvPoke's top 100 there, from `pvp.py update`'s `rankings.json`). Master League counts too: top 20 at level 50 as what it is or evolves into. A Master League keeper gets no PvpC (/pvpc ranks only Little, Great and Ultra).
    - Falls out: the nickname goes blank, so the game shows the species name. That means checked and cleared. It stays in Nope and gets the tags below.
    - Can't tell (a branching line, a missing search, an unreadable tile): nothing is tagged. `tag --nope` lists them and stops. Sort those by hand, then run it again.
    Already-cleared ones with a species name are remembered in `runs/checked-<trainer>.json`, so a rerun doesn't appraise them again. `suspects.py --dry-run` judges and writes `suspects.txt` without changing anything.

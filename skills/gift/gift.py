@@ -787,6 +787,7 @@ def send_gift():
     tap_into(t, "picker", dy=-0.04, on="friend")
     blind = max(0, picker_drags - 1)  # where the last gift was found, less one scroll (a sent gift can shift the list up)
     drags = 0
+    retaps = 0  # taps on a postcard that didn't open it (at most 2 a send)
     seen, dragged = None, None  # seen: the last look's layout; dragged: the layout and titles when it last scrolled
     past = False  # last_held seen above this look, this visit
     learn = blind == 0  # only a look down from the top knows what's above last_held
@@ -813,7 +814,14 @@ def send_gift():
             picker_drags = drags
             title, t, late = cards[0]
             tap(t[0] + t[2] / 2, t[1] - 0.11)  # the postcard above its title
-            wait("preview", timeout=6 * LAG)
+            try:
+                wait("preview", timeout=6 * LAG)
+            except base.Lost:
+                if retaps >= 2 or classify() != "picker":
+                    raise
+                retaps += 1  # (the list was likely still moving: the tap missed)
+                log(f"  the tap on {title!r} didn't open it: looking again")
+                continue
             ok, got = preview_ok(title, late)
             if not ok:  # (caught mid-animation: one more look)
                 time.sleep(0.5)

@@ -8,7 +8,7 @@
         to carry on after a stop. --limit N: change N, then stop. --look: decide only (plan.txt), change nothing
   caffeinate -dimsu python3 run.py fallen <run dir>         sort the fallen-out ones into groups (changes nothing)
   caffeinate -dimsu python3 run.py act-fallen <run dir> [--limit N]  tag the fallen-out ones
-  python3 run.py search "<query>"                           type one search and print the tiles (testing)
+  python3 run.py search "<query>" [...]                     type searches and print the tiles (testing; later ones edit the bar's end)
 
 Run /ivc first: an IVC Pokémon still named after its species blocks every KEEP it could beat. Start with Pokémon GO
 open. A run writes into runs/<time>/ (scan.json, pools.json, plan.txt, plan.json, act.json, log.txt).
@@ -285,7 +285,7 @@ SHOWN = {"q": None}  # the search in the bar now: a family's last search is the 
 
 
 def read_search(q, iv_only):
-    got, want = run_search(q, iv_only)
+    got, want = run_search(q, iv_only, edit=True)
     SHOWN["q"] = q
     return got, want
 
@@ -303,7 +303,12 @@ def pools(members=None):
     The search most of them show in goes last: its list is still on screen for act"""
     members = [m for m in members or load("scan.json") if m.get("species")]
     homes = Counter(home(m) for m in members)
-    queries = sorted(dict.fromkeys(q for m in members for q in sort.searches_for(m)), key=lambda q: homes[q])
+    queries = list(dict.fromkeys(q for m in members for q in sort.searches_for(m)))
+    head = lambda q: q.rsplit("&", 1)[0]  # searches that differ only in the last term go side by side: the next one
+    top = {}                              # edits the bar's end (search.edit_tail), it isn't typed whole
+    for q in queries:
+        top[head(q)] = max(top.get(head(q), 0), homes[q])
+    queries.sort(key=lambda q: (top[head(q)], head(q), homes[q], q))
     done = load("pools.json") if os.path.exists(os.path.join(base.RUN_DIR, "pools.json")) else {}
     wants = load("counts.json") if os.path.exists(os.path.join(base.RUN_DIR, "counts.json")) else {}
     log(f"{len(queries)} searches, {len(done)} done already")
@@ -966,10 +971,11 @@ def script(a, cmd, limit):
         act_fallen(limit)
     elif cmd == "search":
         front()
-        got, want = run_search(a[1])
-        for n, c in got:
-            print(f"CP{c:<5} {n}")
-        print(f"{len(got)} read, the game says {want}")
+        for q in a[1:]:  # (more than one: each after the first edits the bar's end, like a family's searches)
+            got, want = run_search(q, edit=True)
+            for n, c in got:
+                print(f"CP{c:<5} {n}")
+            print(f"{q}: {len(got)} read, the game says {want}")
 
 
 if __name__ == "__main__":

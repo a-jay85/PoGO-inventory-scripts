@@ -191,6 +191,7 @@ def run_shortcut(name, suffix=""):
 
 def append(suffix, bounds=None):
     """tap the filled bar, type suffix at the end, Return. False if the bar doesn't end with it (cleared after)"""
+    search.LAST["q"] = None  # (the bar won't hold start_search's last one)
     bounds = bounds or look()[3]
     search.click(0.45, 0.183, bounds, gap=search.BAR_GAP)
     for _ in range(10):

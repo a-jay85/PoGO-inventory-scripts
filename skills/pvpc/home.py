@@ -247,6 +247,10 @@ def start(storage=True):
             log(f"  after the hatch: closing {ui.summary(texts, 60)}")
             search.click(*X_BUTTON, bounds)
             time.sleep(2.0)
+        elif screen == "unknown" and storage and search.sort_menu(texts):  # a stop left the sort menu up (a slow
+            log("  the sort menu is open: closing it")                 # iPhone opened it after giving up)
+            search.click(search.SORT_BUTTON[0], search.SORT_BUTTON[1], bounds)  # its X sits where the button was
+            time.sleep(1.5)
         elif screen == "unknown" and storage and not ui.ANDROID and ui.search_panel(texts):  # left with the panel open
             search.leave_panel(texts, bounds)  # (an empty bar shows tags and Recommended, no tiles: no list)
         elif screen == "unknown":

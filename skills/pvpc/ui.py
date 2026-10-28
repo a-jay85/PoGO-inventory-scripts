@@ -66,6 +66,8 @@ def sh(*a):
         _seen = _older = None
     if ANDROID and a[:1] == (HELPER,) and len(a) > 1 and a[1] in android.ACTIONS:
         return android.act(*a[1:])
+    if a[:1] == (HELPER,) and not os.path.exists(HELPER):  # a new worktree has none yet
+        ensure_helper()
     return subprocess.run(a, capture_output=True, text=True, check=True).stdout
 
 

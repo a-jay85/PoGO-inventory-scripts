@@ -27,4 +27,4 @@ Or through the front door: `POGO_PHONE=android caffeinate -dimsu python3 ~/PoGO-
 6. A Pokémon a tap can't open (one in the back row, behind another) is found by swiping from the ones it did open. Swipes go only part way along a gym, and some only take with the finger held still first, on the spot where the hidden Pokémon shows.
 7. Back to the badge list, sorted again, the next badge. It ends after N berries or when no gym is left.
 
-A berry counts when the number under it goes down. Log in `$S/runs/<time>-<phone>/log.txt`.
+A berry counts when the number under it goes down. On the Pixel that number is small, so it's read from a sharp crop. When one kind of berry runs out, the game floats the next kind and the script keeps going. It never feeds a Golden Razz: it stops at that Pokémon. Log in `$S/runs/<time>-<phone>/log.txt`.

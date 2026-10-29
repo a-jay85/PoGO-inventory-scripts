@@ -1038,6 +1038,38 @@ def new_slots(sp, cp, hp, ivs, raws, name):
     return [[a, f, r] for (a, f), r in slots.items()]
 
 
+def keep():
+    """a PvP keeper, done: star on, PvpC off (like /ivcsort's Keep). PvpC is only the to-do pile"""
+    set_star(True)
+    set_tags(off=["PvpC"])
+
+
+def finish_keepers(limit):
+    """the PvpC list's Pvp-named ones (kept by runs from before keep()): star on, PvpC off. -> how many"""
+    done = Counter()
+
+    def visit(i, n, c):
+        if not (n.lower().startswith("pvp") or re.match(r"P\S{0,2}p(?=[ LGU+]|$)", n)):
+            return False  # still to do: /pvpc's main walk names it
+        open_tile(i)
+        info, _, _ = steady_detail()
+        if not opened_right(info, n, c):
+            raise Skip(f"opened {info['name']!r} but tile said {n!r}")
+        if not re.match(r"P\S?p ?[LGU]", info["name"] or ""):
+            raise Skip(f"not a Pvp name on detail: {info['name']!r}")
+        if not any(is_tag(t, "PvpC") for t in info["tags"]):
+            raise Skip(f"no PvpC tag on detail: {info['tags']}")
+        keep()
+        log(f"DONE kept {info['name']!r} CP{c}: star on, PvpC off")
+        done["kept"] += 1
+        go("close", "list")
+        return True
+
+    to_top()
+    search.walk_list(visit, stop=lambda n: done["kept"] >= limit)  # (walk_list's limit counts passed ones too)
+    return done["kept"]
+
+
 def process(i, tile_name, tile_cp):
     open_tile(i)
     info, texts, _ = steady_detail()
@@ -1066,6 +1098,7 @@ def process(i, tile_name, tile_cp):
         # for the fallen-out step at the end
         save("renamed.json", load("renamed.json", []) + [{"name": name, "cp": cp, "species": sp, "shadow": shadow,
                                                            "slots": slots}])
+        keep()
     log(f"DONE {tile_name} CP{cp} {'/'.join(map(str, ivs))}{' shadow' if shadow else ''} -> {name}")
     go("close", "list")
     return name
@@ -1550,6 +1583,8 @@ def script(cmd, limit, dry):
         return fallen_step()
     if cmd == "act-fallen":
         return log(f"finished: {act_fallen(limit)} renamed or tagged")
+    if cmd == "keepers":
+        return log(f"finished: {finish_keepers(limit)} keepers starred, PvpC off")
     counts = main(limit, dry)
     at_end = counts.pop("end", 0)
     log(f"finished: {dict(counts)}")
@@ -1570,8 +1605,8 @@ if __name__ == "__main__":
     a = sys.argv[1:]
     limit = session.limit(a)
     dry = "--dry-run" in a
-    cmd = a[0] if a and a[0] in ("fallen", "act-fallen") else None
-    if cmd:
+    cmd = a[0] if a and a[0] in ("fallen", "act-fallen", "keepers") else None
+    if cmd in ("fallen", "act-fallen"):
         if len(a) < 2 or not os.path.isdir(a[1]):
             sys.exit(f"usage: run.py {cmd} <run dir>")
         new_run_dir(None, os.path.abspath(a[1]))

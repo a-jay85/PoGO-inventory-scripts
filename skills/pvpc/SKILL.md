@@ -37,6 +37,7 @@ A Pokémon with a name you gave it (`L35`) gets its species from the appraisal's
 At the end of the list it runs the read-only fallen-out step.
 If earlier runs stopped before their fallen-out step (a stop, a crash, Ctrl-C), the run that reaches the end adds their new names to its own `renamed.json` first, so one fallen-out step covers them all. It looks back to the last run that has a `fallen.json`, at most 12 hours, and logs which runs it took (also in `carried.json`).
 Use this skill to clear its skips by hand.
+`caffeinate -dimsu python3 $S/run.py keepers [--limit N]` finishes keepers that older runs left in the PvpC list (a `Pvp ...` name): star on, PvpC off. It passes anything else.
 
 ### One front door: pogo.py
 
@@ -68,7 +69,7 @@ Taps come 0.1–0.25s apart (same as /ivc and /ivcsort). A short 0.7–1.3s paus
 ### Fallen out and trims
 
 A new Pvp name can push an older Pvp Pokémon out of the top. Per league (L/G/U) and per form, only the best one owned keeps its place. Ties keep.
-- **Trim:** beaten in some of its slots but still best in others. It gets renamed to show only the leagues it's still best in (same name rules). It keeps PvpC. New Pokémon from this run get trimmed too if an older one beats them.
+- **Trim:** beaten in some of its slots but still best in others. It gets renamed to show only the leagues it's still best in (same name rules). It keeps its star. New Pokémon from this run get trimmed too if an older one beats them.
 - **Fallen out:** beaten in every top-100 slot it has.
 - **Chain:** a name with no room for a league drops it and adds `+`. A trim can make room for it again. That league can then beat a different Pokémon, which gets trimmed or falls in turn. `act-fallen` goes round until nothing changes (at most 8 rounds; it logs `STILL CHANGING` if it hits that).
 
@@ -107,7 +108,7 @@ Without it, the scripts drive iPhone Mirroring exactly as before.
 
 - **Qualifies** = top 100 stat product in any of: Little Cup (500 CP), Great League (1500), Ultra League (2500). Max level 50 (no best buddy).
   - Only leagues its level still fits. Evolving keeps the level and nothing powers down, so a form whose CP at its level now is already over the cap doesn't count there (a CP530 Doduo has no Little Cup slot).
-- **Qualifies:** rename it. Keep the PvpC tag.
+- **Qualifies:** rename it, then star it and remove PvpC (like /ivcsort's Keep). PvpC is only the to-do pile.
 - **Doesn't qualify:** remove PvpC, add Nope. If it's 98%+ (a shadow: once purified), never Nope: swap PvpC for IVC so /ivc names it. Don't rename. If it also has IVC, only remove PvpC (no Nope): /ivc decides.
 - **Name format:** `Pvp` then leagues in order L, G, U, like `Pvp G1`, `Pvp G35 U88`, `Pvp L5G7U99`. Max 12 characters.
   1. Keep all spaces if it fits.
@@ -129,7 +130,7 @@ Example: Charmander 0/11/15 gives `PvpL9Gm15U35`.
 
 ## Per-Pokémon loop
 
-Start from the inventory filtered to the PvpC tag. Processed Pokémon drop out of the list (Nope) or keep their tag (renamed). So the next one to do is the first tile whose name doesn't start with `Pvp`. If every visible tile starts with `Pvp`, scroll down over the Mirroring window with computer use and `read` again. If the list stops changing, you're done.
+Start from the inventory filtered to the PvpC tag. Processed Pokémon drop out of the list (Nope, or renamed: star on, PvpC off). A tile whose name starts with `Pvp` is a keeper from before that rule: pass it (`run.py keepers` finishes those). So the next one to do is the first tile whose name doesn't start with `Pvp`. If every visible tile starts with `Pvp`, scroll down over the Mirroring window with computer use and `read` again. If the list stops changing, you're done.
 
 Every "tap X" below means: run `ui.py tap X`, then click the printed spot. After each click, the next `ui.py` call reads the new screen. Wait about 1 second after a click before reading (`sleep 1 && ...`).
 
@@ -154,6 +155,7 @@ Every "tap X" below means: run `ui.py tap X`, then click the printed spot. After
      - Typing straight after cmd+a once dropped the first letter.
      - `read` must show `rename field='<exact name>'`. Then tap `OK`.
      - `read` must show the new name on the detail screen.
+     - Tap the star if it's empty. Then tap `menu`, `TAG`, untick `PvpC`, `DONE`.
 6. Tap `close` to go back to the list. Next Pokémon.
 
 ## Safety

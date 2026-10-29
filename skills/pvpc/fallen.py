@@ -93,7 +93,8 @@ def act(limit, recheck, off=(), stop=None, odd=None):
                 base.set_star(False)
             base.set_tags(on=[g], off=off, ivs=ivs, raws=raws)
             done[g] += 1
-            log(f"DONE fallen {g} {n!r} CP{c}: {what}")
+            base.clear_name()  # an old /ivc or Pvp name would bring it back to the Nope recheck
+            log(f"DONE fallen {g} {n!r} CP{c}: {what}, name cleared")
             go("close", "list")
             return True
 

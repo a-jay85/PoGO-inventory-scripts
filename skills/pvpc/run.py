@@ -775,6 +775,29 @@ def same_name(got, want):
             and re.fullmatch(r"P\S?p", got[:3], re.I) is not None)
 
 
+def clear_name(ok=lambda g: bool(g) and not re.search(r"\d", g)):
+    """blank the nickname: the game shows the species name again. ok(name): the name read after OK is a species
+    name (default: something with no digits, which every /ivc and /pvpc name has)"""
+    still_opened("before the rename")
+    go("pencil", "rename")
+    with changing("clearing the name"):
+        tap("field")
+        time.sleep(0.3)
+        for _ in range(2):
+            key("a", cmd=True)
+            key("delete")
+            if not settle(field_text, lambda g: not g, timeout=1.5):
+                break
+        else:
+            leave_rename("CANCEL")
+            raise Stop(f"couldn't empty the nickname box (it shows {field_text()!r})")
+        leave_rename("OK")
+        got = settle(detail_name, ok)
+        if not ok(got):
+            keep_capture("rename")
+            raise Stop(f"after OK the name reads {got!r}, wanted the species name")
+
+
 def field_text():
     _, texts, _, _ = wait_for("rename")
     return ui.nickname_field(texts)[4].strip()
@@ -1536,7 +1559,7 @@ def main(limit, dry):
     log(f"start, log in {RUN_DIR}")
     while counts["done"] + counts["skip"] < limit:
         _, texts, _, bounds = wait_for("list")
-        ts = ui.tiles(texts)
+        ts = [(ui.tile_name(n), c, x, y) for n, c, x, y in ui.tiles(texts)]  # without the tag icon ('$96 AD')
         seen.update(t[1] for t in ts)
         p = pick(ts, skipped)
         if not p:

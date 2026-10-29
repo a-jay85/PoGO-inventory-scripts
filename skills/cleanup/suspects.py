@@ -415,24 +415,7 @@ def is_species_name(n, m):
 
 def clear_name(m):
     """blank the nickname: the game shows the species name again"""
-    base.still_opened("before the rename")
-    go("pencil", "rename")
-    with base.changing("clearing the name"):
-        base.tap("field")
-        time.sleep(0.3)
-        for _ in range(2):
-            base.key("a", cmd=True)
-            base.key("delete")
-            if not base.settle(base.field_text, lambda g: not g, timeout=1.5):
-                break
-        else:
-            base.leave_rename("CANCEL")
-            raise Stop(f"couldn't empty the nickname box (it shows {base.field_text()!r})")
-        base.leave_rename("OK")
-        got = base.settle(base.detail_name, lambda g: is_species_name(g, m))
-        if not is_species_name(got, m):
-            base.keep_capture("rename")
-            raise Stop(f"after OK the name reads {got!r}, wanted the species name")
+    base.clear_name(lambda g: is_species_name(g, m))
 
 
 def apply(v, now, who):

@@ -77,7 +77,7 @@ A new Pvp name can push an older Pvp Pokémon out of the top. Per league (L/G/U)
 - `caffeinate -dimsu python3 $S/run.py act-fallen <run dir> [--limit N]`:
   1. Appraises every Pokémon that something beats, to see all its slots, including ones its name had no room for (`truths.json`). New Pokémon from this run were appraised already.
   2. Once they're all appraised, renames the trims. Repeats if that changed anything.
-  3. Tags the ones beaten everywhere. Same rules as /ivcsort (shared `fallen.py`): not traded + caught 2016–2020 → GuaranteedLucky, not traded + older than 300 days → Old, else star off + Nope. PvpC gets unticked.
+  3. Tags the ones beaten everywhere. Same rules as /ivcsort (shared `fallen.py`): not traded + caught 2016–2020 → GuaranteedLucky, not traded + older than 300 days → Old, else star off + Nope. PvpC gets unticked. Its name gets cleared (the species name shows again), so the Nope recheck doesn't pick it up later.
   - Shiny and costume ones are never tagged. They can still be trimmed (a rename only).
   - `--limit` counts renames and tags together. Appraisals don't count: even `--limit 1` first opens and appraises every beaten one in each line (that changes nothing).
 - Never trimmed or fallen: lines that branch (Eevee aside). Their names can't be read back to one form. A name whose letter two forms share (Charmander and Charmeleon are both `m`) counts that slot as unbeatable until it's appraised.

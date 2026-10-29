@@ -111,7 +111,7 @@ def tables(to):
         m = tr.Model()
         try:
             sp = tr.taker_species(m) if to == TAKER else tr.giver_species(m)
-        except (tr.NoData, SystemExit) as e:  # (pve() exits when there are no DialgaDex counters)
+        except (tr.NoData, SystemExit, OSError) as e:  # (pve() exits with no DialgaDex counters; no runs folder)
             _TABLES[to] = {"to": to, "missing": str(e)}
             return _TABLES[to]
         if old := stale(sp["from"]):

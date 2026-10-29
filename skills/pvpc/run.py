@@ -1076,7 +1076,8 @@ def finish_keepers(limit):
             return False  # still to do: /pvpc's main walk names it
         open_tile(i)
         info, _, _ = steady_detail()
-        if not opened_right(info, n, c):
+        # OCR can run a row's names together ('Pvp Gm38 Um9 •Pvp Gn50U26+ •...'): one of them, same CP, is fine
+        if not any(opened_right(info, part.strip(), c) for part in n.split("•")):
             raise Skip(f"opened {info['name']!r} but tile said {n!r}")
         if not re.match(r"P\S?p ?[LGU]", info["name"] or ""):
             raise Skip(f"not a Pvp name on detail: {info['name']!r}")

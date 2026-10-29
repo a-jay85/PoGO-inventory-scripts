@@ -3,7 +3,9 @@
 still help with. Android only for now.
 
   node pull.mjs                                                 the bosses' counter lists from DialgaDex (Mac)
-  POGO_PHONE=android caffeinate -dimsu python3 roster.py count  count the good copies by search (taps the phone)
+  POGO_PHONE=android caffeinate -dimsu python3 roster.py count [counts.json]
+                                                                count the good copies by search (taps the phone);
+                                                                with a counts.json, carry on from it
   python3 roster.py report [counts.json]                        the top 6s and the trade list again (Mac only)
 
 A good copy is 3★ or 4★. Shadows are counted apart. An earlier stage counts as its evolution (a 4★ Gastly is a

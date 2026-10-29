@@ -8,6 +8,7 @@
   python3 tradeable.py plan [--to CyrillJan]   the Mac: every search to tag, in runs/<time>-plan/
   POGO_PHONE=android caffeinate -dimsu python3 tradeable.py tag [--limit N]   CyrillJan signed in: tags, power-ups
   POGO_PHONE=android caffeinate -dimsu python3 tradeable.py tag --nope [--limit N]   either account: its Nope pile
+  POGO_PHONE=android caffeinate -dimsu python3 tradeable.py tag --nope --resort [--limit N]   Transfer ones back to Nope first
 
 --nope: the same tags for everything tagged Nope, judged for the other account (the one it would be traded to). It
 runs rescue.py first (a 98%+ one gets the star, never a tag). A traded one can't trade again: Transfer only. Never

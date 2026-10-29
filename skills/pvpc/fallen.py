@@ -7,7 +7,8 @@ Each skill finds its own fallen-out ones and saves them in <run dir>/fallen.json
   not traded + older than OLD_DAYS -> tag Old
   anything else (traded: a Pokémon trades only once, or newer) -> star off + Nope
 Shiny and costume ones are never touched. groups() sorts them with in-game searches (reads only). act() opens each
-one, asks the skill to judge it again on its own detail screen, then tags it.
+one, asks the skill to judge it again on its own detail screen, then tags it and clears its name.
+A Nope one that appraises 98%+ is left alone.
 """
 from collections import Counter
 

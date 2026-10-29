@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Unattended /ivc: works through the IVC-tagged list in iPhone Mirroring with no Claude.
+"""Unattended /ivc: works through the IVC-tagged list in iPhone Mirroring or on the Android phone with no Claude.
 
   caffeinate -dimsu python3 run.py [--limit N] [--dry-run]
+  POGO_PHONE=android caffeinate -dimsu python3 run.py ...   (Android phone over USB, see ../pvpc/android.py)
 
 Start with Pokémon GO open. Pokémon still named after their species get appraised and renamed by IV%
 (see ivc.py), or retagged IVC -> Nope when there's nothing to put in the name. --dry-run does the

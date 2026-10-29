@@ -5,6 +5,8 @@ to paste. Android only for now.
   POGO_PHONE=android caffeinate -dimsu python3 dex.py lucky     the Lucky page
   POGO_PHONE=android caffeinate -dimsu python3 dex.py 100       the ★100% page
   POGO_PHONE=android python3 dex.py look                        what it reads on a grid screen now; taps nothing
+  POGO_PHONE=android python3 dex.py evolve [run]                the Lucky step again on a page already read (default:
+                                                                the newest Lucky run); doesn't read the page again
 
 Gets there from anywhere: main menu, POKÉDEX, the page's chip at the bottom, then KANTO. The page is one long grid,
 four to a row, Kanto to Paldea (0001-1024). A caught entry has a picture with its number at the bottom of the tile.

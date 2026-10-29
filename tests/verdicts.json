@@ -1,0 +1,551 @@
+{
+ "plain": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "no rule wants it"
+ ],
+ "no account": [
+  "unsure",
+  [],
+  null,
+  "signed in as None"
+ ],
+ "no appraisal": [
+  "unsure",
+  [],
+  null,
+  "no appraisal"
+ ],
+ "98%": [
+  "keep",
+  [],
+  null,
+  "98%: 98%+ never goes"
+ ],
+ "species not read": [
+  "unsure",
+  [],
+  null,
+  "species not read"
+ ],
+ "two species": [
+  "unsure",
+  [],
+  null,
+  "could be pidgey, rattata"
+ ],
+ "two forms": [
+  "unsure",
+  [],
+  null,
+  "could be rattata, rattata_alolan"
+ ],
+ "traded not read": [
+  "unsure",
+  [],
+  null,
+  "traded or not not read"
+ ],
+ "catch date not read": [
+  "unsure",
+  [],
+  null,
+  "catch date not read"
+ ],
+ "size not read": [
+  "unsure",
+  [],
+  null,
+  "size not read"
+ ],
+ "level not read": [
+  "unsure",
+  [],
+  null,
+  "level ?: can't tell if it's 26+"
+ ],
+ "level 25 or 26": [
+  "unsure",
+  [],
+  null,
+  "level [25.5, 26]: can't tell if it's 26+"
+ ],
+ "distance not checked": [
+  "unsure",
+  [],
+  null,
+  "distance not checked"
+ ],
+ "no species lists": [
+  "unsure",
+  [],
+  null,
+  "no species lists for HashTagAJay: no a lucky /dex run for HashTagAJay yet"
+ ],
+ "your tag": [
+  "unsure",
+  [],
+  null,
+  "has your tag Evo"
+ ],
+ "shadow": [
+  "unsure",
+  [],
+  null,
+  "shadow: no rule yet"
+ ],
+ "lucky": [
+  "unsure",
+  [],
+  null,
+  "lucky: no rule yet"
+ ],
+ "costume": [
+  "unsure",
+  [],
+  null,
+  "costume: no rule yet"
+ ],
+ "background": [
+  "unsure",
+  [],
+  null,
+  "background: no rule yet"
+ ],
+ "shiny": [
+  "unsure",
+  [],
+  null,
+  "shiny or Gigantamax: a special trade, by hand"
+ ],
+ "gigantamax": [
+  "unsure",
+  [],
+  null,
+  "shiny or Gigantamax: a special trade, by hand"
+ ],
+ "mythical": [
+  "unsure",
+  [],
+  null,
+  "mythical: can't be traded, by hand"
+ ],
+ "legendary untraded": [
+  "tag",
+  [
+   "Remote Trade",
+   "RT"
+  ],
+  null,
+  "untraded special trade: a remote trade"
+ ],
+ "legendary untraded old": [
+  "tag",
+  [
+   "Remote Trade",
+   "RT",
+   "Old"
+  ],
+  null,
+  "untraded special trade: a remote trade"
+ ],
+ "legendary traded": [
+  "tag",
+  [
+   "Spot Transfer"
+  ],
+  null,
+  "traded special trade: a spot transfer"
+ ],
+ "legendary fused": [
+  "unsure",
+  [],
+  null,
+  "fused: can't be traded"
+ ],
+ "meltan": [
+  "tag",
+  [
+   "Remote Trade",
+   "RT"
+  ],
+  null,
+  "untraded special trade: a remote trade"
+ ],
+ "ultra beast": [
+  "tag",
+  [
+   "Remote Trade",
+   "RT"
+  ],
+  null,
+  "untraded special trade: a remote trade"
+ ],
+ "gym not checked": [
+  "unsure",
+  [],
+  null,
+  "gym defender: top 20 not checked"
+ ],
+ "gym top 20": [
+  "keep",
+  [],
+  null,
+  "gym defender: top 20 CP or IV"
+ ],
+ "gym not top 20": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "no rule wants it"
+ ],
+ "gym top 20 traded": [
+  "keep",
+  [],
+  null,
+  "gym defender: top 20 CP or IV"
+ ],
+ "traded": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "traded: can't trade again"
+ ],
+ "traded Machoke: Evo": [
+  "tag",
+  [
+   "Evo"
+  ],
+  null,
+  "traded: evolves for free"
+ ],
+ "H traded Machoke: Transfer": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "traded: can't trade again"
+ ],
+ "legendary XXL": [
+  "unsure",
+  [],
+  null,
+  "special trade, size xxl: by hand"
+ ],
+ "legendary size not read": [
+  "unsure",
+  [],
+  null,
+  "special trade, size not read: by hand"
+ ],
+ "H size not read, under 360 XL": [
+  "unsure",
+  [],
+  null,
+  "size not read"
+ ],
+ "2019 catch": [
+  "tag",
+  [
+   "GuaranteedLucky"
+  ],
+  null,
+  "untraded, caught 2019: lucky once traded"
+ ],
+ "2019 catch, Luckydex": [
+  "tag",
+  [
+   "GuaranteedLucky"
+  ],
+  null,
+  "untraded, caught 2019: lucky once traded"
+ ],
+ "Luckydex": [
+  "tag",
+  [
+   "Luckydex"
+  ],
+  null,
+  "lucky dex hole"
+ ],
+ "Luckydex wrong gender": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "no rule wants it"
+ ],
+ "Luckydex right gender": [
+  "tag",
+  [
+   "Luckydex"
+  ],
+  null,
+  "lucky dex hole"
+ ],
+ "Luckydex gender not read": [
+  "unsure",
+  [],
+  null,
+  "gender not read (Luckydex wants one gender)"
+ ],
+ "Old": [
+  "tag",
+  [
+   "Old"
+  ],
+  null,
+  "untraded, caught 515 days ago"
+ ],
+ "Old beats Reroll": [
+  "tag",
+  [
+   "Old"
+  ],
+  null,
+  "untraded, caught 515 days ago"
+ ],
+ "Reroll": [
+  "tag",
+  [
+   "Reroll"
+  ],
+  null,
+  "#1 raid attacker"
+ ],
+ "GIV": [
+  "tag",
+  [
+   "GIV"
+  ],
+  null,
+  "PvP"
+ ],
+ "XXL": [
+  "tag",
+  [
+   "IVC"
+  ],
+  "XXL",
+  "never traded XXL"
+ ],
+ "xxs": [
+  "tag",
+  [
+   "IVC"
+  ],
+  "xxs",
+  "never traded XXS"
+ ],
+ "XLX": [
+  "tag",
+  [
+   "XLX"
+  ],
+  null,
+  "level 26+"
+ ],
+ "XLX beats evolved": [
+  "tag",
+  [
+   "XLX"
+  ],
+  null,
+  "level 27+"
+ ],
+ "evolved": [
+  "tag",
+  [
+   "GIV"
+  ],
+  null,
+  "stage 2"
+ ],
+ "Dynamax": [
+  "tag",
+  [
+   "GIV"
+  ],
+  null,
+  "untraded Dynamax"
+ ],
+ "Tandemaus": [
+  "tag",
+  [
+   "GIV"
+  ],
+  null,
+  "tandemaus: wanted by HashTagAJay"
+ ],
+ "far": [
+  "tag",
+  [
+   "GIV"
+  ],
+  null,
+  "caught 100 km+ away"
+ ],
+ "H plain": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "no rule wants it"
+ ],
+ "H Luckydex is CyrillJan's: none": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "no rule wants it"
+ ],
+ "H Old": [
+  "tag",
+  [
+   "Old"
+  ],
+  null,
+  "untraded, caught 515 days ago"
+ ],
+ "H medal Rattata": [
+  "tag",
+  [
+   "GIV"
+  ],
+  null,
+  "medal: 2.1 kg"
+ ],
+ "H Rattata too heavy": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "no rule wants it"
+ ],
+ "H Rattata not small": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "no rule wants it"
+ ],
+ "H Rattata size not read": [
+  "unsure",
+  [],
+  null,
+  "size not read"
+ ],
+ "H Rattata weight misread": [
+  "unsure",
+  [],
+  null,
+  "medal one, weight read 21.0"
+ ],
+ "H medal Magikarp": [
+  "tag",
+  [
+   "GIV"
+  ],
+  null,
+  "medal: 14.0 kg"
+ ],
+ "H 2XL": [
+  "tag",
+  [
+   "2XL"
+  ],
+  null,
+  "120 Candy XL: a Friendship Friday trade"
+ ],
+ "H 2XL beats GIV": [
+  "tag",
+  [
+   "2XL"
+  ],
+  null,
+  "120 Candy XL: a Friendship Friday trade"
+ ],
+ "H Candy XL not read": [
+  "unsure",
+  [],
+  null,
+  "Candy XL not read"
+ ],
+ "H XXL skips 2XL": [
+  "tag",
+  [
+   "IVC"
+  ],
+  "XXL",
+  "never traded XXL"
+ ],
+ "H GIV": [
+  "tag",
+  [
+   "GIV"
+  ],
+  null,
+  "top 6 vs a boss"
+ ],
+ "H XLX at 29": [
+  "tag",
+  [
+   "XLX"
+  ],
+  null,
+  "level 29+"
+ ],
+ "H not XLX at 27": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "no rule wants it"
+ ],
+ "H Dynamax, has one": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "no rule wants it"
+ ],
+ "H Dynamax, has none": [
+  "tag",
+  [
+   "GIV"
+  ],
+  null,
+  "untraded Dynamax"
+ ],
+ "H Tandemaus": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "no rule wants it"
+ ],
+ "H far": [
+  "tag",
+  [
+   "GIV"
+  ],
+  null,
+  "caught 100 km+ away"
+ ]
+}

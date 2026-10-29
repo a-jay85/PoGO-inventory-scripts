@@ -689,7 +689,7 @@ def star_filled(path, texts):
 
 # confirm buttons only count on their own dialog, so a stray popup's OK is never tapped
 CONFIRM_SCREENS = {"OK": ("rename",), "CANCEL": ("rename", "tags"), "DONE": ("tags",),
-                   "PVPC": ("tags", "tag-tab"), "IVC": ("tags", "tag-tab"), "NOPE": ("tags",), "XLX": ("tags",), "TAG": ("menu",), "TAGS": ("list",), "APPRAISE": ("menu",), "POKMON": ("tag-tab",)}
+                   "PVPC": ("tags", "tag-tab"), "IVC": ("tags", "tag-tab"), "NOPE": ("tags",), "XLX": ("tags",), "GUARANTEEDLUCKY": ("tags",), "OLD": ("tags",), "TAG": ("menu",), "TAGS": ("list",), "APPRAISE": ("menu",), "POKMON": ("tag-tab",)}
 
 
 def locate(T, path, texts, screen, aspect):

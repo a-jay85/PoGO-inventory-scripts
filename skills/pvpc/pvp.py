@@ -204,6 +204,9 @@ def make_name(species, ivs, level=None):
     if species == "eevee":
         return eevee_name(ranks)
     notes = []
+    if species in IV_BRANCH and len(tops(species, ivs)) > 1:  # a tie: the game picks one of them at random
+        notes.append(f"{display(species)}'s IVs tie: it could become {', '.join(map(display, tops(species, ivs)))}; "
+                     "confirm with user")
     best = {}
     for tag, r, s in ranks:
         if tag not in best or r < best[tag][0]:
@@ -542,7 +545,8 @@ def test():
                (tops("tyrogue", (3, 14, 9)), ["hitmonchan"]), (tops("tyrogue", (0, 1, 2)), ["hitmontop"]),
                (sorted(tops("tyrogue", (12, 4, 12))), ["hitmonlee", "hitmontop"]), (len(tops("tyrogue", (7, 7, 7))), 3),
                (len(tops("tyrogue")), 3), (make_name("tyrogue", (0, 5, 15)), ("Pvp G40", [])),
-               (any("confirm" in x for x in make_name("tyrogue", (11, 14, 14))[1]), True)]
+               (any("confirm" in x for x in make_name("tyrogue", (11, 14, 14))[1]), True),
+               (any("confirm" in x for x in make_name("tyrogue", (0, 13, 13))[1]), True)]  # best as a Hitmon
     for i, (got, want) in enumerate(checks):
         if got != want:
             bad += 1

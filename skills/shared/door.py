@@ -35,9 +35,11 @@ def key(tile_name, cp):
 class Door:
     def __init__(self, tag):
         global vd, ct, trades
+        run_dir = base.RUN_DIR  # (verdict's imports load /ivc's run.py, which points base.RUN_DIR at /ivc's runs)
         import verdict as vd
         import cleantrades as ct  # the power-up cost -> levels, and power-ups to the next Candy XL tier
         import trades  # the tag chips, the caught date at the bottom of the page
+        base.RUN_DIR = run_dir
         self.tag, self.other = tag, "IVC" if tag.upper() == "PVPC" else "PvpC"
         self.account = home.trainer()
         self.tables = vd.tables(vd.TO[self.account])

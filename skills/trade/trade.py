@@ -270,7 +270,7 @@ def label(p, name):
 
 def to_friend(p):
     p.live = False
-    unknown, backs = 0, 0
+    unknown, backs, empty = 0, 0, 0
     for _ in range(40):  # room for a few Backs out of popups
         s = p.look()
         unknown = unknown + 1 if s == "unknown" else 0
@@ -306,8 +306,21 @@ def to_friend(p):
         elif s in ("profile", "friends"):
             # a typed search hides ADD FRIEND, so a searched friend list reads as "profile": tap the row if it's there
             row = p.find(lambda t: t[4].strip().lower() == p.friend.lower() and t[0] > 0.2 and t[1] > 0.25)
+            bar = p.find(lambda t: t[4].strip().lower() == p.friend.lower() and t[1] <= 0.25)
             if row:
                 p.tap_text(row[0], dy=0.01)
+            elif bar:
+                # the name is in the search bar but no row came up (the game kept a search typed before the list
+                # loaded, and it stays empty): clear it with the bar's X, then the next look types it again
+                empty += 1
+                if empty >= 3:
+                    x = p.find(lambda t: ui.norm(t[4]) == "X" and t[0] > 0.6 and abs(t[1] - bar[0][1]) < 0.03)
+                    if x:
+                        p.tap_text(x[0])
+                    else:
+                        p.tap(0.87, bar[0][1] + bar[0][3] / 2)
+                    log(f"{p.name}: the search for {p.friend} came up empty: cleared it")
+                    empty = 0
             elif s == "profile":
                 p.tap_text(label(p, "FRIENDS"))
             else:

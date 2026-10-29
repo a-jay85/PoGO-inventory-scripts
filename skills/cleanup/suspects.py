@@ -32,6 +32,7 @@ import importlib.util, itertools, json, os, re, sys, time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
+sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 sys.path.append(os.path.join(HERE, "..", "ivcsort"))
 sys.path.append(os.path.join(HERE, "..", "ivc"))
 import ui

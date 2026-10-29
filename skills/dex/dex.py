@@ -22,6 +22,7 @@ from PIL import Image
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
+sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import ui
 import run as base
 from run import Stop, log, keep_capture
@@ -343,7 +344,7 @@ def evo_tree():
     """child speciesId -> parent speciesId, from each entry's evolutions list (the 'parent' field has errors:
     Carkol under Boltund, Mr. Rime under Mime Jr)"""
     import json
-    gm = json.load(open(os.path.join(HERE, "..", "pvpc", "gamemaster.json")))["pokemon"]
+    gm = json.load(open(os.path.join(HERE, "..", "shared", "gamemaster.json")))["pokemon"]
     by = {p["speciesId"]: p for p in gm if not re.search(r"_shadow|_mega|_xl$", p["speciesId"])}
     parent = {}
     for sid, p in by.items():

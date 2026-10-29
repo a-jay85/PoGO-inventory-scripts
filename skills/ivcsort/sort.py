@@ -35,6 +35,7 @@ from functools import lru_cache
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
+sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 sys.path.insert(0, os.path.join(HERE, "..", "ivc"))
 import pvp
 from pvp import REGIONS, NOT_NOPE, base_name, region, parent, children, search

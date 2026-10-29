@@ -4,8 +4,8 @@ __pycache__/
 .DS_Store
 # skill runtime files (stay local, never pushed: the repo is public)
 skills/*/runs/
-skills/pvpc/.state.json
-skills/pvpc/.calib.json
-skills/pvpc/.paste.json
+skills/shared/.state.json
+skills/shared/.calib.json
+skills/shared/.paste.json
 skills/trade/.state.json
-skills/pvpc/helper
+skills/shared/helper

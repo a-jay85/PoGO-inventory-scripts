@@ -16,6 +16,7 @@ import json, os, random, re, sys, time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
+sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import ui
 import run as base
 from run import Stop, log, keep_capture, go, look, wait_for, front, save, load, candy
@@ -23,7 +24,7 @@ import search, session
 
 SHADOWS = "#Nope&shadow&!shiny&!costume&!xxl&!xxs"  # (sizes.py renames those and tags them IVC)
 PURIFIED = "#Nope&purified"
-GM = json.load(open(os.path.join(HERE, "..", "pvpc", "gamemaster.json")))
+GM = json.load(open(os.path.join(HERE, "..", "shared", "gamemaster.json")))
 SPECIAL = {p["speciesName"].split(" (")[0].upper() for p in GM["pokemon"]
            if {"legendary", "mythical", "ultrabeast"} & set(p.get("tags", []))}
 

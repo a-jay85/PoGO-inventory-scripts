@@ -6,7 +6,7 @@ model: claude-sonnet-5-5
 
 # /mega: Mega Evolve the TODO Pokémon
 
-Uses the shared tapper and screen reader from /pvpc (`~/.claude/skills/pvpc`). `S=~/.claude/skills/mega`.
+Uses the shared tapper and screen reader: the shared library (`~/PoGO-inventory-scripts/skills/shared`) and /pvpc's `run.py`. `S=~/.claude/skills/mega`.
 
 `POGO_PHONE=android caffeinate -dimsu python3 $S/mega.py [--limit N] [--dry-run]`
 

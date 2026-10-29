@@ -6,10 +6,10 @@ model: claude-sonnet-5-5
 
 # /ivc — rename IVC Pokémon by IV%
 
-Works like /pvpc and borrows its screen reader, tapper and helper (`~/.claude/skills/pvpc/ui.py`). Read that skill's
+Works like /pvpc and borrows its screen reader, tapper and helper (`~/PoGO-inventory-scripts/skills/shared/ui.py`). Read that skill's
 **Session start**, tapping rules and **Safety** section first. They all apply here.
 
-- `S=~/.claude/skills/ivc`, `P=~/.claude/skills/pvpc`
+- `S=~/.claude/skills/ivc`, `P=~/PoGO-inventory-scripts/skills/shared`
 - `python3 $S/ivc.py name <a/d/h> [--shadow] [--lucky] [--legendary] [--gym] [--size XXL|XXS] [--move "Frenzy Plant"]` gives the name (or NOPE).
 - `python3 $S/ivc.py elite <species_id>` lists the species' Elite TM moves.
 - `python3 $S/ivc.py test` checks the name rules against the user's examples.

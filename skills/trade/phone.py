@@ -12,7 +12,9 @@ Reads one JSON request a line on stdin, answers one JSON line on stdout:
   {"op": "restart"}                 force-close Pokémon GO and open it again (doesn't wait for it to load)
   {"op": "start", "run_dir"}        open Pokémon GO if it isn't, and wait until it's loaded -> {"screen"}
   {"op": "unstick", "texts", "backs"}  one step out of a screen nobody knows (Android: Back; iPhone: reopen the game)
-  {"op": "close"}                   the run's end: lock the Pixel, or quit iPhone Mirroring (if "start" opened it)
+  {"op": "ready"}                   wake and unlock the Pixel, or open iPhone Mirroring (trade.py look: a run's end
+                                    closed them). "close" undoes it only if the phone wasn't up before
+  {"op": "close"}                   the run's end: lock the Pixel, or quit iPhone Mirroring (if "start"/"ready" opened it)
 Errors come back as {"error": "..."}.
 """
 import json, os, random, sys, time, traceback
@@ -39,6 +41,18 @@ def tap(fx, fy):
     base.front()  # iPhone: a click while another app is in front only brings the window forward, and is lost
     # (front() before the capture below, as before. trade.py spaces its own taps: no tap gap here, and none counted)
     base.click(fx, fy, last or ui.capture()[1], bring_front=False, spaced=False, counted=False)
+
+
+def ready():
+    """the phone ready to be seen. One that was up already is left up at the end"""
+    if ui.ANDROID:
+        session.adb_ok()
+        was_up = session.awake() and not session.locked()
+    else:
+        was_up = session.mirroring_running()
+    session.ready()
+    if was_up:
+        session.opened = False  # close() leaves it alone
 
 
 def restart():
@@ -80,6 +94,8 @@ def main():
                 base.key(req["name"])
             elif op == "search":  # (iPhone: typed key by key; Android: adb types it)
                 out = {"ok": search.type_into_panel(req["q"], last or ui.capture()[1])}
+            elif op == "ready":
+                ready()
             elif op == "restart":
                 restart()
             elif op == "start":

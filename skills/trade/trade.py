@@ -923,6 +923,7 @@ def restart(phones):
 
 
 def cmd_look(phones):
+    both(lambda p: p.call(op="ready"), *[(p,) for p in phones])  # a run's end locked the Pixel and quit Mirroring
     for p in phones:
         s = p.look()
         print(f"{p.name} ({p.account}): {s}")

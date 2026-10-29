@@ -467,9 +467,9 @@ def bar_holds(got, q):
     """does the bar's read show q? A long q runs off one end of the bar: then what shows must be its start or its end,
     and the hidden part can't hold a '!' (a lost one is what this guards against)"""
     q = re.sub(r"\s", "", q)
-    # OCR reads a '!' as '.' or 'l', a '&' as '8', a '*' as '"', a 0 as an o, an l as '|'. It can drop a '*' with more
-    # typed after it ('683,4&shadow'), but a missing last one may be untyped: '3*,4' is dex 4
-    swaps = {"!": "[!.|il1]", "&": "[&8]", "*": '[*"]?', "0": "[0o]", "l": "[l|1I]"}
+    # OCR reads a '!' as '.' or 'l', a '&' as '8', a '*' as '"', a 0 as an o, an l as '|' or '/'. It can drop a '*'
+    # with more typed after it ('683,4&shadow'), but a missing last one may be untyped: '3*,4' is dex 4
+    swaps = {"!": "[!.|il1]", "&": "[&8]", "*": '[*"]?', "0": "[0o]", "l": "[l|1I/]"}
     pat = lambda s: "".join('[*"]' if ch == "*" and k == len(s) - 1 else swaps.get(ch) or re.escape(ch)
                             for k, ch in enumerate(s))
     magnifier = r"(?:q|9|[^\w&!*]){0,3}?"  # the magnifier glued on in front (read as Q, 9, < or ,)

@@ -775,6 +775,29 @@ def same_name(got, want):
             and re.fullmatch(r"P\S?p", got[:3], re.I) is not None)
 
 
+def clear_name(ok=lambda g: bool(g) and not re.match(r"P\S?p ?[LGU]|\d", g)):
+    """blank the nickname: the game shows the species name again. ok(name): the name read after OK is a species
+    name (default: not a Pvp name and not starting with a digit like an /ivc name. Porygon2 is a species)"""
+    still_opened("before the rename")
+    go("pencil", "rename")
+    with changing("clearing the name"):
+        tap("field")
+        time.sleep(0.3)
+        for _ in range(2):
+            key("a", cmd=True)
+            key("delete")
+            if not settle(field_text, lambda g: not g, timeout=1.5):
+                break
+        else:
+            leave_rename("CANCEL")
+            raise Stop(f"couldn't empty the nickname box (it shows {field_text()!r})")
+        leave_rename("OK")
+        got = settle(detail_name, ok)
+        if not ok(got):
+            keep_capture("rename")
+            raise Stop(f"after OK the name reads {got!r}, wanted the species name")
+
+
 def field_text():
     _, texts, _, _ = wait_for("rename")
     return ui.nickname_field(texts)[4].strip()
@@ -846,7 +869,8 @@ def steady_detail():
 
 
 def short(s):
-    return re.sub(r"[.…]+$", "", (s or "").strip()).lower()
+    """for comparing two reads of a name: OCR adds or drops spaces and reads O as 0 ('84 A 0*' is '84 AO*')"""
+    return re.sub(r"[.…]+$", "", (s or "").strip()).replace(" ", "").replace("0", "o").lower()
 
 
 def opened_right(info, tile_name, tile_cp):
@@ -1038,6 +1062,39 @@ def new_slots(sp, cp, hp, ivs, raws, name):
     return [[a, f, r] for (a, f), r in slots.items()]
 
 
+def keep():
+    """a PvP keeper, done: star on, PvpC off (like /ivcsort's Keep). PvpC is only the to-do pile"""
+    set_star(True)
+    set_tags(off=["PvpC"])
+
+
+def finish_keepers(limit):
+    """the PvpC list's Pvp-named ones (kept by runs from before keep()): star on, PvpC off. -> how many"""
+    done = Counter()
+
+    def visit(i, n, c):
+        if not (n.lower().startswith("pvp") or re.match(r"P\S{0,2}p(?=[ LGU+]|$)", n)):
+            return False  # still to do: /pvpc's main walk names it
+        open_tile(i)
+        info, _, _ = steady_detail()
+        # OCR can run a row's names together ('Pvp Gm38 Um9 •Pvp Gn50U26+ •...'): one of them, same CP, is fine
+        if not any(opened_right(info, part.strip(), c) for part in n.split("•")):
+            raise Skip(f"opened {info['name']!r} but tile said {n!r}")
+        if not re.match(r"P\S?p ?[LGU]", info["name"] or ""):
+            raise Skip(f"not a Pvp name on detail: {info['name']!r}")
+        if not any(is_tag(t, "PvpC") for t in info["tags"]):
+            raise Skip(f"no PvpC tag on detail: {info['tags']}")
+        keep()
+        log(f"DONE kept {info['name']!r} CP{c}: star on, PvpC off")
+        done["kept"] += 1
+        go("close", "list")
+        return True
+
+    to_top()
+    search.walk_list(visit, stop=lambda n: done["kept"] >= limit)  # (walk_list's limit counts passed ones too)
+    return done["kept"]
+
+
 def process(i, tile_name, tile_cp):
     open_tile(i)
     info, texts, _ = steady_detail()
@@ -1066,6 +1123,7 @@ def process(i, tile_name, tile_cp):
         # for the fallen-out step at the end
         save("renamed.json", load("renamed.json", []) + [{"name": name, "cp": cp, "species": sp, "shadow": shadow,
                                                            "slots": slots}])
+        keep()
     log(f"DONE {tile_name} CP{cp} {'/'.join(map(str, ivs))}{' shadow' if shadow else ''} -> {name}")
     go("close", "list")
     return name
@@ -1503,7 +1561,7 @@ def main(limit, dry):
     log(f"start, log in {RUN_DIR}")
     while counts["done"] + counts["skip"] < limit:
         _, texts, _, bounds = wait_for("list")
-        ts = ui.tiles(texts)
+        ts = [(ui.tile_name(n), c, x, y) for n, c, x, y in ui.tiles(texts)]  # without the tag icon ('$96 AD')
         seen.update(t[1] for t in ts)
         p = pick(ts, skipped)
         if not p:
@@ -1550,6 +1608,8 @@ def script(cmd, limit, dry):
         return fallen_step()
     if cmd == "act-fallen":
         return log(f"finished: {act_fallen(limit)} renamed or tagged")
+    if cmd == "keepers":
+        return log(f"finished: {finish_keepers(limit)} keepers starred, PvpC off")
     counts = main(limit, dry)
     at_end = counts.pop("end", 0)
     log(f"finished: {dict(counts)}")
@@ -1570,8 +1630,8 @@ if __name__ == "__main__":
     a = sys.argv[1:]
     limit = session.limit(a)
     dry = "--dry-run" in a
-    cmd = a[0] if a and a[0] in ("fallen", "act-fallen") else None
-    if cmd:
+    cmd = a[0] if a and a[0] in ("fallen", "act-fallen", "keepers") else None
+    if cmd in ("fallen", "act-fallen"):
         if len(a) < 2 or not os.path.isdir(a[1]):
             sys.exit(f"usage: run.py {cmd} <run dir>")
         new_run_dir(None, os.path.abspath(a[1]))

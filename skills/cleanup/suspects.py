@@ -17,8 +17,8 @@ Steps, in the tag run's dir (find does the first four in one walk, opening each 
   judge  IV: /ivcsort's judge() on its /ivc name (or the name /ivc would give it). PvP: pvp.fallen() on its top-100
          slots against every Pvp name in the line. CyrillJan (no PvP there) counts only giver_slots(): top 20 in
          a league the form is viable in. -> verdicts.json
-  apply  still open: KEEP (either side keeps): star on, Nope off. A PvP keeper gets PvpC back, like /pvpc's
-         keepers. One with neither kind of name gets the one /ivc (or /pvpc) would give it.
+  apply  still open: KEEP (either side keeps): star on, Nope off. A PvP keeper too, like /pvpc's keepers
+         (star, no PvpC). One with neither kind of name gets the one /ivc (or /pvpc) would give it.
          CLEARED: nickname blanked, so the game shows the species name. Nope stays: tag --nope tags it next.
          LEAVE: unsure (a misread search, a branching line, XXL/xxs): nothing changes.
 One whose pool searches weren't typed yet is judged after the walk (later.json), then act finds it again.
@@ -415,32 +415,15 @@ def is_species_name(n, m):
 
 def clear_name(m):
     """blank the nickname: the game shows the species name again"""
-    base.still_opened("before the rename")
-    go("pencil", "rename")
-    with base.changing("clearing the name"):
-        base.tap("field")
-        time.sleep(0.3)
-        for _ in range(2):
-            base.key("a", cmd=True)
-            base.key("delete")
-            if not base.settle(base.field_text, lambda g: not g, timeout=1.5):
-                break
-        else:
-            base.leave_rename("CANCEL")
-            raise Stop(f"couldn't empty the nickname box (it shows {base.field_text()!r})")
-        base.leave_rename("OK")
-        got = base.settle(base.detail_name, lambda g: is_species_name(g, m))
-        if not is_species_name(got, m):
-            base.keep_capture("rename")
-            raise Stop(f"after OK the name reads {got!r}, wanted the species name")
+    base.clear_name(lambda g: is_species_name(g, m))
 
 
 def apply(v, now, who):
-    """on its detail screen (now: read_member's read of it). KEEP: star on, Nope off, PvpC back for a PvP keeper, a
-    name if it has none. CLEARED: nickname blanked, Nope stays"""
+    """on its detail screen (now: read_member's read of it). KEEP: star on, Nope off (a PvP keeper too: PvpC is only
+    /pvpc's to-do pile), a name if it has none. CLEARED: nickname blanked, Nope stays"""
     if v["verdict"] == "KEEP":
         base.set_star(True)
-        base.set_tags(on=["PvpC"] if "pvp" in v["keep"] else [], off=["Nope"])
+        base.set_tags(off=["Nope"])
         new = v["keep"].get("iv") or v["keep"].get("pvp")
         if new and not named(now["name"]):
             base.do_rename(new, base.same_name if pvp_name(new) else isr.ivcrun.same_name)

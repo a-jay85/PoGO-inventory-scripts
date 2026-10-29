@@ -24,7 +24,7 @@ SEP = "+"
 
 # step -> (script under skills/, first words it takes (a flag or nothing is always fine), the ones that stay on the Mac)
 STEPS = {
-    "pvpc":        ("pvpc/run.py", {"fallen", "act-fallen"}, set()),
+    "pvpc":        ("pvpc/run.py", {"fallen", "act-fallen", "keepers"}, set()),
     "ivc":         ("ivc/run.py", set(), set()),
     "ivcsort":     ("ivcsort/run.py", {"sort", "fallen", "act-fallen", "search"}, set()),
     "shadows":     ("cleanup/shadows.py", {"transfer"}, set()),

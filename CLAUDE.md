@@ -70,6 +70,8 @@ The repo is public. These stay local and are in `.gitignore`:
 
 `python3 tests/readers.py` pins what every text reader says today (search-bar checks, result counts, name matchers), from OCR text alone. Run it after any change to one. It must say "all ... the same". If an answer changed on purpose, run `--record` and say which answers changed in the PR body.
 
+`python3 tests/layout.py` pins how the scripts find each other and their files: each script's names, the one shared copy of `run.py` (its run folder), where every run folder goes, and that every path and `module.name` the code uses exists. Run it after moving or renaming a file, or moving code between files. It must say "all ... the same". Same `--record` rule.
+
 Nothing tests taps and timing off the phone. A change to how a skill reads or taps the phone isn't done until it has run on the phone:
 `POGO_PHONE=android caffeinate -dimsu python3 ~/.claude/skills/pvpc/run.py --limit 1`. Claude starts it and watches it itself; no need to ask the user to watch.
 `--dry-run` still taps for real, so it isn't a safe first test. If you couldn't run it, say so in the PR body.

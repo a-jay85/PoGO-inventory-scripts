@@ -55,6 +55,7 @@ import json, math, os, re, sys, time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
+sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 sys.path.insert(0, os.path.join(HERE, "..", "dex"))
 sys.path.append(os.path.join(HERE, "..", "ivc"))  # last: its run.py isn't pvpc's
 import ui

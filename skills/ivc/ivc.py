@@ -13,7 +13,7 @@ then initials -> * on the stat letters, then the space after the IV.
 import json, os, re, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-GM_PATH = os.path.join(HERE, "..", "pvpc", "gamemaster.json")
+GM_PATH = os.path.join(HERE, "..", "shared", "gamemaster.json")
 NAME_LEN = 12
 SHOW_FROM = 93  # below this IV% (rounded) only shadows, luckies and legendaries show IV and stat letters
 PURIFY_FROM = 84  # shadow IV% (rounded) at which the purified IV% is shown

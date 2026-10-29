@@ -17,6 +17,7 @@ import datetime, os, random, re, sys, time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
+sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import ui
 import run as base
 from run import Stop, log, keep_capture, go, look, wait_for, save, load, candy

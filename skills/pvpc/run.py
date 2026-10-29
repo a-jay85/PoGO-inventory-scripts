@@ -22,6 +22,7 @@ from collections import Counter
 
 if __name__ == "__main__":  # search.py and fallen.py `import run`: let them share this copy (one RUN_DIR, one last_tap)
     sys.modules["run"] = sys.modules[__name__]
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "shared"))
 import ui, pvp
 from ui import Refused, Moving
 

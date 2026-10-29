@@ -6,7 +6,7 @@ model: claude-sonnet-5-5
 
 # /dex: a search of what's missing from a Pokédex page
 
-Uses the shared tapper and screen reader from /pvpc (`~/.claude/skills/pvpc`: `ui.py`, `run.py`, `home.py`).
+Uses the shared tapper and screen reader: the shared library (`~/PoGO-inventory-scripts/skills/shared`: `ui.py`, `home.py`) and /pvpc's `run.py`.
 `S=~/.claude/skills/dex`. Android only for now (CyrillJan's Pixel).
 
 `POGO_PHONE=android caffeinate -dimsu python3 $S/dex.py lucky` (or `100` for the ★100% page)
@@ -45,7 +45,7 @@ On the Lucky page it then searches this account's storage for lucky Pokémon tha
 
 ### Which account
 
-Each run first reads the signed-in trainer's name off the profile (`home.trainer()`, one of `home.TRAINERS`) and saves it to `runs/<time>-<page>/trainer.txt`. An `evolve` run copies it from the run it redoes. Other skills pick a run with `dex.latest(page, trainer)`: the newest run of that page for that account, as `(missing numbers, run folder)`. For `lucky`, an `evolve-lucky` run counts too. `POGO_PHONE=android python3 ~/.claude/skills/pvpc/home.py --trainer` prints the name alone.
+Each run first reads the signed-in trainer's name off the profile (`home.trainer()`, one of `home.TRAINERS`) and saves it to `runs/<time>-<page>/trainer.txt`. An `evolve` run copies it from the run it redoes. Other skills pick a run with `dex.latest(page, trainer)`: the newest run of that page for that account, as `(missing numbers, run folder)`. For `lucky`, an `evolve-lucky` run counts too. `POGO_PHONE=android python3 ~/PoGO-inventory-scripts/skills/shared/home.py --trainer` prints the name alone.
 
 A search longer than 1,000 characters is split into several. The Pixel's search bar took 1,397 characters and failed at 1,497 (2026-10-21). The searches are also saved to `runs/<time>-<page>/missing-<page>.txt`.
 

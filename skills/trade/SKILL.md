@@ -6,7 +6,7 @@ model: claude-sonnet-5-5
 
 # /trade — local trades between the two accounts
 
-Uses the shared tapper and screen reader from /pvpc (`~/.claude/skills/pvpc`: `ui.py`, `run.py`).
+Uses the shared tapper and screen reader: the shared library (`~/PoGO-inventory-scripts/skills/shared`: `ui.py`) and /pvpc's `run.py`.
 `S=~/.claude/skills/trade`.
 
 `caffeinate -dimsu python3 $S/trade.py [--limit N] [--done N]`

@@ -16,7 +16,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SKILLS = os.path.join(ROOT, "skills")
 GOLD = os.path.join(ROOT, "tests", "readers.json")
 os.environ.pop("POGO_PHONE", None)  # the iPhone path: every reader stays on the text it's given (no screenshot)
-for d in ("pvpc", "cleanup", "dex", "trade", "gift", "mega", "ivc", "ivcsort"):  # (pvpc first: its run.py is `run`)
+for d in ("pvpc", "shared", "cleanup", "dex", "trade", "gift", "mega", "ivc", "ivcsort"):  # (pvpc first: its run.py is `run`)
     sys.path.append(os.path.join(SKILLS, d))
 
 import run, search, ui  # noqa: E402  (pvpc's run.py: first on the path)

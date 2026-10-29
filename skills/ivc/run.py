@@ -15,6 +15,7 @@ from collections import Counter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
+sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import ui, pvp
 import run as base
 from run import Stop, Skip, log, keep_capture, go, wait_for, appraise, think, back_to_list, scroll_for_new, front, settle, \
@@ -25,7 +26,7 @@ base.RUN_DIR = os.path.join(HERE, "runs", time.strftime("%Y%m%d-%H%M%S"))
 MAX_SKIPS_IN_A_ROW = 5
 END_AFTER_STALE = 3
 TAG = "IVC"
-GM = json.load(open(os.path.join(HERE, "..", "pvpc", "gamemaster.json")))
+GM = json.load(open(os.path.join(HERE, "..", "shared", "gamemaster.json")))
 DONE_LOOK = re.compile(r"\s*\$?(\d|\*|[A-Z]{1,4}\*|xx[sl]\b|\^)", re.I)  # 87/96 A*, FP*, xxs, XXL ($91 HA: OCR)
 odd = set()  # odd tile names already logged
 NOT_MINE = "a done or Pvp name"  # the Skip for a done name read in full on the detail: not counted as a skip

@@ -47,7 +47,7 @@ STEPS = {
     "mega":        ("mega/mega.py", set(), set()),
     "roster":      ("roster/roster.py", {"count", "report"}, {"report"}),
     "gymfeed":     ("gymfeed/gymfeed.py", set(), set()),
-    "account":     ("pvpc/account.py", {"HashTagAJay", "CyrillJan"}, set()),
+    "account":     ("shared/account.py", {"HashTagAJay", "CyrillJan"}, set()),
 }
 NEEDS_WORD = {"tradeable", "dex", "roster"}  # these have no default: the first word is a must
 BOTH = {"trade"}  # drives the iPhone and the Pixel, whatever POGO_PHONE says
@@ -167,7 +167,7 @@ def close(used):
     for phone in sorted(used):
         env = dict(os.environ, POGO_PHONE=phone)
         env.pop("POGO_KEEP_OPEN", None)
-        subprocess.run([sys.executable, os.path.join(SKILLS, "pvpc", "session.py"), "close"], env=env)
+        subprocess.run([sys.executable, os.path.join(SKILLS, "shared", "session.py"), "close"], env=env)
 
 
 def main(argv):

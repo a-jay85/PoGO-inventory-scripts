@@ -6,7 +6,7 @@ model: claude-sonnet-5-5
 
 # /gymfeed: feed berries to your gyms
 
-Uses the shared tapper and screen reader from /pvpc (`~/.claude/skills/pvpc`). `S=~/.claude/skills/gymfeed`.
+Uses the shared tapper and screen reader: the shared library (`~/PoGO-inventory-scripts/skills/shared`) and /pvpc's `run.py`. `S=~/.claude/skills/gymfeed`.
 
 `POGO_PHONE=android caffeinate -dimsu python3 $S/gymfeed.py [--limit N]`
 

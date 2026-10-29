@@ -11,9 +11,9 @@ Claude Code skills that sort a Pokémon GO storage: `/pvpc`, `/ivc`, `/ivcsort`,
   `git -C ~/PoGO-inventory-scripts pull --ff-only`
 - Don't pull while a script is running on the phone. Python has already loaded the old files, but a skill that imports another one mid-run gets a mix.
 
-The skills import each other by relative path (`HERE/../pvpc`), so they must stay siblings under `skills/`.
+The skills import each other by relative path (`HERE/../shared`), so they must stay siblings under `skills/`.
 
-`pogo.py` (at the repo root) is the one front door: it runs any skill's script by step name, and chains steps with `+` (`pogo.py pvpc --limit 5 + ivc`). Each step is its own process. A new script gets a line in its `STEPS` table. Code two skills both need goes in `skills/pvpc/` (the shared library), never copied.
+`pogo.py` (at the repo root) is the one front door: it runs any skill's script by step name, and chains steps with `+` (`pogo.py pvpc --limit 5 + ivc`). Each step is its own process. A new script gets a line in its `STEPS` table. Code two skills both need goes in `skills/shared/` (the shared library), never copied. The tapper, `skills/pvpc/run.py`, is still in /pvpc for now.
 
 ## Every change goes in a worktree, a PR and a squash-merge
 
@@ -46,15 +46,15 @@ Amend only when fixing the commit just made in this conversation and it isn't pu
 
 ## In-game searches
 
-Before typing or building a storage search, read `skills/pvpc/SEARCH.md` (live at `~/.claude/skills/pvpc/SEARCH.md`). It lists every search term, how `&` `,` `!` combine, and the known bugs. Prefer a tighter search over scanning more tiles.
+Before typing or building a storage search, read `skills/shared/SEARCH.md` (live at `~/PoGO-inventory-scripts/skills/shared/SEARCH.md`). It lists every search term, how `&` `,` `!` combine, and the known bugs. Prefer a tighter search over scanning more tiles.
 
 ## Seeing the phone
 
-Scripts see the Android phone with its own screenshots (`adb exec-out screencap`, via `ui.capture()` / `android.capture()` in `skills/pvpc/android.py`). Never use scrcpy or a Mac window grab (`screencapture`) for it: scrcpy's picture freezes at random while the Mac is in use. New scripts reuse `ui.capture()` and don't add their own capture path. `POGO_SCRCPY=1` brings the old scrcpy window back, only if the user asks for it.
+Scripts see the Android phone with its own screenshots (`adb exec-out screencap`, via `ui.capture()` / `android.capture()` in `skills/shared/android.py`). Never use scrcpy or a Mac window grab (`screencapture`) for it: scrcpy's picture freezes at random while the Mac is in use. New scripts reuse `ui.capture()` and don't add their own capture path. `POGO_SCRCPY=1` brings the old scrcpy window back, only if the user asks for it.
 
-When Claude needs to see the screen (a live look or a run's saved png), use `skills/pvpc/peek.py`. A picture costs about width × height / 750 tokens, and it stays in context for the rest of the session.
+When Claude needs to see the screen (a live look or a run's saved png), use `skills/shared/peek.py`. A picture costs about width × height / 750 tokens, and it stays in context for the rest of the session.
 
-1. Read the text first: `POGO_PHONE=android python3 ~/.claude/skills/pvpc/peek.py --text` (or `peek.py <png> --text`). That's often enough.
+1. Read the text first: `POGO_PHONE=android python3 ~/PoGO-inventory-scripts/skills/shared/peek.py --text` (or `peek.py <png> --text`). That's often enough.
 2. If the text isn't enough, crop to the part you need: `peek.py [png] --crop top|mid|bottom|x0,y0,x1,y1`. Then Read `/tmp/peek.png`. A crop of a live Android capture comes from the full-size screenshot, so small text stays sharp.
 3. Don't Read the same picture twice. Don't Read the 3× `/tmp/pvpc_sharp.png` whole: the model shrinks anything over 1568 px anyway.
 
@@ -63,8 +63,8 @@ When Claude needs to see the screen (a live look or a run's saved png), use `ski
 The repo is public. These stay local and are in `.gitignore`:
 
 - `skills/*/runs/`: run logs and screen captures (trainer names, inventory)
-- `skills/pvpc/.state.json`, `skills/pvpc/.calib.json`, `skills/trade/.state.json`: per-machine state
-- `skills/pvpc/helper`: built from `helper.swift` on first use
+- `skills/shared/.state.json`, `skills/shared/.calib.json`, `skills/shared/.paste.json`, `skills/trade/.state.json`: per-machine state
+- `skills/shared/helper`: built from `helper.swift` on first use
 
 ## Testing
 

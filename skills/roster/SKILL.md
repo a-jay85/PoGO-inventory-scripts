@@ -6,7 +6,7 @@ model: claude-sonnet-5-5
 
 # /roster: the top 6 against every raid boss
 
-Uses the shared tapper and screen reader from /pvpc and /dex (`~/.claude/skills/pvpc`, `~/.claude/skills/dex`).
+Uses the shared tapper and screen reader (`~/PoGO-inventory-scripts/skills/shared`, and /pvpc's `run.py`) and /dex (`~/.claude/skills/dex`).
 `S=~/.claude/skills/roster`. Android only for now, with HashTagAJay (or CyrillJan) signed in on the Pixel.
 
 1. `node $S/pull.mjs`: DialgaDex's counters for every boss, into `dialgadex-counters-<date>.json` (about 2 minutes, the Mac only). Needs Playwright (loaded from the IBL5 checkout, `PLAYWRIGHT=` to point elsewhere).

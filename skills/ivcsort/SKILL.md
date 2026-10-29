@@ -8,7 +8,7 @@ model: claude-sonnet-5-5
 
 Drives iPhone Mirroring like /pvpc and /ivc (read their **Session start** and **Safety** first).
 `S=~/.claude/skills/ivcsort`. Rules live in `$S/sort.py` (`python3 $S/sort.py test` checks them).
-Search terms and their bugs: `~/.claude/skills/pvpc/SEARCH.md`. Read it before building a search.
+Search terms and their bugs: `~/PoGO-inventory-scripts/skills/shared/SEARCH.md`. Read it before building a search.
 
 ## Rules
 

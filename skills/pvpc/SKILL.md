@@ -8,9 +8,9 @@ model: claude-sonnet-5-5
 
 Drive Pokémon GO on the user's iPhone through **iPhone Mirroring**. Computer use does the clicking. Everything else goes through `ui.py`, which reads the Mirroring window as text. **Don't take screenshots or zoom** unless a step below says to, or `ui.py` says it can't read something.
 
-- `S=~/.claude/skills/pvpc`
-- Search terms and their bugs: `$S/SEARCH.md`. Read it before building a search.
-- `python3 $S/ui.py read` tells you which screen is up and what's on it:
+- `S=~/.claude/skills/pvpc`, `L=~/PoGO-inventory-scripts/skills/shared` (the shared library: everything but `run.py`)
+- Search terms and their bugs: `$L/SEARCH.md`. Read it before building a search.
+- `python3 $L/ui.py read` tells you which screen is up and what's on it:
   - `list`: numbered tiles with name and CP.
   - `detail`: name, CP, HP, tags, species ID.
   - `menu`, `appraise-intro`.
@@ -19,13 +19,13 @@ Drive Pokémon GO on the user's iPhone through **iPhone Mirroring**. Computer us
   - `tags`: which tags are ticked.
   - `rename`: what's in the nickname box.
   - `unknown`: raw text.
-- `python3 $S/ui.py tap <target>` prints `x y` to click, in screenshot coordinates.
+- `python3 $L/ui.py tap <target>` prints `x y` to click, in screenshot coordinates.
   - The spot is randomly fuzzed inside the button.
   - It re-reads the live screen every time.
   - It refuses (non-zero exit, `REFUSED: ...`) if the target isn't there, or if the spot is near Transfer, Power Up, Evolve, Purify, and so on.
   - Targets: `tile N`, `menu`, `close`, `dialog`, `pencil`, `field`, `APPRAISE`, `TAG`, `DONE`, `OK`, `CANCEL`, `PvpC`, `Nope`.
   - **Click exactly the `x y` it printed.** Never make up or reuse coordinates.
-- `python3 $S/pvp.py check <species_id> <cp> <hp> <stars|-1> [--near a/d/h]` is the ranker. `ui.py read` runs it for you on the appraisal screen. Run `python3 $S/pvp.py update` if a species is missing.
+- `python3 $L/pvp.py check <species_id> <cp> <hp> <stars|-1> [--near a/d/h]` is the ranker. `ui.py read` runs it for you on the appraisal screen. Run `python3 $L/pvp.py update` if a species is missing.
 - Chain commands to save round trips. For example, `ui.py read && ui.py tap menu` reads the screen and plans the next tap in one call.
 
 ## Unattended mode
@@ -53,15 +53,15 @@ Use this skill to clear its skips by hand.
 
 Every script (`/pvpc`, `/ivc`, `/ivcsort`, `/cleanup`, `/trade`, `/gift`, `/dex`, `/roster`) first runs `home.start()`. The phone can be on any screen.
 - First `session.ready()`. iPhone: opens iPhone Mirroring if it isn't open and waits for it to connect (quits and opens it once more if it can't reach the iPhone). Android: wakes the phone and unlocks it. A phone with a PIN needs the PIN in `~/.config/pogo/android-pin` (digits only, one line, `chmod 600`; outside the repo, so it's never committed). A wrong PIN is typed once, then the run stops: more tries lock the phone out.
-- At the end of every run that used the phone (finished, stopped, crashed or Ctrl-C), `session.main()` quits iPhone Mirroring or locks the Pixel. `POGO_KEEP_OPEN=1` leaves it as it is. `python3 $S/session.py open|close` does just this part.
+- At the end of every run that used the phone (finished, stopped, crashed or Ctrl-C), `session.main()` quits iPhone Mirroring or locks the Pixel. `POGO_KEEP_OPEN=1` leaves it as it is. `python3 $L/session.py open|close` does just this part.
 - Android: opens Pokémon GO if it isn't in front. Waits out the loading screens. Presses Back on popups and on screens the scripts don't use, until the map or the Pokémon screens show (at most 12 Backs). "Exit Pokémon GO?" gets CANCEL. A locked phone with no PIN file, a sign-in screen or an "isn't responding" box stops the run with a message.
 - iPhone: on the iPhone's home screen (told by the game's icon in the dock: app names are hidden), or a screen it doesn't know, it goes home and taps the game in the dock (once). A popup it still doesn't know stops the run: there's no Back key.
 - A nickname box left open gets CANCEL (nothing saved). A tag sheet left open: DONE if something is ticked, stop if nothing is.
-- `POGO_PHONE=android python3 $S/home.py` does just this step.
+- `POGO_PHONE=android python3 $L/home.py` does just this step.
 
 ### Switching accounts (Pixel)
 
-`POGO_PHONE=android python3 $S/account.py [HashTagAJay|CyrillJan]` (or `pogo.py account ...`) signs the Pixel's game out and back in with the other Google account (or the one named; nothing happens if it's already on). The way: main menu -> Settings gear -> scroll to the bottom -> Sign Out -> YES -> RETURNING PLAYER -> Sign in with Google -> the account's row in Google's picker. It reads the trainer name after to be sure. Started on the sign-in screen, it signs in (an account name is a must then). `--who` only says who's on.
+`POGO_PHONE=android python3 $L/account.py [HashTagAJay|CyrillJan]` (or `pogo.py account ...`) signs the Pixel's game out and back in with the other Google account (or the one named; nothing happens if it's already on). The way: main menu -> Settings gear -> scroll to the bottom -> Sign Out -> YES -> RETURNING PLAYER -> Sign in with Google -> the account's row in Google's picker. It reads the trainer name after to be sure. Started on the sign-in screen, it signs in (an account name is a must then). `--who` only says who's on.
 - Which Google account is which trainer: `~/.config/pogo/accounts.json` (`{"HashTagAJay": "...", "CyrillJan": "..."}`), outside the repo.
 - Every tap lands at a random spot near its target, held 45-120 ms, drifting 1-6 px like a thumb. Swipes start, slant and move at random. Waits vary.
 - Google asking to verify (or any screen it doesn't know after signing out) stops the run: sign in by hand.
@@ -91,7 +91,7 @@ Everything above also works on an Android phone over USB. Set `POGO_PHONE=androi
 Without it, the scripts drive iPhone Mirroring exactly as before.
 
 - Setup, once: turn on USB debugging (Settings > About phone > tap Build number 7 times, then Settings > System > Developer options). Plug in, tap **Allow** on the phone. Write the phone's PIN to `~/.config/pogo/android-pin` so the scripts can unlock it (see "Starting from anywhere").
-- `POGO_PHONE=android python3 $S/android.py check` checks the phone is plugged in and awake, and that Pokémon GO is in front. The scripts don't need it: they open the game themselves. The scripts see the phone with its own screenshots (`adb exec-out screencap`), about 1.5s per look. Don't use scrcpy or any Mac window grab to see the phone: scrcpy's picture freezes now and then while the Mac is in use. `POGO_SCRCPY=1` turns the old scrcpy window back on, only if asked.
+- `POGO_PHONE=android python3 $L/android.py check` checks the phone is plugged in and awake, and that Pokémon GO is in front. The scripts don't need it: they open the game themselves. The scripts see the phone with its own screenshots (`adb exec-out screencap`), about 1.5s per look. Don't use scrcpy or any Mac window grab to see the phone: scrcpy's picture freezes now and then while the Mac is in use. `POGO_SCRCPY=1` turns the old scrcpy window back on, only if asked.
 - Taps and typing go through adb, so the Mac's mouse and keyboard stay free. Skip the **Session start** steps (no computer use, no `calib`).
 - By hand: use `ui.py press <target>` instead of `tap` + click. It plans the same safe spot and taps it on the phone. Type with `android.py type "<name>"`. Clear a text box with `android.py key clear`.
 - Unattended: `POGO_PHONE=android caffeinate -dimsu python3 $S/run.py ...`.
@@ -100,7 +100,7 @@ Without it, the scripts drive iPhone Mirroring exactly as before.
 ## Session start
 
 1. `request_access` for iPhone Mirroring, then `open_application` it.
-2. Take **one** screenshot. Pick an empty spot on it, `mouse_move` there, then run `python3 $S/ui.py calib <x> <y>`. That teaches the script how screenshot coordinates map to the screen.
+2. Take **one** screenshot. Pick an empty spot on it, `mouse_move` there, then run `python3 $L/ui.py calib <x> <y>`. That teaches the script how screenshot coordinates map to the screen.
    - Redo this if the display resolution changes.
    - Moving the Mirroring window doesn't need a redo. The window is found fresh every call.
 3. If a click reports that the desktop is frontmost, `open_application` iPhone Mirroring again and retry.

@@ -775,9 +775,9 @@ def same_name(got, want):
             and re.fullmatch(r"P\S?p", got[:3], re.I) is not None)
 
 
-def clear_name(ok=lambda g: bool(g) and not re.search(r"\d", g)):
+def clear_name(ok=lambda g: bool(g) and not re.match(r"P\S?p ?[LGU]|\d", g)):
     """blank the nickname: the game shows the species name again. ok(name): the name read after OK is a species
-    name (default: something with no digits, which every /ivc and /pvpc name has)"""
+    name (default: not a Pvp name and not starting with a digit like an /ivc name. Porygon2 is a species)"""
     still_opened("before the rename")
     go("pencil", "rename")
     with changing("clearing the name"):
@@ -869,7 +869,8 @@ def steady_detail():
 
 
 def short(s):
-    return re.sub(r"[.…]+$", "", (s or "").strip()).lower()
+    """for comparing two reads of a name: OCR adds or drops spaces and reads O as 0 ('84 A 0*' is '84 AO*')"""
+    return re.sub(r"[.…]+$", "", (s or "").strip()).replace(" ", "").replace("0", "o").lower()
 
 
 def opened_right(info, tile_name, tile_cp):

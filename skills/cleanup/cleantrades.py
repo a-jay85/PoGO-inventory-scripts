@@ -6,6 +6,8 @@
   POGO_PHONE=android caffeinate -dimsu python3 cleantrades.py --look    only step 2, and it only reads: CANCEL every time
   POGO_PHONE=android caffeinate -dimsu python3 cleantrades.py evo       steps 1 and 3
   POGO_PHONE=android caffeinate -dimsu python3 cleantrades.py fix       #Transfer&traded + a trade evolution: Transfer -> Evo
+  POGO_PHONE=android caffeinate -dimsu python3 cleantrades.py transfer [--limit N]   step 2 for all of #Transfer
+                                          (catches up the ones tagged before every tagger powered them up first)
 
 Start with Pokémon GO on the Pokémon screen. Four steps, always in this order:
  1. Shortcuts PvpC1 and PvpC2 -> tag PvpC. Shortcut IV Check -> tag IVC. A shortcut this account doesn't have is
@@ -21,6 +23,7 @@ Start with Pokémon GO on the Pokémon screen. Four steps, always in this order:
 Tagging: the shortcut's search + &!#<tag> (PvpC1 and PvpC2 as they are: they already exclude tagged ones), long press, SELECT ALL, TAG (n). n must equal the search's count, and
 afterwards the same search must come back empty.
 --limit N powers up at most N Pokémon (the tagging still runs). Log in runs/<time>/.
+Every script that tags Transfer runs step 2 on that pile first (power_pile): tradeable.py too.
 """
 import math, os, re, sys, time
 
@@ -28,7 +31,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
 import ui
 import run as base
-from run import Stop, log, keep_capture, go, look, wait_for
+from run import Stop, Skip, log, keep_capture, go, look, wait_for
 import search, session
 import pvp
 from shadows import Pass, press, next_one, select_all, settled_tiles, exact, owned
@@ -380,6 +383,24 @@ def candidates(species, hp, a, b):
     return out
 
 
+def nickname_species(info, texts):
+    """a nickname ('96 HA') names no species: the candy line and types (no taps), else the appraisal's 'This Gible
+    was caught' line. Back on the detail page after. -> species, or [] if neither tells"""
+    try:
+        return base.species_from_candy(texts, info["cp"], info["hp"])
+    except Skip as e:
+        log(f"  {e}: asking the appraisal")
+    base.open_appraisal()
+    try:
+        sp = base.appraisal_species(info["texts"])
+        base.appraise()  # (the bars filled in: one tap closes it)
+    except Skip as e:
+        log(f"  {e}")
+        sp = []
+    go("dialog", "detail")
+    return sp
+
+
 def cp_levels(species, hp, cp):
     """every level some IVs give this CP and max HP at: no tap needed"""
     out = set()
@@ -546,7 +567,7 @@ def power_up(info, texts):
         raise Unsure(f"can't read the power-up cost ({cost})")
     if not any(math.floor(lv) in PLAYS for lv in lvs):  # the cost rules out every play: no taps
         raise Pass(f"{cost} dust a power-up means level {lvs[0]}-{lvs[-1]}: none is {'/'.join(map(str, PLAYS))}")
-    species = ui.species_for(info["name"], info["texts"])
+    species = ui.species_for(info["name"], info["texts"]) or nickname_species(info, texts)
     if not species:
         raise Unsure(f"{cost} dust: don't know the species of {info['name']!r}")
     if info["cp"] is None:
@@ -577,7 +598,7 @@ def power_up(info, texts):
             d = more(cp, d)
     after, total = d[0], d[1]
     want = {pvp.cp(pvp.SPECIES[s]["baseStats"], iv, lv + 0.5 * n) for s, iv, lv in cands}
-    if want != {after}:
+    if after not in want:  # (IVs that fit can still part ways on the CP n power-ups later: the level is the same)
         cancel(d[3], d[5])
         raise Stop(f"{n} power-up(s) should give CP{sorted(want)}, the dialog says CP{after}")
     candy = sum(CANDY[math.floor(lvs[0])] for _ in range(n))
@@ -620,27 +641,44 @@ def power_up(info, texts):
     raise Stop(f"the power-up to CP{after} didn't show in 30s")
 
 
-def power_walk(limit):
-    """open each Clean Trades one with under 360 XL and power up those right under a tier. -> how many got it"""
-    if not run_shortcut(CLEAN, UNDER_360_XL):
-        log("no Clean Trades ones under 360 XL")
+def power_walk(limit, query=None):
+    """open each Clean Trades one (query: each one in this typed search) with under 360 XL and power up those right
+    under a tier. -> how many got it, or None if --limit stopped it"""
+    if not (long_search(query + UNDER_360_XL) if query else run_shortcut(CLEAN, UNDER_360_XL)):
+        log(f"no {query or CLEAN} ones under 360 XL")
         return 0
     go("tile 1", "detail")
-    seen, done, passed, t_start = set(), 0, 0, time.time()
+    seen, done, passed, t_start, again = set(), 0, 0, time.time(), False
+    unseen = lambda t: (lambda n: (n["name"], n["cp"], n["hp"]))(ui.detail_info(t)) not in seen
     while True:
         t0 = time.time()
-        _, texts, _, _ = wait_for("detail")
-        info = ui.detail_info(texts)
+        for _ in range(10):  # right after a swipe the CP sparkles in and can read blank
+            _, texts, _, _ = wait_for("detail")
+            info = ui.detail_info(texts)
+            if info["cp"] is not None:
+                break
+            time.sleep(0.2)
         me = (info["name"], info["cp"], info["hp"])
-        if me in seen:
-            log("swiped back onto one already seen: end of the list")
-            break
+        if me in seen:  # a read mid-swipe can look like another one while the page hasn't moved: one more swipe
+            if again or not next_one(None, unseen, poll=search.POLL):
+                log("swiped back onto one already seen: end of the list")
+                break
+            again = True
+            continue
+        again = False
         seen.add(me)
         if done >= limit:
             log(f"--limit {limit} reached")
             return None  # (the rest weren't checked)
         try:
-            taps = power_up(info, texts)
+            try:
+                taps = power_up(info, texts)
+            except Unsure as e:  # mostly a read while the page still slid: one more go on a fresh look
+                log(f"  {e}: looking again")
+                time.sleep(0.5)
+                texts = wait_for("detail")[1]
+                info = {**info, **{k: v for k, v in ui.detail_info(texts).items() if v is not None}}
+                taps = power_up(info, texts)
         except Pass as e:
             passed += 1
             log(f"pass {info['name']} CP{info['cp']}: {e}")
@@ -649,12 +687,27 @@ def power_walk(limit):
             info2 = ui.detail_info(wait_for("detail")[1])
             seen.add((info2["name"], info2["cp"], info2["hp"]))
             log(f"powered up {info['name']} CP{info['cp']} -> CP{info2['cp']}, {taps} power-up(s)  ({time.time() - t0:.1f}s)")
-        if not next_one(None, lambda t: (lambda n: (n["name"], n["cp"], n["hp"]))(ui.detail_info(t)) not in seen,
-                        poll=search.POLL):
+        if not next_one(None, unseen, poll=search.POLL):
             break
     log(f"powered up {done}, passed {passed}, {time.time() - t_start:.0f}s")
     go("close", "list")
     return done
+
+
+def power_pile(query, limit):
+    """power_walk for a pile about to be tagged Transfer. Running out of Stardust only ends the power-ups.
+    -> False if --limit stopped it (the rest weren't checked: don't tag them yet)"""
+    try:
+        if power_walk(limit, query) is None:
+            log(f"--limit {limit}: the rest of {query} weren't checked, so they aren't tagged Transfer")
+            return False
+    except Stop as e:
+        if "Stardust" not in str(e):
+            raise
+        log(f"stopped powering up: {e}")
+        if look()[0] != "list":
+            go("close", "list")
+    return True
 
 
 def script(a):
@@ -671,6 +724,9 @@ def script(a):
         for name, tag in TAGGING:
             tag_pile(name, tag)
         tag_pile(CLEAN, EVO, f"&{TRADE_EVOS}&!#{EVO}")
+        return
+    if "transfer" in a:  # every Transfer one: the cheap jump to an XL tier before it's transferred
+        power_pile(f"#{TRANSFER}", limit)
         return
     if "fix" in a:  # Transfer tags given before the Evo step: traded trade evolutions go Transfer -> Evo
         tag_pile(TRANSFER, EVO, off=[TRANSFER], query=f"#{TRANSFER}&traded&{TRADE_EVOS}")
@@ -694,7 +750,7 @@ def script(a):
 
 if __name__ == "__main__":
     a = sys.argv[1:]
-    if any(x not in ("--limit", "--look", "evo", "fix") and not x.isdigit() for x in a):
+    if any(x not in ("--limit", "--look", "evo", "fix", "transfer") and not x.isdigit() for x in a):
         sys.exit(__doc__)
     LOOK = "--look" in a
     base.new_run_dir(os.path.join(HERE, "runs"))

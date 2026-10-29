@@ -757,6 +757,9 @@ def cmd_tag(limit, nope=False, resort=False):
                               for v in left))
             return
         search.to_search_list()
+        if not ct.power_pile(NOPE_TRADED, limit):  # first: the cheap jump to an XL tier (this account transfers it)
+            return
+        search.to_search_list()
         ct.tag_pile(NOPE, TRANSFER, off=(NOPE,), query=NOPE_TRADED)  # a traded one can't trade again: Transfer
         search.to_search_list()
         ct.tag_pile(NOPE, GUARANTEED, off=(NOPE,), query=NOPE_OLD)

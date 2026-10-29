@@ -29,7 +29,7 @@ STEPS = {
     "ivcsort":     ("ivcsort/run.py", {"sort", "fallen", "act-fallen", "search"}, set()),
     "shadows":     ("cleanup/shadows.py", {"transfer"}, set()),
     "trades":      ("cleanup/trades.py", set(), set()),
-    "cleantrades": ("cleanup/cleantrades.py", {"evo", "fix"}, set()),
+    "cleantrades": ("cleanup/cleantrades.py", {"evo", "fix", "transfer"}, set()),
     "sizes":       ("cleanup/sizes.py", set(), set()),
     "rescue":      ("cleanup/rescue.py", set(), set()),
     "suspects":    ("cleanup/suspects.py", set(), set()),

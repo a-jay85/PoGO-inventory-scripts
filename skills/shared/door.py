@@ -115,10 +115,19 @@ class Door:
         _, texts, _, bounds = base.look()
         me = trades.who(texts)[1]
         try:
-            days = {trades.caught(r) for r in trades.scrolled_bottom(bounds)}
+            days = {trades.caught(not_traded_date(r)) for r in trades.scrolled_bottom(bounds)}
         finally:
             trades.back_to_top(me, bounds)
         return days.pop() if len(days) == 1 else None
+
+
+def not_traded_date(texts):
+    """a traded one shows two dates: the trade's (the first under OBTAINED IN A TRADE), then the catch's. Drop the
+    trade's"""
+    label = [t[1] for t in texts if "OBTAINED IN A TRADE" in ui.norm(t[4])]
+    dates = sorted((t for t in texts if re.search(r"\b\d{1,2}/\d{1,2}/20\d\d\b", t[4])), key=lambda t: t[1])
+    traded = next((t for t in dates if label and t[1] > label[0]), None)
+    return [t for t in texts if t is not traded]
 
     def power_up(self, info, v):
         """one or two power-ups first if that reaches a higher Candy XL tier on transfer (cleantrades' rule)"""

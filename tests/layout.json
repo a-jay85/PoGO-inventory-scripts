@@ -1085,6 +1085,7 @@
    "set_star",
    "set_tags",
    "settle_one",
+   "signed_in",
    "slots_of",
    "start",
    "state",
@@ -1349,6 +1350,7 @@
    "key",
    "load_list",
    "log",
+   "not_traded_date",
    "trades",
    "vd"
   ],

@@ -288,6 +288,15 @@ CARRY_HOURS = 12  # one sitting of stops and restarts. Older stopped runs are le
 RUN_NAME = re.compile(r"\d{8}-\d{6}")
 
 
+def signed_in(path):
+    """the account a run's log says it ran on, or None"""
+    try:
+        with open(os.path.join(path, "log.txt")) as f:
+            return next((m[1] for m in re.finditer(r"signed in: (\S+)", f.read())), None)
+    except OSError:
+        return None
+
+
 def carry_over():
     """new names from earlier runs that stopped before their fallen-out step, added to this run's renamed.json.
     Looks back from this run to the last one with a fallen.json, at most CARRY_HOURS. Only pvpc's main run calls it."""
@@ -299,7 +308,8 @@ def carry_over():
     for d in sorted((d for d in os.listdir(runs) if RUN_NAME.fullmatch(d) and d < me), reverse=True):
         path = os.path.join(runs, d)
         if os.path.exists(os.path.join(path, "fallen.json")) or \
-                start - time.mktime(time.strptime(d, "%Y%m%d-%H%M%S")) > CARRY_HOURS * 3600:
+                start - time.mktime(time.strptime(d, "%Y%m%d-%H%M%S")) > CARRY_HOURS * 3600 or \
+                signed_in(path) not in (None, signed_in(base.RUN_DIR)):  # the other account's names
             break
         if os.path.exists(os.path.join(path, "renamed.json")):
             with open(os.path.join(path, "renamed.json")) as f:

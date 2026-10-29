@@ -229,6 +229,8 @@ def classify(texts, path):
         return "picker"
     if "NEXT" in words and any(re.search(r"CP\s*\d+\s*>", r) for r in raw):
         return "select"
+    if any(re.search(r"CP\s*\d+\s*>\s*CP\s*\d+\s*-\s*\d+", r) for r in raw):
+        return "detail"  # a Pokémon's info over the confirm screen (its card tapped): CP 434 > CP 407 - 509, no NEXT
     if "STARDUST" in words and ("POWER UP" in words or any("CANDY" in w for w in words)):
         return "result"
     if "SEND GIFT" in words and "LOCAL" in words:
@@ -757,6 +759,11 @@ def check_confirm(p):
 def confirm(p):
     """CONFIRM once. Once it lands the button reads CANCEL in the same spot: only tap again while it says CONFIRM"""
     for attempt in range(4):
+        if p.screen == "detail":
+            # the tap landed on the Pokémon's own card: its info opened over the confirm screen. Close it
+            log(f"{p.name}: CONFIRM opened the Pokémon's info: closing it")
+            p.tap(*X_BUTTON)
+            p.wait("confirm", timeout=5)
         t = confirm_label(p.texts) if p.screen == "confirm" else None
         if not t:
             return  # the trade animation has started
@@ -767,7 +774,8 @@ def confirm(p):
         p.tap_text(t)
         for _ in range(6):
             time.sleep(0.4)
-            p.look()
+            if p.look() == "detail":
+                break
             t = confirm_label(p.texts) if p.screen == "confirm" else None
             if not t or ui.norm(t[4]) == "CANCEL":
                 return

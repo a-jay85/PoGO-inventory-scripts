@@ -54,6 +54,7 @@ PLANS = [(NEAR + NEED, FAR + NEED, "both need the candy"), (FAR + NEED, NEAR + N
          (NEAR, RICH_A, "0-100km with 0-100km, CyrillJan's 2,500+ candy"),
          (NEAR, NEAR, "0-100km with 0-100km")]  # no far-apart bonus: the 100+km ones are kept for another day
 MIN_KM = 100
+EARTH_KM = 20040  # the farthest two spots on Earth can be apart
 SKIPS = 3  # pairs caught under MIN_KM apart: how many of the Android's next ones to try before stopping
 COST = 100  # Stardust for a regular trade between these two accounts
 OK_WARNINGS = ("MAX MOVE LEVELS WILL BE RESET",)  # trade warnings tapped YES; any other one stops the run
@@ -849,6 +850,15 @@ def trade_once(ios, android, specials):
     far = FAR in (qi.replace(NEED, ""), qa.replace(NEED, ""))  # 0-100km with 0-100km: any distance goes
     for skip in range(SKIPS + 1):
         reads = both(check_confirm, *[(p,) for p in phones])
+        for _ in range(2):  # a read can drop the decimal point (3,853.3 as 38533.0): read both again
+            if abs(reads[0][0] - reads[1][0]) <= 1:
+                break
+            log(f"the phones read different distances: {reads}: reading again")
+            time.sleep(0.5)
+            reads = both(check_confirm, *[(p,) for p in phones])
+        a, b = sorted(r[0] for r in reads)
+        if b > EARTH_KM and abs(b / 10 - a) <= 1:  # no two spots on Earth are that far apart: the point was dropped
+            reads = [(a, r[1]) for r in reads]
         d = reads[0][0]
         if abs(reads[0][0] - reads[1][0]) > 1:
             raise Stop(f"the phones read different distances: {reads}")

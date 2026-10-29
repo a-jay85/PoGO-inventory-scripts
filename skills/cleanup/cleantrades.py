@@ -6,6 +6,8 @@
   POGO_PHONE=android caffeinate -dimsu python3 cleantrades.py --look    only step 2, and it only reads: CANCEL every time
   POGO_PHONE=android caffeinate -dimsu python3 cleantrades.py evo       steps 1 and 3
   POGO_PHONE=android caffeinate -dimsu python3 cleantrades.py fix       #Transfer&traded + a trade evolution: Transfer -> Evo
+  POGO_PHONE=android caffeinate -dimsu python3 cleantrades.py transfer [--limit N]   step 2 for all of #Transfer
+                                          (catches up the ones tagged before every tagger powered them up first)
 
 Start with Pokémon GO on the Pokémon screen. Four steps, always in this order:
  1. Shortcuts PvpC1 and PvpC2 -> tag PvpC. Shortcut IV Check -> tag IVC. A shortcut this account doesn't have is
@@ -21,6 +23,7 @@ Start with Pokémon GO on the Pokémon screen. Four steps, always in this order:
 Tagging: the shortcut's search + &!#<tag> (PvpC1 and PvpC2 as they are: they already exclude tagged ones), long press, SELECT ALL, TAG (n). n must equal the search's count, and
 afterwards the same search must come back empty.
 --limit N powers up at most N Pokémon (the tagging still runs). Log in runs/<time>/.
+Every script that tags Transfer runs step 2 on that pile first (power_pile): tradeable.py too.
 """
 import math, os, re, sys, time
 
@@ -620,10 +623,11 @@ def power_up(info, texts):
     raise Stop(f"the power-up to CP{after} didn't show in 30s")
 
 
-def power_walk(limit):
-    """open each Clean Trades one with under 360 XL and power up those right under a tier. -> how many got it"""
-    if not run_shortcut(CLEAN, UNDER_360_XL):
-        log("no Clean Trades ones under 360 XL")
+def power_walk(limit, query=None):
+    """open each Clean Trades one (query: each one in this typed search) with under 360 XL and power up those right
+    under a tier. -> how many got it, or None if --limit stopped it"""
+    if not (long_search(query + UNDER_360_XL) if query else run_shortcut(CLEAN, UNDER_360_XL)):
+        log(f"no {query or CLEAN} ones under 360 XL")
         return 0
     go("tile 1", "detail")
     seen, done, passed, t_start = set(), 0, 0, time.time()
@@ -657,6 +661,22 @@ def power_walk(limit):
     return done
 
 
+def power_pile(query, limit):
+    """power_walk for a pile about to be tagged Transfer. Running out of Stardust only ends the power-ups.
+    -> False if --limit stopped it (the rest weren't checked: don't tag them yet)"""
+    try:
+        if power_walk(limit, query) is None:
+            log(f"--limit {limit}: the rest of {query} weren't checked, so they aren't tagged Transfer")
+            return False
+    except Stop as e:
+        if "Stardust" not in str(e):
+            raise
+        log(f"stopped powering up: {e}")
+        if look()[0] != "list":
+            go("close", "list")
+    return True
+
+
 def script(a):
     limit = session.limit(a)
     base.start()  # from anywhere, Pokémon GO closed too
@@ -671,6 +691,9 @@ def script(a):
         for name, tag in TAGGING:
             tag_pile(name, tag)
         tag_pile(CLEAN, EVO, f"&{TRADE_EVOS}&!#{EVO}")
+        return
+    if "transfer" in a:  # every Transfer one: the cheap jump to an XL tier before it's transferred
+        power_pile(f"#{TRANSFER}", limit)
         return
     if "fix" in a:  # Transfer tags given before the Evo step: traded trade evolutions go Transfer -> Evo
         tag_pile(TRANSFER, EVO, off=[TRANSFER], query=f"#{TRANSFER}&traded&{TRADE_EVOS}")
@@ -694,7 +717,7 @@ def script(a):
 
 if __name__ == "__main__":
     a = sys.argv[1:]
-    if any(x not in ("--limit", "--look", "evo", "fix") and not x.isdigit() for x in a):
+    if any(x not in ("--limit", "--look", "evo", "fix", "transfer") and not x.isdigit() for x in a):
         sys.exit(__doc__)
     LOOK = "--look" in a
     base.new_run_dir(os.path.join(HERE, "runs"))

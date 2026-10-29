@@ -86,10 +86,67 @@
   "no species lists for HashTagAJay: no a lucky /dex run for HashTagAJay yet"
  ],
  "your tag": [
+  "tag",
+  [],
+  null,
+  "keeps your tag Evo"
+ ],
+ "your tags, as read": [
+  "tag",
+  [],
+  null,
+  "keeps your tag Old, GuaranteedLucky"
+ ],
+ "your tag GIV, untraded": [
+  "unsure",
+  [],
+  null,
+  "has your tag GIV"
+ ],
+ "your tag, traded or not not read": [
+  "unsure",
+  [],
+  null,
+  "has your tag Old, traded or not not read"
+ ],
+ "traded, trade tags come off": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "traded: can't trade again",
+  {
+   "off": [
+    "GIV",
+    "XLX"
+   ]
+  }
+ ],
+ "traded Machoke, Old comes off": [
+  "tag",
+  [
+   "Evo"
+  ],
+  null,
+  "traded: evolves for free",
+  {
+   "off": [
+    "Old"
+   ]
+  }
+ ],
+ "traded, your tag Evo": [
   "unsure",
   [],
   null,
   "has your tag Evo"
+ ],
+ "traded, a tag no rule knows": [
+  "unsure",
+  [],
+  null,
+  "has your tag Mine"
  ],
  "shadow": [
   "unsure",
@@ -468,7 +525,7 @@
    "2XL"
   ],
   null,
-  "120 Candy XL: a Friendship Friday trade"
+  "under 360 Candy XL: a Friendship Friday trade"
  ],
  "H 2XL beats GIV": [
   "tag",
@@ -476,7 +533,7 @@
    "2XL"
   ],
   null,
-  "120 Candy XL: a Friendship Friday trade"
+  "under 360 Candy XL: a Friendship Friday trade"
  ],
  "H Candy XL not read": [
   "unsure",
@@ -547,5 +604,9 @@
   ],
   null,
   "caught 100 km+ away"
+ ],
+ "species list 6.9 days old": [],
+ "species list 7.1 days old": [
+  "roster (7 days)"
  ]
 }

@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """Unattended /pvpc: works through the PvpC-tagged list in iPhone Mirroring with no Claude.
 
-  caffeinate -dimsu python3 run.py [--limit N] [--dry-run]       rename (or Nope) every PvpC Pokémon. A renamed one is
+  caffeinate -dimsu python3 run.py [--limit N] [--dry-run]       rename every PvpC Pokémon. A renamed one is
                                                                  a keeper: star on, PvpC off. At the end of the
-                                                                 list it also runs `fallen` on this run
+                                                                 list it also runs `fallen` on this run. One that
+                                                                 isn't a keeper gets its final tag right there
+                                                                 (../shared/door.py), or stays as it is and goes on
+                                                                 ../shared/runs/not-sure.json
   caffeinate -dimsu python3 run.py fallen <run dir>              which older Pvp Pokémon the new names pushed out,
                                                                  and which to trim (reads only) -> <run dir>/fallen.txt
   caffeinate -dimsu python3 run.py act-fallen <run dir> [--limit N]  rename the trims to the leagues they're still
@@ -20,13 +23,14 @@ import json, os, re, sys, time
 from collections import Counter
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "shared"))
-import ui, pvp, base, search, fallen, session
+import ui, pvp, base, search, fallen, session, door
 from base import GYM, Lost, Skip, Stop, appraisal_species, appraise, back_to_list, candy, detail_name, do_nope, \
     do_rename, exact_ivs, front, go, high_iv, is_shadow, is_tag, keep_capture, load, log, new_run_dir, \
     open_appraisal, open_tile, opened_right, recover, same_name, save, scroll_for_new, set_star, set_tags, slots_of, \
     start, steady_detail, tap, think, to_top, type_line, wait_for
 
 MAX_SKIPS_IN_A_ROW = 5
+DOOR = None  # door.Door for this run
 END_AFTER_STALE = 3  # scrolls in a row that show no new tiles
 
 NAME_OK = re.compile(r"Pvp ?[LGU][A-Za-z0-9 +]*")
@@ -143,7 +147,8 @@ def process(i, tile_name, tile_cp):
         set_tags(on=["IVC"], off=["PvpC"])
         name = "->IVC"
     elif name == "NOPE":
-        do_nope(info["tags"], ivs, raws)
+        name = DOOR.judge(info, texts, sp, ivs, (tile_name, tile_cp), size=base.extras(texts)[2], raws=raws)
+        name = door.UNSURE if name == door.UNSURE else "NOPE"
     else:
         do_rename(name)
         # for the fallen-out step at the end
@@ -495,9 +500,14 @@ def act_fallen(limit):
 
 
 def main(limit, dry):
+    global DOOR
     front()
-    to_top()
     skipped, counts = Counter(), Counter()
+    if not dry:
+        DOOR = door.Door("PvpC")
+        skipped.update(DOOR.listed())  # not sure last time, under the same rules: pass them
+        log(f"door: {sum(skipped.values())} on the not-sure list, passed over")
+    to_top()
     skips_in_a_row = 0
     scroll_how = "drag"  # Mirroring ignores the scroll wheel here
     seen = set()  # CPs of every tile read so far: a scroll that shows none we haven't seen got nowhere
@@ -527,8 +537,10 @@ def main(limit, dry):
         log(f"tile {i}: {n} CP{c}")
         try:
             result = process(i, n, c)
-            counts["nope" if result == "NOPE" else "renamed"] += 1
+            counts["door" if result == "NOPE" else result if result == door.UNSURE else "renamed"] += 1
             counts["done"] += 1
+            if result == door.UNSURE:  # (one left as it is is still in the list, unnamed)
+                skipped[(n, c)] += 1
             skips_in_a_row = 0
             stale = 0
         except (Skip, Lost) as e:

@@ -57,6 +57,13 @@ CASES = {
     "no species lists": (plain(sids=["machop"]), {"to": TAKER, "missing": "no a lucky /dex run for HashTagAJay yet"}),
     # by hand, for now
     "your tag": plain(other_tags=["Evo"]),
+    "your tags, as read": plain(other_tags=["OLD", "GUARANTEEDLUCKY"]),
+    "your tag GIV, untraded": plain(other_tags=["GIV"]),
+    "your tag, traded or not not read": plain(other_tags=["Old"], traded=None),
+    "traded, trade tags come off": plain(traded=True, other_tags=["GIV", "XLX"]),
+    "traded Machoke, Old comes off": plain(sids=["machoke"], traded=True, other_tags=["Old"]),
+    "traded, your tag Evo": plain(traded=True, other_tags=["Evo"]),
+    "traded, a tag no rule knows": plain(traded=True, other_tags=["Mine"]),
     "shadow": plain(shadow=True),
     "lucky": plain(lucky=True),
     "costume": plain(costume=True),
@@ -128,11 +135,19 @@ CASES = {
 def answer(f):
     f, t = f if isinstance(f, tuple) else (f, TABLES[v.TO.get(f.account, TAKER)])
     r = v.final_tag(f, t, TODAY)
-    return [r.kind, list(r.tags), r.name, r.why]
+    return [r.kind, list(r.tags), r.name, r.why] + ([{"off": list(r.off)}] if r.off else [])
+
+
+def stale_lists():
+    """a species list counts as missing once it's more than 7 days old"""
+    f = os.path.abspath(__file__)
+    now = os.path.getmtime(f)
+    return {f"{d} days": v.stale({"roster": f, "unread": None}, now + d * 86400) for d in (6.9, 7.1)}
 
 
 def main():
     got = {k: answer(f) for k, f in CASES.items()}
+    got.update({f"species list {k} old": r for k, r in stale_lists().items()})
     if "--record" in sys.argv:
         json.dump(got, open(GOLD, "w"), indent=1, ensure_ascii=False)
         print(f"recorded {len(got)} verdicts -> {GOLD}")

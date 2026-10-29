@@ -14,7 +14,9 @@
   start(storage=False) (for /trade): with the game already open it ends right there, on any screen (trade.py knows
   screens this doesn't). With the game just opened it ends on the map.
 
-  POGO_PHONE=android python3 home.py      get to the Pokémon screens from wherever the phone is
+  POGO_PHONE=android python3 home.py             get to the Pokémon screens from wherever the phone is
+  POGO_PHONE=android python3 home.py --trade     the same with start(storage=False): stop on any screen
+  POGO_PHONE=android python3 home.py --trainer   only print the trainer name read off the profile
 """
 import os, random, re, sys, time
 

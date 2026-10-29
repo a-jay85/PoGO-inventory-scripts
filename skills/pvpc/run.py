@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 """Unattended /pvpc: works through the PvpC-tagged list in iPhone Mirroring with no Claude.
 
-  caffeinate -dimsu python3 run.py [--limit N] [--dry-run]       rename (or Nope) every PvpC Pokémon. At the end of
-                                                                 the list it also runs `fallen` on this run
+  caffeinate -dimsu python3 run.py [--limit N] [--dry-run]       rename (or Nope) every PvpC Pokémon. A renamed one is
+                                                                 a keeper: star on, PvpC off. At the end of the
+                                                                 list it also runs `fallen` on this run
   caffeinate -dimsu python3 run.py fallen <run dir>              which older Pvp Pokémon the new names pushed out,
                                                                  and which to trim (reads only) -> <run dir>/fallen.txt
   caffeinate -dimsu python3 run.py act-fallen <run dir> [--limit N]  rename the trims to the leagues they're still
                                                                  best in, until nothing changes, then tag the fallen
-                                                                 ones GuaranteedLucky / Old / Nope
+                                                                 ones GuaranteedLucky / Old / Nope (name cleared)
+  caffeinate -dimsu python3 run.py keepers [--limit N]           star the Pvp-named ones still in the PvpC list
+                                                                 (from runs before keepers were starred), PvpC off
   POGO_PHONE=android caffeinate -dimsu python3 run.py ...   (Android phone over USB, see android.py)
 
 Start with Pokémon GO on the inventory, filtered to the PvpC tag. Anything the script isn't sure

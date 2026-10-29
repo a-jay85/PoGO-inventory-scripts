@@ -3,6 +3,7 @@
 
   pvp.py match <species> <cp> <hp> [stars]   -> IV/level combos that give that CP and HP
   pvp.py rank <species> <atk> <def> <hp>      -> ranks in LC/GL/UL for species and its evolutions
+  pvp.py check <species> <cp> <hp> <stars>    -> the same combos with their best ranks, TOP100 flagged
 """
 import json, math, re, sys, os
 from functools import lru_cache

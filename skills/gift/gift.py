@@ -5,6 +5,7 @@
   POGO_PHONE=android caffeinate -dimsu python3 gift.py [--limit N]    the Android phone
   POGO_PHONE=both caffeinate -dimsu python3 gift.py [--limit N]       both phones at once
   [POGO_PHONE=android] python3 gift.py look                           what the script reads now; taps nothing
+  add --dry-run: everything but SEND and the nickname's OK. --last-held "<title>" (or 'none') replaces LAST_HELD.
 
 HashTagAJay is on the iPhone (iPhone Mirroring, hands off the Mac mouse), CyrillJan on the Android phone (adb).
 Each phone runs in its own process (ui.py keeps one phone's state in module globals).
@@ -18,8 +19,7 @@ Before each gift the friendship screen is checked. When the next heart is the 3r
 Friends bar: 1 point to go -> no gift, nickname "WAIT <old>"; 2 points -> gift, nickname "SENT <old>".
 Only gifts from San Francisco are sent (the city line under the title), plus every gift after the account's last held
 one in the gift list (LAST_HELD, --last-held), never one with "lion", "tree" or "rock" in its title, and never with
-a sticker. When a phone has none
-left it stops; the other phone carries on. At the end the iPhone quits iPhone Mirroring and the Pixel locks.
+a sticker. When a phone has none left it stops; the other phone carries on. At the end the iPhone quits iPhone Mirroring and the Pixel locks.
 Log and captures go in runs/<time>-<phone>/.
 """
 import argparse, difflib, os, random, re, subprocess, sys, time

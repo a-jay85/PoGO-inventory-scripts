@@ -3,6 +3,7 @@
 
   caffeinate -dimsu python3 trade.py [--limit N] [--done N]
   caffeinate -dimsu python3 trade.py look          (what the script reads on each phone; taps nothing)
+  caffeinate -dimsu python3 trade.py restart       (force-close and reopen Pokémon GO on both phones; trades nothing)
 
 HashTagAJay plays on the iPhone (iPhone Mirroring on the Mac), CyrillJan on the Android phone (adb). Each phone is
 driven by its own phone.py process. The Mac's mouse has to be left alone while it runs: iPhone Mirroring takes it.
@@ -17,7 +18,7 @@ Each account gets a trade's candy for the Pokémon it sends. A far-apart pair (o
 most, so it goes where the candy is needed (under 2,500): PLANS, first one with Pokémon left on both phones wins.
 When only 0-100km ones are left on both, they're traded with each other, the species with 2,500+ candy first. Then it stops, and the 100+km ones are kept
 for another day. At most 99 trades a day (one is left for a special trade by hand), counted in .state.json;
---done N says N were already made today. --limit N: at most N trades this run.
+--done N says N were already made today. --limit N: at most N trades this run (default 48).
 Log and captures go in runs/<time>/.
 """
 import argparse, datetime, json, os, random, re, shutil, statistics, subprocess, sys, time

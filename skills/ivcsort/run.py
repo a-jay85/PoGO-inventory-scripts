@@ -4,11 +4,12 @@
   caffeinate -dimsu python3 run.py [sort [<run dir>]] [--limit N] [--look]
         read the IVC Pokémon, then per family: type its searches, decide, favorite or Nope on the list on screen,
         then judge its named Nopes again (keep: Nope off; fell out: name cleared). Up
-        to SMALL IVC ones: one search reads them all. More: 50 dex numbers at a time. Give the run dir
+        to 60 IVC ones: one search reads them all. More: 50 dex numbers at a time. Give the run dir
         to carry on after a stop. --limit N: change N, then stop. --look: decide only (plan.txt), change nothing
   caffeinate -dimsu python3 run.py fallen <run dir>         sort the fallen-out ones into groups (changes nothing)
   caffeinate -dimsu python3 run.py act-fallen <run dir> [--limit N]  tag the fallen-out ones
   python3 run.py search "<query>" [...]                     type searches and print the tiles (testing; later ones edit the bar's end)
+  POGO_PHONE=android caffeinate -dimsu python3 run.py ...   (Android phone over USB, see ../pvpc/android.py)
 
 Run /ivc first: an IVC Pokémon still named after its species blocks every KEEP it could beat. Start with Pokémon GO
 open. A run writes into runs/<time>/ (scan.json, pools.json, plan.txt, plan.json, act.json, log.txt).

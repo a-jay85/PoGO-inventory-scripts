@@ -33,6 +33,7 @@ import tradeable as tr  # the order, the numbers and the species lists: one copy
 from tradeable import GIVER, TAKER, XL_CAP, XLX_FOR
 from ivc import GYM_DEFENDERS
 from sizes import NAMES as SIZE_NAMES  # a never-traded XXL/XXS one gets this name and IVC
+from cleantrades import EVO, EVO_FOR, TRADE_EVOS  # traded + a free trade evolution: Evo, on EVO_FOR's account
 
 TO = {GIVER: TAKER, TAKER: GIVER}
 OLD_DAYS = int(re.search(r"\d+", tr.OLD_AGE).group())
@@ -145,6 +146,8 @@ def final_tag(f, t, today=None):
     if "legendary" in kinds or "ultrabeast" in kinds or "mythical" in kinds:
         if "mythical" in kinds and sid not in TRADE_BY_HAND:
             return unsure("mythical: can't be traded, by hand")
+        if f.size is None or f.size in SIZE_NAMES:  # trades.py passes over an XXL/xxs one
+            return unsure(f"special trade, size {f.size or 'not read'}: by hand")
         if f.traded:
             return tag("Spot Transfer", why="traded special trade: a spot transfer")
         if sid in FUSED:
@@ -159,6 +162,8 @@ def final_tag(f, t, today=None):
             return Verdict("keep", (), "gym defender: top 20 CP or IV")
 
     if f.traded:
+        if f.account == EVO_FOR and dexn in {int(d) for d in TRADE_EVOS.split(",")}:
+            return tag(EVO, why="traded: evolves for free")
         return tag("Transfer", why="traded: can't trade again")
     if LUCKY_YEARS[0] <= f.caught.year <= LUCKY_YEARS[1]:
         return tag("GuaranteedLucky", why=f"untraded, caught {f.caught.year}: lucky once traded")
@@ -175,10 +180,10 @@ def final_tag(f, t, today=None):
             return tag("Luckydex", why=why[1])
     if old:
         return tag("Old", why=f"untraded, caught {(today - f.caught).days} days ago")
+    if f.size is None:
+        return unsure("size not read")
 
     if to == GIVER:
-        if dexn in MEDALS and MEDALS[dexn][0] and f.size is None:
-            return unsure("medal species, size not read")
         if dexn in MEDALS and (MEDALS[dexn][0] is None or f.size in MEDALS[dexn][0]):
             _, fits, (lo, hi) = MEDALS[dexn]
             if f.kg is None or not lo <= f.kg <= hi:
@@ -193,8 +198,6 @@ def final_tag(f, t, today=None):
 
     if why and why[0] in ("Reroll", "GIV"):
         return tag(why[0], why=why[1])
-    if f.size is None:
-        return unsure("size not read")
     if f.size in SIZE_NAMES:
         return tag("IVC", why=f"never traded {f.size.upper()}", name=SIZE_NAMES[f.size])
 

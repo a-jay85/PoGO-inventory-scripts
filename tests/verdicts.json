@@ -218,6 +218,40 @@
   null,
   "traded: can't trade again"
  ],
+ "traded Machoke: Evo": [
+  "tag",
+  [
+   "Evo"
+  ],
+  null,
+  "traded: evolves for free"
+ ],
+ "H traded Machoke: Transfer": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "traded: can't trade again"
+ ],
+ "legendary XXL": [
+  "unsure",
+  [],
+  null,
+  "special trade, size xxl: by hand"
+ ],
+ "legendary size not read": [
+  "unsure",
+  [],
+  null,
+  "special trade, size not read: by hand"
+ ],
+ "H size not read, under 360 XL": [
+  "unsure",
+  [],
+  null,
+  "size not read"
+ ],
  "2019 catch": [
   "tag",
   [
@@ -412,7 +446,7 @@
   "unsure",
   [],
   null,
-  "medal species, size not read"
+  "size not read"
  ],
  "H Rattata weight misread": [
   "unsure",

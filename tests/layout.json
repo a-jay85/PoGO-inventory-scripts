@@ -1675,6 +1675,8 @@
   "copies": {},
   "names": [
    "ALWAYS_KEEP",
+   "EVO",
+   "EVO_FOR",
    "FUSED",
    "Facts",
    "GIVER",
@@ -1687,6 +1689,7 @@
    "TAKER",
    "TO",
    "TRADE_BY_HAND",
+   "TRADE_EVOS",
    "Verdict",
    "XLX_FOR",
    "XL_CAP",

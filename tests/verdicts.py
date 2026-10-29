@@ -78,6 +78,11 @@ CASES = {
     "gym top 20 traded": plain(sids=["snorlax"], gym_top20=True, traded=True),
     # the order, CyrillJan's pile (to HashTagAJay)
     "traded": plain(traded=True),
+    "traded Machoke: Evo": plain(sids=["machoke"], traded=True),
+    "H traded Machoke: Transfer": plain(account=TAKER, sids=["machoke"], traded=True),
+    "legendary XXL": plain(sids=["entei"], size="xxl"),
+    "legendary size not read": plain(sids=["entei"], size=None),
+    "H size not read, under 360 XL": plain(account=TAKER, size=None, candy_xl=120),
     "2019 catch": plain(caught=LUCKY),
     "2019 catch, Luckydex": plain(sids=["machop"], caught=LUCKY),
     "Luckydex": plain(sids=["machop"], caught=OLD),

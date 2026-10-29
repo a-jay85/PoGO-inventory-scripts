@@ -76,7 +76,7 @@ class Door:
         f, why = self.facts(info, texts, sp, ivs, key(*tile), size)
         v = vd.final_tag(f, self.tables) if not why else vd.unsure(why)
         if v.kind == "tag" and "Transfer" in v.tags:
-            v = self.power_up(info, v)
+            v = self.power_up(info, v, tile[1])
         log(f"  door: {v.kind} {'+'.join(v.tags)}{' -' + '-'.join(v.off) if v.off else ''}"
             f"{' named ' + v.name if v.name else ''}: {v.why}")
         if v.kind == UNSURE:
@@ -121,11 +121,15 @@ class Door:
             trades.back_to_top(me, bounds)
         return days.pop() if len(days) == 1 else None
 
-    def power_up(self, info, v):
+    def power_up(self, info, v, tile_cp):
         """one or two power-ups first if that reaches a higher Candy XL tier on transfer (cleantrades' rule)"""
-        _, texts, _, _ = base.look()
+        for _ in range(3):  # back from the caught date at the bottom: wait until the cost reads
+            now, texts, _ = base.steady_detail()
+            if ct.cost_levels(texts, now["cp"] or tile_cp)[1]:
+                break
+            time.sleep(0.5)
         try:
-            n = ct.power_up(info, texts)
+            n = ct.power_up({**info, "cp": now["cp"] or tile_cp}, texts)  # (the walk checked the tile's CP)
             log(f"  powered up {n}x before Transfer")
             base.OPENED["who"] = base.who(base.detail_now())  # its CP and HP moved: still the same one
         except ct.Unsure as e:

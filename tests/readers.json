@@ -5204,16 +5204,31 @@
    []
   ],
   "#Nope&lshadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     55
+    ]
+   ]
   ],
   "#Nope&ltraded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     45
+    ]
+   ]
   ],
   "#Nope&ltraded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     39
+    ]
+   ]
   ],
   "#Nope&purifie\t#Nope&purified": [
    false,
@@ -5340,8 +5355,13 @@
    []
   ],
   "#Nope&shadow&lshiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     38
+    ]
+   ]
   ],
   "#Nope&shadow&shiny&!costume\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": [
    false,
@@ -5352,8 +5372,13 @@
    []
   ],
   "#Nope&shadow&|shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     38
+    ]
+   ]
   ],
   "#Nope&traded&!shiny&!costum\t#Nope&!traded&!shiny&!costume&793-806,808,809": [
    false,
@@ -5372,16 +5397,31 @@
    []
   ],
   "#Nope&|shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     55
+    ]
+   ]
   ],
   "#Nope&|traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     45
+    ]
+   ]
   ],
   "#Nope&|traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     39
+    ]
+   ]
   ],
   "#Nope8!shadow84attack,4defense84attack,4hp84defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": [
    false,
@@ -5460,16 +5500,26 @@
    []
   ],
   "#Transfer,#Nope&ltraded&xxl\t#Transfer,#Nope&!traded&xxl": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     27
+    ]
+   ]
   ],
   "#Transfer,#Nope&traded&xxl\t#Transfer,#Nope&!traded&xxl": [
    false,
    []
   ],
   "#Transfer,#Nope&|traded&xxl\t#Transfer,#Nope&!traded&xxl": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     27
+    ]
+   ]
   ],
   "#Transfer,#Nope8!traded8xxl\t#Transfer,#Nope&!traded&xxl": [
    false,
@@ -5553,12 +5603,22 @@
    []
   ],
   "&l#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     50
+    ]
+   ]
   ],
   "&|#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     50
+    ]
+   ]
   ],
   ",#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": [
    true,
@@ -5957,20 +6017,35 @@
    []
   ],
   "144&3*,4*&Igalar\t144&3*,4*&!galar": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     16
+    ]
+   ]
   ],
   "144&3*,4*&galar\t144&3*,4*&!galar": [
    false,
    []
   ],
   "144&3*,4*&lgalar\t144&3*,4*&!galar": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     16
+    ]
+   ]
   ],
   "144&3*,4*&|galar\t144&3*,4*&!galar": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     16
+    ]
+   ]
   ],
   "14483*,4*&!galar\t144&3*,4*&!galar": [
    false,
@@ -6789,8 +6864,13 @@
    ]
   ],
   "er,#Nope&Itraded&xxl\t#Transfer,#Nope&!traded&xxl": [
-   false,
-   []
+   true,
+   [
+    [
+     "end",
+     20
+    ]
+   ]
   ],
   "giv,x1x&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": [
    false,
@@ -7069,20 +7149,35 @@
    []
   ],
   "lucky&320&Icostume\tlucky&320&!costume": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     18
+    ]
+   ]
   ],
   "lucky&320&costume\tlucky&320&!costume": [
    false,
    []
   ],
   "lucky&320&lcostume\tlucky&320&!costume": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     18
+    ]
+   ]
   ],
   "lucky&320&|costume\tlucky&320&!costume": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     18
+    ]
+   ]
   ],
   "lucky&3208!costume\tlucky&320&!costume": [
    false,
@@ -7164,12 +7259,22 @@
    ]
   ],
   "y&Icostume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": [
-   false,
-   []
+   true,
+   [
+    [
+     "end",
+     20
+    ]
+   ]
   ],
   "y&Icostume&legendary\t#Nope&!traded&!shiny&!costume&legendary": [
-   false,
-   []
+   true,
+   [
+    [
+     "end",
+     20
+    ]
+   ]
   ]
  },
  "ui.dialog_ok": {

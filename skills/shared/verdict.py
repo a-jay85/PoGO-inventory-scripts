@@ -18,10 +18,12 @@ to. Signed in as CyrillJan (the pile goes to HashTagAJay):
 Signed in as HashTagAJay (the pile goes to CyrillJan):
   GuaranteedLucky > Old > GIV (medal) > 2XL > GIV > XXL/xxs > XLX > GIV (evolved, Dynamax) > GIV (far) > Transfer
 Before all of them: a special trade (trades.py's legendary rules, else unsure), a kind the user sorts by hand (unsure
-until they give rules), a traded one (Transfer). The species lists come from tradeable.py's taker_species() and
-giver_species(), the same ones its plan uses.
+until they give rules), a traded one (Transfer). The user's own tags first: untraded with Old, Evo or GuaranteedLucky,
+those stay and only IVC / PvpC comes off; traded, the "trade it" tags (TRADE_TAGS) come off. The species lists come
+from tradeable.py's taker_species() and giver_species(), the same ones its plan uses; one saved more than STALE_DAYS
+ago counts as missing.
 """
-import datetime, os, re, sys
+import datetime, os, re, sys, time
 from dataclasses import dataclass, field
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -43,6 +45,9 @@ MEDALS = {min(tr.dexes_of(q)): (("xxs", "xs") if "xxs,xs" in q else None, fits, 
           for name, q, fits in tr.MEDALS}
 FUSED = ("kyurem_black", "kyurem_white", "necrozma_dusk_mane", "necrozma_dawn_wings")  # trades.py: can't be traded
 TRADE_BY_HAND = {"meltan", "melmetal"}  # mythical, but trades.py retags them like a legendary
+OWN_TAGS = ("Old", EVO, "GuaranteedLucky")  # untraded with one of these: it stays, only IVC / PvpC comes off
+TRADE_TAGS = ("GIV", "XLX", "2XL", "Reroll", "Old", "Special", "GuaranteedLucky")  # "trade it": off a traded one
+STALE_DAYS = 7  # a species list older than this counts as missing
 
 
 @dataclass
@@ -76,10 +81,11 @@ class Verdict:
     tags: tuple = ()
     why: str = ""
     name: str = None  # a new nickname to type, when set
+    off: tuple = ()  # the user's tags to take off too (IVC / PvpC always comes off)
 
 
-def tag(*tags, why, name=None):
-    return Verdict("tag", tags, why, name)
+def tag(*tags, why, name=None, off=()):
+    return Verdict("tag", tags, why, name, off)
 
 
 def unsure(why):
@@ -91,6 +97,13 @@ def unsure(why):
 _TABLES = {}
 
 
+def stale(files, now=None):
+    """{what: file} -> 'what (n days)' for each file saved more than STALE_DAYS ago"""
+    now = now or time.time()
+    return [f"{k} ({days:.0f} days)" for k, p in files.items()
+            if p and os.path.exists(p) and (days := (now - os.path.getmtime(p)) / 86400) > STALE_DAYS]
+
+
 def tables(to):
     """the species lists for judging a pile that goes to `to`, loaded once a run. None if a file is missing (then
     every species rule answers unsure). Each has 'to' and, if missing, 'missing'"""
@@ -98,8 +111,11 @@ def tables(to):
         m = tr.Model()
         try:
             sp = tr.taker_species(m) if to == TAKER else tr.giver_species(m)
-        except (tr.NoData, SystemExit) as e:  # (pve() exits when there are no DialgaDex counters)
+        except (tr.NoData, SystemExit, OSError) as e:  # (pve() exits with no DialgaDex counters; no runs folder)
             _TABLES[to] = {"to": to, "missing": str(e)}
+            return _TABLES[to]
+        if old := stale(sp["from"]):
+            _TABLES[to] = {"to": to, "missing": f"older than {STALE_DAYS} days: {', '.join(old)}"}
             return _TABLES[to]
         why = sp["why"] if to == TAKER else {s: ("GIV", r) for s, r in sp["why"].items()}
         _TABLES[to] = {"to": to, "why": why, "lucky": sp.get("lucky", {}), "evolved": sp["evolved"],
@@ -109,6 +125,11 @@ def tables(to):
 
 
 # ---------- the rules ----------
+
+def canon(t):
+    """a tag as read ('GUARANTEEDLUCKY') -> its name ('GuaranteedLucky'), when it's one the rules know"""
+    return next((x for x in OWN_TAGS + TRADE_TAGS if x.upper() == t.strip().upper()), t.strip())
+
 
 def final_tag(f, t, today=None):
     """f: Facts. t: tables(TO[f.account]). -> Verdict"""
@@ -128,9 +149,19 @@ def final_tag(f, t, today=None):
     dexn = pvp.SPECIES[sid]["dex"]
     kinds = set(pvp.SPECIES[sid].get("tags") or [])
 
-    # by hand: the user sorts these (rules to come, kind by kind)
+    # the user's own tags: untraded, one that says where it goes stays (only IVC / PvpC comes off). Traded, the
+    # "trade it" ones come off (it can't trade again) and it's judged on
+    strip = ()
     if f.other_tags:
-        return unsure(f"has your tag {', '.join(f.other_tags)}")
+        names = [canon(x) for x in f.other_tags]
+        if f.traded is None:
+            return unsure(f"has your tag {', '.join(names)}, traded or not not read")
+        if rest := [x for x in names if x not in (TRADE_TAGS if f.traded else OWN_TAGS)]:
+            return unsure(f"has your tag {', '.join(rest)}")
+        if not f.traded:
+            return tag(why=f"keeps your tag {', '.join(names)}")
+        strip = tuple(names)
+    # by hand: the user sorts these (rules to come, kind by kind)
     for k in ("shadow", "lucky", "costume", "background"):
         if getattr(f, k):
             return unsure(f"{k}: no rule yet")
@@ -149,7 +180,7 @@ def final_tag(f, t, today=None):
         if f.size is None or f.size in SIZE_NAMES:  # trades.py passes over an XXL/xxs one
             return unsure(f"special trade, size {f.size or 'not read'}: by hand")
         if f.traded:
-            return tag("Spot Transfer", why="traded special trade: a spot transfer")
+            return tag("Spot Transfer", why="traded special trade: a spot transfer", off=strip)
         if sid in FUSED:
             return unsure("fused: can't be traded")
         return tag("Remote Trade", "RT", *(("Old",) if old else ()), why="untraded special trade: a remote trade")
@@ -163,8 +194,8 @@ def final_tag(f, t, today=None):
 
     if f.traded:
         if f.account == EVO_FOR and dexn in {int(d) for d in TRADE_EVOS.split(",")}:
-            return tag(EVO, why="traded: evolves for free")
-        return tag("Transfer", why="traded: can't trade again")
+            return tag(EVO, why="traded: evolves for free", off=strip)
+        return tag("Transfer", why="traded: can't trade again", off=strip)
     if LUCKY_YEARS[0] <= f.caught.year <= LUCKY_YEARS[1]:
         return tag("GuaranteedLucky", why=f"untraded, caught {f.caught.year}: lucky once traded")
 
@@ -194,7 +225,7 @@ def final_tag(f, t, today=None):
             if f.candy_xl is None:
                 return unsure("Candy XL not read")
             if f.candy_xl < XL_CAP:
-                return tag("2XL", why=f"{f.candy_xl} Candy XL: a Friendship Friday trade")
+                return tag("2XL", why=f"under {XL_CAP} Candy XL: a Friendship Friday trade")
 
     if why and why[0] in ("Reroll", "GIV"):
         return tag(why[0], why=why[1])

@@ -737,6 +737,7 @@
   "names": [
    "Counter",
    "DONE_LOOK",
+   "DOOR",
    "END_AFTER_STALE",
    "GM",
    "HERE",
@@ -1026,6 +1027,7 @@
   "names": [
    "CARRY_HOURS",
    "Counter",
+   "DOOR",
    "END_AFTER_STALE",
    "GYM",
    "Lost",
@@ -1083,6 +1085,7 @@
    "set_star",
    "set_tags",
    "settle_one",
+   "signed_in",
    "slots_of",
    "start",
    "state",
@@ -1313,6 +1316,7 @@
    "tap",
    "tap_box",
    "tap_gap",
+   "tap_tag_row",
    "think",
    "tick_tags",
    "to_points",
@@ -1329,6 +1333,30 @@
    "skills/pvpc/runs/<time>",
    "skills/pvpc/runs/<time>/log.txt",
    "skills/pvpc/runs/<time>/steps.txt"
+  ]
+ },
+ "skills/shared/door.py": {
+  "copies": {},
+  "names": [
+   "Counter",
+   "Door",
+   "HERE",
+   "NOT_SURE",
+   "RULES",
+   "SEARCHES",
+   "Stop",
+   "UNSURE",
+   "add_to_list",
+   "catch_date",
+   "ct",
+   "key",
+   "load_list",
+   "log",
+   "trades",
+   "vd"
+  ],
+  "runs": [
+   "skills/shared/runs/not-sure.json"
   ]
  },
  "skills/shared/fallen.py": {
@@ -1685,18 +1713,23 @@
    "LUCKY_YEARS",
    "MEDALS",
    "OLD_DAYS",
+   "OWN_TAGS",
    "SIZE_NAMES",
+   "STALE_DAYS",
    "TAKER",
    "TO",
    "TRADE_BY_HAND",
    "TRADE_EVOS",
+   "TRADE_TAGS",
    "Verdict",
    "XLX_FOR",
    "XL_CAP",
    "_TABLES",
+   "canon",
    "dataclass",
    "field",
    "final_tag",
+   "stale",
    "tables",
    "tag",
    "unsure"

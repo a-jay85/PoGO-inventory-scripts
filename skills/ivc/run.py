@@ -5,7 +5,8 @@
   POGO_PHONE=android caffeinate -dimsu python3 run.py ...   (Android phone over USB, see ../shared/android.py)
 
 Start with Pokémon GO open. Pokémon still named after their species get appraised and renamed by IV%
-(see ivc.py), or retagged IVC -> Nope when there's nothing to put in the name. --dry-run does the
+(see ivc.py). One with nothing to put in the name gets its final tag right there (../shared/door.py): one that
+door isn't sure about keeps IVC and its name, and goes on ../shared/runs/not-sure.json. --dry-run does the
 reading and appraising but changes nothing: it logs the name each one would get.
 Anything the script isn't sure about is skipped and written to runs/<time>/log.txt with a capture.
 Anything unexpected stops the run. Screen reading, tapping and timing come from the /pvpc skill.
@@ -19,7 +20,7 @@ import ui, pvp
 import base
 from base import Stop, Skip, log, keep_capture, go, wait_for, appraise, think, back_to_list, scroll_for_new, front, settle, \
     extras, drag, open_tile, exact_ivs, do_rename
-import ivc, session
+import ivc, session, door
 
 base.RUN_DIR = os.path.join(HERE, "runs", time.strftime("%Y%m%d-%H%M%S"))
 MAX_SKIPS_IN_A_ROW = 5
@@ -28,6 +29,7 @@ TAG = "IVC"
 GM = json.load(open(os.path.join(HERE, "..", "shared", "gamemaster.json")))
 DONE_LOOK = re.compile(r"\s*\$?(\d|\*|[A-Z]{1,4}\*|xx[sl]\b|\^)", re.I)  # 87/96 A*, FP*, xxs, XXL ($91 HA: OCR)
 odd = set()  # odd tile names already logged
+DOOR = None  # door.Door for this run
 NOT_MINE = "a done or Pvp name"  # the Skip for a done name read in full on the detail: not counted as a skip
 SPECIES_NAMES = {p["speciesName"].split(" (")[0].lower() for p in GM["pokemon"]}
 
@@ -253,13 +255,14 @@ def process(i, tile_name, tile_cp, dry):
         name = "->PvpC"
     flags = [f for f, on in (("shadow", shadow), ("lucky", lucky), ("legendary", legendary), ("gym", gym)) if on]
     what = (f"{tile_name} CP{cp} {'/'.join(map(str, ivs))}{''.join(' ' + f for f in flags)}"
-            f"{' ' + size if size else ''}{' ' + ','.join(moves) if moves else ''} -> {name or '->Nope'}")
+            f"{' ' + size if size else ''}{' ' + ','.join(moves) if moves else ''} -> {name or '->door'}")
     think()
     go("dialog", "detail")
     if dry:
         log(f"DRY {what}")
     elif name is None:
-        base.nope(TAG, info["tags"], only=False, ivs=ivs, raws=raws)
+        if DOOR.judge(info, texts, sp, ivs, (tile_name, tile_cp), size=size, raws=raws) == door.UNSURE:
+            name = door.UNSURE
     elif name == "->PvpC":
         retag("PvpC")
     else:
@@ -298,9 +301,14 @@ def to_top():
 
 
 def main(limit, dry):
+    global DOOR
     front()
-    to_top()
     passed, counts = Counter(), Counter()
+    if not dry:
+        DOOR = door.Door(TAG)
+        passed.update(DOOR.listed())  # not sure last time, under the same rules: pass them
+        log(f"door: {sum(passed.values())} on the not-sure list, passed over")
+    to_top()
     skips_in_a_row, stale, seen = 0, 0, set()
     scroll_how = "drag"
     log(f"start{' (dry run)' if dry else ''}, log in {base.RUN_DIR}")
@@ -321,9 +329,9 @@ def main(limit, dry):
         log(f"tile {i}: {n} CP{c}")
         try:
             result = process(i, n, c, dry)
-            counts["nope" if result is None else "pvpc" if result == "->PvpC" else "renamed"] += 1
+            counts["door" if result is None else result if result in ("->PvpC", door.UNSURE) else "renamed"] += 1
             counts["done"] += 1
-            if dry:
+            if dry or result == door.UNSURE:  # (one left as it is still looks untouched)
                 passed[(n, c)] += 1
             skips_in_a_row = stale = 0
         except (Skip, base.Lost) as e:

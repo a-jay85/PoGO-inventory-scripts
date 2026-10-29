@@ -588,14 +588,23 @@ def show_tag(T):
 
 def tap_tag_row(T, name):
     """tap a row of the open tag sheet. A tag named like a never-tap button (Transfer) is tapped by its own row, and
-    only when the screen reads as the tag sheet and exactly one row says just that"""
+    only when two looks agree it's the tag sheet, standing still, with exactly one row that says just that"""
     if not any(T.startswith(z) for z in ui.HAZARDS):
         return tap(name)
-    _, texts, _, bounds = wait_for("tags")
-    rows = [t for t in texts if ui.norm(t[4].lstrip("•· ")) == T]
-    if len(rows) != 1:
-        raise Stop(f"tag sheet: {len(rows)} rows read {name!r}, wanted 1")
-    tap_box(rows[0], bounds)
+    seen = []
+    for i in range(2):
+        if i:
+            time.sleep(0.4)
+            if ui.ANDROID:
+                ui.android.fresh()
+        _, texts, _, bounds = wait_for("tags")
+        rows = [t for t in texts if ui.norm(t[4].lstrip("•· ")) == T]
+        if len(rows) != 1:
+            raise Stop(f"tag sheet: {len(rows)} rows read {name!r}, wanted 1")
+        seen.append(rows[0])
+    if abs(seen[0][0] - seen[1][0]) > 0.01 or abs(seen[0][1] - seen[1][1]) > 0.01:
+        raise Stop(f"tag sheet: the {name} row moved between two looks")
+    tap_box(seen[1], bounds)
 
 
 def lift_tag_row(T):

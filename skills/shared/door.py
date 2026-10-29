@@ -20,7 +20,8 @@ import ui, base, search, home
 from base import Stop, log
 
 NOT_SURE = os.path.join(HERE, "runs", "not-sure.json")
-RULES = hashlib.md5(open(os.path.join(HERE, "verdict.py"), "rb").read()).hexdigest()[:8]  # new rules: judge again
+RULES = hashlib.md5(b"".join(open(os.path.join(HERE, f), "rb").read() for f in ("verdict.py", "door.py"))
+                    ).hexdigest()[:8]  # new rules or a new reader: judge again
 SEARCHES = {"traded": "traded", "odd": "shiny,costume,background", "far": "distance100-",
             "xl_under": "countcandyxl0-359"}  # (a count term eats what follows it: each search ends with it)
 UNSURE = "unsure"

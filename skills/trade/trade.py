@@ -54,6 +54,7 @@ PLANS = [(NEAR + NEED, FAR + NEED, "both need the candy"), (FAR + NEED, NEAR + N
          (NEAR, RICH_A, "0-100km with 0-100km, CyrillJan's 2,500+ candy"),
          (NEAR, NEAR, "0-100km with 0-100km")]  # no far-apart bonus: the 100+km ones are kept for another day
 MIN_KM = 100
+EARTH_KM = 20040  # the farthest two spots on Earth can be apart
 SKIPS = 3  # pairs caught under MIN_KM apart: how many of the Android's next ones to try before stopping
 COST = 100  # Stardust for a regular trade between these two accounts
 OK_WARNINGS = ("MAX MOVE LEVELS WILL BE RESET",)  # trade warnings tapped YES; any other one stops the run
@@ -228,6 +229,8 @@ def classify(texts, path):
         return "picker"
     if "NEXT" in words and any(re.search(r"CP\s*\d+\s*>", r) for r in raw):
         return "select"
+    if any(re.search(r"CP\s*\d+\s*>\s*CP\s*\d+\s*-\s*\d+", r) for r in raw):
+        return "detail"  # a Pokémon's info over the confirm screen (its card tapped): CP 434 > CP 407 - 509, no NEXT
     if "STARDUST" in words and ("POWER UP" in words or any("CANDY" in w for w in words)):
         return "result"
     if "SEND GIFT" in words and "LOCAL" in words:
@@ -270,7 +273,7 @@ def label(p, name):
 
 def to_friend(p):
     p.live = False
-    unknown, backs = 0, 0
+    unknown, backs, empty = 0, 0, 0
     for _ in range(40):  # room for a few Backs out of popups
         s = p.look()
         unknown = unknown + 1 if s == "unknown" else 0
@@ -299,15 +302,28 @@ def to_friend(p):
             p.tap_text(label(p, "YES"))
         elif s == "manage":
             p.tap(*MANAGE_X)
-        elif s in ("gift", "result", "mainmenu"):
+        elif s in ("gift", "result", "mainmenu", "detail"):
             p.tap(*X_BUTTON)
         elif s == "map":
             p.tap(0.13, 0.91)
         elif s in ("profile", "friends"):
             # a typed search hides ADD FRIEND, so a searched friend list reads as "profile": tap the row if it's there
             row = p.find(lambda t: t[4].strip().lower() == p.friend.lower() and t[0] > 0.2 and t[1] > 0.25)
+            bar = p.find(lambda t: t[4].strip().lower() == p.friend.lower() and t[1] <= 0.25)
             if row:
                 p.tap_text(row[0], dy=0.01)
+            elif bar:
+                # the name is in the search bar but no row came up (the game kept a search typed before the list
+                # loaded, and it stays empty): clear it with the bar's X, then the next look types it again
+                empty += 1
+                if empty >= 3:
+                    x = p.find(lambda t: ui.norm(t[4]) == "X" and t[0] > 0.6 and abs(t[1] - bar[0][1]) < 0.03)
+                    if x:
+                        p.tap_text(x[0])
+                    else:
+                        p.tap(0.87, bar[0][1] + bar[0][3] / 2)
+                    log(f"{p.name}: the search for {p.friend} came up empty: cleared it")
+                    empty = 0
             elif s == "profile":
                 p.tap_text(label(p, "FRIENDS"))
             else:
@@ -743,6 +759,11 @@ def check_confirm(p):
 def confirm(p):
     """CONFIRM once. Once it lands the button reads CANCEL in the same spot: only tap again while it says CONFIRM"""
     for attempt in range(4):
+        if p.screen == "detail":
+            # the tap landed on the Pokémon's own card: its info opened over the confirm screen. Close it
+            log(f"{p.name}: CONFIRM opened the Pokémon's info: closing it")
+            p.tap(*X_BUTTON)
+            p.wait("confirm", timeout=5)
         t = confirm_label(p.texts) if p.screen == "confirm" else None
         if not t:
             return  # the trade animation has started
@@ -753,7 +774,8 @@ def confirm(p):
         p.tap_text(t)
         for _ in range(6):
             time.sleep(0.4)
-            p.look()
+            if p.look() == "detail":
+                break
             t = confirm_label(p.texts) if p.screen == "confirm" else None
             if not t or ui.norm(t[4]) == "CANCEL":
                 return
@@ -836,6 +858,15 @@ def trade_once(ios, android, specials):
     far = FAR in (qi.replace(NEED, ""), qa.replace(NEED, ""))  # 0-100km with 0-100km: any distance goes
     for skip in range(SKIPS + 1):
         reads = both(check_confirm, *[(p,) for p in phones])
+        for _ in range(2):  # a read can drop the decimal point (3,853.3 as 38533.0): read both again
+            if abs(reads[0][0] - reads[1][0]) <= 1:
+                break
+            log(f"the phones read different distances: {reads}: reading again")
+            time.sleep(0.5)
+            reads = both(check_confirm, *[(p,) for p in phones])
+        a, b = sorted(r[0] for r in reads)
+        if b > EARTH_KM and abs(b / 10 - a) <= 1:  # no two spots on Earth are that far apart: the point was dropped
+            reads = [(a, r[1]) for r in reads]
         d = reads[0][0]
         if abs(reads[0][0] - reads[1][0]) > 1:
             raise Stop(f"the phones read different distances: {reads}")

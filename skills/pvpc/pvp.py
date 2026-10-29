@@ -101,23 +101,33 @@ def viable(species, league, shadow=False, top=VIABLE_TOP):
     return (f"{species}_shadow" if shadow and f"{species}_shadow" in meta(league) else species) in ids
 
 
-def evolutions(species):
-    return [e for e in SPECIES[species].get("family", {}).get("evolutions", []) if e in SPECIES]
+# Tyrogue evolves by its highest IV: Attack -> Hitmonlee, Defense -> Hitmonchan, HP -> Hitmontop.
+# A tie can go to any of the tied ones (the game picks at random). {child: index into (atk, def, hp)}
+IV_BRANCH = {"tyrogue": {"hitmonlee": 0, "hitmonchan": 1, "hitmontop": 2}}
 
 
-def family(species):
-    """species plus every evolution reachable from it."""
+def evolutions(species, ivs=None):
+    """ivs: only the evolutions these IVs can lead to (Tyrogue). None: all of them"""
+    out = [e for e in SPECIES[species].get("family", {}).get("evolutions", []) if e in SPECIES]
+    pick = IV_BRANCH.get(species)
+    if pick and ivs is not None:
+        out = [e for e in out if e not in pick or ivs[pick[e]] == max(ivs)]
+    return out
+
+
+def family(species, ivs=None):
+    """species plus every evolution reachable from it (with these IVs, if given)."""
     out, stack = [], [species]
     while stack:
         s = stack.pop()
         out.append(s)
-        stack.extend(evolutions(s))
+        stack.extend(evolutions(s, ivs))
     return out
 
 
-def tops(species):
+def tops(species, ivs=None):
     """final evolutions reachable from species (itself if final)."""
-    return [s for s in family(species) if not evolutions(s)]
+    return [s for s in family(species, ivs) if not evolutions(s)]
 
 
 def lc_eligible(species):
@@ -136,7 +146,7 @@ def all_ranks(species, ivs, level=None):
     level: how far it's powered up now. Evolving keeps the level and nothing powers down, so a form whose CP
     at that level is already over the cap can never play there: that league/form is left out."""
     out = []
-    for s in family(species):
+    for s in family(species, ivs):
         for tag, cap in LEAGUES:
             if tag == "L" and not (s == species and lc_eligible(s)):
                 continue
@@ -204,7 +214,7 @@ def make_name(species, ivs, level=None):
             r, s = best[tag]
             letter = ""
             if tag != "L" and evolutions(s):
-                t = tops(s)
+                t = tops(s, ivs)
                 if len(t) > 1:
                     notes.append(f"{tag}: {display(s)} branches into {', '.join(map(display, t))}; letter picked vs {display(t[0])}, confirm with user")
                 letter = form_letter(s, t[0])
@@ -527,6 +537,12 @@ def test():
               (fallen({("G", "charizard"): 5, ("U", "charizard"): 2}, [("Pvp G4", {("G", "charizard"): 4})],
                       "charmander")[0], False)]
     checks += [(cascade(*c[:2]), c[2]) for c in CASCADES]
+    # Tyrogue goes by its highest IV; a tie keeps every tied one
+    checks += [({f for _, _, f in all_ranks("tyrogue", (15, 10, 12))}, {"tyrogue", "hitmonlee"}),
+               (tops("tyrogue", (3, 14, 9)), ["hitmonchan"]), (tops("tyrogue", (0, 1, 2)), ["hitmontop"]),
+               (sorted(tops("tyrogue", (12, 4, 12))), ["hitmonlee", "hitmontop"]), (len(tops("tyrogue", (7, 7, 7))), 3),
+               (len(tops("tyrogue")), 3), (make_name("tyrogue", (0, 5, 15)), ("Pvp G40", [])),
+               (any("confirm" in x for x in make_name("tyrogue", (11, 14, 14))[1]), True)]
     for i, (got, want) in enumerate(checks):
         if got != want:
             bad += 1
@@ -553,7 +569,7 @@ if __name__ == "__main__":
     if cmd == "check":
         cmd_check(sp, *nums, near=near)
     elif cmd == "rank":
-        for s in family(sp):
+        for s in family(sp, tuple(nums)):
             print(display(s), [(t, r) for t, r, f in all_ranks(sp, tuple(nums)) if f == s])
     elif cmd == "name":
         n, notes = make_name(sp, tuple(nums))

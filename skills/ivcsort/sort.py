@@ -11,6 +11,7 @@ Pools are everything the user owns in the line, found with in-game searches by d
 Spots: each final evolution of the family has spots per pool. Fill them best IV first, each Pokémon in one spot
 only. One that could become two finals (Eevee, Kirlia) takes whichever has room, so it never counts twice.
 Gender decides what it can become (only males make Gallade, only females Froslass; a male Combee makes nothing).
+Tyrogue's highest IV decides (the /ivc stat letters: a Hitmonlee, d Hitmonchan, h Hitmontop; a tie keeps each).
 Keep if ANY of these passes (ties with the last place keep):
   shadow      a shadow spot: top 5 per final (shadows can't mega)
   not shadow  a non-shadow spot: top N per final (normal, lucky, purified, Dynamax all together)
@@ -160,6 +161,20 @@ def reach(sid, g):
     if not kids(sid):
         return frozenset([slot(sid)])
     return frozenset(slot(f) for f in finals(sid) if g is None or GENDER.get(f) in (None, g))
+
+
+def by_iv(sid, name, r, shadow=False):
+    """r cut down to the finals this one's IVs allow, as its name's stat letters tell (Tyrogue: the highest IV
+    picks; a tie keeps each tied one). No letters (all three tie), or a purified name (its letters are from
+    before purifying): r as it is, the safe side."""
+    if sid not in pvp.IV_BRANCH:
+        return r
+    m = re.match(r"\d{1,3}" + (r"(?:/\d{1,3})?" if shadow else "") + r"\s*([HAD]{1,2}|[had]{1,2})(?=[\s*^]|$)",
+                 clean_name(name))
+    if not m or m.group(1).upper() not in ("H", "A", "D", "HA", "HD", "AD"):  # /ivc writes them in H A D order
+        return r
+    high = tuple(int(x in m.group(1).lower()) for x in "adh")  # stand-in IVs: 1 on each highest stat
+    return r & frozenset(slot(f) for f in pvp.tops(sid, high)) or r
 
 
 def genders(sid):
@@ -398,7 +413,7 @@ def pool_items(sid, pool, results, shadow, me=None):
         vals = pool_values(results[q], shadow)
         if not found and sid in ss:
             vals, found = without_me(vals, *me)
-        items += [(v, r, (n, c)) for v, n, c in vals]
+        items += [(v, by_iv(ss[0], n, r, shadow) if len(ss) == 1 else r, (n, c)) for v, n, c in vals]
     return items, found
 
 
@@ -512,12 +527,13 @@ def decide(m, results):
         return "KEEP", [f"weak line, but {m['name']!r} has an Elite TM move"]
     main = "shadow" if m["shadow"] else "plain"
     r = my_reach(m, mine, results, main)
+    mr = by_iv(sid, m["name"], r, m["shadow"])  # the purified check below keeps r: purifying can make a tie
     if not r:
         why.append(f"a {base_name(sid).title()} that can't evolve into anything (wrong gender): no spot")
     checks = [(main, "shadow" if m["shadow"] else "not shadow")] + \
         ([("lucky", "lucky")] if m["lucky"] else []) + ([("dmax", "Dynamax")] if m["dynamax"] else [])
     for pool, what in checks if r else []:
-        ok, reason, more = judge_pool(m, results, pool, what, mine, r)
+        ok, reason, more = judge_pool(m, results, pool, what, mine, mr)
         notes += more
         if ok:
             return "KEEP", [reason] + notes
@@ -715,6 +731,22 @@ def test():
           "KEEP")
     check("eevee: every spot taken", decide(ev, resf("eevee", jolteon__plain=[("100", 1)],
           eevee__plain=[("96", 1), ("93", 500)], **full))[0], "NOPE")
+    tg = dict(kl, species="tyrogue", cp=400, name="93 a")
+    check("tyrogue letters", [by_iv("tyrogue", n, reach("tyrogue", None), sh) == frozenset({slot(f) for f in fs})
+                              for n, sh, fs in (("93 a", False, ["hitmonlee"]), ("96 D", False, ["hitmonchan"]),
+                                                ("91 ha", False, ["hitmontop", "hitmonlee"]),
+                                                ("93", False, ["hitmonlee", "hitmonchan", "hitmontop"]),
+                                                ("80/93 h", True, ["hitmontop"]),
+                                                ("80/93 h", False, ["hitmonlee", "hitmonchan", "hitmontop"]))],
+          [True] * 6)
+    check("tyrogue (Attack highest) only wants a Hitmonlee spot", decide(tg, resf("tyrogue",
+          tyrogue__plain=[("93 a", 400)], hitmonlee__plain=six_better))[0], "NOPE")
+    check("tyrogue (Attack highest) ignores full Hitmonchan/top", decide(tg, resf("tyrogue",
+          tyrogue__plain=[("93 a", 400)], hitmonchan__plain=six_better, hitmontop__plain=six_better))[0], "KEEP")
+    check("other tyrogues only take their own branch", decide(tg, resf("tyrogue",
+          tyrogue__plain=[("93 a", 400)] + [("96 d", 1)] * 6))[0], "KEEP")
+    check("tyrogue with no letters can be any of them", decide(dict(tg, name="93"), resf("tyrogue",
+          tyrogue__plain=[("93", 400)], hitmonlee__plain=six_better))[0], "KEEP")
     cb = dict(kl, species="combee", cp=300)
     check("male combee: no spot", decide(cb, resf("combee", combee__plain__male=[("93", 300)]))[0], "NOPE")
     check("female combee keeps", decide(cb, resf("combee", combee__plain__female=[("93", 300)]))[0], "KEEP")

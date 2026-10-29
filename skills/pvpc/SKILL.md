@@ -120,6 +120,7 @@ Without it, the scripts drive iPhone Mirroring exactly as before.
 - Names on older Pokémon that leave out leagues are intentional (a better one exists). By hand, don't touch them. `act-fallen` keeps them right.
 
 - **Eevee:** every form gets a letter, finals included: Eevee `N`, Vaporeon `v`, Jolteon `j`, Flareon `f`, Espeon `e`, Umbreon `u`, Leafeon `l`, Glaceon `g`, Sylveon `s`. Pick top-100 entries best rank first, whatever the league. Add as many as fit, written in league order (L, G, U). If some don't fit, the last one that fit makes way for a `+`. Example: 15/11/14 gives `PvpGN45Uu28+`.
+- **Tyrogue:** its highest IV picks what it becomes: Attack Hitmonlee, Defense Hitmonchan, HP Hitmontop. Only that one is ranked, so the name is about the Hitmon it will really be. A tie for highest can go either way (the game picks at random): then it still branches, and the script skips it for a human.
 - **Pikachu:** costumed Pikachus have Pikachu's base stats, so they rank the same. They're all checked as plain `pikachu`.
 
 The script applies all of this. If it prints a note about any other branching family (for example Applin into Flapple, Appletun, or Dipplin), ask the user which final evolution the letter should be compared to.

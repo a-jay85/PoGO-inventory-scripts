@@ -319,6 +319,7 @@ def same_query(got, want):
     """OCR of the search bar vs what was typed. OCR can drop or swap a symbol, but a leftover old query makes it much longer."""
     want = re.sub(r"\s", "", want).lower()  # (OCR drops the spaces in '@focus blast')
     a0 = re.sub(r"\s", "", got or "").lower()
+    a0 = re.sub(r"^[•·…]+", "", a0)  # a long search's cut-off start can read as a bullet ('• defense&4attack...')
     for a in (a0, a0[1:] if a0.startswith("9") else a0):  # the magnifier read as a 9
         ends = [want]
         if len(want) > 22 and 12 <= len(a) < len(want):  # a long search doesn't fit in the bar: only its end shows

@@ -113,7 +113,8 @@ def walk_list(visit, limit=10 ** 9, stop=None):
 # ---------- 1. scan ----------
 
 def short(s):
-    return re.sub(r"[.…\s|]+", "", (s or "").strip().replace("\"", "*")).lower()  # * can read as "
+    s = (s or "").strip().replace("\"", "*").replace("0", "o").replace("O", "o")  # * can read as ", O as 0 ('84 A 0*')
+    return re.sub(r"[.…\s|]+", "", s).lower()
 
 
 def same_name(a, b):

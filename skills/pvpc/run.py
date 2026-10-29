@@ -612,6 +612,32 @@ def tick_tags():
     return {ui.norm(n): on for n, on in ui.ticked_tags(path, texts)}
 
 
+def tag_sheet_step(up=False):
+    """scroll the tag sheet a small step (a big one skips rows). -> did the rows move?"""
+    _, before, _, bounds = wait_for("tags")
+    a, b = (0.4, 0.62) if up else (0.62, 0.4)
+    drag(0.3, a, 0.3, b, bounds)
+    if ui.ANDROID:
+        ui.android.fresh()
+    _, after, _, _ = wait_for("tags")
+    return [t[4] for t in after] != [t[4] for t in before]
+
+
+def show_tag(T):
+    """scroll the tag sheet until row T shows: down first, then back up. A long list hides tags past the first
+    screen (HashTagAJay's GuaranteedLucky and Old). -> the showing rows' ticks, or None if the account has no T"""
+    for up in (False, True):
+        same = 0
+        for _ in range(30):
+            ticks = tick_tags()
+            if T in ticks:
+                return ticks
+            if same >= 2:
+                break
+            same = 0 if tag_sheet_step(up) else same + 1
+    return None
+
+
 def lift_tag_row(T):
     """Android: a tap on the last row showing (under the list's fade) doesn't take. Scroll it up a little first"""
     _, texts, _, _ = wait_for("tags")
@@ -666,8 +692,7 @@ def set_tags(on=(), off=(), only=False, ivs=None, raws=None):
             raise Skip(f"{what} is 98%+ (or purifies to it): never Nope")
     go("menu", "menu")
     go("TAG", "tags")
-    ticks = tick_tags()
-    missing = [t for t in on if t.upper() not in ticks]
+    missing = [t for t in on if show_tag(t.upper()) is None]
     if missing:  # this account may not have the tag: change nothing
         go("DONE", "detail")  # nothing ticked or unticked yet, so DONE changes nothing
         raise Skip(f"no {', '.join(missing)} tag on this account")
@@ -675,15 +700,18 @@ def set_tags(on=(), off=(), only=False, ivs=None, raws=None):
     want = {**{t.upper(): False for t in off}, **{t.upper(): True for t in on}}  # unticks first
     with changing("ticking tags"):
         for T, v in want.items():
+            ticks = show_tag(T)
+            if ticks is None:  # an off tag this account doesn't have
+                continue
             for _ in range(2):  # a tick only gets tapped again once a slow read has shown it didn't change
-                if T in ticks and ticks[T] is not v:
+                if ticks.get(T) is not v:
                     if ui.ANDROID:
                         lift_tag_row(T)
                     tap(names[T])
                     ticks = settle(tick_tags, lambda t: t.get(T) is v)
-        if any(T in ticks and ticks[T] is not v for T, v in want.items()):
-            keep_capture("tags")
-            raise Stop(f"tags didn't end up right: {ticks}")
+            if ticks.get(T) is not v:
+                keep_capture("tags")
+                raise Stop(f"tags didn't end up right: {ticks}")
         go("DONE", "detail")
         ON, OFF = {t.upper() for t in on}, {t.upper() for t in off}
         good = lambda t: (sorted(t) == sorted(ON)) if only else (ON <= set(t) and not OFF & set(t))

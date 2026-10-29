@@ -302,7 +302,7 @@ def to_friend(p):
             p.tap_text(label(p, "YES"))
         elif s == "manage":
             p.tap(*MANAGE_X)
-        elif s in ("gift", "result", "mainmenu"):
+        elif s in ("gift", "result", "mainmenu", "detail"):
             p.tap(*X_BUTTON)
         elif s == "map":
             p.tap(0.13, 0.91)

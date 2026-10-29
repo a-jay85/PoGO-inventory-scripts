@@ -62,7 +62,7 @@ It works off the saved search shortcuts, always in this order:
 `cleantrades.py transfer [--limit N]` runs step 2's power-up walk on `#Transfer&countcandyxl0-359`, on either account. Run it before transferring the Transfer pile: it catches the ones tagged before every tagger powered up first. Every script that tags Transfer now runs that walk on its pile first (`ct.power_pile`), `tradeable.py tag --nope`'s traded Nope too. A nickname ('96A') gets its species from the candy line and types, or else the appraisal's "This Poochyena was caught" line. On CyrillJan's Pixel on 2026-10-28 it walked all 80 and powered up 7 over four runs.
 
 Tagging a shortcut: its search + `&!#<tag>`, long press a tile, SELECT ALL, TAG (n). The n must equal the search's count, and the sheet must say "TAG n POKÉMON". The tag row is found by scrolling the sheet in small steps. Afterwards the same search must come back empty.
-PvpC1 and PvpC2 get no `&!#PvpC`: their own search already leaves out anything tagged. On the Pixel, HashTagAJay's PvpC1 search also fills the bar, so nothing more can be typed after it.
+PvpC1, PvpC2 and Clean Trades get no `&!#<tag>`: their own search already leaves out anything tagged. On the Pixel, HashTagAJay's PvpC1 search also fills the bar, so nothing more can be typed after it.
 
 Adding to a shortcut's search: tap the shortcut, tap the filled bar, jump to the end, type the extra part, Return. A `count…` term eats any text after it, so the XL part always goes last.
 

@@ -376,12 +376,13 @@ def evolved_giv(m, ok, why, hard):
     return out
 
 
-def cmd_plan(to=TAKER):
-    if to == GIVER:
-        return plan_for_giver()
-    if to != TAKER:
-        sys.exit(f"plan --to {TAKER} or {GIVER}")
-    m = Model()
+class NoData(Exception):
+    """a file the species lists need isn't there yet"""
+
+
+def taker_species(m):
+    """CyrillJan's pile, judged for HashTagAJay -> {"why": {sid: (tag, why)}, "lucky": {sid: gender term},
+    "evolved": {sid: why}, "xl_full": {dex}, "from": {what: file}}. Shared by plan and ../shared/verdict.py"""
     lucky_missing, lucky_run = dex.latest("lucky", TAKER)  # (an evolve-lucky run counts too)
     hund_missing, hund_run = dex.latest("100", TAKER)
     roster_f = newest_for(os.path.join("..", "..", "roster", "runs", "*", "roster.json"), TAKER, default=TAKER)
@@ -392,7 +393,7 @@ def cmd_plan(to=TAKER):
                               ("roster.json", roster_f), ("read.json", read_f), ("pvp-giv", pvp_f),
                               ("giv-evolved (python3 tradeable.py refresh)", hard_f)] if not v]
     if lacking:
-        sys.exit(f"no {', '.join(lacking)} for {TAKER} yet")
+        raise NoData(f"no {', '.join(lacking)} for {TAKER} yet")
     roster = json.load(open(roster_f))
     read = json.load(open(read_f))
     pvp_giv = json.load(open(pvp_f))
@@ -420,13 +421,28 @@ def cmd_plan(to=TAKER):
             why.setdefault(s, ("GIV", f"lucky family under {LUCKY_CANDY} candy"))
     evolved = evolved_giv(m, ok, why, json.load(open(hard_f)))
     evolved.update({s: r for s, r in GIV_FOR_TAKER.items() if s in ok and s not in why})
-    plan = {"taker": TAKER, "xlx_level": XLX_FOR[TAKER],
+    return {"why": why, "lucky": lucky, "evolved": evolved,
+            "xl_full": {m.dex(x) for s in m.by if m.dex(s) in read["xl_full"] for x in m.family(s)},
             "from": {"lucky": lucky_run, "100": hund_run, "roster": roster_f, "read": read_f, "pvp": pvp_f,
-                     "evolved": hard_f},
+                     "evolved": hard_f}}
+
+
+def cmd_plan(to=TAKER):
+    if to == GIVER:
+        return plan_for_giver()
+    if to != TAKER:
+        sys.exit(f"plan --to {TAKER} or {GIVER}")
+    m = Model()
+    try:
+        sp = taker_species(m)
+    except NoData as e:
+        sys.exit(str(e))
+    why, lucky, evolved = sp["why"], sp["lucky"], sp["evolved"]
+    plan = {"taker": TAKER, "xlx_level": XLX_FOR[TAKER], "from": sp["from"],
             "tags": {t: queries(m, [s for s, (w, _) in why.items() if w == t], lucky if t == "Luckydex" else None,
                                 room=len(NOT_TAGGED) + 10) for t in TAGS},
             "giv_evolved": queries(m, evolved, room=len(EVOLVED_REST) + 10) + [DYNAMAX],
-            "taker_xl_full": sorted({m.dex(x) for s in m.by if m.dex(s) in read["xl_full"] for x in m.family(s)})}
+            "taker_xl_full": sorted(sp["xl_full"])}
     base.new_run_dir(os.path.join(HERE, "runs"), suffix="plan")
     json.dump(plan, open(os.path.join(base.RUN_DIR, "plan.json"), "w"), indent=1)
     lines = [f"# Tradeable plan {time.strftime('%Y-%m-%d %H:%M')}", ""]
@@ -473,11 +489,12 @@ def cmd_dynamax():
     log(f"{sum(1 for v in out.values() if v)} of {len(out)} families have a Dynamax one -> {base.RUN_DIR}")
 
 
-def plan_for_giver():
-    """HashTagAJay's Nope -> CyrillJan: only good raid attackers (GIV) and Candy XL (XLX). No dex rules"""
+def giver_species(m):
+    """HashTagAJay's pile, judged for CyrillJan -> {"why": {sid: why}, "dropped": {sid: why}, "evolved": {sid: why},
+    "no_dmax": [sid], "xl_full": {dex}, "from": {what: file}}. Shared by plan --to CyrillJan and ../shared/verdict.py"""
     sys.path.append(os.path.join(HERE, "..", "roster"))
     import roster
-    m, can = Model(), can_dynamax()
+    can = can_dynamax()
     read_f = newest_for(os.path.join("*-read", "read.json"), GIVER)  # (only its 360+ XL families: none without)
     xl_full = json.load(open(read_f))["xl_full"] if read_f else []
     counts_f = newest_for(os.path.join("..", "..", "roster", "runs", "*-count", "counts.json"), GIVER, default=TAKER)
@@ -500,18 +517,31 @@ def plan_for_giver():
 
     hard_f = base.newest(HERE, "giv-evolved-*.json")
     if not hard_f:
-        sys.exit("no giv-evolved yet: python3 tradeable.py refresh")
+        raise NoData("no giv-evolved yet: python3 tradeable.py refresh")
     picked, dropped = pve(m, enough)
     ok = [s for s in m.by if m.tradeable(s) and not m.special(s)]
     why = {s: r for s, r in picked.items() if s in ok}
     evolved = evolved_giv(m, ok, why, json.load(open(hard_f)))
     no_dmax = [s for s in ok if m.dex(s) in can and not has_dmax(s)]
-    plan = {"taker": GIVER, "xlx_level": XLX_FOR[GIVER],
-            "from": {"read": read_f, "counts": counts_f, "dynamax": dmax_f, "evolved": hard_f},
+    return {"why": why, "dropped": dropped, "evolved": evolved, "no_dmax": no_dmax,
+            "xl_full": {m.dex(x) for s in m.by if m.dex(s) in xl_full for x in m.family(s)},
+            "from": {"read": read_f, "counts": counts_f, "dynamax": dmax_f, "evolved": hard_f}}
+
+
+def plan_for_giver():
+    """HashTagAJay's Nope -> CyrillJan: only good raid attackers (GIV) and Candy XL (XLX). No dex rules"""
+    m = Model()
+    try:
+        sp = giver_species(m)
+    except NoData as e:
+        sys.exit(str(e))
+    why, dropped, evolved, no_dmax = sp["why"], sp["dropped"], sp["evolved"], sp["no_dmax"]
+    read_f, counts_f, dmax_f = sp["from"]["read"], sp["from"]["counts"], sp["from"]["dynamax"]
+    plan = {"taker": GIVER, "xlx_level": XLX_FOR[GIVER], "from": sp["from"],
             "tags": {"Luckydex": [], "Reroll": [], "GIV": queries(m, why, room=len(NOT_TAGGED) + 10)},
             "giv_evolved": queries(m, evolved, room=len(EVOLVED_REST) + 10)
                            + [q + DYNAMAX for q in queries(m, no_dmax, room=len(EVOLVED_REST + DYNAMAX) + 10)],
-            "taker_xl_full": sorted({m.dex(x) for s in m.by if m.dex(s) in xl_full for x in m.family(s)})}
+            "taker_xl_full": sorted(sp["xl_full"])}
     base.new_run_dir(os.path.join(HERE, "runs"), suffix="plan")
     json.dump(plan, open(os.path.join(base.RUN_DIR, "plan.json"), "w"), indent=1)
     name = lambda s: f"{m.by[s]['speciesName']} (#{m.dex(s)})"

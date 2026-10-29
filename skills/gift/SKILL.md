@@ -6,7 +6,7 @@ model: claude-sonnet-5-5
 
 # /gift: send gifts to friends
 
-Uses the shared tapper and screen reader: the shared library (`~/PoGO-inventory-scripts/skills/shared`: `ui.py`, `home.py`) and /pvpc's `run.py`.
+Uses the shared tapper and screen reader: the shared library (`~/PoGO-inventory-scripts/skills/shared`: `base.py`, `ui.py`, `home.py`).
 `S=~/.claude/skills/gift`.
 
 `POGO_PHONE=android caffeinate -dimsu python3 $S/gift.py [--limit N] [--dry-run] [--last-held NAME]`

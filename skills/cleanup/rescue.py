@@ -12,10 +12,9 @@ left alone. --dry-run appraises and logs, changes nothing. Log in runs/<time>/.
 import os, re, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
 sys.path.insert(0, os.path.join(HERE, "..", "shared"))
-import run as base
-from run import Skip, log, go
+import base
+from base import Skip, log, go
 import search, session
 
 QUERIES = ("#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp",  # two of the three at 15

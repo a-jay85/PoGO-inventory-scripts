@@ -8,7 +8,7 @@ A refactor that moves shared code must keep all of it the same.
 
 What it pins, per script:
   names   its own top-level names (functions, classes, constants): what other scripts import from it
-  copies  how many copies of each skill file got loaded (pvpc/run.py, the shared tapper, must be 1)
+  copies  how many copies of each skill file got loaded (shared/base.py, the shared tapper, must be 1)
   runs    every run folder it can build (os.path.join(..., "runs", ...)): a moved one loses its history
 What must hold, every time (not recorded):
   every `module.name` the code uses exists, every path the code builds to a repo file exists,
@@ -19,7 +19,7 @@ import ast, importlib.util, json, os, re, subprocess, sys, tempfile, types
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SKILLS = os.path.join(ROOT, "skills")
 GOLD = os.path.join(ROOT, "tests", "layout.json")
-TOOLKIT_NAMES = ("run", "base")  # what the scripts call the shared tapper
+TOOLKIT_NAMES = ("base",)  # what the scripts call the shared tapper
 
 
 def rel(p):
@@ -47,7 +47,7 @@ def load(path):
     full = os.path.join(ROOT, path)
     sys.path.insert(0, os.path.dirname(full))
     sys.argv = [full] + (["ios"] if path == "skills/trade/phone.py" else [])  # (phone.py reads its phone at import)
-    name = "run" if path == "skills/pvpc/run.py" else "__probe__"  # (pvpc's run.py names itself `run` as __main__)
+    name = "base" if path == "skills/shared/base.py" else "__probe__"  # (the tapper is only imported, as `base`)
     spec = importlib.util.spec_from_file_location(name, full)
     m = importlib.util.module_from_spec(spec)
     sys.modules[name] = m

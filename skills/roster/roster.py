@@ -23,11 +23,10 @@ Output in runs/<time>-count/: counts.json, roster.json (for /cleanup's tradeable
 import argparse, json, os, re, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
 sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 sys.path.insert(0, os.path.join(HERE, "..", "dex"))
 import dex
-from run import Stop, log, newest
+from base import Stop, log, newest
 import session
 
 TRAINER = "HashTagAJay"  # the default; CyrillJan can be counted too (tradeable.py plan --to CyrillJan)

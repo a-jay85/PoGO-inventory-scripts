@@ -83,7 +83,7 @@ A new Pvp name can push an older Pvp Pokémon out of the top. Per league (L/G/U)
   - `--limit` counts renames and tags together. Appraisals don't count: even `--limit 1` first opens and appraises every beaten one in each line (that changes nothing).
 - Never trimmed or fallen: lines that branch (Eevee aside). Their names can't be read back to one form. A name whose letter two forms share (Charmander and Charmeleon are both `m`) counts that slot as unbeatable until it's appraised.
 - Only lines a new name landed in get looked at. A `+` name elsewhere can still hide a better slot.
-- Shared code: `search.py` (in-game search, list walking) and `fallen.py` are used by /ivcsort too. `run.py` is the shared tapper for /ivc and /ivcsort.
+- Shared code: `search.py` (in-game search, list walking) and `fallen.py` are used by /ivcsort too. The tapper every skill uses is `skills/shared/base.py`; `run.py` is /pvpc's own walk.
 
 ## Android phone (Pixel)
 

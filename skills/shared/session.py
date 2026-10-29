@@ -17,10 +17,9 @@
 import os, re, subprocess, sys, time, traceback
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))  # run.py (the tapper)
 import ui
-import run as base
-from run import Stop, log, keep_capture
+import base
+from base import Stop, log, keep_capture
 
 PIN_FILE = os.path.expanduser("~/.config/pogo/android-pin")
 MIRRORING = "iPhone Mirroring"

@@ -10,10 +10,9 @@ from PIL import Image
 
 import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))  # run.py (the tapper)
 import ui
-import run as base
-from run import Stop, Skip, Lost, GYM, log, keep_capture, go, tap, wait_for, key, type_text, back_to_list, scroll, front
+import base
+from base import Stop, Skip, Lost, GYM, log, keep_capture, go, tap, wait_for, key, type_text, back_to_list, scroll, front
 
 ZOOM = ui.TMP + "_zoom.png"
 END_AFTER_STALE = 3

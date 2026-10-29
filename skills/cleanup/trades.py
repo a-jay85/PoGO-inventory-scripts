@@ -16,11 +16,10 @@ Log and done.json go in runs/<time>/.
 import datetime, os, random, re, sys, time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
 sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import ui
-import run as base
-from run import Stop, log, keep_capture, go, look, wait_for, save, load, candy
+import base
+from base import Stop, log, keep_capture, go, look, wait_for, save, load, candy
 import search, session
 from shadows import Pass, GM, press, next_one, reopen_top, settled_tiles, exact, not_high_iv
 

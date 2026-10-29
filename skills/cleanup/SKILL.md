@@ -6,7 +6,7 @@ model: claude-sonnet-5-5
 
 # /cleanup — cleanup rules
 
-Uses the shared tapper and screen reader: the shared library (`~/PoGO-inventory-scripts/skills/shared`: `ui.py`, `search.py`) and /pvpc's `run.py`.
+Uses the shared tapper and screen reader: the shared library (`~/PoGO-inventory-scripts/skills/shared`: `base.py`, `ui.py`, `search.py`).
 `S=~/.claude/skills/cleanup`.
 Search terms and their bugs: `~/PoGO-inventory-scripts/skills/shared/SEARCH.md`. Read it before building a search.
 

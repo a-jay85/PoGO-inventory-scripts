@@ -19,11 +19,10 @@ from collections import Counter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "ivc"))
-sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
 sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import ui
-import run as base
-from run import Stop, Skip, log, go, back_to_list, front, save, load, steady_detail, \
+import base
+from base import Stop, Skip, log, go, back_to_list, front, save, load, steady_detail, \
     extras, candy, type_line, dynamax, set_tags, set_star
 
 spec = importlib.util.spec_from_file_location("ivcrun", os.path.join(HERE, "..", "ivc", "run.py"))

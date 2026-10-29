@@ -16,10 +16,10 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SKILLS = os.path.join(ROOT, "skills")
 GOLD = os.path.join(ROOT, "tests", "readers.json")
 os.environ.pop("POGO_PHONE", None)  # the iPhone path: every reader stays on the text it's given (no screenshot)
-for d in ("pvpc", "shared", "cleanup", "dex", "trade", "gift", "mega", "ivc", "ivcsort"):  # (pvpc first: its run.py is `run`)
+for d in ("shared", "cleanup", "dex", "trade", "gift", "mega", "ivc", "ivcsort"):
     sys.path.append(os.path.join(SKILLS, d))
 
-import run, search, ui  # noqa: E402  (pvpc's run.py: first on the path)
+import base, search, ui  # noqa: E402
 import trades, cleantrades, dex, trade, gift, mega  # noqa: E402
 
 
@@ -195,11 +195,11 @@ SINGLE = {
     "trade.pile": trade.pile,
     "cleantrades.same_l": cleantrades.same_l,
     "cleantrades.key": cleantrades.key,
-    "run.short": run.short,
+    "run.short": base.short,
     "ivcsort.short": ivcsort_run.short,
 }
 NAMED = {
-    "run.same_name": run.same_name,
+    "run.same_name": base.same_name,
     "ivc.same_name": ivc_run.same_name,
     "ivcsort.same_name": ivcsort_run.same_name,
     "gift.same_name": gift.same_name,

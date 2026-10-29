@@ -21,11 +21,10 @@ import argparse, os, random, re, statistics, sys, time
 from PIL import Image
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
 sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import ui
-import run as base
-from run import Stop, log, keep_capture
+import base
+from base import Stop, log, keep_capture
 import home, search, session
 
 PAGES = {"lucky": "LUCKY", "100": "100%"}  # page -> its chip's label

@@ -27,12 +27,11 @@ Log in runs/<time>-<phone>/log.txt.
 import argparse, os, re, subprocess, sys, time
 
 HERE = os.path.dirname(os.path.realpath(__file__))
-sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
 sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 sys.path.insert(0, os.path.join(HERE, "..", "cleanup"))
 import ui
-import run as base
-from run import Stop, log, keep_capture, look, front
+import base
+from base import Stop, log, keep_capture, look, front
 import search
 import session
 from shadows import Pass, exact, press, next_one, settled_tiles, search_exact

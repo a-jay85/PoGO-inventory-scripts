@@ -54,13 +54,12 @@ opened for XLX and power-ups, then the rest -> Transfer. Log in runs/<time>-tag/
 import json, math, os, re, sys, time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
 sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 sys.path.insert(0, os.path.join(HERE, "..", "dex"))
-sys.path.append(os.path.join(HERE, "..", "ivc"))  # last: its run.py isn't pvpc's
+sys.path.append(os.path.join(HERE, "..", "ivc"))  # for ivc.py
 import ui
-import run as base
-from run import Stop, Skip, log, go, look, wait_for
+import base
+from base import Stop, Skip, log, go, look, wait_for
 import search
 import pvp
 import home, session

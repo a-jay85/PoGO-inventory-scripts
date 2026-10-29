@@ -20,11 +20,9 @@
 """
 import os, random, re, sys, time
 
-HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))  # run.py (the tapper)
 import ui
-import run as base
-from run import Stop, log, keep_capture
+import base
+from base import Stop, log, keep_capture
 import search, session
 
 STORAGE = ("list", "tag-tab", "detail", "menu", "appraisal", "appraise-intro", "gym")
@@ -375,7 +373,7 @@ def trainer():
 
 
 if __name__ == "__main__":
-    base.new_run_dir(os.path.join(base.HERE, "runs"))
+    base.new_run_dir(base.RUNS)
     if "--trainer" in sys.argv[1:]:
         try:
             print(trainer())

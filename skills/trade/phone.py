@@ -20,10 +20,9 @@ Errors come back as {"error": "..."}.
 import json, os, random, sys, time, traceback
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
 sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import ui
-import run as base
+import base
 import home, search, session
 
 NAME = sys.argv[1]

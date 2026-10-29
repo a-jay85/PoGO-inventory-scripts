@@ -2,7 +2,7 @@
 """Unattended /ivc: works through the IVC-tagged list in iPhone Mirroring or on the Android phone with no Claude.
 
   caffeinate -dimsu python3 run.py [--limit N] [--dry-run]
-  POGO_PHONE=android caffeinate -dimsu python3 run.py ...   (Android phone over USB, see ../pvpc/android.py)
+  POGO_PHONE=android caffeinate -dimsu python3 run.py ...   (Android phone over USB, see ../shared/android.py)
 
 Start with Pokémon GO open. Pokémon still named after their species get appraised and renamed by IV%
 (see ivc.py), or retagged IVC -> Nope when there's nothing to put in the name. --dry-run does the
@@ -14,11 +14,10 @@ import json, os, random, re, sys, time
 from collections import Counter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
 sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import ui, pvp
-import run as base
-from run import Stop, Skip, log, keep_capture, go, wait_for, appraise, think, back_to_list, scroll_for_new, front, settle, \
+import base
+from base import Stop, Skip, log, keep_capture, go, wait_for, appraise, think, back_to_list, scroll_for_new, front, settle, \
     extras, drag, open_tile, exact_ivs, do_rename
 import ivc, session
 

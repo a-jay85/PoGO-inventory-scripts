@@ -26,11 +26,10 @@ from concurrent.futures import ThreadPoolExecutor
 from PIL import Image
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
 sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import ui
-import run as base
-from run import Stop, log
+import base
+from base import Stop, log
 from search import pokeball, amp_as_8
 from home import main_menu
 

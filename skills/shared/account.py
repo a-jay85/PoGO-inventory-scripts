@@ -17,11 +17,9 @@ user signs in by hand from there.
 """
 import json, os, random, sys, time
 
-HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))  # run.py (the tapper)
 import ui
-import run as base
-from run import Stop, log, keep_capture
+import base
+from base import Stop, log, keep_capture
 import home
 
 ACCOUNTS = os.path.expanduser("~/.config/pogo/accounts.json")
@@ -215,7 +213,7 @@ def check(to):
 
 if __name__ == "__main__":
     args = sys.argv[1:]
-    base.new_run_dir(os.path.join(base.HERE, "runs"))
+    base.new_run_dir(base.RUNS)
     try:
         if "--who" in args:
             print(home.trainer())

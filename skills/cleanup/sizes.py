@@ -15,11 +15,10 @@ Each one is opened. Its size badge must agree with the search, or it's passed ov
 import os, re, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
 sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import ui
-import run as base
-from run import Stop, Skip, log, go, wait_for
+import base
+from base import Stop, Skip, log, go, wait_for
 import search, session
 import cleantrades as ct
 from shadows import Pass, next_one, press

@@ -17,12 +17,11 @@ Log in runs/<time>-luckydex/.
 import os, re, sys, time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(HERE, "..", "pvpc"))
 sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 sys.path.insert(0, os.path.join(HERE, "..", "cleanup"))
 import ui
-import run as base
-from run import Stop, log, keep_capture
+import base
+from base import Stop, log, keep_capture
 import home, search, session
 import dex
 import cleantrades as ct

@@ -103,6 +103,8 @@ If `read` stops partway, `read runs/<time>-read/searches.json` picks up where it
 
 The rule (2026-10-25): anything in Nope gets the Tradeable tags, judged for the other account (the one it would be traded to). Nope comes off once its new tag is on.
 
+Since 2026-10-28, `pogo.py` runs this by itself after any `pvpc`, `ivc` or `ivcsort` step that can tag Nope, so Nope lasts minutes. When nothing in Nope can be tagged, it ends after one search. By hand:
+
 `POGO_PHONE=android caffeinate -dimsu python3 $S/tradeable.py tag --nope [--limit N]`, either account signed in:
 
 1. It runs `rescue.py` first. A 98%+ one in Nope gets the star and loses Nope, so it never gets a tag here.

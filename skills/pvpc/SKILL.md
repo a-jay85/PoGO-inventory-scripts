@@ -47,6 +47,7 @@ Use this skill to clear its skips by hand.
 - `last` is the run folder an earlier step of the same skill folder made: `pogo.py ivcsort + ivcsort fallen last`.
 - The whole chain is checked before step 1. It stops at the first step that doesn't end well, with that step's exit code.
 - Each step is its own python3 process. The phone stays up between steps and is closed once at the end.
+- Nope lasts minutes (2026-10-28). A chain with a step that can tag Nope (`pvpc`, `ivc`, `ivcsort`, and their `act-fallen`) gets `tradeable tag --nope` added after it, so each Nope gets its final tag (GIV, XLX, Transfer ...) in the same run. It goes before an `account` step too. Not added when one already follows, or for `--dry-run` / `--look`. `pogo.py --keep-nope ...` turns it off. tag --nope ends after one search when there's nothing in Nope for it.
 
 ### Starting from anywhere
 

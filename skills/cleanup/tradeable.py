@@ -565,6 +565,7 @@ MEDAL_KG = {"Rattata": (0.5, 10), "Magikarp": (2, 30)}  # a weight outside this 
 TWO_XL = "2XL"
 TWO_XL_PILE = NOPE_PILE + NOT_TAGGED + "&!xxl&!xxs" + ct.UNDER_360_XL  # (the count term last)
 RESORT = f"#{TRANSFER}&!traded&!#{NOPE}" + NOPE_KEEP + NO_SPECIAL  # --resort: Nope back on, Transfer off
+NOPE_ANY = f"#{NOPE}" + NOPE_KEEP + NO_SPECIAL  # every Nope tag --nope could tag (the rest stay Nope for good)
 
 
 def run_pile(suffix):
@@ -744,7 +745,11 @@ def cmd_tag(limit, nope=False, resort=False):
     if resort:  # the untraded ones tagged Transfer before a rule changed: back in the Nope pile, judged again
         ct.tag_pile(NOPE, NOPE, off=(TRANSFER,), query=RESORT)
         search.to_search_list()
+    if nope and not resort and not ct.long_search(NOPE_ANY):  # pogo.py adds this step after every sort: one search
+        log("nothing in Nope for tag --nope to sort")  # instead of a dozen when the run made no Nope
+        return
     if nope:
+        search.to_search_list()
         rescue.main(10 ** 9, False)  # first: a 98%+ one in Nope gets the star and loses Nope, so it's never tagged here
         PILE = NOPE_PILE
         search.to_search_list()

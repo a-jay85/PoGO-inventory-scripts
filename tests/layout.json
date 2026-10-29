@@ -1316,6 +1316,7 @@
    "tap",
    "tap_box",
    "tap_gap",
+   "tap_tag_row",
    "think",
    "tick_tags",
    "to_points",

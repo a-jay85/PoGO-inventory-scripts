@@ -586,6 +586,18 @@ def show_tag(T):
     return None
 
 
+def tap_tag_row(T, name):
+    """tap a row of the open tag sheet. A tag named like a never-tap button (Transfer) is tapped by its own row, and
+    only when the screen reads as the tag sheet and exactly one row says just that"""
+    if not any(T.startswith(z) for z in ui.HAZARDS):
+        return tap(name)
+    _, texts, _, bounds = wait_for("tags")
+    rows = [t for t in texts if ui.norm(t[4].lstrip("•· ")) == T]
+    if len(rows) != 1:
+        raise Stop(f"tag sheet: {len(rows)} rows read {name!r}, wanted 1")
+    tap_box(rows[0], bounds)
+
+
 def lift_tag_row(T):
     """Android: a tap on the last row showing (under the list's fade) doesn't take. Scroll it up a little first"""
     _, texts, _, _ = wait_for("tags")
@@ -655,7 +667,7 @@ def set_tags(on=(), off=(), only=False, ivs=None, raws=None):
                 if ticks.get(T) is not v:
                     if ui.ANDROID:
                         lift_tag_row(T)
-                    tap(names[T])
+                    tap_tag_row(T, names[T])
                     ticks = settle(tick_tags, lambda t: t.get(T) is v)
             if ticks.get(T) is not v:
                 keep_capture("tags")

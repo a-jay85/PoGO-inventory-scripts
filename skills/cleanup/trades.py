@@ -70,11 +70,13 @@ def bar_view(got, q):
     bang = re.sub(r"^[q9]?[il|]", "!", s)  # the end of a long search: a '!' at its start reads as 'I' or 'QI'
     if bang != s and len(s) >= 15 and Q.endswith(bang):
         s = bang
-    if s == Q:
+    # the iPhone reads a '!' as 'l' anywhere ('!shadow&llucky'). Only where q has a '!': a lost one still fails (shorter)
+    same = lambda a, b: len(a) == len(b) and all(x == y or (y == "!" and x == "l") for x, y in zip(a, b))
+    if same(s, Q):
         return "all", len(s)
-    if len(s) >= 15 and Q.endswith(s):
+    if 15 <= len(s) < len(Q) and same(s, Q[-len(s):]):
         return "end", len(s)
-    if len(s) >= 15 and Q.startswith(s):
+    if 15 <= len(s) < len(Q) and same(s, Q[:len(s)]):
         return "start", len(s)
     return None
 

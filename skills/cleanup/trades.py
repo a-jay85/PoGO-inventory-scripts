@@ -45,10 +45,23 @@ _views = []
 
 def strict(got, q):
     """the bar text vs q, symbol for symbol, off the phone's own screenshot on Android. A long search shows only its
-    end while typing and only its start after Return: note which part matched, search_exact() adds them up."""
+    end while typing and only its start after Return: note which part matched, search_exact() adds them up.
+    The sharp read can drop a thin last letter ('...,!xx' for '...,!xxl') that the caller's read has: either read
+    showing all of it counts."""
+    reads = [got]
     if ui.ANDROID:
         box = ui.search_box(ui.ocr(ui.android.sharp()))
-        got = ui.search_text(box) if box else got  # (the search panel's bar isn't found that way: keep the caller's read)
+        if box:  # (the search panel's bar isn't found that way: keep the caller's read)
+            reads.insert(0, ui.search_text(box))
+    views = [v for v in (bar_view(g, q) for g in reads) if v]
+    if not views:
+        return False
+    _views.append(next((v for v in views if v[0] == "all"), views[0]))
+    return True
+
+
+def bar_view(got, q):
+    """-> ('all' | 'end' | 'start', how many symbols) of q this read of the bar shows, or None"""
     s = re.sub(r"\s", "", got or "").lower()
     s = re.sub(r"^[<‹]?[q9]?(?=#)", "", s)  # the magnifier glued on
     s = re.sub(r"^[,.'`]+", "", s)  # the panel's cursor end can read as a stray ","
@@ -58,14 +71,12 @@ def strict(got, q):
     if bang != s and len(s) >= 15 and Q.endswith(bang):
         s = bang
     if s == Q:
-        _views.append(("all", len(s)))
-    elif len(s) >= 15 and Q.endswith(s):
-        _views.append(("end", len(s)))
-    elif len(s) >= 15 and Q.startswith(s):
-        _views.append(("start", len(s)))
-    else:
-        return False
-    return True
+        return "all", len(s)
+    if len(s) >= 15 and Q.endswith(s):
+        return "end", len(s)
+    if len(s) >= 15 and Q.startswith(s):
+        return "start", len(s)
+    return None
 
 
 def search_exact(q):

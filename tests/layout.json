@@ -730,6 +730,7 @@
    "ivc_reads",
    "judge",
    "load",
+   "load_plan",
    "log",
    "looks_same",
    "lucky_rank",

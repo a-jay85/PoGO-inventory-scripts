@@ -123,7 +123,8 @@ def walk(traded, limit, dry, counts, who):
 
 def main(limit, dry):
     base.front()
-    who = home.trainer()  # once, first: it ends on the map (the searches start from anywhere)
+    who = home.trainer()  # once, first: it ends on the map
+    home.start()  # back to the Pokémon screens
     done_already(dry)
     counts = {"opened": 0}
     for traded in (False, True):

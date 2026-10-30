@@ -226,6 +226,34 @@ def remember(name, cp, info, texts, shadow, lucky, size, bars, raws):
 # ---------- one Pokémon ----------
 
 def process(i, tile_name, tile_cp, dry):
+    r = read_one(i, tile_name, tile_cp)
+    info, texts, sp, ivs, name, what = r["info"], r["texts"], r["sp"], r["ivs"], r["name"], r["what"]
+    if dry:
+        log(f"DRY {what}")
+    elif name is None:
+        if DOOR.judge(info, texts, sp, ivs, (tile_name, tile_cp), size=r["size"], raws=r["raws"]) == door.UNSURE:
+            name = door.UNSURE
+    elif name == "->PvpC":
+        retag("PvpC")
+    else:
+        do_rename(name, same_name)
+        keep_read(r)
+    if not dry:
+        log(f"DONE {what}")
+    go("close", "list")
+    return name
+
+
+def keep_read(r):
+    try:  # only saves /ivcsort an open: never worth stopping a run for
+        remember(r["name"], r["cp"], r["info"], r["texts"], r["shadow"], r["lucky"], r["size"], r["bars"], r["raws"])
+    except Exception as e:
+        log(f"  couldn't save what was read ({e!r}): /ivcsort will open it")
+
+
+def read_one(i, tile_name, tile_cp):
+    """open an IVC one, read its detail screen, appraise it and make its name. Leaves the detail screen open.
+    -> {info, texts, cp, sp, ivs, bars, raws, shadow, lucky, size, moves, name (None: nothing to show, '->PvpC'), what}"""
     open_tile(i)
     info, texts, _ = base.steady_detail()
     cp = info["cp"] or tile_cp
@@ -265,23 +293,8 @@ def process(i, tile_name, tile_cp, dry):
             f"{' ' + size if size else ''}{' ' + ','.join(moves) if moves else ''} -> {name or '->door'}")
     think()
     go("dialog", "detail")
-    if dry:
-        log(f"DRY {what}")
-    elif name is None:
-        if DOOR.judge(info, texts, sp, ivs, (tile_name, tile_cp), size=size, raws=raws) == door.UNSURE:
-            name = door.UNSURE
-    elif name == "->PvpC":
-        retag("PvpC")
-    else:
-        do_rename(name, same_name)
-        try:  # only saves /ivcsort an open: never worth stopping a run for
-            remember(name, cp, info, texts, shadow, lucky, size, bars, raws)
-        except Exception as e:
-            log(f"  couldn't save what was read ({e!r}): /ivcsort will open it")
-    if not dry:
-        log(f"DONE {what}")
-    go("close", "list")
-    return name
+    return {"info": info, "texts": texts, "cp": cp, "sp": sp, "ivs": ivs, "bars": bars, "raws": raws, "shadow": shadow,
+            "lucky": lucky, "size": size, "moves": moves, "name": name, "what": what}
 
 
 # ---------- the list ----------

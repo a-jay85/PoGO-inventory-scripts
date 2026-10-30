@@ -569,14 +569,15 @@ def pick_species(options):
 
 
 def searches_for(m):
-    """every search decide() needs for this member"""
+    """every search decide() needs for this member. One still named after its species (unrenamed): every search it
+    could need once its IVs are known (a shadow's purified IV too)"""
     sid, out = m["species"], []
     if sid in GYM_DEFENDERS:
         out.append(search(sid, "gym"))
-    p = parse_name(m["name"])
-    if value(m["name"], m["shadow"]) is None:
+    p = parse_name(m.get("name") or m["tile"])
+    if value(m.get("name") or m["tile"], m["shadow"]) is None and not m.get("unrenamed"):
         return out
-    pools = (["shadow"] + (["plain"] if p.purified is not None else [])) if m["shadow"] else \
+    pools = (["shadow"] + (["plain"] if p.purified is not None or m.get("unrenamed") else [])) if m["shadow"] else \
         ["plain"] + (["lucky"] if m["lucky"] else []) + (["dmax"] if m["dynamax"] else [])
     out += [q for pool in pools for q, _, _ in groups(sid, pool)]
     return list(dict.fromkeys(out))

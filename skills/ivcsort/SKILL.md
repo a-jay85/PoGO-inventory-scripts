@@ -12,7 +12,7 @@ Search terms and their bugs: `~/PoGO-inventory-scripts/skills/shared/SEARCH.md`.
 
 ## Rules
 
-- Run it after /ivc has renamed every IVC Pokémon. The IV comes from the nickname.
+- The IV comes from the nickname. An IVC Pokémon still named after its species gets its /ivc name here, in the same open where it's judged (see Running it). /ivc first isn't needed.
 - Each Pokémon is compared with **everything the user owns** in its line, found with in-game searches by dex number. Nope-tagged ones don't count, and neither do species-named, Pvp-named or IV-less ones.
 - **Spots:** each final evolution in the family has its own spots. Non-shadow: 6 if that final's line can mega evolve (released in GO or not, `sort.py megas`), else 5. Shadow: 5 (shadows can't mega). Lucky: 1. Dynamax/Gigantamax: 3. Spots fill best IV first. A tie with last place keeps.
 - **One Pokémon, one spot:** a Pokémon that could become two finals (Eevee, Kirlia, Poliwhirl, Cubone) takes whichever spot has room, so it never counts twice. Spare top males fill Gardevoir spots once Gallade's are full.
@@ -32,20 +32,24 @@ Search terms and their bugs: `~/PoGO-inventory-scripts/skills/shared/SEARCH.md`.
 - A fail with XXL/xxs in the name is left alone for the user. A name with no IV and no size (`FP*`) goes to the door.
 - **98%/100% never go**, whatever the name says. The sort and the fallen-out step appraise each one before the door. A 98%+ one (a shadow: once purified) is kept instead.
 - **Fallen out:** older Pokémon with an /ivc name and no IVC tag that now fall outside the top (`fallen.json`, listed at the end of plan.txt). Shiny and costume ones are never touched. Not traded + caught 2016–2020 → tag GuaranteedLucky. Not traded + older than 300 days → tag Old. Anything else (traded, since a Pokémon trades only once, or newer) → its final tag at the door (star off, name cleared), or left as it is if the door isn't sure. Each one is judged again on its detail screen before anything changes. Steps: `run.py fallen <dir>` (read-only, sorts them into groups), then `run.py act-fallen <dir>`, on a sort run's folder (`pogo.py ivcsort + ivcsort fallen last + ivcsort act-fallen last`).
-- It never renames or transfers.
+- It never transfers. It renames only the IVC ones still named after their species (the /ivc name).
 
 ## Running it
 
-One command, after /ivc: `POGO_PHONE=android caffeinate -dimsu python3 ~/PoGO-inventory-scripts/pogo.py ivc + ivcsort`. Or on its own: `caffeinate -dimsu python3 $S/run.py [--limit N] [--look]`. It doesn't ask first (2026-10-27): the 98%+ appraisal and `/cleanup`'s suspects pass catch a wrong Nope.
+One command: `POGO_PHONE=android caffeinate -dimsu python3 ~/PoGO-inventory-scripts/pogo.py ivcsort`. Or on its own: `caffeinate -dimsu python3 $S/run.py [--limit N] [--look]`. It doesn't ask first (2026-10-27): the 98%+ appraisal and `/cleanup`'s suspects pass catch a wrong Nope.
 
 1. It counts `#IVC&!xxl&!xxs`. Up to 60 (`SMALL`): one search reads them all. More: it goes 50 dex numbers at a time (`#IVC&!xxl&!xxs&1-50`, ...), and each block is tagged before the next is read.
-2. It opens each IVC Pokémon in the block and reads it (`scan.json`). One that /ivc renamed in the last 12 hours on this phone isn't opened: /ivc saved what its detail screen showed (`ivc/runs/<time>/read.json`).
+2. It reads each IVC Pokémon in the block (`scan.json`). One read before on this phone with the same name and CP isn't opened: what its detail screen showed is saved (`ivc/runs/<time>/read.json` and `ivcsort/runs/<time>/read.json`, no age limit). One still named after its species isn't opened either: the name tells the species, and three searches over just those dex numbers (`&shadow`, `&lucky`, `&dynamax`) tell which pools it needs.
 3. Then one family at a time: it types that family's searches (`pools.json`), once a run. It reads again (up to 2 more times) any search whose miscount could turn a KEEP or DOOR into LEAVE. The search most of the family's IVC ones show in goes last.
-4. It decides (`plan.txt`) and, on that last list still on screen, favorites + unticks IVC, or sends it to the door (`act.json`). An IVC one in another of the family's lists (a shadow, say) gets that list typed. A tile with the same name and CP but no IVC tag is an older keeper: it's passed.
+4. It decides (`plan.txt`) and, on that last list still on screen, acts (`act.json`):
+   - LOOK (still named after its species): opened once. It's appraised and named as /ivc does, its new name goes into the pools, and it's judged right there. KEEP: favorite + untick IVC. DOOR: the door. A KEEP waits (LEAVE) while the family has another one still to look at. IV too low to show: the door, unnamed. Good for PvP: PvpC, as /ivc does.
+   - KEEP: favorites + unticks IVC. DOOR: the door.
+   - An IVC one in another of the family's lists (a shadow, say) gets that list typed. A tile with the same name and CP but no IVC tag is an older keeper: it's passed.
+5. If a LOOK was named, it plans the family again and acts on the KEEPs that were waiting for it. Each Pokémon is still opened once.
 
 A stop loses nothing: `run.py sort $S/runs/<time>` carries on, the same way it started (blocks done are in `sorted.json`, families in `families.json`). `--limit N` stops after N changes. `--look` does steps 1-3 and writes `plan.txt`, changing nothing (no named-Nope pass either). A family whose named Nopes aren't all judged isn't done: a rerun finishes them.
 
-An IVC Pokémon still named after its species has no IV in the pools, so it could beat a KEEP. Every KEEP whose searches could show it (its name's family: a Happiny holds back the Blissey line only) becomes LEAVE until /ivc renames it. A name that matches no species holds back its whole block. A DOOR stays.
+An IVC Pokémon still named after its species has no IV in the pools, so it could beat a KEEP. Every KEEP whose searches could show it (its name's family: a Happiny holds back the Blissey line only) becomes LEAVE until it's been looked at (step 4). A name that matches no species (only /ivc can name that one) holds back its whole block. A DOOR stays.
 
 To test one search, run `python3 $S/run.py search "4&!#Nope&shadow"`.
 

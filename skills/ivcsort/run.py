@@ -11,7 +11,8 @@
   python3 run.py search "<query>" [...]                     type searches and print the tiles (testing; later ones edit the bar's end)
   POGO_PHONE=android caffeinate -dimsu python3 run.py ...   (Android phone over USB, see ../pvpc/android.py)
 
-Run /ivc first: an IVC Pokémon still named after its species blocks every KEEP it could beat. Start with Pokémon GO
+An IVC Pokémon still named after its species is opened once (look): appraised, named as /ivc does, judged and
+favorited or sent to the door right there. Start with Pokémon GO
 open. A run writes into runs/<time>/ (scan.json, pools.json, plan.txt, plan.json, act.json, log.txt).
 """
 import glob, importlib.util, json, os, re, sys, time
@@ -77,17 +78,18 @@ def read_member(tile_name, tile_cp, ivc=True):
     return m
 
 
-IVC_FRESH = 12 * 3600  # /ivc's reads this recent stand in for opening the Pokémon (CP or name changed: no match)
 ivc_reads = []
 
 
 def from_ivc(tile_name, tile_cp):
-    """what /ivc read on this one's detail screen when it renamed it (its runs' read.json, same phone, last
-    IVC_FRESH seconds), as read_member would give it. Each read stands in for one tile. None: open it"""
+    """what was read on this one's detail screen when it was renamed (read.json of /ivc's and /ivcsort's runs, same
+    phone, newest first), as read_member would give it. A name and CP still the same is still that Pokémon (a
+    power-up changes the CP, a trade clears the name). Each read stands in for one tile. None: open it"""
     if not ivc_reads:
-        phone, now = "android" if ui.ANDROID else "ios", time.time()
-        for f in sorted(glob.glob(os.path.join(HERE, "..", "ivc", "runs", "*", ivcrun.READ))):
-            ivc_reads.extend(r for r in json.load(open(f)) if r["phone"] == phone and now - r["at"] < IVC_FRESH)
+        phone = "android" if ui.ANDROID else "ios"
+        files = [f for d in ("ivc", "ivcsort") for f in glob.glob(os.path.join(HERE, "..", d, "runs", "*", ivcrun.READ))]
+        ivc_reads.extend(sorted((r for f in files for r in json.load(open(f)) if r["phone"] == phone),
+                                key=lambda r: r["at"], reverse=True))
         ivc_reads.append(None)  # loaded (none left reads as "nothing to match")
     r = next((r for r in ivc_reads if r and r["cp"] == tile_cp and same_name(r["name"], tile_name)), None)
     if r is None:
@@ -203,13 +205,13 @@ def scan(limit=10 ** 9, only=None):
                 save("scan.json", found)
             return False
         if ivcrun.untouched(n):
-            log(f"  {n} CP{c} still has its species name: run /ivc first")
-            found.append({"tile": n, "cp": c, "unrenamed": True, "dex_range": list(in_range) or None})
+            found.append(unrenamed(n, c, in_range))
+            log(f"  {n} CP{c} still has its species name: opened when its family is sorted")
             save("scan.json", found)
             return False
         m = from_ivc(n, c)
         if m is not None:
-            log(f"tile {i}: {n} CP{c}: /ivc read it just now, not opening it")
+            log(f"tile {i}: {n} CP{c}: read before, not opening it")
             add(m)
             return False
         log(f"tile {i}: {n} CP{c}")
@@ -275,6 +277,7 @@ def scan(limit=10 ** 9, only=None):
                 in_range[:] = []
             have = sum(chunk_of(m, a, b) for m in found)
             log(f"  {q}: {have} of {want} scanned")
+        flag_unrenamed(found, a, b)
         chunks[q] = {"want": want, "have": have, "done": want is not None and have >= want}
         save("chunks.json", chunks)  # (no tab switch here: start_search clears the bar and goes back to the top)
         if len(found) >= limit:
@@ -282,6 +285,38 @@ def scan(limit=10 ** 9, only=None):
     left = {q: f"{c['have']}/{c['want']}" for q, c in chunks.items() if not c["done"]}
     log(f"scanned {len(found)}, {sum(bool(m.get('unrenamed')) for m in found)} still unrenamed; "
         f"chunks not done: {left or 'none'}")
+
+
+def unrenamed(n, c, in_range):
+    """an IVC one still named after its species: the name tells the species, the flag searches tell shadow,
+    lucky and Dynamax. Its IVs come when it's opened (look)"""
+    names = ivcrun.named_species(n)
+    opts = [s for s, p in sort.SPECIES.items() if p["speciesName"].split(" (")[0].lower() in names]
+    if in_range:
+        opts = [s for s in opts if in_range[0] <= sort.SPECIES[s]["dex"] <= in_range[1]] or opts
+    return {"tile": n, "name": n, "cp": c, "unrenamed": True, "dex_range": list(in_range) or None,
+            "species_options": opts, "species": sort.pick_species(opts) or (opts[0] if opts else None),
+            "shadow": False, "lucky": False, "dynamax": False, "size": None}
+
+
+FLAGS = ("shadow", "lucky", "dynamax")
+
+
+def flag_unrenamed(found, a, b):
+    """the unrenamed ones of chunk a-b: which are shadow, lucky or Dynamax (a search each, over just their dex
+    numbers). Their pool searches depend on it, and none of it shows on a tile"""
+    us = [m for m in found if m.get("unrenamed") and m.get("species") and chunk_of(m, a, b) and "flags" not in m]
+    if not us:
+        return
+    dex = dex_terms(sort.SPECIES[m["species"]]["dex"] for m in us)
+    for f in FLAGS:
+        got, _ = run_search(f"#{TAG}&!xxl&!xxs&{dex}&{f}", False, edit=True)
+        for m in us:
+            m[f] = any(c == m["cp"] and same_name(n, m["tile"]) for n, c in got)
+    for m in us:
+        m["flags"] = True
+        log(f"  {m['tile']} CP{m['cp']}: {m['species']} {' '.join(f for f in FLAGS if m[f])}")
+    save("scan.json", found)
 
 
 # ---------- 2. pools (search) ----------
@@ -462,8 +497,13 @@ def plan(quiet=False):
     wants = load("counts.json") if os.path.exists(os.path.join(base.RUN_DIR, "counts.json")) else {}
     out, lines, counts = [], [], Counter()
     for m in scanned:
-        if m.get("unrenamed"):
-            verdict, why = "SKIP", ["still has its species name: run /ivc first"]
+        if m.get("done"):
+            verdict, why = "DONE", [f"{m['done']} when it was opened and named"]
+        elif m.get("unrenamed") and not (m.get("species") and m.get("flags")):
+            verdict, why = "SKIP", ["still has its species name, and the name is no species: run /ivc first"]
+        elif m.get("unrenamed"):
+            verdict, why = ("LOOK", ["still has its species name: open, appraise, name and judge it"]) \
+                if all(q in results for q in sort.searches_for(m)) else ("SKIP", ["a pool search is missing"])
         elif not m.get("species"):
             verdict, why = "SKIP", [f"species unsure: {m.get('species_options')}"]
         elif any(q not in results for q in sort.searches_for(m)):
@@ -489,9 +529,9 @@ def plan(quiet=False):
     if grouped:
         lines += ["", "FALLEN OUT, by group (from `run.py fallen`):"] + \
             [f"  {g}: {sum(len(v) for v in grouped[g].values())}" for g in grouped]
-    unrenamed = sum(bool(m.get("unrenamed")) for m in scanned)
-    head = ([f"WARNING: {unrenamed} IVC Pokémon still have their species name. Run /ivc on them first: "
-             "until then they don't count in any pool, so too many get kept."] if unrenamed else []) + [f"{dict(counts)}", "KEEP = favorite + untick IVC.  DOOR = its final tag at the door (or left as is, not sure).  LEAVE/SKIP = untouched.", ""]
+    unrenamed = counts["SKIP"] and sum(bool(m.get("unrenamed")) and not m.get("flags") for m in scanned)
+    head = ([f"WARNING: {unrenamed} IVC Pokémon have a name that's no species. Run /ivc on them first: "
+             "until then they don't count in any pool, so too many get kept."] if unrenamed else []) + [f"{dict(counts)}", "KEEP = favorite + untick IVC.  DOOR = its final tag at the door (or left as is, not sure).  LOOK = still named after its species: opened once, named, judged and tagged right there.  DONE = that happened this run.  LEAVE/SKIP = untouched.", ""]
     with open(os.path.join(base.RUN_DIR, "plan.txt"), "w") as f:
         f.write("\n".join(head + lines) + "\n")
     if not quiet:
@@ -633,15 +673,90 @@ def door_for(m):
     return DOORS.get("all") or DOORS.get(dex_of(m))
 
 
+ACTS = ("KEEP", "DOOR", "LOOK")  # the verdicts act opens a Pokémon for
+
+
+def renamed_in_pools(results, n, c, name, own):
+    """the pools showed this one as its species name (n): it's name now. own: its searches, where it belongs even
+    if no tile of it was read"""
+    for q, tiles in results.items():
+        j = next((j for j, (t, tc) in enumerate(tiles) if tc == c and ivcrun.untouched(t) and same_name(t, n)), None)
+        if j is not None:
+            tiles[j] = (name, c)
+        elif q in own:
+            tiles.append((name, c))
+
+
+def look(i, n, c, p, members):
+    """a LOOK: open it once, appraise and name it as /ivc does, judge it against the pools right there, and favorite
+    it or take it to the door while its detail screen is open. -> True if it left the list on screen"""
+    r = ivcrun.read_one(i, n, c)
+    info, texts, name = r["info"], r["texts"], r["name"]
+    sp = [s for s in r["sp"] if s in sort.SPECIES]
+    m = dict(p, unrenamed=False, hp=info["hp"], candy=candy(texts), types=sorted(type_line(texts)), shadow=r["shadow"],
+             lucky=r["lucky"], size=r["size"], dynamax=dynamax(texts), tags=info["tags"],
+             species_options=sp or p["species_options"], bars=list(r["bars"]), raws=list(r["raws"]) if r["raws"] else None)
+    for k in ("verdict", "why", "flags"):
+        m.pop(k, None)
+    m["species"] = sort.pick_species(m["species_options"]) or p["species"]
+    if m["species"] not in sp and sp:
+        log(f"  {n!r} is {sp}, its name said {p['species']}")
+    if name == "->PvpC":
+        ivcrun.retag("PvpC")
+        verdict, gone, why = "PvpC", "PvpC", ["IV too low to show, good for PvP: /pvpc names it"]
+    elif name is None:  # IV too low to show: nothing to name it, the door gives its final tag (as /ivc does)
+        verdict, why = "DOOR", ["IV too low to show"]
+        if not door_for(m):
+            raise Skip(f"a {m['species']}: outside what the door's searches covered, next run")
+        gone = door_for(m).judge(info, texts, sp or [m["species"]], r["ivs"], (n, c), size=r["size"], raws=r["raws"])
+    else:
+        ivcrun.do_rename(name, ivcrun.same_name)
+        ivcrun.keep_read(r)  # a later run takes it from here instead of opening it
+        m["name"] = m["tile"] = name
+        results = {k: [tuple(x) for x in v] for k, v in load("pools.json").items()}
+        wants = load("counts.json") if os.path.exists(os.path.join(base.RUN_DIR, "counts.json")) else {}
+        renamed_in_pools(results, n, c, name, set(sort.searches_for(m)))
+        save("pools.json", results)
+        if any(q not in results for q in sort.searches_for(m)):
+            verdict, why = "LEAVE", ["named; a pool search it needs is missing: judged after the family's searches"]
+        else:
+            verdict, why = judge(m, results, wants)
+            others = [x for x in load("scan.json") if plan_key(x) != plan_key(p)]
+            verdict, why = unrenamed_check(m, others, verdict, why)  # a KEEP waits for the family's other unnamed ones
+        gone = verdict
+        if verdict == "KEEP":
+            favorite_and_untag()
+        elif verdict == "DOOR" and not door_for(m):
+            verdict, gone = "LEAVE", "LEAVE"
+            why = ["named; DOOR, but outside what the door's searches covered: next run"] + why
+        elif verdict == "DOOR":
+            info, texts, _ = steady_detail()
+            gone = door_for(m).judge(info, texts, [m["species"]], r["ivs"], (name, c), size=r["size"], raws=r["raws"],
+                                     gym_top20=False, clear=True, iv_top=lucky_rank(m))
+    log(f"DONE LOOK -> {verdict}{'' if gone == verdict else ' -> ' + gone} {m['name']!r} CP{c} {m['species']}: "
+        f"{why[0] if why else ''}")
+    if verdict not in ("LEAVE", "SKIP"):  # a LEAVE stays a member: planned again with the family
+        m["done"] = verdict
+    found = load("scan.json")
+    for x in found + members:
+        if plan_key(x) == plan_key(p):
+            x.clear()
+            x.update(m)
+    save("scan.json", found)
+    # an #IVC list loses it when IVC comes off. A name list: named (moves up past what's walked) or named and
+    # cleared again (back where it was), so the next tile keeps its place
+    return bool(SHOWN["q"] and SHOWN["q"].startswith("#")) and gone not in ("LEAVE", "SKIP", door.UNSURE)
+
+
 def act(limit, members):
     """tag one family's KEEPs and DOORs on its own search lists (an IVC Pokémon has no Nope, so it shows there):
     the list still on screen from pools first, then any other list that holds one. -> (how many were opened,
     how many weren't found: the family isn't done then, a rerun walks its lists again)"""
     mine = {plan_key(m) for m in members}
-    lists, plans = {}, [m for m in load_plan() if m["verdict"] in ("KEEP", "DOOR") and plan_key(m) in mine]
-    if any(m["verdict"] == "DOOR" and not door_for(m) for m in plans):
+    lists, plans = {}, [m for m in load_plan() if m["verdict"] in ACTS and plan_key(m) in mine]
+    if any(m["verdict"] in ("DOOR", "LOOK") and not door_for(m) for m in plans):  # (a LOOK may turn out DOOR)
         # its searches only over the dex numbers sent to the door and not covered yet: a short list reads right more often
-        new = {dex_of(m) for m in load_plan() if m["verdict"] == "DOOR" and m.get("species") in sort.SPECIES
+        new = {dex_of(m) for m in load_plan() if m["verdict"] in ("DOOR", "LOOK") and m.get("species") in sort.SPECIES
                and not door_for(m)}
         dex = dex_terms(new)
         scope = f"#{TAG}&{dex}" if len(dex) <= ACT_QUERY_MAX else None
@@ -669,9 +784,9 @@ def act(limit, members):
     skipped = {tuple(k) for k in progress["skipped"]}
     lists = {q: ms for q, ms in lists.items() if any((sort.clean_name(m["tile"]), m["cp"]) not in skipped for m in ms)}
     if not lists:
-        return 0, 0
+        return 0, 0, 0
     pooled = []  # pools and counts, loaded the first time a Pokémon has to be judged again
-    opened, missed = [0], 0
+    opened, missed, looked = [0], 0, [0]
     todo, want = Counter(), {}
 
     def visit(i, n, c):
@@ -697,6 +812,16 @@ def act(limit, members):
         plans = want[(n, c)]
         opened[0] += 1
         log(f"tile {i}: {n} CP{c}")
+        p = next((p for p in plans if p["verdict"] == "LOOK"), None)
+        if p:
+            gone = look(i, n, c, p, members)
+            looked[0] += 1
+            plans.remove(p)
+            todo[(n, c)] -= 1
+            progress["done"].append([n, c, p["name"], p["species"]])
+            save("act.json", progress)
+            go("close", "list")
+            return gone
         ivcrun.open_tile(i)
         now = read_member(n, c)
         for _ in range(2):  # candy or type line misread: no species. Read again
@@ -791,7 +916,7 @@ def act(limit, members):
         if left() and opened[0] < limit:
             log(f"  left over on {q} (not found): {left()}")
             missed += left()
-    return opened[0], missed
+    return opened[0], missed, looked[0]
 
 
 # ---------- sort: one dex chunk at a time ----------
@@ -844,13 +969,22 @@ def sort_all(limit, look):
             fkey = "|".join(sorted(qs))
             if fkey in fams_done:
                 continue
-            pools(fam)
-            plan(quiet=True)  # every scanned one so far: the earlier families' are done already (act.json)
-            verdicts = Counter(m["verdict"] for m in load_plan() if plan_key(m) in {plan_key(f) for f in fam})
-            log(f"family {sorted({m['species'] for m in fam})}: {dict(verdicts)}")
-            if not look:
-                n, missed = act(left, fam)
+            missed = 0
+            for _ in range(2):  # the LOOKs first named, then the KEEPs they held back (one open each all the same)
+                rest = [m for m in fam if not m.get("done")]
+                if not rest:
+                    break
+                pools(rest)
+                plan(quiet=True)  # every scanned one so far: the earlier families' are done already (act.json)
+                verdicts = Counter(m["verdict"] for m in load_plan() if plan_key(m) in {plan_key(f) for f in fam})
+                log(f"family {sorted({m['species'] for m in fam})}: {dict(verdicts)}")
+                if look:
+                    break
+                n, missed_now, looked = act(left, fam)
                 left -= n
+                missed += missed_now
+                if not looked or left <= 0:
+                    break
             if left <= 0:  # the family may have more to change: not done (a rerun passes over what act.json has)
                 log(f"--limit {limit} reached: `sort {base.RUN_DIR}` carries on")
                 return

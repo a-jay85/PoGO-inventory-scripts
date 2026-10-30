@@ -45,7 +45,7 @@ One command, after /ivc: `POGO_PHONE=android caffeinate -dimsu python3 ~/PoGO-in
 
 A stop loses nothing: `run.py sort $S/runs/<time>` carries on, the same way it started (blocks done are in `sorted.json`, families in `families.json`). `--limit N` stops after N changes. `--look` does steps 1-3 and writes `plan.txt`, changing nothing (no named-Nope pass either). A family whose named Nopes aren't all judged isn't done: a rerun finishes them.
 
-An IVC Pokémon still named after its species has no IV in the pools, so it could beat a KEEP. Every KEEP its block could hold becomes LEAVE until /ivc renames it. A DOOR stays.
+An IVC Pokémon still named after its species has no IV in the pools, so it could beat a KEEP. Every KEEP whose searches could show it (its name's family: a Happiny holds back the Blissey line only) becomes LEAVE until /ivc renames it. A name that matches no species holds back its whole block. A DOOR stays.
 
 To test one search, run `python3 $S/run.py search "4&!#Nope&shadow"`.
 

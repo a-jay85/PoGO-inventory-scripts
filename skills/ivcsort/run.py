@@ -429,14 +429,28 @@ def dexes_of(q):
     return {int(d) for d in q.split("&")[0].split(",")}
 
 
+def unrenamed_dexes(u):
+    """the dex numbers an unrenamed one's searches cover: its name's species and their families (a 'Happiny' is
+    in the Blissey searches). Empty when the name is no species"""
+    names = ivcrun.named_species(u["tile"])
+    sids = [s for s, p in sort.SPECIES.items() if p["speciesName"].split(" (")[0].lower() in names]
+    return {sort.SPECIES[x]["dex"] for s in sids for line in sort.family(s) for x in line if x in sort.SPECIES}
+
+
 def unrenamed_check(m, scanned, verdict, why):
     """an IVC Pokémon still named after its species has no IV in the pools: it could beat a KEEP. A KEEP whose
-    searches could show one (same dex chunk) is left until /ivc has renamed it. A DOOR stays a DOOR: one more
-    rival can only push it further down."""
+    searches could show one (its name's family, or, a name that's no species, the same dex chunk) is left until
+    /ivc has renamed it. A DOOR stays a DOOR: one more rival can only push it further down."""
     if verdict != "KEEP" or not re.search(r"\bspot\b", why[0] if why else ""):  # 98%+, own form, Elite TM, gym CP:
         return verdict, why  # no IV ranking that an unknown IV could beat
-    ranges = [r for r in (u.get("dex_range") for u in scanned if u.get("unrenamed")) if r]
-    hit = sorted({d for q in sort.searches_for(m) for d in dexes_of(q) if any(a <= d <= b for a, b in ranges)})
+    could, ranges = set(), []  # (one Happiny read in a one-search scan of 1-1025 held back 23 KEEPs, 2026-10-30)
+    for u in (u for u in scanned if u.get("unrenamed")):
+        dexes = unrenamed_dexes(u)
+        could |= dexes
+        if not dexes and u.get("dex_range"):
+            ranges.append(u["dex_range"])
+    hit = sorted({d for q in sort.searches_for(m) for d in dexes_of(q)
+                  if d in could or any(a <= d <= b for a, b in ranges)})
     if not hit:
         return verdict, why
     return "LEAVE", [f"would be KEEP, but an IVC Pokémon still named after its species could be dex {hit}: "

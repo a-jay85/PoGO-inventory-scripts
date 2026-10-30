@@ -145,8 +145,11 @@ def back_to_top(me, bounds):
     A drag at the top closes the page, so check a fresh read before each drag and size it from the weight row."""
     for _ in range(12):
         texts = look()[1]  # the phone's own screenshot
-        if ui.classify(texts) == "detail" and who(texts)[1][1:3] == me[1:3]:  # same CP and HP (name reads can wobble)
-            return
+        now = who(texts)[1] if ui.classify(texts) == "detail" else None
+        cp_top = any(t[1] < 0.15 and re.match(r"[cC]\s*[pP]", t[4].strip()) for t in texts)
+        if now and (now[1:3] == me[1:3]  # same CP and HP (name reads can wobble)
+                    or cp_top and now[1] is None and None not in me[2:] and now[2:] == me[2:]):
+            return  # (a lucky one's sparkles can garble the CP: then the same HP, weight and height, with a CP at the top)
         if any(re.fullmatch(r"[cC]\s*[pP]\s*\d+", t[4].strip()) for t in texts):
             time.sleep(0.3)  # CP in sight: at the top, maybe still settling
             continue
@@ -157,11 +160,12 @@ def back_to_top(me, bounds):
             x, y = hold[0][0] + hold[0][2] / 2, hold[0][1] + hold[0][3] / 2
             # at the top the weight sits at ~0.6: move it to just short of there, any more and the page closes
             far = random.uniform(0.56, 0.58) - kg[0][1] if kg else random.uniform(0.4, 0.45)
-            base.drag(x, y, x, min(y + max(far, 0.03), 0.92), bounds)  # (drag waits for it to stop)
+            # (no CP in sight, so not at the top yet: a drag under 0.06 can leave it a hair short, the CP under the clock)
+            base.drag(x, y, x, min(y + max(far, 0.06), 0.92), bounds)  # (drag waits for it to stop)
         else:
             time.sleep(0.3)
     keep_capture("top")
-    raise Stop(f"couldn't get back to the top of the detail page (wanted {me}, read {who(texts)[1]})")
+    raise Stop(f"couldn't get back to the top of the detail page (wanted {me}, read {now})")
 
 
 def caught(texts):

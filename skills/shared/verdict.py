@@ -72,6 +72,7 @@ class Facts:
     kg: float = None
     candy_xl: int = None  # this account's Candy XL of the family
     levels: list = None  # the levels it can be at, from the power-up cost
+    evolves: bool = None  # an Evolve button under Power Up (None: that part of the page didn't show)
     far: bool = None  # caught 100 km+ away (the run's one 'distance100-' search)
     gym_top20: bool = None  # a gym defender: top 20 CP or IV of its species (its search)
     iv_top: bool = None  # a lucky one: top 5 IV of its line's non-shadow ones, 6 if it can mega (/ivcsort's sort)
@@ -299,8 +300,10 @@ def odd_one(f, t, sid, odd):
     if "costume" in odd:
         if f.iv_sum >= OVER_93:
             return Verdict("keep", (), f"costume, {round(f.iv_sum / 45 * 100)}%: a favorite")
-        if sid in t["raid"]:
-            return unsure("costume, a raid attacker's line: can it evolve into it? not checked")
+        if sid in t["raid"] and f.evolves is None:
+            return unsure("costume, a raid attacker's line: Evolve button not read")
+        if sid in t["raid"] and f.evolves:
+            return unsure("costume, can evolve in a raid attacker's line: GIV or XLX by hand")
         if f.candy_xl is None:
             return unsure("costume: Candy XL not read")
         if f.candy_xl < XL_CAP:

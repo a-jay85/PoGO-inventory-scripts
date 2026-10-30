@@ -297,7 +297,29 @@
   "unsure",
   [],
   null,
-  "costume, a raid attacker's line: can it evolve into it? not checked"
+  "costume, a raid attacker's line: Evolve button not read"
+ ],
+ "costume raid attacker line, can't evolve": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "costume, 360+ Candy XL"
+ ],
+ "costume raid attacker line, can't evolve, under 360 XL": [
+  "tag",
+  [
+   "2XL"
+  ],
+  null,
+  "costume, under 360 Candy XL"
+ ],
+ "costume raid attacker line, can evolve": [
+  "unsure",
+  [],
+  null,
+  "costume, can evolve in a raid attacker's line: GIV or XLX by hand"
  ],
  "costume, under 360 XL": [
   "tag",

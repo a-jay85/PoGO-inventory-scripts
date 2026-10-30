@@ -92,7 +92,7 @@ class Door:
             base.set_tags(off=[self.tag])
             log(f"  has {self.other} too: unticked {self.tag} only, {self.other} decides")
             return f"left for {self.other}"
-        if (got := base.narrow(sp, ivs, info["cp"] or tile[1], info["hp"])) != sp:  # (the walk checked the tile's CP)
+        if (got := base.narrow(sp, ivs, tile[1] or info["cp"], info["hp"])) != sp:  # (the walk checked the tile's CP)
             log(f"  {'/'.join(sp)}: only {'/'.join(got)} has these IVs at this CP and HP")
             sp = got
         f, why = self.facts(info, texts, sp, ivs, key(*tile), size, gym_top20, iv_top, tile[1])
@@ -133,7 +133,10 @@ class Door:
         hp = next(t for t in texts if re.search(r"\d+\s*/\s*\d+\s*HP", t[4]))
         near = [ui.norm(t[4]) for t in texts if hp[1] < t[1] < hp[1] + 0.3]
         xl = self.has("xl_under", tile)
-        f = vd.Facts(account=self.account, sids=list(sp), iv_sum=sum(ivs) if ivs else None,
+        rows = [ui.norm(t[4]) for t in texts]
+        evolves = True if any(r.startswith("EVOLVE") for r in rows) else False if any(
+            r.startswith("POWER UP") for r in rows) else None  # (Mega Evolve starts MEGA)
+        f = vd.Facts(evolves=evolves,account=self.account, sids=list(sp), iv_sum=sum(ivs) if ivs else None,
                      ivs=tuple(ivs) if ivs else None, shiny=self.has("shiny", tile),
                      costume=self.has("costume", tile), background=self.has("background", tile),
                      traded=self.has("traded", tile), caught=self.caught(info), shadow=base.is_shadow(texts),

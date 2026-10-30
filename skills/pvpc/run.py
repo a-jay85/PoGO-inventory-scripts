@@ -362,6 +362,21 @@ def fallen_step():
     return found
 
 
+def species_here(pool, texts=None):
+    """the open detail screen's species ids, from its candy and types, within the pool's line"""
+    first = load("fallen-pools.json")[pool][0]
+    if texts is None:
+        texts = steady_detail()[1]
+    got = candy(texts)  # a line with a baby takes the next one's candy (Azurill: MARILL CANDY)
+    if ui.norm(got or "") not in {ui.norm(pvp.base_name(s)) for s in pvp.tree(first)}:
+        raise Skip(f"candy reads {got!r}, not the {pvp.display(first)} line's")
+    seen = type_line(texts)
+    sp = [s for s in pvp.tree(first) if {t.upper() for t in pvp.PLAIN[s]["types"] if t != "none"} == seen]
+    if not sp:
+        raise Skip(f"no form in the {pvp.display(first)} line has types {sorted(seen)}")
+    return sp
+
+
 def appraise_slots(pool, n, c, known=None):
     """on its detail screen: species, shadow or not, then every top-100 slot it really has (appraised, unless
     known). -> (slots or None if it's the other kind, what to log). Leaves the detail screen open."""
@@ -373,13 +388,7 @@ def appraise_slots(pool, n, c, known=None):
         return None, f"{'shadow' if is_shadow(texts) else 'not shadow'}, the pool was the other kind"
     if known:
         return known, "appraised earlier"
-    got = candy(texts)  # a line with a baby takes the next one's candy (Azurill: MARILL CANDY)
-    if ui.norm(got or "") not in {ui.norm(pvp.base_name(s)) for s in pvp.tree(first)}:
-        raise Skip(f"candy reads {got!r}, not the {pvp.display(first)} line's")
-    seen = type_line(texts)
-    sp = [s for s in pvp.tree(first) if {t.upper() for t in pvp.PLAIN[s]["types"] if t != "none"} == seen]
-    if not sp:
-        raise Skip(f"no form in the {pvp.display(first)} line has types {sorted(seen)}")
+    sp = species_here(pool, texts)
     cp = info["cp"] or c
     open_appraisal()
     bars, raws = appraise()
@@ -505,7 +514,9 @@ def act_fallen(limit):
     log(f"trims done: {done} renamed. {len(found)} beaten everywhere")
     if found and done < limit:
         fallen.groups(iv_only=False)
-        done += sum(fallen.act(limit - done, recheck_fallen, off=("PvpC",)).values())
+        pool = lambda n, c: next(f["pool"] for f in load("fallen.json") if (f["name"], f["cp"]) == (n, c))
+        done += sum(fallen.act(limit - done, recheck_fallen, "PvpC", lambda n, c: species_here(pool(n, c)),
+                               off=("PvpC",)).values())
     return done
 
 

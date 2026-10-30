@@ -145,7 +145,7 @@ def off_map():
         if {"POKDEX", "POKMON", "ITEMS", "SHOP"} <= {w.replace("É", "") for w in words}:  # main menu
             t = next(t for t in texts if ui.norm(t[4]).replace("É", "") == "POKMON")
             fx, fy = t[0] + t[2] / 2, t[1] + 0.055  # the round button under the label
-        elif len(texts) <= 10 and pokeball(path):  # the map
+        elif len(texts) <= 16 and pokeball(path):  # the map (an event's raid and Rocket timers add to its text: 11 seen)
             fx, fy = 0.5, 0.928
         else:
             return

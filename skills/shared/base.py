@@ -3,7 +3,7 @@
 tags, star, rename) every skill's script uses. One copy in memory per run: scripts `import base`, so all of
 them share one RUN_DIR and one last_tap. /pvpc's own walk is ../pvpc/run.py.
 """
-import contextlib, json, math, os, random, re, shutil, subprocess, sys, time
+import contextlib, json, math, os, random, re, shutil, subprocess, sys, time, unicodedata
 from collections import Counter
 
 import ui, pvp
@@ -927,7 +927,9 @@ def extras(texts):
 
 
 def candy(texts):
-    """the family's candy name: 'ABSOL CANDY' on one line, or the word right above CANDY (not CANDY XL)"""
+    """the family's candy name: 'ABSOL CANDY' on one line, or the word right above CANDY (not CANDY XL).
+    Accents off first: norm would drop FLABÉBÉ's É and leave FLABB"""
+    texts = [(*t[:4], unicodedata.normalize("NFKD", t[4]).encode("ascii", "ignore").decode(), *t[5:]) for t in texts]
     one = {re.sub(r"\s+CANDY$", "", ui.norm(t[4])) for t in texts if re.search(r"\S\s+CANDY$", ui.norm(t[4]))}
     if len(one) == 1:
         return one.pop()

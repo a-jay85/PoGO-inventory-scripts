@@ -70,10 +70,15 @@ class Door:
             got, want = find(term)
             ok = want is not None and len(got) == want
             self.sets[k] = Counter(key(n, c) for n, c in got)
+            # more different tiles than the game counts: some aren't in it (81 for 65, 2026-10-30), so none is trusted.
+            # Fewer, or the same tile read twice: a tile read is in it
+            usable = ok or want is not None and len(self.sets[k]) <= want
             if not ok:
                 self.partial.add(k)
-            log(f"door: {self.scope}&{term}: {len(got)} read, the game says {want}" +
-                ("" if ok else ": only a tile read in it counts"))
+            if not usable:
+                self.sets[k] = None
+            log(f"door: {self.scope}&{term}: {len(got)} read ({len(set(key(n, c) for n, c in got))} different), "
+                f"the game says {want}" + ("" if ok else ": only a tile read in it counts" if usable else ": not used"))
 
     def has(self, k, tile):
         """a search whose count didn't match (a long list read 57 for 55): a tile read in it is in it, one not read

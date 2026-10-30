@@ -1,17 +1,9 @@
 #!/usr/bin/env python3
-"""Cleanup: retag the Nope Pokémon that should be traded away instead.
+"""Cleanup's shared reads and taps: a search typed until the bar reads back exactly, who's on the detail page (name, CP,
+HP, weight, height), its tag chips, the caught date at the bottom of the page, and the tag sheet's rows and ticks.
 
-  caffeinate -dimsu python3 trades.py [--limit N] [--dry-run]     (N = most Pokémon to retag; dry run changes nothing)
-  POGO_PHONE=android caffeinate -dimsu python3 trades.py ...   (Android phone over USB)
-
-Start with Pokémon GO on the Pokémon screen. Two groups, each one searched, opened and swiped through:
-  1. not traded, and legendary, Ultra Beast, Meltan or Melmetal -> Remote Trade + RT (+ Old if caught 300+ days ago)
-  2. traded legendary, Ultra Beast, Meltan or Melmetal -> Spot Transfer (other traded Nope ones are left alone)
-and Nope comes off. Shiny and costume ones are kept out by the search. On its detail screen each one is retagged only
-if: its only tag is Nope, no star, no XXL/XXS in the name. Group 1 also needs: not shadow, a tradeable family (not
-Deoxys and the other mythicals) and, for Kyurem and Necrozma, not fused. Its age comes off the caught date at the
-bottom, read twice. Anything else keeps Nope and is passed over.
-Log and done.json go in runs/<time>/.
+It used to retag Nope legendaries, Ultra Beasts, Meltan and Melmetal (Remote Trade + RT, or Spot Transfer). Nothing
+tags Nope now: ../shared/verdict.py gives those tags at the door, with the same rules.
 """
 import datetime, os, random, re, sys, time
 
@@ -19,24 +11,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import ui
 import base
-from base import Stop, log, keep_capture, go, look, wait_for, save, load, candy
-import search, session
-from shadows import Pass, GM, press, next_one, reopen_top, settled_tiles, exact, not_high_iv
-
-OLD_DAYS = 300  # caught this many days ago or more -> Old (the game's age300-)
-LEGENDS = "#Nope&!traded&!shiny&!costume&legendary"
-BEASTS = "#Nope&!traded&!shiny&!costume&793-806,808,809"  # Ultra Beasts, Meltan, Melmetal (801, 802: candy check)
-TRADED = ("#Nope&traded&!shiny&!costume&legendary", "#Nope&traded&!shiny&!costume&793-806,808,809")  # same species as 1.
-
-
-def family(tag):
-    return {p["speciesName"].split(" (")[0].upper() for p in GM["pokemon"] if tag in p.get("tags", [])}
-
-
-TRADEABLE = family("legendary") | family("ultrabeast") | {"MELTAN"}  # Melmetal's candy is Meltan's
-FUSES = {"KYUREM", "NECROZMA"}  # fused ones can't be traded
-DRY = False  # --dry-run: read and log, change no tags
-
+from base import Stop, log, keep_capture, go, look, wait_for
+import search
+from shadows import press, exact
 
 # ---------- search: start and end of the bar both read back ----------
 
@@ -66,6 +43,8 @@ def bar_view(got, q):
     s = re.sub(r"^[<‹]?[q9]?(?=#)", "", s)  # the magnifier glued on
     s = re.sub(r"^[,.'`]+", "", s)  # the panel's cursor end can read as a stray ","
     Q = re.sub(r"\s", "", q).lower()
+    if Q.startswith("#") and s.startswith("9") and s[1:2] != "#":  # a first '#' alone can read as '9' ('9nope&#old')
+        s = "#" + s[1:]
     s, Q = re.sub(r"[i|]", "l", s), re.sub(r"[i|]", "l", Q)  # OCR reads 'xxl' as 'xxI' or 'xx|': one letter here
     bang = re.sub(r"^[q9]?[il|]", "!", s)  # the end of a long search: a '!' at its start reads as 'I' or 'QI'
     if bang != s and len(s) >= 15 and Q.endswith(bang):
@@ -125,11 +104,6 @@ def search_exact(q):
     raise Stop(f"couldn't read back all of {q!r} in the search bar")
 
 
-def result_tiles(q):
-    search_exact(q)
-    return settled_tiles()
-
-
 # ---------- one Pokémon ----------
 
 def who(texts):
@@ -148,20 +122,6 @@ def tag_chips(texts):
     return sorted(n for t in texts if hp[1] + 0.005 < t[1] < low - 0.005
                   and (n := re.sub(r"^[A-Z] (?=[A-Z]{2})", "", ui.norm(t[4])))  # Remote Trade's icon: "c Remote Trade"
                   and n not in ("DYNAMAX", "GIGANTAMAX") and not n.startswith("LUCKY POK"))
-
-
-def plain(info, texts, path):
-    """the shadow cleanup's skips: raise Pass unless it's tagged Nope only, no star, no XXL/XXS in the name"""
-    if tag_chips(texts) != ["NOPE"]:
-        raise Pass(f"tags {info['tags']}: not just Nope")
-    if re.search(r"xx[ls]", info["name"] or "", re.I):
-        raise Pass("XXL/XXS in the name")
-    star = ui.star_filled(path, texts)
-    if star is None and ui.ANDROID:
-        sp = ui.android.sharp()
-        star = ui.star_filled(sp, ui.ocr(sp))
-    if star is not False:
-        raise Pass("favorite" if star else "can't see the star")
 
 
 def scrolled_bottom(bounds):
@@ -212,37 +172,6 @@ def caught(texts):
         return datetime.datetime.strptime(ds.pop(), "%m/%d/%Y").date()
     except ValueError:
         return None
-
-
-def check_trade(info, texts, path, bounds, me):
-    """group 1: raise Pass if it can't or shouldn't be traded. -> the tags it gets"""
-    plain(info, texts, path)
-    if base.is_shadow(texts):
-        raise Pass("shadow: can't be traded")
-    c = candy(texts)
-    if not c:
-        raise Pass("can't read the candy name")
-    if c not in TRADEABLE:
-        raise Pass(f"{c.title()}: not a tradeable legendary/Ultra Beast")
-    if c in FUSES:  # the line sits mid-page, off screen by the bottom: look one drag down
-        base.drag(0.08, 0.75, 0.08, 0.2, bounds)
-        mid = [look()[1]] + ([ui.ocr(ui.android.sharp())] if ui.ANDROID else [])
-        if not all(any("can fuse with" in t[4] for t in r) for r in mid):
-            back_to_top(me, bounds)
-            raise Pass(f"{c.title()}: no 'can fuse with' line, may be fused")
-    reads = scrolled_bottom(bounds)
-    try:
-        days = {caught(r) for r in reads}
-        if len(days) != 1 or None in days:
-            raise Pass(f"caught date reads {days}")
-        day = days.pop()
-        age = (datetime.date.today() - day).days
-        if not 0 <= age < 4000:
-            raise Pass(f"caught date {day} looks wrong")
-    finally:
-        back_to_top(me, bounds)
-    log(f"  {c.title()}, caught {day} ({age} days)")
-    return ["Remote Trade", "RT"] + (["Old"] if age >= OLD_DAYS else [])
 
 
 # ---------- the tag sheet ----------
@@ -329,149 +258,3 @@ def done_sheet(texts, bounds):
             again = False
     keep_capture("done")
     raise Stop("after DONE: never got back to the detail page")
-
-
-def same_one(me, what):
-    """raise Stop unless the detail screen still shows me (CP, max HP, weight, height): a stray swipe slides to the next one"""
-    nums = lambda w: (w[1], w[2], base.number(w[3], "kg"), base.number(w[4], "m"))
-    now = base.settle(lambda: who(wait_for("detail")[1])[1], lambda w: base.same_pokemon(nums(me), nums(w)), timeout=2)
-    if not base.same_pokemon(nums(me), nums(now)):
-        keep_capture("moved")
-        raise Stop(f"{what}: the screen shows CP{now[1]} HP{now[2]}, but CP{me[1]} HP{me[2]} was read. "
-                   f"It slid to another Pokémon: check that one's tags by hand")
-
-
-def retag(on, me, off=("Nope",)):
-    """tick on, untick off, scrolling down the sheet to find each. Afterwards the tags must be exactly on.
-    me: who() of the Pokémon it was decided for. Checked before and after, so tags never land on another"""
-    same_one(me, "before the tags")
-    _, texts, _, bounds = go("menu", "menu")
-    tag = exact(texts, "TAG")
-    if not tag:
-        go("TAG", "tags")
-    else:  # straight from the read that found the menu (go("TAG") would look twice more first)
-        press(tag[0], bounds)
-        screen = base.settle(lambda: look()[0], lambda s: s == "tags", timeout=4)
-        if screen == "menu":
-            go("TAG", "tags")
-        elif screen != "tags":
-            keep_capture("tag")
-            raise Stop(f"tapped TAG, got screen {screen}")
-    want = {**{t.upper(): False for t in off}, **{t.upper(): True for t in on}}
-    left, same, sheet = dict(want), 0, still_sheet()
-    for _ in range(30):
-        texts, path, bounds = sheet
-        rows = sheet_rows(texts, path)
-        for T in [T for T in left if T in rows]:
-            if rows[T][1] is not left[T]:
-                tick(T, rows[T][0], left[T], bounds)
-            del left[T]
-        if not left:
-            break
-        before = [t[4] for t in texts]
-        sheet_down(bounds)
-        sheet = still_sheet()  # (also the next round's read)
-        after = [t[4] for t in sheet[0]]
-        same = same + 1 if after == before else 0
-        if same >= 2:
-            cancel_sheet()
-            raise Stop(f"no {', '.join(left)} tag in the list: cancelled")
-    else:
-        cancel_sheet()
-        raise Stop(f"couldn't find {', '.join(left)} in the tag list: cancelled")
-    first = [done_sheet(texts, bounds)]
-    good = sorted(t.upper() for t in on)
-    got = base.settle(lambda: tag_chips(first.pop() if first else wait_for("detail")[1]), lambda t: t == good, timeout=4)
-    if got != good:
-        keep_capture("tags")
-        raise Stop(f"after DONE the tags read {got}, wanted {good}")
-    same_one(me, "after the tags")
-
-
-# ---------- the walk ----------
-
-def walk(q, decide, done, limit):
-    """open the first result and swipe through. decide() raises Pass or returns the tags to give it."""
-    if not result_tiles(q):
-        log(f"none in {q}")
-        return
-    log(f"--- {q}")
-    go("tile 1", "detail")
-    seen, passed, agains, retagged = set(), {}, 0, False
-    while len(done) < limit:
-        t0 = time.time()
-        _, texts, path, bounds = wait_for("detail")
-        info, me = who(texts)
-        if None in me:
-            agains += 1
-            if agains > 5:
-                raise Stop(f"can't read this one: {me}")
-            time.sleep(0.3)
-            continue
-        if me in seen:
-            log("swiped back onto one already seen: end of the list")
-            break
-        seen.add(me)
-        try:
-            if me in passed:
-                raise Pass(passed[me])
-            tags = decide(info, texts, path, bounds, me)
-            not_high_iv()  # last, so only the ones about to be retagged get appraised
-        except Pass as e:
-            if me not in passed:
-                log(f"pass {info['name']} CP{info['cp']}: {e}")
-            passed[me] = str(e)
-        else:
-            if DRY:  # tags left alone: swipe on to the next one
-                log(f"DRY would retag {info['name']} CP{info['cp']}: {' + '.join(tags)}, Nope off")
-                passed[me] = "dry run"
-            else:
-                retag(tags, me)
-                done.append({"name": info["name"], "cp": info["cp"], "tags": tags})
-                save("done.json", done)
-                log(f"retagged {info['name']} CP{info['cp']}: {' + '.join(tags)}, Nope off  ({time.time() - t0:.1f}s, #{len(done)})")
-                retagged = True
-        def moved(texts):
-            w = who(texts)[1]
-            if w == me or None in w:
-                return False
-            again = look()  # the same twice: a read mid-slide can mix two Pokémon
-            return again[0] == "detail" and who(again[1])[1] == w
-        if next_one(bounds, moved):
-            retagged = False
-        elif retagged:  # it no longer fits the search: back to the list, open the top one again
-            if not reopen_top():
-                return
-            seen, retagged = set(), False
-        else:
-            break
-    if len(done) >= limit:
-        log(f"--limit {limit} reached")
-    if look()[0] != "list":
-        go("close", "list")
-
-
-def check_traded(info, texts, path, bounds, me):
-    plain(info, texts, path)
-    return ["Spot Transfer"]
-
-
-def script(limit):
-    done = []
-    t_start = time.time()
-    try:
-        base.start()
-        for q, decide in ((LEGENDS, check_trade), (BEASTS, check_trade)) + tuple((q, check_traded) for q in TRADED):
-            if len(done) < limit:
-                walk(q, decide, done, limit)
-    finally:
-        log(f"retagged {len(done)} in {time.time() - t_start:.0f}s")
-
-
-if __name__ == "__main__":
-    a = sys.argv[1:]
-    if any(x not in ("--limit", "--dry-run") and not x.isdigit() for x in a):
-        sys.exit(__doc__)
-    DRY = "--dry-run" in a
-    base.new_run_dir(os.path.join(HERE, "runs"))
-    session.main(script, session.limit(a))

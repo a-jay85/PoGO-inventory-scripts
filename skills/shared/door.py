@@ -94,7 +94,7 @@ class Door:
             base.set_star(True)
         elif unstar and v.kind == "tag":
             base.set_star(False)
-        base.set_tags(on=list(v.tags), off=[self.tag, *v.off], ivs=ivs, raws=raws)
+        base.set_tags(on=list(v.tags), off=[self.tag, *v.off])
         if clear and v.kind == "tag" and not v.name:
             base.clear_name()
         return v.kind

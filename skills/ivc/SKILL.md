@@ -30,7 +30,7 @@ Works like /pvpc and borrows its screen reader, tapper and helper (`~/PoGO-inven
   - Gym defenders always show it so `/ivcsort` can rank them.
   - Everything else gets only the Elite TM and size parts.
   - **PvP first:** if one of those "everything else" ones passes the /pvpc test (top 100 in L, G or U), don't rename it. Remove IVC and add PvpC. /pvpc names it later.
-  - If there's nothing to show, it gets no name. Remove IVC and add Nope instead. If it also has PvpC, only remove IVC (no Nope): /pvpc decides.
+  - If there's nothing to show, it gets no name. It gets its final tag at the door (`../shared/door.py`: GIV, XLX, Transfer ...; not sure = left as is, on the not-sure list). If it also has PvpC, only remove IVC: /pvpc decides.
 - **Purified IV:** a shadow at 84% or more shows `/` and the purified IV%. Purifying adds +2 to each IV, max 15. Not shown at 100%.
 - **Stat letters** (only when the IV shows):
   - A capital for each stat at 15, in the order H, A, D. A 100% gets none.
@@ -70,5 +70,5 @@ A nickname hides the species. Find it from the detail screen instead:
 5. **Act.** Run `ivc.py name ...`.
    - Name: rename it the same way /pvpc does. Keep the IVC tag.
    - Check the PvP rule first: `$P/pvp.py rank <species> <a> <d> <h>`.
-   - NOPE: in TAG, untick IVC, tick Nope, then tap DONE. If PvpC is ticked too, only untick IVC. PvP candidate: same, but tick PvpC.
+   - NOPE: the script's door gives the final tag (never tick Nope by hand). If PvpC is ticked too, only untick IVC. PvP candidate: same, but tick PvpC.
 6. Tap `close` to go back to the list.

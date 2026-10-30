@@ -1,6 +1,6 @@
 ---
 name: cleanup
-description: Cleanup rules for Pokémon GO run on the phone. First rule: purify every shadow tagged Nope, then transfer them in one go. After trading: tag the PvpC1/PvpC2/IV Check shortcuts, power up Clean Trades ones sitting right under an XL-transfer tier, tag Clean Trades Transfer. Tag every Nope GIV, XLX or Transfer (tradeable.py tag --nope). Use when the user says /cleanup, asks to purify and transfer their Nope shadows, to sort their Nope pile, or to clean up after trading.
+description: Cleanup rules for Pokémon GO run on the phone. One-time pass: clear the last Nope pile (nopes.py). After trading: tag the PvpC1/PvpC2/IV Check shortcuts, power up Clean Trades ones sitting right under an XL-transfer tier, tag Clean Trades Transfer. Use when the user says /cleanup, asks to clear their Nope pile, or to clean up after trading.
 model: claude-sonnet-5-5
 ---
 
@@ -10,34 +10,22 @@ Uses the shared tapper and screen reader: the shared library (`~/PoGO-inventory-
 `S=~/.claude/skills/cleanup`.
 Search terms and their bugs: `~/PoGO-inventory-scripts/skills/shared/SEARCH.md`. Read it before building a search.
 
-## Shadows in Nope: purify, then transfer
+## The last Nope pile: nopes.py (once per account)
 
-`caffeinate -dimsu python3 $S/shadows.py [--limit N]`
+Nothing tags Nope any more (2026-10-29). /ivc, /ivcsort and /pvpc give the final tag at the door (`../shared/door.py`). `nopes.py` clears what's left in Nope:
 
-1. Checks that `#Nope&purified` is empty. If it isn't, it stops. Otherwise the bulk transfer could take older purified ones.
-2. Searches `#Nope&shadow&!shiny&!costume`. The bar has to read back exactly, because one lost `!` would flip the filter.
-3. Opens the first one. It purifies it only if all of these hold:
-   - its only tag is Nope
-   - no star
-   - no XXL/XXS in the name
-   - not legendary, mythical or an Ultra Beast (checked by its candy)
-   - enough candy and Stardust
-   - its appraisal reads under 98% once purified (a wrong name can land a 98% one in Nope). Trade retagging checks this too.
-   Anything else is passed over, and it swipes to the next one.
-4. Purify: one PURIFY tap, then a check that the dialog names this Pokémon, then one YES tap. It waits until PURIFY is gone, POWER UP is back and the CP has changed (about 13s of animation). It never taps twice: POWER UP moves into PURIFY's spot.
-5. After a purify, the swipe stops working, because it no longer fits the search. So it goes back to the list and opens the top tile again.
-6. At the end it searches `#Nope&purified`, long-presses a tile, then taps SELECT ALL. It transfers only if `TRANSFER (n)` and the dialog's "transfer n" both equal the number this run purified. If not, it leaves multi-select and stops.
+`POGO_PHONE=android caffeinate -dimsu python3 $S/nopes.py [--limit N] [--dry-run]`
 
-`--limit N` purifies at most N, then transfers those.
-If a run stops after purifying, run `python3 $S/shadows.py transfer $S/runs/<time>` to transfer what it purified (`purified.json`).
-Each run writes `runs/<time>/log.txt` with timings for every step.
+1. Nope comes off the ones that already have a final tag (GIV, XLX, 2XL, Transfer, Reroll, Luckydex, Old, GuaranteedLucky, Evo, Special).
+2. It walks `#Nope` and opens each one:
+   - also has IVC or PvpC: Nope off, that skill decides.
+   - 98%+ (a shadow: once purified): star on, Nope off.
+   - may still be a keeper (93%+, a nickname, or a gym defender): name cleared, IVC on, Nope off. /ivc names it again and /ivcsort judges it.
+   - the rest: the door gives its final tag and takes Nope off. Not sure (a shadow, lucky, costume, background ...): Nope stays and it goes on the not-sure list (`../shared/runs/not-sure.json`), so a rerun passes over it. Those stay out of the IV and PvP pools (their searches have `!#Nope`).
 
-**Android phone:** put `POGO_PHONE=android` in front. See the **Android phone** section of the /pvpc skill.
-**iPhone:** same code path (taps go through the Mac helper). Multi-select (long press, SELECT ALL, TRANSFER (n)) and the swipe haven't been tried on the iPhone yet. Run `--limit 1` first and watch.
+`--dry-run` skips step 1 and changes nothing in step 2. Run it on both accounts (`pogo.py account`).
 
-## Timing (Pixel, 2026-10-08)
-
-About 20–25s per Pokémon: ~13s is the game's purify animation, ~2s to the dialog, ~4–7s back to the list and into the next one. The bulk transfer takes ~2s for the lot.
+`shadows.py` and `trades.py` hold shared taps now (purify, exact search, tag sheet). Their old Nope walks are gone, and so are `rescue.py` and `suspects.py`.
 
 ## After trading: tag the shortcuts, power up for XL, tag Transfer
 
@@ -99,56 +87,12 @@ If `read` stops partway, `read runs/<time>-read/searches.json` picks up where it
 
 `read` ran on the Pixel on 2026-10-22. `tag` has never run. First time: `tag --limit 1`, with the user watching (it still tags every plan search).
 
-## Nope: the same tags for everything tagged Nope, on both accounts
-
-The rule (2026-10-25): anything in Nope gets the Tradeable tags, judged for the other account (the one it would be traded to). Nope comes off once its new tag is on.
-
-Since 2026-10-28, `pogo.py` runs this by itself after any `pvpc`, `ivc` or `ivcsort` step that can tag Nope, so Nope lasts minutes. When nothing in Nope can be tagged, it ends after one search. By hand:
-
-`POGO_PHONE=android caffeinate -dimsu python3 $S/tradeable.py tag --nope [--limit N]`, either account signed in:
-
-1. It runs `rescue.py` first. A 98%+ one in Nope gets the star and loses Nope, so it never gets a tag here.
-2. **Suspects** (2026-10-26): an untraded Nope one that may still belong in its species' top IV or PvP spots. It still has an /ivc name or a `Pvp` name, or it's 93%+. Every gym defender in Nope is a suspect too, traded or not, whatever its name or IVs (2026-10-27): it may be top 20 CP or top 20 IV of its species (/ivcsort's gym rule). It's judged again every run, because its rank moves as the pool changes. The pile is `#Nope&!traded,113,143,202,242,289,977&...` (`,` binds tighter than `&`, so: Nope and (untraded or a gym defender)). `suspects.py` judges each one in place, with the /ivcsort and /pvpc rules against what the account owns now:
-   - Still belongs: star on, Nope off (PvpC on for a PvP keeper, and its /ivc or Pvp name if it had none). No other tag. CyrillJan doesn't play PvP, so it keeps a Nope for PvP only if a slot is top 20 of all 4,096 IVs and the form is viable in that league (PvPoke's top 100 there, from `pvp.py update`'s `rankings.json`). Master League doesn't count: it wants perfect IVs, so the IV side covers it.
-   - Falls out: the nickname goes blank, so the game shows the species name. That means checked and cleared. It stays in Nope and gets the tags below.
-   - Can't tell (a branching line, a missing search, an unreadable tile): nothing is tagged. `tag --nope` lists them and stops. Sort those by hand, then run it again.
-   One walk of the pile opens each suspect once: read, judge, then keep or clear it before closing it. It skips the appraisal when it can: a suspect read in an earlier run (`runs/reads-<trainer>.json`, same HP) or an /ivc name that settles it. A name settles it when the `4attack`, `4defense` and `4hp` searches agree with its capitals, the species is pinned, and no IVs the name allows have a PvP slot that counts. The pool searches for ones read before are typed first. A new one waits for its pool searches and is changed in a second walk.
-   Already-cleared ones with a species name are remembered in `runs/checked-<trainer>.json`, so a rerun doesn't appraise them again (gym defenders aside: `reads-<trainer>.json` saves their appraisal). `suspects.py --dry-run` judges and writes `suspects.txt` without changing anything.
-3. **Traded** Nope: Transfer, Nope off. It can't trade again, so it gets no other tag (and no XLX: that's for untraded ones to trade away). It waits for the suspects, so a traded gym defender in its species' top 20 is kept first.
-4. **Untraded** Nope: the first tag that fits wins. HashTagAJay: GuaranteedLucky > Old > medal GIV > 2XL > GIV / XLX > Transfer. CyrillJan: GuaranteedLucky > Luckydex > Old > Reroll > GIV / XLX > Transfer. **Old** = caught 300+ days ago (`age300-`). Every Tradeable step runs, with `#Nope&!traded&...` typed in place of the `Tradeable` shortcut. The tagged ones keep Nope until the end, because the walks find them by it. Then Nope comes off everything with a new tag.
-
-Never touched (they stay Nope): shadows (`shadows.py` does those), lucky, costumes, backgrounds, special trades, and anything that also has IVC, PvpC, Old, GuaranteedLucky or Evo. An untraded catch from 2016-2020 (not special) gets GuaranteedLucky and loses Nope: a trade makes it lucky. That pass runs right after the traded Transfer pass.
-
-Which plan it uses goes by who's signed in:
-
-- **CyrillJan's Nope** goes to HashTagAJay: the normal `plan`, the same rules as the Tradeable pile.
-- **HashTagAJay's Nope** goes to CyrillJan: `python3 $S/tradeable.py plan --to CyrillJan`. CyrillJan isn't a completionist account. It only wants good raid attackers and Candy XL, so there's no Luckydex, Reroll or ★100% rule. The GIV (evolved) rule does run (stage 2, a hard stage 1, a gym defender; 2026-10-27), after XLX as above. **GIV**: in DialgaDex's top 6 against some raid boss (`/roster`'s `dialgadex-counters-<date>.json`; no shadows, a mega counts as its species, special trades left out), or an earlier stage of one. Not once CyrillJan has enough: 6 good (3★/4★) copies, or 1 for a species that's only in a top 6 as its mega (a team has one mega), and a Dynamax one of the family if it can Dynamax. After XLX, an untraded Dynamax one also gets GIV if CyrillJan has no Dynamax one of its family. The counts come from CyrillJan's own runs, both only searches: `POGO_PHONE=android caffeinate -dimsu python3 ~/.claude/skills/roster/roster.py count` and `... tradeable.py dynamax` (which families can Dynamax: `dynamax-<date>.json`, from `refresh`). Without them, nothing counts as enough. `plan.md` lists what was left out and why. **XLX**: level 29+ (a power-up costs 5,000 Stardust or more). GIV (far) and Transfer are as above. `read` with CyrillJan signed in adds its 360+ Candy XL families. Without it, none count as full.
-
-HashTagAJay's untraded Nope also gets two passes right after Old (2026-10-27):
-
-- **Medal GIV**: for any other account's Youngster and Fisherman medals. A Rattata (any region; `19&xxs,xs`) of 2.41 kg or less, or a Magikarp (`129`) of 13.13 kg or more. Each one is opened and its weight read. One with no weight read stops the run before 2XL; check those by hand.
-- **2XL**: under 360 Candy XL (`countcandyxl0-359`), for a Friendship Friday trade (a sure 2 Candy XL). Nope comes off. It beats every other GIV and XLX, so stage-2 GIV (Crobat) only lands in a family with 360+ Candy XL. A never-traded XXL/XXS one is left out: it gets IVC.
-
-`tag --nope --resort` first puts Nope back on the untraded ones tagged Transfer (and takes Transfer off), so they're judged again under new rules. It also forgets which plan searches already ran. Use it once after a rule change.
-
-HashTagAJay needs the GIV, 2XL, XLX and Transfer tags. `tag --nope` stops if one is missing.
-
-`tag --nope` has never run. `--limit` only caps power-ups: rescue, the traded Transfer pass and every GIV search still run in full. So first count these on each account with `python3 ~/.claude/skills/ivcsort/run.py search "<q>"` (only searches) and show the user:
-
-- `#Nope&traded&!shadow&!lucky&!costume&!background&!#IVC&!#PvpC&!#Old&!#GuaranteedLucky&!#Evo&!gigantamax&!shiny&!legendary&!mythical&!ultrabeast&!#Transfer`: these get Transfer straight away.
-- `#Nope&!traded&year2021-&!shadow&!lucky&!costume&!background&!#IVC&!#PvpC&!#Old&!#GuaranteedLucky&!#Evo`: the untraded pile. Next to `#Nope&!traded`, the gap should be the 2016-2020 catches and the kinds left out. 0, or a huge gap, means a term (a tag the account doesn't have, or `year2021-`) isn't read the way it's meant.
-
-On HashTagAJay, also count (print them with `python3 -c "import tradeable as t; print(t.RESORT)"`, and `t.TWO_XL_PILE`, and `t.NOPE_PILE + q + t.NOT_TAGGED` for each `q` in `t.MEDALS`): the `--resort` pile, the two medal piles and the 2XL pile. And `#Nope&#2XL`: it must be 0, or the 2XL pass stops on a tick it didn't expect.
-
-Then `tag --nope --limit 1`, with the user watching.
-
-## XXL and XXS: never Transfer or Nope
+## XXL and XXS: never Transfer
 
 The rule (2026-10-22): a Pokémon that was never traded and is XXL or XXS never gets Transfer. It's renamed `XXL` or `xxs` and tagged IVC. `/ivc` counts those names as done, and `/ivcsort` leaves sized IVC ones for the user.
 
 - `tradeable.py tag` does it to its own pile before tagging the rest Transfer. Its Transfer search leaves out never-traded XXL/XXS ones.
-- `shadows.py` leaves XXL/XXS shadows out (shadows are never traded).
-- `cleantrades.py` and `trades.py` only tag traded ones Transfer, so the rule never applies there.
-- `POGO_PHONE=android caffeinate -dimsu python3 $S/sizes.py [--limit N]` sweeps what's already tagged: `#Transfer,#Nope&!traded&xxl`, then `xxs`. Each one is opened and its size badge must agree. Name -> `XXL`/`xxs` (a name that already says its size keeps it). Tags: IVC on, Transfer and Nope off. Run it once per account.
+- `cleantrades.py` only tags traded ones Transfer, so the rule never applies there.
+- `POGO_PHONE=android caffeinate -dimsu python3 $S/sizes.py [--limit N]` sweeps what's already tagged: `#Transfer&!traded&xxl`, then `xxs`. Each one is opened and its size badge must agree. Name -> `XXL`/`xxs` (a name that already says its size keeps it). Tags: IVC on, Transfer off. Run it once per account.
 
 `traded` may miss trades from before Oct 2020 (SEARCH.md), so a very old trade could slip in.

@@ -24,7 +24,7 @@ from collections import Counter
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "shared"))
 import ui, pvp, base, search, fallen, session, door
-from base import GYM, Lost, Skip, Stop, appraisal_species, appraise, back_to_list, candy, detail_name, do_nope, \
+from base import GYM, Lost, Skip, Stop, appraisal_species, appraise, back_to_list, candy, detail_name, \
     do_rename, exact_ivs, front, go, high_iv, is_shadow, is_tag, keep_capture, load, log, new_run_dir, \
     open_appraisal, open_tile, opened_right, recover, same_name, save, scroll_for_new, set_star, set_tags, slots_of, \
     start, steady_detail, tap, think, to_top, type_line, wait_for

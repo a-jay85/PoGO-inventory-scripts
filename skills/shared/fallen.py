@@ -114,7 +114,7 @@ def act(limit, recheck, tag, species, off=(), stop=None, odd=None, gym_top20=Non
                 return got == "tag"
             base.set_tags(on=[g], off=off)
             done[g] += 1
-            base.clear_name()  # an old /ivc or Pvp name would bring it back to the Nope recheck
+            base.clear_name()  # an old /ivc or Pvp name would make /ivc pass over it
             log(f"DONE fallen {g} {n!r} CP{c}: {what}, name cleared")
             go("close", "list")
             return True

@@ -846,6 +846,11 @@ def run_search(q, iv_only=False, edit=False):
     iv_only: the list is sorted by name, so IV names ('96 HA') come first: stop at the plain names. The count
     can't be checked then, so want comes back None. edit: see start_search"""
     path, texts, bounds = start_search(q, edit=edit)
+    return read_results(q, path, texts, bounds, iv_only)
+
+
+def read_results(q, path, texts, bounds, iv_only=False):
+    """read every tile of the results on screen (any search: typed, or a saved one). q: for the log. -> as run_search"""
     if leave_multiselect(texts, bounds):
         path, bounds = ui.capture()
         texts = ui.ocr(path)

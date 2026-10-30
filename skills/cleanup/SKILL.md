@@ -74,13 +74,13 @@ One tag each, the first that fits:
 4. **XLX**: level 26+ (a power-up costs 4 Candy or more: 4,000 Stardust with 4 Candy, or 4,500+ Stardust). At 4,000 the Candy decides (3 Candy is level 25-25.5); if it can't be read, it's left for a look by hand. Each one left is opened and read.
 5. **GIV (evolved)**: a stage 2, or a stage 1 that takes 100+ candy, a quest or an item (any item, lures too) to evolve into. A stage 1 that GO can't evolve into yet counts too (Kleavor, Alolan Marowak, Alolan Raichu, Hisuian Braviary). Stages count those future evolutions, so Hisuian Typhlosion is stage 2. A baby isn't a stage: Raichu is stage 1. Also the gym defenders (Pokebattler top 6, `GYM_DEFENDERS` in /ivc: Blissey, Chansey, Snorlax, Slaking, Wobbuffet, Dondozo) and every untraded Dynamax one. On CyrillJan's pile, Tandemaus too (`GIV_FOR_TAKER`): HashTagAJay still wants the family of 3 Maushold (2026-10-27). It's tagged after the XLX walk, so a level 26+ one gets XLX instead. The list comes from PokeMiners' game master: `refresh` saves it as `giv-evolved-<date>.json`.
 6. **GIV (far)**: never traded and caught 100 km or more away (`!traded&distance100-`), and no other tag fits (2026-10-22).
-7. **Transfer**: the rest.
+7. **The rest go through the door** (2026-10-30): each one is opened and gets its final tag from `../shared/verdict.py`, the rules /ivc uses for a Pokémon that isn't a keeper (Transfer with the power-up check, or another tag, or a star). One it can't be sure about is left as it is and listed in `../shared/runs/not-sure.json`. Nothing gets Transfer just for being left over. `tradeable.py door [--limit N]` runs only this walk, on the whole untagged pile.
 
 Special trades get no tag at all, not even Transfer, and are never powered up: Legendary, Mythical, Ultra Beast, shiny and Gigantamax. The user trades them by hand, so no tag lines one up to use up the day's special trade (2026-10-23). The plan leaves those species out, and every tag search and walk has `&!gigantamax&!shiny&!legendary&!mythical&!ultrabeast`. One that isn't in HashTagAJay's dex yet is a special trade too: the script can't see that, so check it by hand. A never-traded XXL or XXS one never gets Transfer: it's renamed XXL or xxs and tagged IVC first (see "XXL and XXS" below).
 
-The tag step: the `Tradeable` shortcut + each plan search + the special-trade terms + `&!#Luckydex&!#Reroll&!#GIV`, tagged like a cleantrades pile. Then it walks the tagged ones for power-ups, then the untagged ones for XLX and power-ups, then tags the evolved GIV ones, then tags the rest Transfer.
+The tag step: the `Tradeable` shortcut + each plan search + the special-trade terms + `&!#Luckydex&!#Reroll&!#GIV`, tagged like a cleantrades pile. Then it walks the tagged ones for power-ups, then the untagged ones for XLX and power-ups, then tags the evolved GIV ones, then walks the rest through the door.
 Power-ups are cleantrades' cheap jumps only (14->15, 19->20, 22->23, 30->31), never below 1,000,000 Stardust. The 360 Candy XL cap counts the account that will transfer it: HashTagAJay for the traded tags, CyrillJan for the rest. Out of Stardust: it goes on with XLX only.
-If it can't tell whether one is level 26+ (or doesn't know the species), it tags nothing Transfer and lists those in the log. Tag them XLX by hand (or not), then run `tag` again.
+If it can't tell whether one is level 26+ (or doesn't know the species), it lists those in the log, and the door judges them one by one.
 `--limit N` caps the power-ups in each walk. All the Luckydex, Reroll and GIV tagging still runs.
 
 If `read` stops partway, `read runs/<time>-read/searches.json` picks up where it left off.
@@ -91,7 +91,7 @@ If `read` stops partway, `read runs/<time>-read/searches.json` picks up where it
 
 The rule (2026-10-22): a Pokémon that was never traded and is XXL or XXS never gets Transfer. It's renamed `XXL` or `xxs` and tagged IVC. `/ivc` counts those names as done, and `/ivcsort` leaves sized IVC ones for the user.
 
-- `tradeable.py tag` does it to its own pile before tagging the rest Transfer. Its Transfer search leaves out never-traded XXL/XXS ones.
+- `tradeable.py tag` does it to its own pile before the door walk. The walk leaves out never-traded XXL/XXS ones.
 - `cleantrades.py` only tags traded ones Transfer, so the rule never applies there.
 - `POGO_PHONE=android caffeinate -dimsu python3 $S/sizes.py [--limit N]` sweeps what's already tagged: `#Transfer&!traded&xxl`, then `xxs`. Each one is opened and its size badge must agree. Name -> `XXL`/`xxs` (a name that already says its size keeps it). Tags: IVC on, Transfer off. Run it once per account.
 

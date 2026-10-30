@@ -7,6 +7,7 @@
   POGO_PHONE=android caffeinate -dimsu python3 tradeable.py read [searches.json]   HashTagAJay signed in: only searches
   python3 tradeable.py plan               the Mac: every search to tag, in runs/<time>-plan/
   POGO_PHONE=android caffeinate -dimsu python3 tradeable.py tag [--limit N]   CyrillJan signed in: tags, power-ups
+  POGO_PHONE=android caffeinate -dimsu python3 tradeable.py door [--limit N]  CyrillJan signed in: only the door walk
 
 The species lists and the order here are also ../shared/verdict.py's: /ivc, /pvpc and /ivcsort judge a Pokémon that
 isn't a keeper with them (the door, no Nope). giver_species() is CyrillJan's side: only good raid attackers (GIV: top 6
@@ -42,9 +43,11 @@ read (HashTagAJay): which families have a lucky one and under 348 candy, and whi
 ('lucky&1-151&countcandy0-347'), halved until each hit is one family. -> runs/<time>-read/read.json
 plan: the searches from the newest lucky and ★100% /dex runs of HashTagAJay, roster.json, read.json and pvp-giv.
 tag (CyrillJan): the saved search 'Tradeable' + each plan search -> long press, SELECT ALL, tag. Then each one left is
-opened for XLX and power-ups, then the rest -> Transfer. Log in runs/<time>-tag/.
+opened for XLX and power-ups, then the rest go through the door one by one (../shared/door.py: their final tag, or
+left as they are and listed as not sure). Log in runs/<time>-tag/.
 """
 import json, math, os, re, sys, time
+from collections import Counter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "shared"))
@@ -708,10 +711,8 @@ def cmd_tag(limit):
                 if look()[0] != "list":
                     go("close", "list")
     if unsure:
-        log(f"not tagging the rest Transfer: {len(unsure)} couldn't be checked for {XLX_LEVEL}+ or a cheap power-up. "
-            f"Look at these by hand (tag each {XLX}, power it up, or leave it), then run tag again:\n  "
+        log(f"{len(unsure)} couldn't be checked for {XLX_LEVEL}+ or a cheap power-up (the door judges them too):\n  "
             + "\n  ".join(unsure))
-        return
     for q in plan.get("giv_evolved", []):  # after XLX: an XLX_LEVEL+ one has XLX by now and stays out
         if rest + q in done or not wanted(q):
             continue
@@ -719,15 +720,71 @@ def cmd_tag(limit):
         done.add(rest + q)
         json.dump(sorted(done), open(done_f, "w"))
     tag_pile("GIV", rest + "&!traded&distance100-")  # fits nothing else, but a far trade: GIV
-    tag_pile(TRANSFER, rest)  # (rest leaves out #GIV)
+    got = door_walk(rest, limit, who)  # (rest leaves out #GIV)
+    log(f"the rest, through the door: {dict(got)}")
+
+
+def cmd_door(limit):
+    """only the door walk, on the whole untagged pile (no plan): the door's rules are the plan's, one by one"""
+    base.new_run_dir(os.path.join(HERE, "runs"), suffix="door")
+    who = home.trainer()
+    if who != GIVER:
+        raise Stop(f"signed in as {who!r}: door needs {GIVER}")
+    home.start()
+    log(f"the rest, through the door: {dict(door_walk(EVOLVED_REST, limit, who))}")
+
+
+def pile_tiles(suffix):
+    """the pile + suffix, every tile read -> search.run_search's answer ([(name, cp)], the game's count)"""
+    n = run_pile(suffix)
+    if not n:
+        return [], n
+    _, texts, path, bounds = wait_for("list")
+    return search.read_results(f"{SHORTCUT}{suffix}", path, texts, bounds)
+
+
+def door_walk(suffix, limit, who):
+    """each one in the pile + suffix gets its final tag at the door (../shared/door.py, the same rules as /ivc's
+    losers), or is left as it is and listed as not sure. Never a Transfer by default. -> Counter of what happened"""
+    import door
+    from ivc import GYM_DEFENDERS  # noqa: F401 (verdict, loaded by Door, needs /ivc on the path)
+    gate = door.Door(SHORTCUT, account=who, find=lambda term: pile_tiles(f"{suffix}&{term}"))
+    passed = gate.listed()
+    log(f"door: {sum(passed.values())} on the not-sure list, passed over")
+    counts = Counter()
+
+    def visit(i, n, c):
+        if passed[(n, c)]:
+            passed[(n, c)] -= 1
+            return False
+        base.open_tile(i)
+        counts["opened"] += 1
+        info, texts, _ = base.steady_detail()
+        if not base.opened_right(info, n, c):
+            raise Skip(f"opened {info['name']!r} but tile said {n!r}")
+        _, ivs, raws, iv = base.high_iv()
+        sp = ui.species_for(info["name"], info["texts"]) or base.species_from_candy(texts, info["cp"] or c, info["hp"])
+        info, texts, _ = base.steady_detail()
+        got = gate.judge(info, texts, sp, ivs, (n, c), size=base.extras(texts)[2], raws=raws)
+        counts[got] += 1
+        log(f"DONE door {got} {n!r} CP{c} {iv}")
+        go("close", "list")
+        # gone only with a tag the rest leaves out (Old, 2XL, a star or not sure: it stays, and is passed)
+        return got == "tag" and bool(set(gate.last.tags) & {*TAGS, XLX, TRANSFER})
+
+    if run_pile(suffix):
+        search.walk_list(visit, stop=lambda n: counts["opened"] >= limit)
+    return counts
 
 
 if __name__ == "__main__":
     a = sys.argv[1:]
     cmds = {"refresh": cmd_refresh}
     cmds["dynamax"] = cmd_dynamax
-    if not a or a[0] not in (*cmds, "plan", "read", "tag"):
+    if not a or a[0] not in (*cmds, "plan", "read", "tag", "door"):
         sys.exit(__doc__)
+    if a[0] == "door":
+        session.main(cmd_door, session.limit(a))
     if a[0] == "read":
         session.main(cmd_read, a[1] if len(a) > 1 else None)
     elif a[0] == "tag":

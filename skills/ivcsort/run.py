@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Unattended /ivcsort: keep the best IVC Pokémon (favorite + untick IVC), Nope the rest. Rules in sort.py.
+"""Unattended /ivcsort: keep the best IVC Pokémon (favorite + untick IVC). The rest get their final tag right there
+(../shared/door.py, name cleared), or stay as they are on ../shared/runs/not-sure.json. Rules in sort.py.
 
   caffeinate -dimsu python3 run.py [sort [<run dir>]] [--limit N] [--look]
-        read the IVC Pokémon, then per family: type its searches, decide, favorite or Nope on the list on screen,
+        read the IVC Pokémon, then per family: type its searches, decide, favorite or door on the list on screen,
         then judge its named Nopes again (keep: Nope off; fell out: name cleared). Up
         to 60 IVC ones: one search reads them all. More: 50 dex numbers at a time. Give the run dir
         to carry on after a stop. --limit N: change N, then stop. --look: decide only (plan.txt), change nothing
@@ -29,10 +30,11 @@ spec = importlib.util.spec_from_file_location("ivcrun", os.path.join(HERE, "..",
 ivcrun = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(ivcrun)
 import sort
-import search, fallen, session
+import search, fallen, session, door
 from search import to_search_list, start_search, run_search, result_count, looks_same
 
 TAG = "IVC"
+DOOR = None  # door.Door for this run, made the first time act has a loser to judge
 
 
 class NotIVC(Skip):
@@ -590,10 +592,19 @@ def act(limit, members):
     the list still on screen from pools first, then any other list that holds one. -> (how many were opened,
     how many weren't found: the family isn't done then, a rerun walks its lists again)"""
     mine = {plan_key(m) for m in members}
-    lists = {}
-    for m in load("plan.json"):
-        if m["verdict"] in ("KEEP", "NOPE") and plan_key(m) in mine:
-            lists.setdefault(home(m) or act_query([m]), []).append(m)
+    global DOOR
+    lists, plans = {}, [m for m in load("plan.json") if m["verdict"] in ("KEEP", "NOPE") and plan_key(m) in mine]
+    if DOOR is None and any(m["verdict"] == "NOPE" for m in plans):
+        DOOR = door.Door(TAG)  # (its searches leave the bar on something else)
+        SHOWN["q"] = None
+    listed = DOOR.listed() if DOOR else Counter()  # not sure last time, under the same rules: passed over
+    for m in plans:
+        k = (sort.clean_name(m["tile"]), m["cp"])
+        if m["verdict"] == "NOPE" and listed[k]:
+            listed[k] -= 1
+            log(f"  {m['name']!r} CP{m['cp']}: on the not-sure list, passed over")
+            continue
+        lists.setdefault(home(m) or act_query([m]), []).append(m)
     # what earlier act runs on this run dir did or skipped: a restart doesn't open those again
     has = os.path.exists(os.path.join(base.RUN_DIR, "act.json"))
     progress = load("act.json") if has else {"done": [], "skipped": []}
@@ -665,26 +676,34 @@ def act(limit, members):
                 plans.append(m)
         if not m:
             raise Skip(f"detail doesn't match the plan: {now['name']!r} {now['species']}")
-        verdict = m["verdict"]
+        verdict = gone = m["verdict"]
         if verdict == "KEEP":
             favorite_and_untag()
-        else:  # a name can be wrong ('FP*' on a 98% lucky): appraise before any Nope
+        else:  # a name can be wrong ('FP*' on a 98% lucky): appraise before the door
             keep, ivs, raws, what = base.high_iv()
             if keep:  # 98%+ always keeps
                 favorite_and_untag()
-                verdict = "KEEP"
+                verdict = gone = "KEEP"
                 progress.setdefault("kept98", []).append([n, c])
                 log(f"  the plan said NOPE, appraised {what}: 98%+")
-            else:
-                base.nope(TAG, now["tags"], only=False, ivs=ivs, raws=raws)  # swap IVC for Nope, keep any other tags
+            else:  # sort.decide ran the gym rule: a gym defender's NOPE is out of both top 20s
+                info, texts, _ = steady_detail()
+                gone = DOOR.judge(info, texts, [m["species"]], ivs, (n, c), size=now["size"], raws=raws,
+                                  gym_top20=False, clear=True)
+                if gone in ("keep", door.UNSURE) or gone.startswith("left for"):  # still here: a rival in the pools
+                    progress.setdefault("stayed", []).append([n, c])
         plans.remove(m)
         todo[(n, c)] -= 1
         progress["done"].append([n, c, m["name"], m["species"]])
         save("act.json", progress)
-        log(f"DONE {verdict} {m['name']!r} CP{c} {m['species']}: {m['why'][0] if m['why'] else ''}")
+        log(f"DONE {verdict}{'' if gone == verdict else ' -> ' + gone} {m['name']!r} CP{c} {m['species']}: "
+            f"{m['why'][0] if m['why'] else ''}")
         go("close", "list")
-        # a Nope leaves a !#Nope list, anything leaves an #IVC one. On a gym list it stays: passed when it comes up again
-        return verdict == "NOPE" or SHOWN["q"].startswith("#")
+        # a cleared name leaves the IV names (a list sorted by Name), IVC off leaves an #IVC list. Left as it is, or
+        # on a gym list, it stays: passed when it comes up again
+        if gone == door.UNSURE:
+            return False
+        return gone not in (verdict, "keep") and not gone.startswith("left for") or SHOWN["q"].startswith("#")
 
     for q in sorted(lists, key=lambda q: q != SHOWN["q"]):  # the list on screen first
         todo.clear()
@@ -734,14 +753,14 @@ def cleanup_mods():
 
 
 def fresh_nopes():
-    """(tile name, CP) of the IVC ones this run Noped. On a #Nope list they're no suspects, and in the pools (read
-    before act) they're no rivals any more"""
+    """(tile name, CP) of the IVC ones this run sent through the door and that left. In the pools (read before act)
+    they're no rivals any more"""
     if not os.path.exists(os.path.join(base.RUN_DIR, "act.json")):
         return Counter()
     progress = load("act.json")
     verdict = {(sort.clean_name(m["tile"]), m["cp"], m["name"], m["species"]): m["verdict"] for m in load("plan.json")}
     out = Counter((n, c) for n, c, name, species in progress["done"] if verdict.get((n, c, name, species)) == "NOPE")
-    out.subtract(Counter(tuple(k) for k in progress.get("kept98", [])))
+    out.subtract(Counter(tuple(k) for k in progress.get("kept98", []) + progress.get("stayed", [])))
     return +out
 
 
@@ -907,7 +926,7 @@ def trainer():
 
 
 def sort_all(limit, look):
-    """per 50-dex chunk: read its IVC Pokémon. Then per family: type its searches, decide, and favorite or Nope
+    """per 50-dex chunk: read its IVC Pokémon. Then per family: type its searches, decide, and favorite or door
     its IVC ones on the list still on screen. A family is done before the next one's searches are typed, so a stop
     loses nothing: `sort <run dir>` carries on. look: decide only (plan.txt), change nothing"""
     done = load("sorted.json") if os.path.exists(os.path.join(base.RUN_DIR, "sorted.json")) else []

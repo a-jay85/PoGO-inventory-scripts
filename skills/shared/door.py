@@ -1,4 +1,4 @@
-"""The door: a Pokémon /ivc or /pvpc just found isn't a keeper gets its final tag right there (verdict.py), on the
+"""The door: a Pokémon /ivc, /pvpc or /ivcsort just found isn't a keeper gets its final tag right there (verdict.py), on the
 detail page that's still open. No Nope.
 
   facts = Door(tag)          once a run, before the walk: who's signed in, the species lists, and one search each
@@ -66,14 +66,15 @@ class Door:
         return Counter((e["tile"], e["cp"]) for e in load_list()
                        if e["rules"] == RULES and e["account"] == self.account and e["tag"] == self.tag)
 
-    def judge(self, info, texts, sp, ivs, tile, size=None, raws=None):
+    def judge(self, info, texts, sp, ivs, tile, size=None, raws=None, gym_top20=None, clear=False):
         """the open detail page of a Pokémon that isn't a keeper. tile: (name, CP) as the walk read the tile.
-        -> 'left for IVC/PvpC', UNSURE or the verdict's kind"""
+        gym_top20: what the caller already knows of the gym rule. clear: a plain tag clears the name too (an old /ivc
+        name would bring it back as a rival or a fallen-out one). -> 'left for IVC/PvpC', UNSURE or the verdict's kind"""
         if any(base.is_tag(t, self.other) for t in info["tags"]):  # the other skill judges it next
             base.set_tags(off=[self.tag])
             log(f"  has {self.other} too: unticked {self.tag} only, {self.other} decides")
             return f"left for {self.other}"
-        f, why = self.facts(info, texts, sp, ivs, key(*tile), size)
+        f, why = self.facts(info, texts, sp, ivs, key(*tile), size, gym_top20)
         v = vd.final_tag(f, self.tables) if not why else vd.unsure(why)
         if v.kind == "tag" and "Transfer" in v.tags:
             v = self.power_up(info, v, tile[1])
@@ -89,9 +90,11 @@ class Door:
         if v.kind == "keep":
             base.set_star(True)
         base.set_tags(on=list(v.tags), off=[self.tag, *v.off], ivs=ivs, raws=raws)
+        if clear and v.kind == "tag" and not v.name:
+            base.clear_name()
         return v.kind
 
-    def facts(self, info, texts, sp, ivs, tile, size):
+    def facts(self, info, texts, sp, ivs, tile, size, gym_top20=None):
         """-> (Facts, why not sure before any rule: '' when it's up to the rules)"""
         if self.has("odd", tile) is not False:
             return None, f"shiny, costume or background{'' if self.has('odd', tile) else ': its search failed'}"
@@ -107,7 +110,7 @@ class Door:
                      lucky=any(ui.norm(t[4]).startswith("LUCKY POK") for t in texts),
                      gigantamax="GIGANTAMAX" in near, dynamax="DYNAMAX" in near, size=size, kg=base.who(info)[2],
                      candy_xl=None if xl is None else 0 if xl else vd.XL_CAP,
-                     levels=ct.cost_levels(texts, info["cp"])[1] or None, far=self.has("far", tile),
+                     levels=ct.cost_levels(texts, info["cp"])[1] or None, far=self.has("far", tile), gym_top20=gym_top20,
                      other_tags=[t for t in trades.tag_chips(texts) if t not in (self.tag.upper(), self.other.upper())])
         return f, ""
 

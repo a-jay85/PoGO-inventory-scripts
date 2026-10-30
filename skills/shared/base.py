@@ -546,7 +546,7 @@ def still_opened(what, info=None):
 def detail_tags():
     info = detail_now()
     still_opened("after the tags", info)
-    return [ui.norm(t) for t in info["tags"]]
+    return [row_name(t) for t in info["tags"]]  # (the Remote Trade chip has an icon too)
 
 
 def detail_name():
@@ -586,10 +586,16 @@ def show_tag(T):
     return None
 
 
+def row_name(s):
+    """a tag sheet row's text -> its name, upper case (the icon by Remote Trade reads as a stray letter)"""
+    return re.sub(r"^[A-Z] (?=[A-Z]{2})", "", ui.norm(s.lstrip("•· ")))
+
+
 def tap_tag_row(T, name):
-    """tap a row of the open tag sheet. A tag named like a never-tap button (Transfer) is tapped by its own row, and
-    only when two looks agree it's the tag sheet, standing still, with exactly one row that says just that"""
-    if not any(T.startswith(z) for z in ui.HAZARDS):
+    """tap a row of the open tag sheet. A tag tap() doesn't know (GIV, RT ...) or with a never-tap button's word in it
+    (Transfer, Remote Trade) is tapped by its own row, and only when two looks agree it's the tag sheet, standing
+    still, with exactly one row that says just that"""
+    if T in ui.CONFIRM_SCREENS and not any(z in T for z in ui.HAZARDS):
         return tap(name)
     seen = []
     for i in range(2):
@@ -598,7 +604,7 @@ def tap_tag_row(T, name):
             if ui.ANDROID:
                 ui.android.fresh()
         _, texts, _, bounds = wait_for("tags")
-        rows = [t for t in texts if ui.norm(t[4].lstrip("•· ")) == T]
+        rows = [t for t in texts if row_name(t[4]) == T]
         if len(rows) != 1:
             raise Stop(f"tag sheet: {len(rows)} rows read {name!r}, wanted 1")
         seen.append(rows[0])
@@ -608,13 +614,16 @@ def tap_tag_row(T, name):
 
 
 def lift_tag_row(T):
-    """Android: a tap on the last row showing (under the list's fade) doesn't take. Scroll it up a little first"""
+    """Android: a tap on the last row showing, or the first one of a scrolled list (under the list's fades), doesn't
+    take. Scroll it up (or down) a little first. At the list's top the down scroll changes nothing"""
     _, texts, _, _ = wait_for("tags")
-    row = next((t for t in texts if ui.norm(t[4].lstrip("•· ")) == T), None)
-    if row and row[1] > 0.7:
+    row = next((t for t in texts if row_name(t[4]) == T), None)
+    if row and (row[1] > 0.7 or row[1] < 0.33):
         x, y = random.randint(650, 790), random.randint(1960, 2040)
-        ui.android.shell(f"input swipe {x} {y} {x + random.randint(-8, 8)} {y - random.randint(370, 430)} "
-                         f"{random.randint(520, 680)}")
+        dy = -random.randint(370, 430)
+        if row[1] < 0.33:  # (seen 2026-10-29: IVC at 28%, faded, two taps didn't untick it)
+            y, dy = random.randint(1150, 1250), random.randint(280, 320)
+        ui.android.shell(f"input swipe {x} {y} {x + random.randint(-8, 8)} {y + dy} {random.randint(520, 680)}")
         time.sleep(0.5)  # the loop below waits for the rows to hold still
         ui.android.fresh()  # a tap off a picture from before the scroll lands a row off (ticked PvpC for Nope)
         last = None
@@ -651,6 +660,23 @@ def high_iv(ivs=None, raws=None):
     return sum(top) >= ALWAYS_KEEP, ivs, raws, what
 
 
+def tags_done():
+    """DONE on the tag sheet. A Remote Trade tag on one caught under 30 days asks first ('This Pokémon will keep the
+    Remote Trade tag'): OK keeps it"""
+    try:
+        return go("DONE", "detail")
+    except Lost:
+        _, texts, _, bounds = look()
+        if not any("REMOTE TRADE TAG" in ui.norm(t[4]) for t in texts):
+            raise
+        ok = [t for t in texts if ui.norm(t[4]) == "OK"]
+        if len(ok) != 1:
+            raise Stop(f"the Remote Trade question: {len(ok)} OK buttons read")
+        log("  the game: it can trade remotely in a while and keeps the Remote Trade tag: OK")
+        tap_box(ok[0], bounds)
+        return wait_for("detail")
+
+
 def set_tags(on=(), off=(), only=False, ivs=None, raws=None):
     """tick the on tags and untick the off ones, leave the rest. only: afterwards the detail must show just the on tags.
     Nope never goes on a 98%+ one: it's appraised first (unless ivs/raws are given) and skipped if so"""
@@ -681,7 +707,7 @@ def set_tags(on=(), off=(), only=False, ivs=None, raws=None):
             if ticks.get(T) is not v:
                 keep_capture("tags")
                 raise Stop(f"tags didn't end up right: {ticks}")
-        go("DONE", "detail")
+        tags_done()
         ON, OFF = {t.upper() for t in on}, {t.upper() for t in off}
         good = lambda t: (sorted(t) == sorted(ON)) if only else (ON <= set(t) and not OFF & set(t))
         tags = settle(detail_tags, good)

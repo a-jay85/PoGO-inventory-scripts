@@ -41,11 +41,17 @@ def not_mine(name):
     return bool(DONE_LOOK.match(name or "") or pvp.PVP_NAME.match((name or "").strip()))
 
 
-def untouched(name):
-    """still named after its species, so not done yet. Done names (87/96 A*, FP*, xxs) never match."""
+def named_species(name):
+    """the species names (SPECIES_NAMES) a name still named after its species is: a cut-off one ('Happin…') can be
+    more than one. Empty for a done name (87/96 A*, FP*, xxs)"""
     n = re.sub(r"[.…]+$", "", (name or "").strip().replace("’", "'")).lower()
     n = unicodedata.normalize("NFKD", n).encode("ascii", "ignore").decode()  # Flabébé: the game list says flabebe
-    return n in SPECIES_NAMES or (len(n) >= 6 and any(s.startswith(n) for s in SPECIES_NAMES))
+    return {n} if n in SPECIES_NAMES else {s for s in SPECIES_NAMES if s.startswith(n)} if len(n) >= 6 else set()
+
+
+def untouched(name):
+    """still named after its species, so not done yet"""
+    return bool(named_species(name))
 
 
 SCROLL_FROM = re.compile(r"WEIGHT|HEIGHT|STARDUST|CANDY|ENERGY|CAUGHT|HATCHED|THIS POK|BECOME|CAN FUSE|CAN USE")

@@ -662,6 +662,7 @@
    "log",
    "main",
    "moves_on",
+   "named_species",
    "not_mine",
    "odd",
    "open_tile",
@@ -765,6 +766,7 @@
    "twin_check",
    "type_line",
    "unrenamed_check",
+   "unrenamed_dexes",
    "walk_list"
   ],
   "runs": [

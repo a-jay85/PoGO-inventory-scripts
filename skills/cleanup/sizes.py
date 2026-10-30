@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""Never-traded XXL and XXS Pokémon don't get Transfer or Nope: they get renamed XXL or xxs and tagged IVC.
+"""Never-traded XXL and XXS Pokémon don't get Transfer: they get renamed XXL or xxs and tagged IVC.
 
-  POGO_PHONE=android caffeinate -dimsu python3 sizes.py [--limit N]   sweep the Transfer and Nope tags already given
+  POGO_PHONE=android caffeinate -dimsu python3 sizes.py [--limit N]   sweep the Transfer tags already given
   caffeinate -dimsu python3 sizes.py [--limit N]                      the iPhone, through iPhone Mirroring
 
-Start with Pokémon GO on the Pokémon screen. Searches #Transfer,#Nope&!traded&xxl, then the same with xxs.
-tradeable.py does the same to its own pile before it tags the rest Transfer (shadows.py leaves them out).
+Start with Pokémon GO on the Pokémon screen. Searches #Transfer&!traded&xxl, then the same with xxs.
+tradeable.py does the same to its own pile before it tags the rest Transfer.
 Each one is opened. Its size badge must agree with the search, or it's passed over. Then:
   name -> XXL or xxs (/ivc's spelling). A name that already says its size keeps it.
-  tags -> IVC on, Transfer and Nope off. Other tags (Old, ...) stay.
+  tags -> IVC on, Transfer off. Other tags (Old, ...) stay.
 /ivc counts an XXL/xxs name as done, and /ivcsort leaves sized IVC ones for the user.
 --limit N changes at most N. Log in runs/<time>-sizes/.
 """
@@ -24,9 +24,9 @@ import cleantrades as ct
 from shadows import Pass, next_one, press
 from trades import search_exact, sheet_rows, still_sheet, tick, sheet_down
 
-IVC, TRANSFER, NOPE = "IVC", "Transfer", "Nope"
+IVC, TRANSFER = "IVC", "Transfer"
 NAMES = {"xxl": "XXL", "xxs": "xxs"}  # search term -> nickname, as ivc.make_name spells them
-SWEEP = f"#{TRANSFER},#{NOPE}&!traded&%s"
+SWEEP = f"#{TRANSFER}&!traded&%s"
 
 
 def same(got, want):
@@ -36,13 +36,13 @@ def same(got, want):
 
 
 def retag():
-    """IVC on, Transfer and Nope off. base.set_tags only sees the rows on screen, and Transfer can sit below them:
+    """IVC on, Transfer off. base.set_tags only sees the rows on screen, and Transfer can sit below them:
     this scrolls the sheet down until it has seen every one. A tag this account doesn't have is fine, except IVC"""
     base.still_opened("before the tags")
     go("menu", "menu")
     go("TAG", "tags")
-    left = {IVC.upper(): True, TRANSFER.upper(): False, NOPE.upper(): False}  # tag -> the tick it should end with
-    names = {t.upper(): t for t in (IVC, TRANSFER, NOPE)}
+    left = {IVC.upper(): True, TRANSFER.upper(): False}  # tag -> the tick it should end with
+    names = {t.upper(): t for t in (IVC, TRANSFER)}
     with base.changing("ticking tags"):  # the row's box, like ct.tag_pile: the word Transfer is never tapped
         same, before = 0, None
         for _ in range(30):
@@ -68,12 +68,12 @@ def retag():
         press(next(t for t in texts if ui.norm(t[4]) == "DONE"), bounds)
         wait_for("detail")
         if IVC.upper() in left:
-            raise Stop(f"no {IVC} tag on this account: {TRANSFER} or {NOPE} may be off already, look at it")
-        good = lambda t: IVC.upper() in t and not {TRANSFER.upper(), NOPE.upper()} & set(t)
+            raise Stop(f"no {IVC} tag on this account: {TRANSFER} may be off already, look at it")
+        good = lambda t: IVC.upper() in t and TRANSFER.upper() not in t
         tags = base.settle(base.detail_tags, good)
         if not good(tags):
             base.keep_capture("tags")
-            raise Stop(f"after DONE tags are {tags}, wanted {IVC} on, {TRANSFER} and {NOPE} off")
+            raise Stop(f"after DONE tags are {tags}, wanted {IVC} on, {TRANSFER} off")
 
 
 def walk(find, size, limit):

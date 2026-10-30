@@ -1,16 +1,10 @@
 #!/usr/bin/env python3
-"""Cleanup: purify every shadow Pokémon tagged Nope, then transfer them all in one go.
+"""Cleanup's shared taps: the swipe to the next Pokémon, SELECT ALL, an exact search, the Stardust and candy owned, and
+purify (one PURIFY, one YES, the animation waited out).
 
-  caffeinate -dimsu python3 shadows.py [--limit N]     purify (at most N), then bulk-transfer what this run purified
-  caffeinate -dimsu python3 shadows.py transfer <run dir>   only the bulk transfer, for a run that stopped before it
-  POGO_PHONE=android caffeinate -dimsu python3 shadows.py ...   (Android phone over USB)
-
-Start with Pokémon GO on the Pokémon screen. Searches #Nope&shadow&!shiny&!costume&!xxl&!xxs, opens the first one and
-swipes through them. Each one is purified only if: its only tag is Nope, no star, no XXL/XXS in the name, not
-legendary or mythical (by its candy), and there's enough candy and Stardust. Anything else is passed over.
-Then it searches #Nope&purified, taps SELECT ALL, and transfers only if the count is exactly what this run purified.
-Before starting it checks that #Nope&purified is empty, so it can never transfer an older purified one.
-Log, timings and purified.json go in runs/<time>/.
+It used to purify and bulk-transfer every shadow tagged Nope. Nothing tags Nope now: a shadow that isn't a keeper goes
+through the door (../shared/door.py), and the user's shadow rules (purify + Transfer under 360 Candy XL ...) wait on
+the not-sure list for verdict.py. purify() stays here for them.
 """
 import json, os, random, re, sys, time
 
@@ -21,26 +15,11 @@ import base
 from base import Stop, log, keep_capture, go, look, wait_for, front, save, load, candy
 import search, session
 
-SHADOWS = "#Nope&shadow&!shiny&!costume&!xxl&!xxs"  # (sizes.py renames those and tags them IVC)
-PURIFIED = "#Nope&purified"
 GM = json.load(open(os.path.join(HERE, "..", "shared", "gamemaster.json")))
-SPECIAL = {p["speciesName"].split(" (")[0].upper() for p in GM["pokemon"]
-           if {"legendary", "mythical", "ultrabeast"} & set(p.get("tags", []))}
 
 
 class Pass(Exception):
     """leave this one alone"""
-
-
-def not_high_iv():
-    """on the detail screen: raise Pass if it's 98%+ (a shadow: once purified), or its IV can't be read.
-    A wrong name can land a 98% one in Nope: those never get purified, transferred or traded away."""
-    try:
-        keep, _, _, what = base.high_iv()
-    except base.Skip as e:
-        raise Pass(f"can't read its IV: {e}")
-    if keep:
-        raise Pass(f"appraised {what}: 98%+ (or purifies to it), never transferred or traded")
 
 
 class Again(Exception):
@@ -152,12 +131,6 @@ def search_exact(q):
     raise Stop(f"couldn't get exactly {q!r} in the search bar")
 
 
-def result_tiles(q):
-    """search, wait for the list to settle. -> tiles on the first screen ([] if none)"""
-    search_exact(q)
-    return settled_tiles()
-
-
 def settled_tiles():
     last = None
     for _ in range(12):
@@ -220,43 +193,6 @@ def owned(texts):
     return have_dust, have_candy
 
 
-def check(info, texts, path):
-    """raise Pass if this one should be left alone"""
-    if not exact(texts, "PURIFY"):
-        raise Pass("not a shadow (no PURIFY)")
-    tags = [ui.norm(t) for t in info["tags"]]
-    if tags != ["NOPE"]:
-        raise Pass(f"tags {info['tags']}: not just Nope")
-    try:
-        sized = re.search(r"xx[ls]", info["name"] or "", re.I) or base.extras(texts)[2]
-    except base.Skip as e:  # both badges read
-        raise Pass(str(e))
-    if sized:
-        raise Pass("XXL/XXS: sizes.py's")
-    star = ui.star_filled(path, texts)
-    if star is None and ui.ANDROID:
-        sp = ui.android.sharp()
-        star = ui.star_filled(sp, ui.ocr(sp))
-    if star is not False:
-        raise Pass("favorite" if star else "can't see the star")
-    c = candy(texts)
-    if not c:
-        raise Pass("can't read the candy name")
-    if c in SPECIAL:
-        raise Pass(f"{c.title()}: legendary/mythical")
-    for attempt in range(3):  # a label can misread for a moment: look again, then off the phone's own screenshot
-        try:
-            have_dust, have_candy, dust, cnd = costs(texts)
-            break
-        except Pass:
-            if attempt == 2:
-                raise
-            texts = ui.ocr(ui.android.sharp()) if ui.ANDROID and attempt else look()[1]
-    if have_candy < cnd or have_dust < dust:
-        raise Pass(f"not enough: needs {cnd} candy + {dust} dust, has {have_candy} + {have_dust}")
-    not_high_iv()
-
-
 def purify(info):
     """PURIFY once, YES once, wait for the animation to finish. -> the new CP"""
     t0 = time.time()
@@ -298,133 +234,3 @@ def purify(info):
                 return cp
     keep_capture("purify")
     raise Stop("purify didn't finish in 40s")
-
-
-# ---------- the runs ----------
-
-def purify_all(limit):
-    front()
-    done = load("purified.json", [])
-    if result_tiles(PURIFIED):
-        keep_capture("purified")
-        raise Stop(f"{PURIFIED} isn't empty: older purified Nope ones would get transferred too. Sort those first.")
-    if not result_tiles(SHADOWS):
-        log("no shadows to purify")
-        return done
-    go("tile 1", "detail")
-    seen, passed, t_start, agains = set(), {}, time.time(), 0
-    while True:
-        t0 = time.time()
-        _, texts, path, _ = wait_for("detail")  # one look: purify() looks again before tapping
-        info = ui.detail_info(texts)
-        me = (info["name"], info["cp"], info["hp"])
-        if me in seen:
-            log("swiped back onto one already seen: end of the list")
-            break
-        seen.add(me)
-        try:
-            if me in passed:
-                raise Pass(passed[me])
-            check(info, texts, path)
-        except Pass as e:
-            if me not in passed:
-                log(f"pass {info['name']} CP{info['cp']}: {e}")
-            passed[me] = str(e)
-        else:
-            if len(done) >= limit:
-                log(f"--limit {limit} reached")
-                break
-            try:
-                cp = purify(info)
-            except Again as e:
-                agains += 1
-                if agains > 5:
-                    raise Stop(f"the screen won't hold still: {e}")
-                log(f"  read again: {e}")
-                seen.discard(me)
-                continue
-            agains = 0
-            done.append({"name": info["name"], "cp_before": info["cp"], "cp": cp, "transferred": False})
-            save("purified.json", done)
-            log(f"purified {info['name']} CP{info['cp']} -> CP{cp}  ({time.time() - t0:.1f}s, #{len(done)})")
-            t1 = time.time()
-            if not reopen_top():
-                break
-            seen = set()
-            log(f"  timing: reopen {time.time() - t1:.1f}s")
-            continue
-        t1 = time.time()
-        if not next_one(None, lambda t: (lambda n: (n["name"], n["cp"], n["hp"]))(ui.detail_info(t)) != me):
-            break
-        log(f"  timing: swipe {time.time() - t1:.1f}s")
-    log(f"purified {len(done)}, passed over {len(passed)}, {time.time() - t_start:.0f}s")
-    if look()[0] != "list":  # the last purify already went back to an empty list
-        go("close", "list")
-    return done
-
-
-def transfer_all():
-    done = load("purified.json", [])
-    want = [d for d in done if not d["transferred"]]
-    if not want:
-        log("nothing to transfer")
-        return
-    n = len(want)
-    ts = result_tiles(PURIFIED)
-    if not ts:
-        raise Stop(f"{PURIFIED} shows nothing, but this run purified {n}")
-    btn, got, texts, bounds = select_all("TRANSFER", n)
-    if got != n:
-        keep_capture("count")
-        search.leave_multiselect(texts, bounds) or press((0.08, 0.08, 0.04, 0.025, ""), bounds)
-        raise Stop(f"SELECT ALL picked {got}, but this run purified {n}: nothing transferred")
-    press(btn, bounds)
-    for _ in range(25):
-        time.sleep(0.12)
-        _, texts, _, bounds = look()
-        line = " ".join(t[4] for t in texts)
-        m = re.search(r"want to transfer (\d+)", line)
-        ok = [t for t in exact(texts, "TRANSFER") if t[1] > 0.45]
-        if m and len(ok) == 1:
-            break
-    else:
-        keep_capture("transferdialog")
-        raise Stop("no transfer dialog")
-    if int(m.group(1)) != n or "Pokémon to the professor" not in line.replace("Pokemon", "Pokémon"):
-        cancel = exact(texts, "CANCEL")
-        if len(cancel) == 1:
-            press(cancel[0], bounds)
-        raise Stop(f"the dialog says {line!r}, wanted {n}: cancelled")
-    t0 = time.time()
-    press(ok[0], bounds)
-    for _ in range(60):
-        time.sleep(0.2)
-        screen, texts, _, _ = look()
-        if screen == "list" and not ui.tiles(texts) and not exact(texts, "TRANSFER"):
-            break
-    else:
-        keep_capture("aftertransfer")
-        raise Stop("the list didn't empty after the transfer: check by hand")
-    for d in want:
-        d["transferred"] = True
-    save("purified.json", done)
-    log(f"transferred {n} ({time.time() - t0:.1f}s)")
-
-
-def script(a):
-    base.start()
-    if a[:1] != ["transfer"]:
-        purify_all(session.limit(a))
-    transfer_all()
-
-
-if __name__ == "__main__":
-    a = sys.argv[1:]
-    runs = os.path.join(HERE, "runs")
-    if a[:1] == ["transfer"] and len(a) > 1:
-        base.new_run_dir(runs, os.path.abspath(a[1]))
-    elif a and a[0] != "--limit":
-        sys.exit(__doc__)
-    else:
-        base.new_run_dir(runs)
-    session.main(script, a)

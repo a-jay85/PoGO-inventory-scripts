@@ -3,9 +3,8 @@
 (../shared/door.py, name cleared), or stay as they are on ../shared/runs/not-sure.json. Rules in sort.py.
 
   caffeinate -dimsu python3 run.py [sort [<run dir>]] [--limit N] [--look]
-        read the IVC Pokémon, then per family: type its searches, decide, favorite or door on the list on screen,
-        then judge its named Nopes again (keep: Nope off; fell out: name cleared). Up
-        to 60 IVC ones: one search reads them all. More: 50 dex numbers at a time. Give the run dir
+        read the IVC Pokémon, then per family: type its searches, decide, favorite or door on the list on screen.
+        Up to 60 IVC ones: one search reads them all. More: 50 dex numbers at a time. Give the run dir
         to carry on after a stop. --limit N: change N, then stop. --look: decide only (plan.txt), change nothing
   caffeinate -dimsu python3 run.py fallen <run dir>         sort the fallen-out ones into groups (changes nothing)
   caffeinate -dimsu python3 run.py act-fallen <run dir> [--limit N]  tag the fallen-out ones
@@ -467,7 +466,7 @@ def plan(quiet=False):
     fallen = fallen_candidates(scanned, results, wants)
     save("fallen.json", fallen)
     lines += ["", f"FALLEN OUT: {len(fallen)} older Pokémon (no IVC tag) now outside the top. `run.py fallen` sorts them into "
-              "GuaranteedLucky / Old / Nope; act checks each one again on the detail screen first."]
+              "GuaranteedLucky / Old / the door; act checks each one again on the detail screen first."]
     lines += [f"  {f['name']!r:16} CP{f['cp']:<5} {'shadow ' if f['shadow'] else ''}{'/'.join(f['species'])}: {f['why'][0]}"
               for f in fallen]
     grouped = load("fallen-groups.json") if os.path.exists(os.path.join(base.RUN_DIR, "fallen-groups.json")) else None
@@ -476,7 +475,7 @@ def plan(quiet=False):
             [f"  {g}: {sum(len(v) for v in grouped[g].values())}" for g in grouped]
     unrenamed = sum(bool(m.get("unrenamed")) for m in scanned)
     head = ([f"WARNING: {unrenamed} IVC Pokémon still have their species name. Run /ivc on them first: "
-             "until then they don't count in any pool, so too many get kept."] if unrenamed else []) + [f"{dict(counts)}", "KEEP = favorite + untick IVC.  NOPE = untick IVC, tick Nope.  LEAVE/SKIP = untouched.", ""]
+             "until then they don't count in any pool, so too many get kept."] if unrenamed else []) + [f"{dict(counts)}", "KEEP = favorite + untick IVC.  NOPE = its final tag at the door (or left as is, not sure).  LEAVE/SKIP = untouched.", ""]
     with open(os.path.join(base.RUN_DIR, "plan.txt"), "w") as f:
         f.write("\n".join(head + lines) + "\n")
     if not quiet:
@@ -487,7 +486,8 @@ def plan(quiet=False):
 # ---------- fallen out ----------
 # Older Pokémon (no IVC tag) that the new keepers push out of the top. Not traded and caught 2016-2020 ->
 # GuaranteedLucky (a trade is guaranteed lucky). Not traded and older than OLD_DAYS -> Old. Anything else
-# (traded: a Pokémon can only be traded once, or newer) -> star off + Nope. Shiny and costume ones are never touched.
+# (traded: a Pokémon can only be traded once, or newer) -> star off, its final tag at the door. Shiny and costume
+# ones are never touched.
 
 def ivc_name(n):
     """a name /ivc made ('96 HD', '87/96 A* XXL'), not another app's ('15/15/14')"""
@@ -593,7 +593,7 @@ def plan_key(m):
 
 
 def act(limit, members):
-    """tag one family's KEEPs and NOPEs on its own search lists (an IVC Pokémon isn't Nope, so it shows there):
+    """tag one family's KEEPs and NOPEs on its own search lists (an IVC Pokémon has no Nope, so it shows there):
     the list still on screen from pools first, then any other list that holds one. -> (how many were opened,
     how many weren't found: the family isn't done then, a rerun walks its lists again)"""
     mine = {plan_key(m) for m in members}
@@ -743,151 +743,6 @@ def act(limit, members):
     return opened[0], missed
 
 
-# ---------- 5. the family's named Nopes ----------
-# An untraded Nope that still has an /ivc or Pvp name fell out of the top once and kept its name. Right after a
-# family's IVC ones, its named Nopes are judged again, IV and PvP, with /cleanup's suspects.py. Still belongs: star
-# on, Nope off. Fell out: name cleared, Nope stays (/cleanup tags it next, in its usual order).
-# The whole pile is searched once a run first, its named tiles listed. None (or all judged): no family searches.
-
-def cleanup_mods():
-    sys.path.append(os.path.join(HERE, "..", "cleanup"))
-    d = base.RUN_DIR
-    import suspects as sus, tradeable  # (they load this file by path: imported here, not at the top)
-    base.RUN_DIR = d  # (loading ivc/run.py again pointed it at a new folder)
-    return sus, tradeable
-
-
-def fresh_nopes():
-    """(tile name, CP) of the IVC ones this run sent through the door and that left. In the pools (read before act)
-    they're no rivals any more"""
-    if not os.path.exists(os.path.join(base.RUN_DIR, "act.json")):
-        return Counter()
-    progress = load("act.json")
-    verdict = {(sort.clean_name(m["tile"]), m["cp"], m["name"], m["species"]): m["verdict"] for m in load("plan.json")}
-    out = Counter((n, c) for n, c, name, species in progress["done"] if verdict.get((n, c, name, species)) == "NOPE")
-    out.subtract(Counter(tuple(k) for k in progress.get("kept98", []) + progress.get("stayed", [])))
-    return +out
-
-
-def without(results, fresh):
-    """the pools with this run's fresh Nopes taken out of every !#Nope search"""
-    out = {}
-    for q, tiles in results.items():
-        left, keep = Counter(fresh), []
-        for n, c in tiles:
-            k = next((k for k in left if left[k] and k[1] == c and same_name(k[0], n)), None) if sort.NOT_NOPE in q else None
-            if k:
-                left[k] -= 1
-            else:
-                keep.append((n, c))
-        out[q] = keep
-    return out
-
-
-def is_fresh(fresh, n, c):
-    return any(k[1] == c and same_name(k[0], n) for k in fresh)
-
-
-NAMED_READ_MAX = 60  # a pile this size or less gets its tile names read once; a bigger one: each family searches
-
-
-def named_nopes(fresh):
-    """the run's named Nopes, from one search of the whole pile, once a run (named_nopes.json). -> [(tile, CP)] of
-    the named ones this run didn't just make, or None (too many to list: each family searches its own)"""
-    if os.path.exists(os.path.join(base.RUN_DIR, "named_nopes.json")):
-        got = load("named_nopes.json")
-        return None if got is None else [tuple(x) for x in got]
-    sus, tradeable = cleanup_mods()
-    SHOWN["q"] = None
-    log("named Nopes: the whole pile, once")
-    n = sus.ct.long_search(tradeable.SUSPECT_PILE)
-    found = [] if n <= NAMED_READ_MAX else None
-    if n and found is not None:
-        def visit(i, t, c):
-            if sus.named(t) and not is_fresh(fresh, t, c):
-                found.append((t, c))
-            return False
-
-        search.walk_list(visit, odd=lambda t: not sus.named(t))
-    log(f"  named Nopes: {found if found is not None else f'{n}, too many to list'}")
-    save("named_nopes.json", found)
-    return found
-
-
-def recheck_nopes(fam, limit, trainer):
-    """judge the family's named Nopes again, and keep or clear each one on the spot. trainer() -> who's signed in
-    (read only when there are named Nopes). -> (opened, unresolved)"""
-    sus, tradeable = cleanup_mods()
-    fresh = fresh_nopes()
-    seen = load("nopes.json") if os.path.exists(os.path.join(base.RUN_DIR, "nopes.json")) else []
-    named = named_nopes(fresh)
-    if named is not None and all(any(s["tile"] == t and s["cp"] == c and (s.get("done") or s["verdict"] == "LEAVE")
-                                     for s in seen) for t, c in named):
-        return 0, 0  # none, or every one judged already: no search
-    SHOWN["q"] = None  # (the searches below change what's showing)
-    who = trainer()
-    dexes = dex_terms({d for m in fam for q in sort.searches_for(m) for d in dexes_of(q)})
-    q = f"{dexes}&{tradeable.SUSPECT_PILE}"
-    wants = load("counts.json") if os.path.exists(os.path.join(base.RUN_DIR, "counts.json")) else {}
-    pooled = lambda: without({k: [tuple(x) for x in v] for k, v in load("pools.json").items()}, fresh)
-    results, opened = pooled(), [0]
-
-    def judge_one(v):
-        v["verdict"], v["keep"], v["why"] = sus.judge(v, results, wants, who)
-        if v["verdict"] == "KEEP":  # a rival now for the next one judged
-            h = home(dict(v, name=sus.iv_name(v) or v["name"]))
-            if h in results:
-                results[h].append((sus.iv_name(v) or v["name"], v["cp"]))
-
-    def visit(i, n, c):
-        if not sus.named(n) or any(s["tile"] == n and s["cp"] == c and s["verdict"] != "UNREAD" for s in seen) \
-                or is_fresh(fresh, n, c):
-            return False
-        opened[0] += 1
-        log(f"tile {i}: {n} CP{c}: a named Nope, judging it again")
-        ivcrun.open_tile(i)
-        v = {"tile": n, "cp": c, "q": q, "verdict": "UNREAD", "why": []}
-        try:
-            m = sus.read_one(n, c)
-            v = dict(m, tile=n, q=q, verdict=None, keep={}, why=["a pool search isn't typed yet: judged after the walk"])
-            if all(s in results for s, _ in sus.searches(m)):
-                judge_one(v)
-                if v["verdict"] in ("KEEP", "CLEARED"):
-                    sus.apply(v, m, who)
-                    v["done"] = True
-            log(f"DONE {v['verdict']} {n} CP{c} {v['species']}: {'; '.join(v['why'][:2])}")
-        except Skip as e:
-            v["why"] = [str(e)]
-            raise
-        finally:
-            seen[:] = [s for s in seen if (s["tile"], s["cp"]) != (n, c)] + [v]  # (an unread one gets read again)
-            save("nopes.json", seen)
-            back_to_list()
-        return v["verdict"] == "KEEP"
-
-    log(f"named Nopes: {q}")
-    if sus.ct.long_search(q):  # (Pvp names sort among the species names: no order to stop at)
-        search.walk_list(visit, stop=lambda n: opened[0] >= limit, odd=lambda n: not sus.named(n))
-    later = [v for v in seen if v.get("q") == q and v["verdict"] is None]
-    if later and opened[0] < limit:  # their PvP lines' searches first, then judge, then find them again
-        sus.pools(later)
-        results = pooled()
-        for v in later:
-            judge_one(v)
-            log(f"  {v['verdict']} {v['tile']} CP{v['cp']} {v['species']}: {'; '.join(v['why'][:2])}")
-        todo = [v for v in later if v["verdict"] in ("KEEP", "CLEARED")]
-        save("nopes.json", seen)
-        if todo:
-            opened[0] += len(todo)
-            sus.act(todo, tradeable.SUSPECT_PILE, who)
-            save("nopes.json", seen)
-    left = [v for v in seen if v.get("q") == q and (v["verdict"] is None or
-                                                     v["verdict"] in ("KEEP", "CLEARED") and not v.get("done"))]
-    if left:
-        log(f"  named Nopes not done yet: {[v['tile'] for v in left]}")
-    return opened[0], len(left)
-
-
 # ---------- sort: one dex chunk at a time ----------
 
 SMALL = 60  # an IVC pile this size or less is read in one search, not in 50-dex chunks
@@ -919,17 +774,6 @@ def families(members):
     return sorted(out, key=lambda f: min(sort.SPECIES[m["species"]]["dex"] for m in f[1]))
 
 
-def trainer():
-    """the signed-in trainer (the named Nopes' PvP side differs by account). Read off the profile once per run dir"""
-    if not os.path.exists(os.path.join(base.RUN_DIR, "trainer.json")):
-        import home
-        save("trainer.json", home.trainer())
-        home.start()
-        to_search_list()
-        SHOWN["q"] = None
-    return load("trainer.json")
-
-
 def sort_all(limit, look):
     """per 50-dex chunk: read its IVC Pokémon. Then per family: type its searches, decide, and favorite or door
     its IVC ones on the list still on screen. A family is done before the next one's searches are typed, so a stop
@@ -956,14 +800,10 @@ def sort_all(limit, look):
             if not look:
                 n, missed = act(left, fam)
                 left -= n
-                if left > 0:
-                    n, unresolved = recheck_nopes(fam, left, trainer)
-                    left -= n
-                    missed += unresolved
             if left <= 0:  # the family may have more to change: not done (a rerun passes over what act.json has)
                 log(f"--limit {limit} reached: `sort {base.RUN_DIR}` carries on")
                 return
-            if not look and missed:  # not done (an IVC one not found, a named Nope not judged): a rerun tries again
+            if not look and missed:  # not done (an IVC one not found): a rerun tries again
                 unfinished = True
                 continue
             fams_done.append(fkey)
@@ -971,8 +811,7 @@ def sort_all(limit, look):
         if members:
             plan()  # this chunk's members that need nothing typed (SKIP) get their line in plan.txt too
         if unfinished:
-            log(f"{key}: a family isn't done (an IVC one not found, or a named Nope not judged): `sort {base.RUN_DIR}` "
-            "tries again")
+            log(f"{key}: a family isn't done (an IVC one not found): `sort {base.RUN_DIR}` tries again")
             continue
         done.append(key)
         save("sorted.json", done)

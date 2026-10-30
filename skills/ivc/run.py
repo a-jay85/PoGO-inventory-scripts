@@ -199,7 +199,7 @@ def same_name(got, want):
 
 
 def retag(new):
-    """untick IVC, tick the new tag (Nope or PvpC). Other tags the user put on (Old, ...) stay"""
+    """untick IVC, tick the new tag (PvpC). Other tags the user put on (Old, ...) stay"""
     base.set_tags(on=[new], off=[TAG])
 
 

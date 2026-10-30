@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """The shared tapper: screen reading, taps, timing, run folders and logging, and the detail-screen steps (appraise,
-tags, star, rename, Nope) every skill's script uses. One copy in memory per run: scripts `import base`, so all of
+tags, star, rename) every skill's script uses. One copy in memory per run: scripts `import base`, so all of
 them share one RUN_DIR and one last_tap. /pvpc's own walk is ../pvpc/run.py.
 """
 import contextlib, json, math, os, random, re, shutil, subprocess, sys, time
@@ -12,7 +12,7 @@ from ui import Refused, Moving
 HERE = os.path.dirname(os.path.abspath(__file__))
 RUNS = os.path.join(os.path.dirname(HERE), "pvpc", "runs")  # where a run that doesn't pick its own folder logs
 RUN_DIR = os.path.join(RUNS, time.strftime("%Y%m%d-%H%M%S"))
-ALWAYS_KEEP = 44  # IV sum of 98%: 98% and 100% (a shadow: once purified) never get Nope, traded or transferred
+ALWAYS_KEEP = 44  # IV sum of 98%: 98% and 100% (a shadow: once purified) never get traded or transferred
 
 
 class Stop(Exception):
@@ -677,14 +677,9 @@ def tags_done():
         return wait_for("detail")
 
 
-def set_tags(on=(), off=(), only=False, ivs=None, raws=None):
-    """tick the on tags and untick the off ones, leave the rest. only: afterwards the detail must show just the on tags.
-    Nope never goes on a 98%+ one: it's appraised first (unless ivs/raws are given) and skipped if so"""
+def set_tags(on=(), off=(), only=False):
+    """tick the on tags and untick the off ones, leave the rest. only: afterwards the detail must show just the on tags"""
     still_opened("before the tags")
-    if "NOPE" in {t.upper() for t in on}:
-        keep, _, _, what = high_iv(ivs, raws)
-        if keep:
-            raise Skip(f"{what} is 98%+ (or purifies to it): never Nope")
     go("menu", "menu")
     go("TAG", "tags")
     missing = [t for t in on if show_tag(t.upper()) is None]
@@ -744,22 +739,6 @@ def set_star(on):
             if settle(read, lambda f: f is on, timeout=8 if ui.ANDROID else 3) is not on:  # a sharp() look takes ~2s
                 keep_capture("star")
                 raise Stop(f"tapped the star but it still looks {'empty' if on else 'filled'}")
-
-
-def nope(mine, tags, only=True, ivs=None, raws=None):
-    """swap this skill's tag (IVC or PvpC) for Nope. If the Pokémon has the other one too, only untick
-    this skill's: the other skill judges it next and may still keep it. -> what was done, for the log"""
-    other = "IVC" if mine.upper() == "PVPC" else "PvpC"
-    if any(is_tag(t, other) for t in tags):
-        set_tags(off=[mine])
-        log(f"  has {other} too: unticked {mine} only, {other} decides")
-        return f"left for {other}"
-    set_tags(on=["Nope"], off=[mine], only=only, ivs=ivs, raws=raws)
-    return "Nope"
-
-
-def do_nope(tags, ivs=None, raws=None):
-    return nope("PvpC", tags, ivs=ivs, raws=raws)
 
 
 def same_name(got, want):

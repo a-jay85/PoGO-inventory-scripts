@@ -59,7 +59,7 @@ class Door:
         self.tables = vd.tables(vd.TO[self.account])
         if "missing" in self.tables:
             log(f"door: no species lists, those rules will say not sure ({self.tables['missing']})")
-        self.sets = {}
+        self.sets, self.partial = {}, set()
         search.to_search_list()
         said = set(self.scope.lower().split("&"))  # '#Nope&traded': every one is traded, so no search can misread it
         for k, term in SEARCHES.items():
@@ -69,12 +69,19 @@ class Door:
                 continue
             got, want = find(term)
             ok = want is not None and len(got) == want
-            self.sets[k] = Counter(key(n, c) for n, c in got) if ok else None
-            log(f"door: {self.scope}&{term}: {len(got)} read, the game says {want}" + ("" if ok else ": not used"))
+            self.sets[k] = Counter(key(n, c) for n, c in got)
+            if not ok:
+                self.partial.add(k)
+            log(f"door: {self.scope}&{term}: {len(got)} read, the game says {want}" +
+                ("" if ok else ": only a tile read in it counts"))
 
     def has(self, k, tile):
+        """a search whose count didn't match (a long list read 57 for 55): a tile read in it is in it, one not read
+        could be a tile it missed -> None"""
         s = self.sets.get(k)
-        return s if s is None or isinstance(s, bool) else tile in s
+        if s is None or isinstance(s, bool):
+            return s
+        return True if tile in s else None if k in self.partial else False
 
     def listed(self):
         """{(tile name, CP) as the walk read them: n} left as not sure by an earlier run of this tag, on this account,

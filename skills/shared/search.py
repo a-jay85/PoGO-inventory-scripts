@@ -327,9 +327,9 @@ def same_query(got, want):
         if len(want) > 22 and 12 <= len(a) < len(want):  # a long search doesn't fit in the bar: only its end shows
             ends = [want[-len(a):], want[:len(a)]]  # (Android shows its start once Return is pressed)
         for b in ends:
-            a = amp_as_8(a, b)
-            if difflib.SequenceMatcher(None, a, b).ratio() >= 0.8 and abs(len(a) - len(b)) <= 2 \
-                    and re.sub(r"\D", "", a) == re.sub(r"\D", "", b):  # symbols can misread, dex numbers can't
+            r = amp_as_8(a, b)  # (fixed up against this b only: the end's fix-ups would spoil the start's)
+            if difflib.SequenceMatcher(None, r, b).ratio() >= 0.8 and abs(len(r) - len(b)) <= 2 \
+                    and re.sub(r"\D", "", r) == re.sub(r"\D", "", b):  # symbols can misread, dex numbers can't
                 return True
     return False
 

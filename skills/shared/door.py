@@ -34,7 +34,8 @@ def key(tile_name, cp):
 
 
 class Door:
-    def __init__(self, tag):
+    def __init__(self, tag, scope=None, account=None):
+        """scope: the search the Pokémon to judge are in (default #tag). account: who's signed in, when known"""
         global vd, ct, trades
         run_dir = base.RUN_DIR  # (verdict's imports load /ivc's run.py, which points base.RUN_DIR at /ivc's runs)
         import verdict as vd
@@ -42,7 +43,8 @@ class Door:
         import trades  # the tag chips, the caught date at the bottom of the page
         base.RUN_DIR = run_dir
         self.tag, self.other = tag, "IVC" if tag.upper() == "PVPC" else "PvpC"
-        self.account = home.trainer()
+        self.account = account or home.trainer()
+        self.scope = scope or f"#{tag}"
         self.tables = vd.tables(vd.TO[self.account])
         if "missing" in self.tables:
             log(f"door: no species lists, those rules will say not sure ({self.tables['missing']})")
@@ -51,10 +53,10 @@ class Door:
         for k, term in SEARCHES.items():
             if k == "xl_under" and vd.TO[self.account] != vd.GIVER:  # (only the pile for CyrillJan has 2XL)
                 continue
-            got, want = search.run_search(f"#{self.tag}&{term}")
+            got, want = search.run_search(f"{self.scope}&{term}")
             ok = want is not None and len(got) == want
             self.sets[k] = Counter(key(n, c) for n, c in got) if ok else None
-            log(f"door: #{self.tag}&{term}: {len(got)} read, the game says {want}" + ("" if ok else ": not used"))
+            log(f"door: {self.scope}&{term}: {len(got)} read, the game says {want}" + ("" if ok else ": not used"))
 
     def has(self, k, tile):
         s = self.sets.get(k)
@@ -66,10 +68,11 @@ class Door:
         return Counter((e["tile"], e["cp"]) for e in load_list()
                        if e["rules"] == RULES and e["account"] == self.account and e["tag"] == self.tag)
 
-    def judge(self, info, texts, sp, ivs, tile, size=None, raws=None, gym_top20=None, clear=False):
+    def judge(self, info, texts, sp, ivs, tile, size=None, raws=None, gym_top20=None, clear=False, unstar=False):
         """the open detail page of a Pokémon that isn't a keeper. tile: (name, CP) as the walk read the tile.
         gym_top20: what the caller already knows of the gym rule. clear: a plain tag clears the name too (an old /ivc
-        name would bring it back as a rival or a fallen-out one). -> 'left for IVC/PvpC', UNSURE or the verdict's kind"""
+        name would bring it back as a rival or a fallen-out one). unstar: a plain tag takes the star off too (a fallen-out
+        keeper). -> 'left for IVC/PvpC', UNSURE or the verdict's kind"""
         if any(base.is_tag(t, self.other) for t in info["tags"]):  # the other skill judges it next
             base.set_tags(off=[self.tag])
             log(f"  has {self.other} too: unticked {self.tag} only, {self.other} decides")
@@ -89,6 +92,8 @@ class Door:
             base.do_rename(v.name, lambda got, want: (got or "").strip().upper() == want.upper())
         if v.kind == "keep":
             base.set_star(True)
+        elif unstar and v.kind == "tag":
+            base.set_star(False)
         base.set_tags(on=list(v.tags), off=[self.tag, *v.off], ivs=ivs, raws=raws)
         if clear and v.kind == "tag" and not v.name:
             base.clear_name()

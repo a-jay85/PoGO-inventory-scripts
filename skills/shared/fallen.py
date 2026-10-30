@@ -5,10 +5,11 @@ Each skill finds its own fallen-out ones and saves them in <run dir>/fallen.json
 {"name", "cp", "dex": [dex numbers it could be], "why": [...]}. This file decides what happens to them next:
   not traded + caught 2016-2020 -> tag GuaranteedLucky (a trade is guaranteed lucky)
   not traded + older than OLD_DAYS -> tag Old
-  anything else (traded: a Pokémon trades only once, or newer) -> star off + Nope
+  anything else (traded: a Pokémon trades only once, or newer) -> its final tag at the door (door.py: star off, name
+  cleared), or left as it is on door's not-sure list
 Shiny and costume ones are never touched. groups() sorts them with in-game searches (reads only). act() opens each
 one, asks the skill to judge it again on its own detail screen, then tags it and clears its name.
-A Nope one that appraises 98%+ is left alone.
+A door one that appraises 98%+ is left alone. (The group is still called "Nope" in fallen-groups.json.)
 """
 from collections import Counter
 
@@ -65,16 +66,27 @@ def summary(fallen, grouped):
     return lines
 
 
-def act(limit, recheck, off=(), stop=None, odd=None):
+def act(limit, recheck, tag, species, off=(), stop=None, odd=None, gym_top20=None):
     """tag the grouped ones. recheck(name, cp) runs on the open detail screen and leaves it there:
-    -> (still fallen?, what to log). off: tags to untick at the same time"""
+    -> (still fallen?, what to log). species(name, cp) on that screen -> its species ids, for the door. tag: the
+    skill's (IVC / PvpC), for the door's not-sure list. off: tags to untick at the same time. gym_top20: what
+    recheck's rules already say of a gym defender (/ivcsort: False, its NOPE covers the gym rule)"""
     grouped = base.load("fallen-groups.json")
-    done = Counter()
+    done, account = Counter(), [None]
     for g, q in searches(base.load("fallen.json")):
         todo = Counter(map(tuple, grouped[g].get(q, [])))
         if not todo or sum(done.values()) >= limit:
             continue
         log(f"fallen {g}: {sum(todo.values())} in {q}")
+        gate = None
+        if g == "Nope":  # one Door per search: its searches read what the page can't show, within this one
+            import door  # (here: door loads verdict, which loads /ivcsort, which loads this)
+            gate = door.Door(tag, scope=q, account=account[0])
+            account[0] = gate.account
+            for k, v in gate.listed().items():
+                if todo[k]:
+                    log(f"  {k[0]} CP{k[1]}: on the not-sure list, passed over")
+                    todo[k] -= min(v, todo[k])
 
         def visit(i, n, c):
             if not todo[(n, c)] or sum(done.values()) >= limit:
@@ -86,15 +98,21 @@ def act(limit, recheck, off=(), stop=None, odd=None):
                 log(f"  {n} CP{c}: {what} on a closer look, leaving it")
                 go("close", "list")
                 return False
-            ivs = raws = None
-            if g == "Nope":  # appraise before the star comes off: 98%+ never gets Nope
-                keep, ivs, raws, what = base.high_iv()
+            if g == "Nope":  # appraise first: 98%+ never goes
+                keep, ivs, raws, iv = base.high_iv()
                 if keep:
-                    log(f"  {n} CP{c}: appraised {what}, 98%+ never gets Nope, leaving it")
+                    log(f"  {n} CP{c}: appraised {iv}, 98%+ never goes, leaving it")
                     go("close", "list")
                     return False
-                base.set_star(False)
-            base.set_tags(on=[g], off=off, ivs=ivs, raws=raws)
+                info, texts, _ = base.steady_detail()
+                got = gate.judge(info, texts, species(n, c), ivs, (n, c), size=base.extras(texts)[2], raws=raws,
+                                 gym_top20=gym_top20, clear=True, unstar=True)
+                done[got] += 1
+                log(f"DONE fallen door {got} {n!r} CP{c}: {what}")
+                go("close", "list")
+                # a cleared name leaves the IV / Pvp names (a list sorted by Name). Left as it is, it stays
+                return got == "tag"
+            base.set_tags(on=[g], off=off)
             done[g] += 1
             base.clear_name()  # an old /ivc or Pvp name would bring it back to the Nope recheck
             log(f"DONE fallen {g} {n!r} CP{c}: {what}, name cleared")

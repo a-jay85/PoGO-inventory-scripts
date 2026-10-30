@@ -546,12 +546,17 @@ def recheck_fallen(n, c):
     m = read_member(n, c, ivc=False)
     if not m["species"]:
         raise Skip(f"species unsure: {m['species_options']}")
+    FALLEN_SPECIES[(n, c)] = [m["species"]]
     verdict, why = judge(m, results, wants)
     return verdict == "NOPE", f"{verdict} {m['species']} ({why[0] if why else ''})"
 
 
+FALLEN_SPECIES = {}  # (tile name, CP) -> [species id], as recheck_fallen read it: the door judges that one
+
+
 def act_fallen(limit):
-    fallen.act(limit, recheck_fallen, stop=lambda n: not re.match(r"\d", n), odd=odd_name)
+    fallen.act(limit, recheck_fallen, TAG, lambda n, c: FALLEN_SPECIES[(n, c)], gym_top20=False,
+               stop=lambda n: not re.match(r"\d", n), odd=odd_name)
 
 
 # ---------- 4. act ----------

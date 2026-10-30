@@ -105,6 +105,16 @@ def from_ivc(tile_name, tile_cp):
     return m
 
 
+def keep_member(m):
+    """what scan read on a detail screen, into this run's read.json: the next run takes it from there (from_ivc)"""
+    path = os.path.join(base.RUN_DIR, ivcrun.READ)
+    read = json.load(open(path)) if os.path.exists(path) else []
+    read.append(dict({k: m[k] for k in ("name", "cp", "hp", "candy", "types", "shadow", "lucky", "size", "dynamax", "tags")},
+                     bars=None, raws=None, phone="android" if ui.ANDROID else "ios", at=time.time()))
+    with open(path, "w") as f:
+        json.dump(read, f, indent=1)
+
+
 # ---------- walking a list ----------
 
 def odd_name(n):
@@ -225,6 +235,7 @@ def scan(limit=10 ** 9, only=None):
             m = read_member(n, c)
         finally:
             back_to_list()
+        keep_member(m)
         add(m)
         return False
 
@@ -305,7 +316,8 @@ FLAGS = ("shadow", "lucky", "dynamax")
 def flag_unrenamed(found, a, b):
     """the unrenamed ones of chunk a-b: which are shadow, lucky or Dynamax (a search each, over just their dex
     numbers). Their pool searches depend on it, and none of it shows on a tile"""
-    us = [m for m in found if m.get("unrenamed") and m.get("species") and chunk_of(m, a, b) and "flags" not in m]
+    us = [m for m in found if m.get("unrenamed") and m.get("species") and chunk_of(m, a, b) and "flags" not in m
+          and not unsure_before(m)]
     if not us:
         return
     dex = dex_terms(sort.SPECIES[m["species"]]["dex"] for m in us)
@@ -472,6 +484,14 @@ def unrenamed_dexes(u):
     return {sort.SPECIES[x]["dex"] for s in sids for line in sort.family(s) for x in line if x in sort.SPECIES}
 
 
+def unsure_before(u):
+    """an unrenamed one the door wasn't sure of last time, under the same rules: /ivc found its IV too low to show
+    (no name), so it beats no KEEP and opening it again ends the same way. (Any account: a species-named tile with
+    the same CP on the other one is rare, and it's only passed over)"""
+    return any(e["tile"] == sort.clean_name(u["tile"]) and e["cp"] == u["cp"] and e["tag"] == TAG
+               and e["rules"] == door.RULES for e in door.load_list())
+
+
 def unrenamed_check(m, scanned, verdict, why):
     """an IVC Pokémon still named after its species has no IV in the pools: it could beat a KEEP. A KEEP whose
     searches could show one (its name's family, or, a name that's no species, the same dex chunk) is left until
@@ -479,7 +499,7 @@ def unrenamed_check(m, scanned, verdict, why):
     if verdict != "KEEP" or not re.search(r"\bspot\b", why[0] if why else ""):  # 98%+, own form, Elite TM, gym CP:
         return verdict, why  # no IV ranking that an unknown IV could beat
     could, ranges = set(), []  # (one Happiny read in a one-search scan of 1-1025 held back 23 KEEPs, 2026-10-30)
-    for u in (u for u in scanned if u.get("unrenamed")):
+    for u in (u for u in scanned if u.get("unrenamed") and not unsure_before(u)):
         dexes = unrenamed_dexes(u)
         could |= dexes
         if not dexes and u.get("dex_range"):
@@ -499,6 +519,8 @@ def plan(quiet=False):
     for m in scanned:
         if m.get("done"):
             verdict, why = "DONE", [f"{m['done']} when it was opened and named"]
+        elif m.get("unrenamed") and unsure_before(m):
+            verdict, why = "SKIP", ["still has its species name: the door wasn't sure of it last time, same rules"]
         elif m.get("unrenamed") and not (m.get("species") and m.get("flags")):
             verdict, why = "SKIP", ["still has its species name, and the name is no species: run /ivc first"]
         elif m.get("unrenamed"):
@@ -690,8 +712,25 @@ def renamed_in_pools(results, n, c, name, own):
 def look(i, n, c, p, members):
     """a LOOK: open it once, appraise and name it as /ivc does, judge it against the pools right there, and favorite
     it or take it to the door while its detail screen is open. -> True if it left the list on screen"""
-    r = ivcrun.read_one(i, n, c)
+    try:
+        r = ivcrun.read_one(i, n, c)
+    except Skip as e:  # another one named after its species, same CP, no IVC tag: the IVC one is further down
+        if str(e).startswith(f"no {TAG} tag"):
+            raise NotIVC(str(e))
+        raise
     info, texts, name = r["info"], r["texts"], r["name"]
+    key = [plan_key(p)]
+
+    def store(m):
+        """its line in scan.json and the family's members: a stop after the rename finds it by its new name"""
+        found = load("scan.json")
+        for x in found + members:
+            if plan_key(x) == key[0]:
+                x.clear()
+                x.update(m)
+        save("scan.json", found)
+        key[0] = plan_key(m)
+
     sp = [s for s in r["sp"] if s in sort.SPECIES]
     m = dict(p, unrenamed=False, hp=info["hp"], candy=candy(texts), types=sorted(type_line(texts)), shadow=r["shadow"],
              lucky=r["lucky"], size=r["size"], dynamax=dynamax(texts), tags=info["tags"],
@@ -713,6 +752,7 @@ def look(i, n, c, p, members):
         ivcrun.do_rename(name, ivcrun.same_name)
         ivcrun.keep_read(r)  # a later run takes it from here instead of opening it
         m["name"] = m["tile"] = name
+        store(m)
         results = {k: [tuple(x) for x in v] for k, v in load("pools.json").items()}
         wants = load("counts.json") if os.path.exists(os.path.join(base.RUN_DIR, "counts.json")) else {}
         renamed_in_pools(results, n, c, name, set(sort.searches_for(m)))
@@ -721,7 +761,7 @@ def look(i, n, c, p, members):
             verdict, why = "LEAVE", ["named; a pool search it needs is missing: judged after the family's searches"]
         else:
             verdict, why = judge(m, results, wants)
-            others = [x for x in load("scan.json") if plan_key(x) != plan_key(p)]
+            others = [x for x in load("scan.json") if plan_key(x) != key[0]]
             verdict, why = unrenamed_check(m, others, verdict, why)  # a KEEP waits for the family's other unnamed ones
         gone = verdict
         if verdict == "KEEP":
@@ -737,12 +777,7 @@ def look(i, n, c, p, members):
         f"{why[0] if why else ''}")
     if verdict not in ("LEAVE", "SKIP"):  # a LEAVE stays a member: planned again with the family
         m["done"] = verdict
-    found = load("scan.json")
-    for x in found + members:
-        if plan_key(x) == plan_key(p):
-            x.clear()
-            x.update(m)
-    save("scan.json", found)
+    store(m)
     # an #IVC list loses it when IVC comes off. A name list: named (moves up past what's walked) or named and
     # cleared again (back where it was), so the next tile keeps its place
     return bool(SHOWN["q"] and SHOWN["q"].startswith("#")) and gone not in ("LEAVE", "SKIP", door.UNSURE)

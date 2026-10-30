@@ -1,6 +1,6 @@
 ---
 name: ivcsort
-description: After /ivc has renamed the IVC Pokémon, keep the best of each species line (favorite + untick IVC) and give the rest their final tag at the door (GIV, XLX, Transfer ...). Use when the user says /ivcsort or asks to sort their IVC Pokémon.
+description: Name the IVC Pokémon by IV (as /ivc does, in the same open), keep the best of each species line (favorite + untick IVC) and give the rest their final tag at the door (GIV, XLX, Transfer ...). Use when the user says /ivcsort or asks to sort their IVC Pokémon.
 model: claude-sonnet-5-5
 ---
 
@@ -36,7 +36,7 @@ Search terms and their bugs: `~/PoGO-inventory-scripts/skills/shared/SEARCH.md`.
 
 ## Running it
 
-One command: `POGO_PHONE=android caffeinate -dimsu python3 ~/PoGO-inventory-scripts/pogo.py ivcsort`. Or on its own: `caffeinate -dimsu python3 $S/run.py [--limit N] [--look]`. It doesn't ask first (2026-10-27): the 98%+ appraisal and `/cleanup`'s suspects pass catch a wrong Nope.
+One command, fall-outs included: `POGO_PHONE=android caffeinate -dimsu python3 ~/PoGO-inventory-scripts/pogo.py ivcsort + ivcsort fallen last + ivcsort act-fallen last`. Or on its own: `caffeinate -dimsu python3 $S/run.py [--limit N] [--look]`. It doesn't ask first (2026-10-27): the 98%+ appraisal and `/cleanup`'s suspects pass catch a wrong Nope.
 
 1. It counts `#IVC&!xxl&!xxs`. Up to 60 (`SMALL`): one search reads them all. More: it goes 50 dex numbers at a time (`#IVC&!xxl&!xxs&1-50`, ...), and each block is tagged before the next is read.
 2. It reads each IVC Pokémon in the block (`scan.json`). One read before on this phone with the same name and CP isn't opened: what its detail screen showed is saved (`ivc/runs/<time>/read.json` and `ivcsort/runs/<time>/read.json`, no age limit). One still named after its species isn't opened either: the name tells the species, and three searches over just those dex numbers (`&shadow`, `&lucky`, `&dynamax`) tell which pools it needs.

@@ -736,6 +736,7 @@
    "ivc_name",
    "ivc_reads",
    "judge",
+   "keep_member",
    "load",
    "load_plan",
    "log",
@@ -774,6 +775,7 @@
    "unrenamed",
    "unrenamed_check",
    "unrenamed_dexes",
+   "unsure_before",
    "walk_list"
   ],
   "runs": [
@@ -785,6 +787,7 @@
    "skills/ivc/runs/<time>/plan.json",
    "skills/ivc/runs/<time>/plan.txt",
    "skills/ivc/runs/<time>/pools.json",
+   "skills/ivc/runs/<time>/read.json",
    "skills/ivc/runs/<time>/scan.json",
    "skills/ivc/runs/<time>/sorted.json",
    "skills/ivcsort/runs"

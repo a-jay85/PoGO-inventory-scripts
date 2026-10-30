@@ -61,7 +61,12 @@ class Door:
             log(f"door: no species lists, those rules will say not sure ({self.tables['missing']})")
         self.sets = {}
         search.to_search_list()
+        said = set(self.scope.lower().split("&"))  # '#Nope&traded': every one is traded, so no search can misread it
         for k, term in SEARCHES.items():
+            if term in said or "!" + term in said:
+                self.sets[k] = term in said
+                log(f"door: {self.scope}: {'every' if term in said else 'no'} one is {term}, no search")
+                continue
             got, want = find(term)
             ok = want is not None and len(got) == want
             self.sets[k] = Counter(key(n, c) for n, c in got) if ok else None
@@ -69,7 +74,7 @@ class Door:
 
     def has(self, k, tile):
         s = self.sets.get(k)
-        return None if s is None else tile in s
+        return s if s is None or isinstance(s, bool) else tile in s
 
     def listed(self):
         """{(tile name, CP) as the walk read them: n} left as not sure by an earlier run of this tag, on this account,

@@ -586,10 +586,16 @@ def show_tag(T):
     return None
 
 
+def row_name(s):
+    """a tag sheet row's text -> its name, upper case (the icon by Remote Trade reads as a stray letter)"""
+    return re.sub(r"^[A-Z] (?=[A-Z]{2})", "", ui.norm(s.lstrip("•· ")))
+
+
 def tap_tag_row(T, name):
-    """tap a row of the open tag sheet. A tag named like a never-tap button (Transfer) is tapped by its own row, and
-    only when two looks agree it's the tag sheet, standing still, with exactly one row that says just that"""
-    if not any(T.startswith(z) for z in ui.HAZARDS):
+    """tap a row of the open tag sheet. A tag with a never-tap button's word in it (Transfer, Remote Trade) is tapped
+    by its own row, and only when two looks agree it's the tag sheet, standing still, with exactly one row that says
+    just that"""
+    if not any(z in T for z in ui.HAZARDS):
         return tap(name)
     seen = []
     for i in range(2):
@@ -598,7 +604,7 @@ def tap_tag_row(T, name):
             if ui.ANDROID:
                 ui.android.fresh()
         _, texts, _, bounds = wait_for("tags")
-        rows = [t for t in texts if ui.norm(t[4].lstrip("•· ")) == T]
+        rows = [t for t in texts if row_name(t[4]) == T]
         if len(rows) != 1:
             raise Stop(f"tag sheet: {len(rows)} rows read {name!r}, wanted 1")
         seen.append(rows[0])
@@ -610,7 +616,7 @@ def tap_tag_row(T, name):
 def lift_tag_row(T):
     """Android: a tap on the last row showing (under the list's fade) doesn't take. Scroll it up a little first"""
     _, texts, _, _ = wait_for("tags")
-    row = next((t for t in texts if ui.norm(t[4].lstrip("•· ")) == T), None)
+    row = next((t for t in texts if row_name(t[4]) == T), None)
     if row and row[1] > 0.7:
         x, y = random.randint(650, 790), random.randint(1960, 2040)
         ui.android.shell(f"input swipe {x} {y} {x + random.randint(-8, 8)} {y - random.randint(370, 430)} "

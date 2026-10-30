@@ -1295,6 +1295,7 @@
    "poll_gap",
    "recover",
    "restore_clipboard",
+   "row_name",
    "same_name",
    "same_pokemon",
    "save",

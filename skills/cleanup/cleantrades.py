@@ -559,10 +559,12 @@ def steps(cands):
     return {int((PLAYS[math.floor(lv)] - lv) * 2) if math.floor(lv) in PLAYS else None for _, _, lv in cands}
 
 
-def power_up(info, texts):
+def power_up(info, texts, levels=None):
     """1-2 power-ups if this one sits right under an XL tier. -> power-ups made. Raise Pass to leave it.
-    Its level comes from the dialog: + adds a power-up, and each total (CP after, Stardust) rules levels out."""
+    Its level comes from the dialog: + adds a power-up, and each total (CP after, Stardust) rules levels out.
+    levels: the caller's, used when the page's cost doesn't read"""
     cost, lvs = cost_levels(texts, info["cp"])
+    lvs = lvs or sorted(levels or ())
     if not lvs:
         raise Unsure(f"can't read the power-up cost ({cost})")
     if not any(math.floor(lv) in PLAYS for lv in lvs):  # the cost rules out every play: no taps

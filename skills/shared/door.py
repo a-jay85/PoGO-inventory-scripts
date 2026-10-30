@@ -87,14 +87,17 @@ class Door:
             base.set_tags(off=[self.tag])
             log(f"  has {self.other} too: unticked {self.tag} only, {self.other} decides")
             return f"left for {self.other}"
-        f, why = self.facts(info, texts, sp, ivs, key(*tile), size, gym_top20, iv_top)
+        if (got := base.narrow(sp, ivs, info["cp"] or tile[1], info["hp"])) != sp:  # (the walk checked the tile's CP)
+            log(f"  {'/'.join(sp)}: only {'/'.join(got)} has these IVs at this CP and HP")
+            sp = got
+        f, why = self.facts(info, texts, sp, ivs, key(*tile), size, gym_top20, iv_top, tile[1])
         v = vd.final_tag(f, self.tables) if not why else vd.unsure(why)
         if f.lucky and iv_top is False:
             ranked_out(self.account, sp, ivs)
         if v.purify:
             v = self.purify(info, v)
         if v.kind == "tag" and "Transfer" in v.tags:
-            v = self.power_up(info, v, tile[1])
+            v = self.power_up(info, v, tile[1], None if v.purify else f.levels)
         self.last = v
         log(f"  door: {v.kind} {'+'.join(v.tags)}{' -' + '-'.join(v.off) if v.off else ''}"
             f"{' named ' + v.name if v.name else ''}: {v.why}")
@@ -116,7 +119,7 @@ class Door:
             base.clear_name()
         return v.kind
 
-    def facts(self, info, texts, sp, ivs, tile, size, gym_top20=None, iv_top=None):
+    def facts(self, info, texts, sp, ivs, tile, size, gym_top20=None, iv_top=None, tile_cp=None):
         """-> (Facts, why not sure before any rule: '' when it's up to the rules)"""
         dex = {vd.pvp.SPECIES[s]["dex"] for s in sp if s in vd.pvp.SPECIES}
         size = {"XXL": "xxl", "XXS": "xxs"}.get(size, "")
@@ -132,7 +135,7 @@ class Door:
                      lucky=any(ui.norm(t[4]).startswith("LUCKY POK") for t in texts),
                      gigantamax="GIGANTAMAX" in near, dynamax="DYNAMAX" in near, size=size, kg=base.who(info)[2],
                      candy_xl=None if xl is None else 0 if xl else vd.XL_CAP,
-                     levels=ct.cost_levels(texts, info["cp"])[1] or None, far=self.has("far", tile), gym_top20=gym_top20,
+                     levels=ct.cost_levels(texts, info["cp"])[1] or self.iv_levels(sp, ivs, info["cp"] or tile_cp, info["hp"]) or None, far=self.has("far", tile), gym_top20=gym_top20,
                      iv_top=iv_top, pvp_judged=self.tag.upper() == "PVPC", ivc_judged=self.tag.upper() == "IVC",
                      other_tags=[t for t in trades.tag_chips(texts)
                                  if t not in (self.tag.upper(), *((self.other.upper(),) if self.source else ()))])
@@ -166,15 +169,24 @@ class Door:
         base.OPENED["who"] = base.who(base.detail_now())  # its CP and HP moved: still the same one
         return v
 
-    def power_up(self, info, v, tile_cp):
-        """one or two power-ups first if that reaches a higher Candy XL tier on transfer (cleantrades' rule)"""
+    def iv_levels(self, sp, ivs, cp, hp):
+        """the level from the appraisal's IVs, CP and HP, when the power-up cost doesn't read"""
+        got = base.levels_for(sp[0], ivs, cp, hp) if len(sp) == 1 and ivs and sp[0] in vd.pvp.SPECIES \
+            and cp is not None and hp is not None else []
+        if got:
+            log(f"  power-up cost didn't read: level {got} from IVs, CP and HP")
+        return got
+
+    def power_up(self, info, v, tile_cp, levels=None):
+        """one or two power-ups first if that reaches a higher Candy XL tier on transfer (cleantrades' rule).
+        levels: what the facts found, for when the cost doesn't read now"""
         for _ in range(3):  # back from the caught date at the bottom: wait until the cost reads
             now, texts, _ = base.steady_detail()
             if ct.cost_levels(texts, now["cp"] or tile_cp)[1]:
                 break
             time.sleep(0.5)
         try:
-            n = ct.power_up({**info, "cp": now["cp"] or tile_cp}, texts)  # (the walk checked the tile's CP)
+            n = ct.power_up({**info, "cp": now["cp"] or tile_cp}, texts, levels)  # (the walk checked the tile's CP)
             log(f"  powered up {n}x before Transfer")
             base.OPENED["who"] = base.who(base.detail_now())  # its CP and HP moved: still the same one
         except ct.Unsure as e:

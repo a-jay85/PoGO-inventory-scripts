@@ -160,7 +160,8 @@ def back_to_top(me, bounds):
             x, y = hold[0][0] + hold[0][2] / 2, hold[0][1] + hold[0][3] / 2
             # at the top the weight sits at ~0.6: move it to just short of there, any more and the page closes
             far = random.uniform(0.56, 0.58) - kg[0][1] if kg else random.uniform(0.4, 0.45)
-            base.drag(x, y, x, min(y + max(far, 0.03), 0.92), bounds)  # (drag waits for it to stop)
+            # (no CP in sight, so not at the top yet: a drag under 0.06 can leave it a hair short, the CP under the clock)
+            base.drag(x, y, x, min(y + max(far, 0.06), 0.92), bounds)  # (drag waits for it to stop)
         else:
             time.sleep(0.3)
     keep_capture("top")

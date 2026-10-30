@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Rules for /ivcsort: which IVC Pokémon to keep (favorite + untag) and which to Nope.
+"""Rules for /ivcsort: which IVC Pokémon to keep (favorite + untag) and which to send to the door (its final tag).
 
   sort.py name <nickname>            -> what the script reads from a nickname (IV sum, purified, size, ...)
   sort.py lines <species_id>         -> its family: lines, spots and the searches each pool uses
@@ -27,8 +27,8 @@ Weak lines (no species, mega or shadow form of the line reaches STRONG_AT% on Di
   full top N non-shadow spots anyway (the lucky rule, 2026-10-30: verdict.lucky).
   Never weak: gym defenders, COLLECT, legendary/mythical/Ultra Beast, unrated megas, species not on DialgaDex.
   meta-overrides.txt can mark a species strong or weak by hand.
-COLLECT lines (Vivillon patterns): a NOPE becomes LEAVE so the user picks.
-Fails: XXL/xxs in the name -> leave for the user. Otherwise -> Nope. No IV and no size (FP*, *) -> Nope.
+COLLECT lines (Vivillon patterns): a DOOR becomes LEAVE so the user picks.
+Fails: XXL/xxs in the name -> leave for the user. Otherwise -> DOOR. No IV and no size (FP*, *) -> DOOR.
 """
 import difflib, json, os, re, sys
 from collections import Counter, namedtuple
@@ -505,7 +505,7 @@ def gym_keep(m, tiles):
 
 def decide(m, results):
     """m: dict species, cp, name, shadow, lucky, dynamax. results: search string -> [(tile name, cp)].
-    -> (KEEP | NOPE | LEAVE, [reasons])"""
+    -> (KEEP | DOOR | LEAVE, [reasons])"""
     p = parse_name(m["name"])
     sized = p.size or bool(m.get("size"))  # the XXL/XXS badge read on the detail screen counts too
     why, notes = [], []
@@ -519,7 +519,7 @@ def decide(m, results):
         why += w
     mine = value(m["name"], m["shadow"])
     if mine is None:
-        return ("LEAVE" if sized or gym_unsure else "NOPE"), why + [f"no IV in the name {m['name']!r}"]
+        return ("LEAVE" if sized or gym_unsure else "DOOR"), why + [f"no IV in the name {m['name']!r}"]
     if mine >= ALWAYS:
         return "KEEP", [f"{pct(mine)} always keeps"]
     if m["shadow"] and p.purified is not None and p.purified >= ALWAYS:
@@ -554,7 +554,7 @@ def decide(m, results):
         why.append(reason)
     if not (sized or gym_unsure) and any(s.startswith(c) for line in lines_of(sid) for s in line for c in COLLECT):
         return "LEAVE", ["pattern collection: yours to pick"] + why + notes
-    return ("LEAVE" if sized or gym_unsure else "NOPE"), why + notes
+    return ("LEAVE" if sized or gym_unsure else "DOOR"), why + notes
 
 
 def pick_species(options):
@@ -653,33 +653,33 @@ def test():
 
     me = {"species": "charizard", "cp": 2000, "name": "93", "shadow": False, "lucky": False, "dynamax": False}
     six_better = [(f"{p}", 1500 + p) for p in (100, 98, 98, 96, 96, 96)]
-    check("7th of 7 -> NOPE", decide(me, res(charizard__plain=six_better + [("93", 2000)]))[0], "NOPE")
+    check("7th of 7 -> DOOR", decide(me, res(charizard__plain=six_better + [("93", 2000)]))[0], "DOOR")
     check("tie with 6th keeps", decide(me, res(charizard__plain=six_better[:5] + [("93", 1)] + [("93", 2000)]))[0], "KEEP")
-    check("pool across line", decide(me, res(charmander__plain=six_better, charizard__plain=[("93", 2000)]))[0], "NOPE")
+    check("pool across line", decide(me, res(charmander__plain=six_better, charizard__plain=[("93", 2000)]))[0], "DOOR")
     check("species names don't count",
           decide(me, res(charmander__plain=[("Charmander", 500)] * 9, charizard__plain=[("93", 2000)]))[0], "KEEP")
     check("XXL badge, name lost it -> LEAVE", decide(dict(me, size="XXL"), res(charizard__plain=six_better))[0], "LEAVE")
     check("XXL fails -> LEAVE", decide(dict(me, name="93 XXL"), res(charizard__plain=six_better))[0], "LEAVE")
-    check("move only -> NOPE", decide(dict(me, name="FP*"), res())[0], "NOPE")
+    check("move only -> DOOR", decide(dict(me, name="FP*"), res())[0], "DOOR")
     check("xxs only -> LEAVE", decide(dict(me, name="xxs"), res())[0], "LEAVE")
     sh = dict(me, shadow=True, name="80/93 a")
     check("shadow vs shadows only", decide(sh, res(charizard__plain=six_better, charizard__shadow=[("80/93 a", 2000)]))[0], "KEEP")
-    check("shadow beaten", decide(sh, res(charizard__shadow=[("82/96", 1)] * 6, charizard__plain=six_better))[0], "NOPE")
-    check("shadow top 5 in a mega line", decide(sh, res(charizard__shadow=[("82/96", 1)] * 5, charizard__plain=six_better))[0], "NOPE")
+    check("shadow beaten", decide(sh, res(charizard__shadow=[("82/96", 1)] * 6, charizard__plain=six_better))[0], "DOOR")
+    check("shadow top 5 in a mega line", decide(sh, res(charizard__shadow=[("82/96", 1)] * 5, charizard__plain=six_better))[0], "DOOR")
     check("shadow 5th keeps", decide(sh, res(charizard__shadow=[("82/96", 1)] * 4, charizard__plain=six_better))[0], "KEEP")
     check("spotless shadows purify too: only the best keeps", [decide(dict(sh, name=n, cp=c), res(
           charizard__shadow=[("82/96", 1)] * 5 + [("80/93 a", 2000), ("78/91 a", 2001)],
-          charizard__plain=six_better[:5]))[0] for n, c in (("80/93 a", 2000), ("78/91 a", 2001))], ["KEEP", "NOPE"])
+          charizard__plain=six_better[:5]))[0] for n, c in (("80/93 a", 2000), ("78/91 a", 2001))], ["KEEP", "DOOR"])
     check("shadow out of shadow spots, top 6 once purified", decide(sh, res(charizard__shadow=[("82/89", 1)] * 6,
           charizard__plain=six_better[:5] + [("91", 1)]))[0], "KEEP")
     check("purified ranks by 2nd number",
-          decide(me, res(charizard__plain=[("87/100", 1)] * 6 + [("93", 2000)]))[0], "NOPE")
+          decide(me, res(charizard__plain=[("87/100", 1)] * 6 + [("93", 2000)]))[0], "DOOR")
     lk = dict(me, lucky=True)
     check("best lucky keeps", decide(lk, res(charizard__plain=six_better, charizard__lucky=[("93", 2000), ("91", 5)]))[0], "KEEP")
-    check("2nd lucky nopes", decide(lk, res(charizard__plain=six_better, charizard__lucky=[("96", 5)]))[0], "NOPE")
+    check("2nd lucky nopes", decide(lk, res(charizard__plain=six_better, charizard__lucky=[("96", 5)]))[0], "DOOR")
     dm = dict(me, dynamax=True)
     check("top 3 dmax keeps", decide(dm, res(charizard__plain=six_better, charizard__dmax=[("96", 1), ("96", 2)]))[0], "KEEP")
-    check("4th dmax nopes", decide(dm, res(charizard__plain=six_better, charizard__dmax=[("96", 1)] * 3))[0], "NOPE")
+    check("4th dmax nopes", decide(dm, res(charizard__plain=six_better, charizard__dmax=[("96", 1)] * 3))[0], "DOOR")
     bl = {"species": "blissey", "cp": 3000, "name": "40 h", "shadow": False, "lucky": False, "dynamax": False}
     gym = {S("blissey", "gym"): [("Blissey", 3500)] * 19 + [("40 h", 3000)],
            S("chansey", "plain"): [], S("blissey", "plain"): [("100", 1000)] * 5,
@@ -688,17 +688,17 @@ def test():
     gym[S("blissey", "gym")] = [("Blissey", 3500)] * 20
     check("gym 21st by CP, but nothing named above it: top 20 IV", decide(bl, by_fam(gym, "blissey"))[0], "KEEP")
     gym[S("blissey", "gym")] = [("80", 3500)] * 20
-    check("gym 21st by CP and by IV nopes", decide(bl, by_fam(gym, "blissey"))[0], "NOPE")
+    check("gym 21st by CP and by IV nopes", decide(bl, by_fam(gym, "blissey"))[0], "DOOR")
     check("gym IV still counts", decide(dict(bl, name="100"), by_fam(gym, "blissey"))[0], "KEEP")
     gym[S("blissey", "gym")] = [("91 H", 3500)] * 19 + [("40 h", 3000)]
     check("gym 20th by IV keeps", decide(dict(bl, name="89 h", cp=2000), by_fam(gym, "blissey"))[0], "KEEP")
     gym[S("blissey", "gym")] = [("91 H", 3500)] * 20
-    check("gym 21st by IV nopes", decide(dict(bl, name="89 h", cp=2000), by_fam(gym, "blissey"))[0], "NOPE")
+    check("gym 21st by IV nopes", decide(dict(bl, name="89 h", cp=2000), by_fam(gym, "blissey"))[0], "DOOR")
     gym[S("blissey", "gym")] = [("96 AH", 3500)] * 20
     check("gym IV tie: HD beats AH", decide(dict(bl, name="96 HD", cp=2000), by_fam(gym, "blissey"))[0], "KEEP")
     check("gym IV tie: squeezed name", decide(dict(bl, name="96HD*", cp=2000), by_fam(gym, "blissey"))[0], "KEEP")
     gym[S("blissey", "gym")] = [("96 HD", 3500)] * 20
-    check("gym IV tie: AH loses to HD", decide(dict(bl, name="96 AH", cp=2000), by_fam(gym, "blissey"))[0], "NOPE")
+    check("gym IV tie: AH loses to HD", decide(dict(bl, name="96 AH", cp=2000), by_fam(gym, "blissey"))[0], "DOOR")
     check("gym IV tie: same letters keeps", decide(dict(bl, name="96 HD", cp=2000), by_fam(gym, "blissey"))[0], "KEEP")
     gym[S("blissey", "gym")] = [("96 HD", 3500)] * 20
     gym[S("chansey", "gym")] = [("40 h", 500)]
@@ -722,15 +722,15 @@ def test():
            "282&!#Nope&!shadow", "475&!#Nope&!shadow"])
     check("7th male kirlia keeps for gardevoir", decide(kl, rk(kirlia__plain__male=six_better + [("93", 800)]))[0], "KEEP")
     check("7th male kirlia, gardevoir full too", decide(kl, rk(kirlia__plain__male=six_better + [("93", 800)],
-          gardevoir__plain=six_better))[0], "NOPE")
-    check("13th male kirlia nopes", decide(kl, rk(kirlia__plain__male=six_better * 2 + [("93", 800)]))[0], "NOPE")
+          gardevoir__plain=six_better))[0], "DOOR")
+    check("13th male kirlia nopes", decide(kl, rk(kirlia__plain__male=six_better * 2 + [("93", 800)]))[0], "DOOR")
     check("female kirlia never takes a gallade spot", decide(kl, rk(kirlia__plain__female=[("93", 800)],
-          gardevoir__plain=six_better))[0], "NOPE")
+          gardevoir__plain=six_better))[0], "DOOR")
     gl = dict(kl, species="gallade", cp=2500)
     check("gallade under 6 better males keeps (they can be gardevoir)",
           decide(gl, rk(kirlia__plain__male=six_better, gallade__plain=[("93", 2500)]))[0], "KEEP")
     check("gallade under 6 better males, gardevoir full", decide(gl, rk(kirlia__plain__male=six_better,
-          gallade__plain=[("93", 2500)], gardevoir__plain=six_better))[0], "NOPE")
+          gallade__plain=[("93", 2500)], gardevoir__plain=six_better))[0], "DOOR")
     ev = dict(kl, species="eevee", cp=500)
     full = {f"{x}__plain": six_better for x in ("flareon", "espeon", "umbreon", "leafeon", "glaceon", "sylveon")}
     check("eevee: vaporeon and jolteon are weak, top 1 each", [spots("eevee", "plain")[slot(x)][0]
@@ -738,7 +738,7 @@ def test():
     check("one eevee can't fill two spots", decide(ev, resf("eevee", eevee__plain=[("96", 1), ("93", 500)], **full))[0],
           "KEEP")
     check("eevee: every spot taken", decide(ev, resf("eevee", jolteon__plain=[("100", 1)],
-          eevee__plain=[("96", 1), ("93", 500)], **full))[0], "NOPE")
+          eevee__plain=[("96", 1), ("93", 500)], **full))[0], "DOOR")
     tg = dict(kl, species="tyrogue", cp=400, name="93 a")
     check("tyrogue letters", [by_iv("tyrogue", n, reach("tyrogue", None), sh) == frozenset({slot(f) for f in fs})
                               for n, sh, fs in (("93 a", False, ["hitmonlee"]), ("96 D", False, ["hitmonchan"]),
@@ -748,7 +748,7 @@ def test():
                                                 ("80/93 h", False, ["hitmonlee", "hitmonchan", "hitmontop"]))],
           [True] * 6)
     check("tyrogue (Attack highest) only wants a Hitmonlee spot", decide(tg, resf("tyrogue",
-          tyrogue__plain=[("93 a", 400)], hitmonlee__plain=six_better))[0], "NOPE")
+          tyrogue__plain=[("93 a", 400)], hitmonlee__plain=six_better))[0], "DOOR")
     check("tyrogue (Attack highest) ignores full Hitmonchan/top", decide(tg, resf("tyrogue",
           tyrogue__plain=[("93 a", 400)], hitmonchan__plain=six_better, hitmontop__plain=six_better))[0], "KEEP")
     check("other tyrogues only take their own branch", decide(tg, resf("tyrogue",
@@ -756,7 +756,7 @@ def test():
     check("tyrogue with no letters can be any of them", decide(dict(tg, name="93"), resf("tyrogue",
           tyrogue__plain=[("93", 400)], hitmonlee__plain=six_better))[0], "KEEP")
     cb = dict(kl, species="combee", cp=300)
-    check("male combee: no spot", decide(cb, resf("combee", combee__plain__male=[("93", 300)]))[0], "NOPE")
+    check("male combee: no spot", decide(cb, resf("combee", combee__plain__male=[("93", 300)]))[0], "DOOR")
     check("female combee keeps", decide(cb, resf("combee", combee__plain__female=[("93", 300)]))[0], "KEEP")
     check("meowstic searches", sorted(q for q, _, _ in groups("espurr", "plain")),
           ["677,678&female&!#Nope&!shadow", "677,678&male&!#Nope&!shadow"])
@@ -769,17 +769,17 @@ def test():
     rt = dict(me, species="bibarel", name="91")
     rr = lambda tiles, pool="plain": by_fam({search("bibarel", pool): tiles}, "bibarel")
     check("weak line, tie for top keeps", decide(rt, rr([("91", 1), ("91", 2000)]))[0], "KEEP")
-    check("weak line, 2nd nopes", decide(rt, rr([("93", 1), ("91", 2000)]))[0], "NOPE")
-    check("weak line, 96 under a 98 nopes", decide(dict(rt, name="96"), rr([("98", 1), ("96", 2000)]))[0], "NOPE")
+    check("weak line, 2nd nopes", decide(rt, rr([("93", 1), ("91", 2000)]))[0], "DOOR")
+    check("weak line, 96 under a 98 nopes", decide(dict(rt, name="96"), rr([("98", 1), ("96", 2000)]))[0], "DOOR")
     check("weak line, best lucky still keeps", decide(dict(rt, lucky=True), rr([("93", 1)]))[0], "KEEP")
     wl = lambda plain, lucky: by_fam({search("bibarel", "plain"): plain, search("bibarel", "lucky"): lucky}, "bibarel")
     better_lucky = [("96", 5), ("91", 2000)]
     check("weak line, lucky 4th of its line keeps", decide(dict(rt, lucky=True), wl(
         [("98", 1), ("96", 2), ("93", 3), ("91", 2000)], better_lucky))[0], "KEEP")
     check("weak line, lucky 6th of its line nopes", decide(dict(rt, lucky=True), wl(
-        [("98", 1), ("96", 2), ("96", 3), ("93", 4), ("93", 6), ("91", 2000)], better_lucky))[0], "NOPE")
+        [("98", 1), ("96", 2), ("96", 3), ("93", 4), ("93", 6), ("91", 2000)], better_lucky))[0], "DOOR")
     check("weak line, 4th not lucky nopes", decide(rt, wl([("98", 1), ("96", 2), ("93", 3), ("91", 2000)], []))[0],
-          "NOPE")
+          "DOOR")
     check("weak line, Elite TM keeps", decide(dict(rt, name="91 C*"), rr([("93", 1)]))[0], "KEEP")
     check("legendary line never weak", strong(("regice",))[0], True)
     check("gym defender line never weak", strong(("wynaut", "wobbuffet"))[0], True)

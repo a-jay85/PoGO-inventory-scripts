@@ -349,7 +349,7 @@ REREADS = 2  # extra reads for a search whose miscount would turn a verdict into
 
 
 def reread(members, done, wants):
-    """a search read short or long only matters when it could flip a KEEP or NOPE (plan would LEAVE it).
+    """a search read short or long only matters when it could flip a KEEP or DOOR (plan would LEAVE it).
     Read just those again, up to REREADS times each, until one matches the count."""
     results = {k: [tuple(x) for x in v] for k, v in done.items()}
     flips = []
@@ -378,7 +378,7 @@ def recheck(m, results, wants, verdict, why):
     """a search read a few tiles more or fewer than the game counted. If those few could flip the answer, leave it.
     Fewer: add that many 100% / huge-CP tiles. More: take out that many of the best ones."""
     qs = [q for q in sort.searches_for(m) if wants.get(q) is not None and wants[q] != len(results[q])]
-    if not qs or verdict not in ("KEEP", "NOPE"):
+    if not qs or verdict not in ("KEEP", "DOOR"):
         return verdict, why
     best = lambda t: (max(v for v in (sort.parse_name(t[0]).iv, sort.parse_name(t[0]).purified, -1) if v is not None), t[1])
     worst = dict(results)
@@ -386,7 +386,7 @@ def recheck(m, results, wants, verdict, why):
         k = wants[q] - len(results[q])
         if k > 0 and verdict == "KEEP":
             worst[q] = results[q] + [("100", 99999)] * k
-        elif k < 0 and verdict == "NOPE":
+        elif k < 0 and verdict == "DOOR":
             worst[q] = sorted(results[q], key=best, reverse=True)[-k:]
     if worst == results:
         return verdict, why
@@ -398,9 +398,9 @@ def recheck(m, results, wants, verdict, why):
 
 
 def twin_check(m, results, verdict, why):
-    """a NOPE beaten by a tile read two ways ('98 ADBS V' and '98 AD BS*', same IV and CP) may be beaten by one
+    """a DOOR beaten by a tile read two ways ('98 ADBS V' and '98 AD BS*', same IV and CP) may be beaten by one
     Pokémon counted twice. If taking one of each such pair out flips it, leave it."""
-    if verdict != "NOPE":
+    if verdict != "DOOR":
         return verdict, why
     fewer, pairs = dict(results), []
     for q in sort.searches_for(m):
@@ -419,7 +419,7 @@ def twin_check(m, results, verdict, why):
     v2, _ = sort.decide(m, fewer)
     if v2 == verdict:
         return verdict, why
-    return "LEAVE", [f"would be NOPE, but {', '.join(pairs)} may be one Pokémon read twice"] + why
+    return "LEAVE", [f"would be DOOR, but {', '.join(pairs)} may be one Pokémon read twice"] + why
 
 
 def dexes_of(q):
@@ -429,7 +429,7 @@ def dexes_of(q):
 
 def unrenamed_check(m, scanned, verdict, why):
     """an IVC Pokémon still named after its species has no IV in the pools: it could beat a KEEP. A KEEP whose
-    searches could show one (same dex chunk) is left until /ivc has renamed it. A NOPE stays a NOPE: one more
+    searches could show one (same dex chunk) is left until /ivc has renamed it. A DOOR stays a DOOR: one more
     rival can only push it further down."""
     if verdict != "KEEP" or not re.search(r"\bspot\b", why[0] if why else ""):  # 98%+, own form, Elite TM, gym CP:
         return verdict, why  # no IV ranking that an unknown IV could beat
@@ -475,7 +475,7 @@ def plan(quiet=False):
             [f"  {g}: {sum(len(v) for v in grouped[g].values())}" for g in grouped]
     unrenamed = sum(bool(m.get("unrenamed")) for m in scanned)
     head = ([f"WARNING: {unrenamed} IVC Pokémon still have their species name. Run /ivc on them first: "
-             "until then they don't count in any pool, so too many get kept."] if unrenamed else []) + [f"{dict(counts)}", "KEEP = favorite + untick IVC.  NOPE = its final tag at the door (or left as is, not sure).  LEAVE/SKIP = untouched.", ""]
+             "until then they don't count in any pool, so too many get kept."] if unrenamed else []) + [f"{dict(counts)}", "KEEP = favorite + untick IVC.  DOOR = its final tag at the door (or left as is, not sure).  LEAVE/SKIP = untouched.", ""]
     with open(os.path.join(base.RUN_DIR, "plan.txt"), "w") as f:
         f.write("\n".join(head + lines) + "\n")
     if not quiet:
@@ -514,7 +514,7 @@ def judge(m, results, wants):
 
 
 def fallen_candidates(scanned, results, wants):
-    """tiles with an /ivc name, no IVC tag, that come out NOPE for every species the search could have shown.
+    """tiles with an /ivc name, no IVC tag, that come out DOOR for every species the search could have shown.
     Lucky, Dynamax and size aren't known from a tile: act reads them on the detail screen and judges again."""
     ivc = Counter((sort.clean_name(m["tile"]), m["cp"]) for m in scanned)
     which, out, seen = species_of_search(), [], set()
@@ -532,7 +532,7 @@ def fallen_candidates(scanned, results, wants):
             seen.add((n, c, shadow))
             verdicts = {s: judge({"species": s, "cp": c, "name": n, "shadow": shadow, "lucky": False, "dynamax": False},
                                  results, wants) for s in sorted(which[q])}
-            if verdicts and all(v == "NOPE" for v, _ in verdicts.values()):
+            if verdicts and all(v == "DOOR" for v, _ in verdicts.values()):
                 out.append({"name": n, "cp": c, "shadow": shadow, "species": sorted(verdicts),
                             "dex": sorted({sort.SPECIES[s]["dex"] for s in verdicts}),
                             "why": next(iter(verdicts.values()))[1]})
@@ -549,7 +549,7 @@ def recheck_fallen(n, c):
     FALLEN_SPECIES[(n, c)] = [m["species"]]
     FALLEN_RANK[(n, c)] = lucky_rank(m)
     verdict, why = judge(m, results, wants)
-    return verdict == "NOPE", f"{verdict} {m['species']} ({why[0] if why else ''})"
+    return verdict == "DOOR", f"{verdict} {m['species']} ({why[0] if why else ''})"
 
 
 FALLEN_SPECIES = {}  # (tile name, CP) -> [species id], as recheck_fallen read it: the door judges that one
@@ -570,7 +570,7 @@ def favorite_and_untag():
 
 
 def lucky_rank(m):
-    """a NOPE here is out of the lucky rule's top 5/6 (sort.decide runs it for a lucky one; a strong line's plain
+    """a DOOR here is out of the lucky rule's top 5/6 (sort.decide runs it for a lucky one; a strong line's plain
     spots are the same 5/6): False. With no IV in its name, or read as not lucky on a weak line, it was never
     ranked: None, the door leaves it not sure"""
     ranked = m["lucky"] or all(sort.strong(line)[0] for line in sort.lines_of(m["species"]))
@@ -599,24 +599,29 @@ def act_query(plans):
     return f"{q}&{dex}" if dex and len(dex) <= ACT_QUERY_MAX else q
 
 
+def load_plan():
+    """plan.json, with a run folder from before 2026-10-30 read the same: its DOOR was called NOPE"""
+    return [dict(m, verdict="DOOR") if m["verdict"] == "NOPE" else m for m in load("plan.json")]
+
+
 def plan_key(m):
     return m["tile"], m["cp"], m.get("name"), m.get("species"), m.get("shadow"), m.get("lucky")  # (unrenamed: neither)
 
 
 def act(limit, members):
-    """tag one family's KEEPs and NOPEs on its own search lists (an IVC Pokémon has no Nope, so it shows there):
+    """tag one family's KEEPs and DOORs on its own search lists (an IVC Pokémon has no Nope, so it shows there):
     the list still on screen from pools first, then any other list that holds one. -> (how many were opened,
     how many weren't found: the family isn't done then, a rerun walks its lists again)"""
     mine = {plan_key(m) for m in members}
     global DOOR
-    lists, plans = {}, [m for m in load("plan.json") if m["verdict"] in ("KEEP", "NOPE") and plan_key(m) in mine]
-    if DOOR is None and any(m["verdict"] == "NOPE" for m in plans):
+    lists, plans = {}, [m for m in load_plan() if m["verdict"] in ("KEEP", "DOOR") and plan_key(m) in mine]
+    if DOOR is None and any(m["verdict"] == "DOOR" for m in plans):
         DOOR = door.Door(TAG)  # (its searches leave the bar on something else)
         SHOWN["q"] = None
     listed = DOOR.listed() if DOOR else Counter()  # not sure last time, under the same rules: passed over
     for m in plans:
         k = (sort.clean_name(m["tile"]), m["cp"])
-        if m["verdict"] == "NOPE" and listed[k]:
+        if m["verdict"] == "DOOR" and listed[k]:
             listed[k] -= 1
             log(f"  {m['name']!r} CP{m['cp']}: on the not-sure list, passed over")
             continue
@@ -685,7 +690,7 @@ def act(limit, members):
                 verdict, why = judge(fixed, *pooled)
                 log(f"  the plan had {p.get('name') or p['tile']!r} as {'shadow' if p['shadow'] else 'lucky' if p['lucky'] else 'plain'}, "
                     f"it's {'shadow' if now['shadow'] else 'lucky' if now['lucky'] else 'plain'}: judged again -> {verdict}")
-                if verdict not in ("KEEP", "NOPE"):
+                if verdict not in ("KEEP", "DOOR"):
                     raise Skip(f"judged again with the right shadow/lucky: {verdict} {why[:1]}")
                 plans.remove(p)
                 m = dict(fixed, verdict=verdict, why=why)
@@ -701,8 +706,8 @@ def act(limit, members):
                 favorite_and_untag()
                 verdict = gone = "KEEP"
                 progress.setdefault("kept98", []).append([n, c])
-                log(f"  the plan said NOPE, appraised {what}: 98%+")
-            else:  # sort.decide ran the gym rule: a gym defender's NOPE is out of both top 20s
+                log(f"  the plan said DOOR, appraised {what}: 98%+")
+            else:  # sort.decide ran the gym rule: a gym defender's DOOR is out of both top 20s
                 info, texts, _ = steady_detail()
                 gone = DOOR.judge(info, texts, [m["species"]], ivs, (n, c), size=now["size"], raws=raws,
                                   gym_top20=False, clear=True, iv_top=lucky_rank(m))
@@ -806,7 +811,7 @@ def sort_all(limit, look):
                 continue
             pools(fam)
             plan(quiet=True)  # every scanned one so far: the earlier families' are done already (act.json)
-            verdicts = Counter(m["verdict"] for m in load("plan.json") if plan_key(m) in {plan_key(f) for f in fam})
+            verdicts = Counter(m["verdict"] for m in load_plan() if plan_key(m) in {plan_key(f) for f in fam})
             log(f"family {sorted({m['species'] for m in fam})}: {dict(verdicts)}")
             if not look:
                 n, missed = act(left, fam)
@@ -826,7 +831,7 @@ def sort_all(limit, look):
             continue
         done.append(key)
         save("sorted.json", done)
-    counts = Counter(m["verdict"] for m in load("plan.json")) if os.path.exists(
+    counts = Counter(m["verdict"] for m in load_plan()) if os.path.exists(
         os.path.join(base.RUN_DIR, "plan.json")) else {}
     log(f"sorted every chunk{' (look only: nothing changed)' if look else ''}: {dict(counts)}. "
         f"Table: {os.path.join(base.RUN_DIR, 'plan.txt')}")

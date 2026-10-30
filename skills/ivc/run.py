@@ -11,7 +11,7 @@ reading and appraising but changes nothing: it logs the name each one would get.
 Anything the script isn't sure about is skipped and written to runs/<time>/log.txt with a capture.
 Anything unexpected stops the run. Screen reading, tapping and timing come from the /pvpc skill.
 """
-import json, os, random, re, sys, time
+import json, os, random, re, sys, time, unicodedata
 from collections import Counter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -44,6 +44,7 @@ def not_mine(name):
 def untouched(name):
     """still named after its species, so not done yet. Done names (87/96 A*, FP*, xxs) never match."""
     n = re.sub(r"[.…]+$", "", (name or "").strip().replace("’", "'")).lower()
+    n = unicodedata.normalize("NFKD", n).encode("ascii", "ignore").decode()  # Flabébé: the game list says flabebe
     return n in SPECIES_NAMES or (len(n) >= 6 and any(s.startswith(n) for s in SPECIES_NAMES))
 
 

@@ -25,9 +25,9 @@ TABLES = {  # made up
                                  "rhyhorn": ("Reroll", "#1 raid attacker"), "geodude": ("GIV", "PvP"),
                                  "magikarp": ("GIV", "★100% hole")},
             "lucky": {"nidoran_female": "female"}, "evolved": {"golem": "stage 2"}, "no_dmax": set(),
-            "xl_full": set(), "giv_for_taker": {"tandemaus"}},
+            "xl_full": set(), "giv_for_taker": {"tandemaus"}, "raid": {"rhyhorn", "rhydon"}},
     GIVER: {"to": GIVER, "why": {"rhyhorn": ("GIV", "top 6 vs a boss")}, "lucky": {}, "evolved": {"golem": "stage 2"},
-            "no_dmax": {"wooloo"}, "xl_full": set(), "giv_for_taker": {"tandemaus"}},
+            "no_dmax": {"wooloo"}, "xl_full": set(), "giv_for_taker": {"tandemaus"}, "raid": {"rhyhorn", "rhydon"}},
 }
 
 
@@ -69,6 +69,32 @@ CASES = {
     "costume": plain(costume=True),
     "background": plain(background=True),
     "shiny": plain(shiny=True),
+    # the user's rules for an untraded shadow, costume or background one; a traded one is judged like any traded one
+    "shiny search failed": plain(shiny=None),
+    "costume search failed": plain(costume=None),
+    "background search failed": plain(background=None),
+    "shadow, IVs not read": plain(shadow=True, ivs=None),
+    "shadow, purified 100%": plain(shadow=True, iv_sum=39, ivs=(13, 13, 13)),
+    "shadow, purified 98%": plain(shadow=True, iv_sum=38, ivs=(13, 13, 12)),
+    "shadow, purified 93%": plain(shadow=True, iv_sum=36, ivs=(12, 12, 12)),
+    "shadow raid attacker": plain(shadow=True, sids=["rhyhorn"], ivs=(10, 10, 10)),
+    "shadow, under 360 XL": plain(shadow=True, ivs=(10, 10, 10), candy_xl=0),
+    "shadow, 360+ XL": plain(shadow=True, ivs=(10, 10, 10)),
+    "shadow, XL not read": plain(shadow=True, ivs=(10, 10, 10), candy_xl=None),
+    "shadow, no species lists": (plain(shadow=True, ivs=(10, 10, 10)), {"to": TAKER, "missing": "no roster"}),
+    "shadow legendary": plain(shadow=True, sids=["entei"], ivs=(10, 10, 10)),
+    "shadow costume": plain(shadow=True, costume=True, ivs=(10, 10, 10)),
+    "shadow background": plain(shadow=True, background=True, ivs=(10, 10, 10)),
+    "costume 93%": plain(costume=True, iv_sum=42),
+    "costume 96%": plain(costume=True, iv_sum=43),
+    "costume raid attacker line": plain(costume=True, sids=["rhyhorn"]),
+    "costume, under 360 XL": plain(costume=True, candy_xl=0),
+    "costume, XL not read": plain(costume=True, candy_xl=None),
+    "costume traded": plain(costume=True, traded=True),
+    "background traded": plain(background=True, traded=True),
+    "lucky traded": plain(lucky=True, traded=True),
+    "lucky traded 93%": plain(lucky=True, traded=True, iv_sum=42),
+    "H shadow, under 360 XL": plain(account=TAKER, shadow=True, ivs=(10, 10, 10), candy_xl=0),
     "gigantamax": plain(gigantamax=True),
     "mythical": plain(sids=["mew"]),
     # trades.py's legendary rules
@@ -135,7 +161,8 @@ CASES = {
 def answer(f):
     f, t = f if isinstance(f, tuple) else (f, TABLES[v.TO.get(f.account, TAKER)])
     r = v.final_tag(f, t, TODAY)
-    return [r.kind, list(r.tags), r.name, r.why] + ([{"off": list(r.off)}] if r.off else [])
+    return [r.kind, list(r.tags), r.name, r.why] + ([{"off": list(r.off)}] if r.off else []) \
+        + (["purify"] if r.purify else [])
 
 
 def stale_lists():

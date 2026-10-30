@@ -23,7 +23,8 @@ Keep if ANY of these passes (ties with the last place keep):
 N = 6 if any species in that final's line can mega evolve (released in GO or not), else 5.
 Always keep: 98% or 100% (a shadow's own IV, or its purified IV). Armored Mewtwo (no search can split it out).
 Weak lines (no species, mega or shadow form of the line reaches STRONG_AT% on DialgaDex for any type):
-  1 spot per final (ties keep); lucky/Dynamax extras still apply; an Elite TM name (*) keeps.
+  1 spot per final (ties keep); lucky/Dynamax extras still apply; an Elite TM name (*) keeps. A lucky one gets the
+  full top N non-shadow spots anyway (the lucky rule, 2026-10-30: verdict.lucky).
   Never weak: gym defenders, COLLECT, legendary/mythical/Ultra Beast, unrated megas, species not on DialgaDex.
   meta-overrides.txt can mark a species strong or weak by hand.
 COLLECT lines (Vivillon patterns): a NOPE becomes LEAVE so the user picks.
@@ -540,6 +541,11 @@ def decide(m, results):
         if ok:
             return "KEEP", [reason] + notes
         why.append(reason)
+    if r and m["lucky"] and not all(strong(line)[0] for line in lines_of(sid)):  # the lucky rule: a weak line's top 5/6
+        ok, reason, _ = judge_pool(m, results, "plain", "lucky, a weak line's top IV", mine, mr, full=True)
+        if ok:
+            return "KEEP", [reason] + notes
+        why.append(reason)
     if r and m["shadow"] and p.purified is not None:  # a shadow out of the shadow spots may still fit once purified
         ok, reason, _ = judge_pool(m, results, "plain", f"purified ({pct(p.purified)})", p.purified, r, False,
                                    spotless_shadows(sid, results, (mine, m["cp"])))
@@ -766,6 +772,14 @@ def test():
     check("weak line, 2nd nopes", decide(rt, rr([("93", 1), ("91", 2000)]))[0], "NOPE")
     check("weak line, 96 under a 98 nopes", decide(dict(rt, name="96"), rr([("98", 1), ("96", 2000)]))[0], "NOPE")
     check("weak line, best lucky still keeps", decide(dict(rt, lucky=True), rr([("93", 1)]))[0], "KEEP")
+    wl = lambda plain, lucky: by_fam({search("bibarel", "plain"): plain, search("bibarel", "lucky"): lucky}, "bibarel")
+    better_lucky = [("96", 5), ("91", 2000)]
+    check("weak line, lucky 4th of its line keeps", decide(dict(rt, lucky=True), wl(
+        [("98", 1), ("96", 2), ("93", 3), ("91", 2000)], better_lucky))[0], "KEEP")
+    check("weak line, lucky 6th of its line nopes", decide(dict(rt, lucky=True), wl(
+        [("98", 1), ("96", 2), ("96", 3), ("93", 4), ("93", 6), ("91", 2000)], better_lucky))[0], "NOPE")
+    check("weak line, 4th not lucky nopes", decide(rt, wl([("98", 1), ("96", 2), ("93", 3), ("91", 2000)], []))[0],
+          "NOPE")
     check("weak line, Elite TM keeps", decide(dict(rt, name="91 C*"), rr([("93", 1)]))[0], "KEEP")
     check("legendary line never weak", strong(("regice",))[0], True)
     check("gym defender line never weak", strong(("wynaut", "wobbuffet"))[0], True)

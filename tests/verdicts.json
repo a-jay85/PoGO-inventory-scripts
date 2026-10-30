@@ -155,10 +155,12 @@
   "shadow: IVs not read"
  ],
  "lucky": [
-  "unsure",
-  [],
+  "tag",
+  [
+   "IVC"
+  ],
   null,
-  "lucky: top IV of its line not checked"
+  "lucky: /ivcsort ranks it against its line"
  ],
  "costume": [
   "tag",
@@ -328,16 +330,56 @@
   "traded: can't trade again"
  ],
  "lucky traded": [
-  "unsure",
-  [],
+  "tag",
+  [
+   "IVC"
+  ],
   null,
-  "lucky: top IV of its line not checked"
+  "lucky: /ivcsort ranks it against its line"
  ],
  "lucky traded 93%": [
+  "tag",
+  [
+   "IVC"
+  ],
+  null,
+  "lucky: /ivcsort ranks it against its line"
+ ],
+ "lucky, /ivcsort couldn't rank it": [
   "unsure",
   [],
   null,
-  "lucky: top IV of its line not checked"
+  "lucky: /ivcsort couldn't rank it (no IV in its name)"
+ ],
+ "lucky, /pvpc can't rank it": [
+  "tag",
+  [
+   "IVC"
+  ],
+  null,
+  "lucky: /ivcsort ranks it against its line"
+ ],
+ "lucky top IV": [
+  "keep",
+  [],
+  null,
+  "lucky: a top IV of its line"
+ ],
+ "lucky out, no PvP": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "lucky: out of the top IV and PvP"
+ ],
+ "lucky out, /pvpc said no": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "lucky: out of the top IV and PvP"
  ],
  "H shadow, under 360 XL": [
   "tag",

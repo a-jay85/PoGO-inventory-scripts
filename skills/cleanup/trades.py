@@ -43,6 +43,8 @@ def bar_view(got, q):
     s = re.sub(r"^[<‹]?[q9]?(?=#)", "", s)  # the magnifier glued on
     s = re.sub(r"^[,.'`]+", "", s)  # the panel's cursor end can read as a stray ","
     Q = re.sub(r"\s", "", q).lower()
+    if Q.startswith("#") and s.startswith("9") and s[1:2] != "#":  # a first '#' alone can read as '9' ('9nope&#old')
+        s = "#" + s[1:]
     s, Q = re.sub(r"[i|]", "l", s), re.sub(r"[i|]", "l", Q)  # OCR reads 'xxl' as 'xxI' or 'xx|': one letter here
     bang = re.sub(r"^[q9]?[il|]", "!", s)  # the end of a long search: a '!' at its start reads as 'I' or 'QI'
     if bang != s and len(s) >= 15 and Q.endswith(bang):

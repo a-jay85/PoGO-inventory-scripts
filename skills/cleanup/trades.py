@@ -145,10 +145,10 @@ def back_to_top(me, bounds):
     A drag at the top closes the page, so check a fresh read before each drag and size it from the weight row."""
     for _ in range(12):
         texts = look()[1]  # the phone's own screenshot
-        now = who(texts)[1]
+        now = who(texts)[1] if ui.classify(texts) == "detail" else None
         cp_top = any(t[1] < 0.15 and re.match(r"[cC]\s*[pP]", t[4].strip()) for t in texts)
-        if ui.classify(texts) == "detail" and (now[1:3] == me[1:3]  # same CP and HP (name reads can wobble)
-                                               or cp_top and now[1] is None and None not in me[2:] and now[2:] == me[2:]):
+        if now and (now[1:3] == me[1:3]  # same CP and HP (name reads can wobble)
+                    or cp_top and now[1] is None and None not in me[2:] and now[2:] == me[2:]):
             return  # (a lucky one's sparkles can garble the CP: then the same HP, weight and height, with a CP at the top)
         if any(re.fullmatch(r"[cC]\s*[pP]\s*\d+", t[4].strip()) for t in texts):
             time.sleep(0.3)  # CP in sight: at the top, maybe still settling
@@ -164,7 +164,7 @@ def back_to_top(me, bounds):
         else:
             time.sleep(0.3)
     keep_capture("top")
-    raise Stop(f"couldn't get back to the top of the detail page (wanted {me}, read {who(texts)[1]})")
+    raise Stop(f"couldn't get back to the top of the detail page (wanted {me}, read {now})")
 
 
 def caught(texts):

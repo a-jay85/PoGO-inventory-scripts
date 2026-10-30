@@ -34,8 +34,10 @@ def key(tile_name, cp):
 
 
 class Door:
-    def __init__(self, tag, scope=None, account=None):
-        """scope: the search the Pokémon to judge are in (default #tag). account: who's signed in, when known"""
+    def __init__(self, tag, scope=None, account=None, find=None):
+        """scope: the search the Pokémon to judge are in (default #tag). account: who's signed in, when known.
+        find(term) -> search.run_search's answer for the pile & term, for a pile that's no typed search (a saved one).
+        Then tag only names the pile (the not-sure list): it isn't a tag to take off"""
         global vd, ct, trades, shadows
         run_dir = base.RUN_DIR  # (verdict's imports load /ivc's run.py, which points base.RUN_DIR at /ivc's runs)
         import verdict as vd
@@ -44,6 +46,8 @@ class Door:
         import shadows  # purify
         base.RUN_DIR = run_dir
         self.tag, self.other = tag, "IVC" if tag.upper() == "PVPC" else "PvpC"
+        self.source = find is None  # tag is the Pokémon's own tag, to come off
+        find = find or (lambda term: search.run_search(f"{self.scope}&{term}"))
         self.account = account or home.trainer()
         self.scope = scope or f"#{tag}"
         self.tables = vd.tables(vd.TO[self.account])
@@ -52,7 +56,7 @@ class Door:
         self.sets = {}
         search.to_search_list()
         for k, term in SEARCHES.items():
-            got, want = search.run_search(f"{self.scope}&{term}")
+            got, want = find(term)
             ok = want is not None and len(got) == want
             self.sets[k] = Counter(key(n, c) for n, c in got) if ok else None
             log(f"door: {self.scope}&{term}: {len(got)} read, the game says {want}" + ("" if ok else ": not used"))
@@ -72,7 +76,7 @@ class Door:
         gym_top20: what the caller already knows of the gym rule. clear: a plain tag clears the name too (an old /ivc
         name would bring it back as a rival or a fallen-out one). unstar: a plain tag takes the star off too (a fallen-out
         keeper). -> 'left for IVC/PvpC', UNSURE or the verdict's kind"""
-        if any(base.is_tag(t, self.other) for t in info["tags"]):  # the other skill judges it next
+        if self.source and any(base.is_tag(t, self.other) for t in info["tags"]):  # the other skill judges it next
             base.set_tags(off=[self.tag])
             log(f"  has {self.other} too: unticked {self.tag} only, {self.other} decides")
             return f"left for {self.other}"
@@ -95,7 +99,9 @@ class Door:
             base.set_star(True)
         elif unstar and v.kind == "tag":
             base.set_star(False)
-        base.set_tags(on=list(v.tags), off=[self.tag, *v.off])
+        off = [*([self.tag] if self.source else ()), *v.off]
+        if v.tags or off:
+            base.set_tags(on=list(v.tags), off=off)
         if clear and v.kind == "tag" and not v.name:
             base.clear_name()
         return v.kind

@@ -566,6 +566,12 @@ def favorite_and_untag():
     set_tags(off=[TAG])
 
 
+def strong_loser(sid):
+    """a NOPE here lost its non-shadow spot. On a strong line those are the lucky rule's top 5/6 too: False (out of
+    the top IV). A weak line had 1 spot: None, /cleanup's lucky.py ranks it"""
+    return False if all(sort.strong(line)[0] for line in sort.lines_of(sid)) else None
+
+
 ACT_QUERY_MAX = 120  # a longer dex list costs more typing than walking past the tiles it would hide
 
 
@@ -694,7 +700,7 @@ def act(limit, members):
             else:  # sort.decide ran the gym rule: a gym defender's NOPE is out of both top 20s
                 info, texts, _ = steady_detail()
                 gone = DOOR.judge(info, texts, [m["species"]], ivs, (n, c), size=now["size"], raws=raws,
-                                  gym_top20=False, clear=True)
+                                  gym_top20=False, clear=True, iv_top=strong_loser(m["species"]))
                 if gone in ("keep", door.UNSURE) or gone.startswith("left for"):  # still here: a rival in the pools
                     progress.setdefault("stayed", []).append([n, c])
         plans.remove(m)

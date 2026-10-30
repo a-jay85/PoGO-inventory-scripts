@@ -806,7 +806,9 @@ def act(limit, members):
             listed[k] -= 1
             log(f"  {m['name']!r} CP{m['cp']}: on the not-sure list, passed over")
             continue
-        lists.setdefault(home(m) or act_query([m]), []).append(m)
+        # a LOOK is found on the #IVC list of its dex: its family list has its plain names at the end, other ones
+        # named after the species, and nicknamed ones among them (a 'Walk15km4Dex' Happiny opened for it, 2026-10-30)
+        lists.setdefault(act_query([m]) if m["verdict"] == "LOOK" else home(m) or act_query([m]), []).append(m)
     # what earlier act runs on this run dir did or skipped: a restart doesn't open those again
     has = os.path.exists(os.path.join(base.RUN_DIR, "act.json"))
     progress = load("act.json") if has else {"done": [], "skipped": []}

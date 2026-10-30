@@ -152,31 +152,195 @@
   "unsure",
   [],
   null,
-  "shadow: no rule yet"
+  "shadow: IVs not read"
  ],
  "lucky": [
   "unsure",
   [],
   null,
-  "lucky: no rule yet"
+  "untraded lucky: no rule yet"
  ],
  "costume": [
   "unsure",
   [],
   null,
-  "costume: no rule yet"
+  "costume, 360+ Candy XL: no rule"
  ],
  "background": [
-  "unsure",
+  "keep",
   [],
   null,
-  "background: no rule yet"
+  "a special background: a favorite"
  ],
  "shiny": [
   "unsure",
   [],
   null,
   "shiny or Gigantamax: a special trade, by hand"
+ ],
+ "shiny search failed": [
+  "unsure",
+  [],
+  null,
+  "shiny or not: its search failed"
+ ],
+ "costume search failed": [
+  "unsure",
+  [],
+  null,
+  "costume or not: its search failed"
+ ],
+ "background search failed": [
+  "unsure",
+  [],
+  null,
+  "background or not: its search failed"
+ ],
+ "shadow, IVs not read": [
+  "unsure",
+  [],
+  null,
+  "shadow: IVs not read"
+ ],
+ "shadow, purified 100%": [
+  "keep",
+  [],
+  null,
+  "shadow, purified 100%: a favorite"
+ ],
+ "shadow, purified 98%": [
+  "keep",
+  [],
+  null,
+  "shadow, purified 98%: a favorite"
+ ],
+ "shadow, purified 93%": [
+  "unsure",
+  [],
+  null,
+  "shadow, 360+ Candy XL: no rule"
+ ],
+ "shadow raid attacker": [
+  "unsure",
+  [],
+  null,
+  "shadow raid attacker: top 6 IV once purified? not checked"
+ ],
+ "shadow, under 360 XL": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "shadow, under 360 Candy XL: purify and transfer",
+  "purify"
+ ],
+ "shadow, 360+ XL": [
+  "unsure",
+  [],
+  null,
+  "shadow, 360+ Candy XL: no rule"
+ ],
+ "shadow, XL not read": [
+  "unsure",
+  [],
+  null,
+  "shadow: Candy XL not read"
+ ],
+ "shadow, no species lists": [
+  "unsure",
+  [],
+  null,
+  "shadow: no species lists for HashTagAJay: no roster"
+ ],
+ "shadow legendary": [
+  "unsure",
+  [],
+  null,
+  "shadow special trade: by hand"
+ ],
+ "shadow costume": [
+  "unsure",
+  [],
+  null,
+  "shadow costume: by hand"
+ ],
+ "shadow background": [
+  "keep",
+  [],
+  null,
+  "a special background: a favorite"
+ ],
+ "costume 93%": [
+  "unsure",
+  [],
+  null,
+  "costume, 360+ Candy XL: no rule"
+ ],
+ "costume 96%": [
+  "keep",
+  [],
+  null,
+  "costume, 96%: a favorite"
+ ],
+ "costume raid attacker line": [
+  "unsure",
+  [],
+  null,
+  "costume, a raid attacker's line: can it evolve into it? not checked"
+ ],
+ "costume, under 360 XL": [
+  "tag",
+  [
+   "2XL"
+  ],
+  null,
+  "costume, under 360 Candy XL"
+ ],
+ "costume, XL not read": [
+  "unsure",
+  [],
+  null,
+  "costume: Candy XL not read"
+ ],
+ "costume traded": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "traded: can't trade again"
+ ],
+ "background traded": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "traded: can't trade again"
+ ],
+ "lucky traded": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "traded: can't trade again"
+ ],
+ "lucky traded 93%": [
+  "unsure",
+  [],
+  null,
+  "traded lucky 93%: top 6 IV of its species not checked"
+ ],
+ "H shadow, under 360 XL": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "shadow, under 360 Candy XL: purify and transfer",
+  "purify"
  ],
  "gigantamax": [
   "unsure",

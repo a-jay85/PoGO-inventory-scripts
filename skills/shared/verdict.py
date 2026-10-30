@@ -17,8 +17,8 @@ to. Signed in as CyrillJan (the pile goes to HashTagAJay):
   Transfer
 Signed in as HashTagAJay (the pile goes to CyrillJan):
   GuaranteedLucky > Old > GIV (medal) > 2XL > GIV > XXL/xxs > XLX > GIV (evolved, Dynamax) > GIV (far) > Transfer
-Before all of them: a special trade (trades.py's legendary rules, else unsure), a kind the user sorts by hand (unsure
-until they give rules), a traded one (Transfer). The user's own tags first: untraded with Old, Evo or GuaranteedLucky,
+Before all of them: a special trade (trades.py's legendary rules, else unsure), a traded one (Transfer), an untraded
+shadow, costume or background one (odd_one: the user's rules for each). The user's own tags first: untraded with Old, Evo or GuaranteedLucky,
 those stay and only IVC / PvpC comes off; traded, the "trade it" tags (TRADE_TAGS) come off. The species lists come
 from tradeable.py's taker_species() and giver_species(), the same ones its plan uses; one saved more than STALE_DAYS
 ago counts as missing.
@@ -48,6 +48,8 @@ TRADE_BY_HAND = {"meltan", "melmetal"}  # mythical, but trades.py retags them li
 OWN_TAGS = ("Old", EVO, "GuaranteedLucky")  # untraded with one of these: it stays, only IVC / PvpC comes off
 TRADE_TAGS = ("GIV", "XLX", "2XL", "Reroll", "Old", "Special", "GuaranteedLucky")  # "trade it": off a traded one
 STALE_DAYS = 7  # a species list older than this counts as missing
+OVER_93 = 43  # a costume one over 93% (42 of 45 reads 93%) is a favorite
+TOP_LUCKY = 42  # a traded lucky one this good may be top 6 IV of its species: unsure, not Transfer
 
 
 @dataclass
@@ -56,10 +58,11 @@ class Facts:
     account: str = None  # signed in: CyrillJan or HashTagAJay
     sids: list = None  # the species it could be (ui.species_for); more than one that disagree -> unsure
     iv_sum: int = None  # from the appraisal (0-45)
+    ivs: tuple = None  # (attack, defense, HP), for what purifying would make it
     traded: bool = None
     caught: datetime.date = None
     gender: str = None  # 'male', 'female', or '' for a genderless one
-    shiny: bool = False
+    shiny: bool = False  # shiny, costume, background: None = its search failed
     lucky: bool = False
     shadow: bool = False
     costume: bool = False
@@ -82,10 +85,11 @@ class Verdict:
     why: str = ""
     name: str = None  # a new nickname to type, when set
     off: tuple = ()  # the user's tags to take off too (IVC / PvpC always comes off)
+    purify: bool = False  # purify it first
 
 
-def tag(*tags, why, name=None, off=()):
-    return Verdict("tag", tags, why, name, off)
+def tag(*tags, why, name=None, off=(), purify=False):
+    return Verdict("tag", tags, why, name, off, purify)
 
 
 def unsure(why):
@@ -120,7 +124,8 @@ def tables(to):
         why = sp["why"] if to == TAKER else {s: ("GIV", r) for s, r in sp["why"].items()}
         _TABLES[to] = {"to": to, "why": why, "lucky": sp.get("lucky", {}), "evolved": sp["evolved"],
                        "no_dmax": set(sp.get("no_dmax", ())), "xl_full": sp["xl_full"],
-                       "giv_for_taker": set(tr.GIV_FOR_TAKER), "from": sp["from"]}
+                       "giv_for_taker": set(tr.GIV_FOR_TAKER), "from": sp["from"],
+                       "raid": set(tr.pve(m)[0])}  # in DialgaDex's top PVE_TOP vs some boss, or evolves into one
     return _TABLES[to]
 
 
@@ -161,12 +166,17 @@ def final_tag(f, t, today=None):
         if not f.traded:
             return tag(why=f"keeps your tag {', '.join(names)}")
         strip = tuple(names)
-    # by hand: the user sorts these (rules to come, kind by kind)
-    for k in ("shadow", "lucky", "costume", "background"):
-        if getattr(f, k):
-            return unsure(f"{k}: no rule yet")
+    # shadow, lucky, costume, background: their own rules (odd_one) when untraded. Traded, the usual traded rules
+    for k in ("shiny", "costume", "background"):
+        if getattr(f, k) is None:
+            return unsure(f"{k} or not: its search failed")
+    odd = [k for k in ("shadow", "lucky", "costume", "background") if getattr(f, k)]
     if f.traded is None:
         return unsure("traded or not not read")
+    if odd and not f.traded and kinds & {"legendary", "ultrabeast", "mythical"}:
+        return unsure(f"{', '.join(odd)} special trade: by hand")
+    if f.traded and f.lucky and f.iv_sum >= TOP_LUCKY:
+        return unsure(f"traded lucky {round(f.iv_sum / 45 * 100)}%: top 6 IV of its species not checked")
     if f.caught is None:
         return unsure("catch date not read")
     old = (today - f.caught).days >= OLD_DAYS
@@ -192,6 +202,8 @@ def final_tag(f, t, today=None):
         if f.gym_top20:
             return Verdict("keep", (), "gym defender: top 20 CP or IV")
 
+    if odd and not f.traded:
+        return odd_one(f, t, sid, odd)
     if f.traded:
         if f.account == EVO_FOR and dexn in {int(d) for d in TRADE_EVOS.split(",")}:
             return tag(EVO, why="traded: evolves for free", off=strip)
@@ -248,6 +260,41 @@ def final_tag(f, t, today=None):
     if f.far:
         return tag("GIV", why="caught 100 km+ away")
     return tag("Transfer", why="no rule wants it")
+
+
+def odd_one(f, t, sid, odd):
+    """an untraded shadow, lucky, costume or background one (the user's rules, 2026-10-29)"""
+    if "lucky" in odd:
+        return unsure("untraded lucky: no rule yet")
+    if "background" in odd:
+        return Verdict("keep", (), "a special background: a favorite")
+    if "shadow" in odd and "costume" in odd:
+        return unsure("shadow costume: by hand")
+    if "missing" in t:
+        return unsure(f"{odd[0]}: no species lists for {t['to']}: {t['missing']}")
+    if "costume" in odd:
+        if f.iv_sum >= OVER_93:
+            return Verdict("keep", (), f"costume, {round(f.iv_sum / 45 * 100)}%: a favorite")
+        if sid in t["raid"]:
+            return unsure("costume, a raid attacker's line: can it evolve into it? not checked")
+        if f.candy_xl is None:
+            return unsure("costume: Candy XL not read")
+        if f.candy_xl < XL_CAP:
+            return tag("2XL", why=f"costume, under {XL_CAP} Candy XL")
+        return unsure(f"costume, {XL_CAP}+ Candy XL: no rule")
+    # shadow (it can't be traded)
+    if f.ivs is None:
+        return unsure("shadow: IVs not read")
+    pure = sum(min(15, i + 2) for i in f.ivs)
+    if pure >= ALWAYS_KEEP:
+        return Verdict("keep", (), f"shadow, purified {round(pure / 45 * 100)}%: a favorite")
+    if sid in t["raid"]:
+        return unsure("shadow raid attacker: top 6 IV once purified? not checked")
+    if f.candy_xl is None:
+        return unsure("shadow: Candy XL not read")
+    if f.candy_xl < XL_CAP:
+        return tag("Transfer", why=f"shadow, under {XL_CAP} Candy XL: purify and transfer", purify=True)
+    return unsure(f"shadow, {XL_CAP}+ Candy XL: no rule")
 
 
 if __name__ == "__main__":

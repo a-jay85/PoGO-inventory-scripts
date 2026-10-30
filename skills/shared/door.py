@@ -2,7 +2,7 @@
 detail page that's still open. No Nope.
 
   facts = Door(tag)          once a run, before the walk: who's signed in, the species lists, and one search each
-                             for what the detail page can't show (traded; shiny, costume or background; caught 100 km+
+                             for what the detail page can't show (traded; shiny; costume; background; caught 100 km+
                              away; under 360 Candy XL), all within the tag
   facts.judge(...)           read the rest off the open page, ask verdict.final_tag, do what it says
   facts.listed()             Pokémon an earlier run left as not sure under today's rules: the walk passes over them
@@ -22,10 +22,10 @@ from base import Stop, log
 NOT_SURE = os.path.join(HERE, "runs", "not-sure.json")
 RULES = hashlib.md5(b"".join(open(os.path.join(HERE, f), "rb").read() for f in ("verdict.py", "door.py"))
                     ).hexdigest()[:8]  # new rules or a new reader: judge again
-SEARCHES = {"traded": "traded", "odd": "shiny,costume,background", "far": "distance100-",
-            "xl_under": "countcandyxl0-359"}  # (a count term eats what follows it: each search ends with it)
+SEARCHES = {"traded": "traded", "shiny": "shiny", "costume": "costume", "background": "background",
+            "far": "distance100-", "xl_under": "countcandyxl0-359"}  # (a count term eats what follows it: each search ends with it)
 UNSURE = "unsure"
-vd = ct = trades = None  # verdict, cleantrades, trades: imported by Door(). At the top they'd loop back
+vd = ct = trades = shadows = None  # verdict, cleantrades, trades, shadows: imported by Door(). At the top they'd loop back
 # (/ivcsort's run.py loads /ivc's, which loads this; tradeable.py, under verdict, loads /ivcsort's)
 
 
@@ -36,11 +36,12 @@ def key(tile_name, cp):
 class Door:
     def __init__(self, tag, scope=None, account=None):
         """scope: the search the Pokémon to judge are in (default #tag). account: who's signed in, when known"""
-        global vd, ct, trades
+        global vd, ct, trades, shadows
         run_dir = base.RUN_DIR  # (verdict's imports load /ivc's run.py, which points base.RUN_DIR at /ivc's runs)
         import verdict as vd
         import cleantrades as ct  # the power-up cost -> levels, and power-ups to the next Candy XL tier
         import trades  # the tag chips, the caught date at the bottom of the page
+        import shadows  # purify
         base.RUN_DIR = run_dir
         self.tag, self.other = tag, "IVC" if tag.upper() == "PVPC" else "PvpC"
         self.account = account or home.trainer()
@@ -51,8 +52,6 @@ class Door:
         self.sets = {}
         search.to_search_list()
         for k, term in SEARCHES.items():
-            if k == "xl_under" and vd.TO[self.account] != vd.GIVER:  # (only the pile for CyrillJan has 2XL)
-                continue
             got, want = search.run_search(f"{self.scope}&{term}")
             ok = want is not None and len(got) == want
             self.sets[k] = Counter(key(n, c) for n, c in got) if ok else None
@@ -79,6 +78,8 @@ class Door:
             return f"left for {self.other}"
         f, why = self.facts(info, texts, sp, ivs, key(*tile), size, gym_top20)
         v = vd.final_tag(f, self.tables) if not why else vd.unsure(why)
+        if v.purify:
+            v = self.purify(info, v)
         if v.kind == "tag" and "Transfer" in v.tags:
             v = self.power_up(info, v, tile[1])
         log(f"  door: {v.kind} {'+'.join(v.tags)}{' -' + '-'.join(v.off) if v.off else ''}"
@@ -101,8 +102,6 @@ class Door:
 
     def facts(self, info, texts, sp, ivs, tile, size, gym_top20=None):
         """-> (Facts, why not sure before any rule: '' when it's up to the rules)"""
-        if self.has("odd", tile) is not False:
-            return None, f"shiny, costume or background{'' if self.has('odd', tile) else ': its search failed'}"
         dex = {vd.pvp.SPECIES[s]["dex"] for s in sp if s in vd.pvp.SPECIES}
         size = {"XXL": "xxl", "XXS": "xxs"}.get(size, "")
         if not size and dex & {d for d, (sizes, _, _) in vd.MEDALS.items() if sizes}:
@@ -111,6 +110,8 @@ class Door:
         near = [ui.norm(t[4]) for t in texts if hp[1] < t[1] < hp[1] + 0.3]
         xl = self.has("xl_under", tile)
         f = vd.Facts(account=self.account, sids=list(sp), iv_sum=sum(ivs) if ivs else None,
+                     ivs=tuple(ivs) if ivs else None, shiny=self.has("shiny", tile),
+                     costume=self.has("costume", tile), background=self.has("background", tile),
                      traded=self.has("traded", tile), caught=self.caught(info), shadow=base.is_shadow(texts),
                      lucky=any(ui.norm(t[4]).startswith("LUCKY POK") for t in texts),
                      gigantamax="GIGANTAMAX" in near, dynamax="DYNAMAX" in near, size=size, kg=base.who(info)[2],
@@ -128,6 +129,21 @@ class Door:
         finally:
             trades.back_to_top(me, bounds)
         return days.pop() if len(days) == 1 else None
+
+    def purify(self, info, v):
+        """purify it (the verdict's tags go on after). Can't purify -> unsure, left as it is"""
+        try:
+            cp = shadows.purify(info)
+        except shadows.Again as e:
+            return vd.unsure(f"purify: the page showed someone else ({e})")
+        except Stop as e:
+            if not re.search(r"Stardust|Candy|PURIFY", str(e)):
+                raise
+            return vd.unsure(f"purify: {e}")
+        log(f"  purified: CP{info['cp']} -> CP{cp}")
+        info["cp"] = cp
+        base.OPENED["who"] = base.who(base.detail_now())  # its CP and HP moved: still the same one
+        return v
 
     def power_up(self, info, v, tile_cp):
         """one or two power-ups first if that reaches a higher Candy XL tier on transfer (cleantrades' rule)"""

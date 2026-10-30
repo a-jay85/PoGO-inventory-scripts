@@ -87,8 +87,10 @@ class Door:
             base.set_tags(off=[self.tag])
             log(f"  has {self.other} too: unticked {self.tag} only, {self.other} decides")
             return f"left for {self.other}"
-        sp = base.narrow(sp, ivs, info["cp"], info["hp"])
-        f, why = self.facts(info, texts, sp, ivs, key(*tile), size, gym_top20, iv_top)
+        if (got := base.narrow(sp, ivs, info["cp"] or tile[1], info["hp"])) != sp:  # (the walk checked the tile's CP)
+            log(f"  {'/'.join(sp)}: only {'/'.join(got)} has these IVs at this CP and HP")
+            sp = got
+        f, why = self.facts(info, texts, sp, ivs, key(*tile), size, gym_top20, iv_top, tile[1])
         v = vd.final_tag(f, self.tables) if not why else vd.unsure(why)
         if f.lucky and iv_top is False:
             ranked_out(self.account, sp, ivs)
@@ -117,7 +119,7 @@ class Door:
             base.clear_name()
         return v.kind
 
-    def facts(self, info, texts, sp, ivs, tile, size, gym_top20=None, iv_top=None):
+    def facts(self, info, texts, sp, ivs, tile, size, gym_top20=None, iv_top=None, tile_cp=None):
         """-> (Facts, why not sure before any rule: '' when it's up to the rules)"""
         dex = {vd.pvp.SPECIES[s]["dex"] for s in sp if s in vd.pvp.SPECIES}
         size = {"XXL": "xxl", "XXS": "xxs"}.get(size, "")
@@ -133,7 +135,7 @@ class Door:
                      lucky=any(ui.norm(t[4]).startswith("LUCKY POK") for t in texts),
                      gigantamax="GIGANTAMAX" in near, dynamax="DYNAMAX" in near, size=size, kg=base.who(info)[2],
                      candy_xl=None if xl is None else 0 if xl else vd.XL_CAP,
-                     levels=ct.cost_levels(texts, info["cp"])[1] or self.iv_levels(sp, ivs, info) or None, far=self.has("far", tile), gym_top20=gym_top20,
+                     levels=ct.cost_levels(texts, info["cp"])[1] or self.iv_levels(sp, ivs, info["cp"] or tile_cp, info["hp"]) or None, far=self.has("far", tile), gym_top20=gym_top20,
                      iv_top=iv_top, pvp_judged=self.tag.upper() == "PVPC", ivc_judged=self.tag.upper() == "IVC",
                      other_tags=[t for t in trades.tag_chips(texts)
                                  if t not in (self.tag.upper(), *((self.other.upper(),) if self.source else ()))])
@@ -167,10 +169,10 @@ class Door:
         base.OPENED["who"] = base.who(base.detail_now())  # its CP and HP moved: still the same one
         return v
 
-    def iv_levels(self, sp, ivs, info):
+    def iv_levels(self, sp, ivs, cp, hp):
         """the level from the appraisal's IVs, CP and HP, when the power-up cost doesn't read"""
-        got = base.levels_for(sp[0], ivs, info["cp"], info["hp"]) if len(sp) == 1 and ivs and sp[0] in vd.pvp.SPECIES \
-            and info["cp"] is not None and info["hp"] is not None else []
+        got = base.levels_for(sp[0], ivs, cp, hp) if len(sp) == 1 and ivs and sp[0] in vd.pvp.SPECIES \
+            and cp is not None and hp is not None else []
         if got:
             log(f"  power-up cost didn't read: level {got} from IVs, CP and HP")
         return got

@@ -322,14 +322,14 @@ def same_query(got, want):
     want = re.sub(r"\s", "", want).lower()  # (OCR drops the spaces in '@focus blast')
     a0 = re.sub(r"\s", "", got or "").lower()
     a0 = re.sub(r"^[•·…]+", "", a0)  # a long search's cut-off start can read as a bullet ('• defense&4attack...')
-    for a in (a0, a0[1:] if a0.startswith("9") else a0):  # the magnifier read as a 9
+    for a in (a0, a0[1:] if a0[:1] in ("9", "q") else a0):  # the magnifier read as a 9, or glued on ('qlucky&203-...')
         ends = [want]
         if len(want) > 22 and 12 <= len(a) < len(want):  # a long search doesn't fit in the bar: only its end shows
             ends = [want[-len(a):], want[:len(a)]]  # (Android shows its start once Return is pressed)
         for b in ends:
-            a = amp_as_8(a, b)
-            if difflib.SequenceMatcher(None, a, b).ratio() >= 0.8 and abs(len(a) - len(b)) <= 2 \
-                    and re.sub(r"\D", "", a) == re.sub(r"\D", "", b):  # symbols can misread, dex numbers can't
+            r = amp_as_8(a, b)  # (fixed up against this b only: the end's fix-ups would spoil the start's)
+            if difflib.SequenceMatcher(None, r, b).ratio() >= 0.8 and abs(len(r) - len(b)) <= 2 \
+                    and re.sub(r"\D", "", r) == re.sub(r"\D", "", b):  # symbols can misread, dex numbers can't
                 return True
     return False
 

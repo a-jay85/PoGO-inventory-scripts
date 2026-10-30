@@ -600,7 +600,7 @@ def act_query(plans):
 
 
 def plan_key(m):
-    return m["tile"], m["cp"], m.get("name"), m.get("species"), m["shadow"], m["lucky"]
+    return m["tile"], m["cp"], m.get("name"), m.get("species"), m.get("shadow"), m.get("lucky")  # (unrenamed: neither)
 
 
 def act(limit, members):

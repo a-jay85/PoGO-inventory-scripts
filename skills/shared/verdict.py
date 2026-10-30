@@ -285,7 +285,7 @@ def lucky(f, sid, dexn, strip):
 
 
 def odd_one(f, t, sid, odd):
-    """an untraded shadow, costume or background one (the user's rules, 2026-10-29)"""
+    """an untraded shadow, costume or background one (the user's rules, 2026-10-29; 360+ Candy XL, 2026-10-30)"""
     if "background" in odd:
         return Verdict("keep", (), "a special background: a favorite")
     if "shadow" in odd and "costume" in odd:
@@ -301,7 +301,7 @@ def odd_one(f, t, sid, odd):
             return unsure("costume: Candy XL not read")
         if f.candy_xl < XL_CAP:
             return tag("2XL", why=f"costume, under {XL_CAP} Candy XL")
-        return unsure(f"costume, {XL_CAP}+ Candy XL: no rule")
+        return tag("Transfer", why=f"costume, {XL_CAP}+ Candy XL")
     # shadow (it can't be traded)
     if f.ivs is None:
         return unsure("shadow: IVs not read")
@@ -314,7 +314,7 @@ def odd_one(f, t, sid, odd):
         return unsure("shadow: Candy XL not read")
     if f.candy_xl < XL_CAP:
         return tag("Transfer", why=f"shadow, under {XL_CAP} Candy XL: purify and transfer", purify=True)
-    return unsure(f"shadow, {XL_CAP}+ Candy XL: no rule")
+    return tag("Transfer", why=f"shadow, {XL_CAP}+ Candy XL: transfer, no purify")
 
 
 if __name__ == "__main__":

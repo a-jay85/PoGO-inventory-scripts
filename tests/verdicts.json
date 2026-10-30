@@ -158,13 +158,15 @@
   "unsure",
   [],
   null,
-  "untraded lucky: no rule yet"
+  "lucky: top IV of its line not checked"
  ],
  "costume": [
-  "unsure",
-  [],
+  "tag",
+  [
+   "Transfer"
+  ],
   null,
-  "costume, 360+ Candy XL: no rule"
+  "costume, 360+ Candy XL"
  ],
  "background": [
   "keep",
@@ -215,10 +217,12 @@
   "shadow, purified 98%: a favorite"
  ],
  "shadow, purified 93%": [
-  "unsure",
-  [],
+  "tag",
+  [
+   "Transfer"
+  ],
   null,
-  "shadow, 360+ Candy XL: no rule"
+  "shadow, 360+ Candy XL: transfer, no purify"
  ],
  "shadow raid attacker": [
   "unsure",
@@ -236,10 +240,12 @@
   "purify"
  ],
  "shadow, 360+ XL": [
-  "unsure",
-  [],
+  "tag",
+  [
+   "Transfer"
+  ],
   null,
-  "shadow, 360+ Candy XL: no rule"
+  "shadow, 360+ Candy XL: transfer, no purify"
  ],
  "shadow, XL not read": [
   "unsure",
@@ -272,10 +278,12 @@
   "a special background: a favorite"
  ],
  "costume 93%": [
-  "unsure",
-  [],
+  "tag",
+  [
+   "Transfer"
+  ],
   null,
-  "costume, 360+ Candy XL: no rule"
+  "costume, 360+ Candy XL"
  ],
  "costume 96%": [
   "keep",
@@ -320,18 +328,16 @@
   "traded: can't trade again"
  ],
  "lucky traded": [
-  "tag",
-  [
-   "Transfer"
-  ],
+  "unsure",
+  [],
   null,
-  "traded: can't trade again"
+  "lucky: top IV of its line not checked"
  ],
  "lucky traded 93%": [
   "unsure",
   [],
   null,
-  "traded lucky 93%: top 6 IV of its species not checked"
+  "lucky: top IV of its line not checked"
  ],
  "H shadow, under 360 XL": [
   "tag",

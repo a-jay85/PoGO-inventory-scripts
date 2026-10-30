@@ -22,7 +22,7 @@ import os, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "shared"))
-import ui, base, search, session, door
+import ui, base, search, session, door, home
 from base import Skip, log, go
 import cleantrades as ct
 
@@ -53,10 +53,10 @@ def done_already(dry):
     return off
 
 
-def walk(traded, limit, dry, counts):
+def walk(traded, limit, dry, counts, who):
     """step 2 on #Nope&traded or #Nope&!traded"""
     scope = f"#{NOPE}&{'' if traded else '!'}traded"
-    gate = door.Door(NOPE, scope=scope)
+    gate = door.Door(NOPE, scope=scope, account=who)
     from ivc import GYM_DEFENDERS  # (verdict, loaded by Door, puts /ivc on the path)
     passed = gate.listed()
     log(f"{scope}: {sum(passed.values())} on the not-sure list, passed over")
@@ -123,11 +123,12 @@ def walk(traded, limit, dry, counts):
 
 def main(limit, dry):
     base.front()
+    who = home.trainer()  # once, first: it ends on the map (the searches start from anywhere)
     done_already(dry)
     counts = {"opened": 0}
     for traded in (False, True):
         if counts["opened"] < limit:
-            walk(traded, limit, dry, counts)
+            walk(traded, limit, dry, counts, who)
     log(f"nopes done: {counts}")
 
 

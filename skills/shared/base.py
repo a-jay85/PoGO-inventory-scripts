@@ -592,10 +592,10 @@ def row_name(s):
 
 
 def tap_tag_row(T, name):
-    """tap a row of the open tag sheet. A tag with a never-tap button's word in it (Transfer, Remote Trade) is tapped
-    by its own row, and only when two looks agree it's the tag sheet, standing still, with exactly one row that says
-    just that"""
-    if not any(z in T for z in ui.HAZARDS):
+    """tap a row of the open tag sheet. A tag tap() doesn't know (GIV, RT ...) or with a never-tap button's word in it
+    (Transfer, Remote Trade) is tapped by its own row, and only when two looks agree it's the tag sheet, standing
+    still, with exactly one row that says just that"""
+    if T in ui.CONFIRM_SCREENS and not any(z in T for z in ui.HAZARDS):
         return tap(name)
     seen = []
     for i in range(2):
@@ -657,6 +657,23 @@ def high_iv(ivs=None, raws=None):
     return sum(top) >= ALWAYS_KEEP, ivs, raws, what
 
 
+def tags_done():
+    """DONE on the tag sheet. A Remote Trade tag on one caught under 30 days asks first ('This Pokémon will keep the
+    Remote Trade tag'): OK keeps it"""
+    try:
+        return go("DONE", "detail")
+    except Lost:
+        _, texts, _, bounds = look()
+        if not any("REMOTE TRADE TAG" in ui.norm(t[4]) for t in texts):
+            raise
+        ok = [t for t in texts if ui.norm(t[4]) == "OK"]
+        if len(ok) != 1:
+            raise Stop(f"the Remote Trade question: {len(ok)} OK buttons read")
+        log("  the game: it can trade remotely in a while and keeps the Remote Trade tag: OK")
+        tap_box(ok[0], bounds)
+        return wait_for("detail")
+
+
 def set_tags(on=(), off=(), only=False, ivs=None, raws=None):
     """tick the on tags and untick the off ones, leave the rest. only: afterwards the detail must show just the on tags.
     Nope never goes on a 98%+ one: it's appraised first (unless ivs/raws are given) and skipped if so"""
@@ -687,7 +704,7 @@ def set_tags(on=(), off=(), only=False, ivs=None, raws=None):
             if ticks.get(T) is not v:
                 keep_capture("tags")
                 raise Stop(f"tags didn't end up right: {ticks}")
-        go("DONE", "detail")
+        tags_done()
         ON, OFF = {t.upper() for t in on}, {t.upper() for t in off}
         good = lambda t: (sorted(t) == sorted(ON)) if only else (ON <= set(t) and not OFF & set(t))
         tags = settle(detail_tags, good)

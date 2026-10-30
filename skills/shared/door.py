@@ -71,16 +71,17 @@ class Door:
         return Counter((e["tile"], e["cp"]) for e in load_list()
                        if e["rules"] == RULES and e["account"] == self.account and e["tag"] == self.tag)
 
-    def judge(self, info, texts, sp, ivs, tile, size=None, raws=None, gym_top20=None, clear=False, unstar=False):
+    def judge(self, info, texts, sp, ivs, tile, size=None, raws=None, gym_top20=None, clear=False, unstar=False,
+              iv_top=None):
         """the open detail page of a Pokémon that isn't a keeper. tile: (name, CP) as the walk read the tile.
-        gym_top20: what the caller already knows of the gym rule. clear: a plain tag clears the name too (an old /ivc
+        gym_top20: what the caller already knows of the gym rule. iv_top: of a lucky one's top IV (verdict.Facts). clear: a plain tag clears the name too (an old /ivc
         name would bring it back as a rival or a fallen-out one). unstar: a plain tag takes the star off too (a fallen-out
         keeper). -> 'left for IVC/PvpC', UNSURE or the verdict's kind"""
         if self.source and any(base.is_tag(t, self.other) for t in info["tags"]):  # the other skill judges it next
             base.set_tags(off=[self.tag])
             log(f"  has {self.other} too: unticked {self.tag} only, {self.other} decides")
             return f"left for {self.other}"
-        f, why = self.facts(info, texts, sp, ivs, key(*tile), size, gym_top20)
+        f, why = self.facts(info, texts, sp, ivs, key(*tile), size, gym_top20, iv_top)
         v = vd.final_tag(f, self.tables) if not why else vd.unsure(why)
         if v.purify:
             v = self.purify(info, v)
@@ -103,11 +104,11 @@ class Door:
         off = [*([self.tag] if self.source else ()), *v.off]
         if v.tags or off:
             base.set_tags(on=list(v.tags), off=off)
-        if clear and v.kind == "tag" and not v.name:
+        if (clear or v.clear) and v.kind == "tag" and not v.name:
             base.clear_name()
         return v.kind
 
-    def facts(self, info, texts, sp, ivs, tile, size, gym_top20=None):
+    def facts(self, info, texts, sp, ivs, tile, size, gym_top20=None, iv_top=None):
         """-> (Facts, why not sure before any rule: '' when it's up to the rules)"""
         dex = {vd.pvp.SPECIES[s]["dex"] for s in sp if s in vd.pvp.SPECIES}
         size = {"XXL": "xxl", "XXS": "xxs"}.get(size, "")
@@ -124,6 +125,7 @@ class Door:
                      gigantamax="GIGANTAMAX" in near, dynamax="DYNAMAX" in near, size=size, kg=base.who(info)[2],
                      candy_xl=None if xl is None else 0 if xl else vd.XL_CAP,
                      levels=ct.cost_levels(texts, info["cp"])[1] or None, far=self.has("far", tile), gym_top20=gym_top20,
+                     iv_top=iv_top, pvp_judged=self.tag.upper() == "PVPC",
                      other_tags=[t for t in trades.tag_chips(texts)
                                  if t not in (self.tag.upper(), *((self.other.upper(),) if self.source else ()))])
         return f, ""

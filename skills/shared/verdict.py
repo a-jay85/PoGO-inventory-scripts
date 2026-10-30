@@ -18,7 +18,7 @@ to. Signed in as CyrillJan (the pile goes to HashTagAJay):
 Signed in as HashTagAJay (the pile goes to CyrillJan):
   GuaranteedLucky > Old > GIV (medal) > 2XL > GIV > XXL/xxs > XLX > GIV (evolved, Dynamax) > GIV (far) > Transfer
 Before all of them: a special trade (trades.py's legendary rules, else unsure), a traded one (Transfer), an untraded
-shadow, costume or background one (odd_one: the user's rules for each). The user's own tags first: untraded with Old, Evo or GuaranteedLucky,
+shadow, costume or background one (odd_one: the user's rules for each), and a lucky one, traded or not (lucky()). The user's own tags first: untraded with Old, Evo or GuaranteedLucky,
 those stay and only IVC / PvpC comes off; traded, the "trade it" tags (TRADE_TAGS) come off. The species lists come
 from tradeable.py's taker_species() and giver_species(), the same ones its plan uses; one saved more than STALE_DAYS
 ago counts as missing.
@@ -49,7 +49,6 @@ OWN_TAGS = ("Old", EVO, "GuaranteedLucky")  # untraded with one of these: it sta
 TRADE_TAGS = ("GIV", "XLX", "2XL", "Reroll", "Old", "Special", "GuaranteedLucky")  # "trade it": off a traded one
 STALE_DAYS = 7  # a species list older than this counts as missing
 OVER_93 = 43  # a costume one over 93% (42 of 45 reads 93%) is a favorite
-TOP_LUCKY = 42  # a traded lucky one this good may be top 6 IV of its species: unsure, not Transfer
 
 
 @dataclass
@@ -75,6 +74,8 @@ class Facts:
     levels: list = None  # the levels it can be at, from the power-up cost
     far: bool = None  # caught 100 km+ away (the run's one 'distance100-' search)
     gym_top20: bool = None  # a gym defender: top 20 CP or IV of its species (its search)
+    iv_top: bool = None  # a lucky one: top 5 IV of its line's non-shadow ones, 6 if it can mega (/cleanup's lucky.py)
+    pvp_judged: bool = False  # /pvpc already found it's no PvP keeper
     other_tags: list = field(default_factory=list)  # the user's tags besides the one this script works on
 
 
@@ -86,10 +87,11 @@ class Verdict:
     name: str = None  # a new nickname to type, when set
     off: tuple = ()  # the user's tags to take off too (IVC / PvpC always comes off)
     purify: bool = False  # purify it first
+    clear: bool = False  # clear its name too
 
 
-def tag(*tags, why, name=None, off=(), purify=False):
-    return Verdict("tag", tags, why, name, off, purify)
+def tag(*tags, why, name=None, off=(), purify=False, clear=False):
+    return Verdict("tag", tags, why, name, off, purify, clear)
 
 
 def unsure(why):
@@ -175,8 +177,6 @@ def final_tag(f, t, today=None):
         return unsure("traded or not not read")
     if odd and not f.traded and kinds & {"legendary", "ultrabeast", "mythical"}:
         return unsure(f"{', '.join(odd)} special trade: by hand")
-    if f.traded and f.lucky and f.iv_sum >= TOP_LUCKY:
-        return unsure(f"traded lucky {round(f.iv_sum / 45 * 100)}%: top 6 IV of its species not checked")
     if f.caught is None:
         return unsure("catch date not read")
     old = (today - f.caught).days >= OLD_DAYS
@@ -202,6 +202,8 @@ def final_tag(f, t, today=None):
         if f.gym_top20:
             return Verdict("keep", (), "gym defender: top 20 CP or IV")
 
+    if f.lucky:
+        return lucky(f, sid, dexn, strip)
     if odd and not f.traded:
         return odd_one(f, t, sid, odd)
     if f.traded:
@@ -262,10 +264,28 @@ def final_tag(f, t, today=None):
     return tag("Transfer", why="no rule wants it")
 
 
+def lucky(f, sid, dexn, strip):
+    """a lucky one, traded or not (the user's rule, 2026-10-30): in the top 5 IV of its line's non-shadow ones (6 if
+    the line can mega evolve, ties keep) it stays. Out of that, one with a PvP top-100 IV goes to /pvpc, which compares
+    it with the ones you own. The rest: name cleared, Transfer (door.py checks the power-up first). A traded one that
+    evolves for free gets Evo instead"""
+    if f.iv_top is None:
+        return unsure("lucky: top IV of its line not checked")
+    if f.iv_top:
+        return Verdict("keep", (), "lucky: a top IV of its line")
+    if not f.pvp_judged:
+        if f.ivs is None:
+            return unsure("lucky: IVs not read")
+        name, _ = pvp.make_name(sid, tuple(f.ivs), min(f.levels) if f.levels else None)
+        if name:
+            return tag("PvpC", why=f"lucky, out of the top IV, but PvP {name}: /pvpc judges it", off=strip)
+    if f.traded and f.account == EVO_FOR and dexn in {int(d) for d in TRADE_EVOS.split(",")}:
+        return tag(EVO, why="traded lucky, out of the top IV and PvP: evolves for free", off=strip)
+    return tag("Transfer", why="lucky: out of the top IV and PvP", off=strip, clear=True)
+
+
 def odd_one(f, t, sid, odd):
-    """an untraded shadow, lucky, costume or background one (the user's rules, 2026-10-29)"""
-    if "lucky" in odd:
-        return unsure("untraded lucky: no rule yet")
+    """an untraded shadow, costume or background one (the user's rules, 2026-10-29)"""
     if "background" in odd:
         return Verdict("keep", (), "a special background: a favorite")
     if "shadow" in odd and "costume" in odd:

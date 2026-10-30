@@ -25,6 +25,14 @@ Nothing tags Nope any more (2026-10-29). /ivc, /ivcsort and /pvpc give the final
 
 `--dry-run` skips step 1 and changes nothing in step 2. Run it on both accounts (`pogo.py account`).
 
+## Lucky ones on the not-sure list: lucky.py
+
+The door's lucky rule (2026-10-30, traded or not): top 5 IV of its line's non-shadow ones (6 if the line can mega evolve, ties keep) gets a star. Out of that, a PvP top-100 IV gets PvpC and /pvpc decides. The rest: name cleared, the power-up check for a higher Candy XL tier, Transfer. A traded one that evolves for free gets Evo instead. /ivcsort already knows the rank on a strong line. Everywhere else the door can't rank it, so it goes on the not-sure list. `lucky.py` ranks those:
+
+`POGO_PHONE=android caffeinate -dimsu python3 $S/lucky.py [--limit N] [--look]`
+
+It types /ivcsort's line searches once per species, ranks each one, then walks `#<tag>&lucky` and sends each to the door with its rank. `--look` ranks and changes nothing. Run it on both accounts.
+
 `shadows.py` and `trades.py` hold shared taps now (purify, exact search, tag sheet). Their old Nope walks are gone, and so are `rescue.py` and `suspects.py`.
 
 ## After trading: tag the shortcuts, power up for XL, tag Transfer

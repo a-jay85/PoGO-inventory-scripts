@@ -28,6 +28,7 @@
    "gymfeed": "gymfeed/gymfeed.py",
    "ivc": "ivc/run.py",
    "ivcsort": "ivcsort/run.py",
+   "lucky": "cleanup/lucky.py",
    "luckydex": "dex/luckydex.py",
    "mega": "mega/mega.py",
    "nopes": "cleanup/nopes.py",
@@ -111,6 +112,24 @@
    "tag_pile",
    "tick",
    "wait_for"
+  ],
+  "runs": [
+   "skills/cleanup/runs"
+  ]
+ },
+ "skills/cleanup/lucky.py": {
+  "copies": {},
+  "names": [
+   "Counter",
+   "HERE",
+   "Skip",
+   "go",
+   "listed",
+   "log",
+   "main",
+   "rank",
+   "script",
+   "walk"
   ],
   "runs": [
    "skills/cleanup/runs"
@@ -756,6 +775,7 @@
    "species_of_search",
    "start_search",
    "steady_detail",
+   "strong_loser",
    "to_search_list",
    "twin_check",
    "type_line",
@@ -1605,7 +1625,6 @@
    "STALE_DAYS",
    "TAKER",
    "TO",
-   "TOP_LUCKY",
    "TRADE_BY_HAND",
    "TRADE_EVOS",
    "TRADE_TAGS",
@@ -1617,6 +1636,7 @@
    "dataclass",
    "field",
    "final_tag",
+   "lucky",
    "odd_one",
    "stale",
    "tables",

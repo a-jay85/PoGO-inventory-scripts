@@ -343,12 +343,14 @@ def pct(v):
     return f"{round(v * 100 / 45)}%"
 
 
-def spots(sid, pool):
-    """final -> (how many of them to keep, its name, weak-line note) for this species' family"""
+def spots(sid, pool, full=False):
+    """final -> (how many of them to keep, its name, weak-line note) for this species' family. full: a weak line
+    gets its full spots too (/cleanup's lucky rule)"""
     out = {}
     for line in family(sid):
         f = line[-1]
         big, meta = strong(line)
+        big = big or full
         n = {"plain": top_n(line) if big else 1, "shadow": TOP if big else 1,  # shadows can't mega: top 5
              "lucky": TOP_LUCKY if big or WEAK_EXTRAS else 0, "dmax": TOP_DMAX if big or WEAK_EXTRAS else 0}[pool]
         name = base_name(f).title() + (f" ({region(f)})" if region(f) else "") + \
@@ -429,10 +431,10 @@ def my_reach(m, mine, results, pool):
     return frozenset().union(*(r for _, r in gs))
 
 
-def judge_pool(m, results, pool, what, mine, r, me_in_pool=True, extra=()):
-    """-> (keep?, reason, notes)"""
+def judge_pool(m, results, pool, what, mine, r, me_in_pool=True, extra=(), full=False):
+    """-> (keep?, reason, notes). full: see spots"""
     sid = m["species"]
-    caps = spots(sid, pool)
+    caps = spots(sid, pool, full)
     shadow = m["shadow"] and pool == "shadow"
     items, found = pool_items(sid, pool, results, shadow, (mine, m["cp"]) if me_in_pool else None)
     items += extra

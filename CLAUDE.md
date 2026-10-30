@@ -74,4 +74,8 @@ The repo is public. These stay local and are in `.gitignore`:
 
 Nothing tests taps and timing off the phone. A change to how a skill reads or taps the phone isn't done until it has run on the phone:
 `POGO_PHONE=android caffeinate -dimsu python3 ~/.claude/skills/pvpc/run.py --limit 1`. Claude starts it and watches it itself; no need to ask the user to watch.
+
+Claude watches a phone run quietly, through `watch.py` (repo root) started with Bash `run_in_background: true, timeout: 7200000`:
+`POGO_PHONE=android python3 ~/PoGO-inventory-scripts/watch.py caffeinate -dimsu python3 <script> [args]`.
+It prints nothing while the script runs, then one short summary at the end (exit code, STOPPED / CRASHED / error lines, last lines). The full output is in `/tmp/pogo-watch/<stamp>.log`. The script runs detached, so if the waiter times out, `watch.py --wait` waits again. No `Monitor` on a run: a user hook blocks it.
 `--dry-run` still taps for real, so it isn't a safe first test. If you couldn't run it, say so in the PR body.

@@ -570,9 +570,11 @@ def favorite_and_untag():
 
 
 def lucky_rank(m):
-    """a NOPE here is out of the lucky rule's top 5/6 (sort.decide runs it): False. With no IV in its name it was
-    never ranked: None, the door leaves it not sure"""
-    return False if sort.value(m["name"], m["shadow"]) is not None else None
+    """a NOPE here is out of the lucky rule's top 5/6 (sort.decide runs it for a lucky one; a strong line's plain
+    spots are the same 5/6): False. With no IV in its name, or read as not lucky on a weak line, it was never
+    ranked: None, the door leaves it not sure"""
+    ranked = m["lucky"] or all(sort.strong(line)[0] for line in sort.lines_of(m["species"]))
+    return False if ranked and sort.value(m["name"], m["shadow"]) is not None else None
 
 
 ACT_QUERY_MAX = 120  # a longer dex list costs more typing than walking past the tiles it would hide

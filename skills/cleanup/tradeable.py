@@ -769,7 +769,8 @@ def door_walk(suffix, limit, who):
         counts[got] += 1
         log(f"DONE door {got} {n!r} CP{c} {iv}")
         go("close", "list")
-        return got == "tag"  # (a tagged one leaves the rest; a starred or not-sure one stays)
+        # gone only with a tag the rest leaves out (Old, 2XL, a star or not sure: it stays, and is passed)
+        return got == "tag" and bool(set(gate.last.tags) & {*TAGS, XLX, TRANSFER})
 
     if run_pile(suffix):
         search.walk_list(visit, stop=lambda n: counts["opened"] >= limit)

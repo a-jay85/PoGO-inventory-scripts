@@ -86,6 +86,7 @@ class Door:
             v = self.purify(info, v)
         if v.kind == "tag" and "Transfer" in v.tags:
             v = self.power_up(info, v, tile[1])
+        self.last = v
         log(f"  door: {v.kind} {'+'.join(v.tags)}{' -' + '-'.join(v.off) if v.off else ''}"
             f"{' named ' + v.name if v.name else ''}: {v.why}")
         if v.kind == UNSURE:
@@ -123,7 +124,8 @@ class Door:
                      gigantamax="GIGANTAMAX" in near, dynamax="DYNAMAX" in near, size=size, kg=base.who(info)[2],
                      candy_xl=None if xl is None else 0 if xl else vd.XL_CAP,
                      levels=ct.cost_levels(texts, info["cp"])[1] or None, far=self.has("far", tile), gym_top20=gym_top20,
-                     other_tags=[t for t in trades.tag_chips(texts) if t not in (self.tag.upper(), self.other.upper())])
+                     other_tags=[t for t in trades.tag_chips(texts)
+                                 if t not in (self.tag.upper(), *((self.other.upper(),) if self.source else ()))])
         return f, ""
 
     def caught(self, info):

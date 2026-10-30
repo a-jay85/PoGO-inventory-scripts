@@ -148,6 +148,7 @@ class Door:
         rows = [ui.norm(t[4]) for t in texts]
         evolves = True if any(r.startswith("EVOLVE") for r in rows) else False if any(
             r.startswith("POWER UP") for r in rows) else None  # (Mega Evolve starts MEGA)
+        lucky = any(r.startswith("LUCKY POK") for r in rows)  # only a trade makes one lucky
         f = vd.Facts(evolves=evolves,account=self.account, sids=list(sp), iv_sum=sum(ivs) if ivs else None,
                      ivs=tuple(ivs) if ivs else None, shiny=self.has("shiny", tile),
                      costume=self.has("costume", tile), background=self.has("background", tile),

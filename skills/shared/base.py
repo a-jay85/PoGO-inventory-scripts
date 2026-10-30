@@ -546,7 +546,7 @@ def still_opened(what, info=None):
 def detail_tags():
     info = detail_now()
     still_opened("after the tags", info)
-    return [ui.norm(t) for t in info["tags"]]
+    return [row_name(t) for t in info["tags"]]  # (the Remote Trade chip has an icon too)
 
 
 def detail_name():

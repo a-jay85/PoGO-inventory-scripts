@@ -614,13 +614,16 @@ def tap_tag_row(T, name):
 
 
 def lift_tag_row(T):
-    """Android: a tap on the last row showing (under the list's fade) doesn't take. Scroll it up a little first"""
+    """Android: a tap on the last row showing, or the first one of a scrolled list (under the list's fades), doesn't
+    take. Scroll it up (or down) a little first. At the list's top the down scroll changes nothing"""
     _, texts, _, _ = wait_for("tags")
     row = next((t for t in texts if row_name(t[4]) == T), None)
-    if row and row[1] > 0.7:
+    if row and (row[1] > 0.7 or row[1] < 0.33):
         x, y = random.randint(650, 790), random.randint(1960, 2040)
-        ui.android.shell(f"input swipe {x} {y} {x + random.randint(-8, 8)} {y - random.randint(370, 430)} "
-                         f"{random.randint(520, 680)}")
+        dy = -random.randint(370, 430)
+        if row[1] < 0.33:  # (seen 2026-10-29: IVC at 28%, faded, two taps didn't untick it)
+            y, dy = random.randint(1150, 1250), random.randint(280, 320)
+        ui.android.shell(f"input swipe {x} {y} {x + random.randint(-8, 8)} {y + dy} {random.randint(520, 680)}")
         time.sleep(0.5)  # the loop below waits for the rows to hold still
         ui.android.fresh()  # a tap off a picture from before the scroll lands a row off (ticked PvpC for Nope)
         last = None

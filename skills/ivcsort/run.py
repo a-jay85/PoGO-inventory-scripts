@@ -33,7 +33,8 @@ import search, fallen, session, door
 from search import to_search_list, start_search, run_search, result_count, looks_same
 
 TAG = "IVC"
-DOOR = None  # door.Door for this run, made the first time act has a loser to judge
+DOORS = {}  # dex number ("all": every #IVC one) -> the door.Door whose searches cover it. Made when act first has a
+# DOOR of that dex, over every DOOR the plan has then: the plan grows a chunk at a time
 
 
 class NotIVC(Skip):
@@ -92,7 +93,8 @@ def from_ivc(tile_name, tile_cp):
     if r is None:
         return None
     m = {"tile": tile_name, "name": r["name"], "cp": r["cp"], "hp": r["hp"], "candy": r["candy"], "types": r["types"],
-         "shadow": r["shadow"], "lucky": r["lucky"], "size": r["size"], "dynamax": r["dynamax"], "tags": r["tags"]}
+         "shadow": r["shadow"], "lucky": r["lucky"], "size": r["size"], "dynamax": r["dynamax"], "tags": r["tags"],
+         "bars": r.get("bars"), "raws": r.get("raws")}  # the appraisal: act needn't open it again (none in reads before 2026-10-30)
     m["species_options"] = sort.identify(m["candy"], set(m["types"]), m["cp"], m["hp"], sort.value(m["name"], m["shadow"]))
     m["species"] = sort.pick_species(m["species_options"])
     if not m["species"]:  # the candy or types weren't read: open it after all
@@ -608,17 +610,32 @@ def plan_key(m):
     return m["tile"], m["cp"], m.get("name"), m.get("species"), m.get("shadow"), m.get("lucky")  # (unrenamed: neither)
 
 
+def dex_of(m):
+    return sort.SPECIES[m["species"]]["dex"]
+
+
+def door_for(m):
+    """the door whose searches cover this one's dex, if any yet"""
+    return DOORS.get("all") or DOORS.get(dex_of(m))
+
+
 def act(limit, members):
     """tag one family's KEEPs and DOORs on its own search lists (an IVC Pokémon has no Nope, so it shows there):
     the list still on screen from pools first, then any other list that holds one. -> (how many were opened,
     how many weren't found: the family isn't done then, a rerun walks its lists again)"""
     mine = {plan_key(m) for m in members}
-    global DOOR
     lists, plans = {}, [m for m in load_plan() if m["verdict"] in ("KEEP", "DOOR") and plan_key(m) in mine]
-    if DOOR is None and any(m["verdict"] == "DOOR" for m in plans):
-        DOOR = door.Door(TAG)  # (its searches leave the bar on something else)
+    if any(m["verdict"] == "DOOR" and not door_for(m) for m in plans):
+        # its searches only over the dex numbers sent to the door and not covered yet: a short list reads right more often
+        new = {dex_of(m) for m in load_plan() if m["verdict"] == "DOOR" and m.get("species") in sort.SPECIES
+               and not door_for(m)}
+        dex = dex_terms(new)
+        scope = f"#{TAG}&{dex}" if len(dex) <= ACT_QUERY_MAX else None
+        was = next(iter(DOORS.values()), None)
+        made = door.Door(TAG, scope=scope, account=was and was.account)  # (its searches leave the bar on something else)
+        DOORS.update(dict.fromkeys(new, made) if scope else {"all": made})
         SHOWN["q"] = None
-    listed = DOOR.listed() if DOOR else Counter()  # not sure last time, under the same rules: passed over
+    listed = next(iter(DOORS.values())).listed() if DOORS else Counter()  # not sure last time, same rules: passed over
     for m in plans:
         k = (sort.clean_name(m["tile"]), m["cp"])
         if m["verdict"] == "DOOR" and listed[k]:
@@ -698,10 +715,14 @@ def act(limit, members):
         if not m:
             raise Skip(f"detail doesn't match the plan: {now['name']!r} {now['species']}")
         verdict = gone = m["verdict"]
+        if verdict == "DOOR" and not door_for(m):
+            raise Skip("judged DOOR here, outside what the door's searches covered: next run")  # (no read would mean 'no')
         if verdict == "KEEP":
             favorite_and_untag()
-        else:  # a name can be wrong ('FP*' on a 98% lucky): appraise before the door
-            keep, ivs, raws, what = base.high_iv()
+        else:  # a name can be wrong ('FP*' on a 98% lucky): appraise before the door, unless /ivc just did
+            if m.get("bars"):
+                log(f"  /ivc's appraisal: {'/'.join(map(str, m['bars']))}, not appraising again")
+            keep, ivs, raws, what = base.high_iv(m.get("bars"), m.get("raws"))
             if keep:  # 98%+ always keeps
                 favorite_and_untag()
                 verdict = gone = "KEEP"
@@ -709,7 +730,7 @@ def act(limit, members):
                 log(f"  the plan said DOOR, appraised {what}: 98%+")
             else:  # sort.decide ran the gym rule: a gym defender's DOOR is out of both top 20s
                 info, texts, _ = steady_detail()
-                gone = DOOR.judge(info, texts, [m["species"]], ivs, (n, c), size=now["size"], raws=raws,
+                gone = door_for(m).judge(info, texts, [m["species"]], ivs, (n, c), size=now["size"], raws=raws,
                                   gym_top20=False, clear=True, iv_top=lucky_rank(m))
                 if gone in ("keep", door.UNSURE) or gone.startswith("left for"):  # still here: a rival in the pools
                     progress.setdefault("stayed", []).append([n, c])

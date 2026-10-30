@@ -207,12 +207,12 @@ def retag(new):
 READ = "read.json"  # what each renamed one's detail screen showed: /ivcsort's sort takes it instead of opening it again
 
 
-def remember(name, cp, info, texts, shadow, lucky, size):
+def remember(name, cp, info, texts, shadow, lucky, size, bars, raws):
     path = os.path.join(base.RUN_DIR, READ)
     read = json.load(open(path)) if os.path.exists(path) else []
     read.append({"name": name, "cp": cp, "hp": info["hp"], "candy": base.candy(texts), "types": sorted(base.type_line(texts)),
                  "shadow": shadow, "lucky": lucky, "size": size, "dynamax": base.dynamax(texts),
-                 "tags": info["tags"], "phone": "android" if ui.ANDROID else "ios", "at": time.time()})
+                 "tags": info["tags"], "bars": list(bars), "raws": list(raws) if raws else None, "phone": "android" if ui.ANDROID else "ios", "at": time.time()})
     with open(path, "w") as f:
         json.dump(read, f, indent=1)
 
@@ -269,7 +269,7 @@ def process(i, tile_name, tile_cp, dry):
     else:
         do_rename(name, same_name)
         try:  # only saves /ivcsort an open: never worth stopping a run for
-            remember(name, cp, info, texts, shadow, lucky, size)
+            remember(name, cp, info, texts, shadow, lucky, size, bars, raws)
         except Exception as e:
             log(f"  couldn't save what was read ({e!r}): /ivcsort will open it")
     if not dry:

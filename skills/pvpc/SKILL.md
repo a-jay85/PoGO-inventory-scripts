@@ -109,7 +109,7 @@ Without it, the scripts drive iPhone Mirroring exactly as before.
 - **Qualifies** = top 100 stat product in any of: Little Cup (500 CP), Great League (1500), Ultra League (2500). Max level 50 (no best buddy).
   - Only leagues its level still fits. Evolving keeps the level and nothing powers down, so a form whose CP at its level now is already over the cap doesn't count there (a CP530 Doduo has no Little Cup slot).
 - **Qualifies:** rename it, then star it and remove PvpC (like /ivcsort's Keep). PvpC is only the to-do pile.
-- **Doesn't qualify:** remove PvpC, add Nope. If it's 98%+ (a shadow: once purified), never Nope: swap PvpC for IVC so /ivc names it. Don't rename. If it also has IVC, only remove PvpC (no Nope): /ivc decides.
+- **Doesn't qualify:** its final tag at the door (`../shared/door.py`: GIV, XLX, Transfer ...; not sure = left as is, on the not-sure list). If it's 98%+ (a shadow: once purified), swap PvpC for IVC so /ivc names it. Don't rename. If it also has IVC, only remove PvpC: /ivc decides.
 - **Name format:** `Pvp` then leagues in order L, G, U, like `Pvp G1`, `Pvp G35 U88`, `Pvp L5G7U99`. Max 12 characters.
   1. Keep all spaces if it fits.
   2. Else drop spaces between leagues.
@@ -147,10 +147,7 @@ Every "tap X" below means: run `ui.py tap X`, then click the printed spot. After
      - Then run `pvp.py check <species> <cp> <hp> -1 --near a/d/h` with your reading.
      - Still unclear: stop and ask the user.
 5. **Act.** Tap `dialog` to close the appraisal (`read` should say `detail`).
-   - **Nope:** tap `menu`, then `TAG`.
-     - `read` shows the ticks. Tap `PvpC` to untick it, then tap `Nope` to tick it. If `[x] IVC` shows, untick only `PvpC`, tap `DONE`, and skip the next two checks.
-     - `read` must show `[ ] PvpC` and `[x] Nope`. Then tap `DONE`.
-     - `read` must show `tags=['Nope']` on the detail screen.
+   - **NOPE:** never tick Nope by hand. Leave it for `run.py`, whose door gives the final tag. If `[x] IVC` shows, untick only `PvpC`.
    - **Rename:** tap `pencil`, then `field`. Then, in one `computer_batch`: `cmd+a`, `delete`, wait 0.3s, then type the name.
      - Typing straight after cmd+a once dropped the first letter.
      - `read` must show `rename field='<exact name>'`. Then tap `OK`.

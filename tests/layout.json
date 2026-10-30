@@ -128,7 +128,8 @@
    "go",
    "log",
    "main",
-   "script"
+   "script",
+   "walk"
   ],
   "runs": [
    "skills/cleanup/runs"

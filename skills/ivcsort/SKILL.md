@@ -1,10 +1,10 @@
 ---
 name: ivcsort
-description: After /ivc has renamed the IVC Pokémon, keep the best of each species line (favorite + untick IVC) and swap the rest to Nope. Use when the user says /ivcsort or asks to sort their IVC Pokémon.
+description: After /ivc has renamed the IVC Pokémon, keep the best of each species line (favorite + untick IVC) and give the rest their final tag at the door (GIV, XLX, Transfer ...). Use when the user says /ivcsort or asks to sort their IVC Pokémon.
 model: claude-sonnet-5-5
 ---
 
-# /ivcsort — keep the best IVC Pokémon, Nope the rest
+# /ivcsort — keep the best IVC Pokémon, final-tag the rest
 
 Drives iPhone Mirroring like /pvpc and /ivc (read their **Session start** and **Safety** first).
 `S=~/.claude/skills/ivcsort`. Rules live in `$S/sort.py` (`python3 $S/sort.py test` checks them).
@@ -41,7 +41,7 @@ One command, after /ivc: `POGO_PHONE=android caffeinate -dimsu python3 ~/PoGO-in
 1. It counts `#IVC&!xxl&!xxs`. Up to 60 (`SMALL`): one search reads them all. More: it goes 50 dex numbers at a time (`#IVC&!xxl&!xxs&1-50`, ...), and each block is tagged before the next is read.
 2. It opens each IVC Pokémon in the block and reads it (`scan.json`). One that /ivc renamed in the last 12 hours on this phone isn't opened: /ivc saved what its detail screen showed (`ivc/runs/<time>/read.json`).
 3. Then one family at a time: it types that family's searches (`pools.json`), once a run. It reads again (up to 2 more times) any search whose miscount could turn a KEEP or NOPE into LEAVE. The search most of the family's IVC ones show in goes last.
-4. It decides (`plan.txt`) and, on that last list still on screen, favorites + unticks IVC, or Nopes (`act.json`). An IVC one in another of the family's lists (a shadow, say) gets that list typed. A tile with the same name and CP but no IVC tag is an older keeper: it's passed.
+4. It decides (`plan.txt`) and, on that last list still on screen, favorites + unticks IVC, or sends it to the door (`act.json`). An IVC one in another of the family's lists (a shadow, say) gets that list typed. A tile with the same name and CP but no IVC tag is an older keeper: it's passed.
 
 A stop loses nothing: `run.py sort $S/runs/<time>` carries on, the same way it started (blocks done are in `sorted.json`, families in `families.json`). `--limit N` stops after N changes. `--look` does steps 1-3 and writes `plan.txt`, changing nothing (no named-Nope pass either). A family whose named Nopes aren't all judged isn't done: a rerun finishes them.
 

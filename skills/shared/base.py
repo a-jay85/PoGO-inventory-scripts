@@ -557,13 +557,19 @@ def detail_name():
 
 TAG_AT = {}  # tag sheet row -> where it sits in the list (screen heights), learned this run: one phone per run
 VIEW = [None]  # where the rows showing now start, on that same scale (None: no row seen before is showing)
+ASKED = set()  # the tags this run looked for
+
+
+def clean_row(n):
+    """the sheet's scroll bar can glue on as a letter ('REMOTE TRADEL' after a scroll): drop it off a tag we know"""
+    return n[:-1] if n[-1:] in ("L", "I", "|") and (n[:-1] in ASKED or n[:-1] in TAG_AT) else n
 
 
 def tick_tags():
     _, texts, path, _ = wait_for("tags")
-    ticks = ui.ticked_tags(path, texts)
-    learn_rows(texts, {ui.norm(n) for n, _ in ticks})
-    return {ui.norm(n): on for n, on in ticks}
+    ticks = {ui.norm(n): on for n, on in ui.ticked_tags(path, texts)}
+    learn_rows(texts, set(ticks))
+    return {clean_row(n): on for n, on in ticks.items()}
 
 
 def learn_rows(texts, names):
@@ -572,7 +578,7 @@ def learn_rows(texts, names):
     for t in texts:
         n = ui.norm(t[4].lstrip("•· ").strip())
         if n in names and len(n) > 1:  # (the tick itself can read as a 'V')
-            ys.setdefault(n, t[1])
+            ys.setdefault(clean_row(n), t[1])
     known = sorted(TAG_AT[n] - y for n, y in ys.items() if n in TAG_AT)
     if not known and TAG_AT:  # no row in common with what's placed: can't tell where this is
         VIEW[0] = None
@@ -613,6 +619,7 @@ def show_tag(T):
     """scroll the tag sheet until row T shows: straight there when this run has seen it, else down first, then back
     up. A long list hides tags past the first screen (HashTagAJay's GuaranteedLucky and Old).
     -> the showing rows' ticks, or None if the account has no T"""
+    ASKED.add(T)
     if T in TAG_AT:
         ticks = seek_tag(T)
         if ticks is not None:
@@ -631,7 +638,7 @@ def show_tag(T):
 
 def row_name(s):
     """a tag sheet row's text -> its name, upper case (the icon by Remote Trade reads as a stray letter)"""
-    return re.sub(r"^[A-Z] (?=[A-Z]{2})", "", ui.norm(s.lstrip("•· ")))
+    return clean_row(re.sub(r"^[A-Z] (?=[A-Z]{2})", "", ui.norm(s.lstrip("•· "))))
 
 
 def tap_tag_row(T, name):

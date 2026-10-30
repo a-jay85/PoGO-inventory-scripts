@@ -547,15 +547,18 @@ def recheck_fallen(n, c):
     if not m["species"]:
         raise Skip(f"species unsure: {m['species_options']}")
     FALLEN_SPECIES[(n, c)] = [m["species"]]
+    FALLEN_RANK[(n, c)] = lucky_rank(m)
     verdict, why = judge(m, results, wants)
     return verdict == "NOPE", f"{verdict} {m['species']} ({why[0] if why else ''})"
 
 
 FALLEN_SPECIES = {}  # (tile name, CP) -> [species id], as recheck_fallen read it: the door judges that one
+FALLEN_RANK = {}  # (tile name, CP) -> a lucky one's rank (lucky_rank), as recheck_fallen judged it
 
 
 def act_fallen(limit):
     fallen.act(limit, recheck_fallen, TAG, lambda n, c: FALLEN_SPECIES[(n, c)], gym_top20=False,
+               iv_top=lambda n, c: FALLEN_RANK[(n, c)],
                stop=lambda n: not re.match(r"\d", n), odd=odd_name)
 
 
@@ -566,10 +569,10 @@ def favorite_and_untag():
     set_tags(off=[TAG])
 
 
-def strong_loser(sid):
-    """a NOPE here lost its non-shadow spot. On a strong line those are the lucky rule's top 5/6 too: False (out of
-    the top IV). A weak line had 1 spot: None, /cleanup's lucky.py ranks it"""
-    return False if all(sort.strong(line)[0] for line in sort.lines_of(sid)) else None
+def lucky_rank(m):
+    """a NOPE here is out of the lucky rule's top 5/6 (sort.decide runs it): False. With no IV in its name it was
+    never ranked: None, the door leaves it not sure"""
+    return False if sort.value(m["name"], m["shadow"]) is not None else None
 
 
 ACT_QUERY_MAX = 120  # a longer dex list costs more typing than walking past the tiles it would hide
@@ -700,7 +703,7 @@ def act(limit, members):
             else:  # sort.decide ran the gym rule: a gym defender's NOPE is out of both top 20s
                 info, texts, _ = steady_detail()
                 gone = DOOR.judge(info, texts, [m["species"]], ivs, (n, c), size=now["size"], raws=raws,
-                                  gym_top20=False, clear=True, iv_top=strong_loser(m["species"]))
+                                  gym_top20=False, clear=True, iv_top=lucky_rank(m))
                 if gone in ("keep", door.UNSURE) or gone.startswith("left for"):  # still here: a rival in the pools
                     progress.setdefault("stayed", []).append([n, c])
         plans.remove(m)

@@ -94,6 +94,12 @@ CASES = {
     "background traded": plain(background=True, traded=True),
     "lucky traded": plain(lucky=True, traded=True),
     "lucky traded 93%": plain(lucky=True, traded=True, iv_sum=42),
+    # the lucky rule: only /ivcsort ranks it
+    "lucky, /ivcsort couldn't rank it": plain(lucky=True, ivc_judged=True),
+    "lucky, /pvpc can't rank it": plain(lucky=True, pvp_judged=True),
+    "lucky top IV": plain(lucky=True, iv_top=True, ivc_judged=True),
+    "lucky out, no PvP": plain(lucky=True, iv_top=False, ivc_judged=True, ivs=(10, 10, 10)),
+    "lucky out, /pvpc said no": plain(lucky=True, iv_top=False, pvp_judged=True, ivs=(10, 10, 10)),
     "H shadow, under 360 XL": plain(account=TAKER, shadow=True, ivs=(10, 10, 10), candy_xl=0),
     "gigantamax": plain(gigantamax=True),
     "mythical": plain(sids=["mew"]),

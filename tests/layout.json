@@ -28,7 +28,6 @@
    "gymfeed": "gymfeed/gymfeed.py",
    "ivc": "ivc/run.py",
    "ivcsort": "ivcsort/run.py",
-   "lucky": "cleanup/lucky.py",
    "luckydex": "dex/luckydex.py",
    "mega": "mega/mega.py",
    "nopes": "cleanup/nopes.py",
@@ -112,25 +111,6 @@
    "tag_pile",
    "tick",
    "wait_for"
-  ],
-  "runs": [
-   "skills/cleanup/runs"
-  ]
- },
- "skills/cleanup/lucky.py": {
-  "copies": {},
-  "names": [
-   "Counter",
-   "HERE",
-   "Skip",
-   "drop",
-   "go",
-   "listed",
-   "log",
-   "main",
-   "rank",
-   "script",
-   "walk"
   ],
   "runs": [
    "skills/cleanup/runs"
@@ -713,6 +693,7 @@
    "CHUNKS",
    "Counter",
    "DOOR",
+   "FALLEN_RANK",
    "FALLEN_SPECIES",
    "HERE",
    "IVC_FRESH",
@@ -751,6 +732,7 @@
    "load",
    "log",
    "looks_same",
+   "lucky_rank",
    "new_run_dir",
    "odd_name",
    "plan",
@@ -776,7 +758,6 @@
    "species_of_search",
    "start_search",
    "steady_detail",
-   "strong_loser",
    "to_search_list",
    "twin_check",
    "type_line",
@@ -1246,6 +1227,8 @@
    "Counter",
    "Door",
    "HERE",
+   "LUCKY_OUT",
+   "LUCKY_OUT_DAYS",
    "NOT_SURE",
    "RULES",
    "SEARCHES",
@@ -1256,12 +1239,17 @@
    "ct",
    "key",
    "load_list",
+   "load_lucky_out",
    "log",
+   "lucky_key",
+   "ranked_out",
    "shadows",
    "trades",
-   "vd"
+   "vd",
+   "was_ranked_out"
   ],
   "runs": [
+   "skills/shared/runs/lucky-out.json",
    "skills/shared/runs/not-sure.json"
   ]
  },

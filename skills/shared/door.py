@@ -9,6 +9,10 @@ detail page that's still open. No Nope.
 
 Not sure = left exactly as it is (tag and name) and written to runs/not-sure.json, with why, for a rule offline.
 A search whose tiles didn't all read counts as not done: every Pokémon that needs it comes out not sure.
+
+A lucky one only /ivcsort can rank (verdict.lucky): anywhere else the door sends it to IVC. One /ivcsort found out of the
+top IV is written to runs/lucky-out.json, so /pvpc's door knows that when the lucky rule sends it on to PvpC (else it
+would go back to IVC, round and round).
 """
 import hashlib, json, os, re, sys, time
 from collections import Counter
@@ -20,6 +24,8 @@ import ui, base, search, home
 from base import Stop, log
 
 NOT_SURE = os.path.join(HERE, "runs", "not-sure.json")
+LUCKY_OUT = os.path.join(HERE, "runs", "lucky-out.json")
+LUCKY_OUT_DAYS = 7  # an older entry is dropped: by then the line may have changed
 RULES = hashlib.md5(b"".join(open(os.path.join(HERE, f), "rb").read() for f in ("verdict.py", "door.py"))
                     ).hexdigest()[:8]  # new rules or a new reader: judge again
 SEARCHES = {"traded": "traded", "shiny": "shiny", "costume": "costume", "background": "background",
@@ -83,6 +89,8 @@ class Door:
             return f"left for {self.other}"
         f, why = self.facts(info, texts, sp, ivs, key(*tile), size, gym_top20, iv_top)
         v = vd.final_tag(f, self.tables) if not why else vd.unsure(why)
+        if f.lucky and iv_top is False:
+            ranked_out(self.account, sp, ivs)
         if v.purify:
             v = self.purify(info, v)
         if v.kind == "tag" and "Transfer" in v.tags:
@@ -125,9 +133,12 @@ class Door:
                      gigantamax="GIGANTAMAX" in near, dynamax="DYNAMAX" in near, size=size, kg=base.who(info)[2],
                      candy_xl=None if xl is None else 0 if xl else vd.XL_CAP,
                      levels=ct.cost_levels(texts, info["cp"])[1] or None, far=self.has("far", tile), gym_top20=gym_top20,
-                     iv_top=iv_top, pvp_judged=self.tag.upper() == "PVPC",
+                     iv_top=iv_top, pvp_judged=self.tag.upper() == "PVPC", ivc_judged=self.tag.upper() == "IVC",
                      other_tags=[t for t in trades.tag_chips(texts)
                                  if t not in (self.tag.upper(), *((self.other.upper(),) if self.source else ()))])
+        if f.lucky and f.iv_top is None and was_ranked_out(self.account, sp, ivs):
+            f.iv_top = False
+            log("  lucky: /ivcsort ranked it out of the top IV already")
         return f, ""
 
     def caught(self, info):
@@ -200,3 +211,31 @@ def add_to_list(e):
     got = [x for x in load_list() if not (x["tile"] == e["tile"] and x["cp"] == e["cp"] and x["hp"] == e["hp"]
                                           and x["account"] == e["account"] and x["tag"] == e["tag"])] + [e]
     json.dump(got, open(NOT_SURE, "w"), indent=1, ensure_ascii=False)
+
+
+def lucky_key(account, sp, ivs):
+    """by dex: /pvpc may read two forms where /ivcsort read one"""
+    return [account, sorted({vd.pvp.SPECIES[s]["dex"] for s in sp if s in vd.pvp.SPECIES}), list(ivs or ())]
+
+
+def ranked_out(account, sp, ivs):
+    """a lucky one /ivcsort found out of the top IV: saved for LUCKY_OUT_DAYS"""
+    if not ivs:
+        return
+    k, today = lucky_key(account, sp, ivs), time.strftime("%Y-%m-%d")
+    got = [e for e in load_lucky_out() if e["key"] != k] + [{"key": k, "day": today}]
+    os.makedirs(os.path.dirname(LUCKY_OUT), exist_ok=True)
+    json.dump(got, open(LUCKY_OUT, "w"), indent=1, ensure_ascii=False)
+
+
+def was_ranked_out(account, sp, ivs):
+    return bool(ivs) and any(e["key"] == lucky_key(account, sp, ivs) for e in load_lucky_out())
+
+
+def load_lucky_out():
+    try:
+        got = json.load(open(LUCKY_OUT))
+    except FileNotFoundError:
+        return []
+    cut = time.strftime("%Y-%m-%d", time.localtime(time.time() - LUCKY_OUT_DAYS * 86400))
+    return [e for e in got if e["day"] >= cut]

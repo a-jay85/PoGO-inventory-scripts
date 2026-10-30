@@ -555,25 +555,68 @@ def detail_name():
     return info["name"] or ""
 
 
+TAG_AT = {}  # tag sheet row -> where it sits in the list (screen heights), learned this run: one phone per run
+VIEW = [None]  # where the rows showing now start, on that same scale (None: no row seen before is showing)
+
+
 def tick_tags():
     _, texts, path, _ = wait_for("tags")
-    return {ui.norm(n): on for n, on in ui.ticked_tags(path, texts)}
+    ticks = ui.ticked_tags(path, texts)
+    learn_rows(texts, {ui.norm(n) for n, _ in ticks})
+    return {ui.norm(n): on for n, on in ticks}
 
 
-def tag_sheet_step(up=False):
-    """scroll the tag sheet a small step (a big one skips rows). -> did the rows move?"""
+def learn_rows(texts, names):
+    """place the showing rows in TAG_AT, from the rows already placed (the first look: the top one at 0)"""
+    ys = {}
+    for t in texts:
+        n = ui.norm(t[4].lstrip("•· ").strip())
+        if n in names and len(n) > 1:  # (the tick itself can read as a 'V')
+            ys.setdefault(n, t[1])
+    known = sorted(TAG_AT[n] - y for n, y in ys.items() if n in TAG_AT)
+    if not known and TAG_AT:  # no row in common with what's placed: can't tell where this is
+        VIEW[0] = None
+        return
+    VIEW[0] = known[len(known) // 2] if known else 0.0
+    for n, y in ys.items():
+        TAG_AT.setdefault(n, VIEW[0] + y)
+
+
+def tag_sheet_step(up=False, big=False):
+    """scroll the tag sheet a small step (a big one skips rows: big only when the rows to stop at are known,
+    and it still keeps some of the rows in sight). -> did the rows move?"""
     _, before, _, bounds = wait_for("tags")
-    a, b = (0.4, 0.62) if up else (0.62, 0.4)
-    drag(0.3, a, 0.3, b, bounds)
+    a, b = (0.3, 0.7) if big else (0.4, 0.62)
+    drag(0.3, *((a, 0.3, b) if up else (b, 0.3, a)), bounds)
     if ui.ANDROID:
         ui.android.fresh()
     _, after, _, _ = wait_for("tags")
     return [t[4] for t in after] != [t[4] for t in before]
 
 
+def seek_tag(T):
+    """a row seen before this run: scroll straight to it, big steps while it's far. -> the ticks, or None if
+    that didn't find it (show_tag's search takes over)"""
+    for _ in range(30):
+        ticks = tick_tags()
+        if T in ticks:
+            return ticks
+        if VIEW[0] is None:
+            return None
+        gap = TAG_AT[T] - (VIEW[0] + 0.5)  # from the middle of the sheet
+        if not tag_sheet_step(up=gap < 0, big=abs(gap) > 0.9):
+            return None
+    return None
+
+
 def show_tag(T):
-    """scroll the tag sheet until row T shows: down first, then back up. A long list hides tags past the first
-    screen (HashTagAJay's GuaranteedLucky and Old). -> the showing rows' ticks, or None if the account has no T"""
+    """scroll the tag sheet until row T shows: straight there when this run has seen it, else down first, then back
+    up. A long list hides tags past the first screen (HashTagAJay's GuaranteedLucky and Old).
+    -> the showing rows' ticks, or None if the account has no T"""
+    if T in TAG_AT:
+        ticks = seek_tag(T)
+        if ticks is not None:
+            return ticks
     for up in (False, True):
         same = 0
         for _ in range(30):
@@ -682,12 +725,13 @@ def set_tags(on=(), off=(), only=False):
     still_opened("before the tags")
     go("menu", "menu")
     go("TAG", "tags")
-    missing = [t for t in on if show_tag(t.upper()) is None]
+    missing = [t for t in on if t.upper() not in TAG_AT and show_tag(t.upper()) is None]  # (seen: it's there)
     if missing:  # this account may not have the tag: change nothing
         go("DONE", "detail")  # nothing ticked or unticked yet, so DONE changes nothing
         raise Skip(f"no {', '.join(missing)} tag on this account")
     names = {t.upper(): t for t in (*off, *on)}
-    want = {**{t.upper(): False for t in off}, **{t.upper(): True for t in on}}  # unticks first
+    down = lambda ts: sorted(ts, key=lambda t: TAG_AT.get(t.upper(), 0))  # one trip down the sheet, not back and forth
+    want = {**{t.upper(): False for t in down(off)}, **{t.upper(): True for t in down(on)}}  # unticks first
     with changing("ticking tags"):
         for T, v in want.items():
             ticks = show_tag(T)

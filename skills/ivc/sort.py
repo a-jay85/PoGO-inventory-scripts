@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Rules for /ivcsort: which IVC Pokémon to keep (favorite + untag) and which to send to the door (its final tag).
+"""Rules for /ivc: which IVC Pokémon to keep (favorite + untag) and which to send to the door (its final tag).
 
   sort.py name <nickname>            -> what the script reads from a nickname (IV sum, purified, size, ...)
   sort.py lines <species_id>         -> its family: lines, spots and the searches each pool uses
@@ -36,7 +36,7 @@ from functools import lru_cache
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "shared"))
-sys.path.insert(0, os.path.join(HERE, "..", "ivc"))
+sys.path.insert(0, HERE)
 import pvp
 from pvp import REGIONS, is_gym, base_name, region, parent, children, search
 from ui import tile_name as clean_name

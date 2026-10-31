@@ -1,4 +1,4 @@
-"""The door: a Pokémon /ivc, /pvpc or /ivcsort just found isn't a keeper gets its final tag right there (verdict.py), on the
+"""The door: a Pokémon /ivc, /pvpc or /ivc just found isn't a keeper gets its final tag right there (verdict.py), on the
 detail page that's still open. No Nope.
 
   facts = Door(tag)          once a run, before the walk: who's signed in, the species lists, and one search each
@@ -10,7 +10,7 @@ detail page that's still open. No Nope.
 Not sure = left exactly as it is (tag and name) and written to runs/not-sure.json, with why, for a rule offline.
 A search whose tiles didn't all read counts as not done: every Pokémon that needs it comes out not sure.
 
-A lucky one only /ivcsort can rank (verdict.lucky): anywhere else the door sends it to IVC. One /ivcsort found out of the
+A lucky one only /ivc can rank (verdict.lucky): anywhere else the door sends it to IVC. One /ivc found out of the
 top IV is written to runs/lucky-out.json, so /pvpc's door knows that when the lucky rule sends it on to PvpC (else it
 would go back to IVC, round and round).
 """
@@ -32,7 +32,7 @@ SEARCHES = {"traded": "traded", "shiny": "shiny", "costume": "costume", "backgro
             "far": "distance100-", "xl_under": "countcandyxl0-359"}  # (a count term eats what follows it: each search ends with it)
 UNSURE = "unsure"
 vd = ct = trades = shadows = None  # verdict, cleantrades, trades, shadows: imported by Door(). At the top they'd loop back
-# (/ivcsort's run.py loads /ivc's, which loads this; tradeable.py, under verdict, loads /ivcsort's)
+# (/ivc's run.py loads names.py, which loads this)
 
 
 def key(tile_name, cp):
@@ -45,7 +45,7 @@ class Door:
         find(term) -> search.run_search's answer for the pile & term, for a pile that's no typed search (a saved one).
         Then tag only names the pile (the not-sure list): it isn't a tag to take off"""
         global vd, ct, trades, shadows
-        run_dir = base.RUN_DIR  # (verdict's imports load /ivc's run.py, which points base.RUN_DIR at /ivc's runs)
+        run_dir = base.RUN_DIR  # (kept in case an import moves it)
         import verdict as vd
         import cleantrades as ct  # the power-up cost -> levels, and power-ups to the next Candy XL tier
         import trades  # the tag chips, the caught date at the bottom of the page
@@ -162,7 +162,7 @@ class Door:
                                  if t not in (self.tag.upper(), *((self.other.upper(),) if self.source else ()))])
         if f.lucky and f.iv_top is None and was_ranked_out(self.account, sp, ivs):
             f.iv_top = False
-            log("  lucky: /ivcsort ranked it out of the top IV already")
+            log("  lucky: /ivc ranked it out of the top IV already")
         return f, ""
 
     def caught(self, info):
@@ -247,12 +247,12 @@ def add_to_list(e):
 
 
 def lucky_key(account, sp, ivs):
-    """by dex: /pvpc may read two forms where /ivcsort read one"""
+    """by dex: /pvpc may read two forms where /ivc read one"""
     return [account, sorted({vd.pvp.SPECIES[s]["dex"] for s in sp if s in vd.pvp.SPECIES}), list(ivs or ())]
 
 
 def ranked_out(account, sp, ivs):
-    """a lucky one /ivcsort found out of the top IV: saved for LUCKY_OUT_DAYS"""
+    """a lucky one /ivc found out of the top IV: saved for LUCKY_OUT_DAYS"""
     if not ivs:
         return
     k, today = lucky_key(account, sp, ivs), time.strftime("%Y-%m-%d")

@@ -3,7 +3,7 @@
 
   caffeinate -dimsu python3 pogo.py <step> [args] [+ <step> [args]]...
   POGO_PHONE=android caffeinate -dimsu python3 pogo.py pvpc --limit 5 + ivc --limit 5
-  POGO_PHONE=android caffeinate -dimsu python3 pogo.py ivc + ivcsort + ivcsort fallen last
+  POGO_PHONE=android caffeinate -dimsu python3 pogo.py ivc + ivc fallen last + ivc act-fallen last
   python3 pogo.py list                       every step and what it runs
 
 A step's args are the same as its own script's (see its SKILL.md). `last` in a step's args is the run folder that
@@ -25,8 +25,7 @@ SEP = "+"
 # step -> (script under skills/, first words it takes (a flag or nothing is always fine), the ones that stay on the Mac)
 STEPS = {
     "pvpc":        ("pvpc/run.py", {"fallen", "act-fallen", "keepers"}, set()),
-    "ivc":         ("ivc/run.py", set(), set()),
-    "ivcsort":     ("ivcsort/run.py", {"sort", "fallen", "act-fallen", "search"}, set()),
+    "ivc":         ("ivc/run.py", {"sort", "names", "fallen", "act-fallen", "search"}, set()),
     "cleantrades": ("cleanup/cleantrades.py", {"evo", "fix", "transfer"}, set()),
     "sizes":       ("cleanup/sizes.py", set(), set()),
     "tradeable":   ("cleanup/tradeable.py", {"refresh", "read", "plan", "tag"}, {"refresh", "plan"}),

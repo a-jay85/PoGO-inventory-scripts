@@ -160,7 +160,7 @@
    "IVC"
   ],
   null,
-  "lucky: /ivcsort ranks it against its line"
+  "lucky: /ivc ranks it against its line"
  ],
  "costume": [
   "tag",
@@ -357,7 +357,7 @@
    "IVC"
   ],
   null,
-  "lucky: /ivcsort ranks it against its line"
+  "lucky: /ivc ranks it against its line"
  ],
  "lucky traded 93%": [
   "tag",
@@ -365,13 +365,13 @@
    "IVC"
   ],
   null,
-  "lucky: /ivcsort ranks it against its line"
+  "lucky: /ivc ranks it against its line"
  ],
- "lucky, /ivcsort couldn't rank it": [
+ "lucky, /ivc couldn't rank it": [
   "unsure",
   [],
   null,
-  "lucky: /ivcsort couldn't rank it (no IV in its name)"
+  "lucky: /ivc couldn't rank it (no IV in its name)"
  ],
  "lucky, /pvpc can't rank it": [
   "tag",
@@ -379,7 +379,7 @@
    "IVC"
   ],
   null,
-  "lucky: /ivcsort ranks it against its line"
+  "lucky: /ivc ranks it against its line"
  ],
  "lucky top IV": [
   "keep",

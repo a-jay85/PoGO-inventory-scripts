@@ -102,7 +102,7 @@ def load(name, default=None):
 
 # ---------- human-ish timing ----------
 
-# quick taps, as /ivcsort had them: 0.1-0.25s since the last one (screen reading counts toward it).
+# quick taps, as /ivc had them: 0.1-0.25s since the last one (screen reading counts toward it).
 # The pause that looks like a person working something out is think(), on the appraisal only.
 last_tap = 0.0
 USER_IDLE = 10  # front() waits this long after the user's last key or click before taking the screen back
@@ -871,7 +871,7 @@ def do_rename(name, same=same_name):
             raise Stop(f"after OK the name reads {got!r}, wanted {name!r}")
 
 
-# ---------- the detail screen (shared with /ivc and /ivcsort) ----------
+# ---------- the detail screen (shared with /ivc) ----------
 
 TYPES = {"NORMAL", "FIRE", "WATER", "GRASS", "ELECTRIC", "ICE", "FIGHTING", "POISON", "GROUND", "FLYING", "PSYCHIC",
          "BUG", "ROCK", "GHOST", "DRAGON", "DARK", "STEEL", "FAIRY"}

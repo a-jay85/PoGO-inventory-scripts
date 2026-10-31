@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""In-game searches and list walking, shared by /ivcsort and /pvpc's fallen-out step.
+"""In-game searches and list walking, shared by /ivc and /pvpc's fallen-out step.
 
 Types a search into the Pokémon list's search bar (start_search), reads every tile of the results
 (run_search), or visits each tile once (walk_list). Tapping and timing come from run.py.

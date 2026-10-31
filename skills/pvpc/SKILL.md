@@ -44,13 +44,13 @@ Use this skill to clear its skips by hand.
 `~/PoGO-inventory-scripts/pogo.py` runs any skill's script by step name, and several in a row with `+` between them. A step takes the same args as its script. `python3 ~/PoGO-inventory-scripts/pogo.py list` shows every step.
 
 - `POGO_PHONE=android caffeinate -dimsu python3 ~/PoGO-inventory-scripts/pogo.py pvpc --limit 5 + ivc --limit 5`
-- `last` is the run folder an earlier step of the same skill folder made: `pogo.py ivcsort + ivcsort fallen last`.
+- `last` is the run folder an earlier step of the same skill folder made: `pogo.py ivc + ivc fallen last`.
 - The whole chain is checked before step 1. It stops at the first step that doesn't end well, with that step's exit code.
 - Each step is its own python3 process. The phone stays up between steps and is closed once at the end.
 
 ### Starting from anywhere
 
-Every script (`/pvpc`, `/ivc`, `/ivcsort`, `/cleanup`, `/trade`, `/gift`, `/dex`, `/roster`) first runs `home.start()`. The phone can be on any screen.
+Every script (`/pvpc`, `/ivc`, `/cleanup`, `/trade`, `/gift`, `/dex`, `/roster`) first runs `home.start()`. The phone can be on any screen.
 - First `session.ready()`. iPhone: opens iPhone Mirroring if it isn't open and waits for it to connect (quits and opens it once more if it can't reach the iPhone). Android: wakes the phone and unlocks it. A phone with a PIN needs the PIN in `~/.config/pogo/android-pin` (digits only, one line, `chmod 600`; outside the repo, so it's never committed). A wrong PIN is typed once, then the run stops: more tries lock the phone out.
 - At the end of every run that used the phone (finished, stopped, crashed or Ctrl-C), `session.main()` quits iPhone Mirroring or locks the Pixel. `POGO_KEEP_OPEN=1` leaves it as it is. `python3 $L/session.py open|close` does just this part.
 - Android: opens Pokémon GO if it isn't in front. Waits out the loading screens. Presses Back on popups and on screens the scripts don't use, until the map or the Pokémon screens show (at most 12 Backs). "Exit Pokémon GO?" gets CANCEL. A locked phone with no PIN file, a sign-in screen or an "isn't responding" box stops the run with a message.
@@ -64,7 +64,7 @@ Every script (`/pvpc`, `/ivc`, `/ivcsort`, `/cleanup`, `/trade`, `/gift`, `/dex`
 - Which Google account is which trainer: `~/.config/pogo/accounts.json` (`{"HashTagAJay": "...", "CyrillJan": "..."}`), outside the repo.
 - Every tap lands at a random spot near its target, held 45-120 ms, drifting 1-6 px like a thumb. Swipes start, slant and move at random. Waits vary.
 - Google asking to verify (or any screen it doesn't know after signing out) stops the run: sign in by hand.
-Taps come 0.1–0.25s apart (same as /ivc and /ivcsort). A short 0.7–1.3s pause stays, on the appraisal only.
+Taps come 0.1–0.25s apart (same as /ivc). A short 0.7–1.3s pause stays, on the appraisal only.
 
 ### Fallen out and trims
 
@@ -77,12 +77,12 @@ A new Pvp name can push an older Pvp Pokémon out of the top. Per league (L/G/U)
 - `caffeinate -dimsu python3 $S/run.py act-fallen <run dir> [--limit N]`:
   1. Appraises every Pokémon that something beats, to see all its slots, including ones its name had no room for (`truths.json`). New Pokémon from this run were appraised already.
   2. Does the rest in that same open when the answer can't change any more. Beaten everywhere: tagged right there (a slot lost to an appraised one stays lost). A trim: renamed right there if nothing else in its line still waits for an appraisal; else it waits and gets renamed once they're all appraised. Repeats if that changed anything. Logged in `tagged.json`.
-  3. Tags the ones beaten everywhere that step 2 couldn't (one that wasn't a likely fallen one in `fallen.txt`, or a new name from this run). Same rules as /ivcsort (shared `fallen.py`): not traded + caught 2016–2020 → GuaranteedLucky, not traded + older than 300 days → Old, else star off + Nope. PvpC gets unticked. Its name gets cleared (the species name shows again), so the Nope recheck doesn't pick it up later.
+  3. Tags the ones beaten everywhere that step 2 couldn't (one that wasn't a likely fallen one in `fallen.txt`, or a new name from this run). Same rules as /ivc (shared `fallen.py`): not traded + caught 2016–2020 → GuaranteedLucky, not traded + older than 300 days → Old, else star off + Nope. PvpC gets unticked. Its name gets cleared (the species name shows again), so the Nope recheck doesn't pick it up later.
   - Shiny and costume ones are never tagged. They can still be trimmed (a rename only).
   - `--limit` counts renames and tags together. Appraisals don't count. The door's searches for every likely fallen one run first, even with `--limit 1`.
 - Never trimmed or fallen: lines that branch (Eevee aside). Their names can't be read back to one form. A name whose letter two forms share (Charmander and Charmeleon are both `m`) counts that slot as unbeatable until it's appraised.
 - Only lines a new name landed in get looked at. A `+` name elsewhere can still hide a better slot.
-- Shared code: `search.py` (in-game search, list walking) and `fallen.py` are used by /ivcsort too. The tapper every skill uses is `skills/shared/base.py`; `run.py` is /pvpc's own walk.
+- Shared code: `search.py` (in-game search, list walking) and `fallen.py` are used by /ivc too. The tapper every skill uses is `skills/shared/base.py`; `run.py` is /pvpc's own walk.
 
 ## Android phone (Pixel)
 
@@ -108,7 +108,7 @@ Without it, the scripts drive iPhone Mirroring exactly as before.
 
 - **Qualifies** = top 100 stat product in any of: Little Cup (500 CP), Great League (1500), Ultra League (2500). Max level 50 (no best buddy).
   - Only leagues its level still fits. Evolving keeps the level and nothing powers down, so a form whose CP at its level now is already over the cap doesn't count there (a CP530 Doduo has no Little Cup slot).
-- **Qualifies:** rename it, then star it and remove PvpC (like /ivcsort's Keep). PvpC is only the to-do pile.
+- **Qualifies:** rename it, then star it and remove PvpC (like /ivc's Keep). PvpC is only the to-do pile.
 - **Doesn't qualify:** its final tag at the door (`../shared/door.py`: GIV, XLX, Transfer ...; not sure = left as is, on the not-sure list). If it's 98%+ (a shadow: once purified), swap PvpC for IVC so /ivc names it. Don't rename. If it also has IVC, only remove PvpC: /ivc decides.
 - **Name format:** `Pvp` then leagues in order L, G, U, like `Pvp G1`, `Pvp G35 U88`, `Pvp L5G7U99`. Max 12 characters.
   1. Keep all spaces if it fits.

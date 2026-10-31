@@ -1457,7 +1457,7 @@
   "lycбo\tlycbo": true,
   "xXS 96\tXXS 96": true
  },
- "ivc.same_name": {
+ "names.same_name": {
   "\t": true,
   "\t96": false,
   "40 a\t40 a": true,
@@ -1493,7 +1493,7 @@
   "lycбo\tlycbo": false,
   "xXS 96\tXXS 96": true
  },
- "ivcsort.same_name": {
+ "ivc.same_name": {
   "\t": false,
   "\t96": false,
   "40 a\t40 a": true,
@@ -1529,7 +1529,7 @@
   "lycбo\tlycbo": false,
   "xXS 96\tXXS 96": true
  },
- "ivcsort.short": {
+ "ivc.short": {
   "": "",
   "!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "!#&!favorite&!traded&!shadow&!shiny&!xxl&!4*&!3*&",
   "!shadow&!shiny&!XXL&!4*&!3*&": "!shadow&!shiny&!xxl&!4*&!3*&",

@@ -27,7 +27,6 @@
    "gift": "gift/gift.py",
    "gymfeed": "gymfeed/gymfeed.py",
    "ivc": "ivc/run.py",
-   "ivcsort": "ivcsort/run.py",
    "luckydex": "dex/luckydex.py",
    "mega": "mega/mega.py",
    "pvpc": "pvpc/run.py",
@@ -605,7 +604,7 @@
   ],
   "runs": []
  },
- "skills/ivc/run.py": {
+ "skills/ivc/names.py": {
   "copies": {},
   "names": [
    "Counter",
@@ -655,7 +654,6 @@
    "remember",
    "retag",
    "same_name",
-   "script",
    "scroll_for_new",
    "settle",
    "think",
@@ -664,11 +662,10 @@
    "wait_for"
   ],
   "runs": [
-   "skills/ivc/runs/<time>",
-   "skills/ivc/runs/<time>/read.json"
+   "skills/pvpc/runs/<time>/read.json"
   ]
  },
- "skills/ivcsort/run.py": {
+ "skills/ivc/run.py": {
   "copies": {},
   "names": [
    "ACTS",
@@ -723,6 +720,7 @@
    "look",
    "looks_same",
    "lucky_rank",
+   "names",
    "new_run_dir",
    "odd_name",
    "plan",
@@ -745,7 +743,6 @@
    "set_tags",
    "short",
    "sort_all",
-   "spec",
    "species_of_search",
    "start_search",
    "steady_detail",
@@ -759,6 +756,9 @@
    "walk_list"
   ],
   "runs": [
+   "skills/ivc/runs",
+   "skills/ivc/runs/*/read.json",
+   "skills/ivc/runs/<time>",
    "skills/ivc/runs/<time>/act.json",
    "skills/ivc/runs/<time>/chunks.json",
    "skills/ivc/runs/<time>/counts.json",
@@ -769,11 +769,10 @@
    "skills/ivc/runs/<time>/pools.json",
    "skills/ivc/runs/<time>/read.json",
    "skills/ivc/runs/<time>/scan.json",
-   "skills/ivc/runs/<time>/sorted.json",
-   "skills/ivcsort/runs"
+   "skills/ivc/runs/<time>/sorted.json"
   ]
  },
- "skills/ivcsort/sort.py": {
+ "skills/ivc/sort.py": {
   "copies": {},
   "names": [
    "ALWAYS",

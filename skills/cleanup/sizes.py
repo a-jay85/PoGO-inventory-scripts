@@ -9,7 +9,7 @@ tradeable.py does the same to its own pile before it tags the rest Transfer.
 Each one is opened. Its size badge must agree with the search, or it's passed over. Then:
   name -> XXL or xxs (/ivc's spelling). A name that already says its size keeps it.
   tags -> IVC on, Transfer off. Other tags (Old, ...) stay.
-/ivc counts an XXL/xxs name as done, and /ivcsort leaves sized IVC ones for the user.
+/ivc counts an XXL/xxs name as done, and leaves sized IVC ones for the user once named.
 --limit N changes at most N. Log in runs/<time>-sizes/.
 """
 import os, re, sys

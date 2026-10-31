@@ -30,7 +30,6 @@
    "ivcsort": "ivcsort/run.py",
    "luckydex": "dex/luckydex.py",
    "mega": "mega/mega.py",
-   "nopes": "cleanup/nopes.py",
    "pvpc": "pvpc/run.py",
    "roster": "roster/roster.py",
    "sizes": "cleanup/sizes.py",
@@ -111,25 +110,6 @@
    "tag_pile",
    "tick",
    "wait_for"
-  ],
-  "runs": [
-   "skills/cleanup/runs"
-  ]
- },
- "skills/cleanup/nopes.py": {
-  "copies": {},
-  "names": [
-   "FINAL",
-   "HERE",
-   "HIGH",
-   "NOPE",
-   "Skip",
-   "done_already",
-   "go",
-   "log",
-   "main",
-   "script",
-   "walk"
   ],
   "runs": [
    "skills/cleanup/runs"
@@ -811,7 +791,6 @@
    "MEGA_EXTRA",
    "META",
    "META_OVER",
-   "NOT_NOPE",
    "NO_REGION",
    "Name",
    "OWN_FORM",
@@ -843,6 +822,7 @@
    "gym_keep",
    "hd",
    "identify",
+   "is_gym",
    "iv_sum",
    "judge_pool",
    "kids",
@@ -1358,9 +1338,9 @@
    "MAX_LEVEL",
    "MT",
    "NAME_LEN",
-   "NOT_NOPE",
    "PARENT_FIX",
    "PLAIN",
+   "POOL_TERMS",
    "PVP_NAME",
    "RANK_LISTS",
    "RANK_URL",
@@ -1385,6 +1365,7 @@
    "fmt_ranks",
    "form_letter",
    "hp",
+   "is_gym",
    "iv_slots",
    "kept",
    "lc_eligible",

@@ -22,7 +22,7 @@ import search
 OLD_DAYS = 300
 GROUPS = [("GuaranteedLucky", "&!traded&year2016-2020"), ("Old", f"&!traded&age{OLD_DAYS + 1}-"),
           ("Nope", f"&traded,age0-{OLD_DAYS}")]  # in this order: each tag drops out of the later searches
-BASE = "&!#Nope&!#IVC&!shiny&!costume&!#Old&!#GuaranteedLucky"
+BASE = "&!#IVC&!shiny&!costume&!#Old&!#GuaranteedLucky"
 CHUNK = 20  # dex numbers per search
 
 

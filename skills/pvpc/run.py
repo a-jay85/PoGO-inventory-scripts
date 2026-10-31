@@ -400,14 +400,15 @@ def fall_here(pool, n, c, gate):
     are never tagged. Traded, shiny, the catch date: off the page and the tile (pagefacts, through the door).
     -> (tagged?, what to log)"""
     info, texts = LAST_BARS[2:] if LAST_BARS else steady_detail()[:2]
-    mark(pool, n, c)  # whatever happens next, this walk is done with it
     icons = pagefacts.tile_icons(*base.OPENED["tile"]) if base.OPENED.get("tile") else {}
     costume = gate.has("costume", door.key(n, c))
     if icons.get("shiny") or costume:
+        mark(pool, n, c)  # (marked only when the answer can't change: a read that failed is tried again next run)
         return False, f"beaten everywhere, but {'shiny' if icons.get('shiny') else 'costume'}: never tagged"
     if icons.get("shiny") is None or costume is None:
         return False, "beaten everywhere, but shiny or costume didn't read: left as it is"
     if gate.listed()[door.key(n, c)]:
+        mark(pool, n, c)
         return False, "beaten everywhere, on the door's not-sure list: left as it is"
     page = gate.page_bottom(info)
     lucky = any(ui.norm(t[4]).startswith("LUCKY POK") for t in texts)
@@ -420,12 +421,15 @@ def fall_here(pool, n, c, gate):
         if g:
             set_tags(on=[g], off=["PvpC"])
             base.clear_name()  # an old Pvp name would bring it back as a rival
+            mark(pool, n, c)
             return True, f"beaten everywhere: tagged {g}, name cleared"
     keep, ivs, raws, iv = high_iv(*(LAST_BARS[:2] if LAST_BARS else (None, None)))
     if keep:
+        mark(pool, n, c)
         return False, f"beaten everywhere, but {iv}: 98%+ never goes, left as it is"
     got = gate.judge(info, texts, species_here(pool, texts), ivs, (n, c), size=base.extras(texts)[2], raws=raws,
                      clear=True, unstar=True)
+    mark(pool, n, c)  # (a not-sure one is on the door's list now)
     return got == "tag", f"beaten everywhere: door {got}"
 
 
@@ -619,7 +623,7 @@ def script(cmd, limit, dry):
             log(f"no carry-over from earlier runs: {type(e).__name__}: {e}")
     if at_end and load("renamed.json", []):  # still on the phone: rename or tag what the new names pushed out
         try:
-            one_walk(10 ** 9)
+            one_walk(limit)  # (its own --limit: the end of a run writes too now)
         except (Stop, Skip) as e:
             keep_capture("fallen")
             log(f"fallen out step STOPPED: {e} (run `run.py fallen {base.RUN_DIR}` to go on)")

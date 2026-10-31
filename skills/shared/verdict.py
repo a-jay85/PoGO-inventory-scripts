@@ -173,7 +173,7 @@ def final_tag(f, t, today=None):
     # shadow, lucky, costume, background: their own rules (odd_one) when untraded. Traded, the usual traded rules
     for k in ("shiny", "costume", "background"):
         if getattr(f, k) is None:
-            return unsure(f"{k} or not: its search failed")
+            return unsure(f"{k} or not: not read")
     odd = [k for k in ("shadow", "lucky", "costume", "background") if getattr(f, k)]
     if f.traded is None:
         return unsure("traded or not not read")

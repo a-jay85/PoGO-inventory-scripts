@@ -147,7 +147,7 @@ class Door:
             size = None  # an XS Rattata has no badge to read: XS or not is a medal GIV or not
         hp = next(t for t in texts if re.search(r"\d+\s*/\s*\d+\s*HP", t[4]))
         near = [ui.norm(t[4]) for t in texts if hp[1] < t[1] < hp[1] + 0.3]
-        xl = self.said.get("xl_under", self.xl_under())
+        xl = self.said["xl_under"] if "xl_under" in self.said else self.xl_under()  # (a look only when needed)
         page = self.page_bottom(info)
         icons = pagefacts.tile_icons(*base.OPENED["tile"]) if base.OPENED.get("tile") else {}
         said = lambda k, v: self.said.get(k, v)

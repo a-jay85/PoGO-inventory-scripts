@@ -16,7 +16,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SKILLS = os.path.join(ROOT, "skills")
 GOLD = os.path.join(ROOT, "tests", "readers.json")
 os.environ.pop("POGO_PHONE", None)  # the iPhone path: every reader stays on the text it's given (no screenshot)
-for d in ("shared", "cleanup", "dex", "trade", "gift", "mega", "ivc", "ivcsort"):
+for d in ("shared", "cleanup", "dex", "trade", "gift", "mega", "ivc"):
     sys.path.append(os.path.join(SKILLS, d))
 
 import base, search, ui  # noqa: E402
@@ -30,8 +30,8 @@ def by_path(name, rel):
     return m
 
 
-ivc_run = by_path("ivcrun", "ivc/run.py")
-ivcsort_run = by_path("ivcsort_run", "ivcsort/run.py")
+ivc_names = by_path("ivcnames", "ivc/names.py")
+ivc_run = by_path("ivc_run", "ivc/run.py")
 assert not ui.ANDROID
 
 # ---------- cases ----------
@@ -196,12 +196,12 @@ SINGLE = {
     "cleantrades.same_l": cleantrades.same_l,
     "cleantrades.key": cleantrades.key,
     "run.short": base.short,
-    "ivcsort.short": ivcsort_run.short,
+    "ivc.short": ivc_run.short,
 }
 NAMED = {
     "run.same_name": base.same_name,
+    "names.same_name": ivc_names.same_name,
     "ivc.same_name": ivc_run.same_name,
-    "ivcsort.same_name": ivcsort_run.same_name,
     "gift.same_name": gift.same_name,
 }
 COUNTERS = {

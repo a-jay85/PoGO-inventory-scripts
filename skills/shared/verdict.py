@@ -3,7 +3,7 @@
 
   python3 verdict.py tables [CyrillJan|HashTagAJay]   the species lists a judge for that account would read now
 
-A script that decides "not a keeper" (pvpc, ivc, ivcsort, fallen) reads what it can on the detail page into Facts and
+A script that decides "not a keeper" (pvpc, ivc, fallen) reads what it can on the detail page into Facts and
 calls final_tag(facts, tables). The answer is one of:
   tag     put these tags on (and the source tag IVC / PvpC off); `name` too when it's set
   keep    it belongs after all: star on (98%+, or a gym defender in its species' top 20)
@@ -75,9 +75,9 @@ class Facts:
     evolves: bool = None  # an Evolve button under Power Up (None: that part of the page didn't show)
     far: bool = None  # caught 100 km+ away (the run's one 'distance100-' search)
     gym_top20: bool = None  # a gym defender: top 20 CP or IV of its species (its search)
-    iv_top: bool = None  # a lucky one: top 5 IV of its line's non-shadow ones, 6 if it can mega (/ivcsort's sort)
+    iv_top: bool = None  # a lucky one: top 5 IV of its line's non-shadow ones, 6 if it can mega (/ivc's sort)
     pvp_judged: bool = False  # /pvpc already found it's no PvP keeper
-    ivc_judged: bool = False  # /ivc or /ivcsort is judging it: IVC is the tag coming off
+    ivc_judged: bool = False  # /ivc or /ivc is judging it: IVC is the tag coming off
     other_tags: list = field(default_factory=list)  # the user's tags besides the one this script works on
 
 
@@ -197,7 +197,7 @@ def final_tag(f, t, today=None):
             return unsure("fused: can't be traded")
         return tag("Remote Trade", "RT", *(("Old",) if old else ()), why="untraded special trade: a remote trade")
 
-    # a gym defender may still be top 20 CP or IV of its species (ivcsort's gym rule), traded or not
+    # a gym defender may still be top 20 CP or IV of its species (/ivc's gym rule), traded or not
     if sid in GYM_DEFENDERS:
         if f.gym_top20 is None:
             return unsure("gym defender: top 20 not checked")
@@ -270,12 +270,12 @@ def lucky(f, sid, dexn, strip):
     """a lucky one, traded or not (the user's rule, 2026-10-30): in the top 5 IV of its line's non-shadow ones (6 if
     the line can mega evolve, ties keep) it stays. Out of that, one with a PvP top-100 IV goes to /pvpc, which compares
     it with the ones you own. The rest: name cleared, Transfer (door.py checks the power-up first). A traded one that
-    evolves for free gets Evo instead. Only /ivcsort ranks it: from anywhere else it goes to IVC, name cleared, and
-    `ivc + ivcsort` ranks it next"""
+    evolves for free gets Evo instead. Only /ivc ranks it: from anywhere else it goes to IVC, name cleared, and
+    /ivc ranks it next"""
     if f.iv_top is None:
         if f.ivc_judged:
-            return unsure("lucky: /ivcsort couldn't rank it (no IV in its name)")
-        return tag("IVC", why="lucky: /ivcsort ranks it against its line", off=strip, clear=True)
+            return unsure("lucky: /ivc couldn't rank it (no IV in its name)")
+        return tag("IVC", why="lucky: /ivc ranks it against its line", off=strip, clear=True)
     if f.iv_top:
         return Verdict("keep", (), "lucky: a top IV of its line")
     if not f.pvp_judged:

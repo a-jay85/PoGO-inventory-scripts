@@ -9,7 +9,7 @@
   POGO_PHONE=android caffeinate -dimsu python3 tradeable.py tag [--limit N]   CyrillJan signed in: tags, power-ups
   POGO_PHONE=android caffeinate -dimsu python3 tradeable.py door [--limit N]  CyrillJan signed in: only the door walk
 
-The species lists and the order here are also ../shared/verdict.py's: /ivc, /pvpc and /ivcsort judge a Pokémon that
+The species lists and the order here are also ../shared/verdict.py's: /ivc and /pvpc judge a Pokémon that
 isn't a keeper with them (the door, no Nope). giver_species() is CyrillJan's side: only good raid attackers (GIV: top 6
 against some raid boss, until CyrillJan has 6 good copies, 1 for a mega-only one, and a Dynamax one if it can; and an
 untraded Dynamax one of a family CyrillJan has none of), XLX (5,000 Stardust+, level 29+) and GIV (evolved). It reads

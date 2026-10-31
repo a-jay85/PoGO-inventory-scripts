@@ -239,7 +239,7 @@ def make_name(species, ivs, level=None):
         plus = True
 
 
-# ---------- owned Pokémon: forms, lines and in-game searches (shared with /ivcsort) ----------
+# ---------- owned Pokémon: forms, lines and in-game searches (shared with /ivc) ----------
 
 REGIONS = {"alolan": "alola", "galarian": "galar", "hisuian": "hisui", "paldean": "paldea"}
 POOL_TERMS = {"shadow": "&shadow", "plain": "&!shadow", "lucky": "&lucky", "dmax": "&dynamax,gigantamax", "gym": ""}

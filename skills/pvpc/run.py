@@ -94,7 +94,7 @@ def new_slots(sp, cp, hp, ivs, raws, name):
 
 
 def keep():
-    """a PvP keeper, done: star on, PvpC off (like /ivcsort's Keep). PvpC is only the to-do pile"""
+    """a PvP keeper, done: star on, PvpC off (like /ivc's Keep). PvpC is only the to-do pile"""
     set_star(True)
     set_tags(off=["PvpC"])
 
@@ -179,7 +179,7 @@ def pick(ts, skipped):
 # ---------- fallen out and trims ----------
 # New names can push older Pvp Pokémon out of the top. Per league and form only the best one owned keeps its place
 # (ties keep). One that's still best somewhere gets renamed to show just those leagues: a trim. One that's best
-# nowhere has fallen out, and fallen.py tags it GuaranteedLucky / Old / Nope (shared with /ivcsort).
+# nowhere has fallen out, and fallen.py tags it GuaranteedLucky / Old / Nope (shared with /ivc).
 # A trim can make room for a league the old name had to leave out, and that league can beat someone else. So
 # act-fallen goes round until nothing changes. What a Pokémon really has comes from appraising it (truths.json);
 # until then, from what its name shows. The pool: every Pvp name in the line, read off in-game searches by dex number.

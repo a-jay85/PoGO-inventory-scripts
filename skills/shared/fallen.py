@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fallen out: older Pokémon that newer, better ones push out of the top. Shared by /ivcsort and /pvpc.
+"""Fallen out: older Pokémon that newer, better ones push out of the top. Shared by /ivc and /pvpc.
 
 Each skill finds its own fallen-out ones and saves them in <run dir>/fallen.json, one entry per Pokémon:
 {"name", "cp", "dex": [dex numbers it could be], "why": [...]}. This file decides what happens to them next:
@@ -70,7 +70,7 @@ def act(limit, recheck, tag, species, off=(), stop=None, odd=None, gym_top20=Non
     """tag the grouped ones. recheck(name, cp) runs on the open detail screen and leaves it there:
     -> (still fallen?, what to log). species(name, cp) on that screen -> its species ids, for the door. tag: the
     skill's (IVC / PvpC), for the door's not-sure list. off: tags to untick at the same time. gym_top20: what
-    recheck's rules already say of a gym defender (/ivcsort: False, its NOPE covers the gym rule). iv_top(name, cp)
+    recheck's rules already say of a gym defender (/ivc: False, its NOPE covers the gym rule). iv_top(name, cp)
     after recheck: a lucky one's rank in its line (verdict.Facts), None when recheck doesn't know it"""
     grouped = base.load("fallen-groups.json")
     done, account = Counter(), [None]
@@ -81,7 +81,7 @@ def act(limit, recheck, tag, species, off=(), stop=None, odd=None, gym_top20=Non
         log(f"fallen {g}: {sum(todo.values())} in {q}")
         gate = None
         if g == "Nope":  # one Door per search: its searches read what the page can't show, within this one
-            import door  # (here: door loads verdict, which loads /ivcsort, which loads this)
+            import door  # (here: door loads verdict, which loads /ivc, which loads this)
             gate = door.Door(tag, scope=q, account=account[0])
             account[0] = gate.account
             for k, v in gate.listed().items():

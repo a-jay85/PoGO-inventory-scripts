@@ -1,0 +1,369 @@
+#!/usr/bin/env python3
+"""/ivc's names pass (run.py names, and the end of every sort): works through the IVC-tagged list with no Claude.
+run.py also takes read_one and the name rules from here, to name the ones the sort opens.
+
+Start with Pokémon GO open. Pokémon still named after their species get appraised and renamed by IV%
+(see ivc.py). One with nothing to put in the name gets its final tag right there (../shared/door.py): one that
+door isn't sure about keeps IVC and its name, and goes on ../shared/runs/not-sure.json. --dry-run does the
+reading and appraising but changes nothing: it logs the name each one would get.
+Anything the script isn't sure about is skipped and written to runs/<time>/log.txt with a capture.
+Anything unexpected stops the run. Screen reading, tapping and timing come from the /pvpc skill.
+"""
+import json, os, random, re, sys, time, unicodedata
+from collections import Counter
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(HERE, "..", "shared"))
+import ui, pvp
+import base
+from base import Stop, Skip, log, keep_capture, go, wait_for, appraise, think, back_to_list, scroll_for_new, front, settle, \
+    extras, drag, open_tile, exact_ivs, do_rename
+import ivc, door
+
+MAX_SKIPS_IN_A_ROW = 5
+END_AFTER_STALE = 3
+TAG = "IVC"
+GM = json.load(open(os.path.join(HERE, "..", "shared", "gamemaster.json")))
+DONE_LOOK = re.compile(r"\s*\$?(\d|\*|[A-Z]{1,4}\*|xx[sl]\b|\^)", re.I)  # 87/96 A*, FP*, xxs, XXL ($91 HA: OCR)
+odd = set()  # odd tile names already logged
+DOOR = None  # door.Door for this run
+NOT_MINE = "a done or Pvp name"  # the Skip for a done name read in full on the detail: not counted as a skip
+SPECIES_NAMES = {p["speciesName"].split(" (")[0].lower() for p in GM["pokemon"]}
+
+
+# ---------- what's on the detail screen ----------
+
+def not_mine(name):
+    """renamed already, by /ivc (87/96 A*) or /pvpc (Pvp L35)"""
+    return bool(DONE_LOOK.match(name or "") or pvp.PVP_NAME.match((name or "").strip()))
+
+
+def named_species(name):
+    """the species names (SPECIES_NAMES) a name still named after its species is: a cut-off one ('Happin…') can be
+    more than one. Empty for a done name (87/96 A*, FP*, xxs)"""
+    n = re.sub(r"[.…]+$", "", (name or "").strip().replace("’", "'")).lower()
+    n = unicodedata.normalize("NFKD", n).encode("ascii", "ignore").decode()  # Flabébé: the game list says flabebe
+    return {n} if n in SPECIES_NAMES else {s for s in SPECIES_NAMES if s.startswith(n)} if len(n) >= 6 else set()
+
+
+def untouched(name):
+    """still named after its species, so not done yet"""
+    return bool(named_species(name))
+
+
+SCROLL_FROM = re.compile(r"WEIGHT|HEIGHT|STARDUST|CANDY|ENERGY|CAUGHT|HATCHED|THIS POK|BECOME|CAN FUSE|CAN USE")
+MOVE_STOPS = ("NEW ATTACK", "CAUGHT", "HATCHED", "RECEIVED", "TRADED", "OBTAINED", "PURIFIED", "RAID", "RESEARCH")
+
+
+def moves_on(texts):
+    """the moves under the GYMS & RAIDS / TRAINER BATTLES tabs, or None if the list isn't all on screen yet"""
+    tabs = [t[1] for t in texts if " ".join(ui.norm(t[4]).split()) in ("GYMS RAIDS", "TRAINER BATTLES")]
+    if not tabs:
+        return None
+    top = max(tabs)
+    stops = [t[1] for t in texts if t[1] > top and ui.norm(t[4]).startswith(MOVE_STOPS)]
+    if not stops and top > 0.6:  # tabs low on the screen, nothing after them: the moves run off the bottom
+        return None
+    end = min(stops) if stops else 0.92
+    moves = [re.sub(r"^[^A-Za-z]+", "", t[4]).strip() for t in texts if top < t[1] < end and t[0] < 0.45]
+    return [m for m in moves if m and not ui.norm(m).endswith("BONUS")]  # SHADOW / WEATHER BONUS labels
+
+
+def label_spot(texts, lo, hi, lowest):
+    """the middle of a label between lo and hi (window fractions) that is never a button and isn't near one"""
+    spots = [(t[0] + t[2] / 2, t[1] + t[3] / 2) for t in texts if SCROLL_FROM.search(ui.norm(t[4]))]
+    spots = sorted((p for p in spots if lo < p[1] < hi and ui.safe(p[0], p[1], texts)), key=lambda p: p[1])
+    return (spots[-1] if lowest else spots[0]) if spots else None
+
+
+def read_moves():
+    """scroll the detail screen up to the moves, read them, scroll back. The drag starts on the weight
+    (no button there) and the way back starts where the weight ended up, so neither touches a button.
+    Kyurem's fusion section pushes the moves farther down: then more drags, each from a label like the
+    fusion line or the energy counts (never a button), and the same back down."""
+    _, texts, _, bounds = wait_for("detail")
+    kg = [t for t in texts if re.search(r"\d\s*kg$", t[4].strip())]
+    if len(kg) != 1:
+        raise Skip(f"can't find the weight to scroll from: {[t[4] for t in kg]}")
+    fx, fy = kg[0][0] + kg[0][2] / 2, kg[0][1] + kg[0][3] / 2
+    ty = fy - random.uniform(0.36, 0.40)
+    drag(fx, fy, fx, ty, bounds)
+    extra = 0
+    try:
+        for _ in range(3):
+            # look, not wait_for: farther down the HP line is gone, and wait_for would pull the page back up
+            _, texts, _, _ = base.look()
+            moves = moves_on(texts)
+            if moves is not None or extra == 2:
+                break
+            spot = label_spot(texts, 0.45, 0.88, lowest=True)
+            if not spot:
+                break
+            x, y = spot
+            drag(x, y, x, max(y - random.uniform(0.36, 0.40), 0.15), bounds)
+            extra += 1
+        if moves is None:
+            keep_capture("moves")
+            raise Skip("moves section not on screen after scrolling")
+        if len(moves) < 2:
+            keep_capture("moves")
+    finally:
+        for _ in range(extra + 2 if extra else 0):  # back up to where the first drag left it: the HP line shows
+            _, texts, _, _ = base.look()
+            if any(re.search(r"\d+\s*/\s*\d+\s*HP", t[4]) for t in texts):
+                break
+            spot = label_spot(texts, 0.12, 0.55, lowest=False)
+            if not spot:
+                break
+            x, y = spot
+            drag(x, y, x, min(y + random.uniform(0.36, 0.40), 0.85), bounds)
+        if extra and not any(re.search(r"\d+\s*/\s*\d+\s*HP", t[4]) for t in base.look()[1]):
+            keep_capture("scroll-back")  # still far down: the weight's old spot may be a button now
+            raise Stop("detail screen didn't scroll back up past the moves")
+        drag(fx, ty, fx, fy, bounds)
+    def weight():
+        _, texts, _, _ = wait_for("detail")
+        return [t for t in texts if re.search(r"\d\s*kg$", t[4].strip())]
+    # the way back can fall short (the page's resting spot shifts a little): nudge it down from the weight
+    # until the name and HP sit where the later taps expect them
+    home = lambda k: len(k) == 1 and k[0][1] + k[0][3] / 2 > fy - 0.04
+    for _ in range(3):
+        kg = settle(weight, home, timeout=2)
+        if home(kg) or len(kg) != 1 or not 0.1 < kg[0][1] < fy:
+            break
+        x = kg[0][0] + kg[0][2] / 2
+        drag(x, kg[0][1] + kg[0][3] / 2, x, fy + 0.01, bounds)
+    else:
+        kg = weight()
+    _, texts, _, _ = wait_for("detail")
+    hp_line = [t for t in texts if re.search(r"\d+\s*/\s*\d+\s*HP", t[4])]
+    if not home(kg) or not hp_line or hp_line[0][1] < 0.3:
+        keep_capture("scroll-back")
+        raise Stop("detail screen didn't scroll back to where it was")
+    if len(moves) < 2:
+        raise Skip(f"read fewer than 2 moves: {moves}")
+    return moves
+
+
+def knows(moves, move):
+    """move shows in the move list read off the screen"""
+    w = " ".join(ui.norm(move).split())
+    # the bullet before a move can read as a letter ("O Body Slam"), so a match may have one stray word in front
+    return any(g == w or re.fullmatch(r"\S{1,2} " + re.escape(w), g) for g in (" ".join(ui.norm(m).split()) for m in moves))
+
+
+def elite_on(sp, moves):
+    """the species' Elite TM moves that show in its move list"""
+    return sorted(m for m in {m for s in sp for m in ivc.elite_moves(s)} if knows(moves, m))
+
+
+MOVE_NAMES = {m["moveId"]: m["name"] for m in GM["moves"]}
+
+
+def forms_by_moves(sp, moves):
+    """forms with the same name (Kyurem, Black and White Kyurem) told apart by a move only one of them learns.
+    No such move read: all of them stay, and CP and HP decide"""
+    pool = {s: {MOVE_NAMES.get(m, m) for m in pvp.SPECIES[s]["fastMoves"] + pvp.SPECIES[s]["chargedMoves"]}
+            for s in sp}
+    own = lambda s: pool[s] - set().union(*(pool[o] for o in sp if o != s))
+    sp = [s for s in sp if any(knows(moves, m) for m in own(s))] or sp
+    # a form that can't learn a move it shows is out (only moves some form learns count: OCR junk counts for none)
+    read = [m for m in set().union(*pool.values()) if knows(moves, m)]
+    return [s for s in sp if all(m in pool[s] for m in read)] or sp
+
+
+def forms_by_stats(sp, cp, hp, ivs):
+    """the forms whose base stats give this CP and HP with these IVs at some level"""
+    fit = lambda b: any(pvp.cp(b, ivs, lv) == cp and pvp.hp(b, ivs, lv) == hp for lv in pvp.LEVELS)
+    return [s for s in sp if fit(pvp.SPECIES[s]["baseStats"])] or sp
+
+
+def is_legendary(sp):
+    """legendary, mythical or ultra beast anywhere in the family (Cosmog has no tag, Solgaleo does)"""
+    tags = {t for s in sp for f in pvp.family(s) for t in pvp.SPECIES[f].get("tags", [])}
+    return bool(tags & {"legendary", "mythical", "ultrabeast"})
+
+
+def pvp_candidate(sp, ivs, cp, hp):
+    """the /pvpc test: top 100 stat product in Little, Great or Ultra League for some form in the family
+    that its level still fits under the cap"""
+    return any(r <= pvp.TOP for s in sp for _, r, _ in pvp.all_ranks(s, tuple(ivs), pvp.level_of(s, ivs, cp, hp)))
+
+
+# ---------- IVs ----------
+
+# ---------- changing things ----------
+
+def same_name(got, want):
+    """OCR drops or swaps * ^ and spaces, and mixes case (xXS): compare letters, digits and / only"""
+    k = lambda s: re.sub(r"[^a-z0-9/]", "", (s or "").lower())
+    g, w = k(got), k(want)
+    # the text cursor or pencil icon after the name sometimes reads as a trailing l or I ('40 al')
+    return g == w or (g[:-1] == w and g[-1:] in ("l", "i"))
+
+
+def retag(new):
+    """untick IVC, tick the new tag (PvpC). Other tags the user put on (Old, ...) stay"""
+    base.set_tags(on=[new], off=[TAG])
+
+
+READ = "read.json"  # what each renamed one's detail screen showed: the sort takes it instead of opening it again
+
+
+def remember(name, cp, info, texts, shadow, lucky, size, bars, raws):
+    path = os.path.join(base.RUN_DIR, READ)
+    read = json.load(open(path)) if os.path.exists(path) else []
+    read.append({"name": name, "cp": cp, "hp": info["hp"], "candy": base.candy(texts), "types": sorted(base.type_line(texts)),
+                 "shadow": shadow, "lucky": lucky, "size": size, "dynamax": base.dynamax(texts),
+                 "tags": info["tags"], "bars": list(bars), "raws": list(raws) if raws else None, "phone": "android" if ui.ANDROID else "ios", "at": time.time()})
+    with open(path, "w") as f:
+        json.dump(read, f, indent=1)
+
+
+# ---------- one Pokémon ----------
+
+def process(i, tile_name, tile_cp, dry):
+    r = read_one(i, tile_name, tile_cp)
+    info, texts, sp, ivs, name, what = r["info"], r["texts"], r["sp"], r["ivs"], r["name"], r["what"]
+    if dry:
+        log(f"DRY {what}")
+    elif name is None:
+        if DOOR.judge(info, texts, sp, ivs, (tile_name, tile_cp), size=r["size"], raws=r["raws"]) == door.UNSURE:
+            name = door.UNSURE
+    elif name == "->PvpC":
+        retag("PvpC")
+    else:
+        do_rename(name, same_name)
+        keep_read(r)
+    if not dry:
+        log(f"DONE {what}")
+    go("close", "list")
+    return name
+
+
+def keep_read(r):
+    try:  # only saves the sort an open: never worth stopping a run for
+        remember(r["name"], r["cp"], r["info"], r["texts"], r["shadow"], r["lucky"], r["size"], r["bars"], r["raws"])
+    except Exception as e:
+        log(f"  couldn't save what was read ({e!r}): the sort will open it")
+
+
+def read_one(i, tile_name, tile_cp):
+    """open an IVC one, read its detail screen, appraise it and make its name. Leaves the detail screen open.
+    -> {info, texts, cp, sp, ivs, bars, raws, shadow, lucky, size, moves, name (None: nothing to show, '->PvpC'), what}"""
+    open_tile(i)
+    info, texts, _ = base.steady_detail()
+    cp = info["cp"] or tile_cp
+    # a tile name OCR cut short ('L+', 'He') needn't start the full one: there only the CP has to match
+    if not base.opened_right(info, tile_name, tile_cp) and untouched(tile_name):
+        raise Skip(f"opened {info['name']!r} but tile said {tile_name!r}")
+    if not untouched(tile_name) and not_mine(info["name"]):
+        raise Skip(NOT_MINE)
+    if not any(ui.norm(t) == TAG for t in info["tags"]):
+        raise Skip(f"no {TAG} tag on detail: {info['tags']}")
+    sp = ui.species_for(info["name"], info["texts"])
+    if not sp:  # a nickname: the candy, the types and the CP tell the species
+        sp = base.species_from_candy(texts, cp, info["hp"])
+    shadow, lucky, size = extras(texts)
+    moves = []
+    if any(ivc.elite_moves(s) for s in sp):
+        seen = read_moves()
+        log(f"  moves read: {seen}")
+        if len(sp) > 1:
+            sp = forms_by_moves(sp, seen)
+            log(f"  forms the moves allow: {sp}")
+        moves = elite_on(sp, seen)
+    base.open_appraisal()
+    bars, raws = appraise()
+    ivs = exact_ivs(sp, cp, info["hp"], bars, raws)
+    if len(sp) > 1:
+        sp = forms_by_stats(sp, cp, info["hp"], ivs)
+        log(f"  forms CP and HP allow: {sp}")
+    legendary = is_legendary(sp)
+    gym = any(s in ivc.GYM_DEFENDERS for s in sp)
+    name = ivc.make_name(ivs, shadow=shadow, size=size, moves=moves, lucky=lucky, legendary=legendary, gym=gym)
+    # IV too low to show but good for PvP: hand it to /pvpc instead (it'll get a Pvp name there)
+    if not ivc.shows_iv(ivs, shadow, lucky, legendary, gym) and pvp_candidate(sp, ivs, cp, info["hp"]):
+        name = "->PvpC"
+    flags = [f for f, on in (("shadow", shadow), ("lucky", lucky), ("legendary", legendary), ("gym", gym)) if on]
+    what = (f"{tile_name} CP{cp} {'/'.join(map(str, ivs))}{''.join(' ' + f for f in flags)}"
+            f"{' ' + size if size else ''}{' ' + ','.join(moves) if moves else ''} -> {name or '->door'}")
+    think()
+    go("dialog", "detail")
+    return {"info": info, "texts": texts, "cp": cp, "sp": sp, "ivs": ivs, "bars": bars, "raws": raws, "shadow": shadow,
+            "lucky": lucky, "size": size, "moves": moves, "name": name, "what": what}
+
+
+# ---------- the list ----------
+
+def pick(ts, passed):
+    """first tile still named after its species or with a nickname, passing over ones skipped (or dry-run)
+    earlier. A name that's neither (a nickname, or OCR cut it short) gets opened, and the detail reads it in full"""
+    seen = Counter()
+    for i, (n, c, _, _) in enumerate(ts, 1):
+        if not untouched(n):
+            if not_mine(n):
+                continue
+            if (n, c) not in odd:
+                odd.add((n, c))
+                log(f"  {n!r} CP{c}: not a species name or a done name, opening it to read the full name")
+        seen[(n, c)] += 1
+        if seen[(n, c)] > passed[(n, c)]:
+            return i, n, c
+    return None
+
+
+def to_top():
+    base.to_top(TAG)
+
+
+def main(limit, dry):
+    global DOOR
+    front()
+    passed, counts = Counter(), Counter()
+    if not dry:
+        DOOR = door.Door(TAG)
+        passed.update(DOOR.listed())  # not sure last time, under the same rules: pass them
+        log(f"door: {sum(passed.values())} on the not-sure list, passed over")
+    to_top()
+    skips_in_a_row, stale, seen = 0, 0, set()
+    scroll_how = "drag"
+    log(f"start{' (dry run)' if dry else ''}, log in {base.RUN_DIR}")
+    while counts["done"] + counts["skip"] < limit:
+        _, texts, _, bounds = wait_for("list")
+        ts = ui.tiles(texts)
+        seen.update(t[1] for t in ts)
+        p = pick(ts, passed)
+        if not p:
+            fresh, scroll_how = scroll_for_new(ts, seen, bounds, scroll_how)
+            stale = 0 if fresh else stale + 1
+            if stale >= END_AFTER_STALE:
+                log("no new Pokémon after scrolling: end of list")
+                counts["end"] = 1
+                break
+            continue
+        i, n, c = p
+        log(f"tile {i}: {n} CP{c}")
+        try:
+            result = process(i, n, c, dry)
+            counts["door" if result is None else result if result in ("->PvpC", door.UNSURE) else "renamed"] += 1
+            counts["done"] += 1
+            if dry or result == door.UNSURE:  # (one left as it is still looks untouched)
+                passed[(n, c)] += 1
+            skips_in_a_row = stale = 0
+        except (Skip, base.Lost) as e:
+            if isinstance(e, base.Lost):
+                base.recover(e, f"{n} CP{c}")
+            elif str(e) == NOT_MINE:
+                log(f"  {n} CP{c} is {NOT_MINE}, passing it")
+            else:
+                keep_capture(f"skip-{n}")
+                log(f"SKIP {n} CP{c}: {e}")
+            passed[(n, c)] += 1
+            counts["skip"] += str(e) != NOT_MINE
+            skips_in_a_row += str(e) not in (base.GYM, NOT_MINE)  # a row of gym defenders is nothing wrong
+            if skips_in_a_row >= MAX_SKIPS_IN_A_ROW:
+                raise Stop(f"{skips_in_a_row} skips in a row, something's off")
+            back_to_list()
+    return counts
+

@@ -1,6 +1,6 @@
 # PoGO-inventory-scripts
 
-Claude Code skills that sort a Pokémon GO storage: `/pvpc`, `/ivc`, `/ivcsort`, `/cleanup`, `/trade`, `/gift`, `/mega`, `/dex`, `/roster` and `/gymfeed`. Each one lives in `skills/<name>/`.
+Claude Code skills that sort a Pokémon GO storage: `/pvpc`, `/ivc`, `/cleanup`, `/trade`, `/gift`, `/mega`, `/dex`, `/roster` and `/gymfeed`. Each one lives in `skills/<name>/`.
 
 ## The live skills run from the main checkout
 

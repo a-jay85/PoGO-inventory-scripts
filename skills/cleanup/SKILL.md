@@ -14,7 +14,7 @@ Search terms and their bugs: `~/PoGO-inventory-scripts/skills/shared/SEARCH.md`.
 
 The lucky rule (2026-10-30, traded or not): top 5 IV of its line's non-shadow ones (6 if the line can mega evolve, ties keep) gets a star. Out of that, a PvP top-100 IV gets PvpC and /pvpc decides. The rest: name cleared, the power-up check for a higher Candy XL tier, Transfer. A traded one that evolves for free gets Evo instead.
 
-Only /ivcsort ranks a lucky one (its sort runs the rule, weak lines too). When any other door meets one (/pvpc, `tradeable.py`), it tags it IVC and clears its name, so the next `pogo.py ivc + ivcsort` ranks it. One /ivcsort found out of the top IV is remembered for 7 days (`../shared/runs/lucky-out.json`), so /pvpc's door doesn't send it back to IVC.
+Only /ivc ranks a lucky one (its sort runs the rule, weak lines too). When any other door meets one (/pvpc, `tradeable.py`), it tags it IVC and clears its name, so the next `pogo.py ivc` ranks it. One /ivc found out of the top IV is remembered for 7 days (`../shared/runs/lucky-out.json`), so /pvpc's door doesn't send it back to IVC.
 
 `shadows.py` and `trades.py` hold shared taps now (purify, exact search, tag sheet). Their old Nope walks are gone, and so are `rescue.py`, `suspects.py` and `nopes.py` (the last Nope pile, cleared on both accounts 2026-10-30). No search has `!#Nope` any more, so the Nope tag can be deleted.
 
@@ -80,7 +80,7 @@ If `read` stops partway, `read runs/<time>-read/searches.json` picks up where it
 
 ## XXL and XXS: never Transfer
 
-The rule (2026-10-22): a Pokémon that was never traded and is XXL or XXS never gets Transfer. It's renamed `XXL` or `xxs` and tagged IVC. `/ivc` counts those names as done, and `/ivcsort` leaves sized IVC ones for the user.
+The rule (2026-10-22): a Pokémon that was never traded and is XXL or XXS never gets Transfer. It's renamed `XXL` or `xxs` and tagged IVC. `/ivc` counts those names as done, and `/ivc` leaves sized IVC ones for the user.
 
 - `tradeable.py tag` does it to its own pile before the door walk. The walk leaves out never-traded XXL/XXS ones.
 - `cleantrades.py` only tags traded ones Transfer, so the rule never applies there.

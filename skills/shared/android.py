@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Android phone for the /pvpc, /ivc and /ivcsort scripts. Turned on with POGO_PHONE=android.
+"""Android phone for the /pvpc and /ivc scripts. Turned on with POGO_PHONE=android.
 Sees the phone with its own screenshots (adb screencap) and taps and types with adb, so the Mac's mouse and
 keyboard stay free. ui.py sends its helper calls (click, drag, scroll, key, type, front) here.
 POGO_SCRCPY=1 sees it through a read-only scrcpy window instead. Avoid that: scrcpy's picture freezes now and

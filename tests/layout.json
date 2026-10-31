@@ -1236,6 +1236,7 @@
    "LUCKY_OUT_DAYS",
    "NOT_SURE",
    "RULES",
+   "SAID",
    "SEARCHES",
    "Stop",
    "UNSURE",
@@ -1311,6 +1312,29 @@
    "trainer",
    "unstick",
    "where"
+  ],
+  "runs": []
+ },
+ "skills/shared/pagefacts.py": {
+  "copies": {},
+  "names": [
+   "CAP_W",
+   "ICON_BOX",
+   "ICON_MIN",
+   "SHAPE",
+   "SHAPE_H",
+   "SHAPE_W",
+   "SNOWFLAKE",
+   "SPARKLE_BOX",
+   "SPARKLE_MIN",
+   "_match",
+   "_pixels",
+   "bottom",
+   "candy_xl",
+   "candy_xl_close",
+   "pale_blue",
+   "sparkle",
+   "tile_icons"
   ],
   "runs": []
  },
@@ -1536,6 +1560,7 @@
    "STATE",
    "TAPS",
    "TEAL_TOL",
+   "TILE_PICK",
    "TMP",
    "_ocrd",
    "_older",

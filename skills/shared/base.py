@@ -1026,8 +1026,10 @@ def open_tile(i):
     starting on the weight (no button there). A Pokémon defending a gym opens its gym screen instead (its CP there
     is lower than the tile's): Skip, and the caller backs out and passes it."""
     OPENED.clear()
+    ui.TILE_PICK = None
     try:
         got = go(f"tile {i}", "detail", "gym")
+        OPENED["tile"] = ui.TILE_PICK  # the list capture and tile it was tapped on (pagefacts.tile_icons)
     except Stop:
         screen, texts, _, bounds = look()
         words = {ui.norm(t[4]) for t in texts}
@@ -1039,6 +1041,7 @@ def open_tile(i):
         if got[0] == "gym":
             raise Skip(GYM)
         return got
+    OPENED["tile"] = ui.TILE_PICK
     log("  detail opened scrolled down, dragging it back to the top")
     x, y = kg[0][0] + kg[0][2] / 2, kg[0][1] + kg[0][3] / 2
     drag(x, y, x, min(y + random.uniform(0.45, 0.5), 0.85), bounds)

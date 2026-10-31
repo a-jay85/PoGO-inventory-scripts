@@ -44,6 +44,7 @@ class Moving(Refused):
 TAPS = ("click", "drag", "scroll", "key", "type")
 _seen = None  # (when, path copy, texts, bounds, screen): the latest look, until the next tap or key
 _older = None  # the look before _seen
+TILE_PICK = None  # (capture copy, tile) the last "tile N" was planned on: its icons, for the door
 
 
 def remember(path, texts, bounds):
@@ -721,6 +722,9 @@ def locate(T, path, texts, screen, aspect):
         if not 0 <= i < len(ts):
             raise Refused(f"REFUSED: no tile {i + 1} on screen '{screen}' ({len(ts)} tiles)")
         _, _, cx, cy = ts[i]
+        global TILE_PICK
+        shutil.copyfile(path, TMP + "_tile.png")  # its icons (shiny, background) for the door: pagefacts.tile_icons
+        TILE_PICK = (TMP + "_tile.png", ts[i])
         return cx, cy, lambda: (cx + random.uniform(-0.04, 0.04), cy + random.uniform(-0.015, 0.015))
     if T == "FIELD":
         if screen != "rename":

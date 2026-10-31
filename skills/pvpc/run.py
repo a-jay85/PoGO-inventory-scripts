@@ -9,9 +9,10 @@
                                                                  ../shared/runs/not-sure.json
   caffeinate -dimsu python3 run.py fallen <run dir>              which older Pvp Pokémon the new names pushed out,
                                                                  and which to trim (reads only) -> <run dir>/fallen.txt
-  caffeinate -dimsu python3 run.py act-fallen <run dir> [--limit N]  rename the trims to the leagues they're still
-                                                                 best in, until nothing changes, then tag the fallen
-                                                                 ones GuaranteedLucky / Old / Nope (name cleared)
+  caffeinate -dimsu python3 run.py act-fallen <run dir> [--limit N]  appraise the beaten ones; in that same open,
+                                                                 rename a trim to the leagues it's still best in or
+                                                                 tag a fallen one GuaranteedLucky / Old / door (name
+                                                                 cleared) once that can't change, until nothing changes
   caffeinate -dimsu python3 run.py keepers [--limit N]           star the Pvp-named ones still in the PvpC list
                                                                  (from runs before keepers were starred), PvpC off
   POGO_PHONE=android caffeinate -dimsu python3 run.py ...   (Android phone over USB, see ../shared/android.py)
@@ -184,7 +185,7 @@ def pick(ts, skipped):
 # until then, from what its name shows. The pool: every Pvp name in the line, read off in-game searches by dex number.
 
 MAX_ROUNDS = 8
-LAST_BARS = None  # (bars, raws) of the appraisal appraise_slots just did, so tag_here needn't appraise again
+LAST_BARS = None  # (bars, raws, info, texts) of the appraisal appraise_slots just did: tag_here needn't do it again
 
 
 def pools_of(renamed):
@@ -396,7 +397,7 @@ def appraise_slots(pool, n, c, known=None):
     open_appraisal()
     bars, raws = appraise()
     go("dialog", "detail")
-    LAST_BARS = bars, raws
+    LAST_BARS = bars, raws, info, texts  # (the detail screen read before the appraisal: it fades out slowly)
     ivs = exact_ivs(sp, cp, info["hp"], bars, raws)
     slots, s = slots_of(sp, cp, info["hp"], ivs)
     add_truth(pool, n, c, slots)
@@ -453,11 +454,11 @@ def tag_here(pool, n, c, gates):
     if gate.listed()[door.key(n, c)]:
         mark()
         return False, "beaten everywhere, on the door's not-sure list: left as it is"
-    keep, ivs, raws, iv = high_iv(*(LAST_BARS or (None, None)))
+    keep, ivs, raws, iv = high_iv(*(LAST_BARS[:2] if LAST_BARS else (None, None)))
     if keep:
         mark()
         return False, f"beaten everywhere, but {iv}: 98%+ never goes, left as it is"
-    info, texts, _ = steady_detail()
+    info, texts = LAST_BARS[2:] if LAST_BARS else steady_detail()[:2]
     got = gate.judge(info, texts, species_here(pool, texts), ivs, (n, c), size=base.extras(texts)[2], raws=raws,
                      clear=True, unstar=True)
     mark()

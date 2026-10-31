@@ -184,6 +184,7 @@ def pick(ts, skipped):
 # until then, from what its name shows. The pool: every Pvp name in the line, read off in-game searches by dex number.
 
 MAX_ROUNDS = 8
+LAST_BARS = None  # (bars, raws) of the appraisal appraise_slots just did, so tag_here needn't appraise again
 
 
 def pools_of(renamed):
@@ -386,6 +387,8 @@ def appraise_slots(pool, n, c, known=None):
         raise Skip(f"opened {info['name']!r} but tile said {n!r}")
     if is_shadow(texts) != shadow:
         return None, f"{'shadow' if is_shadow(texts) else 'not shadow'}, the pool was the other kind"
+    global LAST_BARS
+    LAST_BARS = None
     if known:
         return known, "appraised earlier"
     sp = species_here(pool, texts)
@@ -393,6 +396,7 @@ def appraise_slots(pool, n, c, known=None):
     open_appraisal()
     bars, raws = appraise()
     go("dialog", "detail")
+    LAST_BARS = bars, raws
     ivs = exact_ivs(sp, cp, info["hp"], bars, raws)
     slots, s = slots_of(sp, cp, info["hp"], ivs)
     add_truth(pool, n, c, slots)
@@ -416,30 +420,71 @@ def renamed_to(pool, old, c, new):
 
 
 def settle_one(pool, n, c):
-    """with all that's known now, what this one needs: (act, new name)"""
-    for t in plan(*state(), only=pool):
+    """with all that's known now, what this one needs: (act, new name, does another one in the line still wait for
+    its appraisal?)"""
+    todo, me = plan(*state(), only=pool), None
+    for t in todo:
         if t["cp"] == c and same_name(t["name"], n):
-            return t["act"], t["new"]
-    return "keep", None
+            me = t
+    waiting = any(t["act"] == "check" for t in todo if t is not me)
+    return (me["act"], me["new"], waiting) if me else ("keep", None, waiting)
 
 
-def trim_here(pool, n, c, known, rename):
-    """on its detail screen: appraise it if need be, then (rename) rename it if it needs that. -> (renamed?, what to log)"""
+def tagged():
+    """{(pool, name, cp)} that act-fallen already handled in the open that appraised them (tag_here)"""
+    return {tuple(x) for x in load("tagged.json", [])}
+
+
+def tag_here(pool, n, c, gates):
+    """on its detail screen, just appraised and beaten everywhere: tag it now, as fallen.act would later, if
+    fallen-groups.json has its group (and, for the door, gates has a Door for its search). -> (done?, what to log)"""
+    grouped = load("fallen-groups.json", {})
+    g, q = next(((g, q) for g, qs in grouped.items() for q, lst in qs.items()
+                 if any(cc == c and same_name(nn, n) for nn, cc in lst)), (None, None))
+    if g is None or g == "Nope" and q not in gates:
+        return False, "beaten everywhere, tagged later"
+    mark = lambda: save("tagged.json", load("tagged.json", []) + [[pool, n, c]])
+    if g != "Nope":
+        set_tags(on=[g], off=["PvpC"])
+        base.clear_name()
+        mark()
+        return True, f"beaten everywhere: tagged {g}, name cleared"
+    gate = gates[q]
+    if gate.listed()[door.key(n, c)]:
+        mark()
+        return False, "beaten everywhere, on the door's not-sure list: left as it is"
+    keep, ivs, raws, iv = high_iv(*(LAST_BARS or (None, None)))
+    if keep:
+        mark()
+        return False, f"beaten everywhere, but {iv}: 98%+ never goes, left as it is"
+    info, texts, _ = steady_detail()
+    got = gate.judge(info, texts, species_here(pool, texts), ivs, (n, c), size=base.extras(texts)[2], raws=raws,
+                     clear=True, unstar=True)
+    mark()
+    return got == "tag", f"beaten everywhere: door {got}"
+
+
+def trim_here(pool, n, c, known, rename, gates):
+    """on its detail screen: appraise it if need be, then rename or tag it if that can't change any more (rename: the
+    rest are appraised, so it may rename anyway). -> (how many renamed or tagged, what to log)"""
     slots, what = appraise_slots(pool, n, c, known)
     if slots is None:
-        return False, what
-    act, new = settle_one(pool, n, c)
-    if act == "rename" and not rename:
-        return False, f"{what}: to rename to {new!r} once the rest are appraised"
+        return 0, what
+    act, new, waiting = settle_one(pool, n, c)
+    if act == "rename" and waiting and not rename:  # a line still waiting for an appraisal can beat it some more
+        return 0, f"{what}: to rename to {new!r} once the rest are appraised"
     if act == "rename":
         if not same_name(detail_name(), new):  # a run cut off after the rename already did it
             do_rename(new)
         renamed_to(pool, n, c, new)
-        return True, f"{what}: renamed {n!r} -> {new!r}"
-    return False, f"{what}: {'beaten everywhere, tagged later' if act == 'fallen' else 'name stays'}"
+        return 1, f"{what}: renamed {n!r} -> {new!r}"
+    if act == "fallen":  # a slot lost to an appraised one stays lost: this can't change
+        done, why = tag_here(pool, n, c, gates)
+        return int(done), f"{what}: {why}"
+    return 0, f"{what}: name stays"
 
 
-def trim_walk(q, todo, tried, limit):
+def trim_walk(q, todo, tried, limit, gates):
     """walk one search's list, handle the to-do ones in it. -> how many got renamed"""
     pending, count = list(todo), [0]
 
@@ -457,7 +502,7 @@ def trim_walk(q, todo, tried, limit):
             name = n
         known = next((to_slots(x["slots"]) for x in load_truths().get(t["pool"], [])
                       if x["cp"] == c and same_name(x["name"], name)), None)
-        done, what = trim_here(t["pool"], name, c, known, t["act"] == "rename")
+        done, what = trim_here(t["pool"], name, c, known, t["act"] == "rename", gates)
         count[0] += done
         log(f"{'DONE trim' if done else '  checked'} {n!r} CP{c}: {what}")
         go("close", "list")
@@ -491,27 +536,42 @@ def recheck_fallen(n, c):
     return False, f"{what}: still best somewhere"
 
 
+def door_gates(todo):
+    """{door group search: Door} for the likely fallen ones still to appraise, so tag_here can send one to the door in
+    the same open"""
+    gates, account = {}, None
+    for q, lst in load("fallen-groups.json", {}).get("Nope", {}).items():
+        if any(t["act"] == "check" and any(cc == t["cp"] and same_name(nn, t["name"]) for nn, cc in lst)
+               for t in todo):
+            gates[q] = door.Door("PvpC", scope=q, account=account)
+            account = gates[q].account
+    return gates
+
+
 def act_fallen(limit):
-    """trims first, round after round until nothing changes, then tag whatever is beaten everywhere"""
+    """appraise the ones something beats. Each one's rename or tag happens in that same open once it can't change,
+    round after round until nothing changes. Then tag whatever is beaten everywhere and still left"""
     front()
     search.to_search_list()
     done, tried = 0, set()
+    gates = door_gates(plan(*state()))
     for rnd in range(1, MAX_ROUNDS + 1):
         todo = [t for t in plan(*state()) if t["act"] in ("check", "rename") and t["q"]
                 and (t["pool"], t["name"], t["cp"], t["act"], t["new"]) not in tried]
         if not todo or done >= limit:
             break
-        if any(t["act"] == "check" for t in todo):  # appraise them all first: a rename before that could be undone
-            todo = [t for t in todo if t["act"] == "check"]
+        checks = {t["pool"] for t in todo if t["act"] == "check"}  # a rename in a line still being appraised
+        todo = [t for t in todo if t["act"] == "check" or t["pool"] not in checks]  # could be undone: those wait
         log(f"round {rnd}: {len(todo)} to look at")
         for q in dict.fromkeys(t["q"] for t in todo):
             if done < limit:
-                done += trim_walk(q, [t for t in todo if t["q"] == q], tried, limit - done)
+                done += trim_walk(q, [t for t in todo if t["q"] == q], tried, limit - done, gates)
     else:
         log(f"STILL CHANGING after {MAX_ROUNDS} rounds: stopped going round. Look at the log for names that keep flipping")
-    found = [t for t in plan(*state()) if t["act"] == "fallen"]
+    gone = tagged()
+    found = [t for t in plan(*state()) if t["act"] == "fallen" and (t["pool"], t["name"], t["cp"]) not in gone]
     save("fallen.json", found)
-    log(f"trims done: {done} renamed. {len(found)} beaten everywhere")
+    log(f"trims done: {done} renamed or tagged. {len(found)} beaten everywhere, still to tag")
     if found and done < limit:
         fallen.groups(iv_only=False)
         pool = lambda n, c: next(f["pool"] for f in load("fallen.json") if (f["name"], f["cp"]) == (n, c))

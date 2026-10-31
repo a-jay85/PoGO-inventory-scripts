@@ -1,6 +1,6 @@
 ---
 name: cleanup
-description: Cleanup rules for Pokémon GO run on the phone. One-time pass: clear the last Nope pile (nopes.py). After trading: tag the PvpC1/PvpC2/IV Check shortcuts, power up Clean Trades ones sitting right under an XL-transfer tier, tag Clean Trades Transfer. Use when the user says /cleanup, asks to clear their Nope pile, or to clean up after trading.
+description: Cleanup rules for Pokémon GO run on the phone. After trading: tag the PvpC1/PvpC2/IV Check shortcuts, power up Clean Trades ones sitting right under an XL-transfer tier, tag Clean Trades Transfer. Use when the user says /cleanup or asks to clean up after trading.
 model: claude-sonnet-5-5
 ---
 
@@ -10,28 +10,13 @@ Uses the shared tapper and screen reader: the shared library (`~/PoGO-inventory-
 `S=~/.claude/skills/cleanup`.
 Search terms and their bugs: `~/PoGO-inventory-scripts/skills/shared/SEARCH.md`. Read it before building a search.
 
-## The last Nope pile: nopes.py (once per account)
-
-Nothing tags Nope any more (2026-10-29). /ivc, /ivcsort and /pvpc give the final tag at the door (`../shared/door.py`). `nopes.py` clears what's left in Nope:
-
-`POGO_PHONE=android caffeinate -dimsu python3 $S/nopes.py [--limit N] [--dry-run]`
-
-1. Nope comes off the ones that already have a final tag (GIV, XLX, 2XL, Transfer, Reroll, Luckydex, Old, GuaranteedLucky, Evo, Special).
-2. It walks `#Nope` and opens each one:
-   - also has IVC or PvpC: Nope off, that skill decides.
-   - 98%+ (a shadow: once purified): star on, Nope off.
-   - may still be a keeper (93%+, a nickname, or a gym defender): name cleared, IVC on, Nope off. /ivc names it again and /ivcsort judges it.
-   - the rest: the door gives its final tag and takes Nope off. Not sure (a shadow, lucky, costume, background ...): Nope stays and it goes on the not-sure list (`../shared/runs/not-sure.json`), so a rerun passes over it. Those stay out of the IV and PvP pools (their searches have `!#Nope`).
-
-`--dry-run` skips step 1 and changes nothing in step 2. Run it on both accounts (`pogo.py account`).
-
 ## Lucky ones: the door's lucky rule
 
 The lucky rule (2026-10-30, traded or not): top 5 IV of its line's non-shadow ones (6 if the line can mega evolve, ties keep) gets a star. Out of that, a PvP top-100 IV gets PvpC and /pvpc decides. The rest: name cleared, the power-up check for a higher Candy XL tier, Transfer. A traded one that evolves for free gets Evo instead.
 
-Only /ivcsort ranks a lucky one (its sort runs the rule, weak lines too). When any other door meets one (/pvpc, `nopes.py`, `tradeable.py`), it tags it IVC and clears its name, so the next `pogo.py ivc + ivcsort` ranks it. One /ivcsort found out of the top IV is remembered for 7 days (`../shared/runs/lucky-out.json`), so /pvpc's door doesn't send it back to IVC.
+Only /ivcsort ranks a lucky one (its sort runs the rule, weak lines too). When any other door meets one (/pvpc, `tradeable.py`), it tags it IVC and clears its name, so the next `pogo.py ivc + ivcsort` ranks it. One /ivcsort found out of the top IV is remembered for 7 days (`../shared/runs/lucky-out.json`), so /pvpc's door doesn't send it back to IVC.
 
-`shadows.py` and `trades.py` hold shared taps now (purify, exact search, tag sheet). Their old Nope walks are gone, and so are `rescue.py` and `suspects.py`.
+`shadows.py` and `trades.py` hold shared taps now (purify, exact search, tag sheet). Their old Nope walks are gone, and so are `rescue.py`, `suspects.py` and `nopes.py` (the last Nope pile, cleared on both accounts 2026-10-30). No search has `!#Nope` any more, so the Nope tag can be deleted.
 
 ## After trading: tag the shortcuts, power up for XL, tag Transfer
 

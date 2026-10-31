@@ -242,7 +242,7 @@ def make_name(species, ivs, level=None):
 # ---------- owned Pokémon: forms, lines and in-game searches (shared with /ivcsort) ----------
 
 REGIONS = {"alolan": "alola", "galarian": "galar", "hisuian": "hisui", "paldean": "paldea"}
-NOT_NOPE = "!#Nope"  # Pokémon already Noped keep their names until transferred: never count them
+POOL_TERMS = {"shadow": "&shadow", "plain": "&!shadow", "lucky": "&lucky", "dmax": "&dynamax,gigantamax", "gym": ""}
 PARENT_FIX = {"raticate": "rattata", "darmanitan_galarian_standard": "darumaka_galarian",  # game data points
               "darmanitan_galarian_zen": "darumaka_galarian"}  # these at the wrong region's pre-evolution
 
@@ -279,13 +279,16 @@ def search(sid, pool):
     others = sorted({region(o) for o in PLAIN if PLAIN[o]["dex"] == p["dex"] and region(o)})  # regional forms of this dex
     if pool != "gym" and (region(sid) or others):  # gym defenders: all of that dex number, any form
         s += "&" + (region(sid) or "&".join("!" + r for r in others))
-    s += "&" + NOT_NOPE
-    return s + {"shadow": "&shadow", "plain": "&!shadow", "lucky": "&lucky", "dmax": "&dynamax,gigantamax",
-                "gym": ""}[pool]
+    return s + POOL_TERMS[pool]
+
+
+def is_gym(q):
+    """a gym search ends in no pool term: it needs every CP"""
+    return not q.endswith(tuple(t for t in POOL_TERMS.values() if t))
 
 
 def line_searches(line, pool):
-    """the searches for a whole evolution line in one pool: dex numbers OR'd with commas ('258,259,260&!#Nope&shadow').
+    """the searches for a whole evolution line in one pool: dex numbers OR'd with commas ('258,259,260&shadow').
     Species that need a different region filter get their own search."""
     groups = {}
     for s in line:

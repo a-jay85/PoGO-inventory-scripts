@@ -370,7 +370,7 @@ def pools(members=None):
     for q in queries:
         if q in done:
             continue
-        iv_only = not q.endswith(sort.NOT_NOPE)  # gym searches need every CP
+        iv_only = not sort.is_gym(q)  # gym searches need every CP
         got, want = read_search(q, iv_only)
         if not got and want is None:  # no tiles and no count: the search didn't run
             got, want = read_search(q, iv_only)
@@ -416,7 +416,7 @@ def reread(members, done, wants):
         for _ in range(REREADS):
             if len(done[q]) == wants[q]:
                 break
-            done[q] = closer(q, not q.endswith(sort.NOT_NOPE), done[q], wants[q])
+            done[q] = closer(q, not sort.is_gym(q), done[q], wants[q])
         save("pools.json", done)
         log(f"  {q}: {len(done[q])} of {wants[q]} after rereading")
 
@@ -472,7 +472,7 @@ def twin_check(m, results, verdict, why):
 
 
 def dexes_of(q):
-    """'25,26&!alola&!#Nope&!shadow' -> {25, 26}"""
+    """'25,26&!alola&!shadow' -> {25, 26}"""
     return {int(d) for d in q.split("&")[0].split(",")}
 
 

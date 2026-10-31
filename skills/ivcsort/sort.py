@@ -38,7 +38,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 sys.path.insert(0, os.path.join(HERE, "..", "ivc"))
 import pvp
-from pvp import REGIONS, NOT_NOPE, base_name, region, parent, children, search
+from pvp import REGIONS, is_gym, base_name, region, parent, children, search
 from ui import tile_name as clean_name
 from ivc import GYM_DEFENDERS
 
@@ -149,7 +149,11 @@ def gender_term(sid):
 
 
 def with_gender(q, g):
-    return q.replace("&" + NOT_NOPE, f"&{g}&{NOT_NOPE}", 1) if g else q
+    """the gender goes right after the dex numbers: '280,281&!shadow' -> '280,281&male&!shadow'"""
+    if not g:
+        return q
+    d, _, rest = q.partition("&")
+    return f"{d}&{g}" + (f"&{rest}" if rest else "")
 
 
 def slot(f):
@@ -622,20 +626,20 @@ def test():
     check("pikachu->raichu top", top_n(("pichu", "pikachu", "raichu")), 6)
     check("alolan raichu top", top_n(("pichu", "pikachu", "raichu_alolan")), 5)
     check("rattata top", top_n(lines_of("rattata")[0]), 5)
-    check("search", search("vulpix_alolan", "shadow"), "37&alola&!#Nope&shadow")
-    check("search plain", search("charmander", "plain"), "4&!#Nope&!shadow")
-    check("search gym", search("blissey", "gym"), "242&!#Nope")
+    check("search", search("vulpix_alolan", "shadow"), "37&alola&shadow")
+    check("search plain", search("charmander", "plain"), "4&!shadow")
+    check("search gym", search("blissey", "gym"), "242")
     ty = lines_of("typhlosion_hisuian")
     check("hisui typhlosion line", ty, [("cyndaquil", "quilava", "typhlosion_hisuian")])
-    check("no regional forms, no region filter", search("cyndaquil", "plain"), "155&!#Nope&!shadow")
-    check("regional dex filters out its forms", search("typhlosion", "plain"), "157&!hisui&!#Nope&!shadow")
+    check("no regional forms, no region filter", search("cyndaquil", "plain"), "155&!shadow")
+    check("regional dex filters out its forms", search("typhlosion", "plain"), "157&!hisui&!shadow")
 
     S = lambda s, pool: search(s, pool)
 
     def by_fam(per, sid="charizard"):
-        """tiles per species search ('4&!#Nope&!shadow', or with &male& for a gender split) -> the family searches
+        """tiles per species search ('4&!shadow', or with &male& for a gender split) -> the family searches
         decide() reads (gym searches stay as they are)"""
-        r = {q: v for q, v in per.items() if q.endswith(NOT_NOPE)}
+        r = {q: v for q, v in per.items() if is_gym(q)}
         for pool in POOLS:
             for q, _, ss in groups(sid, pool):
                 g = next((x for x in ("male", "female") if f"&{x}&" in q), None)
@@ -719,8 +723,8 @@ def test():
     kl = {"species": "kirlia", "cp": 800, "name": "93", "shadow": False, "lucky": False, "dynamax": False}
     rk = lambda **kw: resf("kirlia", **kw)
     check("ralts searches", sorted(q for q, _, _ in groups("gallade", "plain")),
-          ["280,281&!#Nope&!shadow".replace("&!#", "&female&!#"), "280,281&male&!#Nope&!shadow",
-           "282&!#Nope&!shadow", "475&!#Nope&!shadow"])
+          ["280,281&female&!shadow", "280,281&male&!shadow",
+           "282&!shadow", "475&!shadow"])
     check("7th male kirlia keeps for gardevoir", decide(kl, rk(kirlia__plain__male=six_better + [("93", 800)]))[0], "KEEP")
     check("7th male kirlia, gardevoir full too", decide(kl, rk(kirlia__plain__male=six_better + [("93", 800)],
           gardevoir__plain=six_better))[0], "DOOR")
@@ -760,9 +764,9 @@ def test():
     check("male combee: no spot", decide(cb, resf("combee", combee__plain__male=[("93", 300)]))[0], "DOOR")
     check("female combee keeps", decide(cb, resf("combee", combee__plain__female=[("93", 300)]))[0], "KEEP")
     check("meowstic searches", sorted(q for q, _, _ in groups("espurr", "plain")),
-          ["677,678&female&!#Nope&!shadow", "677,678&male&!#Nope&!shadow"])
+          ["677,678&female&!shadow", "677,678&male&!shadow"])
     check("snorunt finals", {k: sorted(r) for k in ("male", "female") for r in [reach("snorunt", k)]},
-          {"male": ["362&!#Nope&!shadow"], "female": ["362&!#Nope&!shadow", "478&!#Nope&!shadow"]})
+          {"male": ["362&!shadow"], "female": ["362&!shadow", "478&!shadow"]})
     check("armored mewtwo keeps", decide(dict(me, species="mewtwo_armored", name="80 a"), {})[0], "KEEP")
     rat = ("bidoof", "bibarel")
     check("bidoof line is weak", strong(rat)[0], False)

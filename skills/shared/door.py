@@ -181,7 +181,9 @@ class Door:
 
     def page_bottom(self, info):
         """the bottom of the page, then back to the top: the caught date (two reads that agree), traded or not, and
-        the catch place in California or not -> {"caught", "traded", "california"}"""
+        the catch place in California or not -> {"caught", "traded", "california"}. Once per open (base.OPENED)"""
+        if "page" in base.OPENED:
+            return base.OPENED["page"]
         _, texts, _, bounds = base.look()
         me = trades.who(texts)[1]
         try:
@@ -189,7 +191,8 @@ class Door:
         finally:
             trades.back_to_top(me, bounds)
         days = {trades.caught(catch_date(r)) for r in reads}
-        return {"caught": days.pop() if len(days) == 1 else None, **pagefacts.bottom(reads)}
+        base.OPENED["page"] = {"caught": days.pop() if len(days) == 1 else None, **pagefacts.bottom(reads)}
+        return base.OPENED["page"]
 
     def purify(self, info, v):
         """purify it (the verdict's tags go on after). Can't purify -> unsure, left as it is"""

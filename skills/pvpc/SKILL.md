@@ -34,7 +34,7 @@ Drive Pokémon GO on the user's iPhone through **iPhone Mirroring**. Computer us
 It starts from any screen, Pokémon GO closed too (`home.py`, shared by every script: see below).
 It skips anything unsure (logged in `$S/runs/<time>/`) and stops on anything unexpected.
 A Pokémon with a name you gave it (`L35`) gets its species from the appraisal's "This Meditite was caught on …" line. If a tap lands on the wrong screen mid-Pokémon, it backs out to the list and passes that one (up to 15 times a run, never from the tag sheet or the nickname box).
-At the end of the list it runs the read-only fallen-out step.
+At the end of the list it runs the fallen-out step (renames and tags, below).
 If earlier runs stopped before their fallen-out step (a stop, a crash, Ctrl-C), the run that reaches the end adds their new names to its own `renamed.json` first, so one fallen-out step covers them all. It looks back to the last run that has a `fallen.json`, at most 12 hours, and logs which runs it took (also in `carried.json`).
 Use this skill to clear its skips by hand.
 `caffeinate -dimsu python3 $S/run.py keepers [--limit N]` finishes keepers that older runs left in the PvpC list (a `Pvp ...` name): star on, PvpC off. It passes anything else.
@@ -71,15 +71,17 @@ Taps come 0.1–0.25s apart (same as /ivc). A short 0.7–1.3s pause stays, on t
 A new Pvp name can push an older Pvp Pokémon out of the top. Per league (L/G/U) and per form, only the best one owned keeps its place. Ties keep.
 - **Trim:** beaten in some of its slots but still best in others. It gets renamed to show only the leagues it's still best in (same name rules). It keeps its star. New Pokémon from this run get trimmed too if an older one beats them.
 - **Fallen out:** beaten in every top-100 slot it has.
-- **Chain:** a name with no room for a league drops it and adds `+`. A trim can make room for it again. That league can then beat a different Pokémon, which gets trimmed or falls in turn. `act-fallen` goes round until nothing changes (at most 8 rounds; it logs `STILL CHANGING` if it hits that).
+- **Chain:** a name with no room for a league drops it and adds `+`. A trim can make room for it again. That league can then beat a different Pokémon, which gets trimmed or falls in turn. `fallen` goes round until nothing changes (at most 8 rounds; it logs `STILL CHANGING` if it hits that).
 
-- `caffeinate -dimsu python3 $S/run.py fallen <run dir>`: reads only. Types a dex-number search for each line a new name landed in (`renamed.json`), reads every tile, writes `fallen.json` and `fallen.txt`, then sorts the fallen ones into groups. `fallen.txt` lists the likely fallen and the trims. Final names come after the appraisal. Starts again where it stopped.
-- `caffeinate -dimsu python3 $S/run.py act-fallen <run dir> [--limit N]`:
-  1. Appraises every Pokémon that something beats, to see all its slots, including ones its name had no room for (`truths.json`). New Pokémon from this run were appraised already.
-  2. Does the rest in that same open when the answer can't change any more. Beaten everywhere: tagged right there (a slot lost to an appraised one stays lost). A trim: renamed right there if nothing else in its line still waits for an appraisal; else it waits and gets renamed once they're all appraised. Repeats if that changed anything. Logged in `tagged.json`.
-  3. Tags the ones beaten everywhere that step 2 couldn't (one that wasn't a likely fallen one in `fallen.txt`, or a new name from this run). Same rules as /ivc (shared `fallen.py`): not traded + caught 2016–2020 → GuaranteedLucky, not traded + older than 300 days → Old, else star off + Nope. PvpC gets unticked. Its name gets cleared (the species name shows again), so the Nope recheck doesn't pick it up later.
-  - Shiny and costume ones are never tagged. They can still be trimmed (a rename only).
-  - `--limit` counts renames and tags together. Appraisals don't count. The door's searches for every likely fallen one run first, even with `--limit 1`.
+- `caffeinate -dimsu python3 $S/run.py fallen <run dir> [--limit N]` (`act-fallen` is the same thing, its old name). The main run does this at the end of the list. One pass, line by line (2026-10-31):
+  1. Types the line's dex-number search once (each line a new name landed in, `renamed.json`) and reads every tile.
+  2. Works out who in that line something beats, then goes back to the top of the same list and opens each one.
+  3. Appraises it, to see all its slots, including ones its name had no room for (`truths.json`). New Pokémon from this run were appraised already.
+  4. Does the rest in that same open when the answer can't change any more. A trim: renamed if nothing else in its line still waits for an appraisal. Beaten everywhere (a slot lost to an appraised one stays lost): its final tag, read off the page and the tile, no searches: not traded + caught 2016–2020 → GuaranteedLucky, not traded + older than 300 days → Old, else the door (98%+ never goes). PvpC off, name cleared. Logged in `tagged.json`.
+  5. Goes round on the same list until the line stops changing. No retyping.
+  - Shiny and costume ones are never tagged. They can still be trimmed (a rename only). Shiny comes off the tile, costume from one search for the whole run.
+  - `fallen.txt` is a record of what was done, and what's still beaten but left.
+  - `--limit` counts renames and tags together. Appraisals don't count.
 - Never trimmed or fallen: lines that branch (Eevee aside). Their names can't be read back to one form. A name whose letter two forms share (Charmander and Charmeleon are both `m`) counts that slot as unbeatable until it's appraised.
 - Only lines a new name landed in get looked at. A `+` name elsewhere can still hide a better slot.
 - Shared code: `search.py` (in-game search, list walking) and `fallen.py` are used by /ivc too. The tapper every skill uses is `skills/shared/base.py`; `run.py` is /pvpc's own walk.
@@ -118,7 +120,7 @@ Without it, the scripts drive iPhone Mirroring exactly as before.
 - **Which form counts:** for each league, use the best-ranking form in the Pokémon's family (itself or any evolution). Little Cup only counts the Pokémon itself, and only if it's unevolved and can evolve.
 - **Lower-evolution letter:** if the best form for a league is not a final evolution, add one lowercase letter after the league letter. The letter is the first letter of that form's name that differs from the final evolution. Charmeleon vs Charizard gives `m`, so `Gm15`. Magneton vs Magnezone gives `t`.
 - **Plus sign:** add `+` if some other lower (non-final) evolution also makes top 100 but isn't what's shown. Only one `+` ever.
-- Names on older Pokémon that leave out leagues are intentional (a better one exists). By hand, don't touch them. `act-fallen` keeps them right.
+- Names on older Pokémon that leave out leagues are intentional (a better one exists). By hand, don't touch them. `fallen` keeps them right.
 
 - **Eevee:** every form gets a letter, finals included: Eevee `N`, Vaporeon `v`, Jolteon `j`, Flareon `f`, Espeon `e`, Umbreon `u`, Leafeon `l`, Glaceon `g`, Sylveon `s`. Pick top-100 entries best rank first, whatever the league. Add as many as fit, written in league order (L, G, U). If some don't fit, the last one that fit makes way for a `+`. Example: 15/11/14 gives `PvpGN45Uu28+`.
 - **Tyrogue:** its highest IV picks what it becomes: Attack Hitmonlee, Defense Hitmonchan, HP Hitmontop. Only that one is ranked, so the name is about the Hitmon it will really be. A tie for highest can go either way (the game picks at random): then it still branches, and the script skips it for a human.

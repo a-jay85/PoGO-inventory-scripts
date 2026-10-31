@@ -1109,7 +1109,7 @@ def run_searches(limit):
             if arrow() != "down":
                 set_sort()
             stale, fresh = 0, True  # fresh: the last capture is the friend list as it is now (no look needed)
-            top = True  # the list is at its top, just sorted by a search: nothing scrolled, no gift sent since
+            top = True  # the list is as a search sorted it: no gift sent since (scrolled or not)
             while True:
                 if not fresh and look() != "friends":  # a drag that landed as a tap opened something: back first
                     to_list()
@@ -1118,7 +1118,7 @@ def run_searches(limit):
                 todo = [r for r in on_screen if r["name"] not in done]
                 if todo and todo[0]["badged"]:
                     if top:
-                        break  # sorted can-receive first, and the first friend not skipped has the arrow: nobody left
+                        break  # sorted can-receive first, and the first friend not done has the arrow: nobody left
                     # the list re-sorts only on a new search: the friends gifted this run keep their place, arrow
                     # and all. Search again, then look at the top
                     log(f"  {todo[0]['name']} has the arrow: searching again to re-sort")
@@ -1131,8 +1131,10 @@ def run_searches(limit):
                     continue
                 if not todo:
                     before = [r["name"] for r in rows()]
+                    # (a scroll leaves top alone: the sort holds below too. 2026-10-31: friends gifted this run sat
+                    # unarrowed at the top after the new search, so every re-search scrolled past them to the same
+                    # arrow, and searched again, forever)
                     drag(0.75, 0.4)
-                    top = False
                     look()
                     stale = stale + 1 if [r["name"] for r in rows()] == before else 0
                     if stale:

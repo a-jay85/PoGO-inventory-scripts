@@ -150,6 +150,10 @@ def process(i, tile_name, tile_cp):
     elif name == "NOPE":
         name = DOOR.judge(info, texts, sp, ivs, (tile_name, tile_cp), size=base.extras(texts)[2], raws=raws)
         name = door.UNSURE if name == door.UNSURE else "NOPE"
+    elif (who := beaten(info, sp, shadow, slots, cp, ivs, raws, tile_name, tile_cp)):
+        log(f"  {name} is beaten everywhere: {who}. Not renamed")
+        name = DOOR.judge(info, texts, sp, ivs, (tile_name, tile_cp), size=base.extras(texts)[2], raws=raws)
+        name = door.UNSURE if name == door.UNSURE else "NOPE"
     else:
         do_rename(name)
         # for the fallen-out step at the end
@@ -159,6 +163,58 @@ def process(i, tile_name, tile_cp):
     log(f"DONE {tile_name} CP{cp} {'/'.join(map(str, ivs))}{' shadow' if shadow else ''} -> {name}")
     go("close", "list")
     return name
+
+
+def line_of(sp, shadow):
+    """(pool key, first stage, the line's searches) as pools_of makes them, or None (a branching line, two lines)"""
+    firsts = list(dict.fromkeys(pvp.root(s) for s in sp if s in pvp.PLAIN))
+    if len(firsts) != 1 or pvp.letters(firsts[0]) is None:
+        return None
+    first = firsts[0]
+    return first + ("+shadow" if shadow else ""), first, pvp.line_searches(pvp.tree(first), "shadow" if shadow else "plain")
+
+
+def holders(key, first, qs, cp):
+    """[(who, slots)] Pvp ones already in this line: this run's new names (appraised), and the names the newest
+    earlier run on this account read off the line's searches. A slot only ever passes to a better one (a trim or a
+    fallen tag happens because someone beats it), so an older read can miss a holder but never shows a wrong one.
+    Same CP as this one: left out (it could be this one)"""
+    out = [(f"{r['name']!r} CP{r['cp']} (this run)", to_slots(r["slots"])) for r in load("renamed.json", [])
+           if r.get("slots") and r["cp"] != cp and (line_of(r["species"], r["shadow"]) or [None])[0] == key]
+    runs, me = os.path.split(base.RUN_DIR)
+    account = DOOR.account if DOOR else None
+    for d in sorted((d for d in os.listdir(runs) if RUN_NAME.fullmatch(d) and d != me), reverse=True):
+        path = os.path.join(runs, d)
+        try:
+            reads = json.load(open(os.path.join(path, "pools.json")))
+            wants = json.load(open(os.path.join(path, "counts.json")))
+        except (OSError, ValueError):
+            continue
+        if not all(q in reads for q in qs) or not account or signed_in(path) != account:
+            continue
+        if any(wants.get(q) is not None and len(reads[q]) > wants[q] for q in qs):
+            break  # extra tiles could be misread copies that look better than they are: as plan() does
+        out += [(f"{n!r} CP{c} (read {d})", sl) for q in qs for n, c in reads[q]
+                if c and c != cp and (sl := pvp.name_slots(n, first))]
+        break
+    return out
+
+
+def beaten(info, sp, shadow, slots, cp, ivs, raws, tile_name, tile_cp):
+    """the new name would be beaten in every slot by a Pvp one already in its line (the fallen-out step would only
+    take it off again) -> who beats it, or None: rename. Never for what that step would leave named: shiny,
+    costume, 98%+, or anything it can't tell"""
+    line = slots and line_of(sp, shadow)
+    if not line or high_iv(ivs, raws)[0]:
+        return None
+    mine = to_slots(slots)
+    others = holders(*line, cp)
+    if not others or pvp.kept(mine, others):
+        return None
+    if door.tile_icons(info).get("shiny") is not False or DOOR.has("costume", door.key(tile_name, tile_cp)) is not False:
+        return None
+    return "; ".join(f"{pvp.slot_text(sl, r, line[1])} by {min((o[sl], w) for w, o in others if sl in o)[1]}"
+                     for sl, r in mine.items())
 
 
 # ---------- the list ----------

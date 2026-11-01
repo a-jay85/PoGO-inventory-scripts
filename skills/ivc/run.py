@@ -9,8 +9,8 @@
   caffeinate -dimsu python3 run.py names [--limit N] [--dry-run]
         the names pass on its own (the sort ends with it): name what the sort can't, the XXL/xxs IVC ones (the
         sort leaves them out) and ones whose nickname is no species (the detail screen tells the species)
-  caffeinate -dimsu python3 run.py fallen <run dir>         sort the fallen-out ones into groups (changes nothing)
-  caffeinate -dimsu python3 run.py act-fallen <run dir> [--limit N]  tag the fallen-out ones
+  caffeinate -dimsu python3 run.py fallen <run dir> [--limit N]  the fallen-out step on its own (a sort that gets to
+        the end does it itself): group the fallen-out ones, then tag or door each one. act-fallen: the same
   python3 run.py search "<query>" [...]                     type searches and print the tiles (testing; later ones edit the bar's end)
   POGO_PHONE=android caffeinate -dimsu python3 run.py ...   (Android phone over USB, see ../pvpc/android.py)
 
@@ -545,13 +545,13 @@ def plan(quiet=False):
     save("plan.json", out)
     fallen = fallen_candidates(scanned, results, wants)
     save("fallen.json", fallen)
-    lines += ["", f"FALLEN OUT: {len(fallen)} older Pokémon (no IVC tag) now outside the top. `run.py fallen` sorts them into "
-              "GuaranteedLucky / Old / the door; act checks each one again on the detail screen first."]
+    lines += ["", f"FALLEN OUT: {len(fallen)} older Pokémon (no IVC tag) now outside the top. The end of the sort sorts them into "
+              "GuaranteedLucky / Old / the door; it checks each one again on the detail screen first."]
     lines += [f"  {f['name']!r:16} CP{f['cp']:<5} {'shadow ' if f['shadow'] else ''}{'/'.join(f['species'])}: {f['why'][0]}"
               for f in fallen]
     grouped = load("fallen-groups.json") if os.path.exists(os.path.join(base.RUN_DIR, "fallen-groups.json")) else None
     if grouped:
-        lines += ["", "FALLEN OUT, by group (from `run.py fallen`):"] + \
+        lines += ["", "FALLEN OUT, by group:"] + \
             [f"  {g}: {sum(len(v) for v in grouped[g].values())}" for g in grouped]
     unrenamed = counts["SKIP"] and sum(bool(m.get("unrenamed")) and not m.get("flags") for m in scanned)
     head = ([f"WARNING: {unrenamed} IVC Pokémon have a name that's no species. The names pass names them "
@@ -1055,22 +1055,28 @@ def names(limit, dry=False):
     log(f"names pass: {dict(counts)}")
 
 
+def fallen_out(limit):
+    """the fallen-out ones of this sort run: grouped (searches only), then each one opened and tagged GuaranteedLucky
+    / Old or sent to the door. A rerun on the same folder groups again: what's tagged by now drops out"""
+    fallen.groups(iv_only=True)
+    plan(quiet=True)  # (plan.txt lists the groups too)
+    act_fallen(limit)
+
+
 def script(a, cmd, limit):
-    if cmd == "act-fallen" and not os.path.exists(os.path.join(base.RUN_DIR, "fallen-groups.json")):
-        sys.exit("run fallen first, and read plan.txt")
-    if cmd == "fallen" and not os.path.exists(os.path.join(base.RUN_DIR, "pools.json")):
-        sys.exit("fallen needs a sort run's folder")
+    if cmd in ("fallen", "act-fallen") and not os.path.exists(os.path.join(base.RUN_DIR, "pools.json")):
+        sys.exit(f"{cmd} needs a sort run's folder")
     base.start()
     if cmd == "sort":
         if sort_all(limit, "--look" in a) and "--look" not in a:
             names(limit)
-    elif cmd == "names":
-        names(limit, "--dry-run" in a)
-    elif cmd == "fallen":
-        fallen.groups(iv_only=True)
-        plan()
-    elif cmd == "act-fallen":
-        act_fallen(limit)
+            try:  # still on the phone: tag or door what this sort pushed out of the top
+                fallen_out(limit)  # (its own --limit, like /pvpc's)
+            except (Stop, Skip) as e:
+                base.keep_capture("fallen")
+                log(f"fallen out step STOPPED: {e} (run `run.py fallen {base.RUN_DIR}` to go on)")
+    elif cmd in ("fallen", "act-fallen"):  # one step now (act-fallen: the old name of the second half)
+        fallen_out(limit)
     elif cmd == "search":
         front()
         for q in a[1:]:  # (more than one: each after the first edits the bar's end, like a family's searches)

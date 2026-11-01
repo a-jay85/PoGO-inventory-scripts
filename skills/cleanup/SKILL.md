@@ -52,12 +52,18 @@ Adding to a shortcut's search: tap the shortcut, tap the filled bar, jump to the
 
 ## Tradeable: tag CyrillJan's trade pile by what it's worth to HashTagAJay
 
-`S=~/.claude/skills/cleanup`. Four steps, in this order:
+`S=~/.claude/skills/cleanup`. No plan step (2026-11-01). The data comes first:
 
 1. `python3 $S/tradeable.py refresh` (the Mac): PvPoke's top 100s -> `pvp-giv-<date>.json`, and the hard evolutions -> `giv-evolved-<date>.json`.
 2. `POGO_PHONE=android caffeinate -dimsu python3 $S/tradeable.py read`, HashTagAJay signed in. Only searches. Finds the families with a lucky one and under 348 candy, and those with 360+ Candy XL.
-3. `python3 $S/tradeable.py plan` (the Mac): every search to tag, in `runs/<time>-plan/plan.md`. Read it before step 4. It needs HashTagAJay's newest lucky and ★100% /dex runs, /roster's `roster.json` and step 2.
-4. `POGO_PHONE=android caffeinate -dimsu python3 $S/tradeable.py tag [--limit N]`, CyrillJan signed in. Tags and powers up.
+3. HashTagAJay's newest lucky and ★100% /dex runs and /roster's `roster.json` (made by those skills).
+
+Then, CyrillJan signed in, one of:
+
+- `POGO_PHONE=android caffeinate -dimsu python3 $S/tradeable.py [--limit N]`: the default, the door. Each untagged one is opened once and gets its final tag right there (step 7 below judges every tag 1-7, from the same data). Same as `tradeable.py door`.
+- `POGO_PHONE=android caffeinate -dimsu python3 $S/tradeable.py tag [--limit N]`: the fast way for a big pile. It makes its tag searches itself from the data above, tags whole piles at once, powers up, then sends the rest through the door. A rerun within 12 hours skips the searches already done (`runs/tagged.json`); new data starts over. Each run saves its searches in `runs/<time>-tag/plan.json`.
+
+`python3 $S/tradeable.py plan` (the Mac) is optional: it writes the searches `tag` would run to `runs/<time>-plan/plan.md`, for a look. Nothing reads it.
 
 One tag each, the first that fits:
 
@@ -69,16 +75,16 @@ One tag each, the first that fits:
 6. **GIV (far)**: never traded and caught 100 km or more away (`!traded&distance100-`), and no other tag fits (2026-10-22).
 7. **The rest go through the door** (2026-10-30): each one is opened and gets its final tag from `../shared/verdict.py`, the rules /ivc uses for a Pokémon that isn't a keeper (Transfer with the power-up check, or another tag, or a star). One it can't be sure about is left as it is and listed in `../shared/runs/not-sure.json`. Nothing gets Transfer just for being left over. A never-traded one that would get Transfer gets IVC (renamed XXL or xxs) if it's XXL or XXS, else GIV if it's a trade evolution (free to evolve once traded: Kadabra, Machoke, Graveler, Haunter, Boldore, Gurdurr, Karrablast, Shelmet, Phantump, Pumpkaboo) (2026-10-31, every script that tags Transfer). `tradeable.py door [--limit N]` runs only this walk, on the whole untagged pile.
 
-Special trades get no tag at all, not even Transfer, and are never powered up: Legendary, Mythical, Ultra Beast, shiny and Gigantamax. The user trades them by hand, so no tag lines one up to use up the day's special trade (2026-10-23). The plan leaves those species out, and every tag search and walk has `&!gigantamax&!shiny&!legendary&!mythical&!ultrabeast`. One that isn't in HashTagAJay's dex yet is a special trade too: the script can't see that, so check it by hand. A never-traded XXL or XXS one never gets Transfer: it's renamed XXL or xxs and tagged IVC first (see "XXL and XXS" below).
+Special trades get no tag at all, not even Transfer, and are never powered up: Legendary, Mythical, Ultra Beast, shiny and Gigantamax. The user trades them by hand, so no tag lines one up to use up the day's special trade (2026-10-23). The tag searches leave those species out, and every tag search and walk has `&!gigantamax&!shiny&!legendary&!mythical&!ultrabeast`. One that isn't in HashTagAJay's dex yet is a special trade too: the script can't see that, so check it by hand. A never-traded XXL or XXS one never gets Transfer: it's renamed XXL or xxs and tagged IVC first (see "XXL and XXS" below).
 
-The tag step: the `Tradeable` shortcut + each plan search + the special-trade terms + `&!#Luckydex&!#Reroll&!#GIV`, tagged like a cleantrades pile. Then it walks the tagged ones for power-ups, then the untagged ones for XLX and power-ups, then tags the evolved GIV ones, then walks the rest through the door.
+The tag step: the `Tradeable` shortcut + each tag search + the special-trade terms + `&!#Luckydex&!#Reroll&!#GIV`, tagged like a cleantrades pile. Then it walks the tagged ones for power-ups, then the untagged ones for XLX and power-ups, then tags the evolved GIV ones, then walks the rest through the door.
 Power-ups are cleantrades' cheap jumps only (14->15, 19->20, 22->23, 30->31), never below 1,000,000 Stardust. The 360 Candy XL cap counts the account that will transfer it: HashTagAJay for the traded tags, CyrillJan for the rest. Out of Stardust: it goes on with XLX only.
 If it can't tell whether one is level 26+ (or doesn't know the species), it lists those in the log, and the door judges them one by one.
 `--limit N` caps the power-ups in each walk. All the Luckydex, Reroll and GIV tagging still runs.
 
 If `read` stops partway, `read runs/<time>-read/searches.json` picks up where it left off.
 
-`read` ran on the Pixel on 2026-10-22. `tag` has never run. First time: `tag --limit 1`, with the user watching (it still tags every plan search).
+`read` ran on the Pixel on 2026-10-22. `tag` has never run. First time: `tag --limit 1` (it still tags every tag search).
 
 ## XXL and XXS: never Transfer
 

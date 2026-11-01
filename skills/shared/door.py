@@ -232,6 +232,11 @@ class Door:
         try:
             n = ct.power_up({**info, "cp": now["cp"] or tile_cp}, texts, levels)  # (the walk checked the tile's CP)
             log(f"  powered up {n}x before Transfer")
+            for _ in range(12):  # the "CP710+31" animation hides the page's buttons: wait it out (2026-10-31)
+                texts = base.look()[1]
+                if len(texts) > 5 and not any(re.match(r"[cC]\s*[pP].*\+\s*\d+\s*$", t[4].strip()) for t in texts):
+                    break
+                time.sleep(0.5)
             base.OPENED["who"] = base.who(base.detail_now())  # its CP and HP moved: still the same one
         except ct.Unsure as e:
             return vd.unsure(f"Transfer, but the power-up check: {e}")

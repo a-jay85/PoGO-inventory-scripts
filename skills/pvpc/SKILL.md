@@ -44,7 +44,7 @@ Use this skill to clear its skips by hand.
 `~/PoGO-inventory-scripts/pogo.py` runs any skill's script by step name, and several in a row with `+` between them. A step takes the same args as its script. `python3 ~/PoGO-inventory-scripts/pogo.py list` shows every step.
 
 - `POGO_PHONE=android caffeinate -dimsu python3 ~/PoGO-inventory-scripts/pogo.py pvpc --limit 5 + ivc --limit 5`
-- `last` is the run folder an earlier step of the same skill folder made: `pogo.py ivc + ivc fallen last`.
+- `last` is the run folder an earlier step of the same skill folder made: `pogo.py ivc --limit 5 + ivc fallen last`.
 - The whole chain is checked before step 1. It stops at the first step that doesn't end well, with that step's exit code.
 - Each step is its own python3 process. The phone stays up between steps and is closed once at the end.
 

@@ -502,7 +502,7 @@ def one_walk(limit):
     from that same list. Each one's rename or tag happens in the open that appraises it, round after round on the same
     list until the line stops changing. -> how many renamed or tagged"""
     renamed = load("renamed.json", [])
-    pools = load("fallen-pools.json", None) or pools_of(renamed)
+    pools = load("fallen-pools.json", {}) or pools_of(renamed)
     save("fallen-pools.json", pools)
     results, wants = load("pools.json", {}), load("counts.json", {})
     log(f"fallen out: {len(renamed)} new names, {len(pools)} lines")

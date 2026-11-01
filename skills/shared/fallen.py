@@ -59,7 +59,7 @@ def groups(iv_only=True):
 def summary(fallen, grouped):
     """lines for the plan / fallen.txt"""
     lines = [f"FALLEN OUT: {len(fallen)} older Pokémon now outside the top. Grouped GuaranteedLucky / Old / Nope; "
-             "act-fallen checks each one again on its detail screen first."]
+             "each one is checked again on its detail screen first."]
     lines += [f"  {f['name']!r:16} CP{f['cp']:<5} {f.get('what', '')}: {'; '.join(f['why'])}" for f in fallen]
     if grouped:
         lines += ["", "FALLEN OUT, by group:"] + [f"  {g}: {sum(len(v) for v in grouped[g].values())}" for g in grouped]

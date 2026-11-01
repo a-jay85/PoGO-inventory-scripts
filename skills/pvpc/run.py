@@ -7,12 +7,12 @@
                                                                  isn't a keeper gets its final tag right there
                                                                  (../shared/door.py), or stays as it is and goes on
                                                                  ../shared/runs/not-sure.json
-  caffeinate -dimsu python3 run.py fallen <run dir>              which older Pvp Pokémon the new names pushed out,
-                                                                 and which to trim (reads only) -> <run dir>/fallen.txt
-  caffeinate -dimsu python3 run.py act-fallen <run dir> [--limit N]  appraise the beaten ones; in that same open,
-                                                                 rename a trim to the leagues it's still best in or
-                                                                 tag a fallen one GuaranteedLucky / Old / door (name
-                                                                 cleared) once that can't change, until nothing changes
+  caffeinate -dimsu python3 run.py fallen <run dir> [--limit N]   which older Pvp Pokémon the new names pushed out,
+                                                                 in one pass per line: each line's search typed once,
+                                                                 the beaten ones opened from that list and renamed (a
+                                                                 trim) or tagged GuaranteedLucky / Old / door (name
+                                                                 cleared) in the open that appraises them, until the
+                                                                 line stops changing. act-fallen: same thing
   caffeinate -dimsu python3 run.py keepers [--limit N]           star the Pvp-named ones still in the PvpC list
                                                                  (from runs before keepers were starred), PvpC off
   POGO_PHONE=android caffeinate -dimsu python3 run.py ...   (Android phone over USB, see ../shared/android.py)
@@ -185,7 +185,7 @@ def pick(ts, skipped):
 # until then, from what its name shows. The pool: every Pvp name in the line, read off in-game searches by dex number.
 
 MAX_ROUNDS = 8
-LAST_BARS = None  # (bars, raws, info, texts) of the appraisal appraise_slots just did: tag_here needn't do it again
+LAST_BARS = None  # (bars, raws, info, texts) of the appraisal appraise_slots just did: fall_here needn't do it again
 
 
 def pools_of(renamed):
@@ -273,19 +273,6 @@ def state():
     return pools, results, load("counts.json", {}), load_truths()
 
 
-def plan_lines(todo):
-    """the trims, for fallen.txt"""
-    trims = [t for t in todo if not t["all"]]
-    if not trims:
-        return []
-    return ["", f"TRIMS: {len(trims)} still best in some leagues, beaten in others. act-fallen appraises each one and "
-            "renames it to just the leagues it's still best in. The final name comes after the appraisal: a league "
-            "the old name had no room for can show up, and push out someone else (act-fallen goes round until nothing "
-            "changes)."] + \
-        [f"  {t['name']!r:16} CP{t['cp']:<5} {t['what']}: " + (f"-> {t['new']!r}" if t["new"] else "; ".join(t["why"]))
-         for t in trims]
-
-
 CARRY_HOURS = 12  # one sitting of stops and restarts. Older stopped runs are left to `run.py fallen <run dir>`
 RUN_NAME = re.compile(r"\d{8}-\d{6}")
 
@@ -329,39 +316,6 @@ def carry_over():
         save("renamed.json", added + renamed)
         save("carried.json", load("carried.json", []) + carried)
     return added
-
-
-def fallen_step():
-    """reads only: pool searches -> pools.json + counts.json, the fallen-out ones -> fallen.json, the plan (fallen
-    and trims) -> fallen.txt, their groups -> fallen-groups.json. Stops and starts again where it left off."""
-    renamed = load("renamed.json", [])
-    pools = pools_of(renamed)
-    save("fallen-pools.json", pools)
-    results, wants = load("pools.json", {}), load("counts.json", {})
-    qs = list(dict.fromkeys(q for _, _, qq in pools.values() for q in qq))
-    log(f"fallen out: {len(renamed)} new names, {len(pools)} lines, {len(qs)} searches ({sum(q in results for q in qs)} done)")
-    if qs:
-        front()
-        search.to_search_list()
-    for q in qs:
-        if q in results:
-            continue
-        got, want = search.run_search(q)
-        results[q], wants[q] = got, want
-        save("pools.json", results)
-        save("counts.json", wants)
-        log(f"  {q}: {len(got)} tiles (game says {want})")
-    todo = plan(*state())
-    found = [t for t in todo if t["all"]]
-    save("fallen.json", found)
-    grouped = fallen.groups(iv_only=False) if found else {}
-    if not found:
-        save("fallen-groups.json", grouped)
-    lines = fallen.summary(found, grouped) + plan_lines(todo)
-    with open(os.path.join(base.RUN_DIR, "fallen.txt"), "w") as f:
-        f.write("\n".join(lines) + "\n")
-    log(f"{len(found)} fallen out, {len(todo) - len(found)} to trim, see {os.path.join(base.RUN_DIR, 'fallen.txt')}")
-    return found
 
 
 def species_here(pool, texts=None):
@@ -432,40 +386,54 @@ def settle_one(pool, n, c):
 
 
 def tagged():
-    """{(pool, name, cp)} that act-fallen already handled in the open that appraised them (tag_here)"""
+    """{(pool, name, cp)} the walk already tagged (or left on purpose): the plan still has them under their old name"""
     return {tuple(x) for x in load("tagged.json", [])}
 
 
-def tag_here(pool, n, c, gates):
-    """on its detail screen, just appraised and beaten everywhere: tag it now, as fallen.act would later, if
-    fallen-groups.json has its group (and, for the door, gates has a Door for its search). -> (done?, what to log)"""
-    grouped = load("fallen-groups.json", {})
-    g, q = next(((g, q) for g, qs in grouped.items() for q, lst in qs.items()
-                 if any(cc == c and same_name(nn, n) for nn, cc in lst)), (None, None))
-    if g is None or g == "Nope" and q not in gates:
-        return False, "beaten everywhere, tagged later"
-    mark = lambda: save("tagged.json", load("tagged.json", []) + [[pool, n, c]])
-    if g != "Nope":
-        set_tags(on=[g], off=["PvpC"])
-        base.clear_name()
-        mark()
-        return True, f"beaten everywhere: tagged {g}, name cleared"
-    gate = gates[q]
+def mark(pool, n, c):
+    save("tagged.json", load("tagged.json", []) + [[pool, n, c]])
+
+
+def fall_here(pool, n, c, gate):
+    """on its detail screen, appraised, beaten everywhere: its final tag in this same open. Untraded + caught
+    2016-2020 -> GuaranteedLucky, untraded + older than fallen.OLD_DAYS -> Old, else the door. Shiny and costume ones
+    are never tagged. Traded, shiny, the catch date: off the page and the tile (pagefacts, through the door).
+    -> (tagged?, what to log)"""
+    info, texts = LAST_BARS[2:] if LAST_BARS else steady_detail()[:2]
+    icons = door.tile_icons(info)
+    costume = gate.has("costume", door.key(n, c))
+    if icons.get("shiny") or costume:
+        mark(pool, n, c)  # (marked only when the answer can't change: a read that failed is tried again next run)
+        return False, f"beaten everywhere, but {'shiny' if icons.get('shiny') else 'costume'}: never tagged"
+    if icons.get("shiny") is None or costume is None:
+        return False, "beaten everywhere, but shiny or costume didn't read: left as it is"
     if gate.listed()[door.key(n, c)]:
-        mark()
+        mark(pool, n, c)
         return False, "beaten everywhere, on the door's not-sure list: left as it is"
+    page = gate.page_bottom(info)
+    lucky = any(ui.norm(t[4]).startswith("LUCKY POK") for t in texts)
+    traded = True if lucky else page["traded"]
+    if traded is None or page["caught"] is None and not traded:
+        return False, f"beaten everywhere, but traded {traded} / caught {page['caught']} didn't read: left as it is"
+    if not traded:
+        old = (time.time() - time.mktime(page["caught"].timetuple())) / 86400 > fallen.OLD_DAYS
+        g = "GuaranteedLucky" if 2016 <= page["caught"].year <= 2020 else "Old" if old else None
+        if g:
+            set_tags(on=[g], off=["PvpC"])
+            base.clear_name()  # an old Pvp name would bring it back as a rival
+            mark(pool, n, c)
+            return True, f"beaten everywhere: tagged {g}, name cleared"
     keep, ivs, raws, iv = high_iv(*(LAST_BARS[:2] if LAST_BARS else (None, None)))
     if keep:
-        mark()
+        mark(pool, n, c)
         return False, f"beaten everywhere, but {iv}: 98%+ never goes, left as it is"
-    info, texts = LAST_BARS[2:] if LAST_BARS else steady_detail()[:2]
     got = gate.judge(info, texts, species_here(pool, texts), ivs, (n, c), size=base.extras(texts)[2], raws=raws,
                      clear=True, unstar=True)
-    mark()
+    mark(pool, n, c)  # (a not-sure one is on the door's list now)
     return got == "tag", f"beaten everywhere: door {got}"
 
 
-def trim_here(pool, n, c, known, rename, gates):
+def settle_here(pool, n, c, known, rename, gate):
     """on its detail screen: appraise it if need be, then rename or tag it if that can't change any more (rename: the
     rest are appraised, so it may rename anyway). -> (how many renamed or tagged, what to log)"""
     slots, what = appraise_slots(pool, n, c, known)
@@ -480,13 +448,22 @@ def trim_here(pool, n, c, known, rename, gates):
         renamed_to(pool, n, c, new)
         return 1, f"{what}: renamed {n!r} -> {new!r}"
     if act == "fallen":  # a slot lost to an appraised one stays lost: this can't change
-        done, why = tag_here(pool, n, c, gates)
+        done, why = fall_here(pool, n, c, gate)
         return int(done), f"{what}: {why}"
     return 0, f"{what}: name stays"
 
 
-def trim_walk(q, todo, tried, limit, gates):
-    """walk one search's list, handle the to-do ones in it. -> how many got renamed"""
+def show(q):
+    """the results of q, at the top: typed only if they aren't on screen already (the walk's own last search)"""
+    if search.LAST.get("q") == q:
+        _, bounds = ui.capture()
+        search.to_top(bounds)
+    else:
+        search.start_search(q)
+
+
+def walk_line(q, todo, tried, limit, gate, record):
+    """walk one search's list, handle the to-do ones in it. -> how many got renamed or tagged"""
     pending, count = list(todo), [0]
 
     def visit(i, n, c):
@@ -503,13 +480,15 @@ def trim_walk(q, todo, tried, limit, gates):
             name = n
         known = next((to_slots(x["slots"]) for x in load_truths().get(t["pool"], [])
                       if x["cp"] == c and same_name(x["name"], name)), None)
-        done, what = trim_here(t["pool"], name, c, known, t["act"] == "rename", gates)
+        done, what = settle_here(t["pool"], name, c, known, t["act"] == "rename", gate)
         count[0] += done
-        log(f"{'DONE trim' if done else '  checked'} {n!r} CP{c}: {what}")
+        line = f"{'DONE' if done else '  checked'} {n!r} CP{c}: {what}"
+        log(line)
+        record.append(f"  {n!r:16} CP{c:<5} {t['what']}: {what}")
         go("close", "list")
         return False
 
-    search.start_search(q)
+    show(q)
     search.walk_list(visit, stop=lambda n: not pending or count[0] >= limit)
     for t in pending:
         tried.add((t["pool"], t["name"], t["cp"], t["act"], t["new"]))
@@ -518,66 +497,54 @@ def trim_walk(q, todo, tried, limit, gates):
     return count[0]
 
 
-def recheck_fallen(n, c):
-    """on its detail screen: still fallen only if each of its real slots has someone better. If it turns out to be
-    best somewhere after all, it gets renamed to show that. Leaves the detail screen open."""
-    f = next(f for f in load("fallen.json") if (f["name"], f["cp"]) == (n, c))
-    known = next((to_slots(x["slots"]) for x in load_truths().get(f["pool"], [])
-                  if x["cp"] == c and same_name(x["name"], n)), None)
-    slots, what = appraise_slots(f["pool"], n, c, known)
-    if slots is None:
-        return False, what
-    act, new = settle_one(f["pool"], n, c)
-    if act == "fallen":
-        return True, f"{what}: {'; '.join(f['why'])}"
-    if act == "rename":
-        do_rename(new)
-        renamed_to(f["pool"], n, c, new)
-        return False, f"{what}: still best somewhere, renamed {new!r}"
-    return False, f"{what}: still best somewhere"
-
-
-def door_gates(todo):
-    """{door group search: Door} for the likely fallen ones still to appraise, so tag_here can send one to the door in
-    the same open"""
-    gates, account = {}, None
-    for q, lst in load("fallen-groups.json", {}).get("Nope", {}).items():
-        if any(t["act"] == "check" and any(cc == t["cp"] and same_name(nn, t["name"]) for nn, cc in lst)
-               for t in todo):
-            gates[q] = door.Door("PvpC", scope=q, account=account)
-            account = gates[q].account
-    return gates
-
-
-def act_fallen(limit):
-    """appraise the ones something beats. Each one's rename or tag happens in that same open once it can't change,
-    round after round until nothing changes. Then tag whatever is beaten everywhere and still left"""
+def one_walk(limit):
+    """fallen out and trims in one pass: each line's search is typed once, its tiles read, and the beaten ones opened
+    from that same list. Each one's rename or tag happens in the open that appraises it, round after round on the same
+    list until the line stops changing. -> how many renamed or tagged"""
+    renamed = load("renamed.json", [])
+    pools = load("fallen-pools.json", {}) or pools_of(renamed)
+    save("fallen-pools.json", pools)
+    results, wants = load("pools.json", {}), load("counts.json", {})
+    log(f"fallen out: {len(renamed)} new names, {len(pools)} lines")
+    if not pools:
+        return 0
     front()
     search.to_search_list()
-    done, tried = 0, set()
-    gates = door_gates(plan(*state()))
-    for rnd in range(1, MAX_ROUNDS + 1):
-        todo = [t for t in plan(*state()) if t["act"] in ("check", "rename") and t["q"]
-                and (t["pool"], t["name"], t["cp"], t["act"], t["new"]) not in tried]
-        if not todo or done >= limit:
+    dexes = sorted({pvp.PLAIN[s]["dex"] for first, _, _ in pools.values() for s in pvp.tree(first)})
+    gate = door.Door("PvpC", scope=",".join(map(str, dexes)), account=DOOR.account if DOOR else None)
+    done, tried, record = 0, set(), []
+    for key, (first, shadow, qs) in pools.items():
+        if done >= limit:
             break
-        checks = {t["pool"] for t in todo if t["act"] == "check"}  # a rename in a line still being appraised
-        todo = [t for t in todo if t["act"] == "check" or t["pool"] not in checks]  # could be undone: those wait
-        log(f"round {rnd}: {len(todo)} to look at")
-        for q in dict.fromkeys(t["q"] for t in todo):
-            if done < limit:
-                done += trim_walk(q, [t for t in todo if t["q"] == q], tried, limit - done, gates)
-    else:
-        log(f"STILL CHANGING after {MAX_ROUNDS} rounds: stopped going round. Look at the log for names that keep flipping")
-    gone = tagged()
-    found = [t for t in plan(*state()) if t["act"] == "fallen" and (t["pool"], t["name"], t["cp"]) not in gone]
-    save("fallen.json", found)
-    log(f"trims done: {done} renamed or tagged. {len(found)} beaten everywhere, still to tag")
-    if found and done < limit:
-        fallen.groups(iv_only=False)
-        pool = lambda n, c: next(f["pool"] for f in load("fallen.json") if (f["name"], f["cp"]) == (n, c))
-        done += sum(fallen.act(limit - done, recheck_fallen, "PvpC", lambda n, c: species_here(pool(n, c)),
-                               off=("PvpC",)).values())
+        for q in qs:
+            if q not in results:
+                path, texts, bounds = search.start_search(q)
+                results[q], wants[q] = search.read_results(q, path, texts, bounds)
+                save("pools.json", results)
+                save("counts.json", wants)
+                log(f"  {q}: {len(results[q])} tiles (game says {wants[q]})")
+        for rnd in range(1, MAX_ROUNDS + 1):
+            gone = tagged()
+            todo = [t for t in plan(*state(), only=key) if t["q"]
+                    and (t["pool"], t["name"], t["cp"]) not in gone
+                    and (t["pool"], t["name"], t["cp"], t["act"], t["new"]) not in tried]
+            checks = any(t["act"] == "check" for t in todo)  # a rename in a line still being appraised could be
+            todo = [t for t in todo if t["act"] != "rename" or not checks]  # undone: it waits for the next round
+            if not todo or done >= limit:
+                break
+            log(f"{key} round {rnd}: {len(todo)} to look at")
+            for q in sorted(dict.fromkeys(t["q"] for t in todo), key=lambda q: q != search.LAST.get("q")):
+                if done < limit:  # (the search on screen first: no typing)
+                    done += walk_line(q, [t for t in todo if t["q"] == q], tried, limit - done, gate, record)
+        else:
+            log(f"{key}: STILL CHANGING after {MAX_ROUNDS} rounds. Look at the log for names that keep flipping")
+    left = [t for t in plan(*state()) if t["act"] == "fallen" and (t["pool"], t["name"], t["cp"]) not in tagged()]
+    save("fallen.json", left)
+    with open(os.path.join(base.RUN_DIR, "fallen.txt"), "w") as f:
+        f.write("\n".join([f"FALLEN OUT AND TRIMS: {done} renamed or tagged"] + record +
+                          ([f"", f"STILL BEATEN, NOT TAGGED: {len(left)}"] +
+                           [f"  {t['name']!r:16} CP{t['cp']:<5} {t['what']}" for t in left] if left else [])) + "\n")
+    log(f"fallen out done: {done} renamed or tagged, {len(left)} beaten and left. See {base.RUN_DIR}/fallen.txt")
     return done
 
 
@@ -642,10 +609,8 @@ def main(limit, dry):
 
 def script(cmd, limit, dry):
     start()
-    if cmd == "fallen":
-        return fallen_step()
-    if cmd == "act-fallen":
-        return log(f"finished: {act_fallen(limit)} renamed or tagged")
+    if cmd in ("fallen", "act-fallen"):  # (act-fallen: the old name of the second half)
+        return log(f"finished: {one_walk(limit)} renamed or tagged")
     if cmd == "keepers":
         return log(f"finished: {finish_keepers(limit)} keepers starred, PvpC off")
     counts = main(limit, dry)
@@ -656,9 +621,9 @@ def script(cmd, limit, dry):
             carry_over()
         except Exception as e:  # never let it stop this run's own fallen-out step
             log(f"no carry-over from earlier runs: {type(e).__name__}: {e}")
-    if at_end and load("renamed.json", []):  # still on the phone: check what the new names pushed out
+    if at_end and load("renamed.json", []):  # still on the phone: rename or tag what the new names pushed out
         try:
-            fallen_step()
+            one_walk(limit)  # (its own --limit: the end of a run writes too now)
         except (Stop, Skip) as e:
             keep_capture("fallen")
             log(f"fallen out step STOPPED: {e} (run `run.py fallen {base.RUN_DIR}` to go on)")
@@ -673,6 +638,4 @@ if __name__ == "__main__":
         if len(a) < 2 or not os.path.isdir(a[1]):
             sys.exit(f"usage: run.py {cmd} <run dir>")
         new_run_dir(None, os.path.abspath(a[1]))
-    if cmd == "act-fallen" and not os.path.exists(os.path.join(base.RUN_DIR, "fallen-groups.json")):
-        sys.exit("run fallen first, and read fallen.txt")
     session.main(script, cmd, limit, dry)

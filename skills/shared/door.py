@@ -20,7 +20,7 @@ from collections import Counter
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(HERE, "..", "cleanup"))
-import ui, base, search, home
+import ui, base, search, home, pagefacts
 from base import Stop, log
 
 NOT_SURE = os.path.join(HERE, "runs", "not-sure.json")
@@ -28,11 +28,26 @@ LUCKY_OUT = os.path.join(HERE, "runs", "lucky-out.json")
 LUCKY_OUT_DAYS = 7  # an older entry is dropped: by then the line may have changed
 RULES = hashlib.md5(b"".join(open(os.path.join(HERE, f), "rb").read() for f in ("verdict.py", "door.py"))
                     ).hexdigest()[:8]  # new rules or a new reader: judge again
-SEARCHES = {"traded": "traded", "shiny": "shiny", "costume": "costume", "background": "background",
-            "far": "distance100-", "xl_under": "countcandyxl0-359"}  # (a count term eats what follows it: each search ends with it)
+SEARCHES = {"costume": "costume"}  # the one fact the page and tile can't show. The rest come from pagefacts
+# (2026-10-31: traded and the catch place off the page's bottom, Candy XL off its top, shiny and background off the tile)
+SAID = {"traded": "traded", "shiny": "shiny", "background": "background", "far": "distance100-",
+        "xl_under": "countcandyxl0-359"}  # a scope that already says one of these (#Nope&traded) is believed over the page
 UNSURE = "unsure"
 vd = ct = trades = shadows = None  # verdict, cleantrades, trades, shadows: imported by Door(). At the top they'd loop back
 # (/ivc's run.py loads names.py, which loads this)
+
+
+def tile_icons(info):
+    """{"shiny", "background"} off the list tile this page was opened from: base.open_tile's, or the last "tile N"
+    any go() tapped (/cleanup, /mega). A tile whose CP isn't this page's -> {} (not sure)"""
+    pick = base.OPENED.get("tile") or ui.TILE_PICK
+    if not pick:
+        return {}
+    cp = pick[1][1]
+    if cp and info.get("cp") and cp != info["cp"]:
+        log(f"  tile icons: the tile was CP{cp}, the page CP{info['cp']}: not used")
+        return {}
+    return pagefacts.tile_icons(*pick)
 
 
 def key(tile_name, cp):
@@ -62,6 +77,7 @@ class Door:
         self.sets, self.partial = {}, set()
         search.to_search_list()
         said = set(self.scope.lower().split("&"))  # '#Nope&traded': every one is traded, so no search can misread it
+        self.said = {k: term in said for k, term in SAID.items() if term in said or "!" + term in said}
         for k, term in SEARCHES.items():
             if term in said or "!" + term in said:
                 self.sets[k] = term in said
@@ -144,19 +160,22 @@ class Door:
             size = None  # an XS Rattata has no badge to read: XS or not is a medal GIV or not
         hp = next(t for t in texts if re.search(r"\d+\s*/\s*\d+\s*HP", t[4]))
         near = [ui.norm(t[4]) for t in texts if hp[1] < t[1] < hp[1] + 0.3]
-        xl = self.has("xl_under", tile)
+        page = self.page_bottom(info)
+        xl = self.said["xl_under"] if "xl_under" in self.said else self.xl_under(info)
+        icons = tile_icons(info)
+        said = lambda k, v: self.said.get(k, v)
         rows = [ui.norm(t[4]) for t in texts]
         evolves = True if any(r.startswith("EVOLVE") for r in rows) else False if any(
             r.startswith("POWER UP") for r in rows) else None  # (Mega Evolve starts MEGA)
         lucky = any(r.startswith("LUCKY POK") for r in rows)  # only a trade makes one lucky
         f = vd.Facts(evolves=evolves,account=self.account, sids=list(sp), iv_sum=sum(ivs) if ivs else None,
-                     ivs=tuple(ivs) if ivs else None, shiny=self.has("shiny", tile),
-                     costume=self.has("costume", tile), background=self.has("background", tile),
-                     traded=True if lucky else self.has("traded", tile), caught=self.caught(info), shadow=base.is_shadow(texts),
+                     ivs=tuple(ivs) if ivs else None, shiny=said("shiny", icons.get("shiny")),
+                     costume=self.has("costume", tile), background=said("background", icons.get("background")),
+                     traded=True if lucky else said("traded", page["traded"]), caught=page["caught"], shadow=base.is_shadow(texts),
                      lucky=lucky,
                      gigantamax="GIGANTAMAX" in near, dynamax="DYNAMAX" in near, size=size, kg=base.who(info)[2],
                      candy_xl=None if xl is None else 0 if xl else vd.XL_CAP,
-                     levels=ct.cost_levels(texts, info["cp"])[1] or self.iv_levels(sp, ivs, info["cp"] or tile_cp, info["hp"]) or None, far=self.has("far", tile), gym_top20=gym_top20,
+                     levels=ct.cost_levels(texts, info["cp"])[1] or self.iv_levels(sp, ivs, info["cp"] or tile_cp, info["hp"]) or None, far=said("far", None if page["california"] is None else not page["california"]), gym_top20=gym_top20,
                      iv_top=iv_top, pvp_judged=self.tag.upper() == "PVPC", ivc_judged=self.tag.upper() == "IVC",
                      other_tags=[t for t in trades.tag_chips(texts)
                                  if t not in (self.tag.upper(), *((self.other.upper(),) if self.source else ()))])
@@ -165,15 +184,32 @@ class Door:
             log("  lucky: /ivc ranked it out of the top IV already")
         return f, ""
 
-    def caught(self, info):
-        """the caught date at the bottom of the page (two reads that agree), then back to the top"""
-        _, texts, _, bounds = base.look()
+    def xl_under(self, info):
+        """under 360 Candy XL (read on the way to the page bottom) -> bool or None"""
+        n = self.page_bottom(info)["xl"]
+        return None if n is None else n < 360
+
+    def page_bottom(self, info):
+        """the bottom of the page, then back to the top: the caught date (two reads that agree), traded or not, and
+        the catch place in California or not -> {"caught", "traded", "california"}. Once per open (base.OPENED)"""
+        if "page" in base.OPENED:
+            return base.OPENED["page"]
+        _, texts, path, bounds = base.look()
         me = trades.who(texts)[1]
+        shots = [(texts, path)]  # the Candy XL row: at the top, or (a Dynamax one's Max Moves box) one drag down
         try:
-            days = {trades.caught(catch_date(r)) for r in trades.scrolled_bottom(bounds)}
+            base.drag(0.08, 0.75, 0.08, 0.2, bounds)  # down the left edge: no buttons there
+            _, t, p, _ = base.look()
+            shots.append((t, p))
+            reads = trades.scrolled_bottom(bounds, drags=1)
         finally:
             trades.back_to_top(me, bounds)
-        return days.pop() if len(days) == 1 else None
+        xl = next((n for t, p in shots if (n := pagefacts.candy_xl(t)) is not None), None)
+        if xl is None:
+            xl = next((n for t, p in shots if (n := pagefacts.candy_xl_close(p, t)) is not None), None)
+        days = {trades.caught(catch_date(r)) for r in reads}
+        base.OPENED["page"] = {"caught": days.pop() if len(days) == 1 else None, "xl": xl, **pagefacts.bottom(reads)}
+        return base.OPENED["page"]
 
     def purify(self, info, v):
         """purify it (the verdict's tags go on after). Can't purify -> unsure, left as it is"""
@@ -209,6 +245,11 @@ class Door:
         try:
             n = ct.power_up({**info, "cp": now["cp"] or tile_cp}, texts, levels)  # (the walk checked the tile's CP)
             log(f"  powered up {n}x before Transfer")
+            for _ in range(12):  # the "CP710+31" animation hides the page's buttons: wait it out (2026-10-31)
+                texts = base.look()[1]
+                if len(texts) > 5 and not any(re.match(r"[cC]\s*[pP].*\+\s*\d+\s*$", t[4].strip()) for t in texts):
+                    break
+                time.sleep(0.5)
             base.OPENED["who"] = base.who(base.detail_now())  # its CP and HP moved: still the same one
         except ct.Unsure as e:
             return vd.unsure(f"Transfer, but the power-up check: {e}")

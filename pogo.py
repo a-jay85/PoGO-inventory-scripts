@@ -28,7 +28,7 @@ STEPS = {
     "ivc":         ("ivc/run.py", {"sort", "names", "fallen", "act-fallen", "search"}, set()),
     "cleantrades": ("cleanup/cleantrades.py", {"evo", "fix", "transfer"}, set()),
     "sizes":       ("cleanup/sizes.py", set(), set()),
-    "tradeable":   ("cleanup/tradeable.py", {"refresh", "read", "plan", "tag"}, {"refresh", "plan"}),
+    "tradeable":   ("cleanup/tradeable.py", {"refresh", "dynamax", "read", "plan", "tag", "door"}, {"refresh", "plan"}),
     "dex":         ("dex/dex.py", {"lucky", "100", "look", "evolve"}, set()),
     "luckydex":    ("dex/luckydex.py", {"check"}, set()),
     "gift":        ("gift/gift.py", {"run", "look"}, set()),

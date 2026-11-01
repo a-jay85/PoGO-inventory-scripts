@@ -185,6 +185,8 @@
   "names": [
    "BABIES",
    "Counter",
+   "DONE_F",
+   "DONE_HOURS",
    "DYNAMAX",
    "EVOLVED_REST",
    "GIVER",
@@ -220,6 +222,7 @@
    "XLX_FOR",
    "XLX_LEVEL",
    "XL_CAP",
+   "build_plan",
    "can_dynamax",
    "cmd_door",
    "cmd_dynamax",
@@ -249,12 +252,14 @@
    "run_pile",
    "survey",
    "tag_pile",
+   "tagged_before",
    "taker_species",
    "wait_for",
    "walk"
   ],
   "runs": [
    "skills/cleanup/runs",
+   "skills/cleanup/runs/tagged.json",
    "skills/pvpc/runs/<time>/dynamax.json",
    "skills/pvpc/runs/<time>/plan.json",
    "skills/pvpc/runs/<time>/plan.md",

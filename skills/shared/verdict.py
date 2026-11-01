@@ -23,7 +23,7 @@ shadow, costume or background one (odd_one: the user's rules for each), and a lu
 Every Transfer for an untraded one goes through transfer() last: an XXL/xxs one gets IVC instead, a trade evolution
 (free to evolve once traded) GIV. The user's own tags first: untraded with Old, Evo or GuaranteedLucky,
 those stay and only IVC / PvpC comes off; traded, the "trade it" tags (TRADE_TAGS) come off. The species lists come
-from tradeable.py's taker_species() and giver_species(), the same ones its plan uses; one saved more than STALE_DAYS
+from tradeable.py's taker_species() and giver_species(), the same ones its tag searches use; one saved more than STALE_DAYS
 ago counts as missing.
 """
 import datetime, os, re, sys, time

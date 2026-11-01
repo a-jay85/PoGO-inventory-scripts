@@ -5,9 +5,11 @@
                                           -> giv-evolved-<date>.json and dynamax-<date>.json
   POGO_PHONE=android caffeinate -dimsu python3 tradeable.py dynamax   CyrillJan signed in: only searches, for verdict.py
   POGO_PHONE=android caffeinate -dimsu python3 tradeable.py read [searches.json]   HashTagAJay signed in: only searches
-  python3 tradeable.py plan               the Mac: every search to tag, in runs/<time>-plan/
-  POGO_PHONE=android caffeinate -dimsu python3 tradeable.py tag [--limit N]   CyrillJan signed in: tags, power-ups
-  POGO_PHONE=android caffeinate -dimsu python3 tradeable.py door [--limit N]  CyrillJan signed in: only the door walk
+  POGO_PHONE=android caffeinate -dimsu python3 tradeable.py [door] [--limit N]  CyrillJan signed in: the default.
+                                          Each untagged one opened once and given its final tag at the door
+  POGO_PHONE=android caffeinate -dimsu python3 tradeable.py tag [--limit N]   CyrillJan signed in: the fast way,
+                                          bulk tag searches first, then power-ups, then the door for the rest
+  python3 tradeable.py plan               the Mac, optional: a look at the searches tag would run (runs/<time>-plan/)
 
 The species lists and the order here are also ../shared/verdict.py's: /ivc and /pvpc judge a Pokémon that
 isn't a keeper with them (the door, no Nope). giver_species() is CyrillJan's side: only good raid attackers (GIV: top 6
@@ -42,8 +44,9 @@ CyrillJan for the rest.
 
 read (HashTagAJay): which families have a lucky one and under 348 candy, and which have 360+ Candy XL. Group searches
 ('lucky&1-151&countcandy0-347'), halved until each hit is one family. -> runs/<time>-read/read.json
-plan: the searches from the newest lucky and ★100% /dex runs of HashTagAJay, roster.json, read.json and pvp-giv.
-tag (CyrillJan): the saved search 'Tradeable' + each plan search -> long press, SELECT ALL, tag. Then each one left is
+tag makes its searches itself, each run, from the newest lucky and ★100% /dex runs of HashTagAJay, roster.json,
+read.json and pvp-giv (no plan step; `plan` only shows them). A rerun within 12 hours skips the ones already done.
+tag (CyrillJan): the saved search 'Tradeable' + each tag search -> long press, SELECT ALL, tag. Then each one left is
 opened for XLX and power-ups, then the rest go through the door one by one (../shared/door.py: their final tag, or
 left as they are and listed as not sure). Log in runs/<time>-tag/.
 """
@@ -422,20 +425,29 @@ def taker_species(m):
                      "evolved": hard_f}}
 
 
-def cmd_plan(to=TAKER):
-    if to != TAKER:
-        sys.exit(f"plan is for {TAKER} only (the door judges for {GIVER}: ../shared/verdict.py)")
-    m = Model()
-    try:
-        sp = taker_species(m)
-    except NoData as e:
-        sys.exit(str(e))
+def build_plan(m):
+    """every search tag runs, from the newest /dex, /roster and read data (made fresh each run: no plan step).
+    -> (plan, taker_species' answer). NoData if a data file isn't there yet"""
+    sp = taker_species(m)
     why, lucky, evolved = sp["why"], sp["lucky"], sp["evolved"]
     plan = {"taker": TAKER, "xlx_level": XLX_FOR[TAKER], "from": sp["from"],
             "tags": {t: queries(m, [s for s, (w, _) in why.items() if w == t], lucky if t == "Luckydex" else None,
                                 room=len(NOT_TAGGED) + 10) for t in TAGS},
             "giv_evolved": queries(m, evolved, room=len(EVOLVED_REST) + 10) + [DYNAMAX],
             "taker_xl_full": sorted(sp["xl_full"])}
+    return plan, sp
+
+
+def cmd_plan(to=TAKER):
+    """only a preview (plan.md) of the searches tag would run: tag makes its own, nothing reads this"""
+    if to != TAKER:
+        sys.exit(f"plan is for {TAKER} only (the door judges for {GIVER}: ../shared/verdict.py)")
+    m = Model()
+    try:
+        plan, sp = build_plan(m)
+    except NoData as e:
+        sys.exit(str(e))
+    why, evolved = sp["why"], sp["evolved"]
     base.new_run_dir(os.path.join(HERE, "runs"), suffix="plan")
     json.dump(plan, open(os.path.join(base.RUN_DIR, "plan.json"), "w"), indent=1)
     lines = [f"# Tradeable plan {time.strftime('%Y-%m-%d %H:%M')}", ""]
@@ -657,6 +669,26 @@ def survey():
     return out
 
 
+DONE_HOURS = 12  # one sitting of stops and restarts: after that every search runs again (new Pokémon came in)
+DONE_F = os.path.join(HERE, "runs", "tagged.json")
+
+
+def tagged_before(plan):
+    """the tag searches an earlier run already did with these same searches, in the last DONE_HOURS (a rerun skips
+    them: 14 s each, even at 0). New /dex, /roster or read data makes new searches, so it starts over.
+    -> (set of searches done, save())"""
+    import hashlib
+    key = hashlib.sha1(json.dumps([plan["tags"], plan["giv_evolved"]], sort_keys=True).encode()).hexdigest()
+    old = json.load(open(DONE_F)) if os.path.exists(DONE_F) else {}
+    fresh = old.get("key") == key and time.time() - old.get("at", 0) < DONE_HOURS * 3600
+    done = set(old.get("done", [])) if fresh else set()
+    at = old["at"] if fresh else time.time()
+
+    def save():
+        json.dump({"key": key, "at": at, "done": sorted(done)}, open(DONE_F, "w"))
+    return done, save
+
+
 def cmd_tag(limit):
     global XLX_LEVEL
     base.new_run_dir(os.path.join(HERE, "runs"), suffix="tag")
@@ -664,26 +696,27 @@ def cmd_tag(limit):
     if who != GIVER:
         raise Stop(f"signed in as {who!r}: tag needs {GIVER}")
     to = TAKER
-    plan_f = newest_for(os.path.join("*-plan", "plan.json"), to, key="taker", default=TAKER)
-    if not plan_f:
-        raise Stop(f"no plan for {to} yet: python3 tradeable.py plan")
-    plan = json.load(open(plan_f))
+    try:
+        plan, _ = build_plan(Model())
+    except NoData as e:
+        raise Stop(str(e))
+    save_plan = os.path.join(base.RUN_DIR, "plan.json")  # what this run tagged by, for the record
+    json.dump(plan, open(save_plan, "w"), indent=1)
     XLX_LEVEL = plan.get("xlx_level", XLX_LEVEL)
-    log(f"{who}: tagging for {to} from {plan_f}, XLX at level {XLX_LEVEL}+")
+    log(f"{who}: tagging for {to} from {plan['from']}, XLX at level {XLX_LEVEL}+")
     search.to_search_list()
     have = survey()  # a small pile: only the searches for species in it run
     wanted = lambda q: have is None or (d := dexes_of(q)) is None or bool(d & have)
-    done_f = os.path.join(os.path.dirname(plan_f), "tagged.json")  # this plan's searches already tagged: a
-    done = set(json.load(open(done_f))) if os.path.exists(done_f) else set()
+    done, save_done = tagged_before(plan)
     for t in TAGS:  # rerun skips them (14 s each, even at 0). Each search leaves out all three tags: the first wins
         for q in plan["tags"][t]:
             if q + NOT_TAGGED in done or not wanted(q):
                 continue
             tag_pile(t, q + NOT_TAGGED)
             done.add(q + NOT_TAGGED)
-            json.dump(sorted(done), open(done_f, "w"))
+            save_done()
     if done:
-        log(f"{len(done)} tag search(es) done for this plan (a new plan starts over)")
+        log(f"{len(done)} tag search(es) done for these searches (new data or {DONE_HOURS} h starts over)")
     # (the taker's 360+ XL families are passed on the detail page: as '&!<dex>' terms they'd overflow the bar)
     traded = NO_SPECIAL + "&" + ",".join(f"#{t}" for t in TAGS)  # (one tagged before special trades were left out)
     rest = REST
@@ -719,7 +752,7 @@ def cmd_tag(limit):
             continue
         tag_pile("GIV", rest + q)
         done.add(rest + q)
-        json.dump(sorted(done), open(done_f, "w"))
+        save_done()
     tag_pile("GIV", rest + "&!traded&distance100-")  # fits nothing else, but a far trade: GIV
     got = door_walk(rest, limit, who)  # (rest leaves out #GIV)
     log(f"the rest, through the door: {dict(got)}")
@@ -780,13 +813,15 @@ def door_walk(suffix, limit, who):
 
 if __name__ == "__main__":
     a = sys.argv[1:]
+    if not a or a[0].startswith("--"):  # the default: the door walk
+        a = ["door"] + a
     cmds = {"refresh": cmd_refresh}
     cmds["dynamax"] = cmd_dynamax
-    if not a or a[0] not in (*cmds, "plan", "read", "tag", "door"):
+    if a[0] not in (*cmds, "plan", "read", "tag", "door"):
         sys.exit(__doc__)
     if a[0] == "door":
         session.main(cmd_door, session.limit(a))
-    if a[0] == "read":
+    elif a[0] == "read":
         session.main(cmd_read, a[1] if len(a) > 1 else None)
     elif a[0] == "tag":
         session.main(cmd_tag, session.limit(a))

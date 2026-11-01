@@ -28,7 +28,7 @@ STEPS = {
     "ivc":         ("ivc/run.py", {"sort", "names", "fallen", "act-fallen", "search"}, set()),
     "cleantrades": ("cleanup/cleantrades.py", {"evo", "fix", "transfer"}, set()),
     "sizes":       ("cleanup/sizes.py", set(), set()),
-    "tradeable":   ("cleanup/tradeable.py", {"refresh", "dynamax", "read", "plan", "tag", "door"}, {"refresh", "plan"}),
+    "tradeable":   ("cleanup/tradeable.py", {"refresh", "dynamax", "read", "plan", "tag", "door"}, {"refresh", "plan"}),  # door: the default
     "dex":         ("dex/dex.py", {"lucky", "100", "look", "evolve"}, set()),
     "luckydex":    ("dex/luckydex.py", {"check"}, set()),
     "gift":        ("gift/gift.py", {"run", "look"}, set()),
@@ -38,7 +38,7 @@ STEPS = {
     "gymfeed":     ("gymfeed/gymfeed.py", set(), set()),
     "account":     ("shared/account.py", {"HashTagAJay", "CyrillJan"}, set()),
 }
-NEEDS_WORD = {"tradeable", "dex", "roster"}  # these have no default: the first word is a must
+NEEDS_WORD = {"dex", "roster"}  # these have no default: the first word is a must
 BOTH = {"trade"}  # drives the iPhone and the Pixel, whatever POGO_PHONE says
 
 

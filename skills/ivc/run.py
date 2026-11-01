@@ -1057,9 +1057,9 @@ def names(limit, dry=False):
 
 def fallen_out(limit):
     """the fallen-out ones of this sort run: grouped (searches only), then each one opened and tagged GuaranteedLucky
-    / Old or sent to the door. A rerun on the same folder groups again: what's tagged by now drops out"""
+    / Old or sent to the door. A rerun on the same folder groups again: what's tagged by now drops out. It goes by
+    the fallen.json the sort's plan wrote (no new plan here: newer code can't read an older folder's searches)"""
     fallen.groups(iv_only=True)
-    plan(quiet=True)  # (plan.txt lists the groups too)
     act_fallen(limit)
 
 

@@ -37,6 +37,19 @@ vd = ct = trades = shadows = None  # verdict, cleantrades, trades, shadows: impo
 # (/ivc's run.py loads names.py, which loads this)
 
 
+def tile_icons(info):
+    """{"shiny", "background"} off the list tile this page was opened from: base.open_tile's, or the last "tile N"
+    any go() tapped (/cleanup, /mega). A tile whose CP isn't this page's -> {} (not sure)"""
+    pick = base.OPENED.get("tile") or ui.TILE_PICK
+    if not pick:
+        return {}
+    cp = pick[1][1]
+    if cp and info.get("cp") and cp != info["cp"]:
+        log(f"  tile icons: the tile was CP{cp}, the page CP{info['cp']}: not used")
+        return {}
+    return pagefacts.tile_icons(*pick)
+
+
 def key(tile_name, cp):
     return ui.tile_name(tile_name), cp
 
@@ -149,7 +162,7 @@ class Door:
         near = [ui.norm(t[4]) for t in texts if hp[1] < t[1] < hp[1] + 0.3]
         page = self.page_bottom(info)
         xl = self.said["xl_under"] if "xl_under" in self.said else self.xl_under(info)
-        icons = pagefacts.tile_icons(*base.OPENED["tile"]) if base.OPENED.get("tile") else {}
+        icons = tile_icons(info)
         said = lambda k, v: self.said.get(k, v)
         rows = [ui.norm(t[4]) for t in texts]
         evolves = True if any(r.startswith("EVOLVE") for r in rows) else False if any(

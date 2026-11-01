@@ -24,7 +24,7 @@ import json, os, re, sys, time
 from collections import Counter
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "shared"))
-import ui, pvp, base, search, fallen, session, door, pagefacts
+import ui, pvp, base, search, fallen, session, door
 from base import GYM, Lost, Skip, Stop, appraisal_species, appraise, back_to_list, candy, detail_name, \
     do_rename, exact_ivs, front, go, high_iv, is_shadow, is_tag, keep_capture, load, log, new_run_dir, \
     open_appraisal, open_tile, opened_right, recover, same_name, save, scroll_for_new, set_star, set_tags, slots_of, \
@@ -400,7 +400,7 @@ def fall_here(pool, n, c, gate):
     are never tagged. Traded, shiny, the catch date: off the page and the tile (pagefacts, through the door).
     -> (tagged?, what to log)"""
     info, texts = LAST_BARS[2:] if LAST_BARS else steady_detail()[:2]
-    icons = pagefacts.tile_icons(*base.OPENED["tile"]) if base.OPENED.get("tile") else {}
+    icons = door.tile_icons(info)
     costume = gate.has("costume", door.key(n, c))
     if icons.get("shiny") or costume:
         mark(pool, n, c)  # (marked only when the answer can't change: a read that failed is tried again next run)

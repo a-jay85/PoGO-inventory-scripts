@@ -13,12 +13,15 @@ that's missing, gives unsure, never Transfer.
 
 The order is tradeable.py's (its docstring has the reasons), judged for the other account, the one it would be traded
 to. Signed in as CyrillJan (the pile goes to HashTagAJay):
-  GuaranteedLucky > Luckydex > Old > Reroll > GIV > XXL/xxs > XLX > GIV (evolved, Dynamax, Tandemaus) > GIV (far) >
-  Transfer
+  GuaranteedLucky > Luckydex > Old > Reroll > GIV > XXL/xxs > XLX > GIV (evolved, Dynamax, Tandemaus) > GIV (trade
+  evolution) > GIV (far) > Transfer
 Signed in as HashTagAJay (the pile goes to CyrillJan):
-  GuaranteedLucky > Old > GIV (medal) > 2XL > GIV > XXL/xxs > XLX > GIV (evolved, Dynamax) > GIV (far) > Transfer
+  GuaranteedLucky > Old > GIV (medal) > 2XL > GIV > XXL/xxs > XLX > GIV (evolved, Dynamax) > GIV (trade evolution) >
+  GIV (far) > Transfer
 Before all of them: a special trade (trades.py's legendary rules, else unsure), a traded one (Transfer), an untraded
-shadow, costume or background one (odd_one: the user's rules for each), and a lucky one, traded or not (lucky()). The user's own tags first: untraded with Old, Evo or GuaranteedLucky,
+shadow, costume or background one (odd_one: the user's rules for each), and a lucky one, traded or not (lucky()).
+Every Transfer for an untraded one goes through transfer() last: an XXL/xxs one gets IVC instead, a trade evolution
+(free to evolve once traded) GIV. The user's own tags first: untraded with Old, Evo or GuaranteedLucky,
 those stay and only IVC / PvpC comes off; traded, the "trade it" tags (TRADE_TAGS) come off. The species lists come
 from tradeable.py's taker_species() and giver_species(), the same ones its plan uses; one saved more than STALE_DAYS
 ago counts as missing.
@@ -49,6 +52,7 @@ OWN_TAGS = ("Old", EVO, "GuaranteedLucky")  # untraded with one of these: it sta
 TRADE_TAGS = ("GIV", "XLX", "2XL", "Reroll", "Old", "Special", "GuaranteedLucky")  # "trade it": off a traded one
 STALE_DAYS = 7  # a species list older than this counts as missing
 OVER_93 = 43  # a costume one over 93% (42 of 45 reads 93%) is a favorite
+TRADE_EVO_DEX = {int(d) for d in TRADE_EVOS.split(",")}  # evolve free once traded
 
 
 @dataclass
@@ -209,7 +213,7 @@ def final_tag(f, t, today=None):
     if odd and not f.traded:
         return odd_one(f, t, sid, odd)
     if f.traded:
-        if f.account == EVO_FOR and dexn in {int(d) for d in TRADE_EVOS.split(",")}:
+        if f.account == EVO_FOR and dexn in TRADE_EVO_DEX:
             return tag(EVO, why="traded: evolves for free", off=strip)
         return tag("Transfer", why="traded: can't trade again", off=strip)
     if LUCKY_YEARS[0] <= f.caught.year <= LUCKY_YEARS[1]:
@@ -259,11 +263,29 @@ def final_tag(f, t, today=None):
         return tag("GIV", why="untraded Dynamax")
     if to == TAKER and sid in t["giv_for_taker"]:
         return tag("GIV", why=f"{sid}: wanted by {TAKER}")
+    if dexn in TRADE_EVO_DEX:  # (GIV either way: before the distance, so a failed distance search doesn't matter)
+        return tag("GIV", why="untraded: evolves free once traded")
     if f.far is None:
         return unsure("distance not checked")
     if f.far:
         return tag("GIV", why="caught 100 km+ away")
-    return tag("Transfer", why="no rule wants it")
+    return transfer(f, sid, "no rule wants it")
+
+
+def transfer(f, sid, why, off=(), purify=False, clear=False):
+    """Transfer, unless it's untraded and (the user's rules, 2026-10-31, for every Transfer):
+      an XXL or xxs one -> IVC, named XXL / xxs (/ivc counts that name as done)
+      one that evolves free once traded (TRADE_EVOS) -> GIV. A shadow can't be traded: it never is
+    The size comes first, as in final_tag's order. A size that didn't read gives unsure, never Transfer"""
+    if not f.traded:
+        if f.size is None:
+            return unsure(f"{why}, but size not read (an untraded XXL/xxs one gets IVC)")
+        if f.size in SIZE_NAMES:
+            return tag("IVC", why=f"never traded {f.size.upper()} (else Transfer: {why})", name=SIZE_NAMES[f.size],
+                       off=off)
+        if not f.shadow and pvp.SPECIES[sid]["dex"] in TRADE_EVO_DEX:
+            return tag("GIV", why=f"untraded, evolves free once traded (else Transfer: {why})", off=off, clear=clear)
+    return tag("Transfer", why=why, off=off, purify=purify, clear=clear)
 
 
 def lucky(f, sid, dexn, strip):
@@ -284,9 +306,9 @@ def lucky(f, sid, dexn, strip):
         name, _ = pvp.make_name(sid, tuple(f.ivs), min(f.levels) if f.levels else None)
         if name:
             return tag("PvpC", why=f"lucky, out of the top IV, but PvP {name}: /pvpc judges it", off=strip)
-    if f.traded and f.account == EVO_FOR and dexn in {int(d) for d in TRADE_EVOS.split(",")}:
+    if f.traded and f.account == EVO_FOR and dexn in TRADE_EVO_DEX:
         return tag(EVO, why="traded lucky, out of the top IV and PvP: evolves for free", off=strip)
-    return tag("Transfer", why="lucky: out of the top IV and PvP", off=strip, clear=True)
+    return transfer(f, sid, "lucky: out of the top IV and PvP", off=strip, clear=True)
 
 
 def odd_one(f, t, sid, odd):
@@ -308,7 +330,7 @@ def odd_one(f, t, sid, odd):
             return unsure("costume: Candy XL not read")
         if f.candy_xl < XL_CAP:
             return tag("2XL", why=f"costume, under {XL_CAP} Candy XL")
-        return tag("Transfer", why=f"costume, {XL_CAP}+ Candy XL")
+        return transfer(f, sid, f"costume, {XL_CAP}+ Candy XL")
     # shadow (it can't be traded)
     if f.ivs is None:
         return unsure("shadow: IVs not read")
@@ -320,8 +342,8 @@ def odd_one(f, t, sid, odd):
     if f.candy_xl is None:
         return unsure("shadow: Candy XL not read")
     if f.candy_xl < XL_CAP:
-        return tag("Transfer", why=f"shadow, under {XL_CAP} Candy XL: purify and transfer", purify=True)
-    return tag("Transfer", why=f"shadow, {XL_CAP}+ Candy XL: transfer, no purify")
+        return transfer(f, sid, f"shadow, under {XL_CAP} Candy XL: purify and transfer", purify=True)
+    return transfer(f, sid, f"shadow, {XL_CAP}+ Candy XL: transfer, no purify")
 
 
 if __name__ == "__main__":

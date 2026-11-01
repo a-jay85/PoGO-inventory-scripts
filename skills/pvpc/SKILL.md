@@ -66,6 +66,10 @@ Every script (`/pvpc`, `/ivc`, `/cleanup`, `/trade`, `/gift`, `/dex`, `/roster`)
 - Google asking to verify (or any screen it doesn't know after signing out) stops the run: sign in by hand.
 Taps come 0.1–0.25s apart (same as /ivc). A short 0.7–1.3s pause stays, on the appraisal only.
 
+### Leagues a form can't play (2026-10-31)
+
+A form (each species on its own: Pikachu and Raichu apart) is ranked in a league only if its 15/15/15 CP at level 50 is over the cap minus 100: over 400 for Little, 1400 for Great, 2400 for Ultra (`pvp.plays`). Amaura (1541 at 50) ranks in Great, never Ultra. It's left out everywhere: names, fallen-out checks, /ivc's PvP check. An old name showing such a league (`Pvp Gm38 Um9`) is appraised and trimmed (`Pvp Gm38`) or falls out the next time its line is checked. To check one line now: `caffeinate -dimsu python3 $S/run.py fallen --line <species id>` (plain and shadow, a new run folder).
+
 ### Fallen out and trims
 
 A new Pvp name can push an older Pvp Pokémon out of the top. Per league (L/G/U) and per form, only the best one owned keeps its place. Ties keep.

@@ -13,6 +13,9 @@
                                                                  trim) or tagged GuaranteedLucky / Old / door (name
                                                                  cleared) in the open that appraises them, until the
                                                                  line stops changing. act-fallen: same thing
+  caffeinate -dimsu python3 run.py fallen --line <species>       the same pass on one line (plain and shadow) in a new
+                                                                 run folder, with no new names: fixes old names a rule
+                                                                 change left wrong (a league the form can't play)
   caffeinate -dimsu python3 run.py keepers [--limit N]           star the Pvp-named ones still in the PvpC list
                                                                  (from runs before keepers were starred), PvpC off
   POGO_PHONE=android caffeinate -dimsu python3 run.py ...   (Android phone over USB, see ../shared/android.py)
@@ -553,6 +556,17 @@ def walk_line(q, todo, tried, limit, gate, record):
     return count[0]
 
 
+def line_pools(species):
+    """fallen-pools.json for one line, plain and shadow (`fallen --line`)"""
+    if species not in pvp.PLAIN:
+        sys.exit(f"no species {species!r} (a PvPoke species id, e.g. amaura)")
+    first = pvp.root(species)
+    if pvp.letters(first) is None:
+        sys.exit(f"the {pvp.display(first)} line branches, its names can't be read back")
+    return {first + ("+shadow" if sh else ""): [first, sh, pvp.line_searches(pvp.tree(first), "shadow" if sh else "plain")]
+            for sh in (False, True)}
+
+
 def one_walk(limit):
     """fallen out and trims in one pass: each line's search is typed once, its tiles read, and the beaten ones opened
     from that same list. Each one's rename or tag happens in the open that appraises it, round after round on the same
@@ -690,8 +704,12 @@ if __name__ == "__main__":
     limit = session.limit(a)
     dry = "--dry-run" in a
     cmd = a[0] if a and a[0] in ("fallen", "act-fallen", "keepers") else None
-    if cmd in ("fallen", "act-fallen"):
+    if cmd in ("fallen", "act-fallen") and "--line" in a:
+        pools = line_pools(a[a.index("--line") + 1])
+        new_run_dir(None, base.RUN_DIR)
+        save("fallen-pools.json", pools)
+    elif cmd in ("fallen", "act-fallen"):
         if len(a) < 2 or not os.path.isdir(a[1]):
-            sys.exit(f"usage: run.py {cmd} <run dir>")
+            sys.exit(f"usage: run.py {cmd} <run dir> | --line <species>")
         new_run_dir(None, os.path.abspath(a[1]))
     session.main(script, cmd, limit, dry)

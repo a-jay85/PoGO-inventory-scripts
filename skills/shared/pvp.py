@@ -21,6 +21,7 @@ LEAGUES = [("L", 500), ("G", 1500), ("U", 2500)]
 STAR_RANGES = {0: (0, 22), 1: (23, 29), 2: (30, 36), 3: (37, 44), 4: (45, 45)}
 TOP = 100
 NAME_LEN = 12
+CP_ROOM = 100  # a form plays a league only if 15/15/15 at level 50 tops the cap minus this (user's rule, 2026-10-31)
 
 
 RANK_URL = "https://raw.githubusercontent.com/pvpoke/pvpoke/master/src/data/rankings/{}.json"
@@ -141,14 +142,33 @@ def level_of(species, ivs, cpv, hpv):
     return next((lv for lv in LEVELS if cp(base, ivs, lv) == cpv and hp(base, ivs, lv) == hpv), None)
 
 
+@lru_cache(None)
+def plays(form, cap):
+    """this form can get near the league's cap: its 15/15/15 CP at level 50 is over cap - CP_ROOM (Great: over 1400,
+    Ultra: over 2400, Little: over 400). A form that can't is never ranked there (Amaura in Ultra: 1541)"""
+    return cp(SPECIES[form]["baseStats"], (15, 15, 15), MAX_LEVEL) > cap - CP_ROOM
+
+
+CAPS = dict(LEAGUES)
+
+
+def live(slot):
+    """a (league, form) slot a name can still show: the form plays that league. A tuple of forms: live if any does"""
+    tag, form = slot
+    return any(f in SPECIES and plays(f, CAPS[tag]) for f in (form if isinstance(form, tuple) else (form,)))
+
+
 def all_ranks(species, ivs, level=None):
     """[(league, rank, form)] for every eligible form/league.
     level: how far it's powered up now. Evolving keeps the level and nothing powers down, so a form whose CP
-    at that level is already over the cap can never play there: that league/form is left out."""
+    at that level is already over the cap can never play there: that league/form is left out. So is a league the
+    form can't get near the cap of (plays)."""
     out = []
     for s in family(species, ivs):
         for tag, cap in LEAGUES:
             if tag == "L" and not (s == species and lc_eligible(s)):
+                continue
+            if not plays(s, cap):
                 continue
             if level is not None and cp(SPECIES[s]["baseStats"], ivs, level) > cap:
                 continue
@@ -384,9 +404,17 @@ def slots_name(first, slots):
 
 
 def kept(mine, others):
-    """the slots of mine nobody in others beats (ties keep). A slot whose form can't be told (a tuple) always keeps"""
-    return {slot: r for slot, r in mine.items()
-            if isinstance(slot[1], tuple) or not any(slot in o and o[slot] < r for _, o in others)}
+    """the slots of mine nobody in others beats (ties keep). A slot whose form can't be told (a tuple) always keeps.
+    A slot the form can't play (an old name's, from before plays) never keeps"""
+    return {slot: r for slot, r in mine.items() if live(slot) and
+            (isinstance(slot[1], tuple) or not any(slot in o and o[slot] < r for _, o in others))}
+
+
+def lost_why(slot, r, others, first):
+    """why a slot didn't keep: who beats it, or that the form can't play that league"""
+    if not live(slot):
+        return f"{slot_text(slot, r, first)} too weak for that league (can't top {CAPS[slot[0]] - CP_ROOM} CP at 50)"
+    return f"{slot_text(slot, r, first)} beaten by {min((o[slot], n) for n, o in others if slot in o)[1]!r}"
 
 
 def plan_pool(members, first, same=lambda a, b: a == b, twins=lambda i, j: False):
@@ -402,8 +430,7 @@ def plan_pool(members, first, same=lambda a, b: a == b, twins=lambda i, j: False
     for i, (name, slots, known) in enumerate(members):
         others = [(n, s) for j, (n, s, _) in enumerate(members) if j != i and not twins(i, j)]
         k = kept(slots, others)
-        beaten = [f"{slot_text(sl, r, first)} beaten by "
-                  f"{min((o[sl], n) for n, o in others if sl in o)[1]!r}" for sl, r in slots.items() if sl not in k]
+        beaten = [lost_why(sl, r, others, first) for sl, r in slots.items() if sl not in k]
         if not known:
             out.append(("check", beaten, len(k) == 0) if beaten else ("keep",))
         elif not k:
@@ -427,6 +454,9 @@ def fallen(mine, others, first):
         return False, ["no top-100 slot"]
     why = []
     for slot, r in sorted(mine.items(), key=lambda kv: kv[1]):
+        if not live(slot):
+            why.append(lost_why(slot, r, others, first))
+            continue
         if isinstance(slot[1], tuple):
             return False, [f"{slot_text(slot, r, first)}: can't tell which form"]
         better = sorted((o[slot], n) for n, o in others if slot in o and o[slot] < r)
@@ -543,6 +573,12 @@ def test():
               (fallen({("G", "charizard"): 5, ("U", "charizard"): 2}, [("Pvp G4", {("G", "charizard"): 4})],
                       "charmander")[0], False)]
     checks += [(cascade(*c[:2]), c[2]) for c in CASCADES]
+    # a form ranks a league only if 15/15/15 at 50 tops the cap minus 100: Amaura (1541) plays Great, not Ultra
+    checks += [(plays("amaura", 1500), True), (plays("amaura", 2500), False), (plays("raichu", 2500), True),
+               (make_name("amaura", (14, 14, 15))[0], "Pvp Gm38"),
+               (plan_pool([("Pvp Gm38 Um9", name_slots("Pvp Gm38 Um9", "amaura"), False)], "amaura")[0][0], "check"),
+               (plan_pool([("Pvp Gm38 Um9", iv_slots("amaura", (14, 14, 15)), True)], "amaura")[0], ("rename", "Pvp Gm38")),
+               (fallen({("U", "amaura"): 9}, [], "amaura")[0], True)]
     # Tyrogue goes by its highest IV; a tie keeps every tied one
     checks += [({f for _, _, f in all_ranks("tyrogue", (15, 10, 12))}, {"tyrogue", "hitmonlee"}),
                (tops("tyrogue", (3, 14, 9)), ["hitmonchan"]), (tops("tyrogue", (0, 1, 2)), ["hitmontop"]),

@@ -1324,11 +1324,10 @@
   "copies": {},
   "names": [
    "CAP_W",
+   "GLOBE",
    "ICON_BOX",
    "ICON_MIN",
-   "SHAPE",
-   "SHAPE_H",
-   "SHAPE_W",
+   "SHAPES",
    "SNOWFLAKE",
    "SPARKLE_BOX",
    "SPARKLE_MIN",
@@ -1337,7 +1336,9 @@
    "bottom",
    "candy_xl",
    "candy_xl_close",
+   "icon_score",
    "pale_blue",
+   "shape",
    "sparkle",
    "tile_icons"
   ],

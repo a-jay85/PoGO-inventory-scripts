@@ -21,11 +21,14 @@ SPARKLE_BOX = (-36, -8, -44, -18)  # x0, x1, y0, y1 from the middle of the tile 
 SPARKLE_MIN = 25
 sparkle = lambda p: p[1] - p[0] > 25 and 5 < p[2] - p[1] < 45 and p[0] + p[1] + p[2] < 330
 
-# background: the snowflake's shape in pale blue pixels, anywhere around the sprite (it sits wherever the sprite
-# leaves room: right of it, or over its left side on a wide one like Venusaur)
+# background: an icon's shape in pale blue pixels, anywhere around the sprite (it sits wherever the sprite leaves
+# room: right of it, or over its left side on a wide one like Venusaur). Two icons: the snowflake (a special
+# background) and the globe (a location background, like Golden Gate's or Pikachu's)
 ICON_BOX = (-60, 60, -30, 40)
-ICON_MIN = 0.4  # best overlap (shared / either) of the shape with the tile's pale blue pixels
-pale_blue = lambda p: p[2] > 200 and p[2] - p[0] > 25 and p[1] > 170
+ICON_MIN = 0.6  # best overlap (shared / either) of a shape with the tile's pale blue pixels
+# pale blue, and bluer than green: the soft teal glow some tiles have behind the sprite (Baltoy, Bronzor) is as
+# green as it is blue (b - g -20..0), and it read as a background (2026-11-01). The icons' b - g is mostly 0..60
+pale_blue = lambda p: p[2] > 200 and p[2] - p[0] > 25 and p[1] > 170 and p[2] - p[1] >= 0
 SNOWFLAKE = """
 ..................#...
 .......#.......#.##...
@@ -45,9 +48,32 @@ SNOWFLAKE = """
 ......###........#....
 ......##..............
 """
-SHAPE = {(x, y) for y, row in enumerate(SNOWFLAKE.split()) for x, ch in enumerate(row) if ch == "#"}
-SHAPE_W = max(x for x, _ in SHAPE) + 1
-SHAPE_H = max(y for _, y in SHAPE) + 1
+GLOBE = """
+.......########.......
+.....############.....
+....#####.##.#####....
+...##.##..##..##.##...
+..###.##..##..##..##..
+.####################.
+.##.##############.##.
+##...##...##...##...##
+##..##....##....##..##
+##..##....##....##..##
+######################
+######################
+##..##....##....##..##
+##..##....##....##..##
+##...##...##....#...##
+.##.##############.##.
+.####################.
+..######..##...#####..
+...##.##..##..##.###..
+....#####.##.#####....
+.....############.....
+.......########.......
+"""
+shape = lambda art: {(x, y) for y, row in enumerate(art.split()) for x, ch in enumerate(row) if ch == "#"}
+SHAPES = {"snowflake": shape(SNOWFLAKE), "globe": shape(GLOBE)}
 
 
 def _pixels(im, box, test):
@@ -57,18 +83,25 @@ def _pixels(im, box, test):
     return {(x, y) for y in range(max(y0, 0), min(y1, H)) for x in range(max(x0, 0), min(x1, W)) if test(px[x, y])}
 
 
-def _match(on, box):
-    """best overlap of SHAPE with the on-pixels, anywhere in box"""
+def _match(on, box, shape):
+    """best overlap of shape with the on-pixels, anywhere in box"""
     x0, y0, x1, y1 = box
+    w, h = max(x for x, _ in shape) + 1, max(y for _, y in shape) + 1
     best = 0
-    for y in range(y0, y1 - SHAPE_H + 1):
-        for x in range(x0, x1 - SHAPE_W + 1):
-            both = sum((x + a, y + b) in on for a, b in SHAPE)
-            if both * 2 < len(SHAPE):
+    for y in range(y0, y1 - h + 1):
+        for x in range(x0, x1 - w + 1):
+            both = sum((x + a, y + b) in on for a, b in shape)
+            if both * 2 < len(shape):
                 continue
-            here = sum((x + a, y + b) in on for a in range(SHAPE_W) for b in range(SHAPE_H))
-            best = max(best, both / (len(SHAPE) + here - both))
+            here = sum((x + a, y + b) in on for a in range(w) for b in range(h))
+            best = max(best, both / (len(shape) + here - both))
     return best
+
+
+def icon_score(im, box):
+    """the best match of any background icon in box (0..1)"""
+    on = _pixels(im, box, pale_blue)
+    return max(_match(on, box, s) for s in SHAPES.values())
 
 
 def tile_icons(path, tile):
@@ -85,8 +118,7 @@ def tile_icons(path, tile):
     cx, cy = tile[2] * W, tile[3] * H
     at = lambda b: (int(cx + b[0]), int(cy + b[2]), int(cx + b[1]), int(cy + b[3]))
     shiny = len(_pixels(im, at(SPARKLE_BOX), sparkle)) >= SPARKLE_MIN
-    box = at(ICON_BOX)
-    background = _match(_pixels(im, box, pale_blue), box) >= ICON_MIN
+    background = icon_score(im, at(ICON_BOX)) >= ICON_MIN
     return {"shiny": shiny, "background": background}
 
 

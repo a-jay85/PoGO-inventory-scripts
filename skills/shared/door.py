@@ -147,8 +147,8 @@ class Door:
             size = None  # an XS Rattata has no badge to read: XS or not is a medal GIV or not
         hp = next(t for t in texts if re.search(r"\d+\s*/\s*\d+\s*HP", t[4]))
         near = [ui.norm(t[4]) for t in texts if hp[1] < t[1] < hp[1] + 0.3]
-        xl = self.said["xl_under"] if "xl_under" in self.said else self.xl_under()  # (a look only when needed)
         page = self.page_bottom(info)
+        xl = self.said["xl_under"] if "xl_under" in self.said else self.xl_under(info)
         icons = pagefacts.tile_icons(*base.OPENED["tile"]) if base.OPENED.get("tile") else {}
         said = lambda k, v: self.said.get(k, v)
         rows = [ui.norm(t[4]) for t in texts]
@@ -171,12 +171,9 @@ class Door:
             log("  lucky: /ivc ranked it out of the top IV already")
         return f, ""
 
-    def xl_under(self):
-        """under 360 Candy XL, off the page's top (a 3x crop when the count is too small to read) -> bool or None"""
-        _, texts, path, _ = base.look()
-        n = pagefacts.candy_xl(texts)
-        if n is None:
-            n = pagefacts.candy_xl_close(path)
+    def xl_under(self, info):
+        """under 360 Candy XL (read on the way to the page bottom) -> bool or None"""
+        n = self.page_bottom(info)["xl"]
         return None if n is None else n < 360
 
     def page_bottom(self, info):
@@ -184,14 +181,21 @@ class Door:
         the catch place in California or not -> {"caught", "traded", "california"}. Once per open (base.OPENED)"""
         if "page" in base.OPENED:
             return base.OPENED["page"]
-        _, texts, _, bounds = base.look()
+        _, texts, path, bounds = base.look()
         me = trades.who(texts)[1]
+        shots = [(texts, path)]  # the Candy XL row: at the top, or (a Dynamax one's Max Moves box) one drag down
         try:
-            reads = trades.scrolled_bottom(bounds)
+            base.drag(0.08, 0.75, 0.08, 0.2, bounds)  # down the left edge: no buttons there
+            _, t, p, _ = base.look()
+            shots.append((t, p))
+            reads = trades.scrolled_bottom(bounds, drags=1)
         finally:
             trades.back_to_top(me, bounds)
+        xl = next((n for t, p in shots if (n := pagefacts.candy_xl(t)) is not None), None)
+        if xl is None:
+            xl = next((n for t, p in shots if (n := pagefacts.candy_xl_close(p, t)) is not None), None)
         days = {trades.caught(catch_date(r)) for r in reads}
-        base.OPENED["page"] = {"caught": days.pop() if len(days) == 1 else None, **pagefacts.bottom(reads)}
+        base.OPENED["page"] = {"caught": days.pop() if len(days) == 1 else None, "xl": xl, **pagefacts.bottom(reads)}
         return base.OPENED["page"]
 
     def purify(self, info, v):

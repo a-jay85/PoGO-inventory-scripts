@@ -124,10 +124,11 @@ def tag_chips(texts):
                   and n not in ("DYNAMAX", "GIGANTAMAX") and not n.startswith("LUCKY POK"))
 
 
-def scrolled_bottom(bounds):
-    """drag the detail page up to its bottom (caught date) -> texts seen there, both reads"""
-    base.drag(0.08, 0.75, 0.08, 0.2, bounds)  # down the left edge: no buttons there
-    base.drag(0.08, 0.75, 0.08, 0.2, bounds)
+def scrolled_bottom(bounds, drags=2):
+    """drag the detail page up to its bottom (caught date) -> texts seen there, both reads. drags: how many it takes
+    from where the page is now"""
+    for _ in range(drags):
+        base.drag(0.08, 0.75, 0.08, 0.2, bounds)  # down the left edge: no buttons there
     reads = []
     for _ in range(2):
         _, texts, _, _ = look()
@@ -147,7 +148,8 @@ def back_to_top(me, bounds):
         texts = look()[1]  # the phone's own screenshot
         now = who(texts)[1] if ui.classify(texts) == "detail" else None
         cp_top = any(t[1] < 0.15 and re.match(r"[cC]\s*[pP]", t[4].strip()) for t in texts)
-        if now and (now[1:3] == me[1:3]  # same CP and HP (name reads can wobble)
+        if now and (now[1:3] == me[1:3] and now[1] is not None  # same CP and HP (name reads can wobble). No CP read
+                    # in either: not proof (half way down, 2026-10-31), the next line needs the CP at the top
                     or cp_top and None in (now[1], me[1]) and None not in me[2:] and now[2:] == me[2:]):
             return  # (a lucky one's sparkles can garble the CP, in this read or the first: then the same HP, weight
             # and height, with a CP at the top)
@@ -156,7 +158,7 @@ def back_to_top(me, bounds):
             continue
         kg = [t for t in texts if re.search(r"\d\s*kg$", t[4].strip())]
         hold = [t for t in texts if 0.1 < t[1] < 0.8 and (t in kg or re.search(
-            r"WEIGHT|HEIGHT|STARDUST|CANDY|CAUGHT|HATCHED|WITH YOUR PARTY|THIS POK|BECOME|CAN USE|CAN FUSE|ADVENTURE EFFECT|DISTORTS", ui.norm(t[4])))]
+            r"WEIGHT|HEIGHT|STARDUST|CANDY|CAUGHT|HATCHED|OBTAINED IN A TRADE|RECEIVED|MAX MOVES|WITH YOUR PARTY|THIS POK|BECOME|CAN USE|CAN FUSE|ADVENTURE EFFECT|DISTORTS", ui.norm(t[4])))]
         if hold:
             x, y = hold[0][0] + hold[0][2] / 2, hold[0][1] + hold[0][3] / 2
             # at the top the weight sits at ~0.6: move it to just short of there, any more and the page closes

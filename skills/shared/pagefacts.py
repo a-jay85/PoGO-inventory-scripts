@@ -96,22 +96,27 @@ def candy_xl(texts):
     labels = [t for t in texts if re.search(r"\bCANDY XL$", ui.norm(t[4]))]
     if not labels:
         xl = [t for t in texts if ui.norm(t[4]) == "XL"]
-        labels = [c for c in texts if xl and re.search(r"\bCANDY$", ui.norm(c[4])) and c[0] > 0.55
+        labels = [c for c in texts if xl and re.search(r"\bCANDY$", ui.norm(c[4]))
                   and any(0 < x[1] - c[1] < 0.04 and abs(x[0] - c[0]) < 0.15 for x in xl)]
     if len(labels) != 1:
         return None
     lab = labels[0]
-    got = [int(re.sub(r"\D", "", t[4])) for t in texts if 0.01 < lab[1] - t[1] < 0.06 and t[0] > 0.55
+    got = [int(re.sub(r"\D", "", t[4])) for t in texts if 0.01 < lab[1] - t[1] < 0.06
            and abs((t[0] + t[2] / 2) - (lab[0] + lab[2] / 2)) < 0.12 and re.fullmatch(r"\d[\d,.]*", t[4].strip())]
     return got[0] if len(got) == 1 else None
 
 
-def candy_xl_close(path):
-    """candy_xl on a 3x crop of the candy row, for a count too small to read whole"""
+def candy_xl_close(path, texts=None):
+    """candy_xl on a 3x crop of the candy row, for a count too small to read whole. texts: the same capture's read,
+    to find the row (a Dynamax one's Max Moves box pushes it down). None when the row isn't on screen"""
     from PIL import Image
     im = Image.open(path)
     W, H = im.size
-    top, bottom = int(0.55 * H), int(0.8 * H)
+    rows = [t[1] for t in texts or () if re.search(r"\bCANDY\b", ui.norm(t[4]))]
+    if texts is not None and not rows:
+        return None
+    y0, y1 = (min(rows) - 0.08, max(rows) + 0.06) if rows else (0.55, 0.8)
+    top, bottom = int(max(y0, 0) * H), int(min(y1, 1) * H)
     crop = im.crop((0, top, W, bottom)).resize((W * 3, (bottom - top) * 3), Image.LANCZOS)
     tmp = ui.TMP + "_xl.png"
     crop.save(tmp)

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Never-traded XXL and XXS Pokémon don't get Transfer: they get renamed XXL or xxs and tagged IVC.
+"""Never-traded XXL and XXS Pokémon don't get Transfer: they get renamed XXL or xxs and tagged IVC. A never-traded
+trade evolution gets GIV instead.
 
   POGO_PHONE=android caffeinate -dimsu python3 sizes.py [--limit N]   sweep the Transfer tags already given
   caffeinate -dimsu python3 sizes.py [--limit N]                      the iPhone, through iPhone Mirroring
@@ -10,6 +11,8 @@ Each one is opened. Its size badge must agree with the search, or it's passed ov
   name -> XXL or xxs (/ivc's spelling). A name that already says its size keeps it.
   tags -> IVC on, Transfer off. Other tags (Old, ...) stay.
 /ivc counts an XXL/xxs name as done, and leaves sized IVC ones for the user once named.
+Then the never-traded trade evolutions (free to evolve once traded, cleantrades' TRADE_EVOS), not shadows:
+#Transfer&!traded&!shadow&!xxl&!xxs&!#GIV&<dex numbers> -> GIV on, Transfer off, all at once (SELECT ALL).
 --limit N changes at most N. Log in runs/<time>-sizes/.
 """
 import os, re, sys
@@ -27,6 +30,8 @@ from trades import search_exact, sheet_rows, still_sheet, tick, sheet_down
 IVC, TRANSFER = "IVC", "Transfer"
 NAMES = {"xxl": "XXL", "xxs": "xxs"}  # search term -> nickname, as ivc.make_name spells them
 SWEEP = f"#{TRANSFER}&!traded&%s"
+GIV = "GIV"
+EVO_SWEEP = f"#{TRANSFER}&!traded&!shadow&!xxl&!xxs&!#{GIV}&{ct.TRADE_EVOS}"
 
 
 def same(got, want):
@@ -123,6 +128,9 @@ def sweep(limit):
         left = (search_exact(q), ct.results())[1]
         if left:
             log(f"{q}: {left} still there (passed over or --limit): look at them by hand")
+    # then a never-traded trade evolution (free to evolve once traded): GIV, Transfer off. After the sizes: one
+    # passed over there stays out. Not a shadow: it can't be traded
+    ct.tag_pile(TRANSFER, GIV, off=[TRANSFER], query=EVO_SWEEP)
 
 
 def script(limit):

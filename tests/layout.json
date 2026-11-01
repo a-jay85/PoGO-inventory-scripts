@@ -108,6 +108,7 @@
    "still_sheet",
    "tag_pile",
    "tick",
+   "untraded",
    "wait_for"
   ],
   "runs": [
@@ -149,6 +150,8 @@
  "skills/cleanup/sizes.py": {
   "copies": {},
   "names": [
+   "EVO_SWEEP",
+   "GIV",
    "HERE",
    "IVC",
    "NAMES",

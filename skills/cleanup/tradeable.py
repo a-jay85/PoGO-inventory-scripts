@@ -30,7 +30,8 @@ One tag each, the first that fits:
     evolve into, or one GO can't evolve into yet (Kleavor, Alolan Marowak) (giv-evolved-<date>.json). Also gym
     defenders (/ivc's GYM_DEFENDERS) and untraded Dynamax ones. Tagged after the XLX walk.
  6. GIV (far): never traded and caught 100 km or more away ('distance100-'), and no other tag fits.
- 7. Transfer: everything else, but a never-traded XXL or XXS one gets renamed XXL or xxs and tagged IVC (sizes.py).
+ 7. Transfer: everything else, but a never-traded XXL or XXS one gets renamed XXL or xxs and tagged IVC (sizes.py),
+    and a never-traded trade evolution (free to evolve once traded: cleantrades' TRADE_EVOS) gets GIV (the door).
 Special trades get no tag at all and are never powered up: Legendary, Mythical, Ultra Beast, shiny and Gigantamax. The
 user trades them by hand, so a tag never lines one up for a trade that uses up the day's special trade. Shadows can't
 be traded.

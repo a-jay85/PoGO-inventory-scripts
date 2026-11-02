@@ -909,16 +909,28 @@ def send_gift():
                 wait("friend", timeout=6)
                 return title
             button = send_button(send)
-            tap_text(send, rest=0)
-            if sent_away(send, button):  # SEND is gone and the gift flies off: an X right now skips the animation
-                tap(*X_BUTTON, fuzz=0.004, rest=0)
-            with base.changing("sending a gift"):  # (the gift may be gone: a lost screen stops the run, no retry)
-                s = wait("friend", "picker", "preview", "unknown", "blank", timeout=8 * LAG)
-            for _ in range(int(10 * LAG)):
-                if s == "friend":
-                    return title
-                time.sleep(0.6)
-                s = look()
+            for tries in range(2):
+                tap_text(send, rest=0)
+                if sent_away(send, button):  # SEND is gone and the gift flies off: an X right now skips the animation
+                    tap(*X_BUTTON, fuzz=0.004, rest=0)
+                with base.changing("sending a gift"):  # (the gift may be gone: a lost screen stops the run, no retry)
+                    s = wait("friend", "picker", "preview", "unknown", "blank", timeout=8 * LAG)
+                for _ in range(int(10 * LAG)):
+                    if s == "friend":
+                        return title
+                    time.sleep(0.6)
+                    s = look()
+                # iPhone Mirroring now and then drops the SEND tap (2026-11-02). The same preview after the full
+                # wait, its SEND untouched: tap it once more (the user's call). Never a third time
+                again = label("SEND", 0.78, 0.9)
+                if tries or s != "preview" or not again or not preview_ok(title, late)[0] \
+                        or abs(again[1] - send[1]) > 0.01 \
+                        or sum(abs(a - b) for u, v in zip(button, send_button(again))
+                               for a, b in zip(u, v)) / (3 * len(button)) > 20:
+                    break
+                keep_capture("send_again")
+                log(f"  SEND on {title!r} didn't land: the same preview after the full wait, tapping it once more")
+                send = again
             keep_capture("after_send")
             raise Stop(f"after SEND the screen is {s}: {summary()}")
         if classify() != "picker":

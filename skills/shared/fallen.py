@@ -59,14 +59,14 @@ def groups(iv_only=True):
 def summary(fallen, grouped):
     """lines for the plan / fallen.txt"""
     lines = [f"FALLEN OUT: {len(fallen)} older Pokémon now outside the top. Grouped GuaranteedLucky / Old / Nope; "
-             "act-fallen checks each one again on its detail screen first."]
+             "each one is checked again on its detail screen first."]
     lines += [f"  {f['name']!r:16} CP{f['cp']:<5} {f.get('what', '')}: {'; '.join(f['why'])}" for f in fallen]
     if grouped:
         lines += ["", "FALLEN OUT, by group:"] + [f"  {g}: {sum(len(v) for v in grouped[g].values())}" for g in grouped]
     return lines
 
 
-def act(limit, recheck, tag, species, off=(), stop=None, odd=None, gym_top20=None, iv_top=lambda n, c: None):
+def act(limit, recheck, tag, species, off=(), odd=None, gym_top20=None, iv_top=lambda n, c: None):
     """tag the grouped ones. recheck(name, cp) runs on the open detail screen and leaves it there:
     -> (still fallen?, what to log). species(name, cp) on that screen -> its species ids, for the door. tag: the
     skill's (IVC / PvpC), for the door's not-sure list. off: tags to untick at the same time. gym_top20: what
@@ -121,6 +121,7 @@ def act(limit, recheck, tag, species, off=(), stop=None, odd=None, gym_top20=Non
             return True
 
         search.start_search(q)
-        search.walk_list(visit, stop=stop, odd=odd)
+        # ends when every one wanted here is done: the list's order can't be trusted (a plain name can come first)
+        search.walk_list(visit, stop=lambda n: not +todo or sum(done.values()) >= limit, odd=odd)
     log(f"fallen done: {dict(done)}")
     return done

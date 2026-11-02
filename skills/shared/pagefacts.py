@@ -183,7 +183,8 @@ def bottom(reads):
         traded = any("OBTAINED IN A TRADE" in ui.norm(t[4]) for t in rows)
         date = next((t for t in rows if t[1] > label[0][1] and re.search(r"\b\d{1,2}/\d{1,2}/20\d\d\b", t[4])), None)
         place = " ".join(t[4] for t in rows if label[0][1] < t[1] < (date[1] if date else 1) and t[0] < 0.6)
-        california = "CALIFORNIA" in ui.norm(place) if place.strip() else None
+        # the page writes the state either way: "San Francisco, CA, United States" or "..., California, ..."
+        california = re.search(r"\b(CALIFORNIA|CA)\b", ui.norm(place)) is not None if place.strip() else None
         for k, v in (("traded", traded), ("california", california)):
             if v is not None:
                 out[k] = v if out[k] in (None, v) else None  # two reads that disagree: can't tell

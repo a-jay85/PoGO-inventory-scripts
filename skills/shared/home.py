@@ -379,6 +379,8 @@ def trainer():
         elif screen == "exit":
             press_text(texts, bounds, "CANCEL")
             time.sleep(1.5)
+        elif screen == "ios-home":  # the game went to the back (a laggy iPhone, 2026-11-02): open it again
+            start(storage=False)
         else:
             unstick(texts)
             time.sleep(1.0)

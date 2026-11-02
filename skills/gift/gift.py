@@ -199,7 +199,7 @@ def tap_into(t, *screens, dy=0.0, timeout=8, on="friends"):
     button just sits there): when the screen is still `on`, with that word in the same spot, tap it again, twice at
     most. (A tap that only landed late at worst opens a gift's preview or a friend page: nothing is sent by it)"""
     for attempt in range(3):
-        if attempt == 0 and look() == on and dimmed():
+        if attempt == 0 and t[1] > 0.25 and look() == on and dimmed():  # (the tabs up top work under the veil)
             s = undim(*screens)  # (a tap on a greyed-out screen does nothing, or lands late)
             if s in screens:
                 return s
@@ -211,7 +211,7 @@ def tap_into(t, *screens, dy=0.0, timeout=8, on="friends"):
             s = look()
             if s in screens:
                 return s
-            if s == on and dimmed():
+            if s == on and t[1] > 0.25 and dimmed():
                 s = undim(*screens)
                 if s in screens:
                     return s

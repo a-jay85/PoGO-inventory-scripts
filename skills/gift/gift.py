@@ -1196,7 +1196,7 @@ def run_searches(limit):
                     continue
                 row = todo[0]
                 done.add(row["name"])
-                if re.match(r"WAIT", row["nick"].strip(), re.I):
+                if re.match(r"WAIT", row["nick"].strip()):
                     log(f"  {row['name']} ({row['nick']}): tagged WAIT, skipped")  # (1 point to level up: no gift)
                     fresh = True
                     continue

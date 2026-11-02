@@ -205,9 +205,28 @@ def pick_form(form, texts, bounds):
     raise Pass(f"the {form} tab is greyed out (resting after the other form)")
 
 
+def show_me(texts, bounds):
+    """the 'You can now increase the Mega Level of this Pokémon!' popup after a Mega Evolve: tap its SHOW ME.
+    That only closes it, back to the Pokémon page. Back and a tap anywhere else do nothing. -> True if tapped"""
+    j = " ".join(t[4] for t in texts)
+    if "increase the" not in j or "Mega Level of this" not in j:
+        return False
+    button = exact(texts, "SHOW ME")
+    if len(button) != 1:
+        return False
+    press(button[0], bounds)
+    time.sleep(1.0)
+    return True
+
+
 def close_sheet():
     """Back (Android) or the round X: to the Pokémon page"""
     for _ in range(3):
+        screen, texts, _, bounds = look()
+        if show_me(texts, bounds):
+            screen, texts, _, bounds = look()
+        if screen == "detail":  # Back here would close the Pokémon too
+            return
         if ui.ANDROID:
             ui.android.key("back")
         else:
@@ -329,6 +348,8 @@ def finish():
                 press(yes[0], bounds)
                 time.sleep(0.8)
                 continue
+        if show_me(texts, bounds):
+            continue
         if "Mega Level" in j and "increased" in j:  # a level up (High -> Max): Back, or its round X at the bottom
             if ui.ANDROID:
                 ui.android.key("back")

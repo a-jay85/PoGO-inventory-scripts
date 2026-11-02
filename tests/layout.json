@@ -111,9 +111,7 @@
    "untraded",
    "wait_for"
   ],
-  "runs": [
-   "skills/cleanup/runs"
-  ]
+  "runs": []
  },
  "skills/cleanup/shadows.py": {
   "copies": {},
@@ -176,9 +174,7 @@
    "wait_for",
    "walk"
   ],
-  "runs": [
-   "skills/cleanup/runs"
-  ]
+  "runs": []
  },
  "skills/cleanup/tradeable.py": {
   "copies": {},
@@ -258,8 +254,6 @@
    "walk"
   ],
   "runs": [
-   "skills/cleanup/runs",
-   "skills/cleanup/runs/tagged.json",
    "skills/pvpc/runs/<time>/dynamax.json",
    "skills/pvpc/runs/<time>/plan.json",
    "skills/pvpc/runs/<time>/plan.md",
@@ -284,6 +278,7 @@
    "keep_capture",
    "log",
    "look",
+   "one_digit_off",
    "press",
    "scrolled_bottom",
    "search_exact",
@@ -373,7 +368,6 @@
    "write_searches"
   ],
   "runs": [
-   "skills/dex/runs",
    "skills/pvpc/runs/<time>/evolve-lucky.txt",
    "skills/pvpc/runs/<time>/trainer.txt"
   ]
@@ -414,9 +408,7 @@
    "unnamed",
    "view"
   ],
-  "runs": [
-   "skills/dex/runs"
-  ]
+  "runs": []
  },
  "skills/gift/gift.py": {
   "copies": {},
@@ -1035,9 +1027,7 @@
    "save",
    "script"
   ],
-  "runs": [
-   "skills/roster/runs"
-  ]
+  "runs": []
  },
  "skills/shared/account.py": {
   "copies": {},

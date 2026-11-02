@@ -23,7 +23,7 @@
 Start with Pokémon GO on the inventory, filtered to the PvpC tag. Anything the script isn't sure
 about is skipped and written to runs/<time>/log.txt with a capture. Anything unexpected stops the run.
 """
-import json, os, re, sys, time
+import functools, json, os, re, sys, time
 from collections import Counter
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "shared"))
@@ -302,12 +302,19 @@ def members(results, qs, first, truths):
     return out + [(t["name"], t["cp"], None, to_slots(t["slots"]), True) for t in left]
 
 
+@functools.cache
+def sister_forms(first, shadow):
+    """other lines whose searches are this line's (Pumpkaboo's sizes, Giratina's forms): the game can't tell them apart"""
+    kind = "shadow" if shadow else "plain"
+    qs = pvp.line_searches(pvp.tree(first), kind)
+    return tuple(r for r in dict.fromkeys(pvp.root(s) for s in pvp.PLAIN) if r != first
+                 and pvp.letters(r) is not None and pvp.line_searches(pvp.tree(r), kind) == qs)
+
+
 def plan(pools, results, wants, truths, only=None):
     """what every member of every pool needs: [{name, cp, pool, q, act, new, why, all, ...}], keeps left out.
     act: check (appraise it), rename, fallen. all: a check whose name shows nothing still best (likely fallen)"""
     out = []
-    shared = {k: {q for k2, (_, sh2, qs2) in pools.items() if k2 != k and sh2 == sh for q in qs2}
-              for k, (_, sh, _) in pools.items()}  # searches another pool (another form) uses too
     for key, (first, shadow, qs) in pools.items():
         if only and key != only:
             continue
@@ -318,9 +325,10 @@ def plan(pools, results, wants, truths, only=None):
         ms = members(results, qs, first, truths.get(key, []))
         twins = lambda i, j: ms[i][1] == ms[j][1] and search.looks_same(ms[i][0], ms[j][0])
         acts = pvp.plan_pool([(n, sl, k) for n, _, _, sl, k in ms], first, same_name, twins)
-        if set(qs) & shared.get(key, set()):  # forms one search can't tell apart (Pumpkaboo's sizes): a Pvp name
-            elsewhere = [t for k2, lst in truths.items() if k2 != key and set(pools.get(k2, [0, 0, []])[2]) & set(qs)
-                         for t in lst]  # appraised as another form: not this pool's
+        sis = sister_forms(first, shadow)
+        if sis:  # forms one search can't tell apart (Pumpkaboo's sizes): a Pvp name
+            elsewhere = [t for r in sis for t in truths.get(r + ("+shadow" if shadow else ""), [])]  # appraised as
+            # another form: not this pool's
             ms = [m for m in ms if m[4] or not any(t["cp"] == m[1] and same_name(m[0], t["name"]) for t in elsewhere)]
             acts = pvp.plan_pool([(n, sl, k) for n, _, _, sl, k in ms], first, same_name, twins)
             kn = [i for i, m in enumerate(ms) if m[4]]  # doesn't say the form, so a name alone can't beat anyone.

@@ -106,6 +106,7 @@ def load(name, default=None):
 # The pause that looks like a person working something out is think(), on the appraisal only.
 last_tap = 0.0
 USER_IDLE = 10  # front() waits this long after the user's last key or click before taking the screen back
+STARTED = time.time()  # input from before the script started (the keys that started it) never makes front() wait
 
 
 def tap_gap():
@@ -285,9 +286,10 @@ def front():
             return ui.android.ready(force=True)
         except ui.android.NotReady as e:
             raise Stop(str(e))
-    if ui.sh(ui.HELPER, "front").strip() != "iPhone Mirroring" and idle_seconds() < USER_IDLE:
+    need = lambda: min(USER_IDLE, time.time() - STARTED)  # (the keys that started this script don't count)
+    if ui.sh(ui.HELPER, "front").strip() != "iPhone Mirroring" and idle_seconds() < need():
         log(f"you're using the Mac: waiting until it's been idle {USER_IDLE}s")
-        while idle_seconds() < USER_IDLE:
+        while idle_seconds() < need():
             time.sleep(1)
     for _ in range(3):  # the first open sometimes loses to whatever app had focus
         if ui.sh(ui.HELPER, "front").strip() == "iPhone Mirroring":

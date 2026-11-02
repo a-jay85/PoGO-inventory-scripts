@@ -438,6 +438,7 @@
    "NICK_MAX",
    "OutOfGifts",
    "PHONE",
+   "PICKER_DRAG",
    "REOPEN_LOAD",
    "SHORT",
    "SORT_BUTTON",
@@ -461,6 +462,7 @@
    "close_popup",
    "commit_search",
    "count",
+   "dimmed",
    "drag",
    "early",
    "early_cities",
@@ -472,6 +474,7 @@
    "grey_check",
    "heart_fill",
    "is_late",
+   "is_tagged",
    "joined",
    "keep_capture",
    "label",
@@ -521,13 +524,13 @@
    "to_top",
    "type_query",
    "typed",
+   "undim",
    "wait",
+   "whole",
    "whose",
    "words"
   ],
-  "runs": [
-   "skills/gift/runs"
-  ]
+  "runs": []
  },
  "skills/gymfeed/gymfeed.py": {
   "copies": {},
@@ -1138,6 +1141,7 @@
    "RUN_DIR",
    "Refused",
    "SIZE_CARD",
+   "STARTED",
    "Skip",
    "Stop",
    "TAG_AT",

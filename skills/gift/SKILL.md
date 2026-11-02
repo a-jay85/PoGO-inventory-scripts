@@ -62,6 +62,7 @@ Otherwise, before each gift the script opens the friendship screen (the hearts o
 - 1 point to go: no gift. Nickname becomes `WAIT <old nickname>`.
 - 2 points to go: gift, then nickname `SENT <old nickname>`.
 - An old `WAIT` or `SENT` in front is replaced, not stacked.
+- A friend already tagged `WAIT` is skipped, whether the friend list or the page shows it. The game's `!WAIT` search lets some through.
 - Nicknames hold 12 characters. Too long: the space goes first, then letters off the end (`WAITSouthKor`).
 - A nickname the script can't type or read back cleanly is left alone, and the log says to tag it by hand.
 

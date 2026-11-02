@@ -1297,6 +1297,7 @@
   "names": [
    "DOCK",
    "HATCH_SCREENS",
+   "IOS_OPEN_TRIES",
    "LOAD_TIMEOUT",
    "MAX_BACKS",
    "OPEN",

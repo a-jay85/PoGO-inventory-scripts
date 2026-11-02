@@ -66,7 +66,7 @@ Otherwise, before each gift the script opens the friendship screen (the hearts o
 - Nicknames hold 12 characters. Too long: the space goes first, then letters off the end (`WAITSouthKor`).
 - A nickname the script can't type or read back cleanly is left alone, and the log says to tag it by hand.
 
-iPhone Mirroring sometimes freezes for a few seconds. On the iPhone the script waits 15 seconds for the gift preview and about 20 seconds or more after SEND before it stops. It never taps SEND twice.
+iPhone Mirroring sometimes freezes for a few seconds. On the iPhone the script waits 15 seconds for the gift preview and about 20 seconds or more after SEND before it stops. If the same preview is still there after that wait, with the same title and SEND untouched, it taps SEND once more (Mirroring drops a tap now and then). Never a third time.
 
 ## Runs
 

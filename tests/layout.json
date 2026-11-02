@@ -530,7 +530,9 @@
    "whose",
    "words"
   ],
-  "runs": []
+  "runs": [
+   "skills/gift/runs"
+  ]
  },
  "skills/gymfeed/gymfeed.py": {
   "copies": {},

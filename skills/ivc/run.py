@@ -638,8 +638,7 @@ FALLEN_RANK = {}  # (tile name, CP) -> a lucky one's rank (lucky_rank), as reche
 
 def act_fallen(limit):
     fallen.act(limit, recheck_fallen, TAG, lambda n, c: FALLEN_SPECIES[(n, c)], gym_top20=False,
-               iv_top=lambda n, c: FALLEN_RANK[(n, c)],
-               stop=lambda n: not re.match(r"\d", n), odd=odd_name)
+               iv_top=lambda n, c: FALLEN_RANK[(n, c)], odd=odd_name)
 
 
 # ---------- 4. act ----------

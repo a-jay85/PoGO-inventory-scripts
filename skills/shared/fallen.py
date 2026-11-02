@@ -66,7 +66,7 @@ def summary(fallen, grouped):
     return lines
 
 
-def act(limit, recheck, tag, species, off=(), stop=None, odd=None, gym_top20=None, iv_top=lambda n, c: None):
+def act(limit, recheck, tag, species, off=(), odd=None, gym_top20=None, iv_top=lambda n, c: None):
     """tag the grouped ones. recheck(name, cp) runs on the open detail screen and leaves it there:
     -> (still fallen?, what to log). species(name, cp) on that screen -> its species ids, for the door. tag: the
     skill's (IVC / PvpC), for the door's not-sure list. off: tags to untick at the same time. gym_top20: what
@@ -121,6 +121,7 @@ def act(limit, recheck, tag, species, off=(), stop=None, odd=None, gym_top20=Non
             return True
 
         search.start_search(q)
-        search.walk_list(visit, stop=stop, odd=odd)
+        # ends when every one wanted here is done: the list's order can't be trusted (a plain name can come first)
+        search.walk_list(visit, stop=lambda n: not +todo or sum(done.values()) >= limit, odd=odd)
     log(f"fallen done: {dict(done)}")
     return done

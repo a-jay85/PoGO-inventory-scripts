@@ -29,6 +29,7 @@ STORAGE = ("list", "tag-tab", "detail", "menu", "appraisal", "appraise-intro", "
 OPEN = ("detail", "menu", "appraisal", "appraise-intro", "gym")  # a Pokémon open: back_to_list() closes it
 LOAD_TIMEOUT = 150  # seconds for the game to open and get past its loading screens
 MAX_BACKS = 12  # Back presses (Android) on screens it doesn't know before it gives up
+IOS_OPEN_TRIES = 3  # iPhone: taps on the game's icon (home screen) before it gives up
 DOCK = (0.73, 0.926)  # iPhone: the Poké Ball in the dock, third icon (Spotlight doesn't list the app near the top)
 
 
@@ -217,7 +218,7 @@ def start(storage=True):
         base.front()
     t_open = time.time()
     end = t_open + LOAD_TIMEOUT
-    prev, same, unknowns, reconnected, hatched = None, 0, 0, False, 0
+    prev, same, unknowns, reconnected, hatched, home_taps = None, 0, 0, False, 0, 0
     while True:
         try:
             screen, texts, path, bounds = look()
@@ -271,6 +272,11 @@ def start(storage=True):
             search.to_search_list()  # its own rule for a tag sheet left open
             return base.look()[0]
         elif screen == "ios-home":
+            if home_taps >= IOS_OPEN_TRIES:  # each tap gives LOAD_TIMEOUT again: without this it never ends
+                keep_capture("start")  # (2026-11-01: 300 taps in 35 min, the game wouldn't open from any icon)
+                raise Stop(f"tapped Pokémon GO on the iPhone's home screen {home_taps} times and it didn't open: "
+                           f"open it once on the iPhone itself, then run again")
+            home_taps += 1
             log("on the iPhone's home screen: opening Pokémon GO")
             iphone_open()
             opened, t_open, end = True, time.time(), time.time() + LOAD_TIMEOUT

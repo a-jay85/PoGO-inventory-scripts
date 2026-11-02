@@ -75,6 +75,8 @@ DRY = False  # --dry-run: everything but SEND and the nickname box's OK
 shortcuts = not ui.ANDROID  # off for the rest of the run once a shortcut didn't expand
 typed = ""  # the last search typed: the box shows its end ('ea', 'mo')
 LAG = 1 if ui.ANDROID else 2.5  # iPhone Mirroring now and then freezes for several seconds: wait longer there
+PICKER_DRAG = (0.85, 0.25)  # a scroll down the gift list: long, to pass other cities fast, but no longer than the
+# cards on screen (0.2-0.85) and no faster, so no card scrolls past between two looks
 MAX_LOST = 3  # lost screens in a row (each on a friend's page, backed out of) before the run stops
 
 
@@ -197,6 +199,10 @@ def tap_into(t, *screens, dy=0.0, timeout=8, on="friends"):
     button just sits there): when the screen is still `on`, with that word in the same spot, tap it again, twice at
     most. (A tap that only landed late at worst opens a gift's preview or a friend page: nothing is sent by it)"""
     for attempt in range(3):
+        if attempt == 0 and look() == on and dimmed():
+            s = undim(*screens)  # (a tap on a greyed-out screen does nothing, or lands late)
+            if s in screens:
+                return s
         tap_text(t, dy=dy)
         try:
             return wait(*screens, timeout=timeout)
@@ -205,11 +211,36 @@ def tap_into(t, *screens, dy=0.0, timeout=8, on="friends"):
             s = look()
             if s in screens:
                 return s
+            if s == on and dimmed():
+                s = undim(*screens)
+                if s in screens:
+                    return s
             same = find(lambda u: clean(u[4]) == clean(t[4]) and abs(u[0] - t[0]) < 0.02 and abs(u[1] - t[1]) < 0.01)
             if attempt == 2 or s != on or not same:
                 raise
             log(f"  tap on {t[4].strip()!r} didn't land: again")
             t = same[0]
+
+
+def dimmed():
+    """the last capture is greyed all over: the game is busy behind a dark veil (2026-11-02: 30 s after a gift,
+    the friend list at grey 198 where it's white). Taps on it do nothing"""
+    im = Image.open(path).convert("RGB")
+    W, H = im.size
+    ps = [im.getpixel((int(W * fx), int(H * fy))) for fx in (0.06, 0.94) for fy in (0.3, 0.4, 0.5, 0.6, 0.7, 0.8)]
+    return all(180 <= p[0] <= 215 and max(p) - min(p) < 8 for p in ps)
+
+
+def undim(*screens, timeout=45):
+    """wait, without tapping, for the grey veil to lift -> the screen then"""
+    log("  the screen is greyed out: waiting for it, no taps")
+    end = time.time() + timeout
+    while time.time() < end:
+        time.sleep(1.0)
+        s = look()
+        if s in screens or not dimmed():
+            return s
+    raise base.Lost(f"the screen stayed greyed out {timeout}s: {summary()}")
 
 
 def drag(fy1, fy2, ms=500, x=None):
@@ -395,6 +426,13 @@ def expanded(parts):
     return not any(SHORT[p].upper() in t for p in parts if p in SHORT)
 
 
+def whole(box, q):
+    """False when the box clearly holds less than the search: the box shows the last ~40 letters of a long
+    search, so a short read (no '&' in it) is all there is. 2026-11-02: the 'iii' was lost and 'mo' alone ran"""
+    t = ui.norm(box[4]).replace(" ", "").rstrip("X") if box else ""
+    return not t or "&" in t or len(t) >= min(len(q), 20)
+
+
 def commit_search():
     """the search is typed: commit it -> its result count, or None when none shows"""
     time.sleep(0.5)
@@ -448,6 +486,9 @@ def search(*parts):
             shortcuts = False
             log("the text shortcuts didn't expand: typing searches out in full from now on")
             continue
+        if not whole(box, q):
+            log(f"the box holds only part of {q!r}: typing it again")
+            continue
         if n == 0 or rows():
             return n
         n = add_space(n)
@@ -492,7 +533,9 @@ def swap_zone(base_q, old, new):
     box = search_line()
     t = ui.norm(box[4]).replace(" ", "").rstrip("X") if box else ""  # (the read can end with the box's clear X)
     log(f"  search box reads {box[4] if box else None!r}")
-    if n is None or (not t.endswith(new.upper()) if new else t.endswith(old.upper())):
+    ends = lambda z: len(t) > len(z) and sum(a != b for a, b in zip(t[-len(z):], z.upper())) <= len(z) // 2
+    took = (ends(new) and not t.endswith(old.upper())) if new else not ends(old)  # (OCR read 'mo' as 'mg')
+    if n is None or not took or not whole(box, typed):
         log(f"swapping {old!r} for {new!r} didn't take: typing the search again")
         return None
     if n and not rows():
@@ -554,7 +597,8 @@ def same_name(a, b):
 
 def page_name():
     top = [t for t in texts if 0.07 < t[1] < 0.16 and t[0] < 0.25 and '"' not in t[4]
-           and re.fullmatch(r"[\w&]{3,}", clean(t[4]))]  # (below the status bar's clock; OCR reads an 8 as &: "Gr&estGuyEver")
+           and re.fullmatch(r"[\w&|]{3,}", clean(t[4]))]  # (below the status bar's clock; OCR reads an 8 as &: "Gr&estGuyEver",
+    # an l as |: "dulces|79")
     return clean(sorted(top, key=lambda t: t[1])[0][4]) if top else None
 
 
@@ -898,12 +942,18 @@ def send_gift():
         dragged = here
         if drags == 0 and blind:  # the list has loaded: scroll down to where the last gift was, no looks between
             for _ in range(blind - 1):
-                drag(0.75, 0.45, x=0.5 + random.uniform(-0.005, 0.005))
+                drag(*PICKER_DRAG, x=0.5 + random.uniform(-0.005, 0.005))
             drags = blind - 1
             dragged = None  # (these scrolls weren't checked: the next one mustn't read as the list's end)
-        drag(0.75, 0.45, x=0.5 + random.uniform(-0.005, 0.005))
+        drag(*PICKER_DRAG, x=0.5 + random.uniform(-0.005, 0.005))
         drags += 1
     raise Stop(f"scrolled the gift list {drags} times without reaching its end")
+
+
+def is_tagged(tag, nick):
+    """the nickname already reads new_nickname(tag, ...) of itself: renaming it would change nothing"""
+    f = lambda x: re.sub(r"\s", "", x).lower()
+    return bool(nick) and f(new_nickname(tag, nick)) == f(nick)
 
 
 def new_nickname(tag, old):
@@ -1008,14 +1058,14 @@ def grey_check(t):
 
 
 def one_friend(row, check=False):
-    """open the row's friend page, check, gift and/or tag. -> the gift sent, None, "grey" or "empty".
+    """open the row's friend page, check, gift and/or tag. -> the gift sent, None, "grey", "empty" or "raid".
     check: on a grey SEND GIFT, tap it anyway to see whether my bag is empty"""
     t0 = time.time()
     s = tap_into(row["t"], "friend", "giftpopup", "luckytrade", "raid")
     if s == "raid":
         keep_capture("raid")
-        log(f"  tapping {row['name']!r} opened a raid: left it, skipped")
-        return None  # (run_searches' to_list() closes it)
+        log(f"  tapping {row['name']!r} opened a raid: left it")
+        return "raid"  # (run_searches' to_list() closes it, and tries this friend once more)
     if s in ("giftpopup", "luckytrade"):
         close_popup("friend")  # their gift to me: X, never OPEN. A Lucky Trade request: X, left for the user
     name = page_name()
@@ -1040,6 +1090,9 @@ def one_friend(row, check=False):
         log(f"{name} ({nick}): SEND GIFT read grey, but the gift list opened: going on")
     n = meter()
     if n == 1:
+        if is_tagged("WAIT", nick):
+            log(f"{name} ({nick}): 1 point to level up: no gift, already tagged WAIT")
+            return None
         log(f"{name} ({nick}): 1 point to level up: no gift, tagging WAIT")
         rename("WAIT", nick, row["nick"])
         return None
@@ -1143,6 +1196,10 @@ def run_searches(limit):
                     continue
                 row = todo[0]
                 done.add(row["name"])
+                if re.match(r"WAIT", row["nick"].strip(), re.I):
+                    log(f"  {row['name']} ({row['nick']}): tagged WAIT, skipped")  # (1 point to level up: no gift)
+                    fresh = True
+                    continue
                 # a grey SEND GIFT alone proves nothing (that friend may not take one now). Every 3rd grey in a row,
                 # tap it anyway: the gift list opening, or send_gift's OutOfGifts, tells whether the bag is empty
                 try:
@@ -1169,6 +1226,11 @@ def run_searches(limit):
                     stale, fresh, top = 0, True, True
                     continue
                 lost = 0
+                if got == "raid":  # (a raid invite popped up under the tap: not this friend's fault)
+                    if row["name"] not in retried:
+                        retried.add(row["name"])
+                        done.discard(row["name"])
+                    got = None
                 if got == "empty":
                     log(f"the game says I have no gifts: out of gifts, done ({sent} sent)")
                     return sent, "out of gifts"

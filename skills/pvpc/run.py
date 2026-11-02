@@ -86,8 +86,8 @@ def new_slots(sp, cp, hp, ivs, raws, name):
     if name == "NOPE" or not sp:
         return None
     try:
-        slots, _ = slots_of(sp, cp, hp, exact_ivs(sp, cp, hp, ivs, raws))
-        first = pvp.root(sp[0])
+        slots, form = slots_of(sp, cp, hp, exact_ivs(sp, cp, hp, ivs, raws))
+        first = pvp.root(form)  # the form CP and HP fit, not sp[0]: Pumpkaboo's sizes all come in sp
         if pvp.letters(first) is None or pvp.slots_name(first, slots) != name:
             return None
     except Exception as e:  # extra data: never let it stop a rename
@@ -271,7 +271,7 @@ def load_truths():
         for r in load("renamed.json", []):
             sp = [s for s in r["species"] if s in pvp.PLAIN]
             if r.get("slots") and sp:
-                key = pvp.root(sp[0]) + ("+shadow" if r["shadow"] else "")
+                key = pvp.root(r["slots"][0][1]) + ("+shadow" if r["shadow"] else "")  # the form the slots are for
                 t.setdefault(key, []).append({"name": r["name"], "cp": r["cp"], "slots": r["slots"]})
     return t
 
@@ -306,6 +306,8 @@ def plan(pools, results, wants, truths, only=None):
     """what every member of every pool needs: [{name, cp, pool, q, act, new, why, all, ...}], keeps left out.
     act: check (appraise it), rename, fallen. all: a check whose name shows nothing still best (likely fallen)"""
     out = []
+    shared = {k: {q for k2, (_, sh2, qs2) in pools.items() if k2 != k and sh2 == sh for q in qs2}
+              for k, (_, sh, _) in pools.items()}  # searches another pool (another form) uses too
     for key, (first, shadow, qs) in pools.items():
         if only and key != only:
             continue
@@ -316,6 +318,15 @@ def plan(pools, results, wants, truths, only=None):
         ms = members(results, qs, first, truths.get(key, []))
         twins = lambda i, j: ms[i][1] == ms[j][1] and search.looks_same(ms[i][0], ms[j][0])
         acts = pvp.plan_pool([(n, sl, k) for n, _, _, sl, k in ms], first, same_name, twins)
+        if set(qs) & shared.get(key, set()):  # forms one search can't tell apart (Pumpkaboo's sizes): a Pvp name
+            elsewhere = [t for k2, lst in truths.items() if k2 != key and set(pools.get(k2, [0, 0, []])[2]) & set(qs)
+                         for t in lst]  # appraised as another form: not this pool's
+            ms = [m for m in ms if m[4] or not any(t["cp"] == m[1] and same_name(m[0], t["name"]) for t in elsewhere)]
+            acts = pvp.plan_pool([(n, sl, k) for n, _, _, sl, k in ms], first, same_name, twins)
+            kn = [i for i, m in enumerate(ms) if m[4]]  # doesn't say the form, so a name alone can't beat anyone.
+            for i, a in zip(kn, pvp.plan_pool([(ms[i][0], ms[i][3], True) for i in kn], first, same_name,  # only
+                                              lambda x, y: twins(kn[x], kn[y]))):  # appraised ones decide a fall
+                acts[i] = a
         for (n, c, q, sl, k), a in zip(ms, acts):
             if a[0] != "keep":
                 out.append({"name": n, "cp": c, "pool": key, "q": q, "shadow": shadow, "act": a[0],

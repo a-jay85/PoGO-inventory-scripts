@@ -16,7 +16,7 @@ With POGO_PHONE=android the screen comes from the phone's own screenshots and ta
 import json, os, random, re, shutil, subprocess, sys, time, unicodedata
 from PIL import Image
 
-HERE = os.path.dirname(os.path.abspath(__file__))
+HERE = os.path.dirname(os.path.realpath(__file__))
 HELPER = os.path.join(HERE, "helper")
 CALIB = os.path.join(HERE, ".calib.json")
 STATE = os.path.join(HERE, ".state.json")

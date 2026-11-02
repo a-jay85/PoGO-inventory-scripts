@@ -12,7 +12,7 @@ then while the Mac is in use.
 import gzip, os, random, re, shlex, statistics, struct, subprocess, sys, threading, time
 from PIL import Image
 
-HERE = os.path.dirname(os.path.abspath(__file__))
+HERE = os.path.dirname(os.path.realpath(__file__))
 PKG = "com.nianticlabs.pokemongo"
 TITLE = "PoGO Android"
 WIDTH = 406  # captures get shrunk to the width of an iPhone Mirroring capture: some checks count pixels

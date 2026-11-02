@@ -17,7 +17,7 @@ Then the never-traded trade evolutions (free to evolve once traded, cleantrades'
 """
 import os, re, sys
 
-HERE = os.path.dirname(os.path.abspath(__file__))
+HERE = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import ui
 import base

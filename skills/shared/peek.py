@@ -14,7 +14,7 @@ Android capture uses the phone's full-size screenshot, so small text stays sharp
 import argparse, os, sys
 from PIL import Image
 
-HERE = os.path.dirname(os.path.abspath(__file__))
+HERE = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, HERE)
 import ui
 

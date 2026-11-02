@@ -16,7 +16,7 @@
 """
 import os, re, subprocess, sys, time, traceback
 
-HERE = os.path.dirname(os.path.abspath(__file__))
+HERE = os.path.dirname(os.path.realpath(__file__))
 import ui
 import base
 from base import Stop, log, keep_capture
@@ -24,7 +24,8 @@ from base import Stop, log, keep_capture
 PIN_FILE = os.path.expanduser("~/.config/pogo/android-pin")
 MIRRORING = "iPhone Mirroring"
 CONNECT_TIMEOUT = 30  # seconds for iPhone Mirroring to show the iPhone
-TROUBLE = ("IPHONE IN USE", "IPHONE IS LOCKED", "UNLOCK YOUR IPHONE")  # Mirroring can't reach the iPhone
+TROUBLE = ("IPHONE IN USE", "IPHONE IS LOCKED", "UNLOCK YOUR IPHONE",  # Mirroring can't reach the iPhone
+           "CONNECTION INTERRUPTED")  # (the iPhone went out of reach mid-run, 2026-11-01)
 
 opened = False  # this run opened the phone: main() closes it at the end
 pin_failed = False  # the PIN didn't work once: never typed again this run

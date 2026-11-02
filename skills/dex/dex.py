@@ -20,7 +20,7 @@ of at most MAX_CHARS characters. Log and searches go in runs/<time>-<page>/.
 import argparse, os, random, re, statistics, sys, time
 from PIL import Image
 
-HERE = os.path.dirname(os.path.abspath(__file__))
+HERE = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import ui
 import base

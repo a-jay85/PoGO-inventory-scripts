@@ -14,7 +14,7 @@ A door one that appraises 98%+ is left alone. (The group is still called "Nope" 
 from collections import Counter
 
 import os, sys
-HERE = os.path.dirname(os.path.abspath(__file__))
+HERE = os.path.dirname(os.path.realpath(__file__))
 import base
 from base import log, go
 import search

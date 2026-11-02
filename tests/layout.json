@@ -1297,6 +1297,7 @@
   "names": [
    "DOCK",
    "HATCH_SCREENS",
+   "IOS_OPEN_TRIES",
    "LOAD_TIMEOUT",
    "MAX_BACKS",
    "OPEN",
@@ -1307,6 +1308,7 @@
    "android_launch",
    "backs",
    "dock_icon",
+   "home_search",
    "iphone_open",
    "keep_capture",
    "keyboard_up",

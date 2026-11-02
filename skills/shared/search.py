@@ -9,7 +9,7 @@ from collections import Counter
 from PIL import Image
 
 import sys
-HERE = os.path.dirname(os.path.abspath(__file__))
+HERE = os.path.dirname(os.path.realpath(__file__))
 import ui
 import base
 from base import Stop, Skip, Lost, GYM, log, keep_capture, go, tap, wait_for, key, type_text, back_to_list, scroll, front

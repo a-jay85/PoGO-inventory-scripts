@@ -13,7 +13,7 @@
 import json, math, os, re, sys, urllib.request
 from functools import lru_cache
 
-HERE = os.path.dirname(os.path.abspath(__file__))
+HERE = os.path.dirname(os.path.realpath(__file__))
 GM_URL = "https://raw.githubusercontent.com/pvpoke/pvpoke/master/src/data/gamemaster.json"
 JS_URL = "https://raw.githubusercontent.com/pvpoke/pvpoke/master/src/js/pokemon/Pokemon.js"
 MAX_LEVEL = 50

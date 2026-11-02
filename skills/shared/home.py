@@ -29,6 +29,7 @@ STORAGE = ("list", "tag-tab", "detail", "menu", "appraisal", "appraise-intro", "
 OPEN = ("detail", "menu", "appraisal", "appraise-intro", "gym")  # a Pokémon open: back_to_list() closes it
 LOAD_TIMEOUT = 150  # seconds for the game to open and get past its loading screens
 MAX_BACKS = 12  # Back presses (Android) on screens it doesn't know before it gives up
+IOS_OPEN_TRIES = 3  # iPhone: taps on the game's icon (home screen) before it gives up
 DOCK = (0.73, 0.926)  # iPhone: the Poké Ball in the dock, third icon (Spotlight doesn't list the app near the top)
 
 
@@ -36,9 +37,17 @@ def main_menu(texts):
     return {"POKDEX", "POKMON", "ITEMS", "SHOP"} <= {ui.norm(t[4]).replace("É", "") for t in texts}
 
 
+def home_search(texts):
+    """iPhone: the home screen's own 'Q Search' pill, bottom middle just above the dock. The game never has text
+    there (its search bar is at the top; the keyboard's search key is at the right). Goes by text, so a new event
+    icon for the game (2026-11-01: purple and orange, no red top) doesn't hide the home screen"""
+    return any(ui.norm(t[4]).lstrip("Q ").strip() == "SEARCH" and 0.75 < t[1] < 0.9 and 0.4 < t[0] + t[2] / 2 < 0.6
+               for t in texts)
+
+
 def dock_icon(path):
-    """iPhone: the game's icon in the home screen's dock (red top, black band, white button). The home screen has no
-    app names to read (labels hidden), and its weather widget reads as a search bar, so this goes before classify"""
+    """iPhone: the game's icon in the home screen's dock (red top, black band, white button: the usual icon). Its
+    weather widget reads as a search bar, so this and home_search go before classify"""
     from PIL import Image
     im = Image.open(path).convert("RGB")
     W, H = im.size
@@ -72,7 +81,7 @@ def passenger(texts, bounds):
 def where(path, texts):
     """the screens start() cares about: a storage screen, tags/rename, map, mainmenu, exit, signin, anr, ios-home,
     mirroring, blank, unknown"""
-    if not ui.ANDROID and dock_icon(path):
+    if not ui.ANDROID and (home_search(texts) or dock_icon(path)):
         return "ios-home"
     screen = ui.classify(texts)
     if screen != "unknown":
@@ -209,7 +218,7 @@ def start(storage=True):
         base.front()
     t_open = time.time()
     end = t_open + LOAD_TIMEOUT
-    prev, same, unknowns, reconnected, hatched = None, 0, 0, False, 0
+    prev, same, unknowns, reconnected, hatched, home_taps = None, 0, 0, False, 0, 0
     while True:
         try:
             screen, texts, path, bounds = look()
@@ -263,6 +272,11 @@ def start(storage=True):
             search.to_search_list()  # its own rule for a tag sheet left open
             return base.look()[0]
         elif screen == "ios-home":
+            if home_taps >= IOS_OPEN_TRIES:  # each tap gives LOAD_TIMEOUT again: without this it never ends
+                keep_capture("start")  # (2026-11-01: 300 taps in 35 min, the game wouldn't open from any icon)
+                raise Stop(f"tapped Pokémon GO on the iPhone's home screen {home_taps} times and it didn't open: "
+                           f"open it once on the iPhone itself, then run again")
+            home_taps += 1
             log("on the iPhone's home screen: opening Pokémon GO")
             iphone_open()
             opened, t_open, end = True, time.time(), time.time() + LOAD_TIMEOUT

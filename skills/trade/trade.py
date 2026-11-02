@@ -25,7 +25,7 @@ import argparse, datetime, json, os, random, re, shutil, statistics, subprocess,
 from concurrent.futures import ThreadPoolExecutor
 from PIL import Image
 
-HERE = os.path.dirname(os.path.abspath(__file__))
+HERE = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import ui
 import base

@@ -440,7 +440,7 @@ def main():
     ui.ensure_helper()  # built once here, so the two phones don't both compile it
     procs = []
     for phone in ("ios", "android"):
-        cmd = [sys.executable, os.path.abspath(__file__), "--limit", str(a.limit)] + (["--dry-run"] if a.dry_run else [])
+        cmd = [sys.executable, os.path.realpath(__file__), "--limit", str(a.limit)] + (["--dry-run"] if a.dry_run else [])
         procs.append(subprocess.Popen(cmd, env=dict(os.environ, POGO_PHONE=phone)))
     sys.exit(max(p.wait() for p in procs))
 

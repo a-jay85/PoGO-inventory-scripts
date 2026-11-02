@@ -25,7 +25,7 @@ Log and captures go in runs/<time>-<phone>/.
 import argparse, difflib, os, random, re, subprocess, sys, time
 from PIL import Image
 
-HERE = os.path.dirname(os.path.abspath(__file__))
+HERE = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import ui
 import base
@@ -1238,7 +1238,7 @@ def main():
     procs = []
     for phone in ("ios", "android"):
         env = dict(os.environ, POGO_PHONE=phone)
-        cmd = [sys.executable, os.path.abspath(__file__), a.cmd, "--limit", str(a.limit)]
+        cmd = [sys.executable, os.path.realpath(__file__), a.cmd, "--limit", str(a.limit)]
         cmd += ["--dry-run"] if a.dry_run else []
         cmd += ["--last-held", a.last_held] if a.last_held is not None else []
         procs.append(subprocess.Popen(cmd, env=env))

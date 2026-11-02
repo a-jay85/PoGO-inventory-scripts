@@ -12,7 +12,7 @@ Anything unexpected stops the run. Screen reading, tapping and timing come from 
 import json, os, random, re, sys, time, unicodedata
 from collections import Counter
 
-HERE = os.path.dirname(os.path.abspath(__file__))
+HERE = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import ui, pvp
 import base

@@ -8,7 +8,7 @@
 import json, math, re, sys, os
 from functools import lru_cache
 
-HERE = os.path.dirname(os.path.abspath(__file__))
+HERE = os.path.dirname(os.path.realpath(__file__))
 GM = json.load(open(os.path.join(HERE, "gamemaster.json")))
 SPECIES = {p["speciesId"]: p for p in GM["pokemon"]}
 CPMS = [float(x) for x in re.search(r"var cpms = \[([^\]]*)\]", open(os.path.join(HERE, "Pokemon.js")).read()).group(1).split(",")]

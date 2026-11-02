@@ -16,7 +16,7 @@
 """
 import os, re, subprocess, sys, time, traceback
 
-HERE = os.path.dirname(os.path.abspath(__file__))
+HERE = os.path.dirname(os.path.realpath(__file__))
 import ui
 import base
 from base import Stop, log, keep_capture

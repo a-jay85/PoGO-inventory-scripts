@@ -16,7 +16,7 @@ Log in runs/<time>-luckydex/.
 """
 import os, re, sys, time
 
-HERE = os.path.dirname(os.path.abspath(__file__))
+HERE = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 sys.path.insert(0, os.path.join(HERE, "..", "cleanup"))
 import ui

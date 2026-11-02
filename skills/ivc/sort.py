@@ -34,7 +34,7 @@ import difflib, json, os, re, sys
 from collections import Counter, namedtuple
 from functools import lru_cache
 
-HERE = os.path.dirname(os.path.abspath(__file__))
+HERE = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 sys.path.insert(0, HERE)
 import pvp

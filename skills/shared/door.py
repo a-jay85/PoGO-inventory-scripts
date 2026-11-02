@@ -17,7 +17,7 @@ would go back to IVC, round and round).
 import hashlib, json, os, re, sys, time
 from collections import Counter
 
-HERE = os.path.dirname(os.path.abspath(__file__))
+HERE = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(HERE, "..", "cleanup"))
 import ui, base, search, home, pagefacts

@@ -29,7 +29,7 @@ ago counts as missing.
 import datetime, os, re, sys, time
 from dataclasses import dataclass, field
 
-HERE = os.path.dirname(os.path.abspath(__file__))
+HERE = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(HERE, "..", "cleanup"))
 import pvp

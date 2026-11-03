@@ -37,7 +37,7 @@ A Pokémon with a name you gave it (`L35`) gets its species from the appraisal's
 At the end of the list it runs the fallen-out step (renames and tags, below).
 If earlier runs stopped before their fallen-out step (a stop, a crash, Ctrl-C), the run that reaches the end adds their new names to its own `renamed.json` first, so one fallen-out step covers them all. It looks back to the last run that has a `fallen.json`, at most 12 hours, and logs which runs it took (also in `carried.json`).
 Use this skill to clear its skips by hand.
-`caffeinate -dimsu python3 $S/run.py keepers [--limit N]` finishes keepers that older runs left in the PvpC list (a `Pvp ...` name): star on, PvpC off. It passes anything else.
+`caffeinate -dimsu python3 $S/run.py keepers [--limit N]` finishes keepers that older runs left in the PvpC list (a `Pvp ...` name): star on, PvpC off, without judging them again. It passes anything else. The main run judges those again instead, so this is rarely needed.
 
 ### One front door: pogo.py
 
@@ -136,7 +136,7 @@ Example: Charmander 0/11/15 gives `PvpL9Gm15U35`.
 
 ## Per-Pokémon loop
 
-Start from the inventory filtered to the PvpC tag. Processed Pokémon drop out of the list (Nope, or renamed: star on, PvpC off). A tile whose name starts with `Pvp` is a keeper from before that rule: pass it (`run.py keepers` finishes those). So the next one to do is the first tile whose name doesn't start with `Pvp`. If every visible tile starts with `Pvp`, scroll down over the Mirroring window with computer use and `read` again. If the list stops changing, you're done.
+Start from the inventory filtered to the PvpC tag. Processed Pokémon drop out of the list (Nope, or renamed: star on, PvpC off). A tile whose name starts with `Pvp` is from an older run that left PvpC on: judge it again like the rest. So the next one to do is the first tile. If every visible tile was done, scroll down over the Mirroring window with computer use and `read` again. If the list stops changing, you're done.
 
 Every "tap X" below means: run `ui.py tap X`, then click the printed spot. After each click, the next `ui.py` call reads the new screen. Wait about 1 second after a click before reading (`sleep 1 && ...`).
 

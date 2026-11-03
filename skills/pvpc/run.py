@@ -6,7 +6,8 @@
                                                                  list it also runs `fallen` on this run. One that
                                                                  isn't a keeper gets its final tag right there
                                                                  (../shared/door.py), or stays as it is and goes on
-                                                                 ../shared/runs/not-sure.json
+                                                                 ../shared/runs/not-sure.json. A Pvp-named one an
+                                                                 older run left in PvpC is judged again too
   caffeinate -dimsu python3 run.py fallen <run dir> [--limit N]   which older Pvp Pokémon the new names pushed out,
                                                                  in one pass per line: each line's search typed once,
                                                                  the beaten ones opened from that list and renamed (a
@@ -17,7 +18,8 @@
                                                                  run folder, with no new names: fixes old names a rule
                                                                  change left wrong (a league the form can't play)
   caffeinate -dimsu python3 run.py keepers [--limit N]           star the Pvp-named ones still in the PvpC list
-                                                                 (from runs before keepers were starred), PvpC off
+                                                                 (from runs before keepers were starred), PvpC off,
+                                                                 without judging them again (the main run does that)
   POGO_PHONE=android caffeinate -dimsu python3 run.py ...   (Android phone over USB, see ../shared/android.py)
 
 Start with Pokémon GO on the inventory, filtered to the PvpC tag. Anything the script isn't sure
@@ -233,12 +235,10 @@ def beaten(info, sp, shadow, slots, cp, ivs, raws, tile_name, tile_cp):
 # ---------- the list ----------
 
 def pick(ts, skipped):
-    """first tile not already named Pvp..., passing over ones skipped earlier this run"""
+    """first tile, passing over ones skipped earlier this run. A Pvp-named one still here (an older run named it and
+    left PvpC on) is judged again like the rest: kept (star, PvpC off) or the door (user, 2026-11-02)"""
     seen = Counter()
     for i, (n, c, _, _) in enumerate(ts, 1):
-        # OCR misreads or drops the v in small tile text (Pyp G13, Pp+): Piplup and Pupitar still get picked
-        if n.lower().startswith("pvp") or re.match(r"P\S{0,2}p(?=[ LGU+]|$)", n):
-            continue
         seen[(n, c)] += 1
         if seen[(n, c)] > skipped[(n, c)]:
             return i, n, c

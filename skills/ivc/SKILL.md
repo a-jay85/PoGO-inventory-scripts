@@ -52,7 +52,7 @@ One command, fall-outs included: `POGO_PHONE=android caffeinate -dimsu python3 ~
    - One still named after its species that the sort couldn't look at.
    The next run ranks what it named. Done names (`87/96 A*`, `FP*`, `xxs`) and Pvp names are passed over.
 
-A stop loses nothing: `run.py sort $S/runs/<time>` carries on, the same way it started (blocks done are in `sorted.json`, families in `families.json`). `--limit N` stops after N changes. `--look` does steps 1-3 and writes `plan.txt`, changing nothing (no named-Nope pass either). A family whose named Nopes aren't all judged isn't done: a rerun finishes them.
+A stop loses nothing: `run.py sort $S/runs/<time>` carries on, the same way it started (blocks done are in `sorted.json`, families in `families.json`). `--limit N` stops after N changes. `--look` does steps 1-3 and writes `plan.txt`, changing nothing (no named-Nope pass either). `--names-first` runs the names pass (step 6) before the sort instead of after it. An unnamed one too low to show its IV then goes to the door or PvpC with no family search (being tested for speed). A family whose named Nopes aren't all judged isn't done: a rerun finishes them.
 
 An IVC Pokémon still named after its species has no IV in the pools, so it could beat a KEEP. Every KEEP whose searches could show it (its name's family: a Happiny holds back the Blissey line only) becomes LEAVE until it's been looked at (step 4). A name that matches no species (the names pass names it) holds back its whole block until the next run. A DOOR stays.
 

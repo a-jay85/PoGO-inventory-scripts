@@ -238,6 +238,10 @@ def to_search_list():
     if base.look()[0] in ("detail", "menu", "appraisal", "gym"):  # left on a Pokémon (a stop mid-visit): back out first
         back_to_list()
     off_map()
+    screen, texts, _, _ = base.look()
+    if not scrolled and screen == "list" and {"TAGS", "EGGS"} <= {ui.norm(t[4]) for t in texts} and bar_seen():
+        log("  the full list, still at the top: no tab switch")  # (start_search clears what's in the bar)
+        return
     for _ in range(3):
         base.to_tags_tab()
         time.sleep(random.uniform(0.8, 1.0))  # a tab tap during the tab animation gets ignored

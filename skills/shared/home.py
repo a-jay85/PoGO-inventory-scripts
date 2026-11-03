@@ -252,7 +252,10 @@ def start(storage=True):
                 return screen
             search.off_map()
             try:
-                return base.wait_for(*STORAGE, timeout=8)[0]
+                got = base.wait_for(*STORAGE, timeout=8)[0]
+                if got == "list":  # opened from the map: at the top (seen on the iPhone, 2026-11-02)
+                    search.scrolled = False
+                return got
             except Stop:
                 log("  the Pokémon list didn't open from the map: trying again")
         elif screen == "exit":  # Back on the map asks this: so it's the map under it
@@ -296,6 +299,10 @@ def start(storage=True):
         elif screen == "anr":
             keep_capture("anr")
             raise Stop("the phone says Pokémon GO isn't responding: close it by hand")
+        elif screen == "unknown" and storage and profile(texts):  # a stop or a reopen left the profile up: its X
+            log("  on the profile: closing it")
+            search.click(*X_BUTTON, bounds)
+            time.sleep(1.5)
         elif screen == "unknown" and passenger(texts, bounds):
             pass
         elif screen == "unknown" and (step := through_hatch(texts, bounds, hatched)) is not None:
@@ -336,7 +343,7 @@ def squash(s):
     return re.sub(r"[IL1|!]", "I", re.sub(r"\s+", "", s.upper()))
 
 
-STORAGE_OF = {12900: "HashTagAJay"}  # a storage limit only one account has (user, 2026-11-02; CyrillJan's grows)
+BIG_STORAGE = 12900, "HashTagAJay"  # a storage limit this high or higher is that account's (user, 2026-11-02)
 
 
 def storage_limit(texts):
@@ -349,26 +356,34 @@ def storage_limit(texts):
     return None
 
 
+def profile(texts):
+    """the profile's ME tab. A friend's banner ('... opened your Gifts!') can cover its tabs: then the trainer name
+    with LEVEL and BUDDY under it tells it"""
+    j = ui.joined(texts)
+    if "FRIENDS" in j and ("TOTAL ACTIVITY" in j or "SCRAPBOOK" in j or "JOURNAL" in j):
+        return True
+    words = {ui.norm(t[4]) for t in texts}
+    return {"LEVEL", "BUDDY"} <= words and any(squash(n) in squash(" ".join(t[4] for t in texts)) for n in TRAINERS)
+
+
 def trainer(fast=True):
-    """the signed-in trainer's name. fast: on the Pokémon screens, a storage limit in STORAGE_OF tells it (no profile
+    """the signed-in trainer's name. fast: on the Pokémon screens, a storage limit of BIG_STORAGE or more tells it (no profile
     trip; ends there). Otherwise read off the profile (ME tab) from the map, ending on the map. Starts anywhere"""
-    j = ui.joined(look()[1])
-    on_profile = "FRIENDS" in j and ("TOTAL ACTIVITY" in j or "SCRAPBOOK" in j or "JOURNAL" in j)
-    if fast and not on_profile:  # (on the profile: the name is right there)
+    if fast and not profile(look()[1]):  # (on the profile: the name is right there)
         start()
         for _ in range(3):
             screen, texts, path, bounds = look()
-            if (who := STORAGE_OF.get(storage_limit(texts))) is not None:
-                log(f"signed in: {who} (its {storage_limit(texts)} storage)")
-                return who
-            if storage_limit(texts) is not None:
+            if (limit := storage_limit(texts)) is not None:
+                if limit >= BIG_STORAGE[0]:
+                    log(f"signed in: {BIG_STORAGE[1]} (its {limit} storage)")
+                    return BIG_STORAGE[1]
                 break
             time.sleep(0.5)
     start(storage=False)
     for _ in range(12):
         screen, texts, path, bounds = look()
         j = ui.joined(texts)
-        if "FRIENDS" in j and ("TOTAL ACTIVITY" in j or "SCRAPBOOK" in j or "JOURNAL" in j):
+        if profile(texts):
             got = [n for n in TRAINERS if squash(n) in squash(" ".join(t[4] for t in texts))]
             if len(got) != 1:
                 keep_capture("trainer")
@@ -393,6 +408,8 @@ def trainer(fast=True):
             time.sleep(2.0)
         elif screen in OPEN:
             base.back_to_list()
+        elif screen == "list" and not {"TAGS", "EGGS"} <= {ui.norm(t[4]) for t in texts}:
+            base.to_tags_tab()  # a tag's list: its X isn't the Pokémon screen's (stuck 12 looks, 2026-11-02)
         elif screen in ("list", "tag-tab"):
             search.click(*X_BUTTON, bounds)
             time.sleep(1.5)

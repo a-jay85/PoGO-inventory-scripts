@@ -1314,6 +1314,7 @@
    "skills/shared/home.py": 2
   },
   "names": [
+   "BIG_STORAGE",
    "DOCK",
    "HATCH_SCREENS",
    "IOS_OPEN_TRIES",
@@ -1321,7 +1322,6 @@
    "MAX_BACKS",
    "OPEN",
    "STORAGE",
-   "STORAGE_OF",
    "Stop",
    "TRAINERS",
    "X_BUTTON",
@@ -1337,6 +1337,7 @@
    "main_menu",
    "passenger",
    "press_text",
+   "profile",
    "reopened",
    "splash",
    "squash",

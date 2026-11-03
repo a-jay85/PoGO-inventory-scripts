@@ -110,6 +110,19 @@ def label(name, lo=0.0, hi=1.0):
     return hits[0] if hits else None
 
 
+def send_gift_label():
+    """the SEND GIFT label's box, or None. OCR can tack a letter on ('SEND GIFTI') or glue the buttons beside it
+    onto the same line ('SEND GIFTI  LOCAL  REMOTE  BATTLE', 2026-11-03 iPhone): then the box is cut to its SEND GIFT part"""
+    for t in texts:
+        if ui.is_label(t[4], "SEND GIFT"):
+            return t
+    for t in texts:
+        m = re.match(r"\s*SEND GIFT\S*", t[4].upper())
+        if m and len(t[4].rstrip()) > m.end():
+            return (t[0], t[1], t[2] * m.end() / len(t[4].rstrip()), t[3], "SEND GIFT") + tuple(t[5:])
+    return None
+
+
 def summary():
     return ui.summary(texts)
 
@@ -845,7 +858,7 @@ def same_list(a, b):
 def send_gift():
     """from the friend page: picker -> one of our two gifts -> SEND. Raises OutOfGifts when neither is there"""
     global picker_drags
-    t = label("SEND GIFT")
+    t = send_gift_label()
     tap_into(t, "picker", dy=-0.04, on="friend")
     blind = max(0, picker_drags - 1)  # where the last gift was found, less one scroll (a sent gift can shift the list up)
     drags = 0
@@ -1085,12 +1098,12 @@ def one_friend(row, check=False):
         log(f"  opened {name!r}, wanted {row['name']!r}: skipped")
         return None
     nick, _ = page_nickname()
-    t = label("SEND GIFT")
-    if not gift_icon(t):
+    t = send_gift_label()
+    if not t or not gift_icon(t):
         time.sleep(0.8)  # (or a Lucky Trade request fading in over the page: it pales the icon)
         if look() == "luckytrade":
             close_popup("friend")
-        t = label("SEND GIFT")
+        t = send_gift_label()
     if not t or not gift_icon(t):
         keep_capture("grey")
         got = grey_check(t) if t and check else None

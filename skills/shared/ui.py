@@ -415,11 +415,17 @@ def bars(path, texts):
     W, H = im.size
     x0, x1 = int(0.10 * W), int(0.49 * W)
     ivs, raws = [], []
+    found = {}
     for label in ("ATTACK", "DEFENSE", "HP"):
         lab = [t for t in texts if is_label(t[4], label) and t[0] < 0.35]
+        if not lab and label == "HP" and {"ATTACK", "DEFENSE"} <= set(found):
+            # the small orange HP can go unread (Nidoran♀, 2026-11-02): the labels are evenly spaced
+            (ax, ay, aw, ah, _), (dx, dy, dw, dh, _) = found["ATTACK"], found["DEFENSE"]
+            lab = [(dx, dy + (dy - ay), dw, dh, "HP")]
         if not lab:
             return None, f"no {label} label"
-        lx, ly, lw, lh, _ = max(lab, key=lambda t: t[1])  # the appraisal one is lowest
+        found[label] = max(lab, key=lambda t: t[1])  # the appraisal one is lowest
+        lx, ly, lw, lh, _ = found[label]
         ys = range(int((ly + lh) * H), int((ly + lh + 0.04) * H))
         counts = {y: sum(is_bar(im.getpixel((x, y))) for x in range(x0, x1)) for y in ys}
         full = []  # first band of rows under the label that looks like a bar

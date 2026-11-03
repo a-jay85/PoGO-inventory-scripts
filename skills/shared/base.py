@@ -897,7 +897,8 @@ def steady_detail():
 
 def short(s):
     """for comparing two reads of a name: OCR adds or drops spaces and reads O as 0 ('84 A 0*' is '84 AO*')"""
-    return re.sub(r"[.…]+$", "", (s or "").strip()).replace(" ", "").replace("0", "o").lower()
+    # (a tile's ♀ can read as '·': 'Nidoran ·' against the page's 'Nidoran 7', 2026-11-02)
+    return re.sub(r"[.…·•]+$", "", (s or "").strip()).replace(" ", "").replace("0", "o").lower()
 
 
 def opened_right(info, tile_name, tile_cp):

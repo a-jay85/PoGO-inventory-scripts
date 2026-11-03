@@ -192,7 +192,7 @@ def switch(to=None):
         log(f"signed out already: signing in as {to}")
         sign_in(accounts[to])
         return check(to)
-    who = home.trainer()
+    who = home.trainer(fast=False)  # (sign_out starts from the map)
     to = to or next(n for n in home.TRAINERS if n != who)
     if who == to:
         log(f"{to} is signed in already")

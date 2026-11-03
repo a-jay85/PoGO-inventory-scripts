@@ -336,8 +336,34 @@ def squash(s):
     return re.sub(r"[IL1|!]", "I", re.sub(r"\s+", "", s.upper()))
 
 
-def trainer():
-    """the signed-in trainer's name, read off the profile (ME tab) from the map. Starts anywhere, ends on the map"""
+STORAGE_OF = {12900: "HashTagAJay"}  # a storage limit only one account has (user, 2026-11-02; CyrillJan's grows)
+
+
+def storage_limit(texts):
+    """the Pokémon screens' header count 'N / LIMIT' (TAGS / POKÉMON / EGGS showing) -> LIMIT, or None"""
+    if not {"TAGS", "EGGS"} <= {ui.norm(t[4]) for t in texts}:
+        return None
+    for t in texts:
+        if m := re.search(r"\b\d[\d,]*\s*/\s*(\d{1,2},?\d{3})\b", t[4]):
+            return int(m.group(1).replace(",", ""))
+    return None
+
+
+def trainer(fast=True):
+    """the signed-in trainer's name. fast: on the Pokémon screens, a storage limit in STORAGE_OF tells it (no profile
+    trip; ends there). Otherwise read off the profile (ME tab) from the map, ending on the map. Starts anywhere"""
+    j = ui.joined(look()[1])
+    on_profile = "FRIENDS" in j and ("TOTAL ACTIVITY" in j or "SCRAPBOOK" in j or "JOURNAL" in j)
+    if fast and not on_profile:  # (on the profile: the name is right there)
+        start()
+        for _ in range(3):
+            screen, texts, path, bounds = look()
+            if (who := STORAGE_OF.get(storage_limit(texts))) is not None:
+                log(f"signed in: {who} (its {storage_limit(texts)} storage)")
+                return who
+            if storage_limit(texts) is not None:
+                break
+            time.sleep(0.5)
     start(storage=False)
     for _ in range(12):
         screen, texts, path, bounds = look()

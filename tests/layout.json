@@ -781,6 +781,7 @@
    "skills/ivc/runs/<time>/chunks.json",
    "skills/ivc/runs/<time>/counts.json",
    "skills/ivc/runs/<time>/fallen-groups.json",
+   "skills/ivc/runs/<time>/fallen.json",
    "skills/ivc/runs/<time>/families.json",
    "skills/ivc/runs/<time>/plan.json",
    "skills/ivc/runs/<time>/plan.txt",

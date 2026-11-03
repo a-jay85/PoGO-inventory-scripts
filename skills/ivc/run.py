@@ -295,6 +295,7 @@ def scan(limit=10 ** 9, only=None):
         save("chunks.json", chunks)  # (no tab switch here: start_search clears the bar and goes back to the top)
         if len(found) >= limit:
             break
+    save("scan.json", found)  # an empty pile writes it too: the sort reads it next
     left = {q: f"{c['have']}/{c['want']}" for q, c in chunks.items() if not c["done"]}
     log(f"scanned {len(found)}, {sum(bool(m.get('unrenamed')) for m in found)} still unrenamed; "
         f"chunks not done: {left or 'none'}")
@@ -1090,6 +1091,9 @@ def fallen_out(limit):
     """the fallen-out ones of this sort run: grouped (searches only), then each one opened and tagged GuaranteedLucky
     / Old or sent to the door. A rerun on the same folder groups again: what's tagged by now drops out. It goes by
     the fallen.json the sort's plan wrote (no new plan here: newer code can't read an older folder's searches)"""
+    if not os.path.exists(os.path.join(base.RUN_DIR, "fallen.json")):  # no plan written: an empty pile
+        log("fallen out: none (no plan in this run)")
+        return
     fallen.groups(iv_only=True)
     act_fallen(limit)
 

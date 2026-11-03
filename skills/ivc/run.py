@@ -566,8 +566,8 @@ def plan(quiet=False):
 # ---------- fallen out ----------
 # Older Pokémon (no IVC tag) that the new keepers push out of the top. Not traded and caught 2016-2020 ->
 # GuaranteedLucky (a trade is guaranteed lucky). Not traded and older than OLD_DAYS -> Old. Anything else
-# (traded: a Pokémon can only be traded once, or newer) -> star off, its final tag at the door. Shiny and costume
-# ones are never touched.
+# (traded: a Pokémon can only be traded once, or newer) -> star off, its final tag at the door. A costume one always
+# goes to the door. Shiny ones are never touched.
 
 def ivc_name(n):
     """a name /ivc made ('96 HD', '87/96 A* XXL'), not another app's ('15/15/14')"""
@@ -699,6 +699,29 @@ def door_for(m):
 ACTS = ("KEEP", "DOOR", "LOOK")  # the verdicts act opens a Pokémon for
 
 
+def could_be_dead(m):
+    """its plain form evolves, so a costume one of it might not (verdict.dead_end): its KEEP needs the door's costume
+    search"""
+    import verdict  # (not at the top: door loads it late, see door.vd)
+    return m.get("species") in sort.SPECIES and m["species"] in verdict.pvp.SPECIES and verdict.plain_evolves(m["species"])
+
+
+def dead_keep(m, n, c):
+    """on its open detail page, a KEEP: a costume one that can't evolve, though its plain form can? Then it counts as
+    its own species only (the user, 2026-11-02), and a non-final is in no spot: it goes to the door instead.
+    n, c: its tile, as the door's costume search read it. Skip when that can't be told"""
+    if not could_be_dead(m):
+        return False
+    if not door_for(m):
+        raise Skip("KEEP, but costume or not isn't known (outside what the door's searches covered): next run")
+    dead = door.dead_end(door_for(m).has("costume", door.key(n, c)), [m["species"]], steady_detail()[1])
+    if dead is None:
+        raise Skip("KEEP, but costume or not / its Evolve button didn't read")
+    if dead:
+        log("  a costume one that can't evolve: no KEEP as its line, to the door as its own species")
+    return dead
+
+
 def renamed_in_pools(results, n, c, name, own):
     """the pools showed this one as its species name (n): it's name now. own: its searches, where it belongs even
     if no tile of it was read"""
@@ -764,6 +787,8 @@ def look(i, n, c, p, members):
             verdict, why = judge(m, results, wants)
             others = [x for x in load("scan.json") if plan_key(x) != key[0]]
             verdict, why = unrenamed_check(m, others, verdict, why)  # a KEEP waits for the family's other unnamed ones
+        if verdict == "KEEP" and dead_keep(m, n, c):
+            verdict = "DOOR"
         gone = verdict
         if verdict == "KEEP":
             favorite_and_untag()
@@ -790,10 +815,10 @@ def act(limit, members):
     how many weren't found: the family isn't done then, a rerun walks its lists again)"""
     mine = {plan_key(m) for m in members}
     lists, plans = {}, [m for m in load_plan() if m["verdict"] in ACTS and plan_key(m) in mine]
-    if any(m["verdict"] in ("DOOR", "LOOK") and not door_for(m) for m in plans):  # (a LOOK may turn out DOOR)
+    to_door = lambda m: m["verdict"] in ("DOOR", "LOOK") or m["verdict"] == "KEEP" and could_be_dead(m)
+    if any(to_door(m) and not door_for(m) for m in plans):  # (a LOOK may turn out DOOR, a KEEP a costume dead end)
         # its searches only over the dex numbers sent to the door and not covered yet: a short list reads right more often
-        new = {dex_of(m) for m in load_plan() if m["verdict"] in ("DOOR", "LOOK") and m.get("species") in sort.SPECIES
-               and not door_for(m)}
+        new = {dex_of(m) for m in load_plan() if to_door(m) and m.get("species") in sort.SPECIES and not door_for(m)}
         dex = dex_terms(new)
         scope = f"#{TAG}&{dex}" if len(dex) <= ACT_QUERY_MAX else None
         was = next(iter(DOORS.values()), None)
@@ -892,6 +917,8 @@ def act(limit, members):
         if not m:
             raise Skip(f"detail doesn't match the plan: {now['name']!r} {now['species']}")
         verdict = gone = m["verdict"]
+        if verdict == "KEEP" and dead_keep(m, n, c):
+            verdict = gone = "DOOR"
         if verdict == "DOOR" and not door_for(m):
             raise Skip("judged DOOR here, outside what the door's searches covered: next run")  # (no read would mean 'no')
         if verdict == "KEEP":

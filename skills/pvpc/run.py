@@ -41,7 +41,7 @@ NAME_OK = re.compile(r"Pvp ?[LGU][A-Za-z0-9 +]*")
 
 
 def decide(species, cp, hp, ivs, raws):
-    out = ui.check_rows(species, cp, hp, ivs)
+    out = ui.check_rows(species, cp, hp, ivs, own=species in pvp.OWN_ONLY)
     verdict = next((l for l in out.splitlines() if l.startswith("VERDICT:")), "")
     m = re.match(r"VERDICT: (.+?) \((.*)\)$", verdict)
     if not m:
@@ -143,8 +143,18 @@ def process(i, tile_name, tile_cp):
     if not sp:  # a name the user gave it ('L35'): the appraisal names the species
         sp = appraisal_species(info["texts"])
     ivs, raws = appraise()
-    name = decide_forms(sp, cp, info["hp"], ivs, raws)
-    slots = new_slots(sp, cp, info["hp"], ivs, raws, name)
+    # a costume one that can't evolve (its plain form can): ranked as its own species only (the user, 2026-11-02)
+    dead = door.dead_end(DOOR.has("costume", door.key(tile_name, tile_cp)), sp, texts)
+    if dead is None:
+        raise Skip("costume or not / its Evolve button didn't read: can't tell what it can rank as")
+    pvp.OWN_ONLY = set(sp) if dead else set()
+    try:
+        name = decide_forms(sp, cp, info["hp"], ivs, raws)
+        slots = new_slots(sp, cp, info["hp"], ivs, raws, name)
+    finally:
+        pvp.OWN_ONLY = set()
+    if dead:
+        log(f"  costume, can't evolve: ranked as {'/'.join(sp)} only")
     think()
     go("dialog", "detail")
     if name == "NOPE" and high_iv(ivs, raws)[0]:  # bad for PvP but 98%+: /ivc names it instead
@@ -206,7 +216,7 @@ def holders(key, first, qs, cp):
 def beaten(info, sp, shadow, slots, cp, ivs, raws, tile_name, tile_cp):
     """the new name would be beaten in every slot by a Pvp one already in its line (the fallen-out step would only
     take it off again) -> who beats it, or None: rename. Never for what that step would leave named: shiny,
-    costume, 98%+, or anything it can't tell"""
+    98%+, or anything it can't tell. (A costume one goes on to the door, which names and stars one at 93%+)"""
     line = slots and line_of(sp, shadow)
     if not line or high_iv(ivs, raws)[0]:
         return None
@@ -214,7 +224,7 @@ def beaten(info, sp, shadow, slots, cp, ivs, raws, tile_name, tile_cp):
     others = holders(*line, cp)
     if not others or pvp.kept(mine, others):
         return None
-    if door.tile_icons(info).get("shiny") is not False or DOOR.has("costume", door.key(tile_name, tile_cp)) is not False:
+    if door.tile_icons(info).get("shiny") is not False:
         return None
     return "; ".join(f"{pvp.slot_text(sl, r, line[1])} by {min((o[sl], w) for w, o in others if sl in o)[1]}"
                      for sl, r in mine.items())
@@ -411,9 +421,10 @@ def species_here(pool, texts=None):
     return sp
 
 
-def appraise_slots(pool, n, c, known=None):
+def appraise_slots(pool, n, c, known=None, gate=None):
     """on its detail screen: species, shadow or not, then every top-100 slot it really has (appraised, unless
-    known). -> (slots or None if it's the other kind, what to log). Leaves the detail screen open."""
+    known). A costume one that can't evolve: its own species' slots only. gate: the door, for costume or not.
+    -> (slots or None if it's the other kind, what to log). Leaves the detail screen open."""
     first, shadow, _ = load("fallen-pools.json")[pool]
     info, texts, _ = steady_detail()
     if not opened_right(info, n, c):
@@ -431,7 +442,14 @@ def appraise_slots(pool, n, c, known=None):
     go("dialog", "detail")
     LAST_BARS = bars, raws, info, texts  # (the detail screen read before the appraisal: it fades out slowly)
     ivs = exact_ivs(sp, cp, info["hp"], bars, raws)
-    slots, s = slots_of(sp, cp, info["hp"], ivs)
+    dead = door.dead_end(gate.has("costume", door.key(n, c)) if gate else None, sp, texts)
+    if dead is None:
+        raise Skip("costume or not / its Evolve button didn't read: can't tell what it ranks as")
+    pvp.OWN_ONLY = set(sp) if dead else set()
+    try:
+        slots, s = slots_of(sp, cp, info["hp"], ivs)
+    finally:
+        pvp.OWN_ONLY = set()
     add_truth(pool, n, c, slots)
     return slots, f"{pvp.display(s)} {'/'.join(map(str, ivs))}"
 
@@ -474,15 +492,15 @@ def mark(pool, n, c):
 
 def fall_here(pool, n, c, gate):
     """on its detail screen, appraised, beaten everywhere: its final tag in this same open. Untraded + caught
-    2016-2020 -> GuaranteedLucky, untraded + older than fallen.OLD_DAYS -> Old, else the door. Shiny and costume ones
-    are never tagged. Traded, shiny, the catch date: off the page and the tile (pagefacts, through the door).
+    2016-2020 -> GuaranteedLucky, untraded + older than fallen.OLD_DAYS -> Old, else the door. A costume one always
+    goes to the door (it names and stars one at 93%+). Shiny ones are never tagged. Traded, shiny, the catch date: off the page and the tile (pagefacts, through the door).
     -> (tagged?, what to log)"""
     info, texts = LAST_BARS[2:] if LAST_BARS else steady_detail()[:2]
     icons = door.tile_icons(info)
     costume = gate.has("costume", door.key(n, c))
-    if icons.get("shiny") or costume:
+    if icons.get("shiny"):
         mark(pool, n, c)  # (marked only when the answer can't change: a read that failed is tried again next run)
-        return False, f"beaten everywhere, but {'shiny' if icons.get('shiny') else 'costume'}: never tagged"
+        return False, "beaten everywhere, but shiny: never tagged"
     if icons.get("shiny") is None or costume is None:
         return False, "beaten everywhere, but shiny or costume didn't read: left as it is"
     if gate.listed()[door.key(n, c)]:
@@ -493,7 +511,7 @@ def fall_here(pool, n, c, gate):
     traded = True if lucky else page["traded"]
     if traded is None or page["caught"] is None and not traded:
         return False, f"beaten everywhere, but traded {traded} / caught {page['caught']} didn't read: left as it is"
-    if not traded:
+    if not traded and costume is False:
         old = (time.time() - time.mktime(page["caught"].timetuple())) / 86400 > fallen.OLD_DAYS
         g = "GuaranteedLucky" if 2016 <= page["caught"].year <= 2020 else "Old" if old else None
         if g:
@@ -514,7 +532,7 @@ def fall_here(pool, n, c, gate):
 def settle_here(pool, n, c, known, rename, gate):
     """on its detail screen: appraise it if need be, then rename or tag it if that can't change any more (rename: the
     rest are appraised, so it may rename anyway). -> (how many renamed or tagged, what to log)"""
-    slots, what = appraise_slots(pool, n, c, known)
+    slots, what = appraise_slots(pool, n, c, known, gate)
     if slots is None:
         return 0, what
     act, new, waiting = settle_one(pool, n, c)

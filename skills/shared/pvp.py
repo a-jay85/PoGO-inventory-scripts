@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """PvP stat-product rank helper for the /pvpc skill.
 
-  pvp.py check <species> <cp> <hp> <stars> [--near a/d/h]
+  pvp.py check <species> <cp> <hp> <stars> [--near a/d/h] [--own]
         -> every IV/level combo matching CP+HP+stars (-1 = unknown), best ranks, the name, and a VERDICT line.
            --near keeps only combos within 1 of the bar reading on each stat.
+           --own ranks it as its own species only (OWN_ONLY: a costume one that can't evolve).
   pvp.py rank <species> <atk> <def> <hp>     -> ranks in LC/GL/UL for the species and each evolution
   pvp.py name <species> <atk> <def> <hp>     -> the nickname (or NOPE)
   pvp.py slots <species> "<Pvp name>"         -> the (league, form) ranks a name shows, for the fallen-out check
@@ -21,6 +22,8 @@ LEAGUES = [("L", 500), ("G", 1500), ("U", 2500)]
 STAR_RANGES = {0: (0, 22), 1: (23, 29), 2: (30, 36), 3: (37, 44), 4: (45, 45)}
 TOP = 100
 NAME_LEN = 12
+OWN_ONLY = set()  # species ranked as themselves only, no evolutions: a costume one that can't evolve (the user,
+# 2026-11-02; verdict.dead_end). Set around one Pokémon's ranking, then emptied
 CP_ROOM = 100  # a form plays a league only if 15/15/15 at level 50 tops the cap minus this (user's rule, 2026-10-31)
 
 
@@ -164,7 +167,7 @@ def all_ranks(species, ivs, level=None):
     at that level is already over the cap can never play there: that league/form is left out. So is a league the
     form can't get near the cap of (plays)."""
     out = []
-    for s in family(species, ivs):
+    for s in [species] if species in OWN_ONLY else family(species, ivs):
         for tag, cap in LEAGUES:
             if tag == "L" and not (s == species and lc_eligible(s)):
                 continue
@@ -224,7 +227,7 @@ def make_name(species, ivs, level=None):
     if species == "eevee":
         return eevee_name(ranks)
     notes = []
-    if species in IV_BRANCH and len(tops(species, ivs)) > 1:  # a tie: the game picks one of them at random
+    if species in IV_BRANCH and species not in OWN_ONLY and len(tops(species, ivs)) > 1:  # a tie: the game picks one of them at random
         notes.append(f"{display(species)}'s IVs tie: it could become {', '.join(map(display, tops(species, ivs)))}; "
                      "confirm with user")
     best = {}
@@ -605,6 +608,9 @@ if __name__ == "__main__":
         i = sys.argv.index("--near")
         near = tuple(int(x) for x in sys.argv[i + 1].split("/"))
         del sys.argv[i:i + 2]
+    if "--own" in sys.argv:
+        sys.argv.remove("--own")
+        OWN_ONLY.add(sp)
     if cmd == "slots":
         print(name_slots(sys.argv[3], root(sp)))
         sys.exit()

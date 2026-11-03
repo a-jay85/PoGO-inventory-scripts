@@ -310,7 +310,14 @@ def search_line():
     return None
 
 
+MAX_BOUNCED = 6  # scrolls in a row that land off the list with no friend reached: stop, don't loop forever
 REOPEN_LOAD = 45  # seconds the game gets to load after home.unstick reopened it (its loading tips read unknown)
+
+
+def search_gone():
+    """the friend list's button row under the picture (ADD FRIEND, INVITE) shows only with no search on. Passing
+    through the map wipes the search (2026-11-03: a friend-row tap opened a raid): the whole list shows, unfiltered"""
+    return any(0.18 < t[1] < 0.26 and ui.norm(t[4]) in ("ADD FRIEND", "INVITE") for t in texts)
 
 
 def to_list():
@@ -1188,10 +1195,25 @@ def run_searches(limit):
                 set_sort()
             stale, fresh = 0, True  # fresh: the last capture is the friend list as it is now (no look needed)
             top = True  # the list is as a search sorted it: no gift sent since (scrolled or not)
+            bounced = 0  # scrolls that landed off the list since the last friend reached
             while True:
                 if not fresh and look() != "friends":  # a drag that landed as a tap opened something: back first
+                    bounced += 1
+                    if bounced >= MAX_BOUNCED:
+                        raise Stop(f"{bounced} scrolls in a row left the friend list: {summary()}")
                     to_list()
                 fresh = False
+                if search_gone():
+                    # with no search on, a scrolled list has no '(N)' and reads as the profile: every scroll would
+                    # come back to the top of the same page, forever (2026-11-03). Type it again
+                    log("  the search is gone: searching again")
+                    n = search(base_q, zq)
+                    if not n:
+                        break
+                    if arrow() != "down":
+                        set_sort()
+                    stale, fresh, top = 0, True, True
+                    continue
                 on_screen = rows()
                 todo = [r for r in on_screen if r["name"] not in done]
                 if todo and todo[0]["badged"]:
@@ -1220,6 +1242,7 @@ def run_searches(limit):
                     fresh = classify() == "friends"
                     continue
                 row = todo[0]
+                bounced = 0
                 done.add(row["name"])
                 if re.match(r"WAIT", row["nick"].strip()):
                     log(f"  {row['name']} ({row['nick']}): tagged WAIT, skipped")  # (1 point to level up: no gift)

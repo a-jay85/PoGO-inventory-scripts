@@ -452,9 +452,10 @@ def bars(path, texts):
     return ivs, raws
 
 
-def check_rows(species, cp, hp, ivs):
+def check_rows(species, cp, hp, ivs, own=False):
+    """own: rank it as its own species only (pvp.OWN_ONLY)"""
     out = sh(sys.executable, os.path.join(HERE, "pvp.py"), "check", species, str(cp), str(hp), "-1",
-             "--near", "/".join(map(str, ivs)))
+             "--near", "/".join(map(str, ivs)), *(["--own"] if own else []))
     return out.strip()
 
 

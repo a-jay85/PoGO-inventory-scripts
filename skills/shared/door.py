@@ -165,10 +165,8 @@ class Door:
         icons = tile_icons(info)
         said = lambda k, v: self.said.get(k, v)
         rows = [ui.norm(t[4]) for t in texts]
-        evolves = True if any(r.startswith("EVOLVE") for r in rows) else False if any(
-            r.startswith("POWER UP") for r in rows) else None  # (Mega Evolve starts MEGA)
         lucky = any(r.startswith("LUCKY POK") for r in rows)  # only a trade makes one lucky
-        f = vd.Facts(evolves=evolves,account=self.account, sids=list(sp), iv_sum=sum(ivs) if ivs else None,
+        f = vd.Facts(evolves=can_evolve(texts), account=self.account, sids=list(sp), iv_sum=sum(ivs) if ivs else None,
                      ivs=tuple(ivs) if ivs else None, shiny=said("shiny", icons.get("shiny")),
                      costume=self.has("costume", tile), background=said("background", icons.get("background")),
                      traded=True if lucky else said("traded", page["traded"]), caught=page["caught"], shadow=base.is_shadow(texts),
@@ -260,6 +258,27 @@ class Door:
                 raise
             log(f"  no power-up: {e}")
         return v
+
+
+def can_evolve(texts):
+    """an Evolve button under Power Up on the detail page -> True; Power Up and the moves row under it but no Evolve
+    between them -> False (a costume Piplup); that part of the page didn't show -> None. (Mega Evolve starts MEGA)"""
+    rows = [ui.norm(t[4]) for t in texts]
+    if any(r.startswith("EVOLVE") for r in rows):
+        return True
+    if any(r.startswith("POWER UP") for r in rows) and any(r.startswith("GYMS") or "TRAINER BATTLES" in r for r in rows):
+        return False
+    return None
+
+
+def dead_end(costume, sp, texts):
+    """a costume one whose plain form evolves but it can't (verdict.dead_end): /pvpc and /ivc judge it as its own
+    species only. costume: Door.has's answer. -> True, False, or None (costume or the Evolve button didn't read)"""
+    import verdict  # (not at the top: see vd)
+    if costume is False or len(sp) != 1 or sp[0] not in verdict.pvp.SPECIES or not verdict.plain_evolves(sp[0]):
+        return False
+    ev = can_evolve(texts)
+    return None if costume is None or ev is None else not ev
 
 
 def catch_date(texts):

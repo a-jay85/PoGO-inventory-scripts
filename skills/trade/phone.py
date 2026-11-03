@@ -98,6 +98,10 @@ def main():
                 ready()
             elif op == "restart":
                 restart()
+            elif op == "reconnect":  # iPhone Mirroring lost the iPhone mid-run: quit it and open it again
+                session.quit_mirroring()
+                time.sleep(2.0)
+                session.connect()
             elif op == "start":
                 base.new_run_dir(None, req["run_dir"])  # its log lines and captures go with trade.py's
                 out = {"screen": home.start(storage=False)}

@@ -966,6 +966,7 @@
    "keep_capture",
    "line_of",
    "line_pools",
+   "line_searches",
    "load",
    "load_truths",
    "log",
@@ -1338,6 +1339,7 @@
    "passenger",
    "press_text",
    "profile",
+   "profile_tabs",
    "reopened",
    "splash",
    "squash",
@@ -1666,6 +1668,7 @@
    "tile_name",
    "tiles",
    "to_shot",
+   "under",
    "unscrolled",
    "up",
    "window"

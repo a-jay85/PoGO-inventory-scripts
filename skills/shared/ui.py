@@ -261,18 +261,33 @@ def tile_cps(texts):
                   and not any(0.08 < t[1] - c[1] < 0.13 and abs((t[0] + t[2] / 2) - (c[0] + c[2] / 2)) < 0.1 for c in cps)]
 
 
+def under(t, c):
+    """text t is the name under CP label c: its middle under c's, or a row's names run into one box over c"""
+    cx = c[0] + c[2] / 2
+    return 0.08 < t[1] - c[1] < 0.13 and (abs((t[0] + t[2] / 2) - cx) < 0.1 or "•" in t[4][1:] and t[0] < cx < t[0] + t[2])
+
+
 def tiles(texts):
     """Pokémon tiles in the list, in reading order: (name, cp, x, y) with x, y = middle of the tile image"""
     cps = tile_cps(texts)
     out = []
     for c in cps:
         # under 0.9: lower down, the round buttons (+, X, A-Z) cover the names and read as 'L+', '2'
-        below = [t for t in texts if 0.08 < t[1] - c[1] < 0.13 and abs((t[0] + t[2] / 2) - (c[0] + c[2] / 2)) < 0.1
-                 and t[1] < 0.9]
+        cx = c[0] + c[2] / 2
+        # (not multi-select's 'TAG (1)' button over the bottom row: read as a Pokémon once, 2026-11-02)
+        below = [t for t in texts if t[1] < 0.9 and not re.fullmatch(r"TAG\s*\(\d+\)", t[4].strip()) and under(t, c)]
         if below:
             n = below[0]
-            out.append((n[4].lstrip("•· ").strip(), int(re.sub(r"\D", "", c[4])),
-                        n[0] + n[2] / 2, (c[1] + c[3] + n[1]) / 2))
+            name = n[4]
+            # OCR can run a row's names into one box ('Pvp Gp70Up70 •Pvp Gp87U82+ •Pvp Gp83U77+', 2026-11-02,
+            # Pixel): one part per CP label over the box, in order, when the counts match
+            over = sorted((d for d in cps if abs(d[1] - c[1]) < 0.03 and n[0] - 0.05 < d[0] + d[2] / 2 < n[0] + n[2] + 0.05),
+                          key=lambda d: d[0])
+            parts = [x for x in re.split(r"\s*[•·]\s*", name) if x.strip()]
+            if len(over) > 1 and len(parts) == len(over) and c in over:
+                name = parts[over.index(c)]
+            x = cx if len(over) > 1 else n[0] + n[2] / 2  # a box over several tiles: its middle is another tile's
+            out.append((name.lstrip("•· ").strip(), int(re.sub(r"\D", "", c[4])), x, (c[1] + c[3] + n[1]) / 2))
     return sorted(out, key=lambda t: (round(t[3] / 0.05), t[2]))
 
 

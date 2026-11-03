@@ -148,6 +148,7 @@ def process(i, tile_name, tile_cp):
     # a costume one that can't evolve (its plain form can): ranked as its own species only (the user, 2026-11-02)
     dead = door.dead_end(DOOR.has("costume", door.key(tile_name, tile_cp)), sp, texts)
     if dead is None:
+        go("dialog", "detail")  # (the appraisal hides the close button: the skip's close stopped the run, 2026-11-02)
         raise Skip("costume or not / its Evolve button didn't read: can't tell what it can rank as")
     pvp.OWN_ONLY = set(sp) if dead else set()
     try:
@@ -180,13 +181,19 @@ def process(i, tile_name, tile_cp):
     return name
 
 
+def line_searches(line, pool):
+    """a line's searches for the fallen-out step, Pvp names only (`&pvp`: a nickname starting with it). Only a Pvp
+    name holds a slot, so the rest of the line's tiles never need reading (user, 2026-11-02)"""
+    return [q + "&pvp" for q in pvp.line_searches(line, pool)]
+
+
 def line_of(sp, shadow):
     """(pool key, first stage, the line's searches) as pools_of makes them, or None (a branching line, two lines)"""
     firsts = list(dict.fromkeys(pvp.root(s) for s in sp if s in pvp.PLAIN))
     if len(firsts) != 1 or pvp.letters(firsts[0]) is None:
         return None
     first = firsts[0]
-    return first + ("+shadow" if shadow else ""), first, pvp.line_searches(pvp.tree(first), "shadow" if shadow else "plain")
+    return first + ("+shadow" if shadow else ""), first, line_searches(pvp.tree(first), "shadow" if shadow else "plain")
 
 
 def holders(key, first, qs, cp):
@@ -266,7 +273,7 @@ def pools_of(renamed):
                 log(f"  {r['name']!r}: the {pvp.display(first)} line branches, its names can't be read back: skipped")
                 continue
             key = first + ("+shadow" if r["shadow"] else "")
-            out[key] = [first, r["shadow"], pvp.line_searches(pvp.tree(first), "shadow" if r["shadow"] else "plain")]
+            out[key] = [first, r["shadow"], line_searches(pvp.tree(first), "shadow" if r["shadow"] else "plain")]
     return out
 
 
@@ -316,9 +323,9 @@ def members(results, qs, first, truths):
 def sister_forms(first, shadow):
     """other lines whose searches are this line's (Pumpkaboo's sizes, Giratina's forms): the game can't tell them apart"""
     kind = "shadow" if shadow else "plain"
-    qs = pvp.line_searches(pvp.tree(first), kind)
+    qs = line_searches(pvp.tree(first), kind)
     return tuple(r for r in dict.fromkeys(pvp.root(s) for s in pvp.PLAIN) if r != first
-                 and pvp.letters(r) is not None and pvp.line_searches(pvp.tree(r), kind) == qs)
+                 and pvp.letters(r) is not None and line_searches(pvp.tree(r), kind) == qs)
 
 
 def plan(pools, results, wants, truths, only=None):
@@ -600,7 +607,7 @@ def line_pools(species):
     first = pvp.root(species)
     if pvp.letters(first) is None:
         sys.exit(f"the {pvp.display(first)} line branches, its names can't be read back")
-    return {first + ("+shadow" if sh else ""): [first, sh, pvp.line_searches(pvp.tree(first), "shadow" if sh else "plain")]
+    return {first + ("+shadow" if sh else ""): [first, sh, line_searches(pvp.tree(first), "shadow" if sh else "plain")]
             for sh in (False, True)}
 
 
@@ -618,7 +625,7 @@ def one_walk(limit):
     front()
     search.to_search_list()
     dexes = sorted({pvp.PLAIN[s]["dex"] for first, _, _ in pools.values() for s in pvp.tree(first)})
-    gate = door.Door("PvpC", scope=",".join(map(str, dexes)), account=DOOR.account if DOOR else None)
+    gate = None  # the door (its costume search), typed only once a line has someone to open (2026-11-02)
     done, tried, record = 0, set(), []
     for key, (first, shadow, qs) in pools.items():
         if done >= limit:
@@ -640,6 +647,9 @@ def one_walk(limit):
             if not todo or done >= limit:
                 break
             log(f"{key} round {rnd}: {len(todo)} to look at")
+            if gate is None:
+                gate = door.Door("PvpC", scope=",".join(map(str, dexes)) + "&pvp",
+                                 account=DOOR.account if DOOR else None)
             for q in sorted(dict.fromkeys(t["q"] for t in todo), key=lambda q: q != search.LAST.get("q")):
                 if done < limit:  # (the search on screen first: no typing)
                     done += walk_line(q, [t for t in todo if t["q"] == q], tried, limit - done, gate, record)

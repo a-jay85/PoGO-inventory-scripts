@@ -734,13 +734,13 @@ def set_tags(on=(), off=(), only=False):
     still_opened("before the tags")
     go("menu", "menu")
     go("TAG", "tags")
-    missing = [t for t in on if t.upper() not in TAG_AT and show_tag(t.upper()) is None]  # (seen: it's there)
+    missing = [t for t in on if ui.norm(t) not in TAG_AT and show_tag(ui.norm(t)) is None]  # (seen: it's there)
     if missing:  # this account may not have the tag: change nothing
         go("DONE", "detail")  # nothing ticked or unticked yet, so DONE changes nothing
         raise Skip(f"no {', '.join(missing)} tag on this account")
-    names = {t.upper(): t for t in (*off, *on)}
-    down = lambda ts: sorted(ts, key=lambda t: TAG_AT.get(t.upper(), 0))  # one trip down the sheet, not back and forth
-    want = {**{t.upper(): False for t in down(off)}, **{t.upper(): True for t in down(on)}}  # unticks first
+    names = {ui.norm(t): t for t in (*off, *on)}
+    down = lambda ts: sorted(ts, key=lambda t: TAG_AT.get(ui.norm(t), 0))  # one trip down the sheet, not back and forth
+    want = {**{ui.norm(t): False for t in down(off)}, **{ui.norm(t): True for t in down(on)}}  # unticks first
     with changing("ticking tags"):
         for T, v in want.items():
             ticks = show_tag(T)
@@ -756,7 +756,7 @@ def set_tags(on=(), off=(), only=False):
                 keep_capture("tags")
                 raise Stop(f"tags didn't end up right: {ticks}")
         tags_done()
-        ON, OFF = {t.upper() for t in on}, {t.upper() for t in off}
+        ON, OFF = {ui.norm(t) for t in on}, {ui.norm(t) for t in off}
         good = lambda t: (sorted(t) == sorted(ON)) if only else (ON <= set(t) and not OFF & set(t))
         tags = settle(detail_tags, good)
         if not good(tags):
@@ -897,11 +897,20 @@ def steady_detail():
 
 def short(s):
     """for comparing two reads of a name: OCR adds or drops spaces and reads O as 0 ('84 A 0*' is '84 AO*')"""
-    return re.sub(r"[.…]+$", "", (s or "").strip()).replace(" ", "").replace("0", "o").lower()
+    # (a tile's ♀ can read as '·': 'Nidoran ·' against the page's 'Nidoran 7', 2026-11-02)
+    return re.sub(r"[.…·•]+$", "", (s or "").strip()).replace(" ", "").replace("0", "o").lower()
 
 
 def opened_right(info, tile_name, tile_cp):
     """the detail is the tile that was tapped: same CP, and one name starts the other (tiles cut long names)"""
+    if info["cp"] and info["cp"] != tile_cp and ui.ANDROID:
+        # a digit can go unread in the small picture (CP180 for CP1806, 2026-11-02): look again at the full-size one
+        try:
+            again = ui.detail_info(ui.ocr(ui.android.sharp()))["cp"]
+        except StopIteration:  # no HP line in this read
+            again = None
+        if again == tile_cp:
+            info["cp"] = again
     if info["cp"] and info["cp"] != tile_cp:
         raise Skip(f"opened CP{info['cp']} but tile said CP{tile_cp}")
     a, b = short(info["name"]), short(tile_name)

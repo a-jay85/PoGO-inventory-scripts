@@ -140,6 +140,12 @@ def scrolled_bottom(bounds, drags=2):
     return reads
 
 
+def one_digit_off(a, b):
+    """two CP reads the same length that differ in just one digit (an OCR slip)"""
+    a, b = str(a), str(b)
+    return len(a) == len(b) and sum(x != y for x, y in zip(a, b)) == 1
+
+
 def back_to_top(me, bounds):
     """drag down until the CP shows. Only drag from labels that are never buttons (weight, candy, the caught box,
     form text), never from the top strip: a drag there pulls down the phone's notification shade.
@@ -150,9 +156,10 @@ def back_to_top(me, bounds):
         cp_top = any(t[1] < 0.15 and re.match(r"[cC]\s*[pP]", t[4].strip()) for t in texts)
         if now and (now[1:3] == me[1:3] and now[1] is not None  # same CP and HP (name reads can wobble). No CP read
                     # in either: not proof (half way down, 2026-10-31), the next line needs the CP at the top
-                    or cp_top and None in (now[1], me[1]) and None not in me[2:] and now[2:] == me[2:]):
+                    or cp_top and (None in (now[1], me[1]) or one_digit_off(now[1], me[1]))
+                    and None not in me[2:] and now[2:] == me[2:]):
             return  # (a lucky one's sparkles can garble the CP, in this read or the first: then the same HP, weight
-            # and height, with a CP at the top)
+            # and height, with a CP at the top. One digit misread counts too: 264 for 261, 2026-11-02)
         if any(re.fullmatch(r"[cC]\s*[pP]\s*\d+", t[4].strip()) for t in texts):
             time.sleep(0.3)  # CP in sight: at the top, maybe still settling
             continue

@@ -415,11 +415,17 @@ def bars(path, texts):
     W, H = im.size
     x0, x1 = int(0.10 * W), int(0.49 * W)
     ivs, raws = [], []
+    found = {}
     for label in ("ATTACK", "DEFENSE", "HP"):
         lab = [t for t in texts if is_label(t[4], label) and t[0] < 0.35]
+        if not lab and label == "HP" and {"ATTACK", "DEFENSE"} <= set(found):
+            # the small orange HP can go unread (Nidoran♀, 2026-11-02): the labels are evenly spaced
+            (ax, ay, aw, ah, _), (dx, dy, dw, dh, _) = found["ATTACK"], found["DEFENSE"]
+            lab = [(dx, dy + (dy - ay), dw, dh, "HP")]
         if not lab:
             return None, f"no {label} label"
-        lx, ly, lw, lh, _ = max(lab, key=lambda t: t[1])  # the appraisal one is lowest
+        found[label] = max(lab, key=lambda t: t[1])  # the appraisal one is lowest
+        lx, ly, lw, lh, _ = found[label]
         ys = range(int((ly + lh) * H), int((ly + lh + 0.04) * H))
         counts = {y: sum(is_bar(im.getpixel((x, y))) for x in range(x0, x1)) for y in ys}
         full = []  # first band of rows under the label that looks like a bar
@@ -693,15 +699,23 @@ CONFIRM_SCREENS = {"OK": ("rename",), "CANCEL": ("rename", "tags"), "DONE": ("ta
                    "PVPC": ("tags", "tag-tab"), "IVC": ("tags", "tag-tab"), "NOPE": ("tags",), "XLX": ("tags",), "GUARANTEEDLUCKY": ("tags",), "OLD": ("tags",), "TAG": ("menu",), "TAGS": ("list",), "APPRAISE": ("menu",), "POKMON": ("tag-tab",)}
 
 
+def right_buttons(cs):
+    """the round buttons on the right. Some detail screens have a ribbon button just above the menu button:
+    the menu button is the bottom one, so only the bottom row counts"""
+    r = [c for c in cs if c[0] > 0.7]
+    low = max((c[1] for c in r), default=0)
+    return [c for c in r if c[1] > low - 0.04]
+
+
 def locate(T, path, texts, screen, aspect):
     """-> (centre x, centre y, fuzz()) in window fractions, or exits with REFUSED"""
     if T in ("MENU", "CLOSE"):
         cs = circles(path)
         if T == "MENU" and screen == "detail":
-            c = [c for c in cs if c[0] > 0.7]
+            c = right_buttons(cs)
         elif T == "CLOSE" and screen in ("detail", "gym"):  # the gym screen has the same X and menu buttons
             c = [c for c in cs if 0.35 < c[0] < 0.65]
-            menu = [m for m in cs if m[0] > 0.7]
+            menu = right_buttons(cs)
             if not c and len(menu) == 1:  # the X is see-through and can vanish into the background:
                 c = [(0.5, menu[0][1], menu[0][2] * 0.8)]  # it sits bottom centre, level with the menu button
         elif T == "CLOSE" and screen == "menu":

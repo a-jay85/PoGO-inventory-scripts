@@ -714,13 +714,15 @@ def power_pile(query, limit):
     return True
 
 
-def untraded():
+def untraded(who):
     """the user's rules (2026-10-31): a never-traded one in Clean Trades never gets Transfer. XXL/xxs: renamed and
-    tagged IVC (sizes.py). A trade evolution (not a shadow: it can't be traded): GIV. Both drop out of Clean Trades (!#)"""
+    tagged IVC (sizes.py). A trade evolution (not a shadow: it can't be traded): GIV, on HashTagAJay only (it goes
+    to EVO_FOR, who wants the XP; HashTagAJay doesn't, 2026-11-02). Both drop out of Clean Trades (!#)"""
     import sizes  # (sizes imports this file)
     for size in sizes.NAMES:
         sizes.walk(lambda: run_shortcut(CLEAN, f"&!traded&{size}"), size, 10 ** 9)
-    tag_pile(CLEAN, "GIV", f"&!traded&!shadow&{TRADE_EVOS}")
+    if who != EVO_FOR:
+        tag_pile(CLEAN, "GIV", f"&!traded&!shadow&{TRADE_EVOS}")
 
 
 def script(a):
@@ -746,7 +748,7 @@ def script(a):
         return
     for name, tag in TAGGING:  # first: Clean Trades (!#) must only see what's left untagged after these
         tag_pile(name, tag)
-    untraded()  # before the power-ups: these won't be transferred
+    untraded(who)  # before the power-ups: these won't be transferred
     try:
         if power_walk(limit) is None:
             log(f"--limit {limit}: the rest weren't checked, so Clean Trades isn't tagged Transfer")

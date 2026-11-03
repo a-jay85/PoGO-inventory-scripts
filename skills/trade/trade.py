@@ -32,6 +32,7 @@ import base
 from base import Stop, log
 from search import pokeball, amp_as_8
 from home import main_menu
+from session import TROUBLE
 
 STATE = os.path.join(HERE, ".state.json")
 PER_DAY = 99  # the game allows 100: one is kept for a special trade made by hand
@@ -72,11 +73,16 @@ class ServiceDown(Expired):
     """the trading server failed ("Trading service temporarily unavailable"): restart the game on both phones"""
 
 
+class Lost(ServiceDown):
+    """iPhone Mirroring lost the iPhone mid-run ("Connection Interrupted"): open Mirroring again, then restart the
+    game on both phones. Before both confirmed nothing traded; after, the trade went through and is counted"""
+
+
 # ---------- the two phones ----------
 
 class Phone:
     def __init__(self, name, android, account, friend):
-        self.name, self.account, self.friend = name, account, friend
+        self.name, self.account, self.friend, self.android = name, account, friend, android
         env = dict(os.environ)
         env.pop("POGO_PHONE", None)
         if android:
@@ -102,6 +108,9 @@ class Phone:
         self.texts = [tuple(t) for t in out["texts"]]
         self.path = out["path"]
         self.screen = classify(self.texts, self.path)
+        if self.screen == "mirroring":
+            self.keep("lost")
+            raise Lost(f"{self.name}: iPhone Mirroring lost the iPhone: {self.summary()}")
         if self.live and self.screen == "expired":
             self.live = False
             self.expired()
@@ -200,6 +209,8 @@ def classify(texts, path):
     raw = [ui.up(t) for t in texts]
     words = {ui.norm(t[4]) for t in texts}
     joined = " ".join(raw)
+    if any(w in joined for w in TROUBLE):
+        return "mirroring"  # iPhone Mirroring's own screen: it can't reach the iPhone (never on the Pixel)
     if "MANAGE FAVORITE" in joined:
         return "manage"  # the Manage Favorite Search box: a shortcut tap that landed as a long press
     if "EXIT POK" in joined:
@@ -909,8 +920,12 @@ def finish(phones):
     both(close, *[(p,) for p in phones])
 
 
-def restart(phones):
-    """force-close and open the game on both, then wait until each is past the loading screens"""
+def restart(phones, lost=False):
+    """force-close and open the game on both, then wait until each is past the loading screens.
+    lost: iPhone Mirroring lost the iPhone, open it again first"""
+    for p in phones:
+        if lost and not p.android:
+            p.call(op="reconnect")
     for p in phones:
         p.restart()
     for p in phones:
@@ -964,7 +979,7 @@ def main():
                     raise Stop(f"{e}, {expired} times in a row")
                 if isinstance(e, ServiceDown):  # closing and opening the game often clears it
                     log(f"{e}: restarting Pokémon GO on both phones")
-                    restart(phones)
+                    restart(phones, lost=isinstance(e, Lost))
                 else:
                     log(f"{e}: starting the round over")
                 continue
@@ -974,7 +989,11 @@ def main():
                 break
             set_made(made_today() + 1)  # counted once both have confirmed: a missed result screen never undercounts
             n += 1
-            finish(phones)
+            try:
+                finish(phones)
+            except Lost as e:  # both confirmed: the trade went through, only its result screens are left
+                log(f"{e}: the trade went through: restarting Pokémon GO on both phones")
+                restart(phones, lost=True)
             names, d, candy = got
             log(f"trade {made_today()} today: {names[0]} (iPhone) <-> {names[1]} (Android), {d:,.1f} km, {candy} candy")
         log(f"{n} trades this run, {made_today()} today")

@@ -11,7 +11,8 @@ Each one is opened. Its size badge must agree with the search, or it's passed ov
   name -> XXL or xxs (/ivc's spelling). A name that already says its size keeps it.
   tags -> IVC on, Transfer off. Other tags (Old, ...) stay.
 /ivc counts an XXL/xxs name as done, and leaves sized IVC ones for the user once named.
-Then the never-traded trade evolutions (free to evolve once traded, cleantrades' TRADE_EVOS), not shadows:
+Then, signed in as HashTagAJay only (CyrillJan wants the XP, HashTagAJay doesn't, 2026-11-02), the never-traded
+trade evolutions (free to evolve once traded, cleantrades' TRADE_EVOS), not shadows:
 #Transfer&!traded&!shadow&!xxl&!xxs&!#GIV&<dex numbers> -> GIV on, Transfer off, all at once (SELECT ALL).
 --limit N changes at most N. Log in runs/<time>-sizes/.
 """
@@ -119,7 +120,7 @@ def walk(find, size, limit):
     return done
 
 
-def sweep(limit):
+def sweep(limit, who):
     for size in NAMES:
         q = SWEEP % size
         n = walk(lambda: (search_exact(q), ct.results())[1], size, limit)
@@ -129,15 +130,17 @@ def sweep(limit):
         if left:
             log(f"{q}: {left} still there (passed over or --limit): look at them by hand")
     # then a never-traded trade evolution (free to evolve once traded): GIV, Transfer off. After the sizes: one
-    # passed over there stays out. Not a shadow: it can't be traded
-    ct.tag_pile(TRANSFER, GIV, off=[TRANSFER], query=EVO_SWEEP)
+    # passed over there stays out. Not a shadow: it can't be traded. Only toward ct.EVO_FOR, who wants the XP
+    if who != ct.EVO_FOR:
+        ct.tag_pile(TRANSFER, GIV, off=[TRANSFER], query=EVO_SWEEP)
 
 
 def script(limit):
     base.start()
     search.to_search_list()
-    log(f"signed in as {ct.account()}")
-    sweep(limit)
+    who = ct.account()
+    log(f"signed in as {who}")
+    sweep(limit, who)
 
 
 if __name__ == "__main__":

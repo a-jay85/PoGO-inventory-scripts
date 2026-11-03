@@ -14,7 +14,7 @@ that's missing, gives unsure, never Transfer.
 The order is tradeable.py's (its docstring has the reasons), judged for the other account, the one it would be traded
 to. Signed in as CyrillJan (the pile goes to HashTagAJay):
   GuaranteedLucky > Luckydex > Old > 2XL (a raid attacker's line only) > Reroll > GIV > XXL/xxs > XLX > GIV
-  (evolved, Dynamax, Tandemaus) > GIV (trade evolution) > GIV (far) > Transfer
+  (evolved, Dynamax, Tandemaus) > GIV (far) > Transfer
 Signed in as HashTagAJay (the pile goes to CyrillJan):
   GuaranteedLucky > Old > GIV (medal) > 2XL > GIV > XXL/xxs > XLX > GIV (evolved, Dynamax) > GIV (trade evolution) >
   GIV (far) > Transfer
@@ -25,7 +25,7 @@ A costume one (the user, 2026-11-02): 93%+ is named and a favorite, traded or no
 form evolves and it can't (no Evolve button: dead_end), only as its own species: CyrillJan's raid list and 2XL go by
 its own place in DialgaDex's tops (raid_self), and no trade-evolution GIV.
 Every Transfer for an untraded one goes through transfer() last: an XXL/xxs one gets IVC instead, a trade evolution
-(free to evolve once traded) GIV. The user's own tags first: untraded with Old, Evo or GuaranteedLucky,
+(free to evolve once traded) GIV, signed in as HashTagAJay only (only CyrillJan wants the XP, the user 2026-11-02). The user's own tags first: untraded with Old, Evo or GuaranteedLucky,
 those stay and only IVC / PvpC comes off; traded, the "trade it" tags (TRADE_TAGS) come off. The species lists come
 from tradeable.py's taker_species() and giver_species(), the same ones its tag searches use; one saved more than STALE_DAYS
 ago counts as missing.
@@ -276,7 +276,8 @@ def final_tag(f, t, today=None):
         return tag("GIV", why="untraded Dynamax")
     if to == TAKER and sid in t["giv_for_taker"]:
         return tag("GIV", why=f"{sid}: wanted by {TAKER}")
-    if dexn in TRADE_EVO_DEX and not dead:  # (GIV either way: before the distance, so a failed distance search doesn't matter)
+    if f.account != EVO_FOR and dexn in TRADE_EVO_DEX and not dead:  # (before the distance, so a failed distance
+        # search doesn't matter). Only toward EVO_FOR: HashTagAJay doesn't need the XP (the user, 2026-11-02)
         return tag("GIV", why="untraded: evolves free once traded")
     if f.far is None:
         return unsure("distance not checked")
@@ -302,7 +303,8 @@ def two_xl(f, t, sid):
 def transfer(f, sid, why, off=(), purify=False, clear=False):
     """Transfer, unless it's untraded and (the user's rules, 2026-10-31, for every Transfer):
       an XXL or xxs one -> IVC, named XXL / xxs (/ivc counts that name as done)
-      one that evolves free once traded (TRADE_EVOS) -> GIV. A shadow can't be traded: it never is
+      one that evolves free once traded (TRADE_EVOS) -> GIV, signed in as HashTagAJay only (it goes to EVO_FOR,
+      who wants the XP; HashTagAJay doesn't, the user 2026-11-02). A shadow can't be traded: it never is
     The size comes first, as in final_tag's order. A size that didn't read gives unsure, never Transfer"""
     if not f.traded:
         if f.size is None:
@@ -310,7 +312,7 @@ def transfer(f, sid, why, off=(), purify=False, clear=False):
         if f.size in SIZE_NAMES:
             return tag("IVC", why=f"never traded {f.size.upper()} (else Transfer: {why})", name=SIZE_NAMES[f.size],
                        off=off)
-        if not f.shadow and pvp.SPECIES[sid]["dex"] in TRADE_EVO_DEX and not dead_end(f, sid):
+        if f.account != EVO_FOR and not f.shadow and pvp.SPECIES[sid]["dex"] in TRADE_EVO_DEX and not dead_end(f, sid):
             return tag("GIV", why=f"untraded, evolves free once traded (else Transfer: {why})", off=off, clear=clear)
     return tag("Transfer", why=why, off=off, purify=purify, clear=clear)
 

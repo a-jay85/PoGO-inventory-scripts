@@ -109,7 +109,7 @@ class Phone:
         self.path = out["path"]
         self.screen = classify(self.texts, self.path)
         if self.screen == "mirroring":
-            self.keep("lost")
+            self.keep("mirroring")
             raise Lost(f"{self.name}: iPhone Mirroring lost the iPhone: {self.summary()}")
         if self.live and self.screen == "expired":
             self.live = False

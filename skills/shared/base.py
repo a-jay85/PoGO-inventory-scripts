@@ -1172,6 +1172,7 @@ def scroll_for_new(ts, seen, bounds, how):
     look for tiles we haven't seen instead. A scroll that doesn't move the list at all tries the other way of
     scrolling; how is the way that worked, for next time"""
     before = [t[:2] for t in ts]
+    search.scrolled = True  # (to_search_list and start_search go by it)
     for way in ([how] + [h for h in ("wheel", "drag") if h != how]):
         scroll(bounds, way)
         _, texts, _, bounds = wait_for("list")

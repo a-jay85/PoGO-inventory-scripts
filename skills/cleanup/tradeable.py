@@ -302,10 +302,9 @@ def newest_for(pattern, who, key="trainer", default=None):
     return None
 
 
-def pve(m, enough=lambda s, mega_only: False):
-    """-> ({sid: why}, {sid: why dropped}): a traded copy (never shadow) would be in DialgaDex's top PVE_TOP against
-    some raid boss, or evolve into one that is. Special trades left out of the top: they're never tagged. A mega counts
-    as its species. enough(sid, only in as a mega) -> why the taker needs no more of it, or None"""
+def raid_tops(m):
+    """-> ({sid: [bosses]}, {sid in some top as itself}, roster.Model): each tradeable non-special species in DialgaDex's
+    top PVE_TOP against some raid boss, as itself (not through what it evolves into). A mega counts as its species"""
     sys.path.append(os.path.join(HERE, "..", "roster"))
     import roster
     data_f = base.newest(HERE, os.path.join("..", "roster", "dialgadex-counters-[0-9]*[0-9].json"))
@@ -328,6 +327,14 @@ def pve(m, enough=lambda s, mega_only: False):
         boss = b["name"] + ("" if b["form"] == "Normal" else f" ({b['form']})")
         for s in top:
             tops.setdefault(s, []).append(boss)
+    return tops, plain, rm
+
+
+def pve(m, enough=lambda s, mega_only: False):
+    """-> ({sid: why}, {sid: why dropped}): a traded copy (never shadow) would be in DialgaDex's top PVE_TOP against
+    some raid boss, or evolve into one that is. Special trades left out of the top: they're never tagged. A mega counts
+    as its species. enough(sid, only in as a mega) -> why the taker needs no more of it, or None"""
+    tops, plain, rm = raid_tops(m)
     out, dropped = {}, {}
     for s, bs in tops.items():
         if s not in m.by:

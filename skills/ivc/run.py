@@ -261,18 +261,23 @@ def scan(limit=10 ** 9, only=None):
         log(f"  {m['name']!r} {m['species'] or m['species_options']} {flags} {m['size'] or ''}")
         return False
 
-    front()
-    to_search_list()
+    shown = COUNTED.pop("q", None)  # chunks_for's whole-pile search, still on screen at the top
+    if shown is None:
+        front()
+        to_search_list()
     chunks = load("chunks.json") if os.path.exists(os.path.join(base.RUN_DIR, "chunks.json")) else {}
     every = only or CHUNKS
-    query = lambda ab: f"#{TAG}&!xxl&!xxs&{ab[0]}-{ab[1]}"
+    query = chunk_query
     # chunks never searched first; the ones that came up short get their retry at the end
     for a, b in sorted(every, key=lambda ab: query(ab) in chunks):
         q = query((a, b))
         if chunks.get(q, {}).get("done"):
             continue
         in_range[:] = [a, b]
-        path, texts, _ = start_search(q)
+        if q == shown:  # (that search is this one: not typed again)
+            texts, shown = COUNTED.pop("texts"), None
+        else:
+            path, texts, _ = start_search(q)
         want = result_count(texts)
         for _ in range(3):  # the count can be missed on the first read
             if want is not None:
@@ -295,6 +300,7 @@ def scan(limit=10 ** 9, only=None):
         save("chunks.json", chunks)  # (no tab switch here: start_search clears the bar and goes back to the top)
         if len(found) >= limit:
             break
+    save("scan.json", found)  # an empty pile writes it too: the sort reads it next
     left = {q: f"{c['have']}/{c['want']}" for q, c in chunks.items() if not c["done"]}
     log(f"scanned {len(found)}, {sum(bool(m.get('unrenamed')) for m in found)} still unrenamed; "
         f"chunks not done: {left or 'none'}")
@@ -566,8 +572,8 @@ def plan(quiet=False):
 # ---------- fallen out ----------
 # Older Pokémon (no IVC tag) that the new keepers push out of the top. Not traded and caught 2016-2020 ->
 # GuaranteedLucky (a trade is guaranteed lucky). Not traded and older than OLD_DAYS -> Old. Anything else
-# (traded: a Pokémon can only be traded once, or newer) -> star off, its final tag at the door. Shiny and costume
-# ones are never touched.
+# (traded: a Pokémon can only be traded once, or newer) -> star off, its final tag at the door. A costume one always
+# goes to the door. Shiny ones are never touched.
 
 def ivc_name(n):
     """a name /ivc made ('96 HD', '87/96 A* XXL'), not another app's ('15/15/14')"""
@@ -699,6 +705,32 @@ def door_for(m):
 ACTS = ("KEEP", "DOOR", "LOOK")  # the verdicts act opens a Pokémon for
 
 
+def could_be_dead(m):
+    """its plain form evolves, so a costume one of it might not (verdict.dead_end): its KEEP needs the door's costume
+    search"""
+    import verdict  # (not at the top: door loads it late, see door.vd)
+    return m.get("species") in sort.SPECIES and m["species"] in verdict.pvp.SPECIES and verdict.plain_evolves(m["species"])
+
+
+def dead_keep(m, n, c):
+    """on its open detail page, a KEEP: a costume one that can't evolve, though its plain form can? Then it counts as
+    its own species only (the user, 2026-11-02), and a non-final is in no spot: it goes to the door instead.
+    n, c: its tile, as the door's costume search read it. Skip when that can't be told"""
+    if not could_be_dead(m):
+        return False
+    texts = steady_detail()[1]
+    if door.can_evolve(texts):
+        return False
+    if not door_for(m):
+        raise Skip("KEEP, but costume or not isn't known (outside what the door's searches covered): next run")
+    dead = door.dead_end(door_for(m).has("costume", door.key(n, c)), [m["species"]], texts)
+    if dead is None:
+        raise Skip("KEEP, but costume or not / its Evolve button didn't read")
+    if dead:
+        log("  a costume one that can't evolve: no KEEP as its line, to the door as its own species")
+    return dead
+
+
 def renamed_in_pools(results, n, c, name, own):
     """the pools showed this one as its species name (n): it's name now. own: its searches, where it belongs even
     if no tile of it was read"""
@@ -751,6 +783,8 @@ def look(i, n, c, p, members):
         gone = door_for(m).judge(info, texts, sp or [m["species"]], r["ivs"], (n, c), size=r["size"], raws=r["raws"])
     else:
         ivcrun.do_rename(name, ivcrun.same_name)
+        for d in set(DOORS.values()):  # its costume search read it as n
+            d.renamed(door.key(n, c), door.key(name, c))
         ivcrun.keep_read(r)  # a later run takes it from here instead of opening it
         m["name"] = m["tile"] = name
         store(m)
@@ -764,6 +798,8 @@ def look(i, n, c, p, members):
             verdict, why = judge(m, results, wants)
             others = [x for x in load("scan.json") if plan_key(x) != key[0]]
             verdict, why = unrenamed_check(m, others, verdict, why)  # a KEEP waits for the family's other unnamed ones
+        if verdict == "KEEP" and dead_keep(m, name, c):  # (the door knows it by its new name now)
+            verdict = "DOOR"
         gone = verdict
         if verdict == "KEEP":
             favorite_and_untag()
@@ -790,10 +826,10 @@ def act(limit, members):
     how many weren't found: the family isn't done then, a rerun walks its lists again)"""
     mine = {plan_key(m) for m in members}
     lists, plans = {}, [m for m in load_plan() if m["verdict"] in ACTS and plan_key(m) in mine]
-    if any(m["verdict"] in ("DOOR", "LOOK") and not door_for(m) for m in plans):  # (a LOOK may turn out DOOR)
+    to_door = lambda m: m["verdict"] in ("DOOR", "LOOK") or m["verdict"] == "KEEP" and could_be_dead(m)
+    if any(to_door(m) and not door_for(m) for m in plans):  # (a LOOK may turn out DOOR, a KEEP a costume dead end)
         # its searches only over the dex numbers sent to the door and not covered yet: a short list reads right more often
-        new = {dex_of(m) for m in load_plan() if m["verdict"] in ("DOOR", "LOOK") and m.get("species") in sort.SPECIES
-               and not door_for(m)}
+        new = {dex_of(m) for m in load_plan() if to_door(m) and m.get("species") in sort.SPECIES and not door_for(m)}
         dex = dex_terms(new)
         scope = f"#{TAG}&{dex}" if len(dex) <= ACT_QUERY_MAX else None
         was = next(iter(DOORS.values()), None)
@@ -892,6 +928,8 @@ def act(limit, members):
         if not m:
             raise Skip(f"detail doesn't match the plan: {now['name']!r} {now['species']}")
         verdict = gone = m["verdict"]
+        if verdict == "KEEP" and dead_keep(m, n, c):
+            verdict = gone = "DOOR"
         if verdict == "DOOR" and not door_for(m):
             raise Skip("judged DOOR here, outside what the door's searches covered: next run")  # (no read would mean 'no')
         if verdict == "KEEP":
@@ -960,13 +998,19 @@ def act(limit, members):
 # ---------- sort: one dex chunk at a time ----------
 
 SMALL = 60  # an IVC pile this size or less is read in one search, not in 50-dex chunks
+COUNTED = {}  # chunks_for's search when the pile is small: scan reads its list without typing it again
+
+
+def chunk_query(ab):
+    """the scan's search for dex chunk ab: the whole dex needs no numbers"""
+    return f"#{TAG}&!xxl&!xxs" + ("" if tuple(ab) == (1, MAX_DEX) else f"&{ab[0]}-{ab[1]}")
 
 
 def chunks_for(done):
     """a small IVC pile: one chunk, the whole dex (one search, its families typed once). A big one: 50-dex chunks,
     so each is tagged before the next is read. A run keeps the way it started (sorted.json)"""
-    began = done or [q.rsplit("&", 1)[1] for q in (load("chunks.json") if os.path.exists(
-        os.path.join(base.RUN_DIR, "chunks.json")) else {})]
+    began = done or [f"1-{MAX_DEX}" if q == chunk_query((1, MAX_DEX)) else q.rsplit("&", 1)[1]
+                     for q in (load("chunks.json") if os.path.exists(os.path.join(base.RUN_DIR, "chunks.json")) else {})]
     if began:  # carrying on: the same way, or the Pokémon read so far wouldn't be in any chunk
         return [(1, MAX_DEX)] if set(began) == {f"1-{MAX_DEX}"} else CHUNKS
     front()
@@ -975,7 +1019,10 @@ def chunks_for(done):
     _, texts, _ = start_search(q)
     n = result_count(texts)
     log(f"{q}: the game says {n}")
-    return [(1, MAX_DEX)] if n is not None and n <= SMALL else CHUNKS
+    if n is not None and n <= SMALL:
+        COUNTED.update(q=q, texts=texts)
+        return [(1, MAX_DEX)]
+    return CHUNKS
 def families(members):
     """members whose searches overlap, together: one family's lists are read, then tagged, before the next family"""
     out = []
@@ -1058,6 +1105,9 @@ def fallen_out(limit):
     """the fallen-out ones of this sort run: grouped (searches only), then each one opened and tagged GuaranteedLucky
     / Old or sent to the door. A rerun on the same folder groups again: what's tagged by now drops out. It goes by
     the fallen.json the sort's plan wrote (no new plan here: newer code can't read an older folder's searches)"""
+    if not os.path.exists(os.path.join(base.RUN_DIR, "fallen.json")):  # no plan written: an empty pile
+        log("fallen out: none (no plan in this run)")
+        return
     fallen.groups(iv_only=True)
     act_fallen(limit)
 

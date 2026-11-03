@@ -104,6 +104,13 @@ class Door:
             return s
         return True if tile in s else None if k in self.partial else False
 
+    def renamed(self, old, new):
+        """a tile renamed after the searches (/ivc's LOOK): it's in the same ones under its new name"""
+        for s in self.sets.values():
+            if isinstance(s, Counter) and s[old]:
+                s[new] += 1
+                s[old] -= 1
+
     def listed(self):
         """{(tile name, CP) as the walk read them: n} left as not sure by an earlier run of this tag, on this account,
         under these rules"""
@@ -139,7 +146,7 @@ class Door:
                          "why": v.why, "account": self.account, "tag": self.tag, "rules": RULES,
                          "day": time.strftime("%Y-%m-%d"), "run": base.RUN_DIR})
             return UNSURE
-        if v.name:
+        if v.name and not (info.get("name") or "").upper().startswith(v.name.upper()):  # ('93 A FP*' keeps its FP*)
             base.do_rename(v.name, lambda got, want: (got or "").strip().upper() == want.upper())
         if v.kind == "keep":
             base.set_star(True)
@@ -165,10 +172,8 @@ class Door:
         icons = tile_icons(info)
         said = lambda k, v: self.said.get(k, v)
         rows = [ui.norm(t[4]) for t in texts]
-        evolves = True if any(r.startswith("EVOLVE") for r in rows) else False if any(
-            r.startswith("POWER UP") for r in rows) else None  # (Mega Evolve starts MEGA)
         lucky = any(r.startswith("LUCKY POK") for r in rows)  # only a trade makes one lucky
-        f = vd.Facts(evolves=evolves,account=self.account, sids=list(sp), iv_sum=sum(ivs) if ivs else None,
+        f = vd.Facts(evolves=can_evolve(texts), account=self.account, sids=list(sp), iv_sum=sum(ivs) if ivs else None,
                      ivs=tuple(ivs) if ivs else None, shiny=said("shiny", icons.get("shiny")),
                      costume=self.has("costume", tile), background=said("background", icons.get("background")),
                      traded=True if lucky else said("traded", page["traded"]), caught=page["caught"], shadow=base.is_shadow(texts),
@@ -260,6 +265,29 @@ class Door:
                 raise
             log(f"  no power-up: {e}")
         return v
+
+
+def can_evolve(texts):
+    """an Evolve button under Power Up on the detail page -> True; Power Up and the moves row under it but no Evolve
+    between them -> False (a costume Piplup); that part of the page didn't show -> None. (Mega Evolve starts MEGA)"""
+    rows = [ui.norm(t[4]) for t in texts]
+    if any(r.startswith("EVOLVE") for r in rows):
+        return True
+    if any(r.startswith("POWER UP") for r in rows) and any(r.startswith("GYMS") or "TRAINER BATTLES" in r for r in rows):
+        return False
+    return None
+
+
+def dead_end(costume, sp, texts):
+    """a costume one whose plain form evolves but it can't (verdict.dead_end): /pvpc and /ivc judge it as its own
+    species only. costume: Door.has's answer. -> True, False, or None (costume or the Evolve button didn't read)"""
+    import verdict  # (not at the top: see vd)
+    if len(sp) != 1 or sp[0] not in verdict.pvp.SPECIES or not verdict.plain_evolves(sp[0]):
+        return False
+    ev = can_evolve(texts)
+    if ev or costume is False:  # (an Evolve button: no dead end, whatever the costume search read)
+        return False
+    return None if costume is None or ev is None else True
 
 
 def catch_date(texts):

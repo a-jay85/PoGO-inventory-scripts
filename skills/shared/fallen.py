@@ -7,7 +7,8 @@ Each skill finds its own fallen-out ones and saves them in <run dir>/fallen.json
   not traded + older than OLD_DAYS -> tag Old
   anything else (traded: a Pokémon trades only once, or newer) -> its final tag at the door (door.py: star off, name
   cleared), or left as it is on door's not-sure list
-Shiny and costume ones are never touched. groups() sorts them with in-game searches (reads only). act() opens each
+Shiny ones are never touched. A costume one always goes to the door (it names and stars one at 93%+, the user's rule,
+2026-11-02), never straight to GuaranteedLucky or Old. groups() sorts them with in-game searches (reads only). act() opens each
 one, asks the skill to judge it again on its own detail screen, then tags it and clears its name.
 A door one that appraises 98%+ is left alone. (The group is still called "Nope" in fallen-groups.json.)
 """
@@ -20,9 +21,9 @@ from base import log, go
 import search
 
 OLD_DAYS = 300
-GROUPS = [("GuaranteedLucky", "&!traded&year2016-2020"), ("Old", f"&!traded&age{OLD_DAYS + 1}-"),
-          ("Nope", f"&traded,age0-{OLD_DAYS}")]  # in this order: each tag drops out of the later searches
-BASE = "&!#IVC&!shiny&!costume&!#Old&!#GuaranteedLucky"
+GROUPS = [("GuaranteedLucky", "&!traded&!costume&year2016-2020"), ("Old", f"&!traded&!costume&age{OLD_DAYS + 1}-"),
+          ("Nope", f"&traded,age0-{OLD_DAYS},costume")]  # in this order: each tag drops out of the later searches
+BASE = "&!#IVC&!shiny&!#Old&!#GuaranteedLucky"
 CHUNK = 20  # dex numbers per search
 
 

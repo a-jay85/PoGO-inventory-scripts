@@ -913,7 +913,8 @@ def opened_right(info, tile_name, tile_cp):
             info["cp"] = again
     if info["cp"] and info["cp"] != tile_cp:
         raise Skip(f"opened CP{info['cp']} but tile said CP{tile_cp}")
-    a, b = short(info["name"]), short(tile_name)
+    # I, l, | and 1 read for each other ('Pvp GI18U118' on the tile, 'Pvp G|18U|18' on the page, 2026-11-02)
+    a, b = (re.sub(r"[il|1]", "i", short(x)) for x in (info["name"], tile_name))
     return bool(a and b and (a.startswith(b) or b.startswith(a)))
 
 

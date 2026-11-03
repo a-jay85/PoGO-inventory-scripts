@@ -339,7 +339,7 @@ def lucky(f, sid, dexn, strip):
 
 
 def plain_evolves(sid):
-    return bool(pvp.SPECIES[sid]["family"].get("evolutions"))
+    return bool(pvp.SPECIES[sid].get("family", {}).get("evolutions"))  # (Unown has no family: 2026-11-02)
 
 
 def dead_end(f, sid):

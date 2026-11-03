@@ -299,8 +299,8 @@ def start(storage=True):
         elif screen == "anr":
             keep_capture("anr")
             raise Stop("the phone says Pokémon GO isn't responding: close it by hand")
-        elif screen == "unknown" and storage and profile(texts):  # a stop or a reopen left the profile up: its X
-            log("  on the profile: closing it")
+        elif screen == "unknown" and storage and (profile(texts) or profile_tabs(texts)):  # a stop or a reopen left
+            log("  on the profile: closing it")  # the profile up (any of its tabs): its X
             search.click(*X_BUTTON, bounds)
             time.sleep(1.5)
         elif screen == "unknown" and passenger(texts, bounds):
@@ -364,6 +364,12 @@ def profile(texts):
         return True
     words = {ui.norm(t[4]) for t in texts}
     return {"LEVEL", "BUDDY"} <= words and any(squash(n) in squash(" ".join(t[4] for t in texts)) for n in TRAINERS)
+
+
+def profile_tabs(texts):
+    """any tab of the profile (ME, FRIENDS or SOCIAL): its three tab names across the top. The round X at the bottom
+    closes each. (The iPhone came back on SOCIAL once and the start stopped there: 2026-11-02)"""
+    return {"ME", "FRIENDS", "SOCIAL"} <= {ui.norm(t[4]) for t in texts if t[1] < 0.2}
 
 
 def trainer(fast=True):

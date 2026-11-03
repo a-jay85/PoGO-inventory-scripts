@@ -565,7 +565,7 @@ def nameless(texts):
     full name later if another screen reads it. Not the bottom row, where the buttons cover names"""
     out = []
     for c in ui.tile_cps(texts):
-        if c[1] < 0.75 and not any(0.08 < t[1] - c[1] < 0.13 and abs((t[0] + t[2] / 2) - (c[0] + c[2] / 2)) < 0.1 for t in texts):
+        if c[1] < 0.75 and not any(ui.under(t, c) for t in texts):
             out.append(("", int(re.sub(r"\D", "", c[4]))))
     return out
 

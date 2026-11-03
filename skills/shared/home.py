@@ -180,7 +180,7 @@ def leave_scopely(texts):
     fy = hit[1] + hit[3] * random.uniform(0.4, 0.6)
     if ui.ANDROID:  # the link's text sits under the Pixel's status bar (top 98 px), which takes the tap: just
         fy = max(fy, (random.randint(118, 142) - bounds[1]) / bounds[3])  # below it still opens it (y 137, 2026-11-03)
-    base.click(fx, fy, bounds)
+    base.click(fx, fy, bounds)  # (bounds are phone pixels with the adb capture; POGO_SCRCPY=1 would need its own)
     time.sleep(2.5)
     return True
 

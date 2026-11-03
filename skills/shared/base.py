@@ -218,7 +218,7 @@ def wait_for(*screens, timeout=10, capture=True, look=None, poll=None, catch=Tru
     when it gives up. detail: the error has the last screen's text even when it's a known screen"""
     see = look or globals()["look"]
     pause = poll_gap(0.12) if poll is None else poll
-    end, last, nudges, cards, nos = time.time() + timeout, "?", 0, 0, 0
+    end, last, nudges, cards, nos, held = time.time() + timeout, "?", 0, 0, 0, None
     while True:
         try:
             screen, texts, path, bounds = see()
@@ -247,12 +247,18 @@ def wait_for(*screens, timeout=10, capture=True, look=None, poll=None, catch=Tru
                 continue
             last = screen
             words = {ui.norm(t[4]) for t in texts}
-            if "detail" in screens and screen == "unknown" and "STARDUST" in words and \
-                    words & {"WEIGHT", "HEIGHT", "POWER UP"} and nudges < 3:
+            scrolled = "detail" in screens and screen == "unknown" and "STARDUST" in words and \
+                words & {"WEIGHT", "HEIGHT", "POWER UP"} and nudges < 3
+            if scrolled and words == held:
                 nudges += 1  # a detail page left scrolled down (the HP line is off the top): pull it back up
+                log("  the detail page looks scrolled down: pulling it back up")
+                held = None
                 scroll(bounds, "drag", up=True)
                 end = max(end, time.time() + 3)
                 continue
+            # (only once two looks agree: a sheet fading out over the detail reads like this for one look, and this
+            # drag on a page that isn't scrolled closes it: the list came up after a DONE that had landed, 2026-11-03)
+            held = words if scrolled else None
             if screen == "unknown" or detail:
                 last += ": " + ui.summary(texts, 200)
         if time.time() >= end:

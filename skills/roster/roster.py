@@ -269,7 +269,7 @@ def load_counts(path):
 
 
 def cmd_count(model, resume):
-    import home, run as base
+    import home, base  # (the tapper moved from pvpc's run.py to shared/base.py: PR #154)
     base.new_run_dir(os.path.join(HERE, "runs"), suffix="count")
     who = home.trainer()
     if who not in TRAINERS:

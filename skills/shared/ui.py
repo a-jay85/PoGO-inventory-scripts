@@ -172,7 +172,22 @@ def is_label(s, label):
 
 # ---------- screen classification ----------
 
+def profile_page(texts):
+    """the profile (ME / FRIENDS / SOCIAL tabs across the top) or the Scopely Explore page its EXPLORE button opens.
+    Both have text where the list's search bar sits (a friend's hearts '000', 'Scopely Explore Profile!'): read as
+    the list, a search tap there opened Scopely Explore, which Back can't close (Pixel, 2026-11-03)"""
+    top = {norm(t[4]) for t in texts if t[1] < 0.2}
+    return {"ME", "FRIENDS", "SOCIAL"} <= top or scopely(texts)
+
+
+def scopely(texts):
+    """the Scopely Explore page (a web page over the game): 'Return to Pokémon GO' at the top"""
+    return any(norm(t[4]).endswith("RETURN TO POKMON GO") and t[1] < 0.1 for t in texts)
+
+
 def classify(texts):
+    if profile_page(texts):
+        return "unknown"  # never the list: home.start closes the profile, home.unstick leaves Scopely Explore
     words = [norm(t[4]) for t in texts]
     if "SEARCH" in {w.lstrip("Q ").strip() for w in words} and sum(bool(re.match(r"CP\s*\d", w.upper())) for w in [t[4] for t in texts]) >= 3:
         return "list"

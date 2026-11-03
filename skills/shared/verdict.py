@@ -21,6 +21,9 @@ Signed in as HashTagAJay (the pile goes to CyrillJan):
   (its raid GIV: a new copy gets into one of CyrillJan's /roster teams, or within 15% of the #6: giver_species())
 Before all of them: a special trade (trades.py's legendary rules, else unsure), a traded one (Transfer), an untraded
 shadow, costume or background one (odd_one: the user's rules for each), and a lucky one, traded or not (lucky()).
+A costume one (the user, 2026-11-02): 93%+ is named and a favorite, traded or not. Else the usual rules, but if its plain
+form evolves and it can't (no Evolve button: dead_end), only as its own species: CyrillJan's raid list and 2XL go by
+its own place in DialgaDex's tops (raid_self), and no trade-evolution GIV.
 Every Transfer for an untraded one goes through transfer() last: an XXL/xxs one gets IVC instead, a trade evolution
 (free to evolve once traded) GIV. The user's own tags first: untraded with Old, Evo or GuaranteedLucky,
 those stay and only IVC / PvpC comes off; traded, the "trade it" tags (TRADE_TAGS) come off. The species lists come
@@ -37,7 +40,7 @@ import pvp
 from base import ALWAYS_KEEP  # an IV sum of 98%+ never loses its star
 import tradeable as tr  # the order, the numbers and the species lists: one copy, there
 from tradeable import GIVER, TAKER, XL_CAP, XLX_FOR
-from ivc import GYM_DEFENDERS
+from ivc import GYM_DEFENDERS, make_name as ivc_name
 from sizes import NAMES as SIZE_NAMES  # a never-traded XXL/XXS one gets this name and IVC
 from cleantrades import EVO, EVO_FOR, TRADE_EVOS  # traded + a free trade evolution: Evo, on EVO_FOR's account
 
@@ -52,7 +55,7 @@ TRADE_BY_HAND = {"meltan", "melmetal"}  # mythical, but trades.py retags them li
 OWN_TAGS = ("Old", EVO, "GuaranteedLucky")  # untraded with one of these: it stays, only IVC / PvpC comes off
 TRADE_TAGS = ("GIV", "XLX", "2XL", "Reroll", "Old", "Special", "GuaranteedLucky")  # "trade it": off a traded one
 STALE_DAYS = 7  # a species list older than this counts as missing
-OVER_93 = 43  # a costume one over 93% (42 of 45 reads 93%) is a favorite
+OVER_93 = 42  # a costume one at 93%+ (42 of 45) is named and a favorite (the user, 2026-11-02)
 TRADE_EVO_DEX = {int(d) for d in TRADE_EVOS.split(",")}  # evolve free once traded
 
 
@@ -134,7 +137,8 @@ def tables(to):
         _TABLES[to] = {"to": to, "why": why, "lucky": sp.get("lucky", {}), "evolved": sp["evolved"],
                        "no_dmax": set(sp.get("no_dmax", ())), "xl_full": sp["xl_full"],
                        "giv_for_taker": set(tr.GIV_FOR_TAKER), "from": sp["from"],
-                       "raid": set(tr.pve(m)[0])}  # in DialgaDex's top PVE_TOP vs some boss, or evolves into one
+                       "raid": set(tr.pve(m)[0]),  # in DialgaDex's top PVE_TOP vs some boss, or evolves into one
+                       "raid_self": {s for s in tr.raid_tops(m)[0] if s in m.by}}  # in some top as itself
     return _TABLES[to]
 
 
@@ -211,12 +215,19 @@ def final_tag(f, t, today=None):
         if f.gym_top20:
             return Verdict("keep", (), "gym defender: top 20 CP or IV")
 
+    if f.costume and f.iv_sum >= OVER_93:  # (traded or not)
+        if f.ivs is None:
+            return unsure("costume 93%+: IVs not read (for its name)")
+        name = ivc_name(tuple(f.ivs), f.shadow, (f.size or "").upper(), lucky=f.lucky,
+                        legendary=bool(kinds & {"legendary", "ultrabeast", "mythical"}), gym=sid in GYM_DEFENDERS)
+        return Verdict("keep", (), f"costume, {round(f.iv_sum / 45 * 100)}%: named and a favorite", name=name)
     if f.lucky:
         return lucky(f, sid, dexn, strip)
-    if odd and not f.traded:
-        return odd_one(f, t, sid, odd)
+    if odd and not f.traded and (v := odd_one(f, t, sid, odd)):
+        return v
+    dead = dead_end(f, sid)
     if f.traded:
-        if f.account == EVO_FOR and dexn in TRADE_EVO_DEX:
+        if f.account == EVO_FOR and dexn in TRADE_EVO_DEX and not dead_end(f, sid):
             return tag(EVO, why="traded: evolves for free", off=strip)
         return tag("Transfer", why="traded: can't trade again", off=strip)
     if LUCKY_YEARS[0] <= f.caught.year <= LUCKY_YEARS[1]:
@@ -225,6 +236,8 @@ def final_tag(f, t, today=None):
     if "missing" in t:
         return unsure(f"no species lists for {to}: {t['missing']}")
     why = t["why"].get(sid)
+    if dead and to == GIVER and sid not in t["raid_self"]:
+        why = None  # (CyrillJan's list counts a species whose evolution is a raid attacker: this one can't evolve)
 
     if to == TAKER and why and why[0] == "Luckydex":
         g = t["lucky"].get(sid, "")
@@ -263,7 +276,7 @@ def final_tag(f, t, today=None):
         return tag("GIV", why="untraded Dynamax")
     if to == TAKER and sid in t["giv_for_taker"]:
         return tag("GIV", why=f"{sid}: wanted by {TAKER}")
-    if dexn in TRADE_EVO_DEX:  # (GIV either way: before the distance, so a failed distance search doesn't matter)
+    if dexn in TRADE_EVO_DEX and not dead:  # (GIV either way: before the distance, so a failed distance search doesn't matter)
         return tag("GIV", why="untraded: evolves free once traded")
     if f.far is None:
         return unsure("distance not checked")
@@ -276,7 +289,8 @@ def two_xl(f, t, sid):
     """2XL (a Friendship Friday trade: a sure 2 Candy XL) when this account has under XL_CAP Candy XL of the family.
     The same rule costume or not (the user, 2026-11-02). On CyrillJan only a raid attacker's line gets it: those need
     XL for their top levels. Never an XXL/xxs one. -> Verdict, or None for the next rule"""
-    if f.size in ("xxl", "xxs") or (f.account == GIVER and sid not in t["raid"]):
+    raid = t["raid_self"] if dead_end(f, sid) else t["raid"]
+    if f.size in ("xxl", "xxs") or (f.account == GIVER and sid not in raid):
         return None
     if f.candy_xl is None:
         return unsure("Candy XL not read")
@@ -296,7 +310,7 @@ def transfer(f, sid, why, off=(), purify=False, clear=False):
         if f.size in SIZE_NAMES:
             return tag("IVC", why=f"never traded {f.size.upper()} (else Transfer: {why})", name=SIZE_NAMES[f.size],
                        off=off)
-        if not f.shadow and pvp.SPECIES[sid]["dex"] in TRADE_EVO_DEX:
+        if not f.shadow and pvp.SPECIES[sid]["dex"] in TRADE_EVO_DEX and not dead_end(f, sid):
             return tag("GIV", why=f"untraded, evolves free once traded (else Transfer: {why})", off=off, clear=clear)
     return tag("Transfer", why=why, off=off, purify=purify, clear=clear)
 
@@ -324,24 +338,29 @@ def lucky(f, sid, dexn, strip):
     return transfer(f, sid, "lucky: out of the top IV and PvP", off=strip, clear=True)
 
 
+def plain_evolves(sid):
+    return bool(pvp.SPECIES[sid]["family"].get("evolutions"))
+
+
+def dead_end(f, sid):
+    """a costume one whose plain form evolves, but it can't (no Evolve button): judged as its own species only, for
+    raids and PvP (the user, 2026-11-02)"""
+    return bool(f.costume) and f.evolves is False and plain_evolves(sid)
+
+
 def odd_one(f, t, sid, odd):
-    """an untraded shadow, costume or background one (the user's rules, 2026-10-29; 360+ Candy XL, 2026-10-30)"""
+    """an untraded shadow, costume or background one (the user's rules, 2026-10-29; 360+ Candy XL, 2026-10-30).
+    -> Verdict, or None: a costume one goes on to the usual rules once its Evolve button is read"""
     if "background" in odd:
         return Verdict("keep", (), "a special background: a favorite")
     if "shadow" in odd and "costume" in odd:
         return unsure("shadow costume: by hand")
+    if odd == ["costume"]:
+        if plain_evolves(sid) and f.evolves is None:
+            return unsure("costume: its plain form evolves, Evolve button not read")
+        return None  # the usual rules (a costume one that can't evolve: as its own species, dead_end)
     if "missing" in t:
         return unsure(f"{odd[0]}: no species lists for {t['to']}: {t['missing']}")
-    if "costume" in odd:
-        if f.iv_sum >= OVER_93:
-            return Verdict("keep", (), f"costume, {round(f.iv_sum / 45 * 100)}%: a favorite")
-        if sid in t["raid"] and f.evolves is None:
-            return unsure("costume, a raid attacker's line: Evolve button not read")
-        if sid in t["raid"] and f.evolves:
-            return unsure("costume, can evolve in a raid attacker's line: GIV or XLX by hand")
-        if v := two_xl(f, t, sid):
-            return v
-        return transfer(f, sid, "costume, no 2XL")
     # shadow (it can't be traded)
     if f.ivs is None:
         return unsure("shadow: IVs not read")

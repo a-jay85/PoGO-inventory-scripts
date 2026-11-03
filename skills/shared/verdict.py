@@ -141,7 +141,9 @@ def tables(to):
 
 def canon(t):
     """a tag as read ('GUARANTEEDLUCKY') -> its name ('GuaranteedLucky'), when it's one the rules know"""
-    return next((x for x in OWN_TAGS + TRADE_TAGS if x.upper() == t.strip().upper()), t.strip())
+    # letters only: the page's reader drops digits, so 2XL reads as XL
+    key = lambda s: re.sub(r"[^A-Z]", "", s.upper())
+    return next((x for x in OWN_TAGS + TRADE_TAGS if key(x) == key(t)), t.strip())
 
 
 def final_tag(f, t, today=None):

@@ -328,6 +328,8 @@ def odd_one(f, t, sid, odd):
             return unsure("costume, a raid attacker's line: Evolve button not read")
         if sid in t["raid"] and f.evolves:
             return unsure("costume, can evolve in a raid attacker's line: GIV or XLX by hand")
+        if f.account == GIVER and sid not in t["raid"]:  # (the user's rule, 2026-11-02: on CyrillJan, 2XL only for
+            return transfer(f, sid, "costume, not a raid attacker")  # good raid ones, who need XL for top levels)
         if f.candy_xl is None:
             return unsure("costume: Candy XL not read")
         if f.candy_xl < XL_CAP:

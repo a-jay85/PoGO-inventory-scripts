@@ -712,9 +712,12 @@ def dead_keep(m, n, c):
     n, c: its tile, as the door's costume search read it. Skip when that can't be told"""
     if not could_be_dead(m):
         return False
+    texts = steady_detail()[1]
+    if door.can_evolve(texts):
+        return False
     if not door_for(m):
         raise Skip("KEEP, but costume or not isn't known (outside what the door's searches covered): next run")
-    dead = door.dead_end(door_for(m).has("costume", door.key(n, c)), [m["species"]], steady_detail()[1])
+    dead = door.dead_end(door_for(m).has("costume", door.key(n, c)), [m["species"]], texts)
     if dead is None:
         raise Skip("KEEP, but costume or not / its Evolve button didn't read")
     if dead:
@@ -774,6 +777,8 @@ def look(i, n, c, p, members):
         gone = door_for(m).judge(info, texts, sp or [m["species"]], r["ivs"], (n, c), size=r["size"], raws=r["raws"])
     else:
         ivcrun.do_rename(name, ivcrun.same_name)
+        for d in set(DOORS.values()):  # its costume search read it as n
+            d.renamed(door.key(n, c), door.key(name, c))
         ivcrun.keep_read(r)  # a later run takes it from here instead of opening it
         m["name"] = m["tile"] = name
         store(m)
@@ -787,7 +792,7 @@ def look(i, n, c, p, members):
             verdict, why = judge(m, results, wants)
             others = [x for x in load("scan.json") if plan_key(x) != key[0]]
             verdict, why = unrenamed_check(m, others, verdict, why)  # a KEEP waits for the family's other unnamed ones
-        if verdict == "KEEP" and dead_keep(m, n, c):
+        if verdict == "KEEP" and dead_keep(m, name, c):  # (the door knows it by its new name now)
             verdict = "DOOR"
         gone = verdict
         if verdict == "KEEP":

@@ -163,8 +163,10 @@ class Door:
         """-> (Facts, why not sure before any rule: '' when it's up to the rules)"""
         dex = {vd.pvp.SPECIES[s]["dex"] for s in sp if s in vd.pvp.SPECIES}
         size = {"XXL": "xxl", "XXS": "xxs"}.get(size, "")
-        if not size and dex & {d for d, (sizes, _, _) in vd.MEDALS.items() if sizes}:
-            size = None  # an XS Rattata has no badge to read: XS or not is a medal GIV or not
+        medal = next((m for d, m in vd.MEDALS.items() if d in dex and m[0]), None)
+        if not size and medal and vd.TO[self.account] == vd.GIVER and medal[1](base.who(info)[2] or 0):
+            size = None  # an XS Rattata has no badge to read: XS or not is a medal GIV or not. Only the medal rule's
+            # account asks, and only for a light one: a heavy one is no medal at any size (2026-11-02)
         hp = next(t for t in texts if re.search(r"\d+\s*/\s*\d+\s*HP", t[4]))
         near = [ui.norm(t[4]) for t in texts if hp[1] < t[1] < hp[1] + 0.3]
         page = self.page_bottom(info)
@@ -180,7 +182,7 @@ class Door:
                      lucky=lucky,
                      gigantamax="GIGANTAMAX" in near, dynamax="DYNAMAX" in near, size=size, kg=base.who(info)[2],
                      candy_xl=None if xl is None else 0 if xl else vd.XL_CAP,
-                     levels=ct.cost_levels(texts, info["cp"])[1] or self.iv_levels(sp, ivs, info["cp"] or tile_cp, info["hp"]) or None, far=said("far", None if page["california"] is None else not page["california"]), gym_top20=gym_top20,
+                     levels=self.levels(texts, info, sp, ivs, tile_cp), far=said("far", None if page["california"] is None else not page["california"]), gym_top20=gym_top20,
                      iv_top=iv_top, pvp_judged=self.tag.upper() == "PVPC", ivc_judged=self.tag.upper() == "IVC",
                      other_tags=[t for t in trades.tag_chips(texts)
                                  if t not in (self.tag.upper(), *((self.other.upper(),) if self.source else ()))])
@@ -231,11 +233,23 @@ class Door:
         base.OPENED["who"] = base.who(base.detail_now())  # its CP and HP moved: still the same one
         return v
 
-    def iv_levels(self, sp, ivs, cp, hp):
+    def levels(self, texts, info, sp, ivs, tile_cp):
+        """the levels the power-up cost fits. A cost that spans two (4,000 dust: 25 to 26.5, the candy digit not read)
+        is narrowed by the appraisal's IVs, CP and HP (two Gengar unsure at 26+, 2026-11-02). -> list, or None"""
+        lvs = ct.cost_levels(texts, info["cp"])[1]
+        got = self.iv_levels(sp, ivs, info["cp"] or tile_cp, info["hp"], quiet=bool(lvs)) if len(lvs) != 1 else []
+        if lvs and got:
+            both = sorted(set(lvs) & set(got))
+            if both and both != lvs:
+                log(f"  power-up cost fits level {lvs}: {both} from IVs, CP and HP")
+            return both or lvs
+        return lvs or got or None
+
+    def iv_levels(self, sp, ivs, cp, hp, quiet=False):
         """the level from the appraisal's IVs, CP and HP, when the power-up cost doesn't read"""
         got = base.levels_for(sp[0], ivs, cp, hp) if len(sp) == 1 and ivs and sp[0] in vd.pvp.SPECIES \
             and cp is not None and hp is not None else []
-        if got:
+        if got and not quiet:
             log(f"  power-up cost didn't read: level {got} from IVs, CP and HP")
         return got
 

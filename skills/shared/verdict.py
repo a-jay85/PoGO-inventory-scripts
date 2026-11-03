@@ -13,8 +13,8 @@ that's missing, gives unsure, never Transfer.
 
 The order is tradeable.py's (its docstring has the reasons), judged for the other account, the one it would be traded
 to. Signed in as CyrillJan (the pile goes to HashTagAJay):
-  GuaranteedLucky > Luckydex > Old > Reroll > GIV > XXL/xxs > XLX > GIV (evolved, Dynamax, Tandemaus) > GIV (trade
-  evolution) > GIV (far) > Transfer
+  GuaranteedLucky > Luckydex > Old > 2XL (a raid attacker's line only) > Reroll > GIV > XXL/xxs > XLX > GIV
+  (evolved, Dynamax, Tandemaus) > GIV (trade evolution) > GIV (far) > Transfer
 Signed in as HashTagAJay (the pile goes to CyrillJan):
   GuaranteedLucky > Old > GIV (medal) > 2XL > GIV > XXL/xxs > XLX > GIV (evolved, Dynamax) > GIV (trade evolution) >
   GIV (far) > Transfer
@@ -243,11 +243,8 @@ def final_tag(f, t, today=None):
                 return unsure(f"medal one, weight read {f.kg}")
             if fits(f.kg):
                 return tag("GIV", why=f"medal: {f.kg} kg")
-        if f.size not in ("xxl", "xxs"):
-            if f.candy_xl is None:
-                return unsure("Candy XL not read")
-            if f.candy_xl < XL_CAP:
-                return tag("2XL", why=f"under {XL_CAP} Candy XL: a Friendship Friday trade")
+    if v := two_xl(f, t, sid):
+        return v
 
     if why and why[0] in ("Reroll", "GIV"):
         return tag(why[0], why=why[1])
@@ -272,6 +269,19 @@ def final_tag(f, t, today=None):
     if f.far:
         return tag("GIV", why="caught 100 km+ away")
     return transfer(f, sid, "no rule wants it")
+
+
+def two_xl(f, t, sid):
+    """2XL (a Friendship Friday trade: a sure 2 Candy XL) when this account has under XL_CAP Candy XL of the family.
+    The same rule costume or not (the user, 2026-11-02). On CyrillJan only a raid attacker's line gets it: those need
+    XL for their top levels. Never an XXL/xxs one. -> Verdict, or None for the next rule"""
+    if f.size in ("xxl", "xxs") or (f.account == GIVER and sid not in t["raid"]):
+        return None
+    if f.candy_xl is None:
+        return unsure("Candy XL not read")
+    if f.candy_xl < XL_CAP:
+        return tag("2XL", why=f"under {XL_CAP} Candy XL: a Friendship Friday trade")
+    return None
 
 
 def transfer(f, sid, why, off=(), purify=False, clear=False):
@@ -328,13 +338,9 @@ def odd_one(f, t, sid, odd):
             return unsure("costume, a raid attacker's line: Evolve button not read")
         if sid in t["raid"] and f.evolves:
             return unsure("costume, can evolve in a raid attacker's line: GIV or XLX by hand")
-        if f.account == GIVER and sid not in t["raid"]:  # (the user's rule, 2026-11-02: on CyrillJan, 2XL only for
-            return transfer(f, sid, "costume, not a raid attacker")  # good raid ones, who need XL for top levels)
-        if f.candy_xl is None:
-            return unsure("costume: Candy XL not read")
-        if f.candy_xl < XL_CAP:
-            return tag("2XL", why=f"costume, under {XL_CAP} Candy XL")
-        return transfer(f, sid, f"costume, {XL_CAP}+ Candy XL")
+        if v := two_xl(f, t, sid):
+            return v
+        return transfer(f, sid, "costume, no 2XL")
     # shadow (it can't be traded)
     if f.ivs is None:
         return unsure("shadow: IVs not read")

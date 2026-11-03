@@ -158,11 +158,40 @@ backs, reopened = 0, False  # this run's steps out of screens nobody knows
 HATCH_SCREENS = 40  # seconds after an egg's "Oh?" when an unknown screen is its rewards, its Pokémon or the eggs
 
 
+scopely_taps = 0  # this run's taps on Scopely Explore's 'Return to Pokémon GO'
+SCOPELY_TRIES = 3
+
+
+def leave_scopely(texts):
+    """the Scopely Explore page (the profile's EXPLORE button opens it): Back does nothing there, its 'Return to
+    Pokémon GO' link at the top goes back to the game. On the Pixel the link sits under the status bar: the tap goes
+    just below that (2026-11-03). -> True if it tapped"""
+    global scopely_taps
+    hit = next((t for t in texts if ui.scopely([t])), None)
+    if not hit:
+        return False
+    if scopely_taps >= SCOPELY_TRIES:
+        keep_capture("start")
+        raise Stop("on the Scopely Explore page and 'Return to Pokémon GO' doesn't close it: tap it by hand")
+    scopely_taps += 1
+    log("  on the Scopely Explore page: tapping 'Return to Pokémon GO'")
+    bounds = ui.capture()[1]
+    fx = hit[0] + hit[2] * random.uniform(0.4, 0.6)
+    fy = hit[1] + hit[3] * random.uniform(0.4, 0.6)
+    if ui.ANDROID:  # the link's text sits under the Pixel's status bar (top 98 px), which takes the tap: just
+        fy = max(fy, (random.randint(118, 142) - bounds[1]) / bounds[3])  # below it still opens it (y 137, 2026-11-03)
+    base.click(fx, fy, bounds)  # (bounds are phone pixels with the adb capture; POGO_SCRCPY=1 would need its own)
+    time.sleep(2.5)
+    return True
+
+
 def unstick(texts):
     """one step out of a screen the scripts don't know. Android: Back. iPhone: the home screen and the game's icon,
     once. Raises Stop when out of steps. -> True if the game was (re)opened"""
     global backs, reopened
     seen = ui.summary(texts, 200)
+    if leave_scopely(texts):
+        return False
     if ui.ANDROID:
         if not reopened and android_launch():  # the phone's home screen (the game went to the back): Back won't help
             reopened = True

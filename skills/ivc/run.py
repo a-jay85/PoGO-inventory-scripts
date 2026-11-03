@@ -261,18 +261,23 @@ def scan(limit=10 ** 9, only=None):
         log(f"  {m['name']!r} {m['species'] or m['species_options']} {flags} {m['size'] or ''}")
         return False
 
-    front()
-    to_search_list()
+    shown = COUNTED.pop("q", None)  # chunks_for's whole-pile search, still on screen at the top
+    if shown is None:
+        front()
+        to_search_list()
     chunks = load("chunks.json") if os.path.exists(os.path.join(base.RUN_DIR, "chunks.json")) else {}
     every = only or CHUNKS
-    query = lambda ab: f"#{TAG}&!xxl&!xxs&{ab[0]}-{ab[1]}"
+    query = chunk_query
     # chunks never searched first; the ones that came up short get their retry at the end
     for a, b in sorted(every, key=lambda ab: query(ab) in chunks):
         q = query((a, b))
         if chunks.get(q, {}).get("done"):
             continue
         in_range[:] = [a, b]
-        path, texts, _ = start_search(q)
+        if q == shown:  # (that search is this one: not typed again)
+            texts, shown = COUNTED.pop("texts"), None
+        else:
+            path, texts, _ = start_search(q)
         want = result_count(texts)
         for _ in range(3):  # the count can be missed on the first read
             if want is not None:
@@ -993,13 +998,19 @@ def act(limit, members):
 # ---------- sort: one dex chunk at a time ----------
 
 SMALL = 60  # an IVC pile this size or less is read in one search, not in 50-dex chunks
+COUNTED = {}  # chunks_for's search when the pile is small: scan reads its list without typing it again
+
+
+def chunk_query(ab):
+    """the scan's search for dex chunk ab: the whole dex needs no numbers"""
+    return f"#{TAG}&!xxl&!xxs" + ("" if tuple(ab) == (1, MAX_DEX) else f"&{ab[0]}-{ab[1]}")
 
 
 def chunks_for(done):
     """a small IVC pile: one chunk, the whole dex (one search, its families typed once). A big one: 50-dex chunks,
     so each is tagged before the next is read. A run keeps the way it started (sorted.json)"""
-    began = done or [q.rsplit("&", 1)[1] for q in (load("chunks.json") if os.path.exists(
-        os.path.join(base.RUN_DIR, "chunks.json")) else {})]
+    began = done or [f"1-{MAX_DEX}" if q == chunk_query((1, MAX_DEX)) else q.rsplit("&", 1)[1]
+                     for q in (load("chunks.json") if os.path.exists(os.path.join(base.RUN_DIR, "chunks.json")) else {})]
     if began:  # carrying on: the same way, or the Pokémon read so far wouldn't be in any chunk
         return [(1, MAX_DEX)] if set(began) == {f"1-{MAX_DEX}"} else CHUNKS
     front()
@@ -1008,7 +1019,10 @@ def chunks_for(done):
     _, texts, _ = start_search(q)
     n = result_count(texts)
     log(f"{q}: the game says {n}")
-    return [(1, MAX_DEX)] if n is not None and n <= SMALL else CHUNKS
+    if n is not None and n <= SMALL:
+        COUNTED.update(q=q, texts=texts)
+        return [(1, MAX_DEX)]
+    return CHUNKS
 def families(members):
     """members whose searches overlap, together: one family's lists are read, then tagged, before the next family"""
     out = []

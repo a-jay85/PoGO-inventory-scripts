@@ -18,6 +18,7 @@ to. Signed in as CyrillJan (the pile goes to HashTagAJay):
 Signed in as HashTagAJay (the pile goes to CyrillJan):
   GuaranteedLucky > Old > GIV (medal) > 2XL > GIV > XXL/xxs > XLX > GIV (evolved, Dynamax) > GIV (trade evolution) >
   GIV (far) > Transfer
+  (its raid GIV: a new copy gets into one of CyrillJan's /roster teams, or within 15% of the #6: giver_species())
 Before all of them: a special trade (trades.py's legendary rules, else unsure), a traded one (Transfer), an untraded
 shadow, costume or background one (odd_one: the user's rules for each), and a lucky one, traded or not (lucky()).
 Every Transfer for an untraded one goes through transfer() last: an XXL/xxs one gets IVC instead, a trade evolution

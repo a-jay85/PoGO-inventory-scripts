@@ -12,8 +12,8 @@
   python3 tradeable.py plan               the Mac, optional: a look at the searches tag would run (runs/<time>-plan/)
 
 The species lists and the order here are also ../shared/verdict.py's: /ivc and /pvpc judge a Pokémon that
-isn't a keeper with them (the door, no Nope). giver_species() is CyrillJan's side: only good raid attackers (GIV: top 6
-against some raid boss, until CyrillJan has 6 good copies, 1 for a mega-only one, and a Dynamax one if it can; and an
+isn't a keeper with them (the door, no Nope). giver_species() is CyrillJan's side: only good raid attackers (GIV: gets
+into one of CyrillJan's /roster teams, or within GIVER_MARGIN of its #6, until CyrillJan has 6 good copies, 1 for a mega-only one, and a Dynamax one if it can; and an
 untraded Dynamax one of a family CyrillJan has none of), XLX (5,000 Stardust+, level 29+) and GIV (evolved). It reads
 CyrillJan's /roster count and dynamax. MEDALS (a tiny Rattata, a big Magikarp: GIV for any account's medals) are the
 door's too, on HashTagAJay.
@@ -80,7 +80,9 @@ XLX_LEVEL = 26  # from here a power-up costs 4 Candy or more (4,000 Stardust at 
 GIV_FOR_TAKER = {"tandemaus": "HashTagAJay still wants the family of 3 Maushold (and CyrillJan gets candy from the "
                               "trade if it ever wants one)"}
 XLX_FOR = {TAKER: XLX_LEVEL, GIVER: 29}  # by who'd get it. CyrillJan: 5,000 Stardust+, likely to drop a Candy XL
-PVE_TOP = 6  # CyrillJan's side (giver_species): GIV if a traded copy would be this high against some raid boss
+PVE_TOP = 6  # verdict.py's "raid" list: a traded copy would be this high against some raid boss in DialgaDex
+GIVER_MARGIN = 0.15  # CyrillJan's side (giver_species): GIV if a traded copy gets into one of CyrillJan's teams, or
+# comes within this much of the #6's rating (a move or stat buff away). Further behind on every boss: outclassed
 MAX_SUFFIX = 300  # characters added to the saved search: it's already in the bar
 PVP_FLOOR = 5  # every rank 1 IV at least this
 PVP_URL = "https://raw.githubusercontent.com/pvpoke/pvpoke/master/src/data/rankings/all/overall/rankings-%d.json"
@@ -340,6 +342,33 @@ def pve(m, enough=lambda s, mega_only: False):
     return why, dropped
 
 
+def giver_pve(m, counts, enough):
+    """-> ({sid: why}, {sid: why dropped}) for CyrillJan's side: a traded copy (never shadow) would get into one of
+    CyrillJan's /roster teams, or come within GIVER_MARGIN of the #6 (roster.Model.worth), or evolves into one that
+    would; and pve() picks it too. Outclassed further on every boss: not a raid GIV. enough() as in pve()"""
+    sys.path.append(os.path.join(HERE, "..", "roster"))
+    import roster
+    data_f = base.newest(HERE, os.path.join("..", "roster", "dialgadex-counters-[0-9]*[0-9].json"))
+    if not data_f:
+        sys.exit("no DialgaDex counters yet: node ../roster/pull.mjs")
+    rm = roster.Model(json.load(open(data_f)))
+    plain = {rm.sid[i] for b in rm.bosses for i, *_ in b["list"] if rm.sid[i] and not roster.is_mega(rm.A[i])}
+    out, dropped = {}, {}
+    for s, hits in rm.worth(counts, GIVER_MARGIN).items():
+        if s not in m.by or rm.special(s) or not m.tradeable(s):
+            continue
+        if why := enough(s, s not in plain):
+            dropped[s] = why
+            continue
+        for x in [s, *rm.ancestors(s)]:
+            out.setdefault(x, []).extend(hits)
+    fmt = lambda hs: ", ".join(f"{b} ({w})" for b, w in hs[:3]) + (f" +{len(hs) - 3}" if len(hs) > 3 else "")
+    top, top_dropped = pve(m, enough)  # and DialgaDex's top PVE_TOP still: a weak #6 of CyrillJan's (an easy boss)
+    # isn't a reason on its own, a better attacker would fill it
+    why = {s: f"{GIVER}'s raid teams: {fmt(hs)}" for s, hs in out.items() if s in m.by and s in top}
+    return why, {s: w for s, w in dropped.items() if s in top_dropped}
+
+
 def queries(m, sids, gender=None, room=40):
     """species forms -> ['&<dexes><form terms>', ...], each under MAX_SUFFIX characters with room left for the tag
     terms"""
@@ -523,8 +552,10 @@ def giver_species(m):
     hard_f = base.newest(HERE, "giv-evolved-*.json")
     if not hard_f:
         raise NoData("no giv-evolved yet: python3 tradeable.py refresh")
-    picked, dropped = pve(m, enough)
-    ok = [s for s in m.by if m.tradeable(s) and not m.special(s)]
+    if not counts_f:
+        raise NoData(f"no {GIVER} /roster count yet: /roster step 2 with {GIVER} signed in")
+    picked, dropped = giver_pve(m, roster.load_counts(counts_f)[0], enough)
+    ok =[s for s in m.by if m.tradeable(s) and not m.special(s)]
     why = {s: r for s, r in picked.items() if s in ok}
     evolved = evolved_giv(m, ok, why, json.load(open(hard_f)))
     no_dmax = [s for s in ok if m.dex(s) in can and not has_dmax(s)]

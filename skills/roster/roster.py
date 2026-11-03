@@ -157,6 +157,31 @@ class Model:
                         bs.append(boss_name(b))
         return best
 
+    def worth(self, counts, margin):
+        """species -> [(boss, why)] where one more copy (never shadow) would matter to these counts' teams: it gets
+        into the 6 (helps), or its own rating comes within `margin` of the #6's where it isn't on the team yet (a
+        move or stat buff away). Megas only count when they get in: one mega per team, so their rating isn't the
+        6th slot's to compare"""
+        out = {}
+        for s, (place, bs) in self.helps(counts).items():
+            if place <= TEAM:
+                out.setdefault(s, []).extend((b, f"#{place}") for b in bs)
+        for b in self.bosses:
+            t = self.team(b, counts)
+            if len(t) < TEAM:
+                continue  # (helps already covers a team that isn't full)
+            sixth = t[-1][1]
+            on = {self.sid[i] for i, _ in t}
+            mine = {}
+            for i, rat, *_ in b["list"]:
+                s, a = self.sid[i], self.A[i]
+                if s and s not in on and not a["shadow"] and not is_mega(a):
+                    mine[s] = max(mine.get(s, 0), rat)
+            for s, rat in mine.items():
+                if rat < sixth and rat >= (1 - margin) * sixth and boss_name(b) not in dict(out.get(s, [])):
+                    out.setdefault(s, []).append((boss_name(b), f"{(sixth - rat) / sixth:.0%} behind the #6"))
+        return out
+
 
 def boss_name(b):
     return b["name"] + ("" if b["form"] in ("Normal", "Mega") else f" ({b['form']})")

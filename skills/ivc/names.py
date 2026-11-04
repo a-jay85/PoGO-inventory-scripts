@@ -253,10 +253,10 @@ def read_one(i, tile_name, tile_cp):
     -> {info, texts, cp, sp, ivs, bars, raws, shadow, lucky, size, moves, name (None: nothing to show, '->PvpC'), what}"""
     open_tile(i)
     info, texts, _ = base.steady_detail()
-    cp = info["cp"] or tile_cp
     # a tile name OCR cut short ('L+', 'He') needn't start the full one: there only the CP has to match
     if not base.opened_right(info, tile_name, tile_cp) and untouched(tile_name):
         raise Skip(f"opened {info['name']!r} but tile said {tile_name!r}")
+    cp = info["cp"] or tile_cp  # (after that check: it can read a covered digit again)
     if not untouched(tile_name) and not_mine(info["name"]):
         raise Skip(NOT_MINE)
     if not any(ui.norm(t) == TAG for t in info["tags"]):

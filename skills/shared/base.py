@@ -210,6 +210,12 @@ def close_size_record(texts, path, bounds):
     click(0.5, (ys[0] + ys[-1]) / 2 / H, bounds)
 
 
+def friend_card(texts):
+    """'... and you became Lucky Friends! New Bonus Unlocked', with SHARE and SAVE IMAGE under it"""
+    words = ui.joined(texts)
+    return "AND YOU BECAME" in words and "FRIENDS" in words
+
+
 def wait_for(*screens, timeout=10, capture=True, look=None, poll=None, catch=True, detail=False):
     """poll until one of the screens shows up. Brief unknown screens (animations) are fine. It always looks at least
     once, and once more after the time is up, then raises Lost.
@@ -218,7 +224,7 @@ def wait_for(*screens, timeout=10, capture=True, look=None, poll=None, catch=Tru
     when it gives up. detail: the error has the last screen's text even when it's a known screen"""
     see = look or globals()["look"]
     pause = poll_gap(0.12) if poll is None else poll
-    end, last, nudges, cards, nos, held = time.time() + timeout, "?", 0, 0, 0, None
+    end, last, nudges, cards, nos, friends, held = time.time() + timeout, "?", 0, 0, 0, 0, None
     while True:
         try:
             screen, texts, path, bounds = see()
@@ -242,6 +248,13 @@ def wait_for(*screens, timeout=10, capture=True, look=None, poll=None, catch=Tru
                 nos += 1  # a late tap (the iPhone has sat on one ~4s) landed on EVOLVE: never evolve, say NO
                 log("  an 'evolve?' box came up: NO")
                 click(no[0][0] + no[0][2] / 2, no[0][1] + no[0][3] / 2, bounds)
+                time.sleep(1.0)
+                end = max(end, time.time() + 3)
+                continue
+            if screen == "unknown" and ui.ANDROID and friends < 3 and friend_card(texts):
+                friends += 1  # the game shows it on its own, over any screen. It's only news: Back closes it
+                log("  a new friend level card is up: closing it")
+                ui.android.key("back")
                 time.sleep(1.0)
                 end = max(end, time.time() + 3)
                 continue
@@ -907,16 +920,24 @@ def short(s):
     return re.sub(r"[.…·•]+$", "", (s or "").strip()).replace(" ", "").replace("0", "o").lower()
 
 
+CP_LOOKS = 6  # looks at the CP when the read is the tile's CP with its end missing
+
+
 def opened_right(info, tile_name, tile_cp):
     """the detail is the tile that was tapped: same CP, and one name starts the other (tiles cut long names)"""
     if info["cp"] and info["cp"] != tile_cp and ui.ANDROID:
-        # a digit can go unread in the small picture (CP180 for CP1806, 2026-11-02): look again at the full-size one
-        try:
-            again = ui.detail_info(ui.ocr(ui.android.sharp()))["cp"]
-        except StopIteration:  # no HP line in this read
-            again = None
-        if again == tile_cp:
-            info["cp"] = again
+        # a digit can go unread in the small picture (CP180 for CP1806, 2026-11-02): look again at the full-size one.
+        # A moving arm can cover it too (Chandelure's, CP183 for CP1839, 2026-11-03): only a few looks get past that
+        for i in range(CP_LOOKS if str(tile_cp).startswith(str(info["cp"])) else 1):
+            if i:
+                time.sleep(0.5)
+            try:
+                again = ui.detail_info(ui.ocr(ui.android.sharp()))["cp"]
+            except StopIteration:  # no HP line in this read
+                continue
+            if again == tile_cp or again and len(str(again)) == len(str(tile_cp)):  # every digit read: it's this one
+                info["cp"] = again
+                break
     if info["cp"] and info["cp"] != tile_cp:
         raise Skip(f"opened CP{info['cp']} but tile said CP{tile_cp}")
     # I, l, | and 1 read for each other ('Pvp GI18U118' on the tile, 'Pvp G|18U|18' on the page, 2026-11-02)

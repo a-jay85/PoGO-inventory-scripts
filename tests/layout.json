@@ -1144,6 +1144,7 @@
   "names": [
    "ALWAYS_KEEP",
    "ASKED",
+   "CP_LOOKS",
    "Counter",
    "GYM",
    "HERE",
@@ -1184,6 +1185,7 @@
    "exact_ivs",
    "extras",
    "field_text",
+   "friend_card",
    "front",
    "go",
    "high_iv",

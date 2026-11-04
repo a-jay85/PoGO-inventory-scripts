@@ -6,7 +6,7 @@
   caffeinate -dimsu python3 trade.py restart       (force-close and reopen Pokémon GO on both phones; trades nothing)
 
 HashTagAJay plays on the iPhone (iPhone Mirroring on the Mac), CyrillJan on the Android phone (adb). Each phone is
-driven by its own phone.py process. The Mac's mouse has to be left alone while it runs: iPhone Mirroring takes it.
+driven by its own phone.py process. A touch on the Mac pauses the iPhone's side until the Mac has been idle 5 s (base.yield_to_user).
 
 Each round: both phones go to the other account's friend page (map -> profile -> FRIENDS -> SEARCH -> name -> X on
 the gift), both tap LOCAL TRADE, each picks the newest Pokémon of a search (the saved "0-100km" / "100+km"
@@ -80,6 +80,15 @@ class Lost(ServiceDown):
 
 # ---------- the two phones ----------
 
+def paused_so_far():
+    """the seconds the iPhone's process has been paused for the user (its own clock already leaves them out)"""
+    try:
+        with open(ui.PAUSE_FILE) as f:
+            return float(f.read())
+    except (OSError, ValueError):
+        return 0.0
+
+
 class Phone:
     def __init__(self, name, android, account, friend):
         self.name, self.account, self.friend, self.android = name, account, friend, android
@@ -133,9 +142,12 @@ class Phone:
     def wait(self, *screens, timeout=10):
         end = time.time() + timeout
         grace = end + 30  # a blank loading screen (the server is slow) holds the timeout off, this long at most
+        held = paused_so_far()
         while True:
             if self.look() in screens:
                 return self.screen
+            now = paused_so_far()  # the iPhone paused for the user: either phone may be waiting on it, and neither timed out
+            end, grace, held = end + max(0.0, now - held), grace + max(0.0, now - held), now
             if self.screen == "expired":
                 self.expired()
             if time.time() > end and not (self.screen == "blank" and time.time() < grace):

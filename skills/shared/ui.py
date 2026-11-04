@@ -42,6 +42,9 @@ class Moving(Refused):
 
 
 TAPS = ("click", "drag", "scroll", "key", "type")
+gate = None  # iPhone: base.yield_to_user, run before every tap (True) and look (False)
+last_input = time.time()  # when the script's own last Mac input ended. Input from before the script started never counts
+PAUSE_FILE = "/tmp/pvpc_iphone_paused"  # the seconds the iPhone's run has been paused, for trade.py's other process
 _seen = None  # (when, path copy, texts, bounds, screen): the latest look, until the next tap or key
 _older = None  # the look before _seen
 TILE_PICK = None  # (capture copy, tile) the last "tile N" was planned on: its icons, for the door
@@ -62,14 +65,24 @@ def tap_ms():
 
 
 def sh(*a):
-    global _seen, _older
-    if a[:1] == (HELPER,) and len(a) > 1 and a[1] in TAPS:
+    global _seen, _older, last_input
+    tapping = a[:1] == (HELPER,) and len(a) > 1 and a[1] in TAPS
+    if tapping and not ANDROID and a[1] == "type" and len(a[2]) > 1:  # a key at a time, so a pause can come between any two
+        for c in a[2]:
+            sh(HELPER, "type", c, *a[3:])
+        return ""
+    if tapping and gate:
+        gate(True)
+    if tapping:
         _seen = _older = None
     if ANDROID and a[:1] == (HELPER,) and len(a) > 1 and a[1] in android.ACTIONS:
         return android.act(*a[1:])
     if a[:1] == (HELPER,) and not os.path.exists(HELPER):  # a new worktree has none yet
         ensure_helper()
-    return subprocess.run(a, capture_output=True, text=True, check=True).stdout
+    out = subprocess.run(a, capture_output=True, text=True, check=True).stdout
+    if tapping:
+        last_input = time.time()
+    return out
 
 
 def ensure_helper():
@@ -97,6 +110,8 @@ def capture():
             return android.capture(CAP)
         except android.NotReady as e:
             raise Refused(str(e))
+    if gate:
+        gate(False)
     wid, *bounds = window()
     try:
         sh("screencapture", "-l", str(wid), "-o", "-x", CAP)

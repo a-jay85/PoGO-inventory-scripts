@@ -4,6 +4,7 @@
 //   helper ocrd         -> the same for each png path read from stdin, each answer ended by a "." line
 //   helper mouse        -> "<x> <y>" cursor position in points (top-left origin)
 //   helper front        -> name of the frontmost app
+//   (click, scroll and drag put the pointer back where it was afterwards, unless the user has moved it)
 //   helper click <x> <y> <hold_ms>              glide the cursor there, press, hold, release (points)
 //   helper scroll <x> <y> <dy> <steps>          scroll wheel at a spot; dy < 0 scrolls the list down
 //   helper drag <x1> <y1> <x2> <y2> <ms>        press, move, release
@@ -33,6 +34,13 @@ func glide(to p: CGPoint, _ drag: Bool = false) {
         mouse(drag ? .leftMouseDragged : .mouseMoved, q)
         nap(Double.random(in: 6...15))
     }
+}
+
+// the pointer back where the user left it. Not if it isn't where the script left it: then the user has it
+func putBack(_ start: CGPoint, from p: CGPoint) {
+    nap(Double.random(in: 20...40))  // the release lands in the window first
+    let now = CGEvent(source: nil)!.location
+    if abs(now.x - p.x) < 2 && abs(now.y - p.y) < 2 { mouse(.mouseMoved, start) }
 }
 
 let KEYS: [Character: (CGKeyCode, Bool)] = {
@@ -161,14 +169,15 @@ case "mouse":
 case "front":
     print(NSWorkspace.shared.frontmostApplication?.localizedName ?? "")
 case "click":
-    let p = pt(2)
+    let p = pt(2), start = CGEvent(source: nil)!.location
     glide(to: p)
     nap(Double.random(in: 20...60))
     mouse(.leftMouseDown, p)
     nap(Double(args[4])!)
     mouse(.leftMouseUp, p)
+    putBack(start, from: p)
 case "scroll":
-    let p = pt(2)
+    let p = pt(2), start = CGEvent(source: nil)!.location
     glide(to: p)
     nap(Double.random(in: 60...150))
     let dy = Double(args[4])!, n = Int(args[5])!
@@ -177,8 +186,9 @@ case "scroll":
         post(CGEvent(scrollWheelEvent2Source: nil, units: .pixel, wheelCount: 1, wheel1: step, wheel2: 0, wheel3: 0))
         nap(Double.random(in: 12...30))
     }
+    putBack(start, from: p)
 case "drag":
-    let a = pt(2), b = pt(4)
+    let a = pt(2), b = pt(4), start = CGEvent(source: nil)!.location
     glide(to: a)
     nap(Double.random(in: 40...100))
     mouse(.leftMouseDown, a)
@@ -193,6 +203,7 @@ case "drag":
     }
     nap(Double.random(in: 60...120))  // settle before release so it doesn't fling
     mouse(.leftMouseUp, b)
+    putBack(start, from: b)
 case "key":
     let name = args[2]
     let flags: CGEventFlags = args.count > 3 && args[3] == "cmd" ? .maskCommand : []

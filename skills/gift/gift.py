@@ -7,7 +7,7 @@
   [POGO_PHONE=android] python3 gift.py look                           what the script reads now; taps nothing
   add --dry-run: everything but SEND and the nickname's OK. --last-held "<title>" (or 'none') replaces LAST_HELD.
 
-HashTagAJay is on the iPhone (iPhone Mirroring, hands off the Mac mouse), CyrillJan on the Android phone (adb).
+HashTagAJay is on the iPhone (iPhone Mirroring: a touch on the Mac pauses it), CyrillJan on the Android phone (adb).
 Each phone runs in its own process (ui.py keeps one phone's state in module globals).
 
 Order: the "iii" search (no gift from me, not played with today) before "lll" (opened my gift or played with me

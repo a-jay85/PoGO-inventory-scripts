@@ -15,7 +15,7 @@ Or through the front door: `POGO_PHONE=android caffeinate -dimsu python3 ~/PoGO-
 `POGO_PHONE` picks the phone, like the other skills:
 
 - `POGO_PHONE=android`: the Android phone only.
-- No `POGO_PHONE`: the iPhone only. Keep your hands off the Mac mouse while it runs.
+- No `POGO_PHONE`: the iPhone only. You can use the Mac while it runs. The iPhone's run pauses when you touch the keyboard or mouse, and when the Mac has been idle for 5 seconds it brings iPhone Mirroring back and goes on. The pointer goes back where you left it after each tap.
 - `POGO_PHONE=both`: both phones at once, each in its own process.
 
 `--limit N`: at most N Mega Evolutions per phone. `--dry-run`: goes as far as the "Do you want to Mega Evolve" box, then taps NO. It still taps the phone.

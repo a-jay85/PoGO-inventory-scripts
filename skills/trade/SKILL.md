@@ -11,7 +11,7 @@ Uses the shared tapper and screen reader: the shared library (`~/PoGO-inventory-
 
 `caffeinate -dimsu python3 $S/trade.py [--limit N] [--done N]`
 
-Runs on its own. Keep both phones on, both games open, and keep your hands off the Mac mouse while it runs: the iPhone's taps go through the Mac pointer.
+Runs on its own. Keep both phones on and both games open. You can use the Mac while it runs. The iPhone's run pauses when you touch the keyboard or mouse, and when the Mac has been idle for 5 seconds it brings iPhone Mirroring back and goes on. The pointer goes back where you left it after each tap. A long pause during a trade can let the game's trade timer run out: that round starts over.
 
 - `--limit N`: at most N trades this run (default 48). Two runs come to 96, still under the 99 a day. One run leaves trades free for other friends.
 - `--done N`: sets today's count, for trades made by hand before the run.

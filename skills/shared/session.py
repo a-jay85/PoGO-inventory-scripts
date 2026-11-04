@@ -129,8 +129,8 @@ def mirroring_screen():
     """'none' (no window), 'connecting', 'trouble' (can't reach the iPhone) or 'up', and the screen's text"""
     try:
         path = ui.capture()[0]
-    except ui.Refused:
-        return "none", ""
+    except ui.Refused as e:
+        return "none", str(e)
     j = ui.joined(ui.ocr(path))
     if "CONNECTING" in j:
         return "connecting", j
@@ -153,6 +153,9 @@ def connect():
             if state == "trouble":
                 break
             time.sleep(1.0)
+        if ui.CANT_CAPTURE in j:  # 30 s of this isn't a window still opening. Opening it again won't help (2026-11-04)
+            raise Stop("macOS won't let this terminal take pictures of the iPhone Mirroring window. Run from one with "
+                       "Screen Recording allowed (System Settings > Privacy & Security). tmux counts as its own app")
         keep_capture("mirroring")
         if attempt == 0:
             log(f"iPhone Mirroring can't reach the iPhone ({state}: {j[:80]}): opening it again")

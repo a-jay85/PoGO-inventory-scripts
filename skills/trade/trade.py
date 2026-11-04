@@ -271,6 +271,8 @@ def classify(texts, path):
         return "friends"
     if "ME" in words and "FRIENDS" in words:
         return "profile"
+    if {"TAGS", "EGGS"} <= words:
+        return "storage"  # the storage's list or tags tab, left open by another skill: its X closes it (the iPhone has no Back)
     if main_menu(texts):
         return "mainmenu"  # the Poké Ball's menu: POKÉDEX, POKÉMON, SHOP, ITEMS
     if len(texts) <= 12 and pokeball(path):
@@ -332,7 +334,7 @@ def to_friend(p):
             p.tap_text(label(p, "YES"))
         elif s == "manage":
             p.tap(*MANAGE_X)
-        elif s in ("gift", "result", "mainmenu", "detail"):
+        elif s in ("gift", "result", "mainmenu", "detail", "storage"):
             p.tap(*X_BUTTON)
         elif s == "map":
             p.tap(0.13, 0.91)

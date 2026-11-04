@@ -68,7 +68,14 @@ CASES = {
     "lucky": plain(lucky=True),
     "costume": plain(costume=True),
     "background": plain(background=True),
-    "shiny": plain(shiny=True),
+    "shiny, untraded, doesn't qualify": plain(shiny=True),
+    "shiny, traded, doesn't qualify, tags come off": plain(shiny=True, traded=True, other_tags=["GIV", "SOMETHING"]),
+    "shiny, 98%": plain(shiny=True, iv_sum=45),
+    "shiny lucky, traded, a top IV": plain(shiny=True, lucky=True, traded=True, iv_top=True),
+    "shiny lucky, traded, out, judged by /ivc": plain(shiny=True, lucky=True, traded=True, iv_top=False, pvp_judged=True, ivc_judged=True),
+    "shiny lucky, not ranked yet: to /ivc first": plain(shiny=True, lucky=True, traded=True),
+    "shiny and Gigantamax": plain(shiny=True, gigantamax=True),
+    "shiny shadow, no purify": plain(shiny=True, shadow=True, sids=["rhyhorn"], ivs=(10, 10, 10), pure_top=False),
     # the user's rules for an untraded shadow, costume or background one; a traded one is judged like any traded one
     "shiny search failed": plain(shiny=None),
     "costume search failed": plain(costume=None),
@@ -175,7 +182,7 @@ def answer(f):
     f, t = f if isinstance(f, tuple) else (f, TABLES[v.TO.get(f.account, TAKER)])
     r = v.final_tag(f, t, TODAY)
     return [r.kind, list(r.tags), r.name, r.why] + ([{"off": list(r.off)}] if r.off else []) \
-        + (["purify"] if r.purify else [])
+        + (["purify"] if r.purify else []) + (["star"] if r.star else [])
 
 
 def stale_lists():

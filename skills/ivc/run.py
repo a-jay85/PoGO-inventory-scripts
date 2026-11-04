@@ -93,7 +93,9 @@ def from_ivc(tile_name, tile_cp):
         ivc_reads.extend(sorted((r for f in files for r in json.load(open(f)) if r["phone"] == phone),
                                 key=lambda r: r["at"], reverse=True))
         ivc_reads.append(None)  # loaded (none left reads as "nothing to match")
-    r = next((r for r in ivc_reads if r and r["cp"] == tile_cp and same_name(r["name"], tile_name)), None)
+    near = [r for r in ivc_reads if r and r["cp"] == tile_cp and same_name(r["name"], tile_name)]
+    # (the exact name first: tile '93 H' is not the newer read '93', a second Pokémon with this CP)
+    r = next((r for r in near if short(r["name"]) == short(tile_name)), near[0] if near else None)
     if r is None:
         return None
     m = {"tile": tile_name, "name": r["name"], "cp": r["cp"], "hp": r["hp"], "candy": r["candy"], "types": r["types"],
@@ -148,8 +150,11 @@ def fits(m, a, b):
 
 
 def same_member(x, y):
-    """the same Pokémon read twice (tile names were misread differently): same detail name, CP, species, flags"""
+    """the same Pokémon read twice (tile names were misread differently): same detail name, CP, species, flags.
+    Two appraisals that differ are two Pokémon, whatever the names ('93' 14/14/14 and '93 H' 14/13/15, one CP)"""
     if x.get("unrenamed") or y.get("unrenamed"):
+        return False
+    if x.get("bars") and y.get("bars") and x["bars"] != y["bars"]:
         return False
     return x["cp"] == y["cp"] and same_name(x["name"], y["name"]) and x["shadow"] == y["shadow"] \
         and x["lucky"] == y["lucky"] and (set(x["species_options"] or []) & set(y["species_options"] or [])
@@ -816,7 +821,7 @@ def look(i, n, c, p, members):
         elif verdict == "DOOR":
             info, texts, _ = steady_detail()
             gone = door_for(m).judge(info, texts, [m["species"]], r["ivs"], (name, c), size=r["size"], raws=r["raws"],
-                                     gym_top20=False, clear=True, iv_top=lucky_rank(m), pure_top=False)
+                                     gym_top20=False, clear=True, unstar=True, iv_top=lucky_rank(m), pure_top=False)
     log(f"DONE LOOK -> {verdict}{'' if gone == verdict else ' -> ' + gone} {m['name']!r} CP{c} {m['species']}: "
         f"{why[0] if why else ''}")
     if verdict not in ("LEAVE", "SKIP"):  # a LEAVE stays a member: planned again with the family
@@ -954,7 +959,7 @@ def act(limit, members):
             else:  # sort.decide ran the gym rule (a gym defender's DOOR is out of both top 20s) and the purified one
                 info, texts, _ = steady_detail()
                 gone = door_for(m).judge(info, texts, [m["species"]], ivs, (n, c), size=now["size"], raws=raws,
-                                  gym_top20=False, clear=True, iv_top=lucky_rank(m), pure_top=False)
+                                  gym_top20=False, clear=True, unstar=True, iv_top=lucky_rank(m), pure_top=False)
                 if gone in ("keep", door.UNSURE) or gone.startswith("left for"):  # still here: a rival in the pools
                     progress.setdefault("stayed", []).append([n, c])
         plans.remove(m)

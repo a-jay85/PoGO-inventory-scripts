@@ -148,7 +148,7 @@ class Door:
             return UNSURE
         if v.name and not (info.get("name") or "").upper().startswith(v.name.upper()):  # ('93 A FP*' keeps its FP*)
             base.do_rename(v.name, lambda got, want: (got or "").strip().upper() == want.upper())
-        if v.kind == "keep":
+        if v.kind == "keep" or v.star:
             base.set_star(True)
         elif unstar and v.kind == "tag":
             base.set_star(False)

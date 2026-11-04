@@ -174,11 +174,71 @@
   null,
   "a special background: a favorite"
  ],
- "shiny": [
+ "shiny, untraded, doesn't qualify": [
+  "tag",
+  [
+   "Remote Trade",
+   "RT"
+  ],
+  null,
+  "shiny, doesn't qualify (no rule wants it)",
+  "star"
+ ],
+ "shiny, traded, doesn't qualify, tags come off": [
+  "tag",
+  [],
+  null,
+  "shiny, doesn't qualify (traded: can't trade again)",
+  {
+   "off": [
+    "GIV",
+    "SOMETHING"
+   ]
+  },
+  "star"
+ ],
+ "shiny, 98%": [
+  "keep",
+  [],
+  null,
+  "100%: 98%+ never goes"
+ ],
+ "shiny lucky, traded, a top IV": [
+  "keep",
+  [],
+  null,
+  "lucky: a top IV of its line"
+ ],
+ "shiny lucky, traded, out, judged by /ivc": [
+  "tag",
+  [],
+  null,
+  "shiny, doesn't qualify (lucky: out of the top IV and PvP)",
+  "star"
+ ],
+ "shiny lucky, not ranked yet: to /ivc first": [
+  "tag",
+  [
+   "IVC"
+  ],
+  null,
+  "lucky: /ivc ranks it against its line"
+ ],
+ "shiny and Gigantamax": [
   "unsure",
   [],
   null,
-  "shiny or Gigantamax: a special trade, by hand"
+  "Gigantamax: a special trade, by hand"
+ ],
+ "shiny shadow, no purify": [
+  "tag",
+  [
+   "Remote Trade",
+   "RT"
+  ],
+  null,
+  "shiny, doesn't qualify (shadow, 360+ Candy XL: transfer, no purify)",
+  "star"
  ],
  "shiny search failed": [
   "unsure",
@@ -435,7 +495,7 @@
   "unsure",
   [],
   null,
-  "shiny or Gigantamax: a special trade, by hand"
+  "Gigantamax: a special trade, by hand"
  ],
  "mythical": [
   "unsure",

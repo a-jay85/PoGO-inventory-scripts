@@ -6,9 +6,8 @@
         read the IVC Pokémon, then per family: type its searches, decide, favorite or door on the list on screen.
         Up to 60 IVC ones: one search reads them all. More: 50 dex numbers at a time. Give the run dir
         to carry on after a stop. --limit N: change N, then stop. --look: decide only (plan.txt), change nothing
-        --names-first: the names pass before the sort, not after (being tested for speed)
   caffeinate -dimsu python3 run.py names [--limit N] [--dry-run]
-        the names pass on its own (the sort ends with it): name what the sort can't, the XXL/xxs IVC ones (the
+        the names pass on its own (the sort starts with it): name what the sort can't, the XXL/xxs IVC ones (the
         sort leaves them out) and ones whose nickname is no species (the detail screen tells the species)
   caffeinate -dimsu python3 run.py fallen <run dir> [--limit N]  the fallen-out step on its own (a sort that gets to
         the end does it itself): group the fallen-out ones, then tag or door each one. act-fallen: the same
@@ -1118,12 +1117,9 @@ def script(a, cmd, limit):
         sys.exit(f"{cmd} needs a sort run's folder")
     base.start()
     if cmd == "sort":
-        first = "--names-first" in a and "--look" not in a
-        if first:  # most unnamed ones are too low to show: door or PvpC here, and their families are never typed
+        if "--look" not in a:  # most unnamed ones are too low to show: door or PvpC here, and their families are never typed
             names(limit)
         if sort_all(limit, "--look" in a) and "--look" not in a:
-            if not first:
-                names(limit)
             try:  # still on the phone: tag or door what this sort pushed out of the top
                 fallen_out(limit)  # (its own --limit, like /pvpc's)
             except (Stop, Skip) as e:

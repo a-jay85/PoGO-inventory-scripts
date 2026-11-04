@@ -46,13 +46,13 @@ One command, fall-outs included: `POGO_PHONE=android caffeinate -dimsu python3 ~
    - KEEP: favorites + unticks IVC. DOOR: the door.
    - An IVC one in another of the family's lists (a shadow, say) gets that list typed. A tile with the same name and CP but no IVC tag is an older keeper: it's passed.
 5. If a LOOK was named, it plans the family again and acts on the KEEPs that were waiting for it. Each Pokémon is still opened once.
-6. **Names pass** (after a whole sort; `run.py names [--limit N] [--dry-run]` on its own). It walks what's left of `#IVC` and names what the sort can't:
+6. **Names pass** (runs before the sort, though it's listed last; `run.py names [--limit N] [--dry-run]` on its own). It walks what's left of `#IVC` and names what the sort can't:
    - XXL/xxs ones. The sort leaves them out, so they only get named here. They keep IVC: the user decides on them.
    - A nickname that's no species. It's opened, and the detail screen tells the species (see **Nickname** below).
    - One still named after its species that the sort couldn't look at.
-   The next run ranks what it named. Done names (`87/96 A*`, `FP*`, `xxs`) and Pvp names are passed over.
+   The sort right after ranks what it named. Done names (`87/96 A*`, `FP*`, `xxs`) and Pvp names are passed over.
 
-A stop loses nothing: `run.py sort $S/runs/<time>` carries on, the same way it started (blocks done are in `sorted.json`, families in `families.json`). `--limit N` stops after N changes. `--look` does steps 1-3 and writes `plan.txt`, changing nothing (no named-Nope pass either). `--names-first` runs the names pass (step 6) before the sort instead of after it. An unnamed one too low to show its IV then goes to the door or PvpC with no family search (being tested for speed). A family whose named Nopes aren't all judged isn't done: a rerun finishes them.
+A stop loses nothing: `run.py sort $S/runs/<time>` carries on, the same way it started (blocks done are in `sorted.json`, families in `families.json`). `--limit N` stops after N changes. `--look` does steps 1-3 and writes `plan.txt`, changing nothing (no named-Nope pass either). The names pass (step 6) runs first, so an unnamed one too low to show its IV goes to the door or PvpC with no family search. A family whose named Nopes aren't all judged isn't done: a rerun finishes them.
 
 An IVC Pokémon still named after its species has no IV in the pools, so it could beat a KEEP. Every KEEP whose searches could show it (its name's family: a Happiny holds back the Blissey line only) becomes LEAVE until it's been looked at (step 4). A name that matches no species (the names pass names it) holds back its whole block until the next run. A DOOR stays.
 

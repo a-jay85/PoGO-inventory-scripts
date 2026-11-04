@@ -321,7 +321,8 @@ def yield_to_user(tapping=False, force=False):
     _pausing = True
     try:
         before = screen_now() if tapping else "unknown"
-        log(f"you're using the Mac: paused until it's been idle {USER_IDLE}s")
+        log(f"you're using the Mac: paused until it's been idle {USER_IDLE}s (last touch {idle_seconds():.2f}s ago, "
+            f"the script's own {time.time() - ui.last_input:.2f}s ago)")
         if _clip is not None:  # a paste's text must not sit on the clipboard they're working with
             subprocess.run(["pbcopy"], input=_clip)
             _clip = None

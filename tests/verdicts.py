@@ -70,6 +70,7 @@ CASES = {
     "background": plain(background=True),
     "shiny, untraded, doesn't qualify": plain(shiny=True),
     "shiny, untraded, already has Remote Trade and RT": plain(shiny=True, other_tags=["REMOTE TRADE", "RT"]),
+    "shiny, 98%, already has Remote Trade and RT": plain(shiny=True, iv_sum=45, other_tags=["REMOTE TRADE", "RT"]),
     "shiny, untraded, Remote Trade and a tag no rule knows": plain(shiny=True, other_tags=["REMOTE TRADE", "Mine"]),
     "shiny, traded, doesn't qualify, tags come off": plain(shiny=True, traded=True, other_tags=["GIV", "SOMETHING"]),
     "shiny, 98%": plain(shiny=True, iv_sum=45),

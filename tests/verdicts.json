@@ -194,6 +194,12 @@
   "shiny, doesn't qualify (no rule wants it)",
   "star"
  ],
+ "shiny, 98%, already has Remote Trade and RT": [
+  "keep",
+  [],
+  null,
+  "100%: 98%+ never goes"
+ ],
  "shiny, untraded, Remote Trade and a tag no rule knows": [
   "unsure",
   [],

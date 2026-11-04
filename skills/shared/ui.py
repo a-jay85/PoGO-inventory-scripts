@@ -268,11 +268,14 @@ def tile_cps(texts):
     """the CP labels of the list's tiles"""
     cps = [t for t in texts if re.fullmatch(r"CP\s*\d+", t[4].upper().replace(" ", ""))]
     # a shiny's sparkles cover the 'CP': '$1636', 'ф1629', '$2256,', ':P393', 'c2554,', or just '2168' (that one only in a
-    # row of CPs, or over a name: a list of only shinies has no real CP to go by). Not a tagged name ('•96') under a real CP
+    # row of CPs, or over a name when the screen has no real CP to go by: a list of only shinies). Not a tagged name
+    # ('•96') under a real CP
+    label = r"([^\dA-Z•·\s]{0,2}[CP]?)\d{2,4}[.,]?"
     def shiny(t):
-        m = re.fullmatch(r"([^\dA-Z•·\s]{0,2}[CP]?)\d{2,4}[.,]?", t[4].upper().replace(" ", ""))
+        m = re.fullmatch(label, t[4].upper().replace(" ", ""))
         return m and (m.group(1) or any(abs(t[1] - c[1]) < 0.01 for c in cps)
-                      or any(re.search(r"[A-Za-z]", n[4]) and under(n, t) for n in texts))
+                      or not cps and any(re.search(r"[A-Za-z]", n[4]) and under(n, t)
+                                         and not re.fullmatch(label, n[4].upper().replace(" ", "")) for n in texts))
     return cps + [t for t in texts if shiny(t)
                   and not any(0.08 < t[1] - c[1] < 0.13 and abs((t[0] + t[2] / 2) - (c[0] + c[2] / 2)) < 0.1 for c in cps)]
 

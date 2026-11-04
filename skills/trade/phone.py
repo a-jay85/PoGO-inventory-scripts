@@ -8,6 +8,8 @@ Reads one JSON request a line on stdin, answers one JSON line on stdout:
   {"op": "look"}                    -> {"path", "bounds", "texts": [[x, y, w, h, text], ...]}
   {"op": "tap", "fx", "fy"}         a tap at window fractions (iPhone: iPhone Mirroring brought forward first)
   {"op": "type", "text"}            {"op": "key", "name"}
+                                    these three -> {"stale": "..."} if the screen changed during a pause: nothing was
+                                    sent, look again
   {"op": "search", "q"}             type q into the open search panel's bar -> {"ok"}: the bar reads q
   {"op": "restart"}                 force-close Pokémon GO and open it again (doesn't wait for it to load)
   {"op": "start", "run_dir"}        open Pokémon GO if it isn't, and wait until it's loaded -> {"screen"}
@@ -38,9 +40,19 @@ def look():
 
 
 def tap(fx, fy):
-    base.front()  # iPhone: a click while another app is in front only brings the window forward, and is lost
+    base.front(planned=True)  # iPhone: a click while another app is in front only brings the window forward, and is lost
     # (front() before the capture below, as before. trade.py spaces its own taps: no tap gap here, and none counted)
     base.click(fx, fy, last or ui.capture()[1], bring_front=False, spaced=False, counted=False)
+
+
+def stale_guard(act, *args):
+    """act, unless a pause for the user changed the screen under it. trade.py looks again, so the run goes on"""
+    try:
+        act(*args)
+    except base.Lost as e:
+        base.log(f"not sent: {e}")
+        return {"stale": str(e)}
+    return {}
 
 
 def ready():
@@ -87,17 +99,24 @@ def main():
             if op == "look":
                 out = look()
             elif op == "tap":
-                tap(req["fx"], req["fy"])
+                out = stale_guard(tap, req["fx"], req["fy"])
             elif op == "type":
-                base.type_text(req["text"])
+                out = stale_guard(base.type_text, req["text"])
             elif op == "key":
-                base.key(req["name"])
+                out = stale_guard(base.key, req["name"])
             elif op == "search":  # (iPhone: typed key by key; Android: adb types it)
-                out = {"ok": search.type_into_panel(req["q"], last or ui.capture()[1])}
+                try:
+                    out = {"ok": search.type_into_panel(req["q"], last or ui.capture()[1])}
+                except base.Lost as e:  # a pause changed the screen: same as a search that came out wrong
+                    base.log(f"not sent: {e}")
+                    out = {"ok": False}
             elif op == "ready":
                 ready()
             elif op == "restart":
-                restart()
+                try:
+                    restart()
+                except base.Lost:  # a pause changed the screen, and a restart doesn't care what's on it: go again
+                    restart()
             elif op == "reconnect":  # iPhone Mirroring lost the iPhone mid-run: quit it and open it again
                 session.quit_mirroring()
                 time.sleep(2.0)

@@ -295,6 +295,8 @@ INPUT_LAG = 0.15  # the idle timer can see the script's own last input this long
 paused = 0.0  # seconds this run has spent paused
 _real_time = time.time
 _pausing = False
+STALE_SETTLE = 2.0  # a screen that differs right after a pause gets this long to finish moving before it counts
+CHANGED_WORDS, CHANGED_SHARE = 3, 0.25  # screen_changed: more words than this, and this share of them, differ
 
 
 def user_active():
@@ -303,23 +305,36 @@ def user_active():
     return idle_seconds() < time.time() - ui.last_input - INPUT_LAG
 
 
-def screen_now():
+def texts_now():
+    """what's on the screen right now, or None if it can't be seen"""
     try:
-        return ui.classify(ui.ocr(ui.capture()[0]))
+        return ui.ocr(ui.capture()[0])
     except Refused:
-        return "unknown"
+        return None
+
+
+def screen_changed(before, after):
+    """is this another screen, or a popup over it, by the OCR of two looks? Counts words, since ui.classify calls every
+    popup and every /trade screen "unknown". A few words may differ on the same screen: a countdown, OCR's own jitter"""
+    if before is None or after is None:
+        return False
+    if ui.classify(before) != ui.classify(after):
+        return True
+    a, b = ({ui.norm(t[4]) for t in texts} for texts in (before, after))
+    return len(a ^ b) > max(CHANGED_WORDS, CHANGED_SHARE * len(a | b))
 
 
 def yield_to_user(tapping=False, force=False):
     """the user is at the Mac: stop here until it's been idle USER_IDLE seconds, then bring iPhone Mirroring back and
     go on. Every deadline in the run stands still meanwhile (the clock below). tapping: a tap or key was planned on a
-    look from before the pause: if the screen has become another one since, raise Lost instead of tapping blind"""
+    look from before the pause: if the screen is still another one after a moment to settle, raise Lost instead of
+    tapping blind"""
     global paused, _pausing
     if _pausing or not (force or user_active()):
         return
     _pausing = True
     try:
-        before = screen_now() if tapping else "unknown"
+        before = texts_now() if tapping else None
         log(f"you're using the Mac: paused until it's been idle {USER_IDLE}s (last touch {idle_seconds():.2f}s ago, "
             f"the script's own {time.time() - ui.last_input:.2f}s ago)")
         t0 = tick = _real_time()
@@ -333,11 +348,16 @@ def yield_to_user(tapping=False, force=False):
         ui._seen = ui._older = None  # a look from before the pause isn't the screen now
         bring_forward()
         log(f"the Mac has been idle {USER_IDLE}s: going on after {_real_time() - t0:.0f}s")
-        after = screen_now() if tapping else "unknown"
+        if tapping:
+            after = texts_now()
+            if screen_changed(before, after):
+                time.sleep(STALE_SETTLE)
+                after = texts_now()
+            if screen_changed(before, after):
+                keep_capture("stale")
+                raise Lost(f"the screen changed during a pause: was {ui.summary(before, 100)}; now {ui.summary(after, 100)}")
     finally:
         _pausing = False
-    if "unknown" not in (before, after) and before != after:
-        raise Lost(f"the screen went from {before} to {after} during a pause")
 
 
 if not ui.ANDROID:
@@ -355,9 +375,10 @@ def bring_forward():
         raise Stop("can't bring iPhone Mirroring to the front")
 
 
-def front():
+def front(planned=False):
     """bring iPhone Mirroring forward. If the user is at the Mac, wait until they've left it alone for USER_IDLE
-    seconds first, so their typing doesn't land on the phone.
+    seconds first, so their typing doesn't land on the phone. planned: the caller already chose its tap or key from an
+    earlier look, so a screen that changes during that wait raises Lost. Leave it off if the caller looks again after this.
     Android: adb never touches the Mac's mouse or keyboard, so just check the phone (and unlock it if it locked
     itself mid-run)."""
     if ui.ANDROID:
@@ -375,7 +396,7 @@ def front():
     # taps and so looks older than it (the keys that started this script don't count)
     switched = ui.sh(ui.HELPER, "front").strip() != "iPhone Mirroring" and \
         idle_seconds() < min(USER_IDLE, time.time() - STARTED)
-    yield_to_user(force=switched)
+    yield_to_user(tapping=planned, force=switched)
     bring_forward()
 
 
@@ -397,7 +418,7 @@ def click(fx, fy, bounds, gap=0.0, ms=None, fuzz=0.0, rest=0.0, bring_front=True
     is lost). spaced: wait out tap_gap() and gap first. counted: it counts as the last tap for the next one's gap."""
     global last_tap
     if bring_front:
-        front()
+        front(planned=True)
     fuzz = max(fuzz, TAP_WOBBLE)
     x, y = to_points(fx + random.uniform(-fuzz, fuzz), fy + random.uniform(-fuzz / 2, fuzz / 2), bounds)
     if spaced:
@@ -473,13 +494,13 @@ def go(target, *screens):
 
 
 def key(name, cmd=False):
-    front()
+    front(planned=True)
     ui.sh(ui.HELPER, "key", name, *(["cmd"] if cmd else []))
     time.sleep(random.uniform(0.08, 0.18))
 
 
 def type_text(text):
-    front()
+    front(planned=True)
     ui.sh(ui.HELPER, "type", text, "35", "80")
     time.sleep(random.uniform(0.1, 0.25))
 
@@ -489,7 +510,7 @@ def paste_text(text):
     -> what the Mac's clipboard held before: give it to restore_clipboard() once the text has landed (the phone
     can fetch the clipboard a moment after the cmd+V)"""
     global _pausing
-    front()
+    front(planned=True)
     old = subprocess.run(["pbpaste"], capture_output=True).stdout
     subprocess.run(["pbcopy"], input=text.encode())
     _pausing = True  # no pause between the copy and the cmd+V: front() just checked, and this text must be what lands
@@ -507,7 +528,7 @@ def restore_clipboard(old):
 
 def scroll(bounds, how, up=False):
     """one screenful-ish down (or up) the list, from a random spot in the middle of the window"""
-    front()
+    front(planned=True)
     fx, fy = random.uniform(0.3, 0.7), random.uniform(0.3, 0.45) if up else random.uniform(0.55, 0.7)
     x, y = to_points(fx, fy, bounds)
     dist = bounds[3] * random.uniform(0.3, 0.42) * (-1 if up else 1)
@@ -1119,7 +1140,7 @@ def drag(fx, fy, tx, ty, bounds, ms=None, settle=(0.7, 0.9), android_settle=None
     that instead (LIST_SETTLE for a list; None keeps settle there too). bring_front: front() first.
     hold: ms the finger holds still before it moves (default a few ms: a long press starts multi-select in the list)"""
     if bring_front:
-        front()
+        front(planned=True)
     x1, y1 = to_points(fx, fy, bounds)
     x2, y2 = to_points(tx, ty, bounds)
     ui.sh(ui.HELPER, "drag", f"{x1:.1f}", f"{y1:.1f}", f"{x2:.1f}", f"{y2:.1f}",

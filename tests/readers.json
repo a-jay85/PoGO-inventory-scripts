@@ -1,4 +1,12 @@
 {
+ "base.screen_changed": {
+  "a popup over it": true,
+  "another number": false,
+  "one word misread": false,
+  "the same": false,
+  "the screen can't be seen": false,
+  "two unknown screens": true
+ },
  "cleantrades.key": {
   "": "",
   "!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "favorltetradedshadowshlnyxxl43",
@@ -7278,6 +7286,7 @@
   ]
  },
  "ui.classify": {
+  "a party's summary": "unknown",
   "map, friend row": "unknown",
   "typed number and letters, no tabs": "list",
   "typed number, tabs showing": "list",

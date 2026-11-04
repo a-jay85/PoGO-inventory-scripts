@@ -100,6 +100,7 @@ class Phone:
                                      stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         self.texts, self.path, self.screen = [], None, "?"
         self.live = False  # in a trade: from here an "expired" box means start the trade over
+        self.stale = False  # a pause changed the screen under a tap: nothing more is sent until the next look
 
     def call(self, **req):
         self.proc.stdin.write(json.dumps(req) + "\n")
@@ -112,8 +113,13 @@ class Phone:
             raise Stop(f"{self.name}: {out['error']}")
         return out
 
+    def send(self, **req):
+        if not self.stale:
+            self.stale = "stale" in self.call(**req)
+
     def look(self):
         out = self.call(op="look")
+        self.stale = False
         self.texts = [tuple(t) for t in out["texts"]]
         self.path = out["path"]
         self.screen = classify(self.texts, self.path)
@@ -126,7 +132,7 @@ class Phone:
         return self.screen
 
     def tap(self, fx, fy, fuzz=0.008):
-        self.call(op="tap", fx=fx + random.uniform(-fuzz, fuzz), fy=fy + random.uniform(-fuzz / 2, fuzz / 2))
+        self.send(op="tap", fx=fx + random.uniform(-fuzz, fuzz), fy=fy + random.uniform(-fuzz / 2, fuzz / 2))
         time.sleep(random.uniform(0.15, 0.3))
 
     def tap_text(self, t, dy=0.0):
@@ -134,10 +140,10 @@ class Phone:
         self.tap(x + w / 2, y + h / 2 + dy, fuzz=min(0.008, w / 4))
 
     def type(self, text):
-        self.call(op="type", text=text)
+        self.send(op="type", text=text)
 
     def key(self, name):
-        self.call(op="key", name=name)
+        self.send(op="key", name=name)
 
     def wait(self, *screens, timeout=10):
         end = time.time() + timeout
@@ -265,6 +271,8 @@ def classify(texts, path):
         return "friends"
     if "ME" in words and "FRIENDS" in words:
         return "profile"
+    if {"TAGS", "EGGS"} <= words:
+        return "storage"  # the storage's list or tags tab, left open by another skill: its X closes it (the iPhone has no Back)
     if main_menu(texts):
         return "mainmenu"  # the Poké Ball's menu: POKÉDEX, POKÉMON, SHOP, ITEMS
     if len(texts) <= 12 and pokeball(path):
@@ -326,7 +334,7 @@ def to_friend(p):
             p.tap_text(label(p, "YES"))
         elif s == "manage":
             p.tap(*MANAGE_X)
-        elif s in ("gift", "result", "mainmenu", "detail"):
+        elif s in ("gift", "result", "mainmenu", "detail", "storage"):
             p.tap(*X_BUTTON)
         elif s == "map":
             p.tap(0.13, 0.91)

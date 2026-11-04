@@ -295,7 +295,6 @@ INPUT_LAG = 0.15  # the idle timer can see the script's own last input this long
 paused = 0.0  # seconds this run has spent paused
 _real_time = time.time
 _pausing = False
-_clip = None  # what the Mac's clipboard held before a paste that hasn't been put back yet
 
 
 def user_active():
@@ -315,7 +314,7 @@ def yield_to_user(tapping=False, force=False):
     """the user is at the Mac: stop here until it's been idle USER_IDLE seconds, then bring iPhone Mirroring back and
     go on. Every deadline in the run stands still meanwhile (the clock below). tapping: a tap or key was planned on a
     look from before the pause: if the screen has become another one since, raise Lost instead of tapping blind"""
-    global paused, _pausing, _clip
+    global paused, _pausing
     if _pausing or not (force or user_active()):
         return
     _pausing = True
@@ -323,9 +322,6 @@ def yield_to_user(tapping=False, force=False):
         before = screen_now() if tapping else "unknown"
         log(f"you're using the Mac: paused until it's been idle {USER_IDLE}s (last touch {idle_seconds():.2f}s ago, "
             f"the script's own {time.time() - ui.last_input:.2f}s ago)")
-        if _clip is not None:  # a paste's text must not sit on the clipboard they're working with
-            subprocess.run(["pbcopy"], input=_clip)
-            _clip = None
         t0 = tick = _real_time()
         while idle_seconds() < USER_IDLE:
             time.sleep(0.5)
@@ -492,11 +488,9 @@ def paste_text(text):
     """iPhone: the whole text in one cmd+V (Mirroring passes the Mac's clipboard to the phone), not a key at a time.
     -> what the Mac's clipboard held before: give it to restore_clipboard() once the text has landed (the phone
     can fetch the clipboard a moment after the cmd+V)"""
-    global _clip, _pausing
+    global _pausing
     front()
     old = subprocess.run(["pbpaste"], capture_output=True).stdout
-    if _clip is None:  # (a 2nd paste: pbpaste is the 1st one's text, _clip still has theirs)
-        _clip = old
     subprocess.run(["pbcopy"], input=text.encode())
     _pausing = True  # no pause between the copy and the cmd+V: front() just checked, and this text must be what lands
     try:
@@ -508,11 +502,7 @@ def paste_text(text):
 
 
 def restore_clipboard(old):
-    """the user's clipboard back. Nothing if a pause already gave it back: they may have copied something since"""
-    global _clip
-    if _clip is not None:
-        subprocess.run(["pbcopy"], input=_clip)
-        _clip = None
+    subprocess.run(["pbcopy"], input=old)
 
 
 def scroll(bounds, how, up=False):

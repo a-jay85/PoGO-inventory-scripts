@@ -390,7 +390,21 @@ def storage_limit(texts):
 def challenge_invite(texts, bounds):
     """a Weekly Challenge box. A friend's invite over the profile: its X is greyed out and Back does nothing, so only
     its two buttons get past it. The user's rule (2026-11-03): MAYBE LATER, so a run never sticks here. The "You've
-    completed 77%" box over the map (2026-11-04) has one button, LET'S GO!"""
+    completed 77%" box over the map (2026-11-04) has one button, LET'S GO! A finished Party Challenge over the map
+    (2026-11-04): Back does nothing there either, and it comes back each time the map does, so CLAIM REWARD"""
+    if "PARTY CHALLENGE" in ui.joined(texts) and press_text(texts, bounds, "CLAIM REWARD"):
+        log("  a finished Party Challenge is up: tapping CLAIM REWARD")
+        time.sleep(2.5)
+        return True
+    if "THE PARTY HAS ENDED" in ui.joined(texts) and press_text(texts, bounds, "OK"):  # (a party lasts 3 hours)
+        log("  the party has ended: tapping OK")
+        time.sleep(1.5)
+        return True
+    if "TOTAL KM EXPLORED" in ui.joined(texts):  # the summary after it: only its round X closes it
+        log("  the party's summary is up: closing it")
+        search.click(*X_BUTTON, bounds)
+        time.sleep(1.5)
+        return True
     if "WEEKLY CHALLENGE" not in ui.joined(texts):
         return False
     if press_text(texts, bounds, "MAYBE LATER"):

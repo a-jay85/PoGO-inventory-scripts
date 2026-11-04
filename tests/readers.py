@@ -235,6 +235,19 @@ SCREENS = {  # the map's friend row must not read as the list's search bar: the 
     "typed number and letters, no tabs": [box(.23, .17, "113&shadow")],
     "weekly challenge progress box": [box(.31, .196, "WEEKLY CHALLENGE"), box(.2, .3, "Catch 500 Pokémon"),
                                       box(.2, .33, "387 / 500"), box(.4, .8, "LET'S GO!")],
+    "a party's summary": [box(.2, .14, "Total KM Explored"), box(.4, .21, "1.3 km"), box(.1, .18, "Me & HashTagAJay"), box(.4, .64, "SHARE")],
+}
+
+_LIST = [box(.1, .079, "TAGS"), box(.8, .079, "EGGS"), box(.23, .17, "Search")] + [box(.1 + i / 20, .3, f"CP {i}00") for i in range(1, 7)] + \
+        [box(.1, .4 + i / 50, n) for i, n in enumerate(("Bulbasaur", "Ivysaur", "Pidgey", "Rattata", "Zubat", "Geodude"))]
+_POPUP = [box(.1, .4, "Your party completed"), box(.1, .5, "Claim your reward"), box(.4, .8, "CLAIM REWARD"), box(.1, .6, "Spin stops")]
+CHANGES = {  # (before a pause, after it): another screen, or the same one?
+    "the same": (_LIST, _LIST),
+    "one word misread": (_LIST, _LIST[:-1] + [box(.1, .5, "Geodudee")]),
+    "another number": (_LIST, _LIST[:3] + [box(.1, .3, "CP 999")] + _LIST[4:]),
+    "a popup over it": (_LIST, _LIST + _POPUP),
+    "two unknown screens": (_POPUP, _LIST[-6:]),
+    "the screen can't be seen": (_LIST, None),
 }
 
 
@@ -262,6 +275,7 @@ def answers():
                          for k, ts in SHEETS.items()}
     out["ui.tiles"] = {k: answer(lambda ts: [t[:2] for t in ui.tiles(ts)], ts) for k, ts in LISTS.items()}
     out["ui.classify"] = {k: answer(ui.classify, ts) for k, ts in SCREENS.items()}
+    out["base.screen_changed"] = {k: answer(base.screen_changed, *v) for k, v in CHANGES.items()}
     out["mega.ask_cost"] ={k: answer(mega.ask_cost, ts) for k, ts in ASKS.items()}
     out["mega.form_of"] = {n: answer(mega.form_of, n) for n in NICKS}
     out["mega.badge"] = {k: answer(lambda ts: (lambda b: b and b[4])(mega.badge(ts)), ts) for k, ts in BADGES.items()}

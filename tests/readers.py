@@ -214,6 +214,20 @@ DIALOGS = {
 }
 
 
+def box(x, y, s):
+    return (x, y, 0.1, 0.02, s)
+
+
+LISTS = {  # the list's tiles: normal ones count once, and a list of only shinies has no real CP to go by
+    "plain": [box(.15, .3, "CP2554"), box(.45, .3, "CP 300"), box(.15, .4, "96 HA"), box(.45, .4, "Zubat")],
+    "a shiny by a plain one": [box(.15, .3, "CP2554"), box(.45, .3, "2168"), box(.15, .4, "96 HA"), box(.45, .4, "Zubat")],
+    "only shinies, from the Pixel 2026-11-03": [box(.15, .3, "2554"), box(.45, .3, "1283"), box(.15, .4, "80 def"),
+                                               box(.45, .4, "• Gardevoir"), box(.15, .5, "€2050,"), box(.15, .6, "• Kartana")],
+    "shiny labels": [box(.15, .3, "c2554,"), box(.45, .3, "-2050"), box(.15, .4, "80 def"), box(.45, .4, "• Kartana")],
+    "a number with no name": [box(.15, .3, "2554"), box(.8, .1, "9/12")],
+}
+
+
 def answer(fn, *a):
     try:
         return fn(*a)
@@ -236,7 +250,8 @@ def answers():
     out["mega.sheet"] = {k: answer(lambda ts: (lambda r: r and {x: r[x] for x in ("done_today", "mega_now", "level",
                                                                                  "more", "cost")} | {"button": bool(r["button"])})(mega.sheet(ts)), ts)
                          for k, ts in SHEETS.items()}
-    out["mega.ask_cost"] = {k: answer(mega.ask_cost, ts) for k, ts in ASKS.items()}
+    out["ui.tiles"] = {k: answer(lambda ts: [t[:2] for t in ui.tiles(ts)], ts) for k, ts in LISTS.items()}
+    out["mega.ask_cost"] ={k: answer(mega.ask_cost, ts) for k, ts in ASKS.items()}
     out["mega.form_of"] = {n: answer(mega.form_of, n) for n in NICKS}
     out["mega.badge"] = {k: answer(lambda ts: (lambda b: b and b[4])(mega.badge(ts)), ts) for k, ts in BADGES.items()}
     return json.loads(json.dumps(out))  # (tuples -> lists, as the file has them)

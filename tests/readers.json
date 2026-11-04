@@ -1457,42 +1457,6 @@
   "lycбo\tlycbo": true,
   "xXS 96\tXXS 96": true
  },
- "names.same_name": {
-  "\t": true,
-  "\t96": false,
-  "40 a\t40 a": true,
-  "40 aI\t40 a": true,
-  "40 al\t40 a": true,
-  "40 ax\t40 a": false,
-  "84/9\t84/9": true,
-  "849\t84/9": false,
-  "9\t96": false,
-  "96\"\t96*": true,
-  "96*\t96": true,
-  "96^\t96": true,
-  "96|\t96": true,
-  "96…\t96": true,
-  "Ab&c\tAb8c": false,
-  "Abcd\tAbxy": false,
-  "Fr1endly\tFriendly": false,
-  "Frien\tFriendly": false,
-  "Frlendly\tFriendly": false,
-  "None\tPvpL Medi": false,
-  "PvPL Medi\tPvpL Medi": true,
-  "Pvp Medi\tPvpL Medi": false,
-  "PvpGU 1Eaf\tPvpGU lEaf": false,
-  "PvpGU IEaf\tPvpGU lEaf": false,
-  "PvpL Med\tPvpL Medi": false,
-  "PvpL Medi\tPvpL Medi": true,
-  "PvpL Medi \tPvpL Medi": true,
-  "PvpL Medl\tPvpL Medi": false,
-  "PypL Medi\tPvpL Medi": false,
-  "PУpL Medi\tPvpL Medi": false,
-  "XvpL Medi\tPvpL Medi": false,
-  "lyc60\tlycбo": false,
-  "lycбo\tlycbo": false,
-  "xXS 96\tXXS 96": true
- },
  "ivc.same_name": {
   "\t": false,
   "\t96": false,
@@ -1941,6 +1905,42 @@
    "mega_now": true,
    "more": null
   }
+ },
+ "names.same_name": {
+  "\t": true,
+  "\t96": false,
+  "40 a\t40 a": true,
+  "40 aI\t40 a": true,
+  "40 al\t40 a": true,
+  "40 ax\t40 a": false,
+  "84/9\t84/9": true,
+  "849\t84/9": false,
+  "9\t96": false,
+  "96\"\t96*": true,
+  "96*\t96": true,
+  "96^\t96": true,
+  "96|\t96": true,
+  "96…\t96": true,
+  "Ab&c\tAb8c": false,
+  "Abcd\tAbxy": false,
+  "Fr1endly\tFriendly": false,
+  "Frien\tFriendly": false,
+  "Frlendly\tFriendly": false,
+  "None\tPvpL Medi": false,
+  "PvPL Medi\tPvpL Medi": true,
+  "Pvp Medi\tPvpL Medi": false,
+  "PvpGU 1Eaf\tPvpGU lEaf": false,
+  "PvpGU IEaf\tPvpGU lEaf": false,
+  "PvpL Med\tPvpL Medi": false,
+  "PvpL Medi\tPvpL Medi": true,
+  "PvpL Medi \tPvpL Medi": true,
+  "PvpL Medl\tPvpL Medi": false,
+  "PypL Medi\tPvpL Medi": false,
+  "PУpL Medi\tPvpL Medi": false,
+  "XvpL Medi\tPvpL Medi": false,
+  "lyc60\tlycбo": false,
+  "lycбo\tlycbo": false,
+  "xXS 96\tXXS 96": true
  },
  "run.same_name": {
   "\t": false,
@@ -7290,5 +7290,52 @@
   "empty, OK not read": "",
   "item behind it": "87 A",
   "no CANCEL either": "Pvp U87"
+ },
+ "ui.tiles": {
+  "a number with no name": [],
+  "a shiny by a plain one": [
+   [
+    "96 HA",
+    2554
+   ],
+   [
+    "Zubat",
+    2168
+   ]
+  ],
+  "only shinies, from the Pixel 2026-11-03": [
+   [
+    "80 def",
+    2554
+   ],
+   [
+    "Gardevoir",
+    1283
+   ],
+   [
+    "Kartana",
+    2050
+   ]
+  ],
+  "plain": [
+   [
+    "96 HA",
+    2554
+   ],
+   [
+    "Zubat",
+    300
+   ]
+  ],
+  "shiny labels": [
+   [
+    "80 def",
+    2554
+   ],
+   [
+    "Kartana",
+    2050
+   ]
+  ]
  }
 }

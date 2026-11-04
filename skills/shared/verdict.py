@@ -158,7 +158,9 @@ def final_tag(f, t, today=None):
     """f: Facts. t: tables(TO[f.account]). -> Verdict"""
     if not f.shiny:
         return usual(f, t, today)
-    return shiny(f, usual(replace(f, other_tags=[]) if f.traded else f, t, today))
+    # a traded one's tags all come off. An untraded one that already has Remote Trade or RT has what the rule gives it
+    tags = [] if f.traded else [x for x in f.other_tags if re.sub(r"[^A-Z]", "", x.upper()) not in ("REMOTETRADE", "RT")]
+    return shiny(f, usual(replace(f, other_tags=tags), t, today))
 
 
 def shiny(f, v):

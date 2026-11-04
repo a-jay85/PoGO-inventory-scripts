@@ -689,7 +689,9 @@ def lift_tag_row(T):
     take. Scroll it up (or down) a little first. At the list's top the down scroll changes nothing"""
     _, texts, _, _ = wait_for("tags")
     row = next((t for t in texts if row_name(t[4]) == T), None)
-    if row and (row[1] > 0.7 or row[1] < 0.33):
+    # Remote Trade at the list's top is no fade: a tap takes there. After the down scroll two taps didn't (2026-11-03)
+    top = T == "REMOTE TRADE" and row and row[1] >= 0.28
+    if row and (row[1] > 0.7 or row[1] < 0.33) and not top:
         x, y = random.randint(650, 790), random.randint(1960, 2040)
         dy = -random.randint(370, 430)
         if row[1] < 0.33:  # (seen 2026-10-29: IVC at 28%, faded, two taps didn't untick it)

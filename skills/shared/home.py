@@ -388,11 +388,17 @@ def storage_limit(texts):
 
 
 def challenge_invite(texts, bounds):
-    """a friend's Weekly Challenge invite, a box over the profile. Its X is greyed out and Back does nothing, so only
-    its two buttons get past it. The user's rule (2026-11-03): MAYBE LATER, so a run never sticks here"""
-    if "WEEKLY CHALLENGE" not in ui.joined(texts) or not press_text(texts, bounds, "MAYBE LATER"):
+    """a Weekly Challenge box. A friend's invite over the profile: its X is greyed out and Back does nothing, so only
+    its two buttons get past it. The user's rule (2026-11-03): MAYBE LATER, so a run never sticks here. The "You've
+    completed 77%" box over the map (2026-11-04) has one button, LET'S GO!"""
+    if "WEEKLY CHALLENGE" not in ui.joined(texts):
         return False
-    log("  a friend's Weekly Challenge invite is up: tapping MAYBE LATER")
+    if press_text(texts, bounds, "MAYBE LATER"):
+        log("  a friend's Weekly Challenge invite is up: tapping MAYBE LATER")
+    elif press_text(texts, bounds, "LETS GO"):
+        log("  the Weekly Challenge progress box is up: tapping LET'S GO!")
+    else:
+        return False
     time.sleep(1.5)
     return True
 

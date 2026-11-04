@@ -7280,7 +7280,8 @@
  "ui.classify": {
   "map, friend row": "unknown",
   "typed number and letters, no tabs": "list",
-  "typed number, tabs showing": "list"
+  "typed number, tabs showing": "list",
+  "weekly challenge progress box": "unknown"
  },
  "ui.dialog_ok": {
   "OK not read": 0.541,

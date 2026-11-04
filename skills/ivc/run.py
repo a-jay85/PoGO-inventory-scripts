@@ -350,12 +350,18 @@ def read_search(q, iv_only):
     return got, want
 
 
-def home(m):
+def home(m, read=None):
     """the family search this member shows in: its own pool's (shadow or not), else the first one it needs"""
     qs = sort.searches_for(m)
     pool = "shadow" if m["shadow"] else "plain"
-    return next((q for q, _, ss in sort.groups(m["species"], pool) if m["species"] in ss and q in qs),
-                qs[0] if qs else None)
+    first = next((q for q, _, ss in sort.groups(m["species"], pool) if m["species"] in ss and q in qs),
+                 qs[0] if qs else None)
+    if not read:
+        return first
+    # a Ralts is on its gender's list only, and the plan doesn't know its gender (a female looked for on the male list
+    # never turned up, 2026-11-03): the lists read know
+    holds = lambda q: any(c == m["cp"] and sort.clean_name(n) == sort.clean_name(m["tile"]) for n, c in read.get(q, []))
+    return first if holds(first) else next((q for q in qs if holds(q)), first)
 
 
 def pools(members=None):
@@ -837,6 +843,7 @@ def act(limit, members):
         DOORS.update(dict.fromkeys(new, made) if scope else {"all": made})
         SHOWN["q"] = None
     listed = next(iter(DOORS.values())).listed() if DOORS else Counter()  # not sure last time, same rules: passed over
+    read = load("pools.json") if os.path.exists(os.path.join(base.RUN_DIR, "pools.json")) else {}
     for m in plans:
         k = (sort.clean_name(m["tile"]), m["cp"])
         if m["verdict"] == "DOOR" and listed[k]:
@@ -845,7 +852,7 @@ def act(limit, members):
             continue
         # a LOOK is found on the #IVC list of its dex: its family list has its plain names at the end, other ones
         # named after the species, and nicknamed ones among them (a 'Walk15km4Dex' Happiny opened for it, 2026-10-30)
-        lists.setdefault(act_query([m]) if m["verdict"] == "LOOK" else home(m) or act_query([m]), []).append(m)
+        lists.setdefault(act_query([m]) if m["verdict"] == "LOOK" else home(m, read) or act_query([m]), []).append(m)
     # what earlier act runs on this run dir did or skipped: a restart doesn't open those again
     has = os.path.exists(os.path.join(base.RUN_DIR, "act.json"))
     progress = load("act.json") if has else {"done": [], "skipped": []}
@@ -979,16 +986,10 @@ def act(limit, members):
             start_search(q)
             SHOWN["q"] = q
         log(f"{q}: {sum(todo.values())} to change")
-        # sorted by Name, IV names come first: a plain name after them ends them. Only after one: a list not sorted
-        # by Name (seen 2026-10-27, 'Dodrio' on top) is walked to its end
-        digits, iv_seen = all(re.match(r"\d", n) for n, _ in todo), [False]
+        # a plain name doesn't end the IV names: a list can be out of Name order partway down ('47 d' after 'Magikarp',
+        # 2026-11-03). A missing one costs a walk to the list's end; a stop too soon leaves its family undone
         left = lambda: sum(v for k, v in todo.items() if k not in skipped)
-
-        def stop(n):
-            iv = bool(re.match(r"\d", n))
-            iv_seen[0] |= iv
-            return opened[0] >= limit or not left() or (digits and iv_seen[0] and not iv)
-        walk_list(visit, stop=stop)
+        walk_list(visit, stop=lambda n: opened[0] >= limit or not left())
         if left() and opened[0] < limit:
             log(f"  left over on {q} (not found): {left()}")
             missed += left()

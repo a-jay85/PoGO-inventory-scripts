@@ -134,9 +134,9 @@ def finish_keepers(limit):
 def process(i, tile_name, tile_cp):
     open_tile(i)
     info, texts, _ = steady_detail()
-    cp = info["cp"] or tile_cp
     if not opened_right(info, tile_name, tile_cp):
         raise Skip(f"opened {info['name']!r} but tile said {tile_name!r}")
+    cp = info["cp"] or tile_cp  # (after that check: it can read a covered digit again)
     if not any(is_tag(t, "PvpC") for t in info["tags"]):
         raise Skip(f"no PvpC tag on detail: {info['tags']}")
     sp = ui.species_for(info["name"], info["texts"])

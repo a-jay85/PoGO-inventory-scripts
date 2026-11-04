@@ -1144,6 +1144,8 @@
   "names": [
    "ALWAYS_KEEP",
    "ASKED",
+   "CHANGED_SHARE",
+   "CHANGED_WORDS",
    "CP_LOOKS",
    "Counter",
    "GYM",
@@ -1159,6 +1161,7 @@
    "RUN_DIR",
    "Refused",
    "SIZE_CARD",
+   "STALE_SETTLE",
    "STARTED",
    "Skip",
    "Stop",
@@ -1224,7 +1227,7 @@
    "same_name",
    "same_pokemon",
    "save",
-   "screen_now",
+   "screen_changed",
    "scroll",
    "scroll_for_new",
    "seek_tag",
@@ -1247,6 +1250,7 @@
    "tap_box",
    "tap_gap",
    "tap_tag_row",
+   "texts_now",
    "think",
    "tick_tags",
    "to_points",
@@ -1759,6 +1763,7 @@
    "main",
    "ready",
    "restart",
+   "stale_guard",
    "tap"
   ],
   "runs": []

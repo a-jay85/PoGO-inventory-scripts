@@ -17,7 +17,7 @@ Uses the shared tapper and screen reader: the shared library (`~/PoGO-inventory-
 - No `POGO_PHONE`: the iPhone only.
 - `POGO_PHONE=both`: both phones at once, each in its own process.
 
-Keep your hands off the Mac mouse while the iPhone runs: its taps go through the Mac pointer.
+You can use the Mac while it runs. The iPhone's run pauses when you touch the keyboard or mouse, and when the Mac has been idle for 5 seconds it brings iPhone Mirroring back and goes on. The pointer goes back where you left it after each tap.
 
 - `--limit N`: at most N gifts per phone this run.
 - `--dry-run`: does everything except tap SEND. A nickname is typed into the box, then CANCEL instead of OK. It still taps the phone.

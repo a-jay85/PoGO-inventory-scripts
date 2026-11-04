@@ -105,7 +105,7 @@ def load(name, default=None):
 # quick taps, as /ivc had them: 0.1-0.25s since the last one (screen reading counts toward it).
 # The pause that looks like a person working something out is think(), on the appraisal only.
 last_tap = 0.0
-USER_IDLE = 10  # front() waits this long after the user's last key or click before taking the screen back
+USER_IDLE = 5  # a pause ends this long after the user's last key, click or mouse move
 STARTED = time.time()  # input from before the script started (the keys that started it) never makes front() wait
 
 
@@ -289,9 +289,78 @@ def idle_seconds():
     return int(m.group(1)) / 1e9 if m else 999
 
 
+# ---------- sharing the Mac with the user (iPhone: its taps and keys go through the Mac's pointer and keyboard) ----------
+
+INPUT_LAG = 0.15  # the idle timer can see the script's own last input this long after the helper has ended
+paused = 0.0  # seconds this run has spent paused
+_real_time = time.time
+_pausing = False
+_clip = None  # what the Mac's clipboard held before a paste that hasn't been put back yet
+
+
+def user_active():
+    """has the user touched the Mac since the script's own last input? The script's clicks and keys reset the idle
+    timer too (measured 2026-11-04), so a short idle alone says nothing: only input newer than the script's counts"""
+    return idle_seconds() < time.time() - ui.last_input - INPUT_LAG
+
+
+def screen_now():
+    try:
+        return ui.classify(ui.ocr(ui.capture()[0]))
+    except Refused:
+        return "unknown"
+
+
+def yield_to_user(tapping=False, force=False):
+    """the user is at the Mac: stop here until it's been idle USER_IDLE seconds, then bring iPhone Mirroring back and
+    go on. Every deadline in the run stands still meanwhile (the clock below). tapping: a tap or key was planned on a
+    look from before the pause: if the screen has become another one since, raise Lost instead of tapping blind"""
+    global paused, _pausing, _clip
+    if _pausing or not (force or user_active()):
+        return
+    _pausing = True
+    try:
+        before = screen_now() if tapping else "unknown"
+        log(f"you're using the Mac: paused until it's been idle {USER_IDLE}s")
+        if _clip is not None:  # a paste's text must not sit on the clipboard they're working with
+            subprocess.run(["pbcopy"], input=_clip)
+            _clip = None
+        t0 = tick = _real_time()
+        while idle_seconds() < USER_IDLE:
+            time.sleep(0.5)
+            paused += _real_time() - tick
+            tick = _real_time()
+            with open(ui.PAUSE_FILE, "w") as f:
+                f.write(f"{paused:.1f}")
+        ui.last_input = time.time()
+        ui._seen = ui._older = None  # a look from before the pause isn't the screen now
+        bring_forward()
+        log(f"the Mac has been idle {USER_IDLE}s: going on after {_real_time() - t0:.0f}s")
+        after = screen_now() if tapping else "unknown"
+    finally:
+        _pausing = False
+    if "unknown" not in (before, after) and before != after:
+        raise Lost(f"the screen went from {before} to {after} during a pause")
+
+
+if not ui.ANDROID:
+    time.time = lambda: _real_time() - paused  # (time.strftime still gives the real time for logs and folder names)
+    ui.gate = yield_to_user
+
+
+def bring_forward():
+    for _ in range(3):  # the first open sometimes loses to whatever app had focus
+        if ui.sh(ui.HELPER, "front").strip() == "iPhone Mirroring":
+            return
+        subprocess.run(["open", "-a", "iPhone Mirroring"])
+        time.sleep(1.5)
+    if ui.sh(ui.HELPER, "front").strip() != "iPhone Mirroring":
+        raise Stop("can't bring iPhone Mirroring to the front")
+
+
 def front():
-    """bring iPhone Mirroring forward. If the user switched to another app, wait until they've left the Mac
-    alone for USER_IDLE seconds first, so their typing doesn't land on the phone.
+    """bring iPhone Mirroring forward. If the user is at the Mac, wait until they've left it alone for USER_IDLE
+    seconds first, so their typing doesn't land on the phone.
     Android: adb never touches the Mac's mouse or keyboard, so just check the phone (and unlock it if it locked
     itself mid-run)."""
     if ui.ANDROID:
@@ -305,18 +374,12 @@ def front():
             return ui.android.ready(force=True)
         except ui.android.NotReady as e:
             raise Stop(str(e))
-    need = lambda: min(USER_IDLE, time.time() - STARTED)  # (the keys that started this script don't count)
-    if ui.sh(ui.HELPER, "front").strip() != "iPhone Mirroring" and idle_seconds() < need():
-        log(f"you're using the Mac: waiting until it's been idle {USER_IDLE}s")
-        while idle_seconds() < need():
-            time.sleep(1)
-    for _ in range(3):  # the first open sometimes loses to whatever app had focus
-        if ui.sh(ui.HELPER, "front").strip() == "iPhone Mirroring":
-            return
-        subprocess.run(["open", "-a", "iPhone Mirroring"])
-        time.sleep(1.5)
-    if ui.sh(ui.HELPER, "front").strip() != "iPhone Mirroring":
-        raise Stop("can't bring iPhone Mirroring to the front")
+    # another app in front and a recent touch: they switched, even if that touch came during one of the script's own
+    # taps and so looks older than it (the keys that started this script don't count)
+    switched = ui.sh(ui.HELPER, "front").strip() != "iPhone Mirroring" and \
+        idle_seconds() < min(USER_IDLE, time.time() - STARTED)
+    yield_to_user(force=switched)
+    bring_forward()
 
 
 def to_points(fx, fy, bounds):
@@ -428,16 +491,27 @@ def paste_text(text):
     """iPhone: the whole text in one cmd+V (Mirroring passes the Mac's clipboard to the phone), not a key at a time.
     -> what the Mac's clipboard held before: give it to restore_clipboard() once the text has landed (the phone
     can fetch the clipboard a moment after the cmd+V)"""
+    global _clip, _pausing
     front()
     old = subprocess.run(["pbpaste"], capture_output=True).stdout
+    if _clip is None:  # (a 2nd paste: pbpaste is the 1st one's text, _clip still has theirs)
+        _clip = old
     subprocess.run(["pbcopy"], input=text.encode())
-    ui.sh(ui.HELPER, "key", "v", "cmd")
+    _pausing = True  # no pause between the copy and the cmd+V: front() just checked, and this text must be what lands
+    try:
+        ui.sh(ui.HELPER, "key", "v", "cmd")
+    finally:
+        _pausing = False
     time.sleep(random.uniform(0.1, 0.25))
     return old
 
 
 def restore_clipboard(old):
-    subprocess.run(["pbcopy"], input=old)
+    """the user's clipboard back. Nothing if a pause already gave it back: they may have copied something since"""
+    global _clip
+    if _clip is not None:
+        subprocess.run(["pbcopy"], input=_clip)
+        _clip = None
 
 
 def scroll(bounds, how, up=False):

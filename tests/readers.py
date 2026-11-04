@@ -233,6 +233,8 @@ SCREENS = {  # the map's friend row must not read as the list's search bar: the 
                         box(.69, .133, "HashT..."), box(.44, .2, "NEW!"), box(.02, .962, "CyrilJan")],
     "typed number, tabs showing": [box(.1, .079, "TAGS"), box(.45, .079, "POKÉMON"), box(.8, .079, "EGGS"), box(.23, .17, "113")],
     "typed number and letters, no tabs": [box(.23, .17, "113&shadow")],
+    "weekly challenge progress box": [box(.31, .196, "WEEKLY CHALLENGE"), box(.2, .3, "Catch 500 Pokémon"),
+                                      box(.2, .33, "387 / 500"), box(.4, .8, "LET'S GO!")],
 }
 
 

@@ -97,17 +97,21 @@ def shape(im, scale=1):
 
 
 def raw_shot():
-    """the phone's own screenshot (~0.3 s). adb can fail one now and then (exit 255, 2026-10-25, once looks came
-    back to back): one more try after a short pause before giving up"""
-    for attempt in range(2):
-        try:
-            raw = gzip.decompress(subprocess.run(["adb", "exec-out", "screencap | gzip -1"], capture_output=True,
-                                                 check=True, timeout=30).stdout)
+    """the phone's own screenshot (~0.3 s). adb can fail now and then (exit 255): once when looks came back to back
+    (2026-10-25), twice on the first look after unlocking the phone (2026-11-01, 2026-11-03), where a second try
+    after 0.5 s failed too. So a few tries over about 10 s before giving up, and the last error says what adb said"""
+    for wait in (1, 2, 3, 4, None):  # seconds before the next try
+        r = subprocess.run(["adb", "exec-out", "screencap | gzip -1"], capture_output=True, timeout=30)
+        if not r.returncode:
             break
-        except subprocess.CalledProcessError:
-            if attempt:
-                raise
-            time.sleep(0.5)
+        said = r.stderr.decode(errors="replace").strip() or "nothing"
+        if wait is None:
+            devices = adb("devices", "-l").strip().replace("\n", " | ")
+            raise subprocess.CalledProcessError(r.returncode, f"adb screenshot (said: {said}; {devices})")
+        print(f"android: screenshot failed (exit {r.returncode}, said: {said}), trying again in {wait} s",
+              file=sys.stderr)
+        time.sleep(wait)
+    raw = gzip.decompress(r.stdout)
     w, h = struct.unpack("<2I", raw[:8])
     return Image.frombuffer("RGBA", (w, h), raw[len(raw) - w * h * 4:], "raw", "RGBA", 0, 1).convert("RGB")
 

@@ -650,7 +650,8 @@ FALLEN_RANK = {}  # (tile name, CP) -> a lucky one's rank (lucky_rank), as reche
 
 def act_fallen(limit):
     fallen.act(limit, recheck_fallen, TAG, lambda n, c: FALLEN_SPECIES[(n, c)], gym_top20=False,
-               iv_top=lambda n, c: FALLEN_RANK[(n, c)], odd=odd_name)
+               iv_top=lambda n, c: FALLEN_RANK[(n, c)], odd=odd_name,
+               pure_top=False)  # (sort.decide asked it: a fall-out is a DOOR)
 
 
 # ---------- 4. act ----------
@@ -815,7 +816,7 @@ def look(i, n, c, p, members):
         elif verdict == "DOOR":
             info, texts, _ = steady_detail()
             gone = door_for(m).judge(info, texts, [m["species"]], r["ivs"], (name, c), size=r["size"], raws=r["raws"],
-                                     gym_top20=False, clear=True, iv_top=lucky_rank(m))
+                                     gym_top20=False, clear=True, iv_top=lucky_rank(m), pure_top=False)
     log(f"DONE LOOK -> {verdict}{'' if gone == verdict else ' -> ' + gone} {m['name']!r} CP{c} {m['species']}: "
         f"{why[0] if why else ''}")
     if verdict not in ("LEAVE", "SKIP"):  # a LEAVE stays a member: planned again with the family
@@ -950,10 +951,10 @@ def act(limit, members):
                 verdict = gone = "KEEP"
                 progress.setdefault("kept98", []).append([n, c])
                 log(f"  the plan said DOOR, appraised {what}: 98%+")
-            else:  # sort.decide ran the gym rule: a gym defender's DOOR is out of both top 20s
+            else:  # sort.decide ran the gym rule (a gym defender's DOOR is out of both top 20s) and the purified one
                 info, texts, _ = steady_detail()
                 gone = door_for(m).judge(info, texts, [m["species"]], ivs, (n, c), size=now["size"], raws=raws,
-                                  gym_top20=False, clear=True, iv_top=lucky_rank(m))
+                                  gym_top20=False, clear=True, iv_top=lucky_rank(m), pure_top=False)
                 if gone in ("keep", door.UNSURE) or gone.startswith("left for"):  # still here: a rival in the pools
                     progress.setdefault("stayed", []).append([n, c])
         plans.remove(m)

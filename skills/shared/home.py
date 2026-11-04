@@ -328,6 +328,8 @@ def start(storage=True):
         elif screen == "anr":
             keep_capture("anr")
             raise Stop("the phone says Pokémon GO isn't responding: close it by hand")
+        elif screen == "unknown" and challenge_invite(texts, bounds):
+            pass
         elif screen == "unknown" and storage and (profile(texts) or profile_tabs(texts)):  # a stop or a reopen left
             log("  on the profile: closing it")  # the profile up (any of its tabs): its X
             search.click(*X_BUTTON, bounds)
@@ -385,6 +387,16 @@ def storage_limit(texts):
     return None
 
 
+def challenge_invite(texts, bounds):
+    """a friend's Weekly Challenge invite, a box over the profile. Its X is greyed out and Back does nothing, so only
+    its two buttons get past it. The user's rule (2026-11-03): MAYBE LATER, so a run never sticks here"""
+    if "WEEKLY CHALLENGE" not in ui.joined(texts) or not press_text(texts, bounds, "MAYBE LATER"):
+        return False
+    log("  a friend's Weekly Challenge invite is up: tapping MAYBE LATER")
+    time.sleep(1.5)
+    return True
+
+
 def profile(texts):
     """the profile's ME tab. A friend's banner ('... opened your Gifts!') can cover its tabs: then the trainer name
     with LEVEL and BUDDY under it tells it"""
@@ -418,6 +430,8 @@ def trainer(fast=True):
     for _ in range(12):
         screen, texts, path, bounds = look()
         j = ui.joined(texts)
+        if challenge_invite(texts, bounds):
+            continue
         if profile(texts):
             got = [n for n in TRAINERS if squash(n) in squash(" ".join(t[4] for t in texts))]
             if len(got) != 1:

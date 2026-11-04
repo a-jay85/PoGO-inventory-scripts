@@ -163,12 +163,10 @@
   "lucky: /ivc ranks it against its line"
  ],
  "costume": [
-  "tag",
-  [
-   "Transfer"
-  ],
+  "unsure",
+  [],
   null,
-  "costume, 360+ Candy XL"
+  "costume: its plain form evolves, Evolve button not read"
  ],
  "background": [
   "keep",
@@ -186,19 +184,19 @@
   "unsure",
   [],
   null,
-  "shiny or not: its search failed"
+  "shiny or not: not read"
  ],
  "costume search failed": [
   "unsure",
   [],
   null,
-  "costume or not: its search failed"
+  "costume or not: not read"
  ],
  "background search failed": [
   "unsure",
   [],
   null,
-  "background or not: its search failed"
+  "background or not: not read"
  ],
  "shadow, IVs not read": [
   "unsure",
@@ -231,6 +229,29 @@
   [],
   null,
   "shadow raid attacker: top 6 IV once purified? not checked"
+ ],
+ "shadow raid attacker, ranked out once purified": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "shadow, 360+ Candy XL: transfer, no purify"
+ ],
+ "shadow raid attacker, ranked out, under 360 XL": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "shadow, under 360 Candy XL: purify and transfer",
+  "purify"
+ ],
+ "shadow raid attacker, top once purified": [
+  "keep",
+  [],
+  null,
+  "shadow raid attacker, a top IV once purified: a favorite"
  ],
  "shadow, under 360 XL": [
   "tag",
@@ -280,60 +301,58 @@
   "a special background: a favorite"
  ],
  "costume 93%": [
-  "tag",
-  [
-   "Transfer"
-  ],
-  null,
-  "costume, 360+ Candy XL"
- ],
- "costume 96%": [
-  "keep",
+  "unsure",
   [],
   null,
-  "costume, 96%: a favorite"
+  "costume 93%+: IVs not read (for its name)"
+ ],
+ "costume 96%": [
+  "unsure",
+  [],
+  null,
+  "costume 93%+: IVs not read (for its name)"
  ],
  "costume raid attacker line": [
   "unsure",
   [],
   null,
-  "costume, a raid attacker's line: Evolve button not read"
+  "costume: its plain form evolves, Evolve button not read"
  ],
  "costume raid attacker line, can't evolve": [
   "tag",
   [
-   "Transfer"
+   "Reroll"
   ],
   null,
-  "costume, 360+ Candy XL"
+  "#1 raid attacker"
  ],
  "costume raid attacker line, can't evolve, under 360 XL": [
   "tag",
   [
-   "2XL"
+   "Reroll"
   ],
   null,
-  "costume, under 360 Candy XL"
+  "#1 raid attacker"
  ],
  "costume raid attacker line, can evolve": [
+  "tag",
+  [
+   "Reroll"
+  ],
+  null,
+  "#1 raid attacker"
+ ],
+ "costume, under 360 XL": [
   "unsure",
   [],
   null,
-  "costume, can evolve in a raid attacker's line: GIV or XLX by hand"
- ],
- "costume, under 360 XL": [
-  "tag",
-  [
-   "2XL"
-  ],
-  null,
-  "costume, under 360 Candy XL"
+  "costume: its plain form evolves, Evolve button not read"
  ],
  "costume, XL not read": [
   "unsure",
   [],
   null,
-  "costume: Candy XL not read"
+  "costume: its plain form evolves, Evolve button not read"
  ],
  "costume traded": [
   "tag",

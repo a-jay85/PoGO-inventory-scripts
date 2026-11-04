@@ -25,9 +25,9 @@ TABLES = {  # made up
                                  "rhyhorn": ("Reroll", "#1 raid attacker"), "geodude": ("GIV", "PvP"),
                                  "magikarp": ("GIV", "★100% hole")},
             "lucky": {"nidoran_female": "female"}, "evolved": {"golem": "stage 2"}, "no_dmax": set(),
-            "xl_full": set(), "giv_for_taker": {"tandemaus"}, "raid": {"rhyhorn", "rhydon"}},
+            "xl_full": set(), "giv_for_taker": {"tandemaus"}, "raid": {"rhyhorn", "rhydon"}, "raid_self": {"rhydon"}},
     GIVER: {"to": GIVER, "why": {"rhyhorn": ("GIV", "top 6 vs a boss")}, "lucky": {}, "evolved": {"golem": "stage 2"},
-            "no_dmax": {"wooloo"}, "xl_full": set(), "giv_for_taker": {"tandemaus"}, "raid": {"rhyhorn", "rhydon"}},
+            "no_dmax": {"wooloo"}, "xl_full": set(), "giv_for_taker": {"tandemaus"}, "raid": {"rhyhorn", "rhydon"}, "raid_self": {"rhydon"}},
 }
 
 
@@ -78,6 +78,9 @@ CASES = {
     "shadow, purified 98%": plain(shadow=True, iv_sum=38, ivs=(13, 13, 12)),
     "shadow, purified 93%": plain(shadow=True, iv_sum=36, ivs=(12, 12, 12)),
     "shadow raid attacker": plain(shadow=True, sids=["rhyhorn"], ivs=(10, 10, 10)),
+    "shadow raid attacker, ranked out once purified": plain(shadow=True, sids=["rhyhorn"], ivs=(10, 10, 10), pure_top=False),
+    "shadow raid attacker, ranked out, under 360 XL": plain(shadow=True, sids=["rhyhorn"], ivs=(10, 10, 10), pure_top=False, candy_xl=0),
+    "shadow raid attacker, top once purified": plain(shadow=True, sids=["rhyhorn"], ivs=(10, 10, 10), pure_top=True),
     "shadow, under 360 XL": plain(shadow=True, ivs=(10, 10, 10), candy_xl=0),
     "shadow, 360+ XL": plain(shadow=True, ivs=(10, 10, 10)),
     "shadow, XL not read": plain(shadow=True, ivs=(10, 10, 10), candy_xl=None),

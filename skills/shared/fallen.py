@@ -67,7 +67,7 @@ def summary(fallen, grouped):
     return lines
 
 
-def act(limit, recheck, tag, species, off=(), odd=None, gym_top20=None, iv_top=lambda n, c: None):
+def act(limit, recheck, tag, species, off=(), odd=None, gym_top20=None, iv_top=lambda n, c: None, pure_top=None):
     """tag the grouped ones. recheck(name, cp) runs on the open detail screen and leaves it there:
     -> (still fallen?, what to log). species(name, cp) on that screen -> its species ids, for the door. tag: the
     skill's (IVC / PvpC), for the door's not-sure list. off: tags to untick at the same time. gym_top20: what
@@ -108,7 +108,7 @@ def act(limit, recheck, tag, species, off=(), odd=None, gym_top20=None, iv_top=l
                     return False
                 info, texts, _ = base.steady_detail()
                 got = gate.judge(info, texts, species(n, c), ivs, (n, c), size=base.extras(texts)[2], raws=raws,
-                                 gym_top20=gym_top20, clear=True, unstar=True, iv_top=iv_top(n, c))
+                                 gym_top20=gym_top20, clear=True, unstar=True, iv_top=iv_top(n, c), pure_top=pure_top)
                 done[got] += 1
                 log(f"DONE fallen door {got} {n!r} CP{c}: {what}")
                 go("close", "list")

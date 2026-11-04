@@ -84,6 +84,7 @@ class Facts:
     far: bool = None  # caught 100 km+ away (the run's one 'distance100-' search)
     gym_top20: bool = None  # a gym defender: top 20 CP or IV of its species (its search)
     iv_top: bool = None  # a lucky one: top 5 IV of its line's non-shadow ones, 6 if it can mega (/ivc's sort)
+    pure_top: bool = None  # a shadow: a non-shadow spot of its line once purified (/ivc's sort; None: nobody checked)
     pvp_judged: bool = False  # /pvpc already found it's no PvP keeper
     ivc_judged: bool = False  # /ivc or /ivc is judging it: IVC is the tag coming off
     other_tags: list = field(default_factory=list)  # the user's tags besides the one this script works on
@@ -369,7 +370,9 @@ def odd_one(f, t, sid, odd):
     pure = sum(min(15, i + 2) for i in f.ivs)
     if pure >= ALWAYS_KEEP:
         return Verdict("keep", (), f"shadow, purified {round(pure / 45 * 100)}%: a favorite")
-    if sid in t["raid"]:
+    if f.pure_top:
+        return Verdict("keep", (), "shadow raid attacker, a top IV once purified: a favorite")
+    if sid in t["raid"] and f.pure_top is None:
         return unsure("shadow raid attacker: top 6 IV once purified? not checked")
     if f.candy_xl is None:
         return unsure("shadow: Candy XL not read")

@@ -1723,12 +1723,15 @@
    "lucky",
    "odd_one",
    "plain_evolves",
+   "replace",
+   "shiny",
    "stale",
    "tables",
    "tag",
    "transfer",
    "two_xl",
-   "unsure"
+   "unsure",
+   "usual"
   ],
   "runs": []
  },

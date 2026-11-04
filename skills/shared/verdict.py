@@ -7,6 +7,7 @@ A script that decides "not a keeper" (pvpc, ivc, fallen) reads what it can on th
 calls final_tag(facts, tables). The answer is one of:
   tag     put these tags on (and the source tag IVC / PvpC off); `name` too when it's set
   keep    it belongs after all: star on (98%+, or a gym defender in its species' top 20)
+          (a shiny one that doesn't belong is a `tag` with star on: shiny())
   unsure  leave it exactly as it is (tags, name). It goes on the not-sure list with why, for a rule offline
 Transfer only comes out when every rule above it was checked and none fits: a fact that didn't read, or a species list
 that's missing, gives unsure, never Transfer.
@@ -31,7 +32,7 @@ from tradeable.py's taker_species() and giver_species(), the same ones its tag s
 ago counts as missing.
 """
 import datetime, os, re, sys, time
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, HERE)
@@ -99,6 +100,7 @@ class Verdict:
     off: tuple = ()  # the user's tags to take off too (IVC / PvpC always comes off)
     purify: bool = False  # purify it first
     clear: bool = False  # clear its name too
+    star: bool = False  # a tag answer: star on too (a shiny one)
 
 
 def tag(*tags, why, name=None, off=(), purify=False, clear=False):
@@ -154,6 +156,25 @@ def canon(t):
 
 def final_tag(f, t, today=None):
     """f: Facts. t: tables(TO[f.account]). -> Verdict"""
+    if not f.shiny:
+        return usual(f, t, today)
+    return shiny(f, usual(replace(f, other_tags=[]) if f.traded else f, t, today))
+
+
+def shiny(f, v):
+    """a shiny one (the user's rule, 2026-11-03): judged like any other first. If it doesn't qualify, its name goes
+    back to the default and it's a favorite. Traded, all its tags come off. Untraded, it gets Remote Trade and RT.
+    (On its way to /ivc or /pvpc to be judged, it goes there first)"""
+    if v.kind != "tag" or "IVC" in v.tags and not f.ivc_judged or "PvpC" in v.tags and not f.pvp_judged:
+        return v
+    why = f"shiny, doesn't qualify ({v.why})"
+    if f.traded:
+        return Verdict("tag", (), why, off=tuple(canon(x) for x in f.other_tags), clear=True, star=True)
+    return Verdict("tag", ("Remote Trade", "RT"), why, clear=True, star=True)
+
+
+def usual(f, t, today=None):
+    """final_tag's rules, for all but what a shiny one gets in the end"""
     today = today or datetime.date.today()
     if f.account not in TO:
         return unsure(f"signed in as {f.account!r}")
@@ -196,8 +217,8 @@ def final_tag(f, t, today=None):
     old = (today - f.caught).days >= OLD_DAYS
 
     # special trades: trades.py's rules for legendaries, Ultra Beasts, Meltan and Melmetal. The rest by hand
-    if f.shiny or f.gigantamax:
-        return unsure("shiny or Gigantamax: a special trade, by hand")
+    if f.gigantamax:
+        return unsure("Gigantamax: a special trade, by hand")
     if "legendary" in kinds or "ultrabeast" in kinds or "mythical" in kinds:
         if "mythical" in kinds and sid not in TRADE_BY_HAND:
             return unsure("mythical: can't be traded, by hand")

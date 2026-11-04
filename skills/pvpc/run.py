@@ -224,8 +224,8 @@ def holders(key, first, qs, cp):
 
 def beaten(info, sp, shadow, slots, cp, ivs, raws, tile_name, tile_cp):
     """the new name would be beaten in every slot by a Pvp one already in its line (the fallen-out step would only
-    take it off again) -> who beats it, or None: rename. Never for what that step would leave named: shiny,
-    98%+, or anything it can't tell. (A costume one goes on to the door, which names and stars one at 93%+)"""
+    take it off again) -> who beats it, or None: rename. Never for what that step would leave named: 98%+, or
+    anything it can't tell. (A costume one goes on to the door, which names and stars one at 93%+. So does a shiny one)"""
     line = slots and line_of(sp, shadow)
     if not line or high_iv(ivs, raws)[0]:
         return None
@@ -233,7 +233,7 @@ def beaten(info, sp, shadow, slots, cp, ivs, raws, tile_name, tile_cp):
     others = holders(*line, cp)
     if not others or pvp.kept(mine, others):
         return None
-    if door.tile_icons(info).get("shiny") is not False:
+    if door.tile_icons(info).get("shiny") is None:
         return None
     return "; ".join(f"{pvp.slot_text(sl, r, line[1])} by {min((o[sl], w) for w, o in others if sl in o)[1]}"
                      for sl, r in mine.items())
@@ -500,15 +500,12 @@ def mark(pool, n, c):
 def fall_here(pool, n, c, gate):
     """on its detail screen, appraised, beaten everywhere: its final tag in this same open. Untraded + caught
     2016-2020 -> GuaranteedLucky, untraded + older than fallen.OLD_DAYS -> Old, else the door. A costume one always
-    goes to the door (it names and stars one at 93%+). Shiny ones are never tagged. Traded, shiny, the catch date: off the page and the tile (pagefacts, through the door).
+    goes to the door (it names and stars one at 93%+), and so does a shiny one (verdict.shiny). Traded, shiny, the catch date: off the page and the tile (pagefacts, through the door).
     -> (tagged?, what to log)"""
     info, texts = LAST_BARS[2:] if LAST_BARS else steady_detail()[:2]
     icons = door.tile_icons(info)
     costume = gate.has("costume", door.key(n, c))
-    if icons.get("shiny"):
-        mark(pool, n, c)  # (marked only when the answer can't change: a read that failed is tried again next run)
-        return False, "beaten everywhere, but shiny: never tagged"
-    if icons.get("shiny") is None or costume is None:
+    if icons.get("shiny") is None or costume is None:  # (not marked: a read that failed is tried again next run)
         return False, "beaten everywhere, but shiny or costume didn't read: left as it is"
     if gate.listed()[door.key(n, c)]:
         mark(pool, n, c)
@@ -518,7 +515,7 @@ def fall_here(pool, n, c, gate):
     traded = True if lucky else page["traded"]
     if traded is None or page["caught"] is None and not traded:
         return False, f"beaten everywhere, but traded {traded} / caught {page['caught']} didn't read: left as it is"
-    if not traded and costume is False:
+    if not traded and costume is False and not icons["shiny"]:
         old = (time.time() - time.mktime(page["caught"].timetuple())) / 86400 > fallen.OLD_DAYS
         g = "GuaranteedLucky" if 2016 <= page["caught"].year <= 2020 else "Old" if old else None
         if g:

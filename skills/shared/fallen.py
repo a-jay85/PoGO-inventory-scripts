@@ -7,7 +7,9 @@ Each skill finds its own fallen-out ones and saves them in <run dir>/fallen.json
   not traded + older than OLD_DAYS -> tag Old
   anything else (traded: a Pokémon trades only once, or newer) -> its final tag at the door (door.py: star off, name
   cleared), or left as it is on door's not-sure list
-Shiny ones are never touched. A costume one always goes to the door (it names and stars one at 93%+, the user's rule,
+  shiny -> always the door, never GuaranteedLucky or Old (verdict.shiny: default name and a star; traded, its tags come
+  off; untraded, Remote Trade and RT. The user's rule, 2026-11-03). Its own group, so each search still says shiny or not
+A costume one always goes to the door (it names and stars one at 93%+, the user's rule,
 2026-11-02), never straight to GuaranteedLucky or Old. groups() sorts them with in-game searches (reads only). act() opens each
 one, asks the skill to judge it again on its own detail screen, then tags it and clears its name.
 A door one that appraises 98%+ is left alone. (The group is still called "Nope" in fallen-groups.json.)
@@ -21,9 +23,12 @@ from base import log, go
 import search
 
 OLD_DAYS = 300
-GROUPS = [("GuaranteedLucky", "&!traded&!costume&year2016-2020"), ("Old", f"&!traded&!costume&age{OLD_DAYS + 1}-"),
-          ("Nope", f"&traded,age0-{OLD_DAYS},costume")]  # in this order: each tag drops out of the later searches
-BASE = "&!#IVC&!shiny&!#Old&!#GuaranteedLucky"
+GROUPS = [("GuaranteedLucky", "&!shiny&!traded&!costume&year2016-2020"),
+          ("Old", f"&!shiny&!traded&!costume&age{OLD_DAYS + 1}-"),
+          ("Nope", f"&!shiny&traded,age0-{OLD_DAYS},costume"),
+          ("Shiny", "&shiny")]  # in this order: each tag drops out of the later searches
+DOOR_GROUPS = ("Nope", "Shiny")  # judged at the door
+BASE = "&!#IVC&!#Old&!#GuaranteedLucky"
 CHUNK = 20  # dex numbers per search
 
 
@@ -59,7 +64,7 @@ def groups(iv_only=True):
 
 def summary(fallen, grouped):
     """lines for the plan / fallen.txt"""
-    lines = [f"FALLEN OUT: {len(fallen)} older Pokémon now outside the top. Grouped GuaranteedLucky / Old / Nope; "
+    lines = [f"FALLEN OUT: {len(fallen)} older Pokémon now outside the top. Grouped GuaranteedLucky / Old / Nope / Shiny; "
              "each one is checked again on its detail screen first."]
     lines += [f"  {f['name']!r:16} CP{f['cp']:<5} {f.get('what', '')}: {'; '.join(f['why'])}" for f in fallen]
     if grouped:
@@ -76,12 +81,12 @@ def act(limit, recheck, tag, species, off=(), odd=None, gym_top20=None, iv_top=l
     grouped = base.load("fallen-groups.json")
     done, account = Counter(), [None]
     for g, q in searches(base.load("fallen.json")):
-        todo = Counter(map(tuple, grouped[g].get(q, [])))
+        todo = Counter(map(tuple, grouped.get(g, {}).get(q, [])))  # (a run grouped before Shiny has none)
         if not todo or sum(done.values()) >= limit:
             continue
         log(f"fallen {g}: {sum(todo.values())} in {q}")
         gate = None
-        if g == "Nope":  # one Door per search: its searches read what the page can't show, within this one
+        if g in DOOR_GROUPS:  # one Door per search: its searches read what the page can't show, within this one
             import door  # (here: door loads verdict, which loads /ivc, which loads this)
             gate = door.Door(tag, scope=q, account=account[0])
             account[0] = gate.account
@@ -100,7 +105,7 @@ def act(limit, recheck, tag, species, off=(), odd=None, gym_top20=None, iv_top=l
                 log(f"  {n} CP{c}: {what} on a closer look, leaving it")
                 go("close", "list")
                 return False
-            if g == "Nope":  # appraise first: 98%+ never goes
+            if g in DOOR_GROUPS:  # appraise first: 98%+ never goes
                 keep, ivs, raws, iv = base.high_iv()
                 if keep:
                     log(f"  {n} CP{c}: appraised {iv}, 98%+ never goes, leaving it")

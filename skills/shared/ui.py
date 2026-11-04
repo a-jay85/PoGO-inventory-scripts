@@ -112,12 +112,14 @@ def capture():
             raise Refused(str(e))
     if gate:
         gate(False)
-    wid, *bounds = window()
-    try:
-        sh("screencapture", "-l", str(wid), "-o", "-x", CAP)
-    except subprocess.CalledProcessError as e:  # a window still opening is listed but can't be captured yet (2026-11-04)
-        raise Refused(f"{CANT_CAPTURE} ({e.stderr.strip() or 'no reason given'})")
-    return CAP, bounds
+    for wait in (0.5, 1.0, 2.0, 3.0, None):  # the window can change under the shot (crashed /gift as Mirroring opened)
+        wid, *bounds = window()
+        done = subprocess.run(["screencapture", "-l", str(wid), "-o", "-x", CAP], capture_output=True, text=True)
+        if not done.returncode:
+            return CAP, bounds
+        if wait:
+            time.sleep(wait)
+    raise Refused(f"{CANT_CAPTURE} ({done.stderr.strip() or 'no reason given'})")
 
 
 _ocrd = None  # a helper kept running for OCR: a fresh one per read cost ~1 s more than the read itself

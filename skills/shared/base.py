@@ -371,7 +371,10 @@ def bring_forward():
             return
         subprocess.run(["open", "-a", "iPhone Mirroring"])
         time.sleep(1.5)
-    if ui.sh(ui.HELPER, "front").strip() != "iPhone Mirroring":
+    now = ui.sh(ui.HELPER, "front").strip()
+    if now == "loginwindow":
+        raise Stop("the Mac is locked: unlock it and run again")
+    if now != "iPhone Mirroring":
         raise Stop("can't bring iPhone Mirroring to the front")
 
 

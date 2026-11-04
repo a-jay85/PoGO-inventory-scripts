@@ -228,6 +228,14 @@ LISTS = {  # the list's tiles: normal ones count once, and a list of only shinie
 }
 
 
+SCREENS = {  # the map's friend row must not read as the list's search bar: the Pixel 2026-11-03
+    "map, friend row": [box(.06, .038, "11:17"), box(.23, .133, "Me"), box(.23, .155, "10"), box(.46, .133, "CPD"),
+                        box(.69, .133, "HashT..."), box(.44, .2, "NEW!"), box(.02, .962, "CyrilJan")],
+    "typed number, tabs showing": [box(.1, .079, "TAGS"), box(.45, .079, "POKÉMON"), box(.8, .079, "EGGS"), box(.23, .17, "113")],
+    "typed number and letters, no tabs": [box(.23, .17, "113&shadow")],
+}
+
+
 def answer(fn, *a):
     try:
         return fn(*a)
@@ -251,6 +259,7 @@ def answers():
                                                                                  "more", "cost")} | {"button": bool(r["button"])})(mega.sheet(ts)), ts)
                          for k, ts in SHEETS.items()}
     out["ui.tiles"] = {k: answer(lambda ts: [t[:2] for t in ui.tiles(ts)], ts) for k, ts in LISTS.items()}
+    out["ui.classify"] = {k: answer(ui.classify, ts) for k, ts in SCREENS.items()}
     out["mega.ask_cost"] ={k: answer(mega.ask_cost, ts) for k, ts in ASKS.items()}
     out["mega.form_of"] = {n: answer(mega.form_of, n) for n in NICKS}
     out["mega.badge"] = {k: answer(lambda ts: (lambda b: b and b[4])(mega.badge(ts)), ts) for k, ts in BADGES.items()}

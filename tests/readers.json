@@ -7277,6 +7277,11 @@
    ]
   ]
  },
+ "ui.classify": {
+  "map, friend row": "unknown",
+  "typed number and letters, no tabs": "list",
+  "typed number, tabs showing": "list"
+ },
  "ui.dialog_ok": {
   "OK not read": 0.541,
   "OK read": 0.5416,

@@ -87,6 +87,9 @@ def window():
     return int(wid), float(x), float(y), float(w), float(h)
 
 
+CANT_CAPTURE = "can't capture the iPhone Mirroring window"
+
+
 def capture():
     if ANDROID:
         ensure_helper()
@@ -98,7 +101,7 @@ def capture():
     try:
         sh("screencapture", "-l", str(wid), "-o", "-x", CAP)
     except subprocess.CalledProcessError as e:  # a window still opening is listed but can't be captured yet (2026-11-04)
-        raise Refused(f"can't capture the iPhone Mirroring window yet ({e.stderr.strip() or 'no reason given'})")
+        raise Refused(f"{CANT_CAPTURE} ({e.stderr.strip() or 'no reason given'})")
     return CAP, bounds
 
 

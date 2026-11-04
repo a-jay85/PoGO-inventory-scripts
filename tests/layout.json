@@ -1600,6 +1600,7 @@
    "ANDROID",
    "ANDROID_STAR",
    "CALIB",
+   "CANT_CAPTURE",
    "CAP",
    "CONFIRM_SCREENS",
    "HAZARDS",

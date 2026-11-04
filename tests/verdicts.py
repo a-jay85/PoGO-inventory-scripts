@@ -189,10 +189,12 @@ def answer(f):
 
 
 def stale_lists():
-    """a species list counts as missing once it's more than 7 days old"""
+    """a species list for HashTagAJay counts as missing once it's more than 7 days old. CyrillJan's never do"""
     f = os.path.abspath(__file__)
     now = os.path.getmtime(f)
-    return {f"{d} days": v.stale({"roster": f, "unread": None}, now + d * 86400) for d in (6.9, 7.1)}
+    files = {"roster": f, "unread": None}
+    return {f"{d} days{who}": v.too_old(to, files, now + d * 86400) for d in (6.9, 7.1, 30)
+            for to, who in ((TAKER, ""), (v.GIVER, " for CyrillJan"))}
 
 
 def main():

@@ -946,6 +946,17 @@
    ]
   }
  ],
+ "XXL, IVC comes off": [
+  "keep",
+  [],
+  null,
+  "XXL: a favorite, for showcases",
+  {
+   "off": [
+    "IVC"
+   ]
+  }
+ ],
  "XXL, 2XL reads as XL": [
   "keep",
   [],

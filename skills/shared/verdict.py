@@ -25,7 +25,7 @@ shadow, costume or background one (odd_one: the user's rules for each), and a lu
 A costume one (the user, 2026-11-02): 93%+ is named and a favorite, traded or not. Else the usual rules, but if its plain
 form evolves and it can't (no Evolve button: dead_end), only as its own species: CyrillJan's raid list and 2XL go by
 its own place in DialgaDex's tops (raid_self), and no trade-evolution GIV.
-Before everything: an XXL one, traded or not, is a favorite and its trade and Transfer tags come off (xxl(), the user
+Before everything: an XXL one, traded or not, is a favorite and its trade, Transfer and IVC tags come off (xxl(), the user
 2026-11-04: it has value in showcases). Every Transfer for an untraded one goes through transfer() last: an xxs one gets IVC instead, a trade evolution
 (free to evolve once traded) GIV, signed in as HashTagAJay only (only CyrillJan wants the XP, the user 2026-11-02). The user's own tags first: untraded with Old, Evo or GuaranteedLucky,
 those stay and only IVC / PvpC comes off; traded, the "trade it" tags (TRADE_TAGS) come off. The species lists come
@@ -174,7 +174,7 @@ def final_tag(f, t, today=None):
 
 def xxl(f):
     """an XXL one, traded or not (the user's rule, 2026-11-04): never traded or transferred, it has value in showcases.
-    A favorite, with its trade and Transfer tags off. Its name stays. Other tags stay"""
+    A favorite, with its trade, Transfer and IVC tags off. Its name stays. Other tags stay"""
     return Verdict("keep", (), "XXL: a favorite, for showcases", off=xxl_off(f.other_tags))
 
 

@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""An XXL Pokémon, traded or not, is kept: favorite on, its trade and Transfer tags off (it has value in showcases, the
+"""An XXL Pokémon, traded or not, is kept: favorite on, its trade, Transfer and IVC tags off (it has value in showcases, the
 user 2026-11-04). A never-traded XXS one doesn't get Transfer: it's renamed xxs and tagged IVC. A never-traded trade
 evolution gets GIV instead.
 
   POGO_PHONE=android caffeinate -dimsu python3 sizes.py [--limit N]   sweep the Transfer tags already given
   caffeinate -dimsu python3 sizes.py [--limit N]                      the iPhone, through iPhone Mirroring
 
-Start with Pokémon GO on the Pokémon screen. Searches #&xxl&!#IVC&!#PvpC (every tagged XXL: /ivc and /pvpc judge theirs),
-then #Transfer&!traded&xxs. tradeable.py and cleantrades.py do the same to their own piles.
+Start with Pokémon GO on the Pokémon screen. Searches #&xxl&!#PvpC (every tagged XXL: /pvpc judges its own),
+then #Transfer&!traded&xxs. tradeable.py, cleantrades.py and /ivc do the same to their own piles.
 Each one is opened. Its size badge must agree with the search, or it's passed over. Then:
   XXL: favorite on, the tags in rules.XXL_OFF off. Its name and other tags stay.
   xxs: named xxs (/ivc's spelling; a name that already says its size keeps it). IVC on, Transfer off. Other tags stay.
@@ -34,7 +34,7 @@ from rules import EVO_FOR, TRADE_EVOS, NAMES, xxl_off
 IVC, TRANSFER = "IVC", "Transfer"
 SWEEP = f"#{TRANSFER}&!traded&%s"
 GIV = "GIV"
-XXL_SWEEP = "#&xxl&!#IVC&!#PvpC"
+XXL_SWEEP = "#&xxl&!#PvpC"
 EVO_SWEEP = f"#{TRANSFER}&!traded&!shadow&!xxl&!xxs&!#{GIV}&{TRADE_EVOS}"
 
 
@@ -86,7 +86,7 @@ def retag():
 
 
 def keep_xxl(info, texts):
-    """the open detail page of an XXL one: favorite on, its trade and Transfer tags off"""
+    """the open detail page of an XXL one: favorite on, its trade, Transfer and IVC tags off"""
     off = xxl_off(tag_chips(texts))
     base.set_star(True)
     if off:
@@ -139,9 +139,15 @@ def walk(find, size, limit):
     return done
 
 
+def keep_search(q, limit):
+    """every XXL one in a typed search is kept -> how many"""
+    n = walk(lambda: (search_exact(q), results())[1], "xxl", limit)
+    log(f"{q}: {n} kept")
+    return n
+
+
 def sweep(limit, who):
-    n = walk(lambda: (search_exact(XXL_SWEEP), results())[1], "xxl", limit)
-    log(f"{XXL_SWEEP}: {n} kept")
+    n = keep_search(XXL_SWEEP, limit)
     limit -= n
     for size in NAMES:
         q = SWEEP % size

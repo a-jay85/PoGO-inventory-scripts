@@ -7,8 +7,8 @@
         Up to 60 IVC ones: one search reads them all. More: 50 dex numbers at a time. Give the run dir
         to carry on after a stop. --limit N: change N, then stop. --look: decide only (plan.txt), change nothing
   caffeinate -dimsu python3 run.py names [--limit N] [--dry-run]
-        the names pass on its own (the sort starts with it): name what the sort can't, the XXL/xxs IVC ones (the
-        sort leaves them out) and ones whose nickname is no species (the detail screen tells the species)
+        the names pass on its own (the sort starts with it): an XXL IVC one becomes a favorite, IVC off. Then it names
+        what the sort can't, the xxs IVC ones (the sort leaves them out) and ones whose nickname is no species (the detail screen tells the species)
   caffeinate -dimsu python3 run.py fallen <run dir> [--limit N]  the fallen-out step on its own (a sort that gets to
         the end does it itself): group the fallen-out ones, then tag or door each one. act-fallen: the same
   python3 run.py search "<query>" [...]                     type searches and print the tiles (testing; later ones edit the bar's end)
@@ -1115,9 +1115,14 @@ def sort_all(limit, look):
 
 
 def names(limit, dry=False):
-    """the names pass: the old /ivc loop over what's left of #IVC. It names the XXL/xxs ones (never in the sort) and
+    """the names pass: an XXL one in #IVC is kept (the user, 2026-11-04). Then the old /ivc loop over what's left of
+    #IVC. It names the xxs ones (never in the sort) and
     opens a nickname that's no species to read it in full. One still named after its species is named too (the sort
     couldn't look at it). The next sort ranks what it named"""
+    if not dry:
+        sys.path.insert(0, os.path.join(HERE, "..", "cleanup"))
+        import sizes
+        sizes.keep_search(f"#{TAG}&xxl", limit)
     counts = ivcrun.main(limit, dry)
     counts.pop("end", 0)
     log(f"names pass: {dict(counts)}")

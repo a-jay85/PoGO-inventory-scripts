@@ -88,12 +88,12 @@ If `read` stops partway, `read runs/<time>-read/searches.json` picks up where it
 
 ## XXL: kept. XXS: never Transfer
 
-XXL (2026-11-04): an XXL one, traded or not, never gets a trade tag (GuaranteedLucky, Old, GIV, XLX, 2XL, Reroll, Special, Luckydex) or Transfer. It's a favorite with those tags off, because it has value in showcases. Its name stays. XXL ones already in `#IVC` or `#PvpC` stay until those skills judge them.
+XXL (2026-11-04): an XXL one, traded or not, never gets a trade tag (GuaranteedLucky, Old, GIV, XLX, 2XL, Reroll, Special, Luckydex), Transfer or IVC. It's a favorite with those tags off, because it has value in showcases. Its name stays. `/ivc`'s names pass does the same to `#IVC&xxl`. XXL ones in `#PvpC` stay until `/pvpc` judges them.
 
 XXS (2026-10-22): a Pokémon that was never traded and is XXS never gets Transfer. It's renamed `xxs` and tagged IVC. `/ivc` counts that name as done, and `/ivc` leaves sized IVC ones for the user.
 
 - `tradeable.py` does it to its own pile before the door walk. Every tag search and walk leaves out XXL ones, and the walk leaves out never-traded XXS ones.
 - `cleantrades.py` does it before step 2. Its power-ups, Evo and Transfer steps all search `&!xxl`.
-- `POGO_PHONE=android caffeinate -dimsu python3 $S/sizes.py [--limit N]` sweeps what's already tagged: `#&xxl&!#IVC&!#PvpC` (favorite on, trade and Transfer tags off), then `#Transfer&!traded&xxs` (name `xxs`, unless a name already says its size; IVC on, Transfer off). Each one is opened and its size badge must agree. Run it once per account.
+- `POGO_PHONE=android caffeinate -dimsu python3 $S/sizes.py [--limit N]` sweeps what's already tagged: `#&xxl&!#PvpC` (favorite on, trade, Transfer and IVC tags off), then `#Transfer&!traded&xxs` (name `xxs`, unless a name already says its size; IVC on, Transfer off). Each one is opened and its size badge must agree. Run it once per account.
 
 `traded` may miss trades from before Oct 2020 (SEARCH.md), so a very old trade could slip in.

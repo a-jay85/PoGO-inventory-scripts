@@ -179,6 +179,7 @@ CASES = {
     "XXL lucky": plain(size="xxl", traded=True, lucky=True),
     "XXL shadow": plain(size="xxl", shadow=True),
     "XXL shiny traded, Transfer comes off": plain(size="xxl", traded=True, shiny=True, other_tags=["TRANSFER"]),
+    "XXL, IVC comes off": plain(size="xxl", other_tags=["IVC"]),
     "XXL, 2XL reads as XL": plain(size="xxl", other_tags=["XL"]),
     "xxs traded still Transfer": plain(size="xxs", traded=True),
     "xxs untraded still IVC": plain(size="xxs", levels=[30]),

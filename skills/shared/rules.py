@@ -10,7 +10,7 @@ TRADE_EVOS = "64,67,75,93,525,533,588,616,708,710"
 EVO_FOR = "CyrillJan"  # the account that wants the XP: HashTagAJay transfers them like the rest
 NAMES = {"xxs": "xxs"}  # search term -> nickname, as ivc.make_name spells them. An XXL one is kept instead: XXL_OFF
 # an XXL one, traded or not, isn't traded (it has value in showcases, the user 2026-11-04): a favorite, these come off
-XXL_OFF = ("GuaranteedLucky", "Old", "GIV", "XLX", "2XL", "Reroll", "Special", "Luckydex", TRANSFER)
+XXL_OFF = ("GuaranteedLucky", "Old", "GIV", "XLX", "2XL", "Reroll", "Special", "Luckydex", TRANSFER, "IVC")
 
 
 def xxl_off(tags):

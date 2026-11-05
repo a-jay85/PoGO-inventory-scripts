@@ -399,7 +399,7 @@ def pools(members=None):
                 SHOWN["q"] = None
                 continue
         if want is not None and len(got) != want:
-            got = closer(q, iv_only, got, want)  # read it once more and keep the closer one
+            got, want = closer(q, iv_only, got, want)  # read it once more and keep the closer one
         done[q], wants[q] = got, want
         save("pools.json", done)
         save("counts.json", wants)
@@ -408,9 +408,13 @@ def pools(members=None):
 
 
 def closer(q, iv_only, got, want):
-    """read q again: the read nearer the game's count wins"""
+    """read q again: the read nearer the game's count wins. -> (tiles, count). A read that stopped at the plain names
+    has every IV name on a list sorted by Name, and no count to compare: it wins, and the old count no longer applies
+    (a first read on an unsorted list said 12 of 33, and rereads could never match that, 2026-11-04)"""
     got2, want2 = read_search(q, iv_only)
-    return got2 if want2 is not None and abs(len(got2) - want2) < abs(len(got) - want) else got
+    if want2 is None:
+        return (got2, None) if iv_only and got2 else (got, want)
+    return (got2, want2) if abs(len(got2) - want2) < abs(len(got) - want) else (got, want)
 
 
 REREADS = 2  # extra reads for a search whose miscount would turn a verdict into LEAVE
@@ -433,11 +437,12 @@ def reread(members, done, wants):
     log(f"{len(flips)} miscounted searches could flip a verdict: reading them again")
     for q in flips:
         for _ in range(REREADS):
-            if len(done[q]) == wants[q]:
+            if wants[q] is None or len(done[q]) == wants[q]:
                 break
-            done[q] = closer(q, not sort.is_gym(q), done[q], wants[q])
+            done[q], wants[q] = closer(q, not sort.is_gym(q), done[q], wants[q])
         save("pools.json", done)
-        log(f"  {q}: {len(done[q])} of {wants[q]} after rereading")
+        save("counts.json", wants)
+        log(f"  {q}: {len(done[q])} of {wants[q] if wants[q] is not None else 'its IV names'} after rereading")
 
 
 # ---------- 3. plan ----------
@@ -610,9 +615,17 @@ def judge(m, results, wants):
     return twin_check(m, results, verdict, why)
 
 
+def in_pool(results, sid, pool, n, c):
+    """is this tile on one of the family's lists for that pool (lucky, dmax), as far as they were read?"""
+    squeeze = lambda x: re.sub(r"[^a-z0-9]", "", x.lower())  # '96 AHC*' and '96 A HC*': one tile read two ways
+    return any(c == c2 and squeeze(n) == squeeze(n2) for q, _, _ in sort.groups(sid, pool) for n2, c2 in results.get(q, []))
+
+
 def fallen_candidates(scanned, results, wants):
     """tiles with an /ivc name, no IVC tag, that come out DOOR for every species the search could have shown.
-    Lucky, Dynamax and size aren't known from a tile: act reads them on the detail screen and judges again."""
+    A tile doesn't show lucky or Dynamax, but a tile on the family's lucky or Dynamax list has it (a lucky one
+    judged as plain looked fallen, and was typed for and opened for nothing). Size: act reads it on the detail
+    screen and judges again."""
     ivc = Counter((sort.clean_name(m["tile"]), m["cp"]) for m in scanned)
     which, out, seen = species_of_search(), [], set()
     for q, tiles in results.items():
@@ -627,8 +640,8 @@ def fallen_candidates(scanned, results, wants):
             if not c or (n, c, shadow) in seen or not ivc_name(n) or p.size or p.pvp:
                 continue
             seen.add((n, c, shadow))
-            verdicts = {s: judge({"species": s, "cp": c, "name": n, "shadow": shadow, "lucky": False, "dynamax": False},
-                                 results, wants) for s in sorted(which[q])}
+            verdicts = {s: judge({"species": s, "cp": c, "name": n, "shadow": shadow, "lucky": in_pool(results, s, "lucky", n, c),
+                                  "dynamax": in_pool(results, s, "dmax", n, c)}, results, wants) for s in sorted(which[q])}
             if verdicts and all(v == "DOOR" for v, _ in verdicts.values()):
                 out.append({"name": n, "cp": c, "shadow": shadow, "species": sorted(verdicts),
                             "dex": sorted({sort.SPECIES[s]["dex"] for s in verdicts}),
@@ -656,7 +669,8 @@ FALLEN_RANK = {}  # (tile name, CP) -> a lucky one's rank (lucky_rank), as reche
 def act_fallen(limit):
     fallen.act(limit, recheck_fallen, TAG, lambda n, c: FALLEN_SPECIES[(n, c)], gym_top20=False,
                iv_top=lambda n, c: FALLEN_RANK[(n, c)], odd=odd_name,
-               pure_top=False)  # (sort.decide asked it: a fall-out is a DOOR)
+               pure_top=False,  # (sort.decide asked it: a fall-out is a DOOR)
+               who=getattr(next(iter(DOORS.values()), None) or ivcrun.DOOR, "account", None))
 
 
 # ---------- 4. act ----------
@@ -844,10 +858,11 @@ def act(limit, members):
         new = {dex_of(m) for m in load_plan() if to_door(m) and m.get("species") in sort.SPECIES and not door_for(m)}
         dex = dex_terms(new)
         scope = f"#{TAG}&{dex}" if len(dex) <= ACT_QUERY_MAX else None
-        was = next(iter(DOORS.values()), None)
-        made = door.Door(TAG, scope=scope, account=was and was.account)  # (its searches leave the bar on something else)
+        was = next(iter(DOORS.values()), None) or ivcrun.DOOR  # (the names pass's door knows who's signed in)
+        made = door.Door(TAG, scope=scope, account=was and was.account)
         DOORS.update(dict.fromkeys(new, made) if scope else {"all": made})
-        SHOWN["q"] = None
+        if made.typed:  # its searches leave the bar on something else. None typed: the family's list is still there
+            SHOWN["q"] = None
     listed = next(iter(DOORS.values())).listed() if DOORS else Counter()  # not sure last time, same rules: passed over
     read = load("pools.json") if os.path.exists(os.path.join(base.RUN_DIR, "pools.json")) else {}
     for m in plans:

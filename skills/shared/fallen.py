@@ -28,6 +28,8 @@ GROUPS = [("GuaranteedLucky", "&!shiny&!traded&!costume&year2016-2020"),
           ("Nope", f"&!shiny&traded,age0-{OLD_DAYS},costume"),
           ("Shiny", "&shiny")]  # in this order: each tag drops out of the later searches
 DOOR_GROUPS = ("Nope", "Shiny")  # judged at the door
+READ_ORDER = ("Nope", "Shiny", "GuaranteedLucky", "Old")  # most fall-outs are traded or new. Nope and Shiny share no
+# Pokémon with the other two, so these can be read first; GuaranteedLucky must stay ahead of Old, which holds it all
 BASE = "&!#IVC&!#Old&!#GuaranteedLucky"
 CHUNK = 20  # dex numbers per search
 
@@ -46,7 +48,12 @@ def groups(iv_only=True):
     out = {g: {} for g, _ in GROUPS}
     taken = Counter()
     base.front()
-    for g, q in searches(fallen):
+    for g, q in sorted(searches(fallen), key=lambda s: READ_ORDER.index(s[0])):
+        dexes = set(map(int, q.split("&")[0].split(",")))
+        # a Pokémon is in one group only: once all of a search's dex numbers are placed, it can't find anything new
+        if not any(taken[k] < want[k] and dexes & set(f["dex"]) for f in fallen for k in [(f["name"], f["cp"])]):
+            log(f"  {g}: every fallen-out one it could hold is placed, not typed: {q}")
+            continue
         got, _ = search.run_search(q, iv_only=iv_only)
         hits = [(n, c) for n, c in got if want[(n, c)]]
         free = Counter(hits)
@@ -72,14 +79,16 @@ def summary(fallen, grouped):
     return lines
 
 
-def act(limit, recheck, tag, species, off=(), odd=None, gym_top20=None, iv_top=lambda n, c: None, pure_top=None):
+def act(limit, recheck, tag, species, off=(), odd=None, gym_top20=None, iv_top=lambda n, c: None, pure_top=None,
+        who=None):
     """tag the grouped ones. recheck(name, cp) runs on the open detail screen and leaves it there:
     -> (still fallen?, what to log). species(name, cp) on that screen -> its species ids, for the door. tag: the
     skill's (IVC / PvpC), for the door's not-sure list. off: tags to untick at the same time. gym_top20: what
-    recheck's rules already say of a gym defender (/ivc: False, its NOPE covers the gym rule). iv_top(name, cp)
+    recheck's rules already say of a gym defender (/ivc: False, its NOPE covers the gym rule). who: the signed-in
+    trainer, when known (saves the door a look). iv_top(name, cp)
     after recheck: a lucky one's rank in its line (verdict.Facts), None when recheck doesn't know it"""
     grouped = base.load("fallen-groups.json")
-    done, account = Counter(), [None]
+    done, account = Counter(), [who]
     for g, q in searches(base.load("fallen.json")):
         todo = Counter(map(tuple, grouped.get(g, {}).get(q, [])))  # (a run grouped before Shiny has none)
         if not todo or sum(done.values()) >= limit:

@@ -174,11 +174,13 @@ def page_cost(s):
 
 
 def box_key(texts):
-    """the Mega Evolve box, grown in: its cost, YES and NO. None while it isn't there yet"""
+    """the Mega Evolve box: its cost and where YES and NO are, so steady() waits until it's done growing (a tap while
+    it grows can miss, and the box closes with no Mega Evolution). None while it isn't there yet"""
     j = " ".join(t[4] for t in texts)
-    if "lasts for 8 hours" not in j or len(exact(texts, "YES")) != 1 or len(exact(texts, "NO")) != 1:
+    yes, no = exact(texts, "YES"), exact(texts, "NO")
+    if "lasts for 8 hours" not in j or len(yes) != 1 or len(no) != 1:
         return None
-    return ask_cost(texts)
+    return ask_cost(texts), round(yes[0][1], 2), round(no[0][1], 2)
 
 
 def open_sheet(texts, bounds):
@@ -334,6 +336,7 @@ def mega(info, dry, free_only=False):
         if asked is None:
             keep_capture("noask")
             raise Stop("no 'Do you want to Mega Evolve' box after MEGA EVOLVE")
+        asked = asked[0]
         if ui.ANDROID:  # and off the phone's own screenshot: the bigger one
             asked = max(asked, ask_cost(sharp_texts()) or 0)
         yes, no = exact(texts, "YES"), exact(texts, "NO")
@@ -358,6 +361,7 @@ def finish():
     """after YES: tap the energy crystal, YES on 'will no longer be Mega Evolved', wait for 'HH:MM left'"""
     end = time.time() + 45
     tapped = 0
+    back_since = None
     while time.time() < end:
         time.sleep(0.2)
         try:
@@ -380,6 +384,14 @@ def finish():
                 base.click(0.5, 0.937, bounds)
             time.sleep(1.0)
             continue
+        s = sheet(texts)
+        if not tapped and s and s["button"] and "want to Mega" not in j:  # back on the level page: YES didn't take
+            back_since = back_since or time.time()
+            if time.time() - back_since > 5:
+                keep_capture("noyes")
+                raise Pass("the YES tap didn't take: no Mega Evolution")
+            continue
+        back_since = None
         tap_line = [t for t in texts if "TAP TO MEGA" in ui.norm(t[4])]
         if tap_line and tapped < 6:
             t = tap_line[0]

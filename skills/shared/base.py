@@ -536,31 +536,13 @@ def key(name, cmd=False):
     time.sleep(random.uniform(0.08, 0.18))
 
 
+TYPE_SPEED = ("2", "1", "1")  # iPhone, ms: after Shift, key held, between keys. 1-1-0 still lands, 0-0-0 loses keys (2026-11-05)
+
+
 def type_text(text):
     front(planned=True)
-    ui.sh(ui.HELPER, "type", text, "35", "80")
-    time.sleep(random.uniform(0.1, 0.25))
-
-
-def paste_text(text):
-    """iPhone: the whole text in one cmd+V (Mirroring passes the Mac's clipboard to the phone), not a key at a time.
-    -> what the Mac's clipboard held before: give it to restore_clipboard() once the text has landed (the phone
-    can fetch the clipboard a moment after the cmd+V)"""
-    global _pausing
-    front(planned=True)
-    old = subprocess.run(["pbpaste"], capture_output=True).stdout
-    subprocess.run(["pbcopy"], input=text.encode())
-    _pausing = True  # no pause between the copy and the cmd+V: front() just checked, and this text must be what lands
-    try:
-        ui.sh(ui.HELPER, "key", "v", "cmd")
-    finally:
-        _pausing = False
-    time.sleep(random.uniform(0.1, 0.25))
-    return old
-
-
-def restore_clipboard(old):
-    subprocess.run(["pbcopy"], input=old)
+    ui.sh(ui.HELPER, "type", text, *TYPE_SPEED)  # one go, about 0.1 s a search: a pause waits for the next tap or key
+    time.sleep(0.05)
 
 
 def scroll(bounds, how, up=False):

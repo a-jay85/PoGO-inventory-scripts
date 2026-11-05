@@ -71,7 +71,7 @@ When Claude needs to see the screen (a live look or a run's saved png), use `ski
 The repo is public. These stay local and are in `.gitignore`:
 
 - `skills/*/runs/`: run logs and screen captures (trainer names, inventory)
-- `skills/shared/.state.json`, `skills/shared/.calib.json`, `skills/shared/.paste.json`, `skills/trade/.state.json`: per-machine state
+- `skills/shared/.state.json`, `skills/shared/.calib.json`, `skills/trade/.state.json`: per-machine state
 - `skills/shared/helper`: built from `helper.swift` on first use
 
 ## Testing

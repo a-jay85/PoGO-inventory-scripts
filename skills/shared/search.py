@@ -4,7 +4,7 @@
 Types a search into the Pokémon list's search bar (start_search), reads every tile of the results
 (run_search), or visits each tile once (walk_list). Tapping and timing come from run.py.
 """
-import difflib, json, os, random, re, time
+import difflib, os, random, re, time
 from collections import Counter
 from PIL import Image
 
@@ -425,80 +425,33 @@ def bar_shows(got, q):
     return False
 
 
-def allow_paste(texts, bounds):
-    """iOS sometimes asks before the game takes a paste from the Mac ('"Pokémon GO" would like to paste from ...').
-    The paste waits behind it, and taps meant for the game land on it. Tap Allow Paste. True if it was up"""
-    allow = next((t for t in texts if re.fullmatch(r"allow\s*past\S?", t[4].strip(), re.I)), None)
-    if not allow:
-        return False
-    log("  iOS asked to allow the paste: allowing it")
-    click(allow[0] + allow[2] / 2, allow[1] + allow[3] / 2, bounds)
-    return True
-
-
-PASTE_FILE = os.path.join(ui.HERE, ".paste.json")  # the day the paste last failed: every pogo.py step is a new process
-
-
-def paste_broke_today():
-    try:
-        return json.load(open(PASTE_FILE)).get("broke") == time.strftime("%Y-%m-%d")
-    except (OSError, ValueError):
-        return False
-
-
-def paste_broke():
-    """the Mac-to-iPhone clipboard (Universal Clipboard) can hang for hours: type key by key for the rest of the day,
-    not two lost pastes (about 12 s) in every step. Tried again the next day"""
-    PASTE["ok"] = False
-    json.dump({"broke": time.strftime("%Y-%m-%d")}, open(PASTE_FILE, "w"))
-
-
-PASTE = {"ok": not paste_broke_today()}  # iPhone: off once a paste never lands (the Mac-to-iPhone clipboard hangs)
-
-
 def type_into_panel(q, bounds, check=None):
     """the panel doesn't always put the cursor in the bar, and a tap on the bar doesn't always either.
     Tap the bar, type, wait for the letters to show. False if they come out wrong (the caller starts over).
     check(got, q): does the bar's read show q (default bar_shows)"""
-    clip_box = []  # iPhone: the Mac's clipboard from before the first paste. Put back only at the very end, also on
-    try:           # an error: a paste can land late, and then it must still paste q
-        return _type_into_panel(q, bounds, clip_box, check or bar_shows)
-    finally:
-        if clip_box:
-            base.restore_clipboard(clip_box[0])
-
-
-def _type_into_panel(q, bounds, clip_box, check):
+    check = check or bar_shows
     for attempt in range(4):
         if attempt:  # the tap that opened the panel already put the cursor in the bar: a 2nd tap can lose it
             click(random.uniform(0.35, 0.55), 0.183 + random.uniform(-0.003, 0.003), bounds, gap=BAR_GAP)
         time.sleep(random.uniform(0.4, 0.5))
         if not ui.ANDROID:  # adb's input text never drops a shift
             type_text("A")  # the first shifted keys after the tap lose their shift ('#IVC' -> '3iVC'): wake it up
-            time.sleep(0.15)
+            time.sleep(0.1)
             key("delete")
-            time.sleep(0.15)
-        pasted = not ui.ANDROID and PASTE["ok"]
-        if pasted:
-            old = base.paste_text(q)
-            if not clip_box:
-                clip_box.append(old)
-        else:
-            type_text(q)
+            time.sleep(0.1)
+        type_text(q)
         got = ""
         for i in range(16):
             time.sleep(0.25)
             got, texts = panel_text()
-            if not ui.ANDROID and allow_paste(texts, bounds):
-                continue
             if not got and i >= 4:
                 log("  nothing showed in the search bar after typing: again")
-                if pasted and attempt:  # two pastes lost: type the rest of this run's searches key by key
-                    log("  the paste isn't landing: typing searches key by key for the rest of today")
-                    paste_broke()
                 break  # nothing landed: tap and type again
-            if got and not (len(got) < len(q) and q.lower().startswith(re.sub(r"\s", "", got).lower())):
-                break  # the keys can land a little after they're sent: wait while only the start shows
+            if got and check(got, q):
+                return True
+            short = len(got) < len(q)  # the keys can land late, and a misread '!' stops the read matching q's start
+            if got and not (short and (i < 8 or q.lower().startswith(re.sub(r"\s", "", got).lower()))):
+                break
         if got:
             if check(got, q):
                 return True

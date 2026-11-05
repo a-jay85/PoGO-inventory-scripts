@@ -12,8 +12,8 @@ Each round: both phones go to the other account's friend page (map -> profile ->
 the gift), both tap LOCAL TRADE, each picks the newest Pokémon of a search (the saved "0-100km" / "100+km"
 shortcuts, or one of them typed with '&countcandy0-2499' added), NEXT, and on the confirm screen both costs must read
 a regular 100 Stardust (white on blue; a special trade shows purple on pink) and, for a far-apart pair, the catch
-spots must be 100+ km apart. Then CONFIRM on both, the result screens are closed, and the next round starts from the
-friend page.
+spots must be 100+ km apart. Then CONFIRM on both. Each phone goes at its own speed: it picks as soon as its own search
+is on, and closes its result screen and taps LOCAL TRADE again as soon as its result screen shows.
 Each account gets a trade's candy for the Pokémon it sends. A far-apart pair (one 0-100km, one 100+km) gives the
 most, so it goes where the candy is needed (under 2,500): PLANS, first one with Pokémon left on both phones wins.
 When only 0-100km ones are left on both, they're traded with each other, the species with 2,500+ candy first. Then it stops, and the 100+km ones are kept
@@ -24,8 +24,8 @@ Log and captures go in runs/<time>/.
 Keep both phones on and both games open. A long pause on the iPhone during a trade can let the game's trade timer run
 out: that round starts over. Trades made by hand aren't counted: pass --done N. Two runs of the default 48 come to 96.
 The picker keeps the last search: when the bar already shows the one it wants, it isn't typed again.
-A failing trading service restarts the game on both phones and starts the round over; after 4 failures in a row it
-stops. If the special trades left go down during a run, it stops.
+A failing trading service or an expired trade backs both phones out to the friend page and starts the round over,
+with no game restart; after 4 failures in a row it stops. If the special trades left go down during a run, it stops.
 """
 import argparse, datetime, json, os, random, re, shutil, statistics, subprocess, sys, time
 from concurrent.futures import ThreadPoolExecutor
@@ -69,6 +69,8 @@ OK_WARNINGS = ("MAX MOVE LEVELS WILL BE RESET",)  # trade warnings tapped YES; a
 X_BUTTON = (0.5, 0.935)  # the round X at the bottom middle (gift, result, friend page, picker)
 MANAGE_X = (0.5, 0.906)  # the round X that closes the Manage Favorite Search box
 SORT_BUTTON = (0.838, 0.937)
+TAPS = 6  # how many times to tap LOCAL TRADE before stopping: about 6 s apart
+IN_TRADE = ("picker", "lobby", "sortmenu")
 
 
 class Expired(Stop):
@@ -76,7 +78,7 @@ class Expired(Stop):
 
 
 class ServiceDown(Expired):
-    """the trading server failed ("Trading service temporarily unavailable"): restart the game on both phones"""
+    """the trading server failed ("Trading service temporarily unavailable"): the round starts over"""
 
 
 class OutOfRange(Expired):
@@ -85,8 +87,8 @@ class OutOfRange(Expired):
 
 
 class Lost(ServiceDown):
-    """iPhone Mirroring lost the iPhone mid-run ("Connection Interrupted"): open Mirroring again, then restart the
-    game on both phones. Before both confirmed nothing traded; after, the trade went through and is counted"""
+    """iPhone Mirroring lost the iPhone mid-run ("Connection Interrupted"): open Mirroring again, then the round
+    starts over. Before both confirmed nothing traded; after, the trade went through and is counted"""
 
 
 # ---------- the two phones ----------
@@ -112,6 +114,7 @@ class Phone:
         self.texts, self.path, self.screen = [], None, "?"
         self.live = False  # in a trade: from here an "expired" box means start the trade over
         self.stale = False  # a pause changed the screen under a tap: nothing more is sent until the next look
+        self.landed = None  # when this phone's last result screen showed
 
     def call(self, **req):
         self.proc.stdin.write(json.dumps(req) + "\n")
@@ -318,7 +321,8 @@ def label(p, name):
 
 # ---------- getting to the friend page ----------
 
-def to_friend(p):
+def to_friend(p, ours=False):
+    """ours: this run's own round failed, so a half-made trade is left too (nothing is ever confirmed on the way out)"""
     p.live = False
     unknown, backs, empty = 0, 0, 0
     for _ in range(40):  # room for a few Backs out of popups
@@ -343,7 +347,7 @@ def to_friend(p):
             if not button:
                 raise Stop(f"{p.name}: {s} dialog without its button: {p.summary()}")
             p.tap_text(button)
-            if p.find(lambda t: "UNAVAILABLE" in ui.up(t)):
+            if not ours and p.find(lambda t: "UNAVAILABLE" in ui.up(t)):
                 raise ServiceDown(f"{p.name}: the trading service is down")
         elif s == "leave":
             p.tap_text(label(p, "YES"))
@@ -387,6 +391,16 @@ def to_friend(p):
             p.tap(*X_BUTTON)  # back to the trade's lobby
         elif s in ("lobby", "waiting"):
             p.tap(0.09, 0.115)  # the exit door, top left: leave the trade
+        elif ours and s == "warning":
+            p.tap_text(label(p, "NO") or label(p, "YES"))  # (YES only leads to the confirm screen, the next look backs out)
+        elif ours and s == "confirm":
+            t = confirm_label(p.texts)
+            if t and ui.norm(t[4]) == "CANCEL":
+                p.tap_text(t)  # takes back a CONFIRM that landed
+            else:
+                p.tap(0.5, 0.932)  # change Pokémon: back to the list
+        elif ours and s == "select":
+            p.tap(*X_BUTTON)
         elif s in ("select", "warning", "confirm"):
             p.keep("midtrade")
             raise Stop(f"{p.name}: in the middle of a trade ({s}): finish or back out of it by hand")
@@ -400,41 +414,43 @@ def to_friend(p):
     raise Stop(f"{p.name}: couldn't get to {p.friend}'s friend page")
 
 
+def tap_local(p):
+    """LOCAL TRADE on this phone, as soon as it's on the friend page. Done once the phone has left the page. Too soon
+    after the last trade, the game keeps it on the page with a message: tap again"""
+    for attempt in range(TAPS + 1):
+        s = p.wait("friend", "waiting", *IN_TRADE, "expired", "range", timeout=8)  # (a banner can cover it for a moment)
+        if s == "range":
+            p.expired()  # the round starts over: its to_friend taps the OK
+        if s == "expired":  # the box from an old trade can come up late, on the friend page
+            to_friend(p)
+            continue
+        if s != "friend":
+            return
+        t = label(p, "LOCAL")
+        if attempt == TAPS or not t:
+            raise Stop(f"{p.name}: LOCAL TRADE didn't open: {p.summary()}")
+        if attempt:
+            log(f"{p.name}: still on the friend page after LOCAL TRADE, tap {attempt + 1}: {p.summary()}")
+        since = f", {time.time() - p.landed:.1f} s after its result screen" if p.landed else ""
+        p.tap_text(t, dy=-0.035)  # the round icon above the label
+        log(f"{p.name}: LOCAL TRADE tapped{since}")
+        for _ in range(10):  # the iPhone can take a few seconds to leave the page
+            time.sleep(0.6)
+            if p.look() != "friend":
+                break
+
+
 def open_trade(phones):
     """LOCAL TRADE on both. The first one waits ("Waiting for ... to be available") until the second one taps too"""
-    def tap_local(p):
-        for attempt in range(4):
-            s = p.wait("friend", "waiting", "picker", "expired", "range", timeout=8)  # (a banner can cover it for a moment)
-            if s == "range":
-                p.expired()  # the round starts over: its to_friend taps the OK
-            if s == "expired":  # the box from an old trade can come up late, on the friend page
-                to_friend(p)
-                continue
-            if s != "friend":
-                break
-            t = label(p, "LOCAL")
-            if attempt == 3 or not t:
-                raise Stop(f"{p.name}: LOCAL TRADE didn't open: {p.summary()}")
-            p.tap_text(t, dy=-0.035)  # the round icon above the label
-            for _ in range(10):  # the iPhone can take a few seconds to leave the page
-                time.sleep(0.6)
-                if p.look() != "friend":
-                    break
     both(tap_local, *[(p,) for p in phones])
     try:
-        both(lambda p: p.wait("picker", timeout=20), *[(p,) for p in phones])
-    except Stop:
-        if not all(p.look() in ("waiting", "expired") for p in phones):
+        both(lambda p: p.wait("picker", "lobby", "sortmenu", timeout=20), *[(p,) for p in phones])
+    except Stop as e:
+        if isinstance(e, Expired) or not any([p.look() in ("waiting", "expired") for p in phones]):
             raise
-        # the server never joined the two: each waits for the other, or one has "Trading service unavailable" up.
-        # Leave on a waiting phone, or the next round's to_friend skips it and it waits again
-        for p in phones:
-            if p.screen == "waiting":
-                p.tap(0.09, 0.115)  # the exit door
+        # the server never joined the two: one waits for the other, or has "Trading service unavailable" up
         raise ServiceDown("the trading service didn't join the two phones")
-
-
-IN_TRADE = ("picker", "lobby", "sortmenu")
+    both(to_picker, *[(p,) for p in phones])
 
 
 def to_picker(p):
@@ -852,30 +868,64 @@ def set_made(n):
 
 # ---------- a run ----------
 
-def plan(phones, left):
-    """the first of PLANS with Pokémon left on both phones: its searches on, -> (iPhone search, Android search, why).
-    left: {phone: {search: how many}}, as last read off its results. A count can only go down (a trade takes one off a
-    pile, and the candy it gives can push a species off a needy search), so a search read empty is never run again"""
+def pick(p, q, specials):
+    """q's results on, sorted newest first, the top one picked, all without waiting for the other phone.
+    -> (how many q found, the name picked, None when it found none)"""
+    n = search_for(p, q)
+    if not n:
+        return n, None
+    p.look()
+    if p.name not in specials.setdefault("sorted", []):  # once a run: the sort stays put between trades
+        if sorted_recent(p.path):
+            log(f"{p.name}: already sorted Recent, newest first")
+        else:
+            sort_recent(p)
+        specials["sorted"].append(p.name)
+    elif ui.sort_arrow(p.path, right_most=True) != "down":
+        sort_recent(p)
+    return n, choose(p)
+
+
+def plan(phones, specials):
+    """the first of PLANS with Pokémon left on both phones, its top ones picked -> (iPhone search, Android search, why,
+    [iPhone's, Android's]). A phone that picked while the other's search came up empty puts its pick back, and the next
+    plan goes on. A count can only go down (a trade takes one off a pile, and the candy it gives can push a species off a
+    needy search), so a search read empty is never run again: left remembers them, {phone: {search: how many}}"""
+    left = specials.setdefault("left", {p.name: {} for p in phones})
     for qi, qa, why in PLANS:
         qs = (qi, qa)
         if any(left[p.name].get(q, 1) < 1 for p, q in zip(phones, qs)):
             continue
-        for p, q, n in zip(phones, qs, both(search_for, *zip(phones, qs))):
+        out = both(pick, *[(p, q, specials) for p, q in zip(phones, qs)])
+        for p, q, (n, _) in zip(phones, qs, out):
             left[p.name][q] = n
-        if all(left[p.name][q] for p, q in zip(phones, qs)):
-            return qi, qa, why
+        names = [name for _, name in out]
+        if all(names):
+            return qi, qa, why, names
+        for p, name in zip(phones, names):
+            if name:
+                log(f"{p.name}: the other phone has none of this pair: putting {name} back")
+                to_picker(p)
     return None
 
 
-def trade_once(ios, android, specials):
-    """one trade. specials: what the run remembers between trades (special trades left, phones already sorted)"""
+def trade_once(ios, android, specials, fresh=False):
+    """one trade. specials: what the run remembers between trades (special trades left, phones already sorted).
+    fresh: the last round failed, so both phones back out to the friend page first"""
     phones = (ios, android)
-    if all(p.look() in IN_TRADE for p in phones):
-        both(to_picker, *[(p,) for p in phones])  # both still in a trade from before: carry on in it
-    else:
-        # waiting already: LOCAL TRADE on the other phone lets it in
-        both(lambda p: p.look() == "waiting" or to_friend(p), *[(p,) for p in phones])
+    if fresh:
+        both(lambda p: to_friend(p, ours=True), *[(p,) for p in phones])
         open_trade(phones)
+    else:
+        screens = [p.look() for p in phones]
+        if all(s in IN_TRADE for s in screens):
+            both(to_picker, *[(p,) for p in phones])  # both still in a trade from before: carry on in it
+        elif all(s in IN_TRADE or s == "waiting" for s in screens):
+            open_trade(phones)  # finish() tapped LOCAL TRADE on both: they're joining
+        else:
+            # waiting already: LOCAL TRADE on the other phone lets it in
+            both(lambda p: p.screen == "waiting" or to_friend(p), *[(p,) for p in phones])
+            open_trade(phones)
     for p in phones:
         p.live = True
     for p in phones:
@@ -885,25 +935,11 @@ def trade_once(ios, android, specials):
         if p.name in specials and n < specials[p.name]:
             raise Stop(f"{p.name}: special trades left went from {specials[p.name]} to {n}")
         specials.setdefault(p.name, n)
-    left = specials.setdefault("left", {p.name: {} for p in phones})
-    pick = plan(phones, left)
-    if not pick:
+    picked = plan(phones, specials)
+    if not picked:
         return None  # both phones are left in the picker: nothing picked, nothing to undo
-    qi, qa, why = pick
+    qi, qa, why, got = picked
     log(f"pair: {why}")
-    def ready(p):
-        """the search on (plan), sorted newest first, its top one picked"""
-        p.look()
-        if p.name not in specials.setdefault("sorted", []):  # once a run: the sort stays put between trades
-            if sorted_recent(p.path):
-                log(f"{p.name}: already sorted Recent, newest first")
-            else:
-                sort_recent(p)
-            specials["sorted"].append(p.name)
-        elif ui.sort_arrow(p.path, right_most=True) != "down":
-            sort_recent(p)
-        return choose(p)
-    got = both(ready, *[(p,) for p in phones])
     far = FAR in (qi.replace(NEED, ""), qa.replace(NEED, ""))  # 0-100km with 0-100km: any distance goes
     for skip in range(SKIPS + 1):
         reads = both(check_confirm, *[(p,) for p in phones])
@@ -942,28 +978,37 @@ def trade_once(ios, android, specials):
     return got, d, reads[0][1]
 
 
-def finish(phones):
-    """wait out the animation, read what each got, close the result screens"""
+def finish(phones, again):
+    """each phone on its own: wait out the animation, note its result screen showed, close it, and (again: another
+    trade comes next) tap LOCAL TRADE right away"""
     def close(p):
-        if p.wait("result", "expired", timeout=45) == "expired":
-            # seen on the Android once, while the iPhone got its Pokémon: the trade went through all the same
-            log(f"{p.name}: says the trade expired after both confirmed: the next round clears it")
-        for _ in range(3):
-            if p.screen != "result":
-                break
-            p.tap(*X_BUTTON)
-            time.sleep(1.5)
-            if p.look() != "result":
-                break
+        try:
+            if p.wait("result", "expired", timeout=45) == "expired":
+                # seen on the Android once, while the iPhone got its Pokémon: the trade went through all the same
+                log(f"{p.name}: says the trade expired after both confirmed: the next round clears it")
+                return
+            p.landed = time.time()
+            log(f"{p.name}: result screen showed")
+            for _ in range(3):
+                p.tap(*X_BUTTON)
+                for _ in range(5):
+                    time.sleep(0.3)
+                    if p.look() != "result":
+                        break
+                if p.screen != "result":
+                    break
+            if again:
+                to_friend(p)
+                tap_local(p)
+        except Lost:
+            raise
+        except Expired as e:  # the trade went through: the next round sorts this phone out
+            log(f"{e}: the next round starts from here")
     both(close, *[(p,) for p in phones])
 
 
-def restart(phones, lost=False):
-    """force-close and open the game on both, then wait until each is past the loading screens.
-    lost: iPhone Mirroring lost the iPhone, open it again first"""
-    for p in phones:
-        if lost and not p.android:
-            p.call(op="reconnect")
+def restart(phones):
+    """force-close and open the game on both, then wait until each is past the loading screens (trade.py restart)"""
     for p in phones:
         p.restart()
     for p in phones:
@@ -974,6 +1019,14 @@ def restart(phones, lost=False):
                 raise Stop(f"{p.name}: the game didn't load after the restart: {p.summary()}")
             time.sleep(3)
     log("both phones restarted")
+
+
+def reconnect(phones):
+    """iPhone Mirroring lost the iPhone: open it again, with the game up. The game itself isn't restarted"""
+    for p in phones:
+        if not p.android:
+            p.call(op="reconnect")
+            log(f"{p.name}: iPhone Mirroring back, on {p.start()}")
 
 
 def cmd_look(phones):
@@ -1003,37 +1056,37 @@ def main():
             log(f"{p.name}: Pokémon GO up, on {p.start()}")
         if a.done is not None:
             set_made(a.done)
-        made, n, specials, expired = made_today(), 0, {}, 0
+        made, n, specials, expired, fresh = made_today(), 0, {}, 0, False
         log(f"{made} trades made today so far, {PER_DAY} a day; this run: at most {a.limit}")
         while n < a.limit:
             if made_today() >= PER_DAY:
                 log(f"{PER_DAY} trades today: done for the day")
                 break
             try:
-                got = trade_once(ios, android, specials)
+                got = trade_once(ios, android, specials, fresh)
             except Expired as e:
                 expired += 1
                 if expired > 3:
                     raise Stop(f"{e}, {expired} times in a row")
-                if isinstance(e, ServiceDown):  # closing and opening the game often clears it
-                    log(f"{e}: restarting Pokémon GO on both phones")
-                    restart(phones, lost=isinstance(e, Lost))
-                else:
-                    log(f"{e}: starting the round over")
+                log(f"{e}: backing out to the friend page, then trying again")
+                if isinstance(e, Lost):
+                    reconnect(phones)
+                fresh = True
                 continue
-            expired = 0
+            expired, fresh = 0, False
             if not got:
                 log("no pairs left (the 100+km ones are kept for another day): done")
                 break
             set_made(made_today() + 1)  # counted once both have confirmed: a missed result screen never undercounts
             n += 1
-            try:
-                finish(phones)
-            except Lost as e:  # both confirmed: the trade went through, only its result screens are left
-                log(f"{e}: the trade went through: restarting Pokémon GO on both phones")
-                restart(phones, lost=True)
             names, d, candy = got
             log(f"trade {made_today()} today: {names[0]} (iPhone) <-> {names[1]} (Android), {d:,.1f} km, {candy} candy")
+            try:
+                finish(phones, n < a.limit and made_today() < PER_DAY)
+            except Lost as e:  # both confirmed: the trade went through, only its result screens are left
+                log(f"{e}: the trade went through")
+                reconnect(phones)
+                fresh = True
         log(f"{n} trades this run, {made_today()} today")
     except Stop as e:
         log(f"STOPPED: {e}")

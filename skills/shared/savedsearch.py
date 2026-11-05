@@ -76,7 +76,8 @@ def labels(texts):
 def find_label(labs, name):
     """name's label in labels() -> (its middle x, its top y, count or None), or None. Android OCR can read a
     whole row of labels as one box ('1 years old IV Check Need Candy Lucky Dex'): then the name's middle x is
-    guessed from where its letters sit in the box, and its count is unknown"""
+    guessed from where its letters sit in the box, and its count is unknown. The name must start a word in the box:
+    100+km is no match for a 0-100km label"""
     k = key(name)
     if k in labs:
         t, n = labs[k]
@@ -84,10 +85,13 @@ def find_label(labs, name):
     for t, _ in labs.values():
         raw = t[4]
         keyed = [(i, key(c)) for i, c in enumerate(raw) if key(c)]  # the raw index of each key letter
-        at = "".join(c for _, c in keyed).find(k)
-        if at >= 0:
+        letters = "".join(c for _, c in keyed)
+        at = letters.find(k)
+        while at >= 0:
             first, last = keyed[at][0], keyed[at + len(k) - 1][0]
-            return t[0] + t[2] * (first + last + 1) / 2 / len(raw), t[1], None
+            if first == 0 or raw[first - 1].isspace():
+                return t[0] + t[2] * (first + last + 1) / 2 / len(raw), t[1], None
+            at = letters.find(k, at + 1)
     return None
 
 

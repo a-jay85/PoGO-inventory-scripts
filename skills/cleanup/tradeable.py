@@ -831,14 +831,17 @@ def door_walk(suffix, limit, who, shortcut=SHORTCUT, gone=None):
     door): did that one leave this pile? -> Counter of what happened"""
     import door
     from ivc import GYM_DEFENDERS  # noqa: F401 (verdict, loaded by Door, needs /ivc on the path)
-    gate = door.Door(shortcut, account=who, find=lambda term: pile_tiles(f"{suffix}&{term}", shortcut))
+    gate = door.Door(shortcut, account=who, find=lambda term: pile_tiles(f"{suffix}&{term}", shortcut), rank_gym=True)
     passed = gate.listed()
     log(f"door: {sum(passed.values())} on the not-sure list, passed over")
-    counts = Counter()
+    counts, judged = Counter(), set()
 
     def visit(i, n, c):
         if passed[(n, c)]:
             passed[(n, c)] -= 1
+            return False
+        if (n, c) in judged:  # the list hasn't dropped it yet (or a twin: the next run gets that one). Never judged twice
+            log(f"  {n!r} CP{c}: done, still on the list: passed over")
             return False
         base.open_tile(i)
         counts["opened"] += 1
@@ -853,7 +856,10 @@ def door_walk(suffix, limit, who, shortcut=SHORTCUT, gone=None):
         log(f"DONE door {got} {n!r} CP{c} {iv}")
         go("close", "list")
         # gone only with a tag the rest leaves out (Old, 2XL, a star or not sure: it stays, and is passed)
-        return gone(got, gate) if gone else got == "tag" and bool(set(gate.last.tags) & {*TAGS, XLX, TRANSFER})
+        left = gone(got, gate) if gone else got == "tag" and bool(set(gate.last.tags) & {*TAGS, XLX, TRANSFER})
+        if left:
+            judged.add((n, c))
+        return left
 
     if savedsearch.run_shortcut(shortcut, suffix):
         search.walk_list(visit, stop=lambda n: counts["opened"] >= limit)

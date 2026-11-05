@@ -10,6 +10,9 @@ detail page that's still open. No Nope.
 Not sure = left exactly as it is (tag and name) and written to runs/not-sure.json, with why, for a rule offline.
 A search whose tiles didn't all read counts as not done: every Pokémon that needs it comes out not sure.
 
+A gym defender's top 20 (rank_gym): before the walk the door looks for gym species in the pile, and reads the whole list
+of each one it finds, once a run. sort.gym_top20, /ivc's own rule, ranks each one opened. /ivc passes its own answer.
+
 A lucky one only /ivc can rank (verdict.lucky): anywhere else the door sends it to IVC. One /ivc found out of the
 top IV is written to runs/lucky-out.json, so /pvpc's door knows that when the lucky rule sends it on to PvpC (else it
 would go back to IVC, round and round).
@@ -20,7 +23,7 @@ from collections import Counter
 HERE = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, HERE)
 import ui, base, search, home, pagefacts
-from rules import XL_CAP, UNDER_360_XL
+from rules import GYM_DEX, XL_CAP, UNDER_360_XL
 from base import Stop, log
 
 NOT_SURE = os.path.join(HERE, "runs", "not-sure.json")
@@ -36,7 +39,8 @@ UNSURE = "unsure"
 EMPTY = []  # (account, a scope's terms, term): the game counted 0 for that search this run. A scope with all of those
 # terms and more (#IVC&590 after #IVC) can only be empty too, so it isn't typed. Only an empty answer is kept: a tile
 # list goes stale when a Pokémon is renamed, and "costume" can't start being true of a Pokémon mid-run
-vd = powerup = tagsheet = taps = None  # verdict, powerup, tagsheet, taps: imported by Door(). At the top they'd loop back
+GYM_TILES = {}  # (account, dex) -> every tile of that gym species, read once a run
+vd = powerup = tagsheet = taps = sort = None  # verdict, powerup, tagsheet, taps, sort: imported by Door(). At the top they'd loop back
 # (/ivc's run.py loads names.py, which loads this)
 
 
@@ -58,16 +62,18 @@ def key(tile_name, cp):
 
 
 class Door:
-    def __init__(self, tag, scope=None, account=None, find=None):
+    def __init__(self, tag, scope=None, account=None, find=None, rank_gym=False):
         """scope: the search the Pokémon to judge are in (default #tag). account: who's signed in, when known.
         find(term) -> search.run_search's answer for the pile & term, for a pile that's no typed search (a saved one).
-        Then tag only names the pile (the not-sure list): it isn't a tag to take off"""
-        global vd, powerup, tagsheet, taps
+        Then tag only names the pile (the not-sure list): it isn't a tag to take off. rank_gym: read the lists a gym
+        defender's top 20 needs (the caller doesn't know it)"""
+        global vd, powerup, tagsheet, taps, sort
         run_dir = base.RUN_DIR  # (kept in case an import moves it)
         import verdict as vd
         import powerup  # the power-up cost -> levels, and power-ups to the next Candy XL tier
         import tagsheet  # the tag chips, the caught date at the bottom of the page
         import taps  # purify
+        import sort  # /ivc's gym rule
         base.RUN_DIR = run_dir
         self.tag, self.other = tag, "IVC" if tag.upper() == "PVPC" else "PvpC"
         self.source = find is None  # tag is the Pokémon's own tag, to come off
@@ -107,6 +113,33 @@ class Door:
                 self.sets[k] = None
             log(f"door: {self.scope}&{term}: {len(got)} read ({len(set(key(n, c) for n, c in got))} different), "
                 f"the game says {want}" + ("" if ok else ": only a tile read in it counts" if usable else ": not used"))
+        self.rank_gym = rank_gym
+        if rank_gym:
+            self.read_gym_lists(find)
+
+    def read_gym_lists(self, find):
+        """one search for any gym species in the pile (usually none), then the whole list of each one there"""
+        if not self.typed:
+            search.to_search_list()
+            self.typed = True
+        if not find(",".join(map(str, GYM_DEX)))[1]:
+            log(f"door: {self.scope}: no gym defenders")
+            return
+        for dex in GYM_DEX:
+            if (self.account, dex) not in GYM_TILES and find(str(dex))[1]:
+                got, want = search.run_search(str(dex))
+                log(f"door: gym list {dex}: {len(got)} read, the game says {want}")
+                if want is not None and len(got) == want:  # (else: those come out not sure)
+                    GYM_TILES[self.account, dex] = got
+
+    def gym_rank(self, sp, cp, ivs, shadow):
+        """top 20 of its species? None: not a gym defender, its list didn't read, or can't tell"""
+        if not self.rank_gym or len(sp) != 1 or sp[0] not in vd.GYM_DEFENDERS:
+            return None
+        tiles = GYM_TILES.get((self.account, vd.pvp.SPECIES[sp[0]]["dex"]))
+        got = None if tiles is None else sort.gym_top20(sp[0], cp, ivs, shadow, tiles)
+        log(f"  gym top 20 of {len(tiles or ())} {sp[0]}: {got}")
+        return got
 
     def has(self, k, tile):
         """a search whose count didn't match (a long list read 57 for 55): a tile read in it is in it, one not read
@@ -173,6 +206,8 @@ class Door:
 
     def facts(self, info, texts, sp, ivs, tile, size, gym_top20=None, iv_top=None, tile_cp=None, pure_top=None):
         """-> (Facts, why not sure before any rule: '' when it's up to the rules)"""
+        if gym_top20 is None:
+            gym_top20 = self.gym_rank(sp, tile_cp or info["cp"], ivs, base.is_shadow(texts))
         dex = {vd.pvp.SPECIES[s]["dex"] for s in sp if s in vd.pvp.SPECIES}
         size = {"XXL": "xxl", "XXS": "xxs"}.get(size, "")
         medal = next((m for d, m in vd.MEDALS.items() if d in dex and m[0]), None)

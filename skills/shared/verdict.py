@@ -253,7 +253,8 @@ def usual(f, t, today=None):
         if f.gym_top20 is None:
             return unsure("gym defender: top 20 not checked")
         if f.gym_top20:
-            return Verdict("keep", (), "gym defender: top 20 CP or IV")
+            name = ivc_name(tuple(f.ivs), f.shadow, (f.size or "").upper(), lucky=f.lucky, gym=True) if f.ivs else None
+            return Verdict("keep", (), "gym defender: top 20 CP or IV", name=name)
 
     if f.costume and f.iv_sum >= OVER_93:  # (traded or not)
         if f.ivs is None:

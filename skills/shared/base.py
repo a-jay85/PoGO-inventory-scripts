@@ -6,6 +6,7 @@ them share one RUN_DIR and one last_tap. /pvpc's own walk is ../pvpc/run.py.
 import contextlib, json, math, os, random, re, shutil, subprocess, sys, time, unicodedata
 from collections import Counter
 
+from PIL import Image, ImageOps
 import ui, pvp
 from ui import Refused, Moving
 
@@ -121,6 +122,39 @@ def think():
 
 # ---------- screen ----------
 
+BADGES = {"XXL", "LXX", "XXS", "SXX"}
+ZOOM = ui.TMP + "_badge.png"
+
+
+def letters(text):
+    return re.sub(r"[^A-Z]", "", text.upper())
+
+
+def zoomed_badge(path, texts):
+    """the size badge over HEIGHT, read again from a zoomed crop -> one more text line, or none. It's small and white on
+    pale teal: reading the whole page often misses it (real XXLs read as no badge, 2026-11-04). This runs with the look,
+    so the badge stays with this page's text however far the page has moved on when extras() reads it"""
+    height = [t for t in texts if ui.norm(t[4]) == "HEIGHT"]
+    if not height:
+        return []
+    y = height[0][1]
+    if any(letters(t[4]) in BADGES and t[0] > 0.55 and y - 0.07 < t[1] < y for t in texts):  # (a nickname can say XXL)
+        return []
+    with Image.open(path) as im:
+        w, h = im.size
+        crop = im.convert("RGB").crop((int(0.72 * w), int((y - 0.07) * h), w, int((y - 0.01) * h)))
+    if sum(n for n, (r, g, b) in crop.getcolors(1 << 16) if abs(r - 140) < 20 and abs(g - 200) < 15 and abs(b - 200) < 15) < 60:
+        return []  # no teal pill (most pages): skip the extra reads
+    gray = crop.convert("L")
+    for zoom, invert in ((3, False), (6, True)):  # (a bright background needs the second one)
+        big = gray.resize((gray.width * zoom, gray.height * zoom), Image.LANCZOS)
+        (ImageOps.invert(ImageOps.autocontrast(big)) if invert else big).save(ZOOM)
+        for t in ui.ocr(ZOOM):
+            if letters(t[4]) in BADGES:
+                return [(0.85, y - 0.035, 0.1, 0.015, t[4])]
+    return []
+
+
 def look(where=None, remember=True):
     """capture and OCR the screen. -> (screen, texts, path, bounds). where(path, texts): the screen's name (default
     ui.classify, the storage screens; home.where and dex.where know more). remember: keep it for ui.plan() (/gift
@@ -129,6 +163,7 @@ def look(where=None, remember=True):
     path, bounds = ui.capture()
     t1 = time.time()
     texts = ui.ocr(path)
+    texts += zoomed_badge(path, texts)
     if remember:
         ui.remember(path, texts, bounds)
     screen = where(path, texts) if where else ui.classify(texts)

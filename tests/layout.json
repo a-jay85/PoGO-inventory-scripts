@@ -1029,6 +1029,7 @@
   "names": [
    "ALWAYS_KEEP",
    "ASKED",
+   "BADGES",
    "CHANGED_SHARE",
    "CHANGED_WORDS",
    "CP_LOOKS",
@@ -1055,6 +1056,7 @@
    "TYPES",
    "USER_IDLE",
    "VIEW",
+   "ZOOM",
    "_pausing",
    "_real_time",
    "appraisal_species",
@@ -1089,6 +1091,7 @@
    "last_tap",
    "learn_rows",
    "leave_rename",
+   "letters",
    "levels_for",
    "lift_tag_row",
    "load",
@@ -1147,7 +1150,8 @@
    "user_active",
    "wait_for",
    "who",
-   "yield_to_user"
+   "yield_to_user",
+   "zoomed_badge"
   ],
   "runs": [
    "skills/pvpc/runs",

@@ -17,7 +17,7 @@ trade evolutions (free to evolve once traded, cleantrades' TRADE_EVOS), not shad
 #Transfer&!traded&!shadow&!xxl&!xxs&!#GIV&<dex numbers> -> GIV on, Transfer off, all at once (SELECT ALL).
 --limit N changes at most N. Log in runs/<time>-sizes/.
 """
-import os, re, sys
+import os, re, sys, time
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "shared"))
@@ -113,7 +113,7 @@ def walk(find, size, limit):
     seen, done = set(), 0
     while True:
         _, texts, _, bounds = wait_for("detail")
-        info = ui.detail_info(texts)
+        info, texts, _ = base.steady_detail()  # (right after the swipe the page is still sliding in)
         me = (info["cp"], info["hp"])  # (not the name: it changes)
         if me in seen:
             break

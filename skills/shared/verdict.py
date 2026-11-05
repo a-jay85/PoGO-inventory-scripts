@@ -50,7 +50,7 @@ from rules import EVO, EVO_FOR, TRADE_EVOS  # traded + a free trade evolution: E
 
 TO = {GIVER: TAKER, TAKER: GIVER}
 OLD_DAYS = int(re.search(r"\d+", rules.OLD_AGE).group())
-LUCKY_YEARS = (2016, 2020)  # an untraded catch from these years is lucky once traded (tradeable.py's NOPE_OLD)
+LUCKY_YEARS = rules.LUCKY_YEARS
 # GIV (medal), from rules.py's MEDALS: dex -> (size it needs, or None; fits(kg); the kg range that reads right)
 MEDALS = {min(tr.dexes_of(q)): (("xxs", "xs") if "xxs,xs" in q else None, fits, rules.MEDAL_KG[name])
           for name, q, fits in rules.MEDALS}

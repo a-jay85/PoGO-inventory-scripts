@@ -43,6 +43,27 @@ OLD, OLD_AGE = "Old", "&age300-"  # caught 300+ days ago: after Luckydex, before
 MEDALS = [("Rattata", "&19&xxs,xs", lambda kg: kg <= 2.41), ("Magikarp", "&129", lambda kg: kg >= 13.13)]
 MEDAL_KG = {"Rattata": (0.5, 10), "Magikarp": (2, 30)}  # a weight outside this is a misread (a lost decimal point)
 
+# the bulk taggers (tradeable.py tag, cleantrades.py) only tag what's sure to get that same tag from verdict.py. These
+# have rules of their own there, so they stay out of a tag search and go through the door one by one
+GYM_DEX = (113, 143, 202, 242, 289, 977)  # ivc.GYM_DEFENDERS: the gym rule needs its top 20
+ODD = ("lucky", "costume", "background")
+TAG_SKIP = "".join(f"&!{t}" for t in (*ODD, *GYM_DEX))  # NO_SPECIAL leaves out the others
+BULK_GUARD = NO_SPECIAL + TAG_SKIP
+DOOR_PICK = "&!xxl&" + ",".join(map(str, ("shiny", "gigantamax", *SPECIAL, *ODD, *GYM_DEX)))  # all but xxl: BULK_GUARD's
+LUCKY_YEARS = (2016, 2020)  # an untraded catch from these years is lucky once traded
+GUARANTEED = "GuaranteedLucky"
+LUCKY_YEAR = f"&year{LUCKY_YEARS[0]}-{LUCKY_YEARS[1]}"
+
+# the terms each saved search on the phone must hold for the scripts to be right. Its other terms are the user's.
+# savedsearches.py reads them off the phone. (): it only has to exist
+SAVED = {GIVER: {CLEAN: ("traded", "!3*", "!4*", "!favorite", "!#"),
+                 "Tradeable": ("!traded", "!3*", "!4*", "!favorite", "!shadow", "!#"),
+                 "IV Check": ("4*,3*", "!favorite", "!#")},
+         TAKER: {CLEAN: ("traded", "!3*", "!4*", "!favorite", "!#"),
+                 "IV Check": ("4*,3*", "!favorite", "!#"),
+                 "PvpC1": (), "PvpC2": ()}}
+
+
 
 def xxl_off(tags):
     """which of XXL_OFF these tags, as read, hold (letters only: the page's reader drops digits, so 2XL reads as XL)"""

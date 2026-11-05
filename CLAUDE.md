@@ -80,6 +80,10 @@ The repo is public. These stay local and are in `.gitignore`:
 
 `python3 tests/layout.py` pins how the scripts find each other and their files: each script's names, the one shared copy of `run.py` (its run folder), where every run folder goes, and that every path and `module.name` the code uses exists. Run it after moving or renaming a file, or moving code between files. It must say "all ... the same". Same `--record` rule.
 
+`python3 tests/verdicts.py` pins the final tag `verdict.py` gives made-up Pokémon. `python3 tests/taggers.py` runs the bulk taggers' searches (`tradeable.py tag`, `cleantrades.py`) over made-up Pokémon and checks they tag what `verdict.py` says. Run both after any change to a rule or a tag search.
+
+`skills/cleanup/savedsearches.py` reads the saved searches off the Pixel and checks they hold the terms in `rules.SAVED`. Run it after changing one on the phone.
+
 Nothing tests taps and timing off the phone. A change to how a skill reads or taps the phone isn't done until it has run on the phone:
 `POGO_PHONE=android caffeinate -dimsu python3 ~/PoGO-inventory-scripts/skills/pvpc/run.py --limit 1`. Claude starts it and watches it itself; no need to ask the user to watch.
 

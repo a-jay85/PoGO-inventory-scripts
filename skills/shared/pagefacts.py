@@ -1,7 +1,8 @@
 """What the door needs to know, read off the list tile and the Pokémon's own page instead of searches.
 
-  tile_icons(path, tile)   shiny (the dark sparkle under the CP) and background (the pale blue snowflake or globe
-                           beside the sprite), from the list capture the tile was tapped on
+  tile_icons(path, tile)   shiny (the dark sparkle under the CP), background (the pale blue snowflake or globe
+                           beside the sprite) and lucky (the gold bubbles behind the sprite), from the list capture
+                           the tile was tapped on
   candy_xl(texts)          the Candy XL count on the page's top half (the number over "CANDY XL")
   bottom(reads)            the page's bottom: traded ("OBTAINED IN A TRADE"), the catch or hatch place, in
                            California or not (not: 100 km+ away, like the distance100- search)
@@ -21,6 +22,12 @@ COLUMNS = (0.185, 0.5, 0.815)  # the list's three tile columns' middles (fractio
 SPARKLE_BOX = (-36, -8, -44, -18)  # x0, x1, y0, y1 from the middle of the tile image
 SPARKLE_MIN = 25
 sparkle = lambda p: p[1] - p[0] > 25 and 5 < p[2] - p[1] < 45 and p[0] + p[1] + p[2] < 330
+
+# lucky: pale gold bubble pixels left of the sprite. Taught 2026-11-04 on saved Pixel captures: lucky tiles score 39-180,
+# others 0-18 (the top ones are Moltres: its flames are gold too, but deeper, so b >= 130 cuts them from 44 to 18)
+LUCKY_BOX = (-58, -28, -38, 28)
+LUCKY_MIN = 28
+bubble = lambda p: p[0] > 225 and 185 < p[1] < 250 and 130 <= p[2] < 200 and p[0] - p[2] > 45 and p[0] >= p[1]
 
 # background: an icon's shape in pale blue pixels, anywhere around the sprite (it sits wherever the sprite leaves
 # room: right of it, or over its left side on a wide one like Venusaur). Two icons: the snowflake (a special
@@ -118,14 +125,15 @@ def icon_score(im, box):
 
 
 def tile_icons(path, tile):
-    """tile: (name, cp, x, y) from ui.tiles on this capture -> {"shiny": bool, "background": bool}, or {} if the
-    picture can't be read"""
+    """tile: (name, cp, x, y) from ui.tiles on this capture -> {"shiny": bool, "background": bool, "lucky": bool},
+    or {} if the picture can't be read. lucky is None on a capture of another size: only taught on the Pixel's"""
     try:
         from PIL import Image
         im = Image.open(path).convert("RGB")
     except Exception:
         return {}
-    if im.size[0] != CAP_W:  # the boxes are in Android capture pixels
+    pixel = im.size[0] == CAP_W
+    if not pixel:  # the boxes are in Android capture pixels
         im = im.resize((CAP_W, round(im.size[1] * CAP_W / im.size[0])))
     W, H = im.size
     # x: the tile's column middle. ui.tiles' x is the name's middle, and on the bottom row a round button hides part
@@ -134,7 +142,8 @@ def tile_icons(path, tile):
     at = lambda b: (int(cx + b[0]), int(cy + b[2]), int(cx + b[1]), int(cy + b[3]))
     shiny = len(_pixels(im, at(SPARKLE_BOX), sparkle)) >= SPARKLE_MIN
     background = icon_score(im, at(ICON_BOX)) >= ICON_MIN
-    return {"shiny": shiny, "background": background}
+    lucky = len(_pixels(im, at(LUCKY_BOX), bubble)) >= LUCKY_MIN if pixel else None
+    return {"shiny": shiny, "background": background, "lucky": lucky}
 
 
 def candy_xl(texts):

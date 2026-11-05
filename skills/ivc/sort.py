@@ -42,7 +42,7 @@ sys.path.insert(0, HERE)
 import pvp
 from pvp import REGIONS, is_gym, base_name, region, parent, children, search
 from ui import tile_name as clean_name
-from ivc import GYM_DEFENDERS
+from ivc import GYM_DEFENDERS, make_name
 from rules import ALWAYS_KEEP
 
 TOP, TOP_MEGA, TOP_LUCKY, TOP_DMAX, TOP_GYM_CP, TOP_GYM_IV = 5, 6, 1, 3, 20, 20
@@ -510,6 +510,19 @@ def gym_keep(m, tiles):
     return ("LEAVE" if unsure else None), why
 
 
+def gym_top20(sid, cp, ivs, shadow, tiles):
+    """gym_keep for one whose IVs were read but whose name may not say them (the door). tiles: every one of its species.
+    gym_keep leaves a tile with no IV name out of the IV side. With few named, that keeps everything (12 named of 65
+    Blissey, 2026-11-04), so here an unnamed one could be ahead of it: True only if it's top 20 even if they all are.
+    -> True (top 20) | False | None (can't tell: unnamed ones or hidden CPs could decide it, or no IVs read)"""
+    name = make_name(tuple(ivs), shadow, gym=True) if ivs else None
+    m = {"species": sid, "cp": cp, "name": name or "", "shadow": shadow}
+    verdict, _ = gym_keep(m, tiles)
+    if verdict == "KEEP" and gym_keep(m, [(n if value(n, shadow) is not None else "100", c) for n, c in tiles])[0] == "KEEP":
+        return True
+    return None if verdict or not name else False
+
+
 def decide(m, results):
     """m: dict species, cp, name, shadow, lucky, dynamax. results: search string -> [(tile name, cp)].
     -> (KEEP | DOOR | LEAVE, [reasons])"""
@@ -718,6 +731,19 @@ def test():
     check("gym hidden CPs could push it out: leave", decide(bl, by_fam(gym, "blissey"))[0], "LEAVE")
     gym[S("blissey", "gym")] = [("Blissey", 3500)] * 10 + [("Blissey", 0)] * 3 + [("40 h", 0)]
     check("gym own tile CP hidden, still top 20", decide(bl, by_fam(gym, "blissey"))[0], "KEEP")
+    full = [("Blissey", 3500)] * 20
+    check("door: top 20 CP", gym_top20("blissey", 3600, (1, 2, 3), False, full), True)
+    check("door: unnamed tiles could be ahead: can't tell", gym_top20("blissey", 2000, (1, 2, 3), False, full), None)
+    check("door: 12 named of 65 keep nobody weak", gym_top20("blissey", 1444, (5, 13, 5), False,
+                                                             [("93 all", 2500)] * 12 + [("Blissey", 2500)] * 53), None)
+    check("door: its IVs beat all but a few unnamed", gym_top20("blissey", 2000, (15, 15, 15), False,
+                                                                [("96 HD", 3500)] * 25 + [("Blissey", 3500)] * 5), True)
+    full = [("96 HD", 3500)] * 20
+    check("door: out of both", gym_top20("blissey", 2000, (1, 2, 3), False, full), False)
+    check("door: its IVs get a spot", gym_top20("blissey", 2000, (15, 15, 15), False, full), True)
+    check("door: IVs not read, out by CP: can't tell", gym_top20("blissey", 2000, None, False, full), None)
+    check("door: hidden CPs: can't tell", gym_top20("blissey", 2000, (1, 2, 3), False,
+                                                    [("96 HD", 3500)] * 19 + [("96 HD", 0)] * 3), None)
     check("own top-row tile (CP hidden) taken out of its pool",
           decide(me, res(charizard__plain=[("93", 0)] + [("100", 5)] * 5))[0], "KEEP")
     many = [(f"{p}", 1500 + p) for p in (100, 100, 100, 98, 98, 98, 98)]

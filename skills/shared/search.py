@@ -860,6 +860,7 @@ def read_results(q, path, texts, bounds, iv_only=False):
     if want == 0:
         return [], 0
     most, sightings, seen, stale, last, together = Counter(), Counter(), set(), 0, None, set()
+    held = False
     for turn in range(300):
         now = Counter((ui.tile_name(t[0]), t[1]) for t in ui.tiles(texts))
         BUBBLES.update((ui.tile_name(t[0]), t[1]) for t in ui.tiles(texts) if pagefacts.tile_icons(path, t).get("lucky"))
@@ -883,8 +884,15 @@ def read_results(q, path, texts, bounds, iv_only=False):
                 break
         if want is None and len(now) < 9:  # under three rows: everything is on screen
             break
-        if now == last:  # the list didn't move: the end
-            break
+        if now == last:  # the list didn't move: the end, once it still hasn't a moment later (a long list can lag: 30 of 105)
+            if held:
+                break
+            held = True
+            time.sleep(1.5)
+            path, bounds = ui.capture()
+            texts = ui.ocr(path)
+            continue
+        held = False
         last = now
         fresh = set(now) - seen
         seen |= set(now)

@@ -405,6 +405,10 @@ def challenge_invite(texts, bounds):
         search.click(*X_BUTTON, bounds)
         time.sleep(1.5)
         return True
+    if "ROCKET RADAR" in ui.joined(texts) and press_text(texts, bounds, "EQUIP"):  # (2026-11-05: Back does nothing, no X)
+        log("  a new Rocket Radar is up: tapping EQUIP, its only button")
+        time.sleep(2.5)
+        return True
     if "WEEKLY CHALLENGE" not in ui.joined(texts):
         return False
     if press_text(texts, bounds, "MAYBE LATER"):

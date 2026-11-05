@@ -643,7 +643,7 @@ def one_walk(limit):
             log(f"{key} round {rnd}: {len(todo)} to look at")
             if gate is None:
                 gate = door.Door("PvpC", scope=",".join(map(str, dexes)) + "&pvp",
-                                 account=DOOR.account if DOOR else None)
+                                 account=DOOR.account if DOOR else None, rank_gym=True)
             for q in sorted(dict.fromkeys(t["q"] for t in todo), key=lambda q: q != search.LAST.get("q")):
                 if done < limit:  # (the search on screen first: no typing)
                     done += walk_line(q, [t for t in todo if t["q"] == q], tried, limit - done, gate, record)
@@ -664,7 +664,7 @@ def main(limit, dry):
     front()
     skipped, counts = Counter(), Counter()
     if not dry:
-        DOOR = door.Door("PvpC")
+        DOOR = door.Door("PvpC", rank_gym=True)
         skipped.update(DOOR.listed())  # not sure last time, under the same rules: pass them
         log(f"door: {sum(skipped.values())} on the not-sure list, passed over")
     to_top()

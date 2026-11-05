@@ -408,7 +408,10 @@ def result_count(texts):
             return int(m.group(1).replace(",", ""))
 
 
-def panel_text():
+def panel_text(quick=False):
+    """quick: no waiting for the looks' pace (for a loop that goes by the clock, not by how many looks it took)"""
+    if quick:
+        ui.last_look = None
     texts = ui.ocr(ui.capture()[0])
     box = ui.search_box(texts)
     return (ui.search_text(box) if box else ""), texts
@@ -425,6 +428,25 @@ def bar_shows(got, q):
     return False
 
 
+BAR_TRIES = 3  # A's sent to the bar before tapping it again: when it takes keys at all, it takes the 1st or 2nd
+
+
+def bar_ready():
+    """iPhone: the panel can be up with the bar not yet taking keys, and then a whole search is lost. Send an A until
+    one shows, then take it off. (It also wakes up the Shift: the first shifted keys after a tap lose it, '#IVC' ->
+    '3iVC'.) False if none showed"""
+    for i in range(BAR_TRIES):
+        type_text("A")
+        got, _ = panel_text(quick=True)
+        if got:
+            for _ in range(max(1, got.upper().count("A"))):
+                key("delete")
+            return True
+    key("a", cmd=True)  # (an A that only showed after the last look)
+    key("delete")
+    return False
+
+
 def type_into_panel(q, bounds, check=None):
     """the panel doesn't always put the cursor in the bar, and a tap on the bar doesn't always either.
     Tap the bar, type, wait for the letters to show. False if they come out wrong (the caller starts over).
@@ -433,28 +455,26 @@ def type_into_panel(q, bounds, check=None):
     for attempt in range(4):
         if attempt:  # the tap that opened the panel already put the cursor in the bar: a 2nd tap can lose it
             click(random.uniform(0.35, 0.55), 0.183 + random.uniform(-0.003, 0.003), bounds, gap=BAR_GAP)
-        time.sleep(random.uniform(0.4, 0.5))
-        if not ui.ANDROID:  # adb's input text never drops a shift
-            type_text("A")  # the first shifted keys after the tap lose their shift ('#IVC' -> '3iVC'): wake it up
-            time.sleep(0.1)
-            key("delete")
-            time.sleep(0.1)
+            time.sleep(0.3)
+        if ui.ANDROID:  # adb's input text never loses keys or a shift
+            time.sleep(random.uniform(0.4, 0.5))
+        elif not bar_ready():
+            log("  the bar isn't taking keys: tapping it")
+            continue
         type_text(q)
-        got = ""
-        for i in range(16):
-            time.sleep(0.25)
-            got, texts = panel_text()
-            if not got and i >= 4:
-                log("  nothing showed in the search bar after typing: again")
-                break  # nothing landed: tap and type again
+        got, t0 = "", time.time()
+        while time.time() - t0 < 5.6:
+            got, texts = panel_text(quick=not ui.ANDROID)
             if got and check(got, q):
                 return True
+            late = time.time() - t0 < 2.8
             short = len(got) < len(q)  # the keys can land late, and a misread '!' stops the read matching q's start
-            if got and not (short and (i < 8 or q.lower().startswith(re.sub(r"\s", "", got).lower()))):
+            if got and not (short and (late or q.lower().startswith(re.sub(r"\s", "", got).lower()))):
                 break
+            if not got and not late:
+                log("  nothing showed in the search bar after typing: again")
+                break  # nothing landed: tap and type again
         if got:
-            if check(got, q):
-                return True
             log(f"search bar says {got!r}, wanted {q!r}")
             return False
     return False
@@ -637,8 +657,8 @@ def start_search(q, check=None, edit=False):
         if not type_into_panel(q, bounds, check):
             continue
         key("return")
-        for _ in base.tries(12, 0.25):  # the panel closes and the results show
-            got, texts = panel_text()
+        for _ in base.tries(30, 0.02):  # the panel closes and the results show
+            got, texts = panel_text(quick=not ui.ANDROID)
             if not ui.search_panel(texts) and ui.classify(texts) == "list":
                 break
         else:

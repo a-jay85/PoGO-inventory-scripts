@@ -2,6 +2,7 @@
 //   helper win [owner [all]] -> "<id> <x> <y> <w> <h>" of the iPhone Mirroring (or owner's) window (points)
 //   helper ocr <png>    -> one line per text: "<x> <y> <w> <h>\t<text>" (0-1 fractions, top-left origin)
 //   helper ocrd         -> the same for each png path read from stdin, each answer ended by a "." line
+//                          A line "capture <png>" saves the iPhone Mirroring window there instead: "<x> <y> <w> <h>", or "no"
 //   helper mouse        -> "<x> <y>" cursor position in points (top-left origin)
 //   helper front        -> name of the frontmost app
 //   (click, scroll and drag put the pointer back where it was afterwards, unless the user has moved it)
@@ -95,8 +96,29 @@ func press(_ code: CGKeyCode, _ flags: CGEventFlags) {
     d?.flags = flags
     u?.flags = flags
     post(d)
-    nap(Double.random(in: 40...90))
+    nap(Double.random(in: 5...15))
     post(u)
+}
+
+// the window's picture from inside the kept-running helper: about 40 ms, where `helper win` + screencapture take 260.
+// The call is gone from Apple's headers, so look it up. "no" sends the caller to screencapture, which also says why
+typealias WindowImage = @convention(c) (CGRect, UInt32, UInt32, UInt32) -> Unmanaged<CGImage>?
+let windowImage: WindowImage? = dlsym(dlopen(nil, RTLD_NOW), "CGWindowListCreateImage").map { unsafeBitCast($0, to: WindowImage.self) }
+
+func capture(_ path: String) -> String {
+    guard let grab = windowImage, CGPreflightScreenCaptureAccess() else { return "no" }
+    let list = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as! [[String: Any]]
+    for w in list where (w[kCGWindowOwnerName as String] as? String) == "iPhone Mirroring" && (w[kCGWindowLayer as String] as? Int) == 0 {
+        let b = w[kCGWindowBounds as String] as! [String: Any]
+        if (b["Width"] as? Double ?? 0) < 100 || (b["Height"] as? Double ?? 0) < 100 { continue }
+        guard let id = w[kCGWindowNumber as String] as? UInt32,
+              let img = grab(.null, 8, id, 1 | 8)?.takeRetainedValue(),  // only this window, no shadow, best resolution
+              let out = CGImageDestinationCreateWithURL(URL(fileURLWithPath: path) as CFURL, "public.png" as CFString, 1, nil)
+        else { return "no" }
+        CGImageDestinationAddImage(out, img, nil)
+        return CGImageDestinationFinalize(out) ? "\(b["X"]!) \(b["Y"]!) \(b["Width"]!) \(b["Height"]!)" : "no"
+    }
+    return "no"
 }
 
 func ocr(_ path: String) -> [String] {
@@ -160,7 +182,11 @@ case "ocrd":
     // and Vision for each read cost ~1 s more than the read itself
     setvbuf(stdout, nil, _IOLBF, 0)
     while let path = readLine() {
-        for l in ocr(path) { print(l) }
+        if path.hasPrefix("capture ") {
+            print(capture(String(path.dropFirst(8))))
+        } else {
+            for l in ocr(path) { print(l) }
+        }
         print(".")
     }
 case "mouse":

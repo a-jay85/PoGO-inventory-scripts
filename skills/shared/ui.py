@@ -48,6 +48,8 @@ PAUSE_FILE = "/tmp/pvpc_iphone_paused"  # the seconds the iPhone's run has been 
 _seen = None  # (when, path copy, texts, bounds, screen): the latest look, until the next tap or key
 _older = None  # the look before _seen
 TILE_PICK = None  # (capture copy, tile) the last "tile N" was planned on: its icons, for the door
+LOOK_PERIOD = 0.35  # iPhone: looks with no tap between them come this far apart, as they did when a look itself took that
+last_look = None  # when the last look began. None: a tap came since, so the next look goes straight away
 
 
 def remember(path, texts, bounds):
@@ -65,12 +67,12 @@ def tap_ms():
 
 
 def sh(*a):
-    global _seen, _older, last_input
+    global _seen, _older, last_input, last_look
     tapping = a[:1] == (HELPER,) and len(a) > 1 and a[1] in TAPS
     if tapping and gate:
         gate(True)
     if tapping:
-        _seen = _older = None
+        _seen = _older = last_look = None
     if ANDROID and a[:1] == (HELPER,) and len(a) > 1 and a[1] in android.ACTIONS:
         return android.act(*a[1:])
     if a[:1] == (HELPER,) and not os.path.exists(HELPER):  # a new worktree has none yet
@@ -108,6 +110,13 @@ def capture():
             raise Refused(str(e))
     if gate:
         gate(False)
+    global last_look
+    if last_look:  # wait loops count their looks, so they need the old pace
+        time.sleep(max(0.0, last_look + LOOK_PERIOD - time.time()))
+    last_look = time.time()
+    fast = ask_helper("capture " + os.path.abspath(CAP))
+    if fast and fast[0] != "no":
+        return CAP, [float(v) for v in fast[0].split()]
     for wait in (0.5, 1.0, 2.0, 3.0, None):  # the window can change under the shot (crashed /gift as Mirroring opened)
         wid, *bounds = window()
         done = subprocess.run(["screencapture", "-l", str(wid), "-o", "-x", CAP], capture_output=True, text=True)
@@ -118,29 +127,36 @@ def capture():
     raise Refused(f"{CANT_CAPTURE} ({done.stderr.strip() or 'no reason given'})")
 
 
-_ocrd = None  # a helper kept running for OCR: a fresh one per read cost ~1 s more than the read itself
+_ocrd = None  # a helper kept running for OCR and looks: a fresh one per read cost ~1 s more than the read itself
 
 
-def ocr_lines(path):
-    """the helper's OCR lines for a png, from the kept-running helper (started again if it went away)"""
+def ask_helper(line):
+    """one line to the kept-running helper (started again if it went away) -> its answer's lines, or None"""
     global _ocrd
+    ensure_helper()
     for attempt in range(2):
         if not _ocrd or _ocrd.poll() is not None:
             _ocrd = subprocess.Popen([HELPER, "ocrd"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True,
                                      bufsize=1)
         try:
-            _ocrd.stdin.write(os.path.abspath(path) + "\n")
+            _ocrd.stdin.write(line + "\n")
             _ocrd.stdin.flush()
             lines = []
-            while (line := _ocrd.stdout.readline()) and line != ".\n":
-                lines.append(line.rstrip("\n"))
-            if line:
+            while (out := _ocrd.stdout.readline()) and out != ".\n":
+                lines.append(out.rstrip("\n"))
+            if out:
                 return lines
         except (BrokenPipeError, OSError):
             pass
         _ocrd.kill()
         _ocrd = None
-    return sh(HELPER, "ocr", path).splitlines()
+    return None
+
+
+def ocr_lines(path):
+    """the helper's OCR lines for a png"""
+    lines = ask_helper(os.path.abspath(path))
+    return sh(HELPER, "ocr", path).splitlines() if lines is None else lines
 
 
 def ocr(path):

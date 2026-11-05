@@ -812,6 +812,8 @@ def title_block(t, lines, left=False):
     col = sorted((u for u in lines if abs(x(u) - x(t)) < (0.03 if left else 0.08)), key=lambda u: u[1])
     if any(0 < t[1] - u[1] < 0.035 for u in col):
         return None, None  # t is the second line of a title, or the city's 'States'
+    if any(0 < t[1] - u[1] < 0.035 and u[0] <= x(t) <= u[0] + u[2] for u in lines):
+        return None, None  # the same, under one line OCR ran across both cards ('Olive My Love, Olive My Directional Bike Route at')
     block, y = [t], t[1]
     for u in col:
         if 0 < u[1] - y < 0.035:
@@ -834,9 +836,9 @@ def late_city(city):
 
 def ours(title, city, late=False):
     """late: the title comes after last_held in the gift list, so any city but a held one goes"""
-    if not title or "," in title or KEEP.search(title):
+    if not title or KEEP.search(title):
         return False
-    return city.upper().startswith(CITY) or (late and late_city(city))
+    return city.upper().startswith(CITY) or (late and "," not in title and late_city(city))  # (a title can hold a comma: 'Olive My Love, Olive My Heart')
 
 
 def near(a, b):

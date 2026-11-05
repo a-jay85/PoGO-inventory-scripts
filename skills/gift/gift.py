@@ -72,6 +72,7 @@ ZONES = [  # farthest ahead of Pacific time first; "" (no zone) last picks up ev
     ("rest", ""),
 ]
 SHORT = {FIRST: "iii", THEN: "lll", ZONES[0][1]: "lasia", ZONES[1][1]: "leuro", ZONES[2][1]: "latam"}
+SHORT_PAUSE = 0.4  # seconds between a text shortcut and the space that expands it
 NICK_MAX = 12  # the game keeps the first 12 characters of a friend nickname
 TYPEABLE = re.compile(r"[A-Za-z0-9 .,&!#+/*^=?$:;-]*")  # what the helper's keyboard (and adb) can type
 X_BUTTON = (0.5, 0.937)  # the round X at the bottom middle (friend page, friendship screen, picker, gift preview)
@@ -445,7 +446,9 @@ def type_query(parts):
     then the space comes off"""
     for p in parts:
         if shortcuts and p in SHORT:
-            base.type_text(SHORT[p] + " ")
+            base.type_text(SHORT[p])
+            time.sleep(SHORT_PAUSE)  # iOS needs a moment to offer the replacement, or the space doesn't expand it
+            base.type_text(" ")
             time.sleep(0.3)
             base.key("delete")
         elif p:
@@ -472,9 +475,8 @@ def cut_short(line, part):
     (ui.norm drops the digit OCR adds, and rstrip the box's clear X)"""
     if part not in SHORT:
         return False
-    tail = ui.norm(line.rsplit("&", 1)[-1]).replace(" ", "").rstrip("X")
-    short = SHORT[part].upper()
-    return 2 <= len(tail) <= len(short) and short.startswith(tail[:2])
+    t, short = ui.norm(line).replace(" ", "").rstrip("X"), SHORT[part].upper()  # ('&' can read as a letter: '&!EGGQle')
+    return any(t.endswith(short[:k]) for k in range(2, len(short) + 1))
 
 
 def commit_search():

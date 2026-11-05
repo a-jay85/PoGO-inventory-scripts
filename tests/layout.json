@@ -382,6 +382,7 @@
    "PICKER_DRAG",
    "REOPEN_LOAD",
    "SHORT",
+   "SHORT_PAUSE",
    "SORT_BUTTON",
    "SORT_ICON",
    "SORT_ICON_AT",

@@ -32,8 +32,9 @@ One tag each, the first that fits:
     evolve into, or one GO can't evolve into yet (Kleavor, Alolan Marowak) (giv-evolved-<date>.json). Also gym
     defenders (/ivc's GYM_DEFENDERS) and untraded Dynamax ones. Tagged after the XLX walk.
  6. GIV (far): never traded and caught 100 km or more away ('distance100-'), and no other tag fits.
- 7. Transfer: everything else, but a never-traded XXL or XXS one gets renamed XXL or xxs and tagged IVC (sizes.py)
+ 7. Transfer: everything else, but a never-traded XXS one gets renamed xxs and tagged IVC (sizes.py)
     (a never-traded trade evolution gets Transfer here: HashTagAJay doesn't need the XP, 2026-11-02).
+An XXL one gets no tag at all and is never powered up: it's made a favorite first (sizes.py, the user 2026-11-04).
 Special trades get no tag at all and are never powered up: Legendary, Mythical, Ultra Beast, shiny and Gigantamax. The
 user trades them by hand, so a tag never lines one up for a trade that uses up the day's special trade. Shadows can't
 be traded.
@@ -92,7 +93,7 @@ HARD_CANDY = 100  # a stage 1 that costs this much candy to evolve into counts f
 BABIES = {172, 173, 174, 175, 236, 238, 239, 240, 298, 360, 406, 433, 438, 439, 440, 446, 447, 458, 848}  # not a stage
 SPECIAL = ("legendary", "mythical", "ultrabeast")  # special trades by species: traded by hand, never tagged
 # every special trade: no search here tags or powers one up. (Not in the taker's dex is one too: the user checks that)
-NO_SPECIAL = "&!gigantamax&!shiny" + "".join(f"&!{t}" for t in SPECIAL)
+NO_SPECIAL = "&!gigantamax&!shiny&!xxl" + "".join(f"&!{t}" for t in SPECIAL)  # (xxl: kept, keep_xxl_ones)
 DYNAMAX = "&dynamax&!traded"  # evolved GIV too
 
 
@@ -577,12 +578,17 @@ def giver_species(m):
 # every tag search and walk leaves special trades out: the user trades them by hand
 NOT_TAGGED = NO_SPECIAL + "".join(f"&!#{t}" for t in TAGS)
 REST = NOT_TAGGED + f"&!#{XLX}&!#{TRANSFER}"  # not tagged yet
-EVOLVED_REST = REST + "&traded,!xxl&traded,!xxs"  # and not a never-traded XXL/XXS one (those get IVC)
+EVOLVED_REST = REST + "&traded,!xxs"  # and not a never-traded XXS one (those get IVC)
 OLD, OLD_AGE = "Old", "&age300-"  # caught 300+ days ago: after Luckydex, before Reroll, GIV and XLX (verdict.py)
 # verdict.py, HashTagAJay only, after Old: medal ones (by weight, read on the detail page) -> GIV, for any other account.
 # The Youngster medal counts tiny Rattata (any region), the Fisherman medal big Magikarp
 MEDALS = [("Rattata", "&19&xxs,xs", lambda kg: kg <= 2.41), ("Magikarp", "&129", lambda kg: kg >= 13.13)]
 MEDAL_KG = {"Rattata": (0.5, 10), "Magikarp": (2, 30)}  # a weight outside this is a misread (a lost decimal point)
+
+
+def keep_xxl_ones(limit):
+    """an XXL one in the pile is no trade: a favorite, before any tag search"""
+    sizes.walk(lambda: run_pile("&xxl&!favorite"), "xxl", limit)
 
 
 def run_pile(suffix):
@@ -759,7 +765,8 @@ def cmd_tag(limit):
     # (the taker's 360+ XL families are passed on the detail page: as '&!<dex>' terms they'd overflow the bar)
     traded = NO_SPECIAL + "&" + ",".join(f"#{t}" for t in TAGS)  # (one tagged before special trades were left out)
     rest = REST
-    for size in sizes.NAMES:  # first: a never-traded XXL/XXS one is renamed and tagged IVC, never XLX or Transfer
+    keep_xxl_ones(limit)
+    for size in sizes.NAMES:  # first: a never-traded XXS one is renamed and tagged IVC, never XLX or Transfer
         q = rest + f"&!#{sizes.IVC}&!traded&{size}"
         sizes.walk(lambda: run_pile(q), size, 10 ** 9)
     rest = EVOLVED_REST  # (one passed over there stays out of Transfer too)
@@ -804,6 +811,7 @@ def cmd_door(limit):
     if who != GIVER:
         raise Stop(f"signed in as {who!r}: door needs {GIVER}")
     home.start()
+    keep_xxl_ones(limit)
     log(f"the rest, through the door: {dict(door_walk(EVOLVED_REST, limit, who))}")
 
 

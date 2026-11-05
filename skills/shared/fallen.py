@@ -23,9 +23,9 @@ from base import log, go
 import search
 
 OLD_DAYS = 300
-GROUPS = [("GuaranteedLucky", "&!shiny&!traded&!costume&year2016-2020"),
-          ("Old", f"&!shiny&!traded&!costume&age{OLD_DAYS + 1}-"),
-          ("Nope", f"&!shiny&traded,age0-{OLD_DAYS},costume"),
+GROUPS = [("GuaranteedLucky", "&!shiny&!traded&!costume&!xxl&year2016-2020"),
+          ("Old", f"&!shiny&!traded&!costume&!xxl&age{OLD_DAYS + 1}-"),
+          ("Nope", f"&!shiny&traded,age0-{OLD_DAYS},costume,xxl"),  # (xxl: the door makes it a favorite, at any age)
           ("Shiny", "&shiny")]  # in this order: each tag drops out of the later searches
 DOOR_GROUPS = ("Nope", "Shiny")  # judged at the door
 READ_ORDER = ("Nope", "Shiny", "GuaranteedLucky", "Old")  # most fall-outs are traded or new. Nope and Shiny share no

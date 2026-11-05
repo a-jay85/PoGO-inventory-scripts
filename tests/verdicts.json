@@ -627,10 +627,10 @@
   "traded: can't trade again"
  ],
  "legendary XXL": [
-  "unsure",
+  "keep",
   [],
   null,
-  "special trade, size xxl: by hand"
+  "XXL: a favorite, for showcases"
  ],
  "legendary size not read": [
   "unsure",
@@ -723,12 +723,10 @@
   "PvP"
  ],
  "XXL": [
-  "tag",
-  [
-   "IVC"
-  ],
-  "XXL",
-  "never traded XXL"
+  "keep",
+  [],
+  null,
+  "XXL: a favorite, for showcases"
  ],
  "xxs": [
   "tag",
@@ -877,12 +875,114 @@
   "Candy XL not read"
  ],
  "H XXL skips 2XL": [
+  "keep",
+  [],
+  null,
+  "XXL: a favorite, for showcases"
+ ],
+ "H xxs skips 2XL": [
   "tag",
   [
    "IVC"
   ],
-  "XXL",
-  "never traded XXL"
+  "xxs",
+  "never traded XXS"
+ ],
+ "XXL traded": [
+  "keep",
+  [],
+  null,
+  "XXL: a favorite, for showcases"
+ ],
+ "XXL traded, trade tags come off": [
+  "keep",
+  [],
+  null,
+  "XXL: a favorite, for showcases",
+  {
+   "off": [
+    "GIV",
+    "XLX"
+   ]
+  }
+ ],
+ "XXL old, Old comes off": [
+  "keep",
+  [],
+  null,
+  "XXL: a favorite, for showcases",
+  {
+   "off": [
+    "Old"
+   ]
+  }
+ ],
+ "XXL 2016, no GuaranteedLucky": [
+  "keep",
+  [],
+  null,
+  "XXL: a favorite, for showcases"
+ ],
+ "XXL lucky": [
+  "keep",
+  [],
+  null,
+  "XXL: a favorite, for showcases"
+ ],
+ "XXL shadow": [
+  "keep",
+  [],
+  null,
+  "XXL: a favorite, for showcases"
+ ],
+ "XXL shiny traded, Transfer comes off": [
+  "keep",
+  [],
+  null,
+  "XXL: a favorite, for showcases",
+  {
+   "off": [
+    "Transfer"
+   ]
+  }
+ ],
+ "XXL, IVC comes off": [
+  "keep",
+  [],
+  null,
+  "XXL: a favorite, for showcases",
+  {
+   "off": [
+    "IVC"
+   ]
+  }
+ ],
+ "XXL, 2XL reads as XL": [
+  "keep",
+  [],
+  null,
+  "XXL: a favorite, for showcases",
+  {
+   "off": [
+    "2XL"
+   ]
+  }
+ ],
+ "xxs traded still Transfer": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "traded: can't trade again"
+ ],
+ "xxs untraded still IVC": [
+  "tag",
+  [
+   "IVC"
+  ],
+  "xxs",
+  "never traded XXS"
  ],
  "H GIV": [
   "tag",

@@ -87,8 +87,12 @@
    "Stop",
    "TRADE_EVOS",
    "TRANSFER",
+   "XXL_SWEEP",
    "go",
+   "keep_search",
+   "keep_xxl",
    "log",
+   "name_and_tag",
    "next_one",
    "press",
    "results",
@@ -100,10 +104,12 @@
    "sheet_rows",
    "still_sheet",
    "sweep",
+   "tag_chips",
    "tag_pile",
    "tick",
    "wait_for",
-   "walk"
+   "walk",
+   "xxl_off"
   ],
   "runs": [
    "skills/cleanup/runs"
@@ -170,6 +176,7 @@
    "giver_species",
    "go",
    "hard_evolutions",
+   "keep_xxl_ones",
    "level_of",
    "log",
    "look",
@@ -1022,6 +1029,7 @@
   "names": [
    "ALWAYS_KEEP",
    "ASKED",
+   "BADGES",
    "CHANGED_SHARE",
    "CHANGED_WORDS",
    "CP_LOOKS",
@@ -1048,6 +1056,7 @@
    "TYPES",
    "USER_IDLE",
    "VIEW",
+   "ZOOM",
    "_pausing",
    "_real_time",
    "appraisal_species",
@@ -1082,6 +1091,7 @@
    "last_tap",
    "learn_rows",
    "leave_rename",
+   "letters",
    "levels_for",
    "lift_tag_row",
    "load",
@@ -1140,7 +1150,8 @@
    "user_active",
    "wait_for",
    "who",
-   "yield_to_user"
+   "yield_to_user",
+   "zoomed_badge"
   ],
   "runs": [
    "skills/pvpc/runs",
@@ -1423,7 +1434,9 @@
    "EVO_FOR",
    "NAMES",
    "TRADE_EVOS",
-   "TRANSFER"
+   "TRANSFER",
+   "XXL_OFF",
+   "xxl_off"
   ],
   "runs": []
  },
@@ -1784,7 +1797,9 @@
    "transfer",
    "two_xl",
    "unsure",
-   "usual"
+   "usual",
+   "xxl",
+   "xxl_off"
   ],
   "runs": []
  },

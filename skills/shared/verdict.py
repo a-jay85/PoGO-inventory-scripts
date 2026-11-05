@@ -14,10 +14,10 @@ that's missing, gives unsure, never Transfer.
 
 The order is tradeable.py's (its docstring has the reasons), judged for the other account, the one it would be traded
 to. Signed in as CyrillJan (the pile goes to HashTagAJay):
-  GuaranteedLucky > Luckydex > Old > 2XL (a raid attacker's line only) > Reroll > GIV > XXL/xxs > XLX > GIV
+  GuaranteedLucky > Luckydex > Old > 2XL (a raid attacker's line only) > Reroll > GIV > xxs > XLX > GIV
   (evolved, Dynamax, Tandemaus) > GIV (far) > Transfer
 Signed in as HashTagAJay (the pile goes to CyrillJan):
-  GuaranteedLucky > Old > GIV (medal) > 2XL > GIV > XXL/xxs > XLX > GIV (evolved, Dynamax) > GIV (trade evolution) >
+  GuaranteedLucky > Old > GIV (medal) > 2XL > GIV > xxs > XLX > GIV (evolved, Dynamax) > GIV (trade evolution) >
   GIV (far) > Transfer
   (its raid GIV: a new copy gets into one of CyrillJan's /roster teams, or within 15% of the #6: giver_species())
 Before all of them: a special trade (trades.py's legendary rules, else unsure), a traded one (Transfer), an untraded
@@ -25,7 +25,8 @@ shadow, costume or background one (odd_one: the user's rules for each), and a lu
 A costume one (the user, 2026-11-02): 93%+ is named and a favorite, traded or not. Else the usual rules, but if its plain
 form evolves and it can't (no Evolve button: dead_end), only as its own species: CyrillJan's raid list and 2XL go by
 its own place in DialgaDex's tops (raid_self), and no trade-evolution GIV.
-Every Transfer for an untraded one goes through transfer() last: an XXL/xxs one gets IVC instead, a trade evolution
+Before everything: an XXL one, traded or not, is a favorite and its trade, Transfer and IVC tags come off (xxl(), the user
+2026-11-04: it has value in showcases). Every Transfer for an untraded one goes through transfer() last: an xxs one gets IVC instead, a trade evolution
 (free to evolve once traded) GIV, signed in as HashTagAJay only (only CyrillJan wants the XP, the user 2026-11-02). The user's own tags first: untraded with Old, Evo or GuaranteedLucky,
 those stay and only IVC / PvpC comes off; traded, the "trade it" tags (TRADE_TAGS) come off. The species lists come
 from tradeable.py's taker_species() and giver_species(), the same ones its tag searches use; one of HashTagAJay's saved
@@ -42,7 +43,8 @@ from base import ALWAYS_KEEP  # an IV sum of 98%+ never loses its star
 import tradeable as tr  # the order, the numbers and the species lists: one copy, there
 from tradeable import GIVER, TAKER, XL_CAP, XLX_FOR
 from ivc import GYM_DEFENDERS, make_name as ivc_name
-from rules import NAMES as SIZE_NAMES  # a never-traded XXL/XXS one gets this name and IVC
+from rules import NAMES as SIZE_NAMES  # a never-traded XXS one gets this name and IVC
+from rules import xxl_off
 from rules import EVO, EVO_FOR, TRADE_EVOS  # traded + a free trade evolution: Evo, on EVO_FOR's account
 
 TO = {GIVER: TAKER, TAKER: GIVER}
@@ -161,11 +163,19 @@ def canon(t):
 
 def final_tag(f, t, today=None):
     """f: Facts. t: tables(TO[f.account]). -> Verdict"""
+    if f.size == "xxl":  # first: shiny() below hides a traded one's tags, and no other rule applies
+        return xxl(f)
     if not f.shiny:
         return usual(f, t, today)
     # a traded one's tags all come off. An untraded one that already has Remote Trade or RT has what the rule gives it
     tags = [] if f.traded else [x for x in f.other_tags if re.sub(r"[^A-Z]", "", x.upper()) not in ("REMOTETRADE", "RT")]
     return shiny(f, usual(replace(f, other_tags=tags), t, today))
+
+
+def xxl(f):
+    """an XXL one, traded or not (the user's rule, 2026-11-04): never traded or transferred, it has value in showcases.
+    A favorite, with its trade, Transfer and IVC tags off. Its name stays. Other tags stay"""
+    return Verdict("keep", (), "XXL: a favorite, for showcases", off=xxl_off(f.other_tags))
 
 
 def shiny(f, v):
@@ -229,7 +239,7 @@ def usual(f, t, today=None):
     if "legendary" in kinds or "ultrabeast" in kinds or "mythical" in kinds:
         if "mythical" in kinds and sid not in TRADE_BY_HAND:
             return unsure("mythical: can't be traded, by hand")
-        if f.size is None or f.size in SIZE_NAMES:  # trades.py passes over an XXL/xxs one
+        if f.size is None or f.size in SIZE_NAMES:  # trades.py passes over an xxs one
             return unsure(f"special trade, size {f.size or 'not read'}: by hand")
         if f.traded:
             return tag("Spot Transfer", why="traded special trade: a spot transfer", off=strip)
@@ -318,7 +328,7 @@ def usual(f, t, today=None):
 def two_xl(f, t, sid):
     """2XL (a Friendship Friday trade: a sure 2 Candy XL) when this account has under XL_CAP Candy XL of the family.
     The same rule costume or not (the user, 2026-11-02). On CyrillJan only a raid attacker's line gets it: those need
-    XL for their top levels. Never an XXL/xxs one. -> Verdict, or None for the next rule"""
+    XL for their top levels. Never an xxs one (an XXL one never gets here). -> Verdict, or None for the next rule"""
     raid = t["raid_self"] if dead_end(f, sid) else t["raid"]
     if f.size in ("xxl", "xxs") or (f.account == GIVER and sid not in raid):
         return None
@@ -331,13 +341,13 @@ def two_xl(f, t, sid):
 
 def transfer(f, sid, why, off=(), purify=False, clear=False):
     """Transfer, unless it's untraded and (the user's rules, 2026-10-31, for every Transfer):
-      an XXL or xxs one -> IVC, named XXL / xxs (/ivc counts that name as done)
+      an xxs one -> IVC, named xxs (/ivc counts that name as done)
       one that evolves free once traded (TRADE_EVOS) -> GIV, signed in as HashTagAJay only (it goes to EVO_FOR,
       who wants the XP; HashTagAJay doesn't, the user 2026-11-02). A shadow can't be traded: it never is
     The size comes first, as in final_tag's order. A size that didn't read gives unsure, never Transfer"""
     if not f.traded:
         if f.size is None:
-            return unsure(f"{why}, but size not read (an untraded XXL/xxs one gets IVC)")
+            return unsure(f"{why}, but size not read (an untraded xxs one gets IVC)")
         if f.size in SIZE_NAMES:
             return tag("IVC", why=f"never traded {f.size.upper()} (else Transfer: {why})", name=SIZE_NAMES[f.size],
                        off=off)

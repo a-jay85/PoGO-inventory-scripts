@@ -36,7 +36,7 @@ It works off the saved search shortcuts, always in this order:
 3. CyrillJan only: **Clean Trades** + a trade evolution gets the Evo tag. HashTagAJay doesn't need the XP, so there they go to Transfer like the rest. It tells the accounts apart by the storage max over the empty search (`7874 / 7875`): over 10,000 is HashTagAJay (13,000 on 2026-10-22; CyrillJan 7,875). `--look` skips that. The list: Kadabra, Machoke, Graveler (Alolan too), Haunter, Boldore, Gurdurr, Karrablast, Shelmet, Phantump, Pumpkaboo. They evolve free once traded, whatever they were traded for. Not the base forms (Abra...). The search uses dex numbers (`64,67,75,93,525,533,588,616,708,710`): the names make it too long for the bar to read back. `tradeevolve` can't be used: it misses traded ones.
 4. **Clean Trades** gets the Transfer tag. It doesn't transfer.
 
-Before step 2, never-traded ones leave Clean Trades so they never get Transfer (2026-10-31): `&!traded&xxl` (then `xxs`) are renamed XXL / xxs and tagged IVC (sizes.py's walk). On HashTagAJay only, `&!traded&!shadow&` + the trade evolutions above get GIV (they go to CyrillJan, who wants the XP; 2026-11-02). `sizes.py` also fixes Transfer tags already given: the XXL/xxs walk, then (HashTagAJay only) `#Transfer&!traded&!shadow&!xxl&!xxs&!#GIV&<dex numbers>` -> GIV on, Transfer off.
+Before step 2, never-traded ones leave Clean Trades so they never get Transfer (2026-10-31): `&!traded&xxs` are renamed xxs and tagged IVC (sizes.py's walk). `&xxl`, traded or not, become favorites first, and no later step touches an XXL one. On HashTagAJay only, `&!traded&!shadow&` + the trade evolutions above get GIV (they go to CyrillJan, who wants the XP; 2026-11-02). `sizes.py` also fixes Transfer tags already given: the XXL/xxs walk, then (HashTagAJay only) `#Transfer&!traded&!shadow&!xxl&!xxs&!#GIV&<dex numbers>` -> GIV on, Transfer off.
 
 `cleantrades.py evo` runs steps 1 and 3 (step 1 first, or a PvpC one could end up Evo). `cleantrades.py fix` moves old ones from Transfer to Evo: `#Transfer&traded&<the dex numbers>`, untick Transfer, tick Evo. It ran on CyrillJan's Pixel on 2026-10-22 (1 moved, then 0 more once Karrablast and Shelmet were added). Both modes stop on HashTagAJay.
 
@@ -86,12 +86,14 @@ If `read` stops partway, `read runs/<time>-read/searches.json` picks up where it
 
 `read` ran on the Pixel on 2026-10-22. `tag` has never run. First time: `tag --limit 1` (it still tags every tag search).
 
-## XXL and XXS: never Transfer
+## XXL: kept. XXS: never Transfer
 
-The rule (2026-10-22): a Pokémon that was never traded and is XXL or XXS never gets Transfer. It's renamed `XXL` or `xxs` and tagged IVC. `/ivc` counts those names as done, and `/ivc` leaves sized IVC ones for the user.
+XXL (2026-11-04): an XXL one, traded or not, never gets a trade tag (GuaranteedLucky, Old, GIV, XLX, 2XL, Reroll, Special, Luckydex), Transfer or IVC. It's a favorite with those tags off, because it has value in showcases. Its name stays. `/ivc`'s names pass does the same to `#IVC&xxl`. XXL ones in `#PvpC` stay until `/pvpc` judges them.
 
-- `tradeable.py tag` does it to its own pile before the door walk. The walk leaves out never-traded XXL/XXS ones.
-- `cleantrades.py` only tags traded ones Transfer, so the rule never applies there.
-- `POGO_PHONE=android caffeinate -dimsu python3 $S/sizes.py [--limit N]` sweeps what's already tagged: `#Transfer&!traded&xxl`, then `xxs`. Each one is opened and its size badge must agree. Name -> `XXL`/`xxs` (a name that already says its size keeps it). Tags: IVC on, Transfer off. Run it once per account.
+XXS (2026-10-22): a Pokémon that was never traded and is XXS never gets Transfer. It's renamed `xxs` and tagged IVC. `/ivc` counts that name as done, and `/ivc` leaves sized IVC ones for the user.
+
+- `tradeable.py` does it to its own pile before the door walk. Every tag search and walk leaves out XXL ones, and the walk leaves out never-traded XXS ones.
+- `cleantrades.py` does it before step 2. Its power-ups, Evo and Transfer steps all search `&!xxl`.
+- `POGO_PHONE=android caffeinate -dimsu python3 $S/sizes.py [--limit N]` sweeps what's already tagged: `#&xxl&!#PvpC` (favorite on, trade, Transfer and IVC tags off), then `#Transfer&!traded&xxs` (name `xxs`, unless a name already says its size; IVC on, Transfer off). Each one is opened and its size badge must agree. Run it once per account.
 
 `traded` may miss trades from before Oct 2020 (SEARCH.md), so a very old trade could slip in.

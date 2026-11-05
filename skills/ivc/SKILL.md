@@ -29,7 +29,7 @@ Search terms and their bugs: `~/PoGO-inventory-scripts/skills/shared/SEARCH.md`.
 - **Weak lines:** a line is strong if any species in it (its mega or shadow form too) reaches `STRONG_AT` (90) on DialgaDex for any type. Data: `dialgadex-20261007.json`, pulled with `~/claude-plans/_scripts/dialgadex-scrape.mjs`. A weak line's final gets 1 spot (ties keep). The lucky and Dynamax rules still apply (`WEAK_EXTRAS`), and a name with an Elite TM move (`*`) keeps. A lucky one still gets the full top 5/6 non-shadow spots (the lucky rule, 2026-10-30). Never weak: gym defender lines, legendary/mythical/Ultra Beast lines, lines with a mega DialgaDex doesn't rate yet, and species missing from DialgaDex. `meta-overrides.txt` marks lines by hand.
 - **Vivillon patterns** (`COLLECT`): a DOOR in the Scatterbug line becomes LEAVE so the user picks.
 - **Keep** = favorite (star) + untick IVC. **Fail** = untick IVC + its final tag at the door (`../shared/door.py`: GIV, XLX, Transfer ...). Not sure: left as is, on the not-sure list. If it also has PvpC, only IVC gets unticked: /pvpc decides.
-- A fail with XXL/xxs in the name is left alone for the user. A name with no IV and no size (`FP*`) goes to the door.
+- An XXL one is never judged: the names pass makes it a favorite and takes IVC off (the user, 2026-11-04). A fail with xxs in the name is left alone for the user. A name with no IV and no size (`FP*`) goes to the door.
 - **98%/100% never go**, whatever the name says. The sort and the fallen-out step appraise each one before the door. A 98%+ one (a shadow: once purified) is kept instead.
 - **Fallen out:** older Pokémon with an /ivc name and no IVC tag that now fall outside the top (`fallen.json`, listed at the end of plan.txt). Shiny and costume ones are never touched. Not traded + caught 2016–2020 → tag GuaranteedLucky. Not traded + older than 300 days → tag Old. Anything else (traded, since a Pokémon trades only once, or newer) → its final tag at the door (star off, name cleared), or left as it is if the door isn't sure. Each one is judged again on its detail screen before anything changes. A sort that gets to the end does this itself, after the names pass (2026-11-01): it groups them (searches only), then opens and tags each one. Not after `--look`, or a sort cut off by `--limit`. On its own, on a sort run's folder: `run.py fallen <dir> [--limit N]` (`act-fallen` is the same thing, its old name).
 - It never transfers. It renames only the IVC ones still named after their species, or with a nickname that's no species.
@@ -46,8 +46,8 @@ One command, fall-outs included: `POGO_PHONE=android caffeinate -dimsu python3 ~
    - KEEP: favorites + unticks IVC. DOOR: the door.
    - An IVC one in another of the family's lists (a shadow, say) gets that list typed. A tile with the same name and CP but no IVC tag is an older keeper: it's passed.
 5. If a LOOK was named, it plans the family again and acts on the KEEPs that were waiting for it. Each Pokémon is still opened once.
-6. **Names pass** (runs before the sort, though it's listed last; `run.py names [--limit N] [--dry-run]` on its own). It walks what's left of `#IVC` and names what the sort can't:
-   - XXL/xxs ones. The sort leaves them out, so they only get named here. They keep IVC: the user decides on them.
+6. **Names pass** (runs before the sort, though it's listed last; `run.py names [--limit N] [--dry-run]` on its own). First, `#IVC&xxl` become favorites with IVC off. Then it walks what's left of `#IVC` and names what the sort can't:
+   - xxs ones. The sort leaves them out, so they only get named here. They keep IVC: the user decides on them.
    - A nickname that's no species. It's opened, and the detail screen tells the species (see **Nickname** below).
    - One still named after its species that the sort couldn't look at.
    The sort right after ranks what it named. Done names (`87/96 A*`, `FP*`, `xxs`) and Pvp names are passed over.

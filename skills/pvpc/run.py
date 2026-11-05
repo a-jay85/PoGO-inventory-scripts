@@ -515,7 +515,7 @@ def fall_here(pool, n, c, gate):
     traded = True if lucky else page["traded"]
     if traded is None or page["caught"] is None and not traded:
         return False, f"beaten everywhere, but traded {traded} / caught {page['caught']} didn't read: left as it is"
-    if not traded and costume is False and not icons["shiny"]:
+    if not traded and costume is False and not icons["shiny"] and base.extras(texts)[2] != "XXL":  # (XXL: the door keeps it)
         old = (time.time() - time.mktime(page["caught"].timetuple())) / 86400 > fallen.OLD_DAYS
         g = "GuaranteedLucky" if 2016 <= page["caught"].year <= 2020 else "Old" if old else None
         if g:

@@ -104,6 +104,7 @@ def swipe_up():
 
 def sign_out():
     """from the map to the game's sign-in screen (RETURNING PLAYER)"""
+    home.forget_storage()
     last, same = None, 0
     for _ in range(30):
         screen, texts, path, bounds = home.look()

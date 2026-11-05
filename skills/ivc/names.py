@@ -18,7 +18,7 @@ import ui, pvp
 import base
 from base import Stop, Skip, log, keep_capture, go, wait_for, appraise, think, back_to_list, scroll_for_new, front, settle, \
     extras, drag, open_tile, exact_ivs, do_rename
-import ivc, door
+import ivc, door, search
 
 MAX_SKIPS_IN_A_ROW = 5
 END_AFTER_STALE = 3
@@ -335,6 +335,10 @@ def main(limit, dry):
         seen.update(t[1] for t in ts)
         p = pick(ts, passed)
         if not p:
+            if search.list_ended(ts):
+                log("end of list (room for another row, none there)")
+                counts["end"] = 1
+                break
             fresh, scroll_how = scroll_for_new(ts, seen, bounds, scroll_how)
             stale = 0 if fresh else stale + 1
             if stale >= END_AFTER_STALE:

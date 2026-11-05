@@ -26,7 +26,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import ui
 import base
 from base import Stop, Skip, log, go, wait_for
-import search, session
+import search, session, home
 import cleantrades as ct
 from taps import Pass, next_one, press
 from tagsheet import search_exact, sheet_rows, still_sheet, tick, sheet_down, tag_chips
@@ -168,7 +168,8 @@ def sweep(limit, who):
 def script(limit):
     base.start()
     search.to_search_list()
-    who = ct.account()
+    who = home.trainer()
+    search.to_search_list()  # (trainer() can end on the map)
     log(f"signed in as {who}")
     sweep(limit, who)
 

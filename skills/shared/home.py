@@ -109,7 +109,15 @@ def where(path, texts):
 
 
 def look():
-    return base.look(where)
+    got = base.look(where)
+    note_storage(got[1])
+    return got
+
+
+def note_storage(texts):
+    limit = storage_limit(texts)
+    if limit is not None:
+        SEEN_LIMIT.update(n=limit, twice=limit == SEEN_LIMIT["n"])
 
 
 def press_text(texts, bounds, word):
@@ -291,10 +299,12 @@ def start(storage=True):
                 return screen
             search.off_map()
             try:
-                got = base.wait_for(*STORAGE, timeout=8)[0]
-                if got == "list":  # opened from the map: at the top (seen on the iPhone, 2026-11-02)
+                got = base.wait_for(*STORAGE, timeout=8)
+                if got[0] == "list":  # opened from the map: at the top (seen on the iPhone, 2026-11-02)
                     search.scrolled = False
-                return got
+                    note_storage(got[1])  # the bar is empty only now: two reads here spare trainer() clearing it later
+                    look()
+                return got[0]
             except Stop:
                 log("  the Pokémon list didn't open from the map: trying again")
         elif screen == "exit":  # Back on the map asks this: so it's the map under it
@@ -384,7 +394,22 @@ def squash(s):
     return re.sub(r"[IL1|!]", "I", re.sub(r"\s+", "", s.upper()))
 
 
-BIG_STORAGE = 12900, "HashTagAJay"  # a storage limit this high or higher is that account's (user, 2026-11-02)
+# which account, by the storage limit: HashTagAJay's 12900, CyrillJan's 7875. Under LEAST_STORAGE is a misread
+BIG_STORAGE = 10_000, "HashTagAJay"
+LEAST_STORAGE = 5_000
+SEEN_LIMIT = {"n": None, "twice": False}  # the limit in the Pokémon screen's header, as look() last read it
+
+
+def by_storage(limit):
+    """the trainer a storage limit belongs to, or None if it can't be either's"""
+    if limit >= BIG_STORAGE[0]:
+        return BIG_STORAGE[1]
+    return next(n for n in TRAINERS if n != BIG_STORAGE[1]) if limit >= LEAST_STORAGE else None
+
+
+def forget_storage():
+    """the account is changing"""
+    SEEN_LIMIT.update(n=None, twice=False)
 
 
 def storage_limit(texts):
@@ -442,18 +467,25 @@ def profile(texts):
 
 
 def trainer(fast=True):
-    """the signed-in trainer's name. fast: on the Pokémon screens, a storage limit of BIG_STORAGE or more tells it (no profile
-    trip; ends there). Otherwise read off the profile (ME tab) from the map, ending on the map. Starts anywhere"""
+    """the signed-in trainer's name. fast: the storage limit tells it, read twice the same. The header only shows it
+    over an empty search ('Q (33)' over any other), so a look on the way in counts, and otherwise the bar gets cleared
+    (ends on the Pokémon screen). Else read off the profile (ME tab) from the map, ending on the map. Starts anywhere"""
     if fast and not profile(look()[1]):  # (on the profile: the name is right there)
         start()
-        for _ in range(3):
-            screen, texts, path, bounds = look()
-            if (limit := storage_limit(texts)) is not None:
-                if limit >= BIG_STORAGE[0]:
-                    log(f"signed in: {BIG_STORAGE[1]} (its {limit} storage)")
-                    return BIG_STORAGE[1]
+        cleared = False
+        for _ in range(6):
+            if SEEN_LIMIT["twice"]:
+                who = by_storage(SEEN_LIMIT["n"])
+                if who:
+                    log(f"signed in: {who} (its {SEEN_LIMIT['n']} storage)")
+                    return who
                 break
-            time.sleep(0.5)
+            screen, texts, path, bounds = look()
+            if storage_limit(texts) is None and not cleared and {"TAGS", "EGGS"} <= {ui.norm(t[4]) for t in texts}:
+                search.clear_search()
+                cleared = True
+            elif storage_limit(texts) is None:
+                time.sleep(0.5)
     start(storage=False)
     for _ in range(12):
         screen, texts, path, bounds = look()

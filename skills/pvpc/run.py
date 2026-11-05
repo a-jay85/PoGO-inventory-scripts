@@ -682,6 +682,10 @@ def main(limit, dry):
             if dry:
                 log("DRY nothing to do on this screen, would scroll")
                 return counts
+            if search.list_ended(ts):
+                log("end of list (room for another row, none there)")
+                counts["end"] = 1
+                break
             fresh, scroll_how = scroll_for_new(ts, seen, bounds, scroll_how)
             stale = 0 if fresh else stale + 1
             if stale >= END_AFTER_STALE:

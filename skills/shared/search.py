@@ -10,6 +10,7 @@ from PIL import Image
 
 import sys
 HERE = os.path.dirname(os.path.realpath(__file__))
+import pagefacts
 import ui
 import base
 from base import Stop, Skip, Lost, GYM, log, keep_capture, go, tap, wait_for, key, type_text, back_to_list, scroll, front
@@ -847,6 +848,9 @@ def run_search(q, iv_only=False, edit=False):
     return read_results(q, path, texts, bounds, iv_only)
 
 
+BUBBLES = set()  # (name, cp) of every tile read in this run that showed a lucky's gold bubbles
+
+
 def read_results(q, path, texts, bounds, iv_only=False):
     """read every tile of the results on screen (any search: typed, or a saved one). q: for the log. -> as run_search"""
     if leave_multiselect(texts, bounds):
@@ -858,6 +862,7 @@ def read_results(q, path, texts, bounds, iv_only=False):
     most, sightings, seen, stale, last, together = Counter(), Counter(), set(), 0, None, set()
     for turn in range(300):
         now = Counter((ui.tile_name(t[0]), t[1]) for t in ui.tiles(texts))
+        BUBBLES.update((ui.tile_name(t[0]), t[1]) for t in ui.tiles(texts) if pagefacts.tile_icons(path, t).get("lucky"))
         now.update(nameless(texts))
         if turn == 0:
             now.update(top_row(path, texts))

@@ -265,7 +265,7 @@ def make_name(species, ivs, level=None):
 # ---------- owned Pokémon: forms, lines and in-game searches (shared with /ivc) ----------
 
 REGIONS = {"alolan": "alola", "galarian": "galar", "hisuian": "hisui", "paldean": "paldea"}
-POOL_TERMS = {"shadow": "&shadow", "plain": "&!shadow", "lucky": "&lucky", "dmax": "&dynamax,gigantamax", "gym": ""}
+POOL_TERMS = {"shadow": "&shadow", "plain": "&!shadow", "lucky": "&lucky&", "dmax": "&dynamax,gigantamax", "gym": ""}
 PARENT_FIX = {"raticate": "rattata", "darmanitan_galarian_standard": "darumaka_galarian",  # game data points
               "darmanitan_galarian_zen": "darumaka_galarian"}  # these at the wrong region's pre-evolution
 

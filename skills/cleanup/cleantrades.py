@@ -41,7 +41,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import ui
 import base
 from base import Stop, Skip, log, keep_capture, go, look, wait_for
-import search, session
+import search, session, home
 import pvp
 import powerup
 from taps import Pass, next_one
@@ -51,25 +51,6 @@ from rules import CLEAN, TRANSFER, EVO, TRADE_EVOS, EVO_FOR, UNDER_360_XL, BULK_
 
 
 TAGGING = [("PvpC1", "PvpC"), ("PvpC2", "PvpC"), ("IV Check", "IVC")]
-BIG = 10_000  # storage max: HashTagAJay 13,000, CyrillJan 7,875 (2026-10-22)
-
-
-def account():
-    """which account, by the storage max over the empty search ('7874 / 7875'): HashTagAJay's is thousands higher"""
-    for _ in range(3):
-        search.clear_search()
-        for _ in range(8):
-            time.sleep(0.3)
-            texts = look()[1]
-            got = [int(m.group(1).replace(",", "")) for t in texts if t[1] < 0.15
-                   and (m := re.fullmatch(r"\d[\d,]{2,}\s*/\s*(\d[\d,]{2,})\W?", t[4].strip()))]  # (not the 10/12 shortcuts)
-            # \W?: on the iPhone the bar's edge can read as a '|' stuck on the end ('12900/12900|')
-            if len(got) == 1:
-                who = "HashTagAJay" if got[0] > BIG else EVO_FOR
-                log(f"storage {got[0]:,}: {who}")
-                return who
-    keep_capture("account")
-    raise Stop("can't read the storage max, so can't tell which account this is")
 
 
 def power_walk(limit, query=None):
@@ -167,7 +148,8 @@ def script(a):
     limit = session.limit(a)
     base.start()  # from anywhere, Pokémon GO closed too
     search.to_search_list()
-    who = None if LOOK else account()
+    who = None if LOOK else home.trainer()
+    search.to_search_list()  # (trainer() can end on the map)
     if who != EVO_FOR and ("evo" in a or "fix" in a):
         raise Stop(f"signed in as {who!r}: only {EVO_FOR} tags free evolutions Evo")
     if LOOK:

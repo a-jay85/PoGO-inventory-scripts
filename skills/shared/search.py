@@ -18,8 +18,9 @@ from base import Stop, Skip, Lost, GYM, log, keep_capture, go, tap, wait_for, ke
 ZOOM = ui.TMP + "_zoom.png"
 END_AFTER_STALE = 3
 # Pixel rows are 0.165 apart and a row down to ~0.83 still reads. A list whose lowest tile sits above this had room
-# for another row: that's its end, no drags needed (3 stale drags on a short list cost ~10s). iPhone: not measured
-LAST_ROW_ABOVE = 0.6 if ui.ANDROID else 0
+# for another row: that's its end, no drags needed (3 stale drags on a short list cost ~10s). The iPhone's rows sit
+# the same (0.327, 0.492, 0.655, 0.82, measured 2026-11-05)
+LAST_ROW_ABOVE = 0.6
 MAX_SKIPS_IN_A_ROW = 5
 # a new search typed over a scrolled list shows its results scrolled the same way, so the top rows are never read.
 # Dragging back up isn't safe (one pull-down too many closes the Pokémon screen), and a tab switch doesn't reset a list
@@ -58,6 +59,11 @@ def read_tiles(texts, path, odd=None):
     return out
 
 
+def list_ended(ts):
+    """these tiles leave room for another row: nothing more to scroll to"""
+    return bool(ts) and max(t[3] for t in ts) < LAST_ROW_ABOVE
+
+
 def walk_list(visit, limit=10 ** 9, stop=None, odd=None):
     """call visit(i, name, cp) on each tile of the open list once, top to bottom. visit returns True if the tile
     left the list (so it isn't counted as passed). Ends after END_AFTER_STALE scrolls with nothing new.
@@ -81,7 +87,7 @@ def walk_list(visit, limit=10 ** 9, stop=None, odd=None):
             if here[(n, c)] > passed[(n, c)]:
                 pick = (i, n, c)
                 break
-        if not pick and ts and max(t[3] for t in ts) < LAST_ROW_ABOVE:
+        if not pick and list_ended(ts):
             log("end of list (room for another row, none there)")
             return
         if not pick:

@@ -1122,7 +1122,7 @@ def names(limit, dry=False):
     if not dry:
         sys.path.insert(0, os.path.join(HERE, "..", "cleanup"))
         import sizes
-        sizes.keep_search(f"#{TAG}&xxl", limit)
+        sizes.keep_search(f"xxl&#{TAG}", limit)  # (not ending in xxl: the read of the bar drops its thin last l)
     counts = ivcrun.main(limit, dry)
     counts.pop("end", 0)
     log(f"names pass: {dict(counts)}")

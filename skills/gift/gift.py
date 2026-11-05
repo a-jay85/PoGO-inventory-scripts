@@ -13,7 +13,7 @@ Each phone runs in its own process (ui.py keeps one phone's state in module glob
 Order: the "iii" search (no gift from me, not played with today) before "lll" (opened my gift or played with me
 today). Inside each, the time zones farthest ahead first: lasia, leuro, latam, ea, ce, mo, then the rest. The list
 is sorted "Can receive a gift", arrow down: friends who can take a gift come first, so the first row with the grey
-already-sent badge ends that search.
+already-sent badge ends that search. A friend with a Remote Trade sits on top whatever the sort, so their badge doesn't count.
 
 Before each gift the friendship screen is checked. When the next heart is the 3rd, 4th or 5th, or it's the Forever
 Friends bar: 1 point to go -> no gift, nickname "WAIT <old>"; 2 points -> gift, nickname "SENT <old>".
@@ -32,6 +32,8 @@ Nicknames hold 12 characters: the space goes first, then letters off the end. On
 alone, and the log says to tag it by hand.
 The iPhone types the text shortcuts (iii, lasia ...) and lets iOS expand them. If the box still shows a shortcut, it types
 every search in full for the rest of the run. Android always types them in full.
+A search that ends in a shortcut and finds nobody gets one space added: sometimes the search hadn't run.
+If it still finds nobody and the box ends in part of the shortcut ('...&las'), it types every search in full too.
 If Mirroring froze and the same preview is still there after the wait, it taps SEND once more, never a third time.
 """
 import argparse, difflib, os, random, re, subprocess, sys, time
@@ -70,6 +72,7 @@ ZONES = [  # farthest ahead of Pacific time first; "" (no zone) last picks up ev
     ("rest", ""),
 ]
 SHORT = {FIRST: "iii", THEN: "lll", ZONES[0][1]: "lasia", ZONES[1][1]: "leuro", ZONES[2][1]: "latam"}
+SHORT_SPEED = ("2", "1", "100")  # iPhone, ms, for a text shortcut: after Shift, key held, between keys
 NICK_MAX = 12  # the game keeps the first 12 characters of a friend nickname
 TYPEABLE = re.compile(r"[A-Za-z0-9 .,&!#+/*^=?$:;-]*")  # what the helper's keyboard (and adb) can type
 X_BUTTON = (0.5, 0.937)  # the round X at the bottom middle (friend page, friendship screen, picker, gift preview)
@@ -443,7 +446,9 @@ def type_query(parts):
     then the space comes off"""
     for p in parts:
         if shortcuts and p in SHORT:
-            base.type_text(SHORT[p] + " ")
+            # slow keys, so iOS can offer the replacement before the space. All in one send: 'iii' and then a space
+            # on its own never expands (2026-11-05, every pause tried)
+            base.type_text(SHORT[p] + " ", speed=SHORT_SPEED)
             time.sleep(0.3)
             base.key("delete")
         elif p:
@@ -463,6 +468,15 @@ def whole(box, q):
     search, so a short read (no '&' in it) is all there is. 2026-11-02: the 'iii' was lost and 'mo' alone ran"""
     t = ui.norm(box[4]).replace(" ", "").rstrip("X") if box else ""
     return not t or "&" in t or len(t) >= min(len(q), 20)
+
+
+def cut_short(line, part):
+    """the box ends in the start of a shortcut, not what it expands to ('...&!EGG&las', 'le6': 2026-11-05, both read (0)).
+    (ui.norm drops the digit OCR adds, and rstrip the box's clear X)"""
+    if part not in SHORT:
+        return False
+    t, short = ui.norm(line).replace(" ", "").rstrip("X"), SHORT[part].upper()  # ('&' can read as a letter: '&!EGGQle')
+    return any(t.endswith(short[:k]) for k in range(2, len(short) + 1))
 
 
 def commit_search():
@@ -510,7 +524,9 @@ def search(*parts):
     q = "".join(parts)
     for attempt in range(4):
         to_top()
-        if search_line() and ui.norm(search_line()[4]) != "TRAINER NICKNAME":
+        box = search_line()
+        if box and (ui.norm(box[4]) != "TRAINER NICKNAME" or not rows()):
+            # (an empty box and no friends: a stopped search can leave this. They never load until the X: 2026-11-05)
             tap(*CLEAR_SEARCH, fuzz=0.004)
             time.sleep(1.0)
             look()
@@ -541,6 +557,18 @@ def search(*parts):
         if not whole(box, q):
             log(f"the box holds only part of {q!r}: typing it again")
             continue
+        last = [p for p in parts if p][-1]
+        if n == 0 and short and last in SHORT:
+            # iOS: with a shortcut as the last thing typed, the search sometimes doesn't run (the user, 2026-11-05)
+            n = add_space(n)
+            log(f"  after the space: ({n})")
+            if n is None:
+                continue
+            box = search_line()
+            if n == 0 and box and cut_short(box[4], last):
+                shortcuts = False
+                log(f"the box still ends in part of {SHORT[last]!r} ({box[4]!r}): typing searches out in full from now on")
+                continue
         if n == 0 or rows():
             return n
         n = add_space(n)
@@ -553,7 +581,7 @@ def search(*parts):
 def add_space(n):
     """a known game bug: a count with an empty list. A space added to the end runs the search again -> the count"""
     global typed
-    log(f"the search shows ({n}) but no rows: adding a space")
+    log(f"the search shows ({n}) and no rows: adding a space")
     box = search_line()
     tap_text(box) if box else tap(0.45, 0.22)
     time.sleep(1.2)
@@ -624,7 +652,7 @@ def rows():
     row whose name sits just above 0.26 keeps its nickname: else the nickname reads as a name, with that row's
     badge under it, and the search ends there"""
     col = sorted((t for t in texts if 0.26 < t[0] < 0.32 and 0.15 < t[1] < 0.85 and t[4].strip()
-                  and "SENT YOU" not in ui.up(t) and "TRADE REQUEST" not in ui.up(t)), key=lambda t: t[1])  # ('<name> sent you a Lucky Remote Trade request.')
+                  and not re.search(r"SENT YOU|TRADE REQUEST|REMOTE TRADE|^REQUEST\.$", ui.up(t).strip())), key=lambda t: t[1])  # ('<name> sent you a Lucky Remote Trade request.', three lines)
     out, last = [], None
     for t in col:
         if last is not None and t[1] - last[1] < 0.035:
@@ -635,7 +663,9 @@ def rows():
         if len(clean(t[4])) >= 3:
             out.append([t, ""])
     im = Image.open(path).convert("RGB")
-    return [{"name": clean(t[4]), "nick": nick, "t": t, "badged": badged(im, t[1])} for t, nick in out if t[1] > 0.26]
+    trade = lambda t: any("REMOTE TRADE" in ui.up(o) and 0 < o[1] - t[1] < 0.1 for o in texts)
+    return [{"name": clean(t[4]), "nick": nick, "t": t, "badged": badged(im, t[1]), "trade": trade(t)}
+            for t, nick in out if t[1] > 0.26]
 
 
 def same_name(a, b):
@@ -1249,7 +1279,8 @@ def run_searches(limit):
                     stale, fresh, top = 0, True, True
                     continue
                 on_screen = rows()
-                todo = [r for r in on_screen if r["name"] not in done]
+                # a Remote Trade friend stays at the top whatever the sort: their arrow says nothing about the rest
+                todo = [r for r in on_screen if r["name"] not in done and not (r["trade"] and r["badged"])]
                 if todo and todo[0]["badged"]:
                     if top:
                         break  # sorted can-receive first, and the first friend not done has the arrow: nobody left

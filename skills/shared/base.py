@@ -481,13 +481,11 @@ def go(target, *screens):
         try:
             return wait_for(*screens, timeout=4, capture=False)
         except Stop:
-            if ui.ANDROID:  # (POGO_SCRCPY=1) scrcpy's picture can lag or stall: check the phone's own screen before tapping again
-                stuck = ui.android.fresh()
+            if ui.ANDROID:  # a slow screen isn't a lost tap: wait some more before tapping again
                 try:
                     return wait_for(*screens, timeout=4, capture=False)
                 except Stop:
-                    if stuck:
-                        raise Stop(f"tap {target}: scrcpy's picture was stuck, not sure where the phone is")
+                    pass
             if ui.ANDROID:  # a tap read as a long press: the list is in multi-select and won't open tiles
                 path, bounds = ui.capture()
                 if search.leave_multiselect(ui.ocr(path), bounds):
@@ -704,8 +702,6 @@ def tag_sheet_step(up=False, big=False):
     _, before, _, bounds = wait_for("tags")
     a, b = (0.3, 0.7) if big else (0.4, 0.62)
     drag(0.3, *((a, 0.3, b) if up else (b, 0.3, a)), bounds)
-    if ui.ANDROID:
-        ui.android.fresh()
     _, after, _, _ = wait_for("tags")
     return [t[4] for t in after] != [t[4] for t in before]
 
@@ -761,8 +757,6 @@ def tap_tag_row(T, name):
     for i in range(2):
         if i:
             time.sleep(0.4)
-            if ui.ANDROID:
-                ui.android.fresh()
         _, texts, _, bounds = wait_for("tags")
         rows = [t for t in texts if row_name(t[4]) == T]
         if len(rows) != 1:
@@ -787,7 +781,6 @@ def lift_tag_row(T):
             y, dy = random.randint(1150, 1250), random.randint(280, 320)
         ui.android.shell(f"input swipe {x} {y} {x + random.randint(-8, 8)} {y + dy} {random.randint(520, 680)}")
         time.sleep(0.5)  # the loop below waits for the rows to hold still
-        ui.android.fresh()  # a tap off a picture from before the scroll lands a row off (ticked PvpC for Nope)
         last = None
         for _ in range(8):  # then wait until the rows hold still
             _, texts, _, _ = wait_for("tags")

@@ -187,8 +187,6 @@ def close():
         if ui.android.adb("get-state").strip() == "device":
             lock()
             log("locked the phone")
-        if not ui.android.NO_WINDOW:
-            ui.android.close()
     elif mirroring_running():
         log("quit iPhone Mirroring" if quit_mirroring() else "couldn't quit iPhone Mirroring")
 

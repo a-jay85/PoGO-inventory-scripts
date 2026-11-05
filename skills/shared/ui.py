@@ -522,7 +522,7 @@ def check_rows(species, cp, hp, ivs, own=False):
 
 # ---------- icons (teal circles at the bottom) ----------
 
-TEAL_TOL = 52 if ANDROID else 24  # the Pixel: (22, 112, 137) through scrcpy, (64, 131, 146) in its own screenshot
+TEAL_TOL = 52 if ANDROID else 24  # the Pixel: (64, 131, 146) in its own screenshot
 
 
 def circles(path):

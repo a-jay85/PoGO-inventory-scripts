@@ -13,7 +13,7 @@ Each phone runs in its own process (ui.py keeps one phone's state in module glob
 Order: the "iii" search (no gift from me, not played with today) before "lll" (opened my gift or played with me
 today). Inside each, the time zones farthest ahead first: lasia, leuro, latam, ea, ce, mo, then the rest. The list
 is sorted "Can receive a gift", arrow down: friends who can take a gift come first, so the first row with the grey
-already-sent badge ends that search.
+already-sent badge ends that search. A friend with a Remote Trade sits on top whatever the sort, so their badge doesn't count.
 
 Before each gift the friendship screen is checked. When the next heart is the 3rd, 4th or 5th, or it's the Forever
 Friends bar: 1 point to go -> no gift, nickname "WAIT <old>"; 2 points -> gift, nickname "SENT <old>".
@@ -652,7 +652,7 @@ def rows():
     row whose name sits just above 0.26 keeps its nickname: else the nickname reads as a name, with that row's
     badge under it, and the search ends there"""
     col = sorted((t for t in texts if 0.26 < t[0] < 0.32 and 0.15 < t[1] < 0.85 and t[4].strip()
-                  and "SENT YOU" not in ui.up(t) and "TRADE REQUEST" not in ui.up(t)), key=lambda t: t[1])  # ('<name> sent you a Lucky Remote Trade request.')
+                  and not re.search(r"SENT YOU|TRADE REQUEST|REMOTE TRADE|^REQUEST\.$", ui.up(t).strip())), key=lambda t: t[1])  # ('<name> sent you a Lucky Remote Trade request.', three lines)
     out, last = [], None
     for t in col:
         if last is not None and t[1] - last[1] < 0.035:
@@ -663,7 +663,9 @@ def rows():
         if len(clean(t[4])) >= 3:
             out.append([t, ""])
     im = Image.open(path).convert("RGB")
-    return [{"name": clean(t[4]), "nick": nick, "t": t, "badged": badged(im, t[1])} for t, nick in out if t[1] > 0.26]
+    trade = lambda t: any("REMOTE TRADE" in ui.up(o) and 0 < o[1] - t[1] < 0.1 for o in texts)
+    return [{"name": clean(t[4]), "nick": nick, "t": t, "badged": badged(im, t[1]), "trade": trade(t)}
+            for t, nick in out if t[1] > 0.26]
 
 
 def same_name(a, b):
@@ -1277,7 +1279,8 @@ def run_searches(limit):
                     stale, fresh, top = 0, True, True
                     continue
                 on_screen = rows()
-                todo = [r for r in on_screen if r["name"] not in done]
+                # a Remote Trade friend stays at the top whatever the sort: their arrow says nothing about the rest
+                todo = [r for r in on_screen if r["name"] not in done and not (r["trade"] and r["badged"])]
                 if todo and todo[0]["badged"]:
                     if top:
                         break  # sorted can-receive first, and the first friend not done has the arrow: nobody left

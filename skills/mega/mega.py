@@ -433,16 +433,7 @@ def walk(q, limit, dry, free_only=False):
                 if total and pos > total:
                     log(f"all {total} seen")
                     break
-                to_list()
-                showing = len(settled_tiles())
-                if not showing:
-                    break
-                try:
-                    if not open_tile(pos, showing):
-                        log(f"the swipe to number {pos} didn't move: end of the list")
-                        break
-                except base.Lost:
-                    log(f"no tile {pos} on the list: end of the list")
+                if not reopen(pos):
                     break
                 continue
         except Pass as e:
@@ -453,12 +444,32 @@ def walk(q, limit, dry, free_only=False):
             break
         now = key(base.wait_for("detail")[1])
         if not next_one(None, lambda t: key(t)[1] is not None and key(t) != now):
-            log("the swipe didn't move: end of the list")
-            break
+            if not total:
+                log("the swipe didn't move: end of the list")
+                break
+            # a swipe can fail for 15 s with more to come (2026-11-05, at number 2 of 76)
+            log(f"the swipe didn't move, and there are {total}: back to the list for number {pos + 1}")
+            if not reopen(pos + 1):
+                break
         pos += 1
     log(f"done: {counts['done']} {'would Mega Evolve (dry run)' if dry else 'Mega Evolved'}, {counts['skip']} skipped, {time.time() - t_start:.0f}s")
     if look()[0] != "list":
         to_list()
+
+
+def reopen(pos):
+    """back to the list and open its pos-th Pokémon. -> False when there's no such one (logged)"""
+    to_list()
+    showing = len(settled_tiles())
+    if not showing:
+        return False
+    try:
+        if open_tile(pos, showing):
+            return True
+        log(f"the swipe to number {pos} didn't move: end of the list")
+    except base.Lost:
+        log(f"no tile {pos} on the list: end of the list")
+    return False
 
 
 def open_tile(pos, showing):

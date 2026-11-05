@@ -570,8 +570,8 @@ def plan(quiet=False):
     save("plan.json", out)
     fallen = fallen_candidates(scanned, results, wants)
     save("fallen.json", fallen)
-    lines += ["", f"FALLEN OUT: {len(fallen)} older Pokémon (no IVC tag) now outside the top. The end of the sort sorts them into "
-              "GuaranteedLucky / Old / the door; it checks each one again on the detail screen first."]
+    lines += ["", f"FALLEN OUT: {len(fallen)} older Pokémon (no IVC tag) now outside the top. The end of the sort sends them to "
+              "the door; it checks each one again on the detail screen first."]
     lines += [f"  {f['name']!r:16} CP{f['cp']:<5} {'shadow ' if f['shadow'] else ''}{'/'.join(f['species'])}: {f['why'][0]}"
               for f in fallen]
     grouped = load("fallen-groups.json") if os.path.exists(os.path.join(base.RUN_DIR, "fallen-groups.json")) else None
@@ -589,10 +589,7 @@ def plan(quiet=False):
 
 
 # ---------- fallen out ----------
-# Older Pokémon (no IVC tag) that the new keepers push out of the top. Not traded and caught 2016-2020 ->
-# GuaranteedLucky (a trade is guaranteed lucky). Not traded and older than OLD_DAYS -> Old. Anything else
-# (traded: a Pokémon can only be traded once, or newer) -> star off, its final tag at the door. A costume one always
-# goes to the door. Shiny ones are never touched.
+# Older Pokémon (no IVC tag) that the new keepers push out of the top: star off, final tag at the door (verdict.py).
 
 def ivc_name(n):
     """a name /ivc made ('96 HD', '87/96 A* XXL'), not another app's ('15/15/14')"""
@@ -1132,8 +1129,8 @@ def names(limit, dry=False):
 
 
 def fallen_out(limit):
-    """the fallen-out ones of this sort run: grouped (searches only), then each one opened and tagged GuaranteedLucky
-    / Old or sent to the door. A rerun on the same folder groups again: what's tagged by now drops out. It goes by
+    """the fallen-out ones of this sort run: grouped (searches only), then each one opened and sent to the door. A
+    rerun on the same folder groups again: what's tagged by now drops out. It goes by
     the fallen.json the sort's plan wrote (no new plan here: newer code can't read an older folder's searches)"""
     if not os.path.exists(os.path.join(base.RUN_DIR, "fallen.json")):  # no plan written: an empty pile
         log("fallen out: none (no plan in this run)")

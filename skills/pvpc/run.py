@@ -11,7 +11,7 @@
   caffeinate -dimsu python3 run.py fallen <run dir> [--limit N]   which older Pvp Pokémon the new names pushed out,
                                                                  in one pass per line: each line's search typed once,
                                                                  the beaten ones opened from that list and renamed (a
-                                                                 trim) or tagged GuaranteedLucky / Old / door (name
+                                                                 trim) or sent to the door for its final tag (name
                                                                  cleared) in the open that appraises them, until the
                                                                  line stops changing. act-fallen: same thing
   caffeinate -dimsu python3 run.py fallen --line <species>       the same pass on one line (plain and shadow) in a new
@@ -271,7 +271,7 @@ def pick(ts, skipped):
 # ---------- fallen out and trims ----------
 # New names can push older Pvp Pokémon out of the top. Per league and form only the best one owned keeps its place
 # (ties keep). One that's still best somewhere gets renamed to show just those leagues: a trim. One that's best
-# nowhere has fallen out, and fallen.py tags it GuaranteedLucky / Old / Nope (shared with /ivc).
+# nowhere has fallen out, and its final tag comes from the door (verdict.py, shared with /ivc).
 # A trim can make room for a league the old name had to leave out, and that league can beat someone else. So
 # act-fallen goes round until nothing changes. What a Pokémon really has comes from appraising it (truths.json);
 # until then, from what its name shows. The pool: every Pvp name in the line, read off in-game searches by dex number.
@@ -514,31 +514,12 @@ def mark(pool, n, c):
 
 
 def fall_here(pool, n, c, gate):
-    """on its detail screen, appraised, beaten everywhere: its final tag in this same open. Untraded + caught
-    2016-2020 -> GuaranteedLucky, untraded + older than fallen.OLD_DAYS -> Old, else the door. A costume one always
-    goes to the door (it names and stars one at 93%+), and so does a shiny one (verdict.shiny). Traded, shiny, the catch date: off the page and the tile (pagefacts, through the door).
+    """on its detail screen, appraised, beaten everywhere: its final tag from the door, in this same open
     -> (tagged?, what to log)"""
     info, texts = LAST_BARS[2:] if LAST_BARS else steady_detail()[:2]
-    icons = door.tile_icons(info)
-    costume = gate.has("costume", door.key(n, c))
-    if icons.get("shiny") is None or costume is None:  # (not marked: a read that failed is tried again next run)
-        return False, "beaten everywhere, but shiny or costume didn't read: left as it is"
     if gate.listed()[door.key(n, c)]:
         mark(pool, n, c)
         return False, "beaten everywhere, on the door's not-sure list: left as it is"
-    page = gate.page_bottom(info)
-    lucky = any(ui.norm(t[4]).startswith("LUCKY POK") for t in texts)
-    traded = True if lucky else page["traded"]
-    if traded is None or page["caught"] is None and not traded:
-        return False, f"beaten everywhere, but traded {traded} / caught {page['caught']} didn't read: left as it is"
-    if not traded and costume is False and not icons["shiny"] and base.extras(texts)[2] != "XXL":  # (XXL: the door keeps it)
-        old = (time.time() - time.mktime(page["caught"].timetuple())) / 86400 > fallen.OLD_DAYS
-        g = "GuaranteedLucky" if 2016 <= page["caught"].year <= 2020 else "Old" if old else None
-        if g:
-            set_tags(on=[g], off=["PvpC"])
-            base.clear_name()  # an old Pvp name would bring it back as a rival
-            mark(pool, n, c)
-            return True, f"beaten everywhere: tagged {g}, name cleared"
     keep, ivs, raws, iv = high_iv(*(LAST_BARS[:2] if LAST_BARS else (None, None)))
     if keep:
         mark(pool, n, c)

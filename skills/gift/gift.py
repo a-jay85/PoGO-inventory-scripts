@@ -38,8 +38,9 @@ Take over mid-run and close the gift list, and it goes back to the friend list, 
 account in ~/.config/pogo/gift_iii_<trainer>.json, and later runs that day skip it. Finished means the list ran out (or
 two searches read 0) with every friend dealt with. A grey SEND GIFT, a misread page, a lost screen, a raid, --limit,
 no gifts left or a stop leave it unfinished, and so does --dry-run. An unread trainer name remembers nothing. "lll" is
-always searched: friends move into it during the day. A friend new to "iii" today (just added, WAIT taken off) waits
-for midnight, or delete that file.
+always searched: friends move into it during the day. So is "iii" + rest: a friend just added has no zone yet, so that's
+where they land. A friend with a zone who rejoins a finished "iii" search today (WAIT taken off) waits for midnight, or
+delete that file.
 """
 import argparse, difflib, json, os, random, re, subprocess, sys, time
 from PIL import Image
@@ -1260,7 +1261,8 @@ def run_searches(limit):
     for first, base_q in (("iii", FIRST), ("lll", THEN)):
         prev = None
         for zone, zq in ZONES:
-            if first == "iii" and zone in iii_finished():
+            remembered = first == "iii" and zone != "rest"  # (rest: where a friend added today lands)
+            if remembered and zone in iii_finished():
                 log(f"iii + {zone}: finished earlier today: skipped")
                 continue  # (prev stays: the box still holds that search)
             t0 = time.time()
@@ -1272,7 +1274,7 @@ def run_searches(limit):
                 n = search(base_q, zq)
             prev = zq
             log(f"{first} + {zone}: ({n}) ({time.time() - t0:.0f}s)")
-            if n == 0 and first == "iii":  # (a list slow to load can read 0: one false 0 would lose them all day)
+            if n == 0 and remembered:  # (a list slow to load can read 0: one false 0 would lose them all day)
                 n = search(base_q, zq)
                 if n == 0:
                     iii_remember(zone, day)
@@ -1394,7 +1396,7 @@ def run_searches(limit):
                         return sent, None
                 to_list()
                 fresh = True
-            if first == "iii" and finished and not missed:
+            if remembered and finished and not missed:
                 iii_remember(zone, day)
     return sent, "nobody left who can take one"
 

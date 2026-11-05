@@ -172,7 +172,7 @@ def candy_xl_close(path, texts=None):
 
 
 def bottom(reads):
-    """reads: the page bottom's texts, one list per read (trades.scrolled_bottom). -> {"traded", "california"}:
+    """reads: the page bottom's texts, one list per read (tagsheet.scrolled_bottom). -> {"traded", "california"}:
     True / False, or None where it can't tell (the caught or hatched box didn't read)"""
     out = {"traded": None, "california": None}
     for texts in reads:

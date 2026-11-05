@@ -13,7 +13,7 @@ Claude Code skills that sort a Pokémon GO storage: `/pvpc`, `/ivc`, `/cleanup`,
 
 The skills import each other by relative path (`HERE/../shared`), so they must stay siblings under `skills/`.
 
-`pogo.py` (at the repo root) is the one front door: it runs any skill's script by step name, and chains steps with `+` (`pogo.py pvpc --limit 5 + ivc`). Each step is its own process. A new script gets a line in its `STEPS` table. Code two skills both need goes in `skills/shared/` (the shared library), never copied. The tapper (taps, timing, run folders, logging) is `skills/shared/base.py`; scripts `import base`.
+`pogo.py` (at the repo root) is the one front door: it runs any skill's script by step name, and chains steps with `+` (`pogo.py pvpc --limit 5 + ivc`). Each step is its own process. A new script gets a line in its `STEPS` table. Code two skills both need goes in `skills/shared/` (the shared library), never copied. The tapper (taps, timing, run folders, logging) is `skills/shared/base.py`; scripts `import base`. Also in `skills/shared/`: `taps.py` (one tap, the swipe to the next Pokémon, SELECT ALL, purify), `tagsheet.py` (exact search, detail page reads, the tag sheet), `savedsearch.py` (saved searches, tag a whole search), `powerup.py` (level reads, power-ups), `rules.py` (tag names and rule constants).
 
 ## Every change goes in a worktree, a PR and a squash-merge
 

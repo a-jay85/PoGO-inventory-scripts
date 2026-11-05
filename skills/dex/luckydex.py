@@ -18,13 +18,12 @@ import os, re, sys, time
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "shared"))
-sys.path.insert(0, os.path.join(HERE, "..", "cleanup"))
 import ui
 import base
 from base import Stop, log, keep_capture
 import home, search, session
 import dex
-import cleantrades as ct
+import savedsearch
 
 OWNER, SOURCE = "CyrillJan", "HashTagAJay"  # the shortcut is OWNER's, the list SOURCE's Lucky page
 NAME = "Luckydex"
@@ -35,7 +34,7 @@ RECENT_X = 0.165  # the leftmost (newest) Recent search
 BUTTON_UP = 0.055  # a shortcut's round button sits this far above its label
 HOLD_MS = 900
 BOX_X = (0.5, 0.937)  # the round X that closes the Manage Favorite Search box
-TOO_MANY = ct.key("too many search")  # 'You have too many search queries favorited...', a banner for a few seconds
+TOO_MANY = savedsearch.key("too many search")  # 'You have too many search queries favorited...', a banner for a few seconds
 
 
 def hold(fx, fy, bounds):
@@ -79,7 +78,7 @@ def view(want):
         if any(ui.norm(t[4]) == "MANAGE FAVORITE SEARCH" for t in texts):
             search.click(*BOX_X, bounds)
             continue
-        if TOO_MANY in ct.key(ui.joined(texts)):  # 12 already. Its banner blurs the labels under it: wait it out
+        if TOO_MANY in savedsearch.key(ui.joined(texts)):  # 12 already. Its banner blurs the labels under it: wait it out
             log("  the game says there are too many favorites")
             time.sleep(1.5)
             continue
@@ -104,23 +103,23 @@ def handle(q):
 
 
 def keyed(q):
-    return ct.key(handle(q))
+    return savedsearch.key(handle(q))
 
 
 def unnamed(texts, q):
     """a favorite still named after q's start (not renamed yet)?"""
-    return ct.find_label(ct.labels(texts), handle(q)) is not None
+    return savedsearch.find_label(savedsearch.labels(texts), handle(q)) is not None
 
 
 def manage(name, action):
     """hold a favorite, tap Rename or Remove in its box. -> texts, bounds of what opened"""
     for _ in range(3):  # OCR now and then misreads a label ('Luckyaex')
         texts, bounds = view("favorite")
-        lab = ct.find_label(ct.labels(texts), name)
+        lab = savedsearch.find_label(savedsearch.labels(texts), name)
         if lab:
             break
     else:
-        raise Stop(f"no {name!r} favorite to {action.lower()}: {sorted(ct.labels(texts))}")
+        raise Stop(f"no {name!r} favorite to {action.lower()}: {sorted(savedsearch.labels(texts))}")
     hold(lab[0], lab[1] - BUTTON_UP, bounds)
     for _ in range(6):
         time.sleep(0.5)
@@ -142,7 +141,7 @@ def remove(name):
         raise Stop(f"no 'remove this search' box for {name!r}")
     search.click(yes[0] + yes[2] / 2, yes[1] + yes[3] / 2, bounds)
     texts, _ = view("favorite")
-    if ct.find_label(ct.labels(texts), name):
+    if savedsearch.find_label(savedsearch.labels(texts), name):
         raise Stop(f"{name!r} is still a favorite after Remove")
     log(f"removed {name!r}")
 
@@ -156,7 +155,7 @@ def rename(name, to):
     for _ in range(6):
         time.sleep(0.5)
         texts, bounds = read()
-        if any(ct.key(t[4]) == ct.key(to) for t in texts if t[1] < 0.5):
+        if any(savedsearch.key(t[4]) == savedsearch.key(to) for t in texts if t[1] < 0.5):
             break
     else:
         keep_capture("rename")
@@ -173,8 +172,8 @@ def rename(name, to):
         keep_capture("rename")
         raise Stop("no OK in the Set Search Name box")
     texts, _ = view("favorite")
-    if not ct.find_label(ct.labels(texts), to):
-        raise Stop(f"no {to!r} favorite after Rename: {sorted(ct.labels(texts))}")
+    if not savedsearch.find_label(savedsearch.labels(texts), to):
+        raise Stop(f"no {to!r} favorite after Rename: {sorted(savedsearch.labels(texts))}")
     log(f"renamed {name!r} to {to!r}")
 
 
@@ -187,7 +186,7 @@ def save_recent(q, n):
     first = row[0][4].split()[0] if row else ""
     count = next((int(t[4].replace(",", "")) for t in texts if rec + 0.12 < t[1] < rec + 0.2 and t[0] < 0.3
                   and re.fullmatch(r"[\d,]+", t[4].strip())), None)
-    if not ct.key(first).startswith(keyed(q)) or (count is not None and count != n):
+    if not savedsearch.key(first).startswith(keyed(q)) or (count is not None and count != n):
         keep_capture("recent")
         raise Stop(f"the newest Recent search reads {first!r} ({count}), wanted {q[:10]!r}... ({n})")
     hold(RECENT_X, row[0][1] - BUTTON_UP, bounds)
@@ -209,10 +208,10 @@ def bar_ends(want):
     else:
         return False
     ui.android.shell("input keyevent KEYCODE_MOVE_END")
-    end = ct.same_l(want.rstrip("&"))[-20:]  # the game drops a trailing & when it saves a search
+    end = savedsearch.same_l(want.rstrip("&"))[-20:]  # the game drops a trailing & when it saves a search
     for _ in range(4):
         time.sleep(0.5)
-        if any(ct.same_l(t[4]).endswith(end) for t in ui.ocr(ui.android.sharp())):
+        if any(savedsearch.same_l(t[4]).endswith(end) for t in ui.ocr(ui.android.sharp())):
             return True
     return False
 
@@ -234,9 +233,9 @@ def script(only_check=False):
     path, bounds = ui.capture()
     search.leave_multiselect(ui.ocr(path), bounds)
     n0 = dex.search_exact(lists[0])  # the list, checked whole on the bar
-    if not ct.append(SAFE):  # SAFE, checked on the bar's end (the list scrolls out of it)
+    if not savedsearch.append(SAFE):  # SAFE, checked on the bar's end (the list scrolls out of it)
         raise Stop("couldn't add the safe terms to the search")
-    n = ct.results()
+    n = savedsearch.results()
     log(f"the new search finds {n} (the list alone {n0})")
     _, bounds = read()
     if not search.x_button(bounds):  # cleared: only now is it a Recent search
@@ -255,12 +254,12 @@ def script(only_check=False):
     else:
         raise Stop(f"couldn't remove the favorites named {handle(q)!r}...")
     for _ in range(3):  # a misread ('Luckyaex') mustn't leave two of them
-        had = ct.find_label(ct.labels(texts), NAME)
+        had = savedsearch.find_label(savedsearch.labels(texts), NAME)
         if had:
             break
         texts, _ = view("favorite")
     else:
-        log(f"no {NAME} favorite yet: {sorted(ct.labels(texts))}")
+        log(f"no {NAME} favorite yet: {sorted(savedsearch.labels(texts))}")
     new = save_recent(q, n)
     if not new and had:  # 12 already: the old one goes first
         log(f"no room for another favorite: removing the old {NAME} first")
@@ -279,10 +278,10 @@ def script(only_check=False):
 
 
 def run_saved(name):
-    """tap a favorite with the keyboard down (ct.run_shortcut keeps it up, and it hides the 3rd row). -> its count"""
+    """tap a favorite with the keyboard down (savedsearch.run_shortcut keeps it up, and it hides the 3rd row). -> its count"""
     for _ in range(3):
         texts, bounds = view("favorite")
-        lab = ct.find_label(ct.labels(texts), name)
+        lab = savedsearch.find_label(savedsearch.labels(texts), name)
         if not lab:
             continue
         search.click(lab[0], lab[1] - BUTTON_UP, bounds)
@@ -290,7 +289,7 @@ def run_saved(name):
         texts, bounds = read()
         if any(ui.norm(t[4]) == "MANAGE FAVORITE SEARCH" for t in texts):  # the tap was a long press
             continue
-        return ct.results(texts)
+        return savedsearch.results(texts)
     keep_capture("shortcut")
     raise Stop(f"couldn't run the {name!r} favorite")
 

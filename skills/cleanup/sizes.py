@@ -25,14 +25,15 @@ import base
 from base import Stop, Skip, log, go, wait_for
 import search, session
 import cleantrades as ct
-from shadows import Pass, next_one, press
-from trades import search_exact, sheet_rows, still_sheet, tick, sheet_down
+from taps import Pass, next_one, press
+from tagsheet import search_exact, sheet_rows, still_sheet, tick, sheet_down
+from savedsearch import results, tag_pile
+from rules import EVO_FOR, TRADE_EVOS, NAMES
 
 IVC, TRANSFER = "IVC", "Transfer"
-NAMES = {"xxl": "XXL", "xxs": "xxs"}  # search term -> nickname, as ivc.make_name spells them
 SWEEP = f"#{TRANSFER}&!traded&%s"
 GIV = "GIV"
-EVO_SWEEP = f"#{TRANSFER}&!traded&!shadow&!xxl&!xxs&!#{GIV}&{ct.TRADE_EVOS}"
+EVO_SWEEP = f"#{TRANSFER}&!traded&!shadow&!xxl&!xxs&!#{GIV}&{TRADE_EVOS}"
 
 
 def same(got, want):
@@ -49,7 +50,7 @@ def retag():
     go("TAG", "tags")
     left = {IVC.upper(): True, TRANSFER.upper(): False}  # tag -> the tick it should end with
     names = {t.upper(): t for t in (IVC, TRANSFER)}
-    with base.changing("ticking tags"):  # the row's box, like ct.tag_pile: the word Transfer is never tapped
+    with base.changing("ticking tags"):  # the row's box, like tag_pile: the word Transfer is never tapped
         same, before = 0, None
         for _ in range(30):
             texts, path, bounds = still_sheet()
@@ -123,16 +124,16 @@ def walk(find, size, limit):
 def sweep(limit, who):
     for size in NAMES:
         q = SWEEP % size
-        n = walk(lambda: (search_exact(q), ct.results())[1], size, limit)
+        n = walk(lambda: (search_exact(q), results())[1], size, limit)
         log(f"{q}: {n} renamed {NAMES[size]} and tagged {IVC}")
         limit -= n
-        left = (search_exact(q), ct.results())[1]
+        left = (search_exact(q), results())[1]
         if left:
             log(f"{q}: {left} still there (passed over or --limit): look at them by hand")
     # then a never-traded trade evolution (free to evolve once traded): GIV, Transfer off. After the sizes: one
-    # passed over there stays out. Not a shadow: it can't be traded. Only toward ct.EVO_FOR, who wants the XP
-    if who != ct.EVO_FOR:
-        ct.tag_pile(TRANSFER, GIV, off=[TRANSFER], query=EVO_SWEEP)
+    # passed over there stays out. Not a shadow: it can't be traded. Only toward EVO_FOR, who wants the XP
+    if who != EVO_FOR:
+        tag_pile(TRANSFER, GIV, off=[TRANSFER], query=EVO_SWEEP)
 
 
 def script(limit):

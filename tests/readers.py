@@ -20,7 +20,7 @@ for d in ("shared", "cleanup", "dex", "trade", "gift", "mega", "ivc"):
     sys.path.append(os.path.join(SKILLS, d))
 
 import base, search, ui  # noqa: E402
-import trades, cleantrades, dex, trade, gift, mega  # noqa: E402
+import tagsheet, savedsearch, dex, trade, gift, mega  # noqa: E402
 
 
 def by_path(name, rel):
@@ -169,8 +169,8 @@ BADGES = {k: texts((0.69, v)) for k, v in {"days": "5 DAYS", "1 day": "1 DAY", "
 
 
 def strict(got, q):
-    trades._views.clear()
-    return [trades.strict(got, q), list(map(list, trades._views))]
+    tagsheet._views.clear()
+    return [tagsheet.strict(got, q), list(map(list, tagsheet._views))]
 
 
 def in_bar(phone):
@@ -193,8 +193,8 @@ PAIRED = {
 SINGLE = {
     "trade.same_l": trade.same_l,
     "trade.pile": trade.pile,
-    "cleantrades.same_l": cleantrades.same_l,
-    "cleantrades.key": cleantrades.key,
+    "cleantrades.same_l": savedsearch.same_l,
+    "cleantrades.key": savedsearch.key,
     "run.short": base.short,
     "ivc.short": ivc_run.short,
 }

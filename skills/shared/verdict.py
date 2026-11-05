@@ -42,8 +42,8 @@ from base import ALWAYS_KEEP  # an IV sum of 98%+ never loses its star
 import tradeable as tr  # the order, the numbers and the species lists: one copy, there
 from tradeable import GIVER, TAKER, XL_CAP, XLX_FOR
 from ivc import GYM_DEFENDERS, make_name as ivc_name
-from sizes import NAMES as SIZE_NAMES  # a never-traded XXL/XXS one gets this name and IVC
-from cleantrades import EVO, EVO_FOR, TRADE_EVOS  # traded + a free trade evolution: Evo, on EVO_FOR's account
+from rules import NAMES as SIZE_NAMES  # a never-traded XXL/XXS one gets this name and IVC
+from rules import EVO, EVO_FOR, TRADE_EVOS  # traded + a free trade evolution: Evo, on EVO_FOR's account
 
 TO = {GIVER: TAKER, TAKER: GIVER}
 OLD_DAYS = int(re.search(r"\d+", tr.OLD_AGE).group())

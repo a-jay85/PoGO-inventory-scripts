@@ -403,7 +403,7 @@ def walk(q, limit, dry, free_only=False):
     if not settled_tiles_after(q):
         log(f"nothing in {q}")
         return
-    # how many: a Mega Evolved one's CP reads differently look to look, so a swipe at the end can seem to move
+    # how many: a swipe that fails with more to come isn't the end of the list
     total = search.result_count(look()[1])
     base.go("tile 1", "detail")
     seen, counts, t_start = set(), {"done": 0, "skip": 0}, time.time()
@@ -484,9 +484,12 @@ def open_tile(pos, showing):
 
 
 def key(texts):
-    """one Pokémon page: two Mewtwos with the same nickname and tags differ by CP or HP"""
+    """one Pokémon page: name, weight, height, HP, tags. No CP: the flames and sparkles behind it make it read
+    differently look to look (Chandelure: 1846, 1816, 184), so the same page looked like a new one, and the walk
+    ended early. Weight and height read the same on 100 of 100 looks (2026-11-05)"""
     d = ui.detail_info(texts)
-    return d["name"], d["cp"], d["hp"], tuple(d["tags"])
+    _, hp, kg, m = base.who(d)
+    return d["name"], kg, m, hp, tuple(d["tags"])
 
 
 def settled_tiles_after(q):

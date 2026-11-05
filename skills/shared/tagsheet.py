@@ -236,17 +236,6 @@ def sheet_down(bounds):
     base.drag(0.3, 0.62, 0.3, 0.4, bounds)
 
 
-def cancel_sheet():
-    """leave the tag sheet unsaved. Android's sheet has no CANCEL, only the X under DONE"""
-    _, texts, _, bounds = look()
-    if not ui.ANDROID:
-        go("CANCEL", "detail")
-        return
-    d = next(t for t in texts if ui.norm(t[4]) == "DONE")
-    press((d[0] + d[2] / 2 - 0.03, d[1] + 0.075, 0.06, 0.03), bounds)
-    wait_for("detail")
-
-
 def done_sheet(texts, bounds):
     """tap DONE (where the last read of the sheet saw it) -> the detail page's texts. One caught in the last month
     gets a popup first ("Cannot Trade Recently Caught Pokémon Remotely ... will keep the Remote Trade tag"):

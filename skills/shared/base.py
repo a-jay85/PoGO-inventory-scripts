@@ -854,6 +854,42 @@ def tags_done():
         return wait_for("detail")
 
 
+TAGS_BACKED_OUT = [0]  # sheets left in a row because a tick wouldn't take
+TAGS_BACK_OUT_MAX = 3  # that many in a row: the taps aren't getting through, so stop
+
+
+def cancel_tags():
+    """leave the open tag sheet by the round X under DONE: nothing on it is saved. Both phones have that X, and no CANCEL"""
+    for _ in range(3):
+        screen, texts, _, bounds = look()
+        if screen == "detail":
+            return
+        done = [t for t in texts if ui.norm(t[4]) == "DONE"]
+        if screen != "tags" or len(done) != 1:
+            break
+        d = done[0]
+        tap_box((d[0] + d[2] / 2 - 0.03, d[1] + 0.075, 0.06, 0.03, ""), bounds, spread=0.15)
+        try:
+            wait_for("detail", timeout=4, capture=False)
+            return
+        except Stop:
+            pass
+    raise Stop("couldn't leave the tag sheet by its X")
+
+
+def back_out_of_tags(T, ticks):
+    """a tick wouldn't take after every try (seen on the iPhone 2026-11-05: taps lost for a while, then fine again).
+    Nothing is saved until DONE, so the X leaves this Pokémon as it was and the run goes on to the next one"""
+    keep_capture("tags")
+    TAGS_BACKED_OUT[0] += 1
+    front_app = "" if ui.ANDROID else f", {ui.sh(ui.HELPER, 'front').strip()} in front"
+    log(f"  the {T} tick wouldn't take{front_app}, Mac idle {idle_seconds():.0f}s, {ticks}")
+    if TAGS_BACKED_OUT[0] >= TAGS_BACK_OUT_MAX:
+        raise Stop(f"{TAGS_BACK_OUT_MAX} Pokémon in a row where a tag tick wouldn't take: {ticks}")
+    cancel_tags()
+    raise Skip(f"the {T} tick wouldn't take: left by the X, nothing saved, it stays as it was")
+
+
 def set_tags(on=(), off=(), only=False):
     """tick the on tags and untick the off ones, leave the rest. only: afterwards the detail must show just the on tags"""
     still_opened("before the tags")
@@ -871,16 +907,16 @@ def set_tags(on=(), off=(), only=False):
             ticks = show_tag(T)
             if ticks is None:  # an off tag this account doesn't have
                 continue
-            for _ in range(2):  # a tick only gets tapped again once a slow read has shown it didn't change
+            for wait in (3, 3, 6):  # a tick only gets tapped again once a slow read has shown it didn't change
                 if ticks.get(T) is not v:
                     if ui.ANDROID:
                         lift_tag_row(T)
                     tap_tag_row(T, names[T])
-                    ticks = settle(tick_tags, lambda t: t.get(T) is v)
+                    ticks = settle(tick_tags, lambda t: t.get(T) is v, timeout=wait)
             if ticks.get(T) is not v:
-                keep_capture("tags")
-                raise Stop(f"tags didn't end up right: {ticks}")
+                back_out_of_tags(T, ticks)
         tags_done()
+        TAGS_BACKED_OUT[0] = 0
         ON, OFF = {ui.norm(t) for t in on}, {ui.norm(t) for t in off}
         good = lambda t: (sorted(t) == sorted(ON)) if only else (ON <= set(t) and not OFF & set(t))
         tags = settle(detail_tags, good)

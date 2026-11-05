@@ -26,6 +26,11 @@ Tagging: the shortcut's search + &!#<tag> (PvpC1, PvpC2 and Clean Trades as they
 afterwards the same search must come back empty.
 --limit N powers up at most N Pokémon (the tagging still runs). Log in runs/<time>/.
 Every script that tags Transfer runs step 2 on that pile first (power_pile): tradeable.py too.
+
+Which account: the storage max over the empty search, over 10,000 is HashTagAJay. evo and fix stop on HashTagAJay.
+--limit reached: the rest weren't checked, so Clean Trades isn't tagged Transfer that run. A "count..." term eats any
+text after it, so the XL part always goes last. On the Pixel, HashTagAJay's PvpC1 search fills the bar.
+iPhone: tagging ran 2026-10-19, the power-up walk and swipe haven't yet. The first time, run --look, then --limit 1.
 """
 import math, os, re, sys, time
 

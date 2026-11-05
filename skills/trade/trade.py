@@ -20,6 +20,12 @@ When only 0-100km ones are left on both, they're traded with each other, the spe
 for another day. At most 99 trades a day (one is left for a special trade by hand), counted in .state.json;
 --done N says N were already made today. --limit N: at most N trades this run (default 48).
 Log and captures go in runs/<time>/.
+
+Keep both phones on and both games open. A long pause on the iPhone during a trade can let the game's trade timer run
+out: that round starts over. Trades made by hand aren't counted: pass --done N. Two runs of the default 48 come to 96.
+The picker keeps the last search: when the bar already shows the one it wants, it isn't typed again.
+A failing trading service restarts the game on both phones and starts the round over; after 4 failures in a row it
+stops. If the special trades left go down during a run, it stops.
 """
 import argparse, datetime, json, os, random, re, shutil, statistics, subprocess, sys, time
 from concurrent.futures import ThreadPoolExecutor

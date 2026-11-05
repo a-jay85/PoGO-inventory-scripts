@@ -50,6 +50,10 @@ read.json and pvp-giv (no plan step; `plan` only shows them). A rerun within 12 
 tag (CyrillJan): the saved search 'Tradeable' + each tag search -> long press, SELECT ALL, tag. Then each one left is
 opened for XLX and power-ups, then the rest go through the door one by one (../shared/door.py: their final tag, or
 left as they are and listed as not sure). Log in runs/<time>-tag/.
+
+Data first: refresh, then read (HashTagAJay), plus HashTagAJay's newest lucky and ★100% /dex runs and /roster's roster.json.
+--limit N caps the power-ups in each walk; all the tag searches still run. tag has never run on the phone: the first
+time, tag --limit 1 (it still tags every tag search).
 """
 import json, math, os, re, sys, time
 from collections import Counter

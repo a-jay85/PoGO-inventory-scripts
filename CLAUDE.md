@@ -1,19 +1,27 @@
 # PoGO-inventory-scripts
 
-Claude Code skills that sort a Pokémon GO storage: `/pvpc`, `/ivc`, `/cleanup`, `/trade`, `/gift`, `/mega`, `/dex`, `/roster` and `/gymfeed`. Each one lives in `skills/<name>/`.
+Scripts that sort a Pokémon GO storage: `pvpc`, `ivc`, `cleanup`, `trade`, `gift`, `mega`, `dex`, `roster` and `gymfeed`. Each one lives in `skills/<name>/`. The scripts are the source of truth: each script's top comment says how to run it, and the code says the rules. There are no `SKILL.md` files. `/pvpc` or `/ivc` in chat means run that step through `pogo.py`.
 
-## The live skills run from the main checkout
+## The live scripts run from the main checkout
 
-`~/.claude/skills/<name>` is a symlink to `~/PoGO-inventory-scripts/skills/<name>`. Whatever is on the main checkout's `main` branch is what runs on the phone.
+Whatever is on the main checkout's `main` branch is what runs on the phone.
 
-- Never edit the main checkout (`~/PoGO-inventory-scripts`) directly. That covers code, SKILL.md files, docs and config, however small the change.
-- After a PR merges, update the main checkout or the skills never see the change:
+- Never edit the main checkout (`~/PoGO-inventory-scripts`) directly. That covers code, docs and config, however small the change.
+- After a PR merges, update the main checkout or the live scripts never see the change:
   `git -C ~/PoGO-inventory-scripts pull --ff-only`
 - Don't pull while a script is running on the phone. Python has already loaded the old files, but a skill that imports another one mid-run gets a mix.
 
 The skills import each other by relative path (`HERE/../shared`), so they must stay siblings under `skills/`.
 
 `pogo.py` (at the repo root) is the one front door: it runs any skill's script by step name, and chains steps with `+` (`pogo.py pvpc --limit 5 + ivc`). Each step is its own process. A new script gets a line in its `STEPS` table. Code two skills both need goes in `skills/shared/` (the shared library), never copied. The tapper (taps, timing, run folders, logging) is `skills/shared/base.py`; scripts `import base`. Also in `skills/shared/`: `taps.py` (one tap, the swipe to the next Pokémon, SELECT ALL, purify), `tagsheet.py` (exact search, detail page reads, the tag sheet), `savedsearch.py` (saved searches, tag a whole search), `powerup.py` (level reads, power-ups), `rules.py` (tag names and rule constants).
+
+## Running the scripts
+
+- `POGO_PHONE=android`: the Pixel, over USB. Nothing set: the iPhone, through iPhone Mirroring. `POGO_PHONE=both`: `/gift` and `/mega` run both at once.
+- iPhone runs pause when the Mac's keyboard or mouse is touched, and go on after 5 seconds idle. The pointer goes back after each tap. Pixel taps go through adb, so the Mac stays free.
+- Every script starts from any screen (`home.start()`). At the end it quits iPhone Mirroring or locks the Pixel. `POGO_KEEP_OPEN=1` leaves it open. `python3 skills/shared/session.py open|close` does just that part.
+- Pixel setup, once: USB debugging on, tap Allow on the phone, and put the PIN in `~/.config/pogo/android-pin` (digits only, `chmod 600`). `POGO_PHONE=android python3 skills/shared/android.py check` checks it.
+- `~/.config/pogo/accounts.json` says which Google account is which trainer (`skills/shared/account.py`).
 
 ## Every change goes in a worktree, a PR and a squash-merge
 
@@ -73,7 +81,7 @@ The repo is public. These stay local and are in `.gitignore`:
 `python3 tests/layout.py` pins how the scripts find each other and their files: each script's names, the one shared copy of `run.py` (its run folder), where every run folder goes, and that every path and `module.name` the code uses exists. Run it after moving or renaming a file, or moving code between files. It must say "all ... the same". Same `--record` rule.
 
 Nothing tests taps and timing off the phone. A change to how a skill reads or taps the phone isn't done until it has run on the phone:
-`POGO_PHONE=android caffeinate -dimsu python3 ~/.claude/skills/pvpc/run.py --limit 1`. Claude starts it and watches it itself; no need to ask the user to watch.
+`POGO_PHONE=android caffeinate -dimsu python3 ~/PoGO-inventory-scripts/skills/pvpc/run.py --limit 1`. Claude starts it and watches it itself; no need to ask the user to watch.
 
 Claude watches a phone run quietly, through `watch.py` (repo root) started with Bash `run_in_background: true, timeout: 7200000`:
 `POGO_PHONE=android python3 ~/PoGO-inventory-scripts/watch.py caffeinate -dimsu python3 <script> [args]`.

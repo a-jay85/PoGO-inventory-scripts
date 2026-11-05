@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Screen reader + tap planner for the /pvpc skill. Reads the iPhone Mirroring window as text so
+"""Screen reader + tap planner for /pvpc. Reads the iPhone Mirroring window as text so
 Claude doesn't need screenshots, and hands back fuzzed tap spots in screenshot coordinates.
 
   ui.py calib <sx> <sy>   after mouse_move to (sx, sy) in a screenshot: learn screenshot->screen scale

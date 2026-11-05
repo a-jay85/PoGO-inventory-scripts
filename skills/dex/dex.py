@@ -16,6 +16,12 @@ the caught count matches the page's "Caught:" total, before it prints anything.
 
 Missing numbers become a dex-number search with ranges (`14,22,29-33`). A long list is split into several searches
 of at most MAX_CHARS characters. Log and searches go in runs/<time>-<page>/.
+
+A run takes about 5 minutes and only taps to move around: it never changes anything in the game.
+The whole-search limit (MAX_CHARS): the Pixel's bar took 1,397 characters and failed at 1,497 (2026-10-21).
+Each run saves the signed-in trainer to trainer.txt. Other scripts pick a run with dex.latest(page, trainer). Be on the
+same account for evolve. Any check that fails stops the run with no search printed.
+The Lucky run also lists the lucky ones that could evolve into a hole (evolve-lucky.txt), and leaves them out of the search.
 """
 import argparse, os, random, re, statistics, sys, time
 from PIL import Image

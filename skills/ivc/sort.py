@@ -29,6 +29,8 @@ Weak lines (no species, mega or shadow form of the line reaches STRONG_AT% on Di
   meta-overrides.txt can mark a species strong or weak by hand.
 COLLECT lines (Vivillon patterns): a DOOR becomes LEAVE so the user picks.
 Fails: XXL/xxs in the name -> leave for the user. Otherwise -> DOOR. No IV and no size (FP*, *) -> DOOR.
+
+DialgaDex data (dialgadex-<date>.json) is pulled with ~/claude-plans/_scripts/dialgadex-scrape.mjs.
 """
 import difflib, json, os, re, sys
 from collections import Counter, namedtuple

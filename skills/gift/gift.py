@@ -33,8 +33,15 @@ alone, and the log says to tag it by hand.
 If Mirroring froze and the same preview is still there after the wait, it taps SEND once more, never a third time.
 One friend never gets a gift from this script, on any account: NEVER_NAME / NEVER_NICK.
 Take over mid-run and close the gift list, and it goes back to the friend list, searches again and goes on.
+
+"interactable" resets at midnight, so an "iii" search that's finished stays finished for the day. It's remembered per
+account in ~/.config/pogo/gift_iii_<trainer>.json, and later runs that day skip it. Finished means the list ran out (or
+two searches read 0) with every friend dealt with. A grey SEND GIFT, a misread page, a lost screen, a raid, --limit,
+no gifts left or a stop leave it unfinished, and so does --dry-run. An unread trainer name remembers nothing. "lll" is
+always searched: friends move into it during the day. A friend new to "iii" today (just added, WAIT taken off) waits
+for midnight, or delete that file.
 """
-import argparse, difflib, os, random, re, subprocess, sys, time
+import argparse, difflib, json, os, random, re, subprocess, sys, time
 from PIL import Image
 
 HERE = os.path.dirname(os.path.realpath(__file__))
@@ -50,6 +57,7 @@ KEEP = re.compile(r"\b(lion|tree|(?<!mission )rock)", re.I)  # San Francisco gif
 # and rock are still kept). An account not here sends San Francisco gifts only. --last-held overrides it
 LAST_HELD = {"HashTagAJay": "Mrs. Pig"}
 last_held = None  # this phone's, picked once the friend list shows whose account it is
+trainer = None  # this phone's account, read by whose(). None: unread, so no "iii" memory
 # The gift list isn't steady: cards swap places and an old card can show in the wrong spot (2026-10-26: a Chicago
 # card read as after Mrs. Pig, and went). So a late gift must pass every guard below, on the picker and the preview
 NEVER = ("CHICAGO", "RALEIGH", "NORTH CAROLINA")  # cities never sent, wherever the list shows them
@@ -1113,7 +1121,8 @@ def grey_check(t):
 
 
 def one_friend(row, check=False):
-    """open the row's friend page, check, gift and/or tag. -> the gift sent, None, "grey", "empty" or "raid".
+    """open the row's friend page, check, gift and/or tag. -> the gift sent, None (no gift, on purpose), "grey",
+    "misread" (another friend's page opened), "empty" or "raid".
     check: on a grey SEND GIFT, tap it anyway to see whether my bag is empty"""
     t0 = time.time()
     s = tap_into(row["t"], "friend", "giftpopup", "luckytrade", "raid")
@@ -1126,7 +1135,7 @@ def one_friend(row, check=False):
     name = page_name()
     if not name or not same_name(name, row["name"]):
         log(f"  opened {name!r}, wanted {row['name']!r}: skipped")
-        return None
+        return "misread"
     nick, _ = page_nickname()
     if never_gift(name, nick):
         log(f"{name} ({nick}): never gets a gift from the script: left alone")
@@ -1168,11 +1177,9 @@ def one_friend(row, check=False):
 # ---------- a run ----------
 
 def whose():
-    """from the friend list: our trainer name on the ME tab -> this account's last_held. ("" when it can't be read:
-    San Francisco gifts only)"""
-    global last_held
-    if last_held is not None:
-        return
+    """from the friend list: our trainer name on the ME tab -> trainer, and this account's last_held ("" when it can't
+    be read: San Francisco gifts only). --last-held has set last_held already: it stays"""
+    global last_held, trainer
     import home
     me = None
     t = label("ME", 0.0, 0.12)
@@ -1191,11 +1198,45 @@ def whose():
                 keep_capture("whose")
                 log(f"  can't read the trainer name on the ME tab: {[u[4] for u in texts if u[1] < 0.4]}")
         to_list()
-    last_held = LAST_HELD.get(me, "")
+    trainer = me
+    if last_held is None:
+        last_held = LAST_HELD.get(me, "")
     if last_held:
         log(f"account {me}: gifts after {last_held!r} in the gift list go too")
     else:
         log(f"account {me or 'unread'}: San Francisco gifts only")
+
+
+def today():
+    return time.strftime("%Y-%m-%d")
+
+
+def iii_file():
+    return os.path.expanduser(f"~/.config/pogo/gift_iii_{trainer}.json")  # (one per account: two phones never share one)
+
+
+def iii_finished():
+    """the "iii" zones this account has finished today"""
+    if not trainer:
+        return []
+    try:
+        with open(iii_file()) as f:
+            d = json.load(f)
+        return d["zones"] if d["day"] == today() else []
+    except (OSError, ValueError, KeyError, TypeError):
+        return []
+
+
+def iii_remember(zone, day):
+    """day: when this zone's search started. A search that ran past midnight proves nothing about the new day"""
+    if DRY or not trainer or day != today():
+        return
+    os.makedirs(os.path.dirname(iii_file()), exist_ok=True)
+    tmp = iii_file() + ".tmp"
+    with open(tmp, "w") as f:
+        json.dump({"day": day, "zones": iii_finished() + [zone]}, f)
+    os.replace(tmp, iii_file())
+    log(f"  iii + {zone}: finished, skipped for the rest of {day}")
 
 
 def run_searches(limit):
@@ -1207,7 +1248,11 @@ def run_searches(limit):
     for first, base_q in (("iii", FIRST), ("lll", THEN)):
         prev = None
         for zone, zq in ZONES:
+            if first == "iii" and zone in iii_finished():
+                log(f"iii + {zone}: finished earlier today: skipped")
+                continue  # (prev stays: the box still holds that search)
             t0 = time.time()
+            day = today()
             n = None
             if prev is not None and len(prev) == 2 and len(zq) <= 2:
                 n = swap_zone(base_q, prev, zq)  # ea -> ce -> mo -> (none): change just the end
@@ -1215,6 +1260,12 @@ def run_searches(limit):
                 n = search(base_q, zq)
             prev = zq
             log(f"{first} + {zone}: ({n}) ({time.time() - t0:.0f}s)")
+            if n == 0 and first == "iii":  # (a list slow to load can read 0: one false 0 would lose them all day)
+                n = search(base_q, zq)
+                if n == 0:
+                    iii_remember(zone, day)
+                else:
+                    log(f"  searched again: ({n})")
             if not n:
                 continue
             if arrow() != "down":
@@ -1222,6 +1273,7 @@ def run_searches(limit):
             stale, fresh = 0, True  # fresh: the last capture is the friend list as it is now (no look needed)
             top = True  # the list is as a search sorted it: no gift sent since (scrolled or not)
             bounced = 0  # scrolls that landed off the list since the last friend reached
+            finished, missed, seen = False, False, set()  # missed: a friend here wasn't dealt with; seen: names on the list
             while True:
                 if not fresh and look() != "friends":  # a drag that landed as a tap opened something: back first
                     bounced += 1
@@ -1241,12 +1293,14 @@ def run_searches(limit):
                     stale, fresh, top = 0, True, True
                     continue
                 on_screen = rows()
+                seen |= {r["name"] for r in on_screen}
                 # a Remote Trade friend stays at the top whatever the sort: their arrow says nothing about the rest
                 # (never_gift here too: OCR can read a name differently each look, so done alone could reopen them)
                 todo = [r for r in on_screen if r["name"] not in done and not (r["trade"] and r["badged"])
                         and not never_gift(r["name"], r["nick"])]
                 if todo and todo[0]["badged"]:
                     if top:
+                        finished = True
                         break  # sorted can-receive first, and the first friend not done has the arrow: nobody left
                     # the list re-sorts only on a new search: the friends gifted this run keep their place, arrow
                     # and all. Search again, then look at the top
@@ -1267,6 +1321,7 @@ def run_searches(limit):
                     look()
                     stale = stale + 1 if [r["name"] for r in rows()] == before else 0
                     if stale:
+                        finished = len(seen) >= n  # (a drag that didn't move the list looks like the bottom too)
                         break  # the bottom of the list
                     fresh = classify() == "friends"
                     continue
@@ -1286,6 +1341,7 @@ def run_searches(limit):
                     # nobody expected. Nothing was sent unseen: after SEND a lost screen is a Stop. Back to the list, the
                     # search typed again (the way back can pass the map), and this friend tried once more
                     lost += 1
+                    missed = True
                     if lost >= MAX_LOST:
                         raise Stop(f"lost {lost} times in a row: {e}") from e
                     keep_capture("lost_friend")
@@ -1303,6 +1359,9 @@ def run_searches(limit):
                     stale, fresh, top = 0, True, True
                     continue
                 lost = 0
+                missed = missed or got in ("grey", "misread", "raid")  # (a grey one can take a gift minutes later)
+                if got == "misread":
+                    got = None
                 if got == "raid":  # (a raid invite popped up under the tap: not this friend's fault)
                     if row["name"] not in retried:
                         retried.add(row["name"])
@@ -1323,6 +1382,8 @@ def run_searches(limit):
                         return sent, None
                 to_list()
                 fresh = True
+            if first == "iii" and finished and not missed:
+                iii_remember(zone, day)
     return sent, "nobody left who can take one"
 
 

@@ -451,6 +451,16 @@ def whole(box, q):
     return not t or "&" in t or len(t) >= min(len(q), 20)
 
 
+def box_end(box):
+    """the search box's read, squeezed, without the clear X it can end with"""
+    return ui.norm(box[4]).replace(" ", "").rstrip("X") if box else ""
+
+
+def ends_zone(t, z):
+    """t (box_end) ends with the short zone z. One letter of two may be misread: OCR read 'mo' as 'mg'"""
+    return len(t) >= len(z) and sum(a != b for a, b in zip(t[-len(z):], z.upper())) <= len(z) // 2
+
+
 def commit_search():
     """the search is typed: commit it -> its result count, or None when none shows"""
     time.sleep(0.5)
@@ -521,7 +531,10 @@ def search(*parts):
             continue
         box = search_line()
         log(f"  search box reads {box[4] if box else None!r}")
-        if not whole(box, q):
+        # (2026-11-05: the box ended '!EGG' with the '&ea' lost: (514), not (46), so every zone went as one. whole() can't
+        # see that, as the box still holds '&'. Only the short zones: OCR garbles the end of a long one)
+        short = parts[-1] if len(parts[-1]) == 2 else ""
+        if not whole(box, q) or (box and short and not ends_zone(box_end(box), short)):
             log(f"the box holds only part of {q!r}: typing it again")
             continue
         if n == 0 or rows():
@@ -566,10 +579,9 @@ def swap_zone(base_q, old, new):
     typed = base_q + new
     n = commit_search()
     box = search_line()
-    t = ui.norm(box[4]).replace(" ", "").rstrip("X") if box else ""  # (the read can end with the box's clear X)
+    t = box_end(box)
     log(f"  search box reads {box[4] if box else None!r}")
-    ends = lambda z: len(t) > len(z) and sum(a != b for a, b in zip(t[-len(z):], z.upper())) <= len(z) // 2
-    took = (ends(new) and not t.endswith(old.upper())) if new else not ends(old)  # (OCR read 'mo' as 'mg')
+    took = (ends_zone(t, new) and not t.endswith(old.upper())) if new else not ends_zone(t, old)
     if n is None or not took or not whole(box, typed):
         log(f"swapping {old!r} for {new!r} didn't take: typing the search again")
         return None

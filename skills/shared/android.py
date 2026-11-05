@@ -235,7 +235,7 @@ KEYCODES = {"delete": 67, "return": 66, " ": 62, "back": 4}
 
 def type_text(text, lo=35, hi=80):
     """the whole text in one adb call: 'input text' per word, a space key between words.
-    (lo, hi: the Mac's gap between keys, not needed here: input text never drops a shift)"""
+    (lo, hi: the Mac's key timing, not needed here: input text never drops a shift)"""
     bad = [c for c in text if not (c.isascii() and c.isprintable()) or c in "%'\"\\`"]
     if bad:
         raise NotReady(f"can't type {bad[0]!r}")

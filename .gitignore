@@ -6,6 +6,5 @@ __pycache__/
 skills/*/runs/
 skills/shared/.state.json
 skills/shared/.calib.json
-skills/shared/.paste.json
 skills/trade/.state.json
 skills/shared/helper

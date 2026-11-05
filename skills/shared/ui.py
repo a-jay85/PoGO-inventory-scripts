@@ -67,10 +67,6 @@ def tap_ms():
 def sh(*a):
     global _seen, _older, last_input
     tapping = a[:1] == (HELPER,) and len(a) > 1 and a[1] in TAPS
-    if tapping and not ANDROID and a[1] == "type" and len(a[2]) > 1:  # a key at a time, so a pause can come between any two
-        for c in a[2]:
-            sh(HELPER, "type", c, *a[3:])
-        return ""
     if tapping and gate:
         gate(True)
     if tapping:

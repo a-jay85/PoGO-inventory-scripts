@@ -88,9 +88,6 @@ def main():
     proto = sys.stdout
     sys.stdout = sys.stderr  # run.log() prints: keep it off the answer line
     ui.ensure_helper()
-    # iPhone: type the searches key by key (about 2 s). The paste never landed in the trade picker (2026-10-24), and
-    # finding that out cost two lost pastes, 15-20 s, every run
-    search.PASTE["ok"] = False
     for line in sys.stdin:
         req = json.loads(line)
         out = {}

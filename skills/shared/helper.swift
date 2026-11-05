@@ -9,7 +9,7 @@
 //   helper scroll <x> <y> <dy> <steps>          scroll wheel at a spot; dy < 0 scrolls the list down
 //   helper drag <x1> <y1> <x2> <y2> <ms>        press, move, release
 //   helper key <name> [cmd]                     one key: a-z 0-9 space + delete return; "cmd" holds command
-//   helper type <text> <min_ms> <max_ms>        type text (US layout), random gap between keys
+//   helper type <text> <shift_ms> <hold_ms> <gap_ms>  type text (US layout), one Shift over a run of shifted keys
 import AppKit
 import Vision
 
@@ -221,17 +221,33 @@ case "key":
         print("unknown key \(name)")
         exit(2)
     }
-case "type":
-    let lo = Double(args[3])!, hi = Double(args[4])!
+case "type":  // one Shift held across a run of shifted keys, so "#IVC&!" costs one Shift, not five
+    let shiftMs = Double(args[3])!, holdMs = Double(args[4])!, gapMs = Double(args[5])!
     for c in args[2] where KEYS[c] == nil {
         print("can't type \(c)")
         exit(2)
     }
+    var shifted = false
+    func setShift(_ on: Bool) {
+        let e = CGEvent(keyboardEventSource: nil, virtualKey: 56, keyDown: on)
+        e?.flags = on ? .maskShift : []
+        post(e)
+        shifted = on
+        nap(shiftMs)
+    }
     for c in args[2] {
         let (code, shift) = KEYS[c]!
-        press(code, shift ? .maskShift : [])
-        nap(Double.random(in: lo...hi))
+        if shift != shifted { setShift(shift) }
+        let d = CGEvent(keyboardEventSource: nil, virtualKey: code, keyDown: true)
+        let u = CGEvent(keyboardEventSource: nil, virtualKey: code, keyDown: false)
+        d?.flags = shift ? .maskShift : []
+        u?.flags = shift ? .maskShift : []
+        post(d)
+        nap(holdMs)
+        post(u)
+        nap(gapMs)
     }
+    if shifted { setShift(false) }
 default:
     print("usage: helper win | ocr <png> | ocrd | mouse | front | click | scroll | drag | key | type")
     exit(2)

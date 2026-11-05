@@ -21,7 +21,9 @@ Start with Pokémon GO on the Pokémon screen. Four steps, always in this order:
     Karrablast, Shelmet, Phantump, Pumpkaboo) -> tag Evo. Not the base forms (Abra...).
  4. Clean Trades -> tag Transfer.
 Before step 2, the ones that must not get Transfer leave the pile: Clean Trades &xxl, traded or not -> favorite, and no
-step here touches an XXL one (&!xxl). Clean Trades &!traded&xxs -> renamed xxs, tagged IVC (sizes.py); Clean Trades &!traded&!shadow + a trade evolution -> tag GIV.
+step here touches an XXL one (&!xxl). The ones with rules of their own in verdict.py (shiny, lucky, legendary, costume,
+gym defender...: rules.DOOR_PICK) each get their final tag at the door or stay on its not-sure list, and steps 2-4 leave
+them out (rules.BULK_GUARD). Clean Trades &!traded&xxs -> renamed xxs, tagged IVC (sizes.py); Clean Trades &!traded&!shadow + a trade evolution -> tag GIV.
 Tagging: the shortcut's search + &!#<tag> (PvpC1, PvpC2 and Clean Trades as they are: they already exclude tagged ones), long press, SELECT ALL, TAG (n). n must equal the search's count, and
 afterwards the same search must come back empty.
 --limit N powers up at most N Pokémon (the tagging still runs). Log in runs/<time>/.
@@ -45,7 +47,7 @@ import powerup
 from taps import Pass, next_one
 from savedsearch import run_shortcut, tag_pile, long_search
 from powerup import Unsure, power_up
-from rules import CLEAN, TRANSFER, EVO, TRADE_EVOS, EVO_FOR, UNDER_360_XL
+from rules import CLEAN, TRANSFER, EVO, TRADE_EVOS, EVO_FOR, UNDER_360_XL, BULK_GUARD, DOOR_PICK
 
 
 TAGGING = [("PvpC1", "PvpC"), ("PvpC2", "PvpC"), ("IV Check", "IVC")]
@@ -73,7 +75,8 @@ def account():
 def power_walk(limit, query=None):
     """open each Clean Trades one (query: each one in this typed search) with under 360 XL and power up those right
     under a tier. -> how many got it, or None if --limit stopped it"""
-    under = UNDER_360_XL + "&!xxl"  # (an XXL one stays: no power-ups for a transfer)
+    # (an XXL one stays: no power-ups for a transfer. The door's ones go on their own: door_ones. A count term goes last)
+    under = ("&!xxl" if query else BULK_GUARD) + UNDER_360_XL
     if not (long_search(query + under) if query else run_shortcut(CLEAN, under)):
         log(f"no {query or CLEAN} ones under 360 XL")
         return 0
@@ -152,6 +155,14 @@ def untraded(who):
         tag_pile(CLEAN, "GIV", f"&!traded&!shadow&!xxl&{TRADE_EVOS}")
 
 
+def door_ones(limit, who):
+    """the ones verdict.py has its own rules for (rules.DOOR_PICK: shiny, lucky, legendary, costume, gym defender...)
+    never get a bulk tag: each gets its final tag at the door, or stays as it is, on the not-sure list"""
+    import tradeable  # (tradeable imports sizes, which imports this file)
+    got = tradeable.door_walk(DOOR_PICK, limit, who, CLEAN, gone=lambda said, _: said in ("tag", "keep"))
+    log(f"{CLEAN}, the door's ones: {dict(got)}")
+
+
 def script(a):
     limit = session.limit(a)
     base.start()  # from anywhere, Pokémon GO closed too
@@ -165,7 +176,7 @@ def script(a):
     if "evo" in a:  # steps 1 and 3: a PvpC/IVC one tagged Evo first would drop out of its shortcut (!#)
         for name, tag in TAGGING:
             tag_pile(name, tag)
-        tag_pile(CLEAN, EVO, f"&!xxl&{TRADE_EVOS}")
+        tag_pile(CLEAN, EVO, f"{BULK_GUARD}&{TRADE_EVOS}")
         return
     if "transfer" in a:  # every Transfer one: the cheap jump to an XL tier before it's transferred
         power_pile(f"#{TRANSFER}", limit)
@@ -176,6 +187,7 @@ def script(a):
     for name, tag in TAGGING:  # first: Clean Trades (!#) must only see what's left untagged after these
         tag_pile(name, tag)
     untraded(who)  # before the power-ups: these won't be transferred
+    door_ones(limit, who)  # (any left by --limit stay out of the steps below too)
     try:
         if power_walk(limit) is None:
             log(f"--limit {limit}: the rest weren't checked, so Clean Trades isn't tagged Transfer")
@@ -187,8 +199,8 @@ def script(a):
         if look()[0] != "list":
             go("close", "list")
     if who == EVO_FOR:
-        tag_pile(CLEAN, EVO, f"&!xxl&{TRADE_EVOS}")  # first: these drop out of Clean Trades (!#)
-    tag_pile(CLEAN, TRANSFER, "&!xxl")
+        tag_pile(CLEAN, EVO, f"{BULK_GUARD}&{TRADE_EVOS}")  # first: these drop out of Clean Trades (!#)
+    tag_pile(CLEAN, TRANSFER, BULK_GUARD)
 
 
 if __name__ == "__main__":

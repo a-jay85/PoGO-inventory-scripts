@@ -47,7 +47,9 @@ read (HashTagAJay): which families have a lucky one and under 348 candy, and whi
 ('lucky&1-151&countcandy0-347'), halved until each hit is one family. -> runs/<time>-read/read.json
 tag makes its searches itself, each run, from the newest lucky and ★100% /dex runs of HashTagAJay, roster.json,
 read.json and pvp-giv (no plan step; `plan` only shows them). A rerun within 12 hours skips the ones already done.
-tag (CyrillJan): the saved search 'Tradeable' + each tag search -> long press, SELECT ALL, tag. Then each one left is
+tag (CyrillJan): the saved search 'Tradeable' + each tag search (bulk_searches, in verdict.py's order: GuaranteedLucky,
+Luckydex, Old, 2XL, Reroll, GIV) -> long press, SELECT ALL, tag. A lucky, costume or background one or a gym defender
+skips the tag searches and goes to the door (rules.TAG_SKIP). tests/taggers.py checks these against verdict.py. Then each one left is
 opened for XLX and power-ups, then the rest go through the door one by one (../shared/door.py: their final tag, or
 left as they are and listed as not sure). Log in runs/<time>-tag/.
 
@@ -75,7 +77,8 @@ import sizes
 from taps import Pass, next_one, owned
 from ivc import GYM_DEFENDERS
 from rules import (GIVER, TAKER, TAGS, XLX, TRANSFER, LUCKY_CANDY, XL_CAP, XLX_LEVEL, GIV_FOR_TAKER, XLX_FOR,
-    PVE_TOP, GIVER_MARGIN, PVP_FLOOR, HARD_CANDY, BABIES, SPECIAL, NO_SPECIAL, DYNAMAX, UNDER_360_XL)
+    PVE_TOP, GIVER_MARGIN, PVP_FLOOR, HARD_CANDY, BABIES, SPECIAL, NO_SPECIAL, DYNAMAX, UNDER_360_XL, TAG_SKIP, GUARANTEED,
+    LUCKY_YEAR, OLD, OLD_AGE)
 
 SHORTCUT = "Tradeable"
 MAX_SUFFIX = 300  # characters added to the saved search: it's already in the bar
@@ -456,8 +459,9 @@ def build_plan(m):
     why, lucky, evolved = sp["why"], sp["lucky"], sp["evolved"]
     plan = {"taker": TAKER, "xlx_level": XLX_FOR[TAKER], "from": sp["from"],
             "tags": {t: queries(m, [s for s, (w, _) in why.items() if w == t], lucky if t == "Luckydex" else None,
-                                room=len(NOT_TAGGED) + 10) for t in TAGS},
-            "giv_evolved": queries(m, evolved, room=len(EVOLVED_REST) + 10) + [DYNAMAX],
+                                room=len(BULK) + 10) for t in TAGS},
+            "2xl": queries(m, sorted(s for s in pve(m)[0] if s in m.by), room=len(BULK) + len(UNDER_360_XL) + 20),
+            "giv_evolved": queries(m, evolved, room=len(BULK_REST) + 10) + [DYNAMAX],
             "taker_xl_full": sorted(sp["xl_full"])}
     return plan, sp
 
@@ -563,8 +567,26 @@ def giver_species(m):
 
 # every tag search and walk leaves special trades out: the user trades them by hand
 NOT_TAGGED = NO_SPECIAL + "".join(f"&!#{t}" for t in TAGS)
+BULK = NOT_TAGGED + TAG_SKIP  # what a tag search may touch: TAG_SKIP's ones wait for the door
 REST = NOT_TAGGED + f"&!#{XLX}&!#{TRANSFER}"  # not tagged yet
 EVOLVED_REST = REST + "&traded,!xxs"  # and not a never-traded XXS one (those get IVC)
+BULK_REST = EVOLVED_REST + TAG_SKIP
+
+
+def size_search(size):
+    """a never-traded XXS one is renamed and tagged IVC, never XLX or Transfer"""
+    return REST + TAG_SKIP + f"&!#{sizes.IVC}&!traded&{size}"
+
+
+def bulk_searches(plan):
+    """the tag searches, in verdict.py's order -> [(tag, the species part, the rest of the suffix)]. Tradeable's !# drops
+    whatever gets a tag out of the later ones"""
+    tags = plan["tags"]
+    return ([(GUARANTEED, "", BULK + LUCKY_YEAR)]
+            + [("Luckydex", q, BULK) for q in tags["Luckydex"]]
+            + [(OLD, "", BULK + OLD_AGE)]
+            + [("2XL", q, BULK + "&!xxs" + UNDER_360_XL) for q in plan["2xl"]]  # (a count term goes last)
+            + [(t, q, BULK) for t in ("Reroll", "GIV") for q in tags[t]])
 
 
 def keep_xxl_ones(limit):
@@ -704,7 +726,7 @@ def tagged_before(plan):
     them: 14 s each, even at 0). New /dex, /roster or read data makes new searches, so it starts over.
     -> (set of searches done, save())"""
     import hashlib
-    key = hashlib.sha1(json.dumps([plan["tags"], plan["giv_evolved"]], sort_keys=True).encode()).hexdigest()
+    key = hashlib.sha1(json.dumps([plan["tags"], plan["2xl"], plan["giv_evolved"]], sort_keys=True).encode()).hexdigest()
     old = json.load(open(DONE_F)) if os.path.exists(DONE_F) else {}
     fresh = old.get("key") == key and time.time() - old.get("at", 0) < DONE_HOURS * 3600
     done = set(old.get("done", [])) if fresh else set()
@@ -734,23 +756,21 @@ def cmd_tag(limit):
     have = survey()  # a small pile: only the searches for species in it run
     wanted = lambda q: have is None or (d := dexes_of(q)) is None or bool(d & have)
     done, save_done = tagged_before(plan)
-    for t in TAGS:  # rerun skips them (14 s each, even at 0). Each search leaves out all three tags: the first wins
-        for q in plan["tags"][t]:
-            if q + NOT_TAGGED in done or not wanted(q):
-                continue
-            tag_pile(t, q + NOT_TAGGED)
-            done.add(q + NOT_TAGGED)
-            save_done()
+    for t, q, tail in bulk_searches(plan):  # rerun skips them (14 s each, even at 0)
+        if q + tail in done or not wanted(q):
+            continue
+        tag_pile(t, q + tail)
+        done.add(q + tail)
+        save_done()
     if done:
         log(f"{len(done)} tag search(es) done for these searches (new data or {DONE_HOURS} h starts over)")
     # (the taker's 360+ XL families are passed on the detail page: as '&!<dex>' terms they'd overflow the bar)
     traded = NO_SPECIAL + "&" + ",".join(f"#{t}" for t in TAGS)  # (one tagged before special trades were left out)
-    rest = REST
     keep_xxl_ones(limit)
-    for size in sizes.NAMES:  # first: a never-traded XXS one is renamed and tagged IVC, never XLX or Transfer
-        q = rest + f"&!#{sizes.IVC}&!traded&{size}"
+    for size in sizes.NAMES:  # first: these get IVC
+        q = size_search(size)
         sizes.walk(lambda: run_pile(q), size, 10 ** 9)
-    rest = EVOLVED_REST  # (one passed over there stays out of Transfer too)
+    rest = BULK_REST  # (one passed over there stays out of Transfer too)
     unsure, power_ok = [], True
     # power-ups for the tagged ones (the taker transfers them), then XLX and power-ups for the rest
     walks = [(traded, False, True, set(plan["taker_xl_full"])), (rest + UNDER_360_XL, True, True, ()),
@@ -781,7 +801,7 @@ def cmd_tag(limit):
         done.add(rest + q)
         save_done()
     tag_pile("GIV", rest + "&!traded&distance100-")  # fits nothing else, but a far trade: GIV
-    got = door_walk(rest, limit, who)  # (rest leaves out #GIV)
+    got = door_walk(EVOLVED_REST, limit, who)  # (it leaves out #GIV. TAG_SKIP's ones are judged here)
     log(f"the rest, through the door: {dict(got)}")
 
 
@@ -796,21 +816,22 @@ def cmd_door(limit):
     log(f"the rest, through the door: {dict(door_walk(EVOLVED_REST, limit, who))}")
 
 
-def pile_tiles(suffix):
+def pile_tiles(suffix, shortcut=SHORTCUT):
     """the pile + suffix, every tile read -> search.run_search's answer ([(name, cp)], the game's count)"""
-    n = run_pile(suffix)
+    n = savedsearch.run_shortcut(shortcut, suffix)
     if not n:
         return [], n
     _, texts, path, bounds = wait_for("list")
-    return search.read_results(f"{SHORTCUT}{suffix}", path, texts, bounds)
+    return search.read_results(f"{shortcut}{suffix}", path, texts, bounds)
 
 
-def door_walk(suffix, limit, who):
+def door_walk(suffix, limit, who, shortcut=SHORTCUT, gone=None):
     """each one in the pile + suffix gets its final tag at the door (../shared/door.py, the same rules as /ivc's
-    losers), or is left as it is and listed as not sure. Never a Transfer by default. -> Counter of what happened"""
+    losers), or is left as it is and listed as not sure. Never a Transfer by default. gone(what the door said, the
+    door): did that one leave this pile? -> Counter of what happened"""
     import door
     from ivc import GYM_DEFENDERS  # noqa: F401 (verdict, loaded by Door, needs /ivc on the path)
-    gate = door.Door(SHORTCUT, account=who, find=lambda term: pile_tiles(f"{suffix}&{term}"))
+    gate = door.Door(shortcut, account=who, find=lambda term: pile_tiles(f"{suffix}&{term}", shortcut))
     passed = gate.listed()
     log(f"door: {sum(passed.values())} on the not-sure list, passed over")
     counts = Counter()
@@ -832,9 +853,9 @@ def door_walk(suffix, limit, who):
         log(f"DONE door {got} {n!r} CP{c} {iv}")
         go("close", "list")
         # gone only with a tag the rest leaves out (Old, 2XL, a star or not sure: it stays, and is passed)
-        return got == "tag" and bool(set(gate.last.tags) & {*TAGS, XLX, TRANSFER})
+        return gone(got, gate) if gone else got == "tag" and bool(set(gate.last.tags) & {*TAGS, XLX, TRANSFER})
 
-    if run_pile(suffix):
+    if savedsearch.run_shortcut(shortcut, suffix):
         search.walk_list(visit, stop=lambda n: counts["opened"] >= limit)
     return counts
 

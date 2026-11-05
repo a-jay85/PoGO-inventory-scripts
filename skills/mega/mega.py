@@ -18,7 +18,7 @@ On each page it opens the Mega level page (the round Mega badge under the types)
 
 Free = no number next to the MEGA EVOLVE button, and no xN cost in the "Do you want to Mega Evolve" box.
 
-Then it searches mega1 and Mega Evolves any of those, any tag, only when it's free. That ends the Mega Evolution
+Then it searches mega1 and Mega Evolves the first one that's free, any tag, and stops there. That ends the Mega Evolution
 just made, so its rest timer starts now instead of in 8 hours. A days line or timer by the Mega badge ("5 DAYS",
 "11:39 left") means not free: skipped from the Pokémon's page, without opening the level page. With neither, the level
 page and the box still check the cost. An X/Y one there takes its nickname's form, or with no letter whichever form is free.
@@ -174,11 +174,13 @@ def page_cost(s):
 
 
 def box_key(texts):
-    """the Mega Evolve box, grown in: its cost, YES and NO. None while it isn't there yet"""
+    """the Mega Evolve box: its cost and where YES and NO are, so steady() waits until it's done growing (a tap while
+    it grows can miss, and the box closes with no Mega Evolution). None while it isn't there yet"""
     j = " ".join(t[4] for t in texts)
-    if "lasts for 8 hours" not in j or len(exact(texts, "YES")) != 1 or len(exact(texts, "NO")) != 1:
+    yes, no = exact(texts, "YES"), exact(texts, "NO")
+    if "lasts for 8 hours" not in j or len(yes) != 1 or len(no) != 1:
         return None
-    return ask_cost(texts)
+    return ask_cost(texts), round(yes[0][1], 2), round(no[0][1], 2)
 
 
 def open_sheet(texts, bounds):
@@ -334,6 +336,7 @@ def mega(info, dry, free_only=False):
         if asked is None:
             keep_capture("noask")
             raise Stop("no 'Do you want to Mega Evolve' box after MEGA EVOLVE")
+        asked = asked[0]
         if ui.ANDROID:  # and off the phone's own screenshot: the bigger one
             asked = max(asked, ask_cost(sharp_texts()) or 0)
         yes, no = exact(texts, "YES"), exact(texts, "NO")
@@ -358,6 +361,7 @@ def finish():
     """after YES: tap the energy crystal, YES on 'will no longer be Mega Evolved', wait for 'HH:MM left'"""
     end = time.time() + 45
     tapped = 0
+    back_since = None
     while time.time() < end:
         time.sleep(0.2)
         try:
@@ -380,6 +384,14 @@ def finish():
                 base.click(0.5, 0.937, bounds)
             time.sleep(1.0)
             continue
+        s = sheet(texts)
+        if not tapped and s and s["button"] and "want to Mega" not in j:  # back on the level page: YES didn't take
+            back_since = back_since or time.time()
+            if time.time() - back_since > 5:
+                keep_capture("noyes")
+                raise Pass("the YES tap didn't take: no Mega Evolution")
+            continue
+        back_since = None
         tap_line = [t for t in texts if "TAP TO MEGA" in ui.norm(t[4])]
         if tap_line and tapped < 6:
             t = tap_line[0]
@@ -403,7 +415,7 @@ def walk(q, limit, dry, free_only=False):
     if not settled_tiles_after(q):
         log(f"nothing in {q}")
         return
-    # how many: a Mega Evolved one's CP reads differently look to look, so a swipe at the end can seem to move
+    # how many: a swipe that fails with more to come isn't the end of the list
     total = search.result_count(look()[1])
     base.go("tile 1", "detail")
     seen, counts, t_start = set(), {"done": 0, "skip": 0}, time.time()
@@ -424,19 +436,16 @@ def walk(q, limit, dry, free_only=False):
             did = mega(info, dry, free_only)
             log(f"{label}: {did}")
             counts["done"] += 1
+            if free_only:  # one is enough to end the last Mega Evolution (the user, 2026-11-05)
+                log("that's the first free one: done with this search")
+                break
             if not dry:
                 # the page after a Mega Evolution won't swipe: back to the list, open the next tile
                 pos += 1
                 if total and pos > total:
                     log(f"all {total} seen")
                     break
-                to_list()
-                if not settled_tiles():
-                    break
-                try:
-                    base.go(f"tile {pos}", "detail")
-                except base.Lost:
-                    log(f"no tile {pos} on the list: end of the list")
+                if not reopen(pos):
                     break
                 continue
         except Pass as e:
@@ -447,18 +456,52 @@ def walk(q, limit, dry, free_only=False):
             break
         now = key(base.wait_for("detail")[1])
         if not next_one(None, lambda t: key(t)[1] is not None and key(t) != now):
-            log("the swipe didn't move: end of the list")
-            break
+            if not total:
+                log("the swipe didn't move: end of the list")
+                break
+            # a swipe can fail for 15 s with more to come (2026-11-05, at number 2 of 76)
+            log(f"the swipe didn't move, and there are {total}: back to the list for number {pos + 1}")
+            if not reopen(pos + 1):
+                break
         pos += 1
     log(f"done: {counts['done']} {'would Mega Evolve (dry run)' if dry else 'Mega Evolved'}, {counts['skip']} skipped, {time.time() - t_start:.0f}s")
     if look()[0] != "list":
         to_list()
 
 
+def reopen(pos):
+    """back to the list and open its pos-th Pokémon. -> False when there's no such one (logged)"""
+    to_list()
+    showing = len(settled_tiles())
+    if not showing:
+        return False
+    try:
+        if open_tile(pos, showing):
+            return True
+        log(f"the swipe to number {pos} didn't move: end of the list")
+    except base.Lost:
+        log(f"no tile {pos} on the list: end of the list")
+    return False
+
+
+def open_tile(pos, showing):
+    """from the list, open its pos-th Pokémon. Past the tiles on the screen: open the last one showing and swipe on.
+    -> False if a swipe didn't move"""
+    base.go(f"tile {min(pos, showing)}", "detail")
+    for _ in range(pos - showing):
+        now = key(base.wait_for("detail")[1])
+        if not next_one(None, lambda t: key(t)[1] is not None and key(t) != now):
+            return False
+    return True
+
+
 def key(texts):
-    """one Pokémon page: two Mewtwos with the same nickname and tags differ by CP or HP"""
+    """one Pokémon page: name, weight, height, HP, tags. No CP: the flames and sparkles behind it make it read
+    differently look to look (Chandelure: 1846, 1816, 184), so the same page looked like a new one, and the walk
+    ended early. Weight and height read the same on 100 of 100 looks (2026-11-05)"""
     d = ui.detail_info(texts)
-    return d["name"], d["cp"], d["hp"], tuple(d["tags"])
+    _, hp, kg, m = base.who(d)
+    return d["name"], kg, m, hp, tuple(d["tags"])
 
 
 def settled_tiles_after(q):

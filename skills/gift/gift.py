@@ -31,6 +31,8 @@ on a pass down from the top. The preview must read the same title and city befor
 Nicknames hold 12 characters: the space goes first, then letters off the end. One it can't type or read back is left
 alone, and the log says to tag it by hand.
 If Mirroring froze and the same preview is still there after the wait, it taps SEND once more, never a third time.
+One friend never gets a gift from this script, on any account: NEVER_NAME / NEVER_NICK.
+Take over mid-run and close the gift list, and it goes back to the friend list, searches again and goes on.
 """
 import argparse, difflib, os, random, re, subprocess, sys, time
 from PIL import Image
@@ -83,6 +85,8 @@ typed = ""  # the last search typed: the box shows its end ('ea', 'mo')
 LAG = 1 if ui.ANDROID else 2.5  # iPhone Mirroring now and then freezes for several seconds: wait longer there
 PICKER_DRAG = (0.85, 0.25)  # a scroll down the gift list: long, to pass other cities fast, but no longer than the
 # cards on screen (0.2-0.85) and no faster, so no card scrolls past between two looks
+NEVER_NAME = "playharder"  # a friend who never gets a gift from this script, on any account (the user's rule): trainer
+NEVER_NICK = "CPD"  # names start with this (the game shows playhardererer), or this nickname. Sent by hand only
 MAX_LOST = 3  # lost screens in a row (each on a friend's page, backed out of) before the run stops
 
 
@@ -611,11 +615,21 @@ def rows():
             for t, nick in out if t[1] > 0.26]
 
 
+def name_key(s):
+    """a trainer name with the letters OCR mixes up made the same"""
+    return re.sub(r"[il1|Iİı]", "l", re.sub(r"[oO0]", "0", clean(s).replace("&", "8"))).lower()
+
+
 def same_name(a, b):
     """the row's name and the page's: OCR reads them a little differently ('lycбo' / 'lyc60'). One letter off is ok"""
-    f = lambda s: re.sub(r"[il1|Iİı]", "l", re.sub(r"[oO0]", "0", clean(s).replace("&", "8"))).lower()
-    a, b = f(a), f(b)
+    a, b = name_key(a), name_key(b)
     return a == b or len(a) == len(b) and sum(x != y for x, y in zip(a, b)) <= 1
+
+
+def never_gift(name, nick):
+    """the friend the script must leave alone. Either read is enough: a friend skipped by mistake costs nothing"""
+    bare = re.sub(r"^(WAIT|SENT)\s*", "", (nick or "").strip().strip('"“”').strip(), flags=re.I)
+    return name_key(name or "").startswith(name_key(NEVER_NAME)) or bare.upper() == NEVER_NICK
 
 
 # ---------- one friend ----------
@@ -756,7 +770,7 @@ def meter():
                 close()
     else:
         keep_capture("meter")
-        raise Stop(f"the friendship screen didn't open: {summary()}")
+        raise base.Lost(f"the friendship screen didn't open: {summary()}")  # (no gift yet: back to the list, as above)
     if not ribbon():  # (still sliding in: wait() caught it early)
         time.sleep(0.8)
         look()
@@ -961,8 +975,10 @@ def send_gift():
             keep_capture("after_send")
             raise Stop(f"after SEND the screen is {s}: {summary()}")
         if classify() != "picker":
+            # (the user took over and closed it, or a tap went astray. No SEND was tapped: run_searches goes back to the
+            # list and tries this friend once more. One the user gifted by hand reads grey by then)
             keep_capture("not_picker")
-            raise Stop(f"left the gift list while looking for our gifts: {summary()}")
+            raise base.Lost(f"left the gift list while looking for our gifts: {summary()}")
         here = layout(), " ".join(u[4] for u in sorted(texts, key=lambda u: u[1]) if u[1] > 0.2)
         if not same_list(seen, here):
             seen = here  # still loading or still moving: look again before scrolling
@@ -1112,6 +1128,9 @@ def one_friend(row, check=False):
         log(f"  opened {name!r}, wanted {row['name']!r}: skipped")
         return None
     nick, _ = page_nickname()
+    if never_gift(name, nick):
+        log(f"{name} ({nick}): never gets a gift from the script: left alone")
+        return None
     t = send_gift_label()
     if not t or not gift_icon(t):
         time.sleep(0.8)  # (or a Lucky Trade request fading in over the page: it pales the icon)
@@ -1223,7 +1242,9 @@ def run_searches(limit):
                     continue
                 on_screen = rows()
                 # a Remote Trade friend stays at the top whatever the sort: their arrow says nothing about the rest
-                todo = [r for r in on_screen if r["name"] not in done and not (r["trade"] and r["badged"])]
+                # (never_gift here too: OCR can read a name differently each look, so done alone could reopen them)
+                todo = [r for r in on_screen if r["name"] not in done and not (r["trade"] and r["badged"])
+                        and not never_gift(r["name"], r["nick"])]
                 if todo and todo[0]["badged"]:
                     if top:
                         break  # sorted can-receive first, and the first friend not done has the arrow: nobody left

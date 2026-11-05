@@ -533,7 +533,7 @@ def go(target, *screens):
 def key(name, cmd=False):
     front(planned=True)
     ui.sh(ui.HELPER, "key", name, *(["cmd"] if cmd else []))
-    time.sleep(random.uniform(0.08, 0.18))
+    time.sleep(random.uniform(0.08, 0.18) if ui.ANDROID else 0.03)
 
 
 TYPE_SPEED = ("2", "1", "1")  # iPhone, ms: after Shift, key held, between keys. 1-1-0 still lands, 0-0-0 loses keys (2026-11-05)

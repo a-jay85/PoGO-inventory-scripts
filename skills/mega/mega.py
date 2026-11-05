@@ -249,6 +249,23 @@ def close_sheet():
     raise Stop("couldn't get from the Mega level page back to the Pokémon")
 
 
+def to_list():
+    """from a Pokémon's page to the list. Just after a Mega Evolve the 'increase the Mega Level' popup can still come
+    up, and the X tap can end on the level page, where there's no X to find: close those and tap again"""
+    for attempt in range(3):
+        _, texts, _, bounds = look()
+        if show_me(texts, bounds):
+            _, texts, _, bounds = look()
+        if any(t[4].strip().endswith("Mega Level") for t in texts):
+            log("  on the Mega level page: closing it")
+            close_sheet()
+        try:
+            return base.go("close", "list")
+        except Stop:
+            if attempt == 2 or not any(t[4].strip().endswith("Mega Level") for t in look()[1]):
+                raise
+
+
 # ---------- one Pokémon ----------
 
 def check(info, texts, free_only=False):
@@ -410,7 +427,7 @@ def walk(q, limit, dry, free_only=False):
                 if total and pos > total:
                     log(f"all {total} seen")
                     break
-                base.go("close", "list")
+                to_list()
                 if not settled_tiles():
                     break
                 try:
@@ -431,8 +448,8 @@ def walk(q, limit, dry, free_only=False):
             break
         pos += 1
     log(f"done: {counts['done']} {'would Mega Evolve (dry run)' if dry else 'Mega Evolved'}, {counts['skip']} skipped, {time.time() - t_start:.0f}s")
-    if look()[0] == "detail":
-        base.go("close", "list")
+    if look()[0] != "list":
+        to_list()
 
 
 def key(texts):

@@ -522,7 +522,9 @@ def search(*parts):
     q = "".join(parts)
     for attempt in range(4):
         to_top()
-        if search_line() and ui.norm(search_line()[4]) != "TRAINER NICKNAME":
+        box = search_line()
+        if box and (ui.norm(box[4]) != "TRAINER NICKNAME" or not rows()):
+            # (an empty box and no friends: a stopped search can leave this. They never load until the X: 2026-11-05)
             tap(*CLEAR_SEARCH, fuzz=0.004)
             time.sleep(1.0)
             look()

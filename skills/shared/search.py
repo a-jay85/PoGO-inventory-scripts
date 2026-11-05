@@ -231,7 +231,13 @@ def to_search_list():
     """the full Pokémon list with its search bar: Tags tab, then the POKÉMON tab (switching tabs puts the list back at the top)"""
     LAST["q"] = None
     path, bounds = ui.capture()
-    leave_panel(ui.ocr(path), bounds)
+    texts = ui.ocr(path)
+    if not ui.ANDROID and ui.search_panel(texts):
+        box = ui.search_box(texts)
+        if not (box and ui.search_text(box)):  # open and empty (home.trainer leaves it so): ready to type. Its < then
+            log("  the search panel is up and empty: typing there")  # POKÉMON cost 24 s (2026-11-05), see pokemon_tab
+            return
+    leave_panel(texts, bounds)
     if base.look()[0] == "tags":  # cut off with the tag sheet open
         if not any(base.tick_tags().values()):  # ticks half changed (IVC off, Nope not on yet): DONE would save that
             raise Stop("left on the tag sheet with nothing ticked: finish this Pokémon by hand")

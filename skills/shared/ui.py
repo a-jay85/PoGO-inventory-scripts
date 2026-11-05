@@ -207,12 +207,24 @@ def is_label(s, label):
 
 # ---------- screen classification ----------
 
+def profile_tabs(texts):
+    """any tab of the profile (ME, FRIENDS or SOCIAL): its three tab names across the top. The round X at the bottom
+    closes each. (The iPhone came back on SOCIAL once and the start stopped there: 2026-11-02)"""
+    return {"ME", "FRIENDS", "SOCIAL"} <= {norm(t[4]) for t in texts if t[1] < 0.2}
+
+
+def gift_banner(texts):
+    """a friend's banner across the top of any screen for a few seconds: 'X sent you a Gift!', 'X and 3 other friends
+    have opened your Gifts!'. It hides what's under it (the profile's tabs). The same words in the Friends tab's rows
+    sit lower down, under the tabs and the search box"""
+    return any(t[1] < 0.2 and ("SENT YOU A" in t[4].upper() or "OPENED YOUR" in t[4].upper()) for t in texts)
+
+
 def profile_page(texts):
     """the profile (ME / FRIENDS / SOCIAL tabs across the top) or the Scopely Explore page its EXPLORE button opens.
     Both have text where the list's search bar sits (a friend's hearts '000', 'Scopely Explore Profile!'): read as
     the list, a search tap there opened Scopely Explore, which Back can't close (Pixel, 2026-11-03)"""
-    top = {norm(t[4]) for t in texts if t[1] < 0.2}
-    return {"ME", "FRIENDS", "SOCIAL"} <= top or scopely(texts)
+    return profile_tabs(texts) or scopely(texts)
 
 
 def scopely(texts):

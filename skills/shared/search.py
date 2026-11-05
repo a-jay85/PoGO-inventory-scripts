@@ -351,11 +351,19 @@ def x_button(bounds):
 def clear_search():
     """typing only lands in an empty search bar, and the game empties it when the Pokémon screen reopens:
     close it with the X at the bottom, then Poké Ball -> POKÉMON"""
+    global scrolled
     LAST["q"] = None
     want = ("list", "tag-tab", "detail", "menu", "appraisal", "gym")
     for _ in range(3):
         screen, texts, _, bounds = base.look()
         if leave_multiselect(texts, bounds):
+            continue
+        if ui.profile_tabs(texts):  # the Friends tab mid-run (a tap on a friend's banner): its X, then the list
+            log("  on the profile: closing it")
+            click(0.5, 0.937, bounds)
+            time.sleep(random.uniform(1.5, 2.0))
+            off_map()
+            scrolled = False  # opened from the map: at the top
             continue
         if ui.search_panel(texts):  # left open: a Return that didn't take
             box = ui.search_box(texts)

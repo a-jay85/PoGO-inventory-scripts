@@ -161,6 +161,15 @@ ASKS = {
     "x7,500": texts((0.32, "Do you want to Mega Evolve 100?"), (0.43, "x7,500")),
     "not the box": texts((0.39, "Do you really want to Mega"), (0.48, "Your 100 will no longer be Mega Evolved!")),
 }
+BANNERS = {  # OCR from run captures: the banner over the ME tab, and the same words as Friends tab rows
+    "over the ME tab": texts((0.04, "10:00"), (0.12, "playhardererer sent you a Gift!"), (0.18, "CyrillJan"),
+                             (0.59, "LEVEL")),
+    "two lines": texts((0.11, "EXGunstarHero sent you a"), (0.14, "Gift!"), (0.19, "CyrillJan")),
+    "opened": texts((0.10, "RINRINRINSORA and 10 other"), (0.13, "friends have opened your"), (0.16, "Gifts!")),
+    "friend rows": texts((0.09, "ME"), (0.09, "FRIENDS"), (0.09, "SOCIAL"), (0.31, "1738Sanmiggz"),
+                         (0.36, "1738Sanmiggz sent you a"), (0.38, "Gift!"), (0.52, "1D13GOD sent you a Gift!")),
+    "the list": texts((0.18, "Q Search"), (0.3, "CP 1234")),
+}
 NICKS = ["98 AD C* X", "93 D PsyS* Y", "GGB X", "Mewtwo", "100", "OpenGiftOnCD", "Max", "X", ""]
 BADGES = {k: texts((0.69, v)) for k, v in {"days": "5 DAYS", "1 day": "1 DAY", "left": "07:59 left",
                                            "none": "WEIGHT", "hours": "6 HOURS"}.items()}
@@ -277,6 +286,8 @@ def answers():
     out["ui.classify"] = {k: answer(ui.classify, ts) for k, ts in SCREENS.items()}
     out["base.screen_changed"] = {k: answer(base.screen_changed, *v) for k, v in CHANGES.items()}
     out["mega.ask_cost"] ={k: answer(mega.ask_cost, ts) for k, ts in ASKS.items()}
+    out["ui.gift_banner"] = {k: answer(ui.gift_banner, ts) for k, ts in BANNERS.items()}
+    out["ui.profile_tabs"] = {k: answer(ui.profile_tabs, ts) for k, ts in BANNERS.items()}
     out["mega.form_of"] = {n: answer(mega.form_of, n) for n in NICKS}
     out["mega.badge"] = {k: answer(lambda ts: (lambda b: b and b[4])(mega.badge(ts)), ts) for k, ts in BADGES.items()}
     return json.loads(json.dumps(out))  # (tuples -> lists, as the file has them)

@@ -32,6 +32,8 @@ Nicknames hold 12 characters: the space goes first, then letters off the end. On
 alone, and the log says to tag it by hand.
 The iPhone types the text shortcuts (iii, lasia ...) and lets iOS expand them. If the box still shows a shortcut, it types
 every search in full for the rest of the run. Android always types them in full.
+A search that ends in a shortcut and finds nobody gets one space added: sometimes the search hadn't run.
+If it still finds nobody and the box ends in part of the shortcut ('...&las'), it types every search in full too.
 If Mirroring froze and the same preview is still there after the wait, it taps SEND once more, never a third time.
 """
 import argparse, difflib, os, random, re, subprocess, sys, time
@@ -465,6 +467,16 @@ def whole(box, q):
     return not t or "&" in t or len(t) >= min(len(q), 20)
 
 
+def cut_short(line, part):
+    """the box ends in the start of a shortcut, not what it expands to ('...&!EGG&las', 'le6': 2026-11-05, both read (0)).
+    (ui.norm drops the digit OCR adds, and rstrip the box's clear X)"""
+    if part not in SHORT:
+        return False
+    tail = ui.norm(line.rsplit("&", 1)[-1]).replace(" ", "").rstrip("X")
+    short = SHORT[part].upper()
+    return 2 <= len(tail) <= len(short) and short.startswith(tail[:2])
+
+
 def commit_search():
     """the search is typed: commit it -> its result count, or None when none shows"""
     time.sleep(0.5)
@@ -541,6 +553,18 @@ def search(*parts):
         if not whole(box, q):
             log(f"the box holds only part of {q!r}: typing it again")
             continue
+        last = [p for p in parts if p][-1]
+        if n == 0 and short and last in SHORT:
+            # iOS: with a shortcut as the last thing typed, the search sometimes doesn't run (the user, 2026-11-05)
+            n = add_space(n)
+            log(f"  after the space: ({n})")
+            if n is None:
+                continue
+            box = search_line()
+            if n == 0 and box and cut_short(box[4], last):
+                shortcuts = False
+                log(f"the box still ends in part of {SHORT[last]!r} ({box[4]!r}): typing searches out in full from now on")
+                continue
         if n == 0 or rows():
             return n
         n = add_space(n)
@@ -553,7 +577,7 @@ def search(*parts):
 def add_space(n):
     """a known game bug: a count with an empty list. A space added to the end runs the search again -> the count"""
     global typed
-    log(f"the search shows ({n}) but no rows: adding a space")
+    log(f"the search shows ({n}) and no rows: adding a space")
     box = search_line()
     tap_text(box) if box else tap(0.45, 0.22)
     time.sleep(1.2)

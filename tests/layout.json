@@ -403,6 +403,7 @@
    "close_popup",
    "commit_search",
    "count",
+   "cut_short",
    "dimmed",
    "drag",
    "early",

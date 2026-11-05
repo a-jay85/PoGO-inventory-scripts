@@ -917,7 +917,7 @@ def trade_once(ios, android, specials):
         android.tap(0.5, 0.932)  # change Pokémon: back to the list, search kept
         android.wait("picker", timeout=10)
         got[1] = choose(android, skip + 1)
-    for p in (android, ios):  # the Android side first: its taps never miss, the iPhone's last tap starts the trade
+    def tap_confirm(p):
         try:  # (the reader can miss a letter of CONFIRM on one capture)
             p.wait("confirm", timeout=4)
         except Expired:
@@ -925,6 +925,7 @@ def trade_once(ios, android, specials):
         except Stop:
             raise Stop(f"{p.name}: left the confirm screen before CONFIRM: {p.summary()}")
         confirm(p)
+    both(tap_confirm, *[(p,) for p in phones])  # at once: neither phone waits for the other's tap
     for p in phones:
         p.live = False  # confirmed: an "expired" box from here on comes after the trade, it doesn't undo it
     return got, d, reads[0][1]

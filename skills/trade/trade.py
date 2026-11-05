@@ -79,6 +79,11 @@ class ServiceDown(Expired):
     """the trading server failed ("Trading service temporarily unavailable"): restart the game on both phones"""
 
 
+class OutOfRange(Expired):
+    """"... is out of range for trading" after LOCAL TRADE, with the phones side by side: nothing traded. The next
+    round taps its OK and LOCAL TRADE again. main() stops the run if it keeps coming"""
+
+
 class Lost(ServiceDown):
     """iPhone Mirroring lost the iPhone mid-run ("Connection Interrupted"): open Mirroring again, then restart the
     game on both phones. Before both confirmed nothing traded; after, the trade went through and is counted"""
@@ -160,13 +165,15 @@ class Phone:
                 return self.screen
             now = paused_so_far()  # the iPhone paused for the user: either phone may be waiting on it, and neither timed out
             end, grace, held = end + max(0.0, now - held), grace + max(0.0, now - held), now
-            if self.screen == "expired":
+            if self.screen in ("expired", "range"):
                 self.expired()
             if time.time() > end and not (self.screen == "blank" and time.time() < grace):
                 raise Stop(f"{self.name}: wanted {'/'.join(screens)}, screen is {self.screen}: {self.summary()}")
             time.sleep(0.3)
 
     def expired(self):
+        if self.screen == "range":
+            raise OutOfRange(f"{self.name}: {self.friend} is out of range for trading")
         if self.find(lambda t: "UNAVAILABLE" in ui.up(t) or "ERROR FETCHING" in ui.up(t)):
             raise ServiceDown(f"{self.name}: the trading service failed: {self.summary()}")
         raise Expired(f"{self.name}: the trade expired")
@@ -237,6 +244,8 @@ def classify(texts, path):
         return "mirroring"  # iPhone Mirroring's own screen: it can't reach the iPhone (never on the Pixel)
     if "MANAGE FAVORITE" in joined:
         return "manage"  # the Manage Favorite Search box: a shortcut tap that landed as a long press
+    if "OUT OF RANGE" in joined:
+        return "range"  # "... is out of range for trading": OK
     if "EXIT POK" in joined:
         return "exit"  # Android: "Do you want to exit Pokémon GO?"
     if "TRADE EXPIRED" in joined or "TRADE WAS CANCELED" in joined or "HAS EXPIRED" in joined:
@@ -321,12 +330,12 @@ def to_friend(p):
                 return
             log(f"{p.name}: on {name}'s page, not {p.friend}'s: closing it")
             p.tap(*X_BUTTON)
-        elif s in ("exit", "expired"):
+        elif s in ("exit", "expired", "range"):
             button = label(p, "CANCEL" if s == "exit" else "OK")
-            if not button and s == "expired":
-                # the iPhone's "This trade with ... has expired." box: OCR can miss its white-on-green OK, which
-                # sits just under the message (on the Android, "expired." gets a line of its own)
-                msg = p.find(lambda t: "EXPIRED" in ui.up(t))
+            if not button and s != "exit":
+                # the iPhone's "This trade with ... has expired." and "... is out of range" boxes: OCR can miss their
+                # white-on-green OK, which sits just under the message (on the Android, "expired." gets a line of its own)
+                msg = p.find(lambda t: "EXPIRED" in ui.up(t) or "OUT OF RANGE" in ui.up(t))
                 if msg:
                     p.tap(0.5, max(t[1] for t in msg) + 0.077)
                     time.sleep(1)
@@ -395,7 +404,9 @@ def open_trade(phones):
     """LOCAL TRADE on both. The first one waits ("Waiting for ... to be available") until the second one taps too"""
     def tap_local(p):
         for attempt in range(4):
-            s = p.wait("friend", "waiting", "picker", "expired", timeout=8)  # (a banner can cover it for a moment)
+            s = p.wait("friend", "waiting", "picker", "expired", "range", timeout=8)  # (a banner can cover it for a moment)
+            if s == "range":
+                p.expired()  # the round starts over: its to_friend taps the OK
             if s == "expired":  # the box from an old trade can come up late, on the friend page
                 to_friend(p)
                 continue

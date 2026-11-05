@@ -1907,6 +1907,7 @@
    "NEAR",
    "NEED",
    "OK_WARNINGS",
+   "OutOfRange",
    "PER_DAY",
    "PER_RUN",
    "PLANS",

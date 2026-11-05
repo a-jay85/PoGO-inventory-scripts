@@ -447,9 +447,11 @@ def type_into_panel(q, bounds, check=None):
             if not got and i >= 4:
                 log("  nothing showed in the search bar after typing: again")
                 break  # nothing landed: tap and type again
-            short = len(got) < len(q)  # (a misread '!' stops it matching q's start: give those a moment too)
-            if got and not (short and (i < 4 or q.lower().startswith(re.sub(r"\s", "", got).lower()))):
-                break  # the keys can land a little after they're sent: wait while only the start shows
+            if got and check(got, q):
+                return True
+            short = len(got) < len(q)  # the keys can land late, and a misread '!' stops the read matching q's start
+            if got and not (short and (i < 8 or q.lower().startswith(re.sub(r"\s", "", got).lower()))):
+                break
         if got:
             if check(got, q):
                 return True

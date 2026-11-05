@@ -21,6 +21,18 @@ Only gifts from San Francisco are sent (the city line under the title), plus eve
 one in the gift list (LAST_HELD, --last-held), never one with "lion", "tree" or "rock" in its title, and never with
 a sticker. When a phone has none left it stops; the other phone carries on. At the end the iPhone quits iPhone Mirroring and the Pixel locks.
 Log and captures go in runs/<time>-<phone>/.
+
+--limit N: at most N gifts per phone. --dry-run still taps the phone.
+Whose account it is comes from the ME tab, once at the start. If the last held gift isn't in the gift list, only San
+Francisco gifts go. The list on screen isn't steady (cards swap, an old card can show in the wrong spot: a Chicago gift
+went out on 2026-10-26), so a gift after the last held one must also pass, on the list and on the preview: never from
+Chicago, Raleigh or North Carolina; never a title or city seen above the last held gift; only titles first seen after it
+on a pass down from the top. The preview must read the same title and city before SEND.
+Nicknames hold 12 characters: the space goes first, then letters off the end. One it can't type or read back is left
+alone, and the log says to tag it by hand.
+The iPhone types the text shortcuts (iii, lasia ...) and lets iOS expand them. If the box still shows a shortcut, it types
+every search in full for the rest of the run. Android always types them in full.
+If Mirroring froze and the same preview is still there after the wait, it taps SEND once more, never a third time.
 """
 import argparse, difflib, os, random, re, subprocess, sys, time
 from PIL import Image

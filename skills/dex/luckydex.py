@@ -13,6 +13,9 @@ matter out of a trade. A saved search can't be edited, only renamed or removed. 
  5. Run Luckydex: the same count, and the bar holds the list's start and SAFE's end.
 After a Rename or Remove the panel shows Recent: it's switched back to Favorite each time.
 Log in runs/<time>-luckydex/.
+
+Run dex.py lucky on HashTagAJay first if its list is old. It stops if the list needs more than one search. A favorite
+still named '369,377...' from a run that stopped early is removed at the start of the next run. About a minute a run.
 """
 import os, re, sys, time
 

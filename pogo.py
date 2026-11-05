@@ -6,7 +6,7 @@
   POGO_PHONE=android caffeinate -dimsu python3 pogo.py ivc --limit 5 + ivc fallen last
   python3 pogo.py list                       every step and what it runs
 
-A step's args are the same as its own script's (see its SKILL.md). `last` in a step's args is the run folder that
+A step's args are the same as its own script's (see the top of its script; `pogo.py list` shows every step). `last` in a step's args is the run folder that
 an earlier step of the same skill folder made in this chain (pvpc, then `pvpc fallen last`).
 
 Every step runs as its own python3 process, so each one starts clean: its own run folder, its own state. The phone

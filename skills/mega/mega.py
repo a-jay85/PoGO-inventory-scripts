@@ -23,6 +23,10 @@ just made, so its rest timer starts now instead of in 8 hours. One Mega right no
 An X/Y one there takes its nickname's form, or with no letter whichever form is free.
 --dry-run goes as far as that box and taps NO. It still taps the phone.
 Log in runs/<time>-<phone>/log.txt.
+
+--limit N is at most N per phone, and counts each search on its own: --limit 1 can Mega Evolve one TODO and one mega1.
+If the box's cost doesn't match the level page's, it taps NO. Never tapped: the level page's LEVEL UP button (it spends
+energy to skip levels).
 """
 import argparse, os, re, subprocess, sys, time
 

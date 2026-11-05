@@ -16,6 +16,8 @@ Then, signed in as HashTagAJay only (CyrillJan wants the XP, HashTagAJay doesn't
 trade evolutions (free to evolve once traded, cleantrades' TRADE_EVOS), not shadows:
 #Transfer&!traded&!shadow&!xxl&!xxs&!#GIV&<dex numbers> -> GIV on, Transfer off, all at once (SELECT ALL).
 --limit N changes at most N. Log in runs/<time>-sizes/.
+
+Run it once per account. 'traded' may miss trades from before Oct 2020 (SEARCH.md), so a very old trade could slip in.
 """
 import os, re, sys, time
 

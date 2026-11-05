@@ -23,6 +23,9 @@ A berry counts when the number under it goes down. Log in runs/<time>-<phone>/lo
 At the end of a run that wasn't stopped, it tells a local timer whether any gym is left to feed: it runs
 ~/.config/pogo/gymfeed_timer with "on" (a gym of yours that isn't gold: fed, full, or a raid on) or "off" (every
 badge gold, or none of yours in a gym). A gym that didn't open leaves the timer as it is. No such file: nothing.
+
+A run that hit --limit or ran out of spare berries also says "on". The timer only turns back on through a run that
+finds a gym: switching accounts doesn't. The berry menu was measured on the Pixel only.
 """
 import argparse, os, re, subprocess, sys, time
 from collections import deque

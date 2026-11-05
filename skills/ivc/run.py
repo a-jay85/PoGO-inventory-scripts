@@ -17,6 +17,9 @@
 An IVC Pokémon still named after its species is opened once (look): appraised, named (names.py), judged and
 favorited or sent to the door right there. Start with Pokémon GO
 open. A run writes into runs/<time>/ (scan.json, pools.json, plan.txt, plan.json, act.json, log.txt).
+
+It doesn't ask first (2026-10-27): the 98%+ appraisal catches a wrong call. It renames only the IVC ones still named after
+their species or with a nickname that's no species, and never transfers.
 """
 import glob, json, os, re, sys, time
 from collections import Counter

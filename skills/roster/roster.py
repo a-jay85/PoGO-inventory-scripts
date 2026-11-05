@@ -19,6 +19,16 @@ Each boss's 6: down its list, a slot per owned copy, at most one mega (or primal
 species. A new traded copy of a species (never shadow) helps against a boss if it would get into those 6. #1 is
 Reroll, #2-#6 is GIV. Legendary, Mythical and Ultra Beast species are never tagged (traded by hand).
 Output in runs/<time>-count/: counts.json, roster.json (for /cleanup's tradeable.py) and report.md.
+
+pull.mjs takes about 2 minutes and needs Playwright (loaded from the IBL5 checkout; PLAYWRIGHT= points elsewhere). It
+uses DialgaDex's own filters: best moves with Elite TMs, Off Types off, only released attackers. Bosses: every entry,
+unreleased too. Cosmetic forms with the same types, stats and moves are pulled once.
+count only searches and reads: it never changes anything in the game. It counts whoever is signed in and saves whose
+count it is. CyrillJan's count is for tradeable.py's giver side.
+Forms of one species (Mewtwo and Armored Mewtwo, Apex Lugia) are told apart by a move only one form can know (@move).
+What's left goes to the weakest form, and the report lists it as counted by a guess.
+report.md starts with the teams for Groudon, Kyogre, Rayquaza, Mewtwo and Dialga. Check those against what you know you
+have before trusting the trade lists.
 """
 import argparse, json, os, re, sys
 

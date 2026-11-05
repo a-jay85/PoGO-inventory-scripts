@@ -7,7 +7,7 @@ Start with Pokémon GO open. Pokémon still named after their species get apprai
 door isn't sure about keeps IVC and its name, and goes on ../shared/runs/not-sure.json. --dry-run does the
 reading and appraising but changes nothing: it logs the name each one would get.
 Anything the script isn't sure about is skipped and written to runs/<time>/log.txt with a capture.
-Anything unexpected stops the run. Screen reading, tapping and timing come from the /pvpc skill.
+Anything unexpected stops the run. Screen reading, tapping and timing come from ../shared.
 """
 import json, os, random, re, sys, time, unicodedata
 from collections import Counter

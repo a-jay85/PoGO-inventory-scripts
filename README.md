@@ -64,7 +64,7 @@ Python 3, standard library only.
 
 ## Skills
 
-`skills/` holds the Claude Code skills `/pvpc`, `/ivc`, `/cleanup`, `/trade`, `/gift`, `/mega`, `/dex`, `/roster` and `/gymfeed`. Each one has a `SKILL.md` that says what it does. They are used through symlinks at `~/.claude/skills/<name>`. How to work on them: `CLAUDE.md`.
+`skills/` holds the scripts, one folder per job: `pvpc`, `ivc`, `cleanup`, `trade`, `gift`, `mega`, `dex`, `roster` and `gymfeed`, plus the shared library in `skills/shared/`. Each script's top comment says what it does and how to run it. `python3 pogo.py list` shows every step.
 
 ## Data files
 

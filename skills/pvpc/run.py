@@ -24,6 +24,22 @@
 
 Start with Pokémon GO on the inventory, filtered to the PvpC tag. Anything the script isn't sure
 about is skipped and written to runs/<time>/log.txt with a capture. Anything unexpected stops the run.
+
+A stop loses nothing: the run that reaches the end takes in earlier runs' new names (at most 12 hours back, carried.json),
+so one fallen-out step covers them all. --limit counts renames and tags together; appraisals don't count. Lines that
+branch (Eevee aside) are never trimmed or fallen. Only lines a new name landed in get looked at.
+
+By hand, to clear a skip (the same rules, one tool per step):
+  python3 ../shared/ui.py read            which screen is up and what's on it; on the appraisal, the VERDICT
+  python3 ../shared/ui.py tap <target>    prints x y to click (iPhone): click exactly that spot, never made-up ones
+  POGO_PHONE=android python3 ../shared/ui.py press <target>     plans the same safe spot and taps it (Pixel)
+  python3 ../shared/ui.py calib <x> <y>   iPhone, once per display resolution: maps screenshot spots to the screen
+  python3 ../shared/pvp.py check <species_id> <cp> <hp> <stars|-1> [--near a/d/h]    the ranker
+  python3 ../shared/pvp.py update         when a species is missing
+  POGO_PHONE=android python3 ../shared/android.py type "<name>"     type into a box on the Pixel
+Never tap Transfer, Power Up, Evolve, Mega Evolve or Purify: ui.py refuses them and anything close. Don't work around a
+REFUSED. If read says unknown, or shows a popup you didn't expect, stop and look. Don't confirm anything you didn't mean to.
+A NOPE by hand: leave it for run.py, whose door gives the final tag.
 """
 import functools, json, os, re, sys, time
 from collections import Counter

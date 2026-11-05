@@ -18,7 +18,7 @@ On each page it opens the Mega level page (the round Mega badge under the types)
 
 Free = no number next to the MEGA EVOLVE button, and no xN cost in the "Do you want to Mega Evolve" box.
 
-Then it searches mega1 and Mega Evolves any of those, any tag, only when it's free. That ends the Mega Evolution
+Then it searches mega1 and Mega Evolves the first one that's free, any tag, and stops there. That ends the Mega Evolution
 just made, so its rest timer starts now instead of in 8 hours. A days line or timer by the Mega badge ("5 DAYS",
 "11:39 left") means not free: skipped from the Pokémon's page, without opening the level page. With neither, the level
 page and the box still check the cost. An X/Y one there takes its nickname's form, or with no letter whichever form is free.
@@ -424,6 +424,9 @@ def walk(q, limit, dry, free_only=False):
             did = mega(info, dry, free_only)
             log(f"{label}: {did}")
             counts["done"] += 1
+            if free_only:  # one is enough to end the last Mega Evolution (the user, 2026-11-05)
+                log("that's the first free one: done with this search")
+                break
             if not dry:
                 # the page after a Mega Evolution won't swipe: back to the list, open the next tile
                 pos += 1
@@ -431,10 +434,13 @@ def walk(q, limit, dry, free_only=False):
                     log(f"all {total} seen")
                     break
                 to_list()
-                if not settled_tiles():
+                showing = len(settled_tiles())
+                if not showing:
                     break
                 try:
-                    base.go(f"tile {pos}", "detail")
+                    if not open_tile(pos, showing):
+                        log(f"the swipe to number {pos} didn't move: end of the list")
+                        break
                 except base.Lost:
                     log(f"no tile {pos} on the list: end of the list")
                     break
@@ -453,6 +459,17 @@ def walk(q, limit, dry, free_only=False):
     log(f"done: {counts['done']} {'would Mega Evolve (dry run)' if dry else 'Mega Evolved'}, {counts['skip']} skipped, {time.time() - t_start:.0f}s")
     if look()[0] != "list":
         to_list()
+
+
+def open_tile(pos, showing):
+    """from the list, open its pos-th Pokémon. Past the tiles on the screen: open the last one showing and swipe on.
+    -> False if a swipe didn't move"""
+    base.go(f"tile {min(pos, showing)}", "detail")
+    for _ in range(pos - showing):
+        now = key(base.wait_for("detail")[1])
+        if not next_one(None, lambda t: key(t)[1] is not None and key(t) != now):
+            return False
+    return True
 
 
 def key(texts):

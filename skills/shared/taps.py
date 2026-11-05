@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Cleanup's shared taps: the swipe to the next Pokémon, SELECT ALL, an exact search, the Stardust and candy owned, and
+"""Shared taps: the swipe to the next Pokémon, SELECT ALL, an exact search, the Stardust and candy owned, and
 purify (one PURIFY, one YES, the animation waited out).
 
 It used to purify and bulk-transfer every shadow tagged Nope. Nothing tags Nope now: a shadow that isn't a keeper goes
-through the door (../shared/door.py), and the user's shadow rules (purify + Transfer under 360 Candy XL ...) wait on
-the not-sure list for verdict.py. purify() stays here for them.
+through the door (door.py), and the user's shadow rules (purify + Transfer under 360 Candy XL ...) wait on
+the not-sure list for verdict.py. purify() is here for them.
 """
 import json, os, random, re, sys, time
 

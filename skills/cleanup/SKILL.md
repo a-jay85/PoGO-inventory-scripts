@@ -16,7 +16,7 @@ The lucky rule (2026-10-30, traded or not): top 5 IV of its line's non-shadow on
 
 Only /ivc ranks a lucky one (its sort runs the rule, weak lines too). When any other door meets one (/pvpc, `tradeable.py`), it tags it IVC and clears its name, so the next `pogo.py ivc` ranks it. One /ivc found out of the top IV is remembered for 7 days (`../shared/runs/lucky-out.json`), so /pvpc's door doesn't send it back to IVC.
 
-`shadows.py` and `trades.py` hold shared taps now (purify, exact search, tag sheet). Their old Nope walks are gone, and so are `rescue.py`, `suspects.py` and `nopes.py` (the last Nope pile, cleared on both accounts 2026-10-30). No search has `!#Nope` any more, so the Nope tag can be deleted.
+The shared taps moved to `../shared/` (2026-11-04): `taps.py` (purify, swipe to the next one, SELECT ALL), `tagsheet.py` (exact search, tag sheet), `savedsearch.py` (saved searches, tag a whole search), `powerup.py` (level reads, power-ups). The old Nope walks are gone, and so are `rescue.py`, `suspects.py` and `nopes.py` (the last Nope pile, cleared on both accounts 2026-10-30). No search has `!#Nope` any more, so the Nope tag can be deleted.
 
 ## After trading: tag the shortcuts, power up for XL, tag Transfer
 

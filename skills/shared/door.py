@@ -19,7 +19,6 @@ from collections import Counter
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, HERE)
-sys.path.insert(0, os.path.join(HERE, "..", "cleanup"))
 import ui, base, search, home, pagefacts
 from base import Stop, log
 
@@ -33,7 +32,7 @@ SEARCHES = {"costume": "costume"}  # the one fact the page and tile can't show. 
 SAID = {"traded": "traded", "shiny": "shiny", "background": "background", "far": "distance100-",
         "xl_under": "countcandyxl0-359"}  # a scope that already says one of these (#Nope&traded) is believed over the page
 UNSURE = "unsure"
-vd = ct = trades = shadows = None  # verdict, cleantrades, trades, shadows: imported by Door(). At the top they'd loop back
+vd = powerup = tagsheet = taps = None  # verdict, powerup, tagsheet, taps: imported by Door(). At the top they'd loop back
 # (/ivc's run.py loads names.py, which loads this)
 
 
@@ -59,12 +58,12 @@ class Door:
         """scope: the search the Pokémon to judge are in (default #tag). account: who's signed in, when known.
         find(term) -> search.run_search's answer for the pile & term, for a pile that's no typed search (a saved one).
         Then tag only names the pile (the not-sure list): it isn't a tag to take off"""
-        global vd, ct, trades, shadows
+        global vd, powerup, tagsheet, taps
         run_dir = base.RUN_DIR  # (kept in case an import moves it)
         import verdict as vd
-        import cleantrades as ct  # the power-up cost -> levels, and power-ups to the next Candy XL tier
-        import trades  # the tag chips, the caught date at the bottom of the page
-        import shadows  # purify
+        import powerup  # the power-up cost -> levels, and power-ups to the next Candy XL tier
+        import tagsheet  # the tag chips, the caught date at the bottom of the page
+        import taps  # purify
         base.RUN_DIR = run_dir
         self.tag, self.other = tag, "IVC" if tag.upper() == "PVPC" else "PvpC"
         self.source = find is None  # tag is the Pokémon's own tag, to come off
@@ -184,7 +183,7 @@ class Door:
                      candy_xl=None if xl is None else 0 if xl else vd.XL_CAP,
                      levels=self.levels(texts, info, sp, ivs, tile_cp), far=said("far", None if page["california"] is None else not page["california"]), gym_top20=gym_top20,
                      iv_top=iv_top, pure_top=pure_top, pvp_judged=self.tag.upper() == "PVPC", ivc_judged=self.tag.upper() == "IVC",
-                     other_tags=[t for t in trades.tag_chips(texts)
+                     other_tags=[t for t in tagsheet.tag_chips(texts)
                                  if t not in (self.tag.upper(), *((self.other.upper(),) if self.source else ()))])
         if f.lucky and f.iv_top is None and was_ranked_out(self.account, sp, ivs):
             f.iv_top = False
@@ -202,27 +201,27 @@ class Door:
         if "page" in base.OPENED:
             return base.OPENED["page"]
         _, texts, path, bounds = base.look()
-        me = trades.who(texts)[1]
+        me = tagsheet.who(texts)[1]
         shots = [(texts, path)]  # the Candy XL row: at the top, or (a Dynamax one's Max Moves box) one drag down
         try:
             base.drag(0.08, 0.75, 0.08, 0.2, bounds)  # down the left edge: no buttons there
             _, t, p, _ = base.look()
             shots.append((t, p))
-            reads = trades.scrolled_bottom(bounds, drags=1)
+            reads = tagsheet.scrolled_bottom(bounds, drags=1)
         finally:
-            trades.back_to_top(me, bounds)
+            tagsheet.back_to_top(me, bounds)
         xl = next((n for t, p in shots if (n := pagefacts.candy_xl(t)) is not None), None)
         if xl is None:
             xl = next((n for t, p in shots if (n := pagefacts.candy_xl_close(p, t)) is not None), None)
-        days = {trades.caught(catch_date(r)) for r in reads}
+        days = {tagsheet.caught(catch_date(r)) for r in reads}
         base.OPENED["page"] = {"caught": days.pop() if len(days) == 1 else None, "xl": xl, **pagefacts.bottom(reads)}
         return base.OPENED["page"]
 
     def purify(self, info, v):
         """purify it (the verdict's tags go on after). Can't purify -> unsure, left as it is"""
         try:
-            cp = shadows.purify(info)
-        except shadows.Again as e:
+            cp = taps.purify(info)
+        except taps.Again as e:
             return vd.unsure(f"purify: the page showed someone else ({e})")
         except Stop as e:
             if not re.search(r"Stardust|Candy|PURIFY", str(e)):
@@ -236,7 +235,7 @@ class Door:
     def levels(self, texts, info, sp, ivs, tile_cp):
         """the levels the power-up cost fits. A cost that spans two (4,000 dust: 25 to 26.5, the candy digit not read)
         is narrowed by the appraisal's IVs, CP and HP (two Gengar unsure at 26+, 2026-11-02). -> list, or None"""
-        lvs = ct.cost_levels(texts, info["cp"])[1]
+        lvs = powerup.cost_levels(texts, info["cp"])[1]
         got = self.iv_levels(sp, ivs, info["cp"] or tile_cp, info["hp"], quiet=bool(lvs)) if len(lvs) != 1 else []
         if lvs and got:
             both = sorted(set(lvs) & set(got))
@@ -258,11 +257,11 @@ class Door:
         levels: what the facts found, for when the cost doesn't read now"""
         for _ in range(3):  # back from the caught date at the bottom: wait until the cost reads
             now, texts, _ = base.steady_detail()
-            if ct.cost_levels(texts, now["cp"] or tile_cp)[1]:
+            if powerup.cost_levels(texts, now["cp"] or tile_cp)[1]:
                 break
             time.sleep(0.5)
         try:
-            n = ct.power_up({**info, "cp": now["cp"] or tile_cp}, texts, levels)  # (the walk checked the tile's CP)
+            n = powerup.power_up({**info, "cp": now["cp"] or tile_cp}, texts, levels)  # (the walk checked the tile's CP)
             log(f"  powered up {n}x before Transfer")
             for _ in range(12):  # the "CP710+31" animation hides the page's buttons: wait it out (2026-10-31)
                 texts = base.look()[1]
@@ -270,9 +269,9 @@ class Door:
                     break
                 time.sleep(0.5)
             base.OPENED["who"] = base.who(base.detail_now())  # its CP and HP moved: still the same one
-        except ct.Unsure as e:
+        except powerup.Unsure as e:
             return vd.unsure(f"Transfer, but the power-up check: {e}")
-        except ct.Pass as e:
+        except taps.Pass as e:
             log(f"  no power-up: {e}")
         except Stop as e:
             if "Stardust" not in str(e):

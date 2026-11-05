@@ -665,7 +665,7 @@ def edit_tail(prev, q, check):
 
 def start_search(q, check=None, edit=False):
     """type one search (Return, SHOW EVOLUTIONARY LINE unticked). -> (path, texts, bounds) of the results, at the top.
-    check(got, q): does the bar's read show q (default bar_shows; /cleanup's trades.strict is stricter).
+    check(got, q): does the bar's read show q (default bar_shows; tagsheet.strict is stricter).
     edit: if the bar still holds the last search and its list didn't scroll, edit its end (edit_tail)"""
     check = check or bar_shows
     global scrolled

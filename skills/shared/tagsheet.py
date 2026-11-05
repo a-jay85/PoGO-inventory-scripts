@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Cleanup's shared reads and taps: a search typed until the bar reads back exactly, who's on the detail page (name, CP,
+"""Shared reads and taps: a search typed until the bar reads back exactly, who's on the detail page (name, CP,
 HP, weight, height), its tag chips, the caught date at the bottom of the page, and the tag sheet's rows and ticks.
 
 It used to retag Nope legendaries, Ultra Beasts, Meltan and Melmetal (Remote Trade + RT, or Spot Transfer). Nothing
-tags Nope now: ../shared/verdict.py gives those tags at the door, with the same rules.
+tags Nope now: verdict.py gives those tags at the door, with the same rules.
 """
 import datetime, os, random, re, sys, time
 
@@ -13,7 +13,7 @@ import ui
 import base
 from base import Stop, log, keep_capture, go, look, wait_for
 import search
-from shadows import press, exact
+from taps import press, exact
 
 # ---------- search: start and end of the bar both read back ----------
 

@@ -64,9 +64,10 @@ import search
 import pvp
 import home, session
 import dex
-import cleantrades as ct
+import powerup
+import savedsearch
 import sizes
-from shadows import Pass, next_one, owned
+from taps import Pass, next_one, owned
 from ivc import GYM_DEFENDERS
 
 GIVER, TAKER = "CyrillJan", "HashTagAJay"  # Tradeable is the giver's; the taker's dex, candy and XL decide
@@ -586,18 +587,18 @@ MEDAL_KG = {"Rattata": (0.5, 10), "Magikarp": (2, 30)}  # a weight outside this 
 
 def run_pile(suffix):
     """the pile's search + suffix -> its count, or None if this account has no Tradeable shortcut"""
-    return ct.run_shortcut(SHORTCUT, suffix)
+    return savedsearch.run_shortcut(SHORTCUT, suffix)
 
 
 def tag_pile(tag, suffix):
-    return ct.tag_pile(SHORTCUT, tag, suffix)
+    return savedsearch.tag_pile(SHORTCUT, tag, suffix)
 
 
 def level_of(info, texts):
     """-> the levels this one can be at, from the power-up cost on the detail page. No taps. A cost on both sides of
     XLX_LEVEL (4,000 at 26) needs its candy, which OCR often misses: a few more looks for it"""
     for _ in range(4):
-        lvs = ct.cost_levels(texts, info["cp"])[1]
+        lvs = powerup.cost_levels(texts, info["cp"])[1]
         if not lvs or min(lvs) >= XLX_LEVEL or max(lvs) < XLX_LEVEL:
             break
         _, texts, _, _ = look()
@@ -629,7 +630,7 @@ def walk(suffix, xlx, power, limit, skip_dex=(), unsure=None):
                     log(f"XLX {info['name']} CP{info['cp']}: level {lvs}")
                     raise Pass("tagged XLX")
                 if not lvs or max(lvs) >= XLX_LEVEL:
-                    raise Pass(f"level {lvs or '?'} ({ct.page_cost(texts)} dust): can't tell if it's {XLX_LEVEL}+, "
+                    raise Pass(f"level {lvs or '?'} ({powerup.page_cost(texts)} dust): can't tell if it's {XLX_LEVEL}+, "
                                f"left for a look by hand")
                 checked = True
             if skip_dex:
@@ -641,7 +642,7 @@ def walk(suffix, xlx, power, limit, skip_dex=(), unsure=None):
                     log(f"--limit {limit} reached")
                     go("close", "list")
                     return None
-                n = ct.power_up(info, texts)
+                n = powerup.power_up(info, texts)
                 done += 1
                 for _ in range(10):  # the new CP sparkles for a moment and can read blank
                     info2 = ui.detail_info(wait_for("detail")[1])
@@ -652,7 +653,7 @@ def walk(suffix, xlx, power, limit, skip_dex=(), unsure=None):
                 log(f"powered up {info['name']} CP{info['cp']} -> CP{info2['cp']}, {n} power-up(s)")
         except (Pass, Skip) as e:
             log(f"pass {info['name']} CP{info['cp']}: {e}")
-            if (not checked or isinstance(e, ct.Unsure)) and unsure is not None:
+            if (not checked or isinstance(e, powerup.Unsure)) and unsure is not None:
                 unsure.append(f"{info['name']} CP{info['cp']} HP{info['hp']}: {e}")
         # (the bounds don't change on the detail page)
         if not next_one(bounds, lambda t: (lambda i: (i["name"], i["cp"], i["hp"]))(ui.detail_info(t)) not in seen):
@@ -764,7 +765,7 @@ def cmd_tag(limit):
     rest = EVOLVED_REST  # (one passed over there stays out of Transfer too)
     unsure, power_ok = [], True
     # power-ups for the tagged ones (the taker transfers them), then XLX and power-ups for the rest
-    walks = [(traded, False, True, set(plan["taker_xl_full"])), (rest + ct.UNDER_360_XL, True, True, ()),
+    walks = [(traded, False, True, set(plan["taker_xl_full"])), (rest + powerup.UNDER_360_XL, True, True, ()),
              (rest + f"&countcandyxl{XL_CAP}-", True, False, ())]
     for suffix, xlx, power, skip in walks:
         while xlx or (power and power_ok):

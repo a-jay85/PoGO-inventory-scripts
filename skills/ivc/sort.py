@@ -43,9 +43,10 @@ import pvp
 from pvp import REGIONS, is_gym, base_name, region, parent, children, search
 from ui import tile_name as clean_name
 from ivc import GYM_DEFENDERS
+from rules import ALWAYS_KEEP
 
 TOP, TOP_MEGA, TOP_LUCKY, TOP_DMAX, TOP_GYM_CP, TOP_GYM_IV = 5, 6, 1, 3, 20, 20
-ALWAYS = 44  # IV sum of 98%: 98% and 100% always keep
+ALWAYS = ALWAYS_KEEP  # 98% and 100% always keep
 STRONG_AT = 90  # DialgaDex % (vs its budget pick for the type) a line needs somewhere to keep top 5/6
 WEAK_EXTRAS = True  # weak lines: also keep the best lucky / top 3 Dynamax (user: yes, as before)
 COLLECT = {"scatterbug", "spewpa", "vivillon"}  # pattern collections: the user picks by hand

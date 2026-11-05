@@ -20,17 +20,18 @@ from collections import Counter
 HERE = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, HERE)
 import ui, base, search, home, pagefacts
+from rules import XL_CAP, UNDER_360_XL
 from base import Stop, log
 
 NOT_SURE = os.path.join(HERE, "runs", "not-sure.json")
 LUCKY_OUT = os.path.join(HERE, "runs", "lucky-out.json")
 LUCKY_OUT_DAYS = 7  # an older entry is dropped: by then the line may have changed
-RULES = hashlib.md5(b"".join(open(os.path.join(HERE, f), "rb").read() for f in ("verdict.py", "door.py"))
+RULES = hashlib.md5(b"".join(open(os.path.join(HERE, f), "rb").read() for f in ("verdict.py", "door.py", "rules.py"))
                     ).hexdigest()[:8]  # new rules or a new reader: judge again
 SEARCHES = {"costume": "costume"}  # the one fact the page and tile can't show. The rest come from pagefacts
 # (2026-10-31: traded and the catch place off the page's bottom, Candy XL off its top, shiny and background off the tile)
 SAID = {"traded": "traded", "shiny": "shiny", "background": "background", "far": "distance100-",
-        "xl_under": "countcandyxl0-359"}  # a scope that already says one of these (#Nope&traded) is believed over the page
+        "xl_under": UNDER_360_XL[1:]}  # a scope that already says one of these (#Nope&traded) is believed over the page
 UNSURE = "unsure"
 EMPTY = []  # (account, a scope's terms, term): the game counted 0 for that search this run. A scope with all of those
 # terms and more (#IVC&590 after #IVC) can only be empty too, so it isn't typed. Only an empty answer is kept: a tile
@@ -192,7 +193,7 @@ class Door:
                      traded=True if lucky else said("traded", page["traded"]), caught=page["caught"], shadow=base.is_shadow(texts),
                      lucky=lucky,
                      gigantamax="GIGANTAMAX" in near, dynamax="DYNAMAX" in near, size=size, kg=base.who(info)[2],
-                     candy_xl=None if xl is None else 0 if xl else vd.XL_CAP,
+                     candy_xl=None if xl is None else 0 if xl else XL_CAP,
                      levels=self.levels(texts, info, sp, ivs, tile_cp), far=said("far", None if page["california"] is None else not page["california"]), gym_top20=gym_top20,
                      iv_top=iv_top, pure_top=pure_top, pvp_judged=self.tag.upper() == "PVPC", ivc_judged=self.tag.upper() == "IVC",
                      other_tags=[t for t in tagsheet.tag_chips(texts)
@@ -205,7 +206,7 @@ class Door:
     def xl_under(self, info):
         """under 360 Candy XL (read on the way to the page bottom) -> bool or None"""
         n = self.page_bottom(info)["xl"]
-        return None if n is None else n < 360
+        return None if n is None else n < XL_CAP
 
     def page_bottom(self, info):
         """the bottom of the page, then back to the top: the caught date (two reads that agree), traded or not, and

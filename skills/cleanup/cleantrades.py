@@ -44,8 +44,8 @@ import pvp
 import powerup
 from taps import Pass, next_one
 from savedsearch import run_shortcut, tag_pile, long_search
-from powerup import Unsure, power_up, UNDER_360_XL
-from rules import CLEAN, TRANSFER, EVO, TRADE_EVOS, EVO_FOR
+from powerup import Unsure, power_up
+from rules import CLEAN, TRANSFER, EVO, TRADE_EVOS, EVO_FOR, UNDER_360_XL
 
 
 TAGGING = [("PvpC1", "PvpC"), ("PvpC2", "PvpC"), ("IV Check", "IVC")]

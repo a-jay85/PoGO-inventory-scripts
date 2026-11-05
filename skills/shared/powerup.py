@@ -15,7 +15,6 @@ from taps import Pass, press, exact, owned
 class Unsure(Pass):
     """left because something couldn't be read: it may still want a power-up, so it isn't done with"""
 
-UNDER_360_XL = "&countcandyxl0-359"  # a count term eats what follows it: always last
 DUST_FLOOR = 1_000_000
 LOOK = False  # --look: read the levels, power up and tag nothing
 PLAYS = {14: 15, 19: 20, 22: 23, 30: 31}  # level -> the tier it crosses into (2 taps, or 1 from the half level)

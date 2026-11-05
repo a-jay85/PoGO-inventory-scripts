@@ -13,7 +13,7 @@ from ui import Refused, Moving
 HERE = os.path.dirname(os.path.realpath(__file__))
 RUNS = os.path.join(os.path.dirname(HERE), "pvpc", "runs")  # where a run that doesn't pick its own folder logs
 RUN_DIR = os.path.join(RUNS, time.strftime("%Y%m%d-%H%M%S"))
-ALWAYS_KEEP = 44  # IV sum of 98%: 98% and 100% (a shadow: once purified) never get traded or transferred
+from rules import ALWAYS_KEEP
 
 
 class Stop(Exception):

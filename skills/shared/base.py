@@ -123,6 +123,7 @@ def think():
 # ---------- screen ----------
 
 BADGES = {"XXL", "LXX", "XXS", "SXX"}
+HEIGHT_LABELS = ("HEIGHT", "TALLEST", "SHORTEST")
 ZOOM = ui.TMP + "_badge.png"
 
 
@@ -134,7 +135,7 @@ def zoomed_badge(path, texts):
     """the size badge over HEIGHT, read again from a zoomed crop -> one more text line, or none. It's small and white on
     pale teal: reading the whole page often misses it (real XXLs read as no badge, 2026-11-04). This runs with the look,
     so the badge stays with this page's text however far the page has moved on when extras() reads it"""
-    height = [t for t in texts if ui.norm(t[4]) == "HEIGHT"]
+    height = [t for t in texts if ui.norm(t[4]) in HEIGHT_LABELS]  # (the tallest of its species: gold pill, TALLEST)
     if not height:
         return []
     y = height[0][1]
@@ -143,7 +144,7 @@ def zoomed_badge(path, texts):
     with Image.open(path) as im:
         w, h = im.size
         crop = im.convert("RGB").crop((int(0.72 * w), int((y - 0.07) * h), w, int((y - 0.01) * h)))
-    if sum(n for n, (r, g, b) in crop.getcolors(1 << 16) if abs(r - 140) < 20 and abs(g - 200) < 15 and abs(b - 200) < 15) < 60:
+    if ui.norm(height[0][4]) == "HEIGHT" and sum(n for n, (r, g, b) in crop.getcolors(1 << 16) if abs(r - 140) < 20 and abs(g - 200) < 15 and abs(b - 200) < 15) < 60:
         return []  # no teal pill (most pages): skip the extra reads
     gray = crop.convert("L")
     for zoom, invert in ((3, False), (6, True)):  # (a bright background needs the second one)

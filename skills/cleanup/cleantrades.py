@@ -20,8 +20,8 @@ Start with Pokémon GO on the Pokémon screen. Four steps, always in this order:
  3. CyrillJan only (HashTagAJay doesn't need the XP): Clean Trades + a trade evolution (free once traded: Kadabra, Machoke, Graveler, Haunter, Boldore, Gurdurr,
     Karrablast, Shelmet, Phantump, Pumpkaboo) -> tag Evo. Not the base forms (Abra...).
  4. Clean Trades -> tag Transfer.
-Before step 2, the never-traded ones that must not get Transfer leave the pile: Clean Trades &!traded&xxl (then xxs)
--> renamed XXL / xxs, tagged IVC (sizes.py); Clean Trades &!traded&!shadow + a trade evolution -> tag GIV.
+Before step 2, the ones that must not get Transfer leave the pile: Clean Trades &xxl, traded or not -> favorite, and no
+step here touches an XXL one (&!xxl). Clean Trades &!traded&xxs -> renamed xxs, tagged IVC (sizes.py); Clean Trades &!traded&!shadow + a trade evolution -> tag GIV.
 Tagging: the shortcut's search + &!#<tag> (PvpC1, PvpC2 and Clean Trades as they are: they already exclude tagged ones), long press, SELECT ALL, TAG (n). n must equal the search's count, and
 afterwards the same search must come back empty.
 --limit N powers up at most N Pokémon (the tagging still runs). Log in runs/<time>/.
@@ -68,7 +68,8 @@ def account():
 def power_walk(limit, query=None):
     """open each Clean Trades one (query: each one in this typed search) with under 360 XL and power up those right
     under a tier. -> how many got it, or None if --limit stopped it"""
-    if not (long_search(query + UNDER_360_XL) if query else run_shortcut(CLEAN, UNDER_360_XL)):
+    under = UNDER_360_XL + "&!xxl"  # (an XXL one stays: no power-ups for a transfer)
+    if not (long_search(query + under) if query else run_shortcut(CLEAN, under)):
         log(f"no {query or CLEAN} ones under 360 XL")
         return 0
     go("tile 1", "detail")
@@ -135,14 +136,15 @@ def power_pile(query, limit):
 
 
 def untraded(who):
-    """the user's rules (2026-10-31): a never-traded one in Clean Trades never gets Transfer. XXL/xxs: renamed and
-    tagged IVC (sizes.py). A trade evolution (not a shadow: it can't be traded): GIV, on HashTagAJay only (it goes
+    """the user's rules: an XXL one in Clean Trades, traded or not, is a favorite (2026-11-04). A never-traded one
+    never gets Transfer (2026-10-31). xxs: renamed and tagged IVC (sizes.py). A trade evolution (not a shadow: it can't be traded): GIV, on HashTagAJay only (it goes
     to EVO_FOR, who wants the XP; HashTagAJay doesn't, 2026-11-02). Both drop out of Clean Trades (!#)"""
     import sizes  # (sizes imports this file)
+    sizes.walk(lambda: run_shortcut(CLEAN, "&xxl&!favorite"), "xxl", 10 ** 9)
     for size in sizes.NAMES:
         sizes.walk(lambda: run_shortcut(CLEAN, f"&!traded&{size}"), size, 10 ** 9)
     if who != EVO_FOR:
-        tag_pile(CLEAN, "GIV", f"&!traded&!shadow&{TRADE_EVOS}")
+        tag_pile(CLEAN, "GIV", f"&!traded&!shadow&!xxl&{TRADE_EVOS}")
 
 
 def script(a):
@@ -158,13 +160,13 @@ def script(a):
     if "evo" in a:  # steps 1 and 3: a PvpC/IVC one tagged Evo first would drop out of its shortcut (!#)
         for name, tag in TAGGING:
             tag_pile(name, tag)
-        tag_pile(CLEAN, EVO, f"&{TRADE_EVOS}")
+        tag_pile(CLEAN, EVO, f"&!xxl&{TRADE_EVOS}")
         return
     if "transfer" in a:  # every Transfer one: the cheap jump to an XL tier before it's transferred
         power_pile(f"#{TRANSFER}", limit)
         return
     if "fix" in a:  # Transfer tags given before the Evo step: traded trade evolutions go Transfer -> Evo
-        tag_pile(TRANSFER, EVO, off=[TRANSFER], query=f"#{TRANSFER}&traded&{TRADE_EVOS}")
+        tag_pile(TRANSFER, EVO, off=[TRANSFER], query=f"#{TRANSFER}&traded&!xxl&{TRADE_EVOS}")
         return
     for name, tag in TAGGING:  # first: Clean Trades (!#) must only see what's left untagged after these
         tag_pile(name, tag)
@@ -180,8 +182,8 @@ def script(a):
         if look()[0] != "list":
             go("close", "list")
     if who == EVO_FOR:
-        tag_pile(CLEAN, EVO, f"&{TRADE_EVOS}")  # first: these drop out of Clean Trades (!#)
-    tag_pile(CLEAN, TRANSFER)
+        tag_pile(CLEAN, EVO, f"&!xxl&{TRADE_EVOS}")  # first: these drop out of Clean Trades (!#)
+    tag_pile(CLEAN, TRANSFER, "&!xxl")
 
 
 if __name__ == "__main__":

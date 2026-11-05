@@ -87,8 +87,11 @@
    "Stop",
    "TRADE_EVOS",
    "TRANSFER",
+   "XXL_SWEEP",
    "go",
+   "keep_xxl",
    "log",
+   "name_and_tag",
    "next_one",
    "press",
    "results",
@@ -100,10 +103,12 @@
    "sheet_rows",
    "still_sheet",
    "sweep",
+   "tag_chips",
    "tag_pile",
    "tick",
    "wait_for",
-   "walk"
+   "walk",
+   "xxl_off"
   ],
   "runs": [
    "skills/cleanup/runs"
@@ -170,6 +175,7 @@
    "giver_species",
    "go",
    "hard_evolutions",
+   "keep_xxl_ones",
    "level_of",
    "log",
    "look",
@@ -1423,7 +1429,9 @@
    "EVO_FOR",
    "NAMES",
    "TRADE_EVOS",
-   "TRANSFER"
+   "TRANSFER",
+   "XXL_OFF",
+   "xxl_off"
   ],
   "runs": []
  },
@@ -1784,7 +1792,9 @@
    "transfer",
    "two_xl",
    "unsure",
-   "usual"
+   "usual",
+   "xxl",
+   "xxl_off"
   ],
   "runs": []
  },

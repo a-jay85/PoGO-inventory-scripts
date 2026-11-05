@@ -30,9 +30,6 @@ Chicago, Raleigh or North Carolina; never a title or city seen above the last he
 on a pass down from the top. The preview must read the same title and city before SEND.
 Nicknames hold 12 characters: the space goes first, then letters off the end. One it can't type or read back is left
 alone, and the log says to tag it by hand.
-The iPhone types the text shortcuts (iii, lasia ...) and lets iOS expand them. If the box still shows a shortcut, it types
-every search in full for the rest of the run. Android always types them in full.
-If a search finds nobody and the box ends in part of a shortcut ('...&las'), it types every search in full too.
 If Mirroring froze and the same preview is still there after the wait, it taps SEND once more, never a third time.
 """
 import argparse, difflib, os, random, re, subprocess, sys, time
@@ -57,8 +54,6 @@ NEVER = ("CHICAGO", "RALEIGH", "NORTH CAROLINA")  # cities never sent, wherever 
 later = []  # titles seen after last_held, in a look down from the list's top
 early = []  # titles seen above last_held (and last_held itself): never late, even if they show up after it later
 early_cities = set()  # their cities ('Chicago'): a late gift from one of these is held
-# the user's text replacements on the iPhone ("iii", "lll", "lasia" ...): the iPhone types the shortcut and lets
-# iOS expand it, Android types them out in full
 FIRST = "!?&!$&!WAIT&!OPEN&interactable&!EGG&"  # iii: no gift from me yet, not played with today
 THEN = "!WAIT&!OPEN&!interactable&!EGG&"  # lll: played with me today / opened my gift
 ZONES = [  # farthest ahead of Pacific time first; "" (no zone) last picks up everyone else
@@ -70,8 +65,6 @@ ZONES = [  # farthest ahead of Pacific time first; "" (no zone) last picks up ev
     ("mountain", "mo"),
     ("rest", ""),
 ]
-SHORT = {FIRST: "iii", THEN: "lll", ZONES[0][1]: "lasia", ZONES[1][1]: "leuro", ZONES[2][1]: "latam"}
-SHORT_SPEED = ("2", "1", "100")  # iPhone, ms, for a text shortcut: after Shift, key held, between keys
 NICK_MAX = 12  # the game keeps the first 12 characters of a friend nickname
 TYPEABLE = re.compile(r"[A-Za-z0-9 .,&!#+/*^=?$:;-]*")  # what the helper's keyboard (and adb) can type
 X_BUTTON = (0.5, 0.937)  # the round X at the bottom middle (friend page, friendship screen, picker, gift preview)
@@ -86,7 +79,6 @@ HEART_NEAR = {2: 0.9, 3: 0.97, 4: 0.97, 5: 0.95}  # by hearts full: open the fri
 # 11 read 88%, 26 read 75%, 5 read 100%. The Forever bar (5, ~90 points over ~47 pixels): 60 read 36%
 PHONE = "android" if ui.ANDROID else "ios"
 DRY = False  # --dry-run: everything but SEND and the nickname box's OK
-shortcuts = not ui.ANDROID  # off for the rest of the run once a shortcut didn't expand
 typed = ""  # the last search typed: the box shows its end ('ea', 'mo')
 LAG = 1 if ui.ANDROID else 2.5  # iPhone Mirroring now and then freezes for several seconds: wait longer there
 PICKER_DRAG = (0.85, 0.25)  # a scroll down the gift list: long, to pass other cities fast, but no longer than the
@@ -440,42 +432,11 @@ def to_top():
     raise Stop(f"couldn't scroll back to the search box: {summary()}")
 
 
-def type_query(parts):
-    """iPhone: a part with a text replacement goes in as its shortcut and a space (iOS expands it on the space),
-    then the space comes off"""
-    for p in parts:
-        if shortcuts and p in SHORT:
-            # slow keys, so iOS can offer the replacement before the space. All in one send: 'iii' and then a space
-            # on its own never expands (2026-11-05, every pause tried)
-            base.type_text(SHORT[p] + " ", speed=SHORT_SPEED)
-            time.sleep(0.3)
-            base.key("delete")
-        elif p:
-            base.type_text(p)
-
-
-def expanded(parts):
-    """after a search with shortcuts: False only when the box still shows a shortcut ('iiilasia'). The box shows
-    just the end of a long search, so a short read ('mo') or no read at all says nothing"""
-    box = search_line()
-    t = ui.norm(box[4]).replace(" ", "") if box else ""
-    return not any(SHORT[p].upper() in t for p in parts if p in SHORT)
-
-
 def whole(box, q):
     """False when the box clearly holds less than the search: the box shows the last ~40 letters of a long
     search, so a short read (no '&' in it) is all there is. 2026-11-02: the 'iii' was lost and 'mo' alone ran"""
     t = ui.norm(box[4]).replace(" ", "").rstrip("X") if box else ""
     return not t or "&" in t or len(t) >= min(len(q), 20)
-
-
-def cut_short(line, part):
-    """the box ends in the start of a shortcut, not what it expands to ('...&!EGG&las', 'le6': 2026-11-05, both read (0)).
-    (ui.norm drops the digit OCR adds, and rstrip the box's clear X)"""
-    if part not in SHORT:
-        return False
-    t, short = ui.norm(line).replace(" ", "").rstrip("X"), SHORT[part].upper()  # ('&' can read as a letter: '&!EGGQle')
-    return any(t.endswith(short[:k]) for k in range(2, len(short) + 1))
 
 
 def commit_search():
@@ -519,7 +480,7 @@ def list_loaded():
 
 def search(*parts):
     """type a search (its parts, joined) into the friend list -> its result count"""
-    global shortcuts, typed
+    global typed
     q = "".join(parts)
     for attempt in range(4):
         to_top()
@@ -539,9 +500,8 @@ def search(*parts):
         else:
             tap(0.45, 0.22)  # an empty box ("Trainer Nickname")
         time.sleep(1.2)
-        short = shortcuts
         typed = q
-        type_query(parts)
+        base.type_text(q)
         n = commit_search()
         if n is None:
             keep_capture("nocount")
@@ -549,17 +509,8 @@ def search(*parts):
             continue
         box = search_line()
         log(f"  search box reads {box[4] if box else None!r}")
-        if short and any(p in SHORT for p in parts) and not expanded(parts):
-            shortcuts = False
-            log("the text shortcuts didn't expand: typing searches out in full from now on")
-            continue
         if not whole(box, q):
             log(f"the box holds only part of {q!r}: typing it again")
-            continue
-        last = [p for p in parts if p][-1]
-        if n == 0 and short and box and cut_short(box[4], last):
-            shortcuts = False
-            log(f"the box ends in part of {SHORT[last]!r} ({box[4]!r}): typing searches out in full from now on")
             continue
         if n == 0 or rows():
             return n

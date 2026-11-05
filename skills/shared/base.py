@@ -539,9 +539,9 @@ def key(name, cmd=False):
 TYPE_SPEED = ("2", "1", "1")  # iPhone, ms: after Shift, key held, between keys. 1-1-0 still lands, 0-0-0 loses keys (2026-11-05)
 
 
-def type_text(text):
+def type_text(text, speed=TYPE_SPEED):
     front(planned=True)
-    ui.sh(ui.HELPER, "type", text, *TYPE_SPEED)  # one go, about 0.1 s a search: a pause waits for the next tap or key
+    ui.sh(ui.HELPER, "type", text, *speed)  # one go, about 0.1 s a search: a pause waits for the next tap or key
     time.sleep(0.05)
 
 

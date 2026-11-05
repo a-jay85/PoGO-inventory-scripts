@@ -72,7 +72,7 @@ ZONES = [  # farthest ahead of Pacific time first; "" (no zone) last picks up ev
     ("rest", ""),
 ]
 SHORT = {FIRST: "iii", THEN: "lll", ZONES[0][1]: "lasia", ZONES[1][1]: "leuro", ZONES[2][1]: "latam"}
-SHORT_PAUSE = 0.4  # seconds between a text shortcut and the space that expands it
+SHORT_SPEED = ("2", "1", "100")  # iPhone, ms, for a text shortcut: after Shift, key held, between keys
 NICK_MAX = 12  # the game keeps the first 12 characters of a friend nickname
 TYPEABLE = re.compile(r"[A-Za-z0-9 .,&!#+/*^=?$:;-]*")  # what the helper's keyboard (and adb) can type
 X_BUTTON = (0.5, 0.937)  # the round X at the bottom middle (friend page, friendship screen, picker, gift preview)
@@ -446,9 +446,9 @@ def type_query(parts):
     then the space comes off"""
     for p in parts:
         if shortcuts and p in SHORT:
-            base.type_text(SHORT[p])
-            time.sleep(SHORT_PAUSE)  # iOS needs a moment to offer the replacement, or the space doesn't expand it
-            base.type_text(" ")
+            # slow keys, so iOS can offer the replacement before the space. All in one send: 'iii' and then a space
+            # on its own never expands (2026-11-05, every pause tried)
+            base.type_text(SHORT[p] + " ", speed=SHORT_SPEED)
             time.sleep(0.3)
             base.key("delete")
         elif p:

@@ -488,6 +488,22 @@ def commit_search():
     return None
 
 
+LIST_LOAD = 25  # seconds the friend list gets to show its friends before a search
+
+
+def list_loaded():
+    """the friend list's header shows before its friends do. A search typed then finds nobody (2026-11-05: 'iii + asia'
+    read 0, it's usually 34). No search is on here, so friends will come: wait for them -> False if none did"""
+    t0 = time.time()
+    while time.time() - t0 < LIST_LOAD:
+        if look() == "friends" and rows():
+            if time.time() - t0 > 1:
+                log(f"  waited {time.time() - t0:.1f}s for the friend list to load")
+            return True
+        time.sleep(0.4)
+    return False
+
+
 def search(*parts):
     """type a search (its parts, joined) into the friend list -> its result count"""
     global shortcuts, typed
@@ -498,6 +514,10 @@ def search(*parts):
             tap(*CLEAR_SEARCH, fuzz=0.004)
             time.sleep(1.0)
             look()
+        if not list_loaded():
+            keep_capture("noload")
+            log(f"no friends on the list after {LIST_LOAD}s: trying again")
+            continue
         s = label("SEARCH", 0.18, 0.28)
         if s:
             tap_text(s, dy=-0.035)

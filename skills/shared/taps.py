@@ -112,25 +112,6 @@ def select_all(button, n, poll=0.15):
 
 # ---------- search ----------
 
-def search_exact(q):
-    """type q and make sure the bar holds exactly q. One lost '!' would turn '!shiny' into 'shiny'."""
-    for attempt in range(3):
-        path, texts, bounds = search.start_search(q)
-        sharp = ui.ocr(ui.android.sharp()) if ui.ANDROID else texts
-        box = ui.search_box(sharp)
-        got = re.sub(r"\s", "", ui.search_text(box)) if box else ""
-        got = re.sub(r"^[<‹]?[Q9]?(?=#)", "", got)  # the magnifier glued on
-        if ":" not in q:  # the iPhone's small picture reads '!' as ':' (and nothing types a ':' we didn't ask for)
-            got = got.replace(":", "!")
-        # the Pixel's bar shows only the first ~30 characters of a long search: the rest is cut off, not lost
-        clipped = ui.ANDROID and len(got) >= 28 and q.startswith(got)
-        if got == q or clipped:
-            return path, texts, bounds
-        log(f"search bar reads {got!r}, wanted exactly {q!r}: typing it again")
-    keep_capture("search")
-    raise Stop(f"couldn't get exactly {q!r} in the search bar")
-
-
 def settled_tiles():
     last = None
     for _ in range(12):

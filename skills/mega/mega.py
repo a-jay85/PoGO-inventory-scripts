@@ -38,7 +38,8 @@ import base
 from base import Stop, log, keep_capture, look, front
 import search
 import session
-from taps import Pass, exact, press, next_one, settled_tiles, search_exact
+from taps import Pass, exact, press, next_one, settled_tiles
+from tagsheet import search_exact
 
 TAG = "TODO"
 SEARCH = "#TODO&mega&!#TODO4"  # mega = mega0-: only species that can Mega Evolve. Not last: a search ending in

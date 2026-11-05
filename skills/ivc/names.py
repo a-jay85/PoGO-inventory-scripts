@@ -20,8 +20,6 @@ from base import Stop, Skip, log, keep_capture, go, wait_for, appraise, think, b
     extras, drag, open_tile, exact_ivs, do_rename
 import ivc, door, search
 
-MAX_SKIPS_IN_A_ROW = 5
-END_AFTER_STALE = 3
 TAG = "IVC"
 GM = json.load(open(os.path.join(HERE, "..", "shared", "gamemaster.json")))
 DONE_LOOK = re.compile(r"\s*\$?(\d|\*|[A-Z]{1,4}\*|xx[sl]\b|\^)", re.I)  # 87/96 A*, FP*, xxs, XXL ($91 HA: OCR)
@@ -341,7 +339,7 @@ def main(limit, dry):
                 break
             fresh, scroll_how = scroll_for_new(ts, seen, bounds, scroll_how)
             stale = 0 if fresh else stale + 1
-            if stale >= END_AFTER_STALE:
+            if stale >= search.END_AFTER_STALE:
                 log("no new Pokémon after scrolling: end of list")
                 counts["end"] = 1
                 break
@@ -366,7 +364,7 @@ def main(limit, dry):
             passed[(n, c)] += 1
             counts["skip"] += str(e) != NOT_MINE
             skips_in_a_row += str(e) not in (base.GYM, NOT_MINE)  # a row of gym defenders is nothing wrong
-            if skips_in_a_row >= MAX_SKIPS_IN_A_ROW:
+            if skips_in_a_row >= search.MAX_SKIPS_IN_A_ROW:
                 raise Stop(f"{skips_in_a_row} skips in a row, something's off")
             back_to_list()
     return counts

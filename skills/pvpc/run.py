@@ -51,9 +51,7 @@ from base import GYM, Lost, Skip, Stop, appraisal_species, appraise, back_to_lis
     open_appraisal, open_tile, opened_right, recover, same_name, save, scroll_for_new, set_star, set_tags, slots_of, \
     start, steady_detail, tap, think, to_top, type_line, wait_for
 
-MAX_SKIPS_IN_A_ROW = 5
 DOOR = None  # door.Door for this run
-END_AFTER_STALE = 3  # scrolls in a row that show no new tiles
 
 NAME_OK = re.compile(r"Pvp ?[LGU][A-Za-z0-9 +]*")
 
@@ -688,7 +686,7 @@ def main(limit, dry):
                 break
             fresh, scroll_how = scroll_for_new(ts, seen, bounds, scroll_how)
             stale = 0 if fresh else stale + 1
-            if stale >= END_AFTER_STALE:
+            if stale >= search.END_AFTER_STALE:
                 log("no new Pokémon after scrolling: end of list")
                 counts["end"] = 1
                 break
@@ -716,7 +714,7 @@ def main(limit, dry):
             skipped[(n, c)] += 1
             counts["skip"] += 1
             skips_in_a_row += str(e) != GYM  # a row of gym defenders is nothing wrong
-            if skips_in_a_row >= MAX_SKIPS_IN_A_ROW:
+            if skips_in_a_row >= search.MAX_SKIPS_IN_A_ROW:
                 raise Stop(f"{skips_in_a_row} skips in a row, something's off")
             back_to_list()
     return counts

@@ -32,6 +32,9 @@ SEARCHES = {"costume": "costume"}  # the one fact the page and tile can't show. 
 SAID = {"traded": "traded", "shiny": "shiny", "background": "background", "far": "distance100-",
         "xl_under": "countcandyxl0-359"}  # a scope that already says one of these (#Nope&traded) is believed over the page
 UNSURE = "unsure"
+EMPTY = []  # (account, a scope's terms, term): the game counted 0 for that search this run. A scope with all of those
+# terms and more (#IVC&590 after #IVC) can only be empty too, so it isn't typed. Only an empty answer is kept: a tile
+# list goes stale when a Pokémon is renamed, and "costume" can't start being true of a Pokémon mid-run
 vd = powerup = tagsheet = taps = None  # verdict, powerup, tagsheet, taps: imported by Door(). At the top they'd loop back
 # (/ivc's run.py loads names.py, which loads this)
 
@@ -74,16 +77,25 @@ class Door:
         if "missing" in self.tables:
             log(f"door: no species lists, those rules will say not sure ({self.tables['missing']})")
         self.sets, self.partial = {}, set()
-        search.to_search_list()
         said = set(self.scope.lower().split("&"))  # '#Nope&traded': every one is traded, so no search can misread it
         self.said = {k: term in said for k, term in SAID.items() if term in said or "!" + term in said}
+        empty = lambda term: self.source and any(a == self.account and t == term and wide <= said for a, wide, t in EMPTY)
+        self.typed = not all(empty(term) for term in SEARCHES.values())  # False: the screen wasn't touched
+        if self.typed:
+            search.to_search_list()
         for k, term in SEARCHES.items():
+            if empty(term):
+                self.sets[k] = Counter()
+                log(f"door: {self.scope}&{term}: a wider search already found none, not typed")
+                continue
             if term in said or "!" + term in said:
                 self.sets[k] = term in said
                 log(f"door: {self.scope}: {'every' if term in said else 'no'} one is {term}, no search")
                 continue
             got, want = find(term)
             ok = want is not None and len(got) == want
+            if self.source and want == 0 and not got:
+                EMPTY.append((self.account, said, term))
             self.sets[k] = Counter(key(n, c) for n, c in got)
             # more different tiles than the game counts: some aren't in it (81 for 65, 2026-10-30), so none is trusted.
             # Fewer, or the same tile read twice: a tile read is in it

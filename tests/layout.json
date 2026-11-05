@@ -632,6 +632,7 @@
    "front",
    "go",
    "home",
+   "in_pool",
    "ivc_name",
    "ivc_reads",
    "judge",
@@ -1153,6 +1154,7 @@
   "names": [
    "Counter",
    "Door",
+   "EMPTY",
    "HERE",
    "LUCKY_OUT",
    "LUCKY_OUT_DAYS",
@@ -1196,6 +1198,7 @@
    "GROUPS",
    "HERE",
    "OLD_DAYS",
+   "READ_ORDER",
    "act",
    "go",
    "groups",

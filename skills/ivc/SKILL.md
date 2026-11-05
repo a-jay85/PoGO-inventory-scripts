@@ -95,6 +95,7 @@ A nickname hides the species. Find it from the detail screen instead:
 
 ## How reading works
 
+- It doesn't type a search whose answer it already knows. A door search narrower than one the game counted 0 for (`#IVC&590&costume` after `#IVC&costume`) is 0 too. The fall-out groups stop once every fall-out is placed. A reread that stops cleanly at the plain names replaces a bad count, so it isn't read again.
 - A family's searches that differ only in the last term are typed side by side. When the list didn't scroll, the next one taps the bar, deletes back to where they differ and types only the new end (`search.edit_tail`, about `timing: edited the end` in the log). If the bar doesn't read right, it clears and types the whole search.
 - To clear the search bar, it closes the Pokémon screen and reopens it. A fresh screen always has an empty bar. A new search typed over a scrolled list starts scrolled too, so after a search that scrolled it puts the list back at the top and keeps the search. On Android it holds the slider on the right edge and pulls it to the top (about 3s). If that fails, or on the iPhone, it sorts by HP and then by Name again (about 6s). The list should be sorted by Name.
 - After each search it reads the game's count `Q (n)` and saves it in `counts.json`.

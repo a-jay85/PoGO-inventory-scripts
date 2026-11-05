@@ -14,7 +14,7 @@
   POGO_PHONE=android python3 session.py open     wake and unlock the Pixel (iPhone: open iPhone Mirroring)
   POGO_PHONE=android python3 session.py close    lock the Pixel (iPhone: quit iPhone Mirroring)
 """
-import os, re, subprocess, sys, time, traceback
+import fcntl, os, re, subprocess, sys, time, traceback
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 import ui
@@ -165,12 +165,41 @@ def connect():
     raise Stop("iPhone Mirroring can't reach the iPhone: lock the iPhone, leave it near the Mac, and run again")
 
 
+# ---------- one script per phone ----------
+
+held = None  # this process's lock file, open for as long as it runs. The system lets go when the process ends
+
+
+def claim():
+    """this phone for this process. -> None once it's ours, or what's using it. Two at once tap over each other: a
+    test typing gift searches pulled /cleantrades onto the Friends tab, and it stopped on a screen it didn't know
+    (2026-11-05). The lock goes with the process, however it ends"""
+    global held
+    if held:
+        return None
+    f = open(f"/tmp/pogo-{'android' if ui.ANDROID else 'iphone'}.lock", "a+")
+    try:
+        fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        f.seek(0)
+        who = f.read().strip() or "another script"
+        f.close()
+        return who
+    f.truncate(0)
+    f.write(f"pid {os.getpid()} ({' '.join(sys.argv)})\n")
+    f.flush()
+    held = f
+    return None
+
+
 # ---------- a run ----------
 
 def ready():
     """the phone ready to be seen and tapped. Cheap after the first time: home.start() calls it every time
     (a Mirroring that loses the iPhone later shows as home.where()'s 'mirroring' screen)"""
     global opened
+    if who := claim():  # (before opened: main() must not close the phone on the script using it)
+        raise Stop(f"{who} is using the {'Pixel' if ui.ANDROID else 'iPhone'}: run this after it ends")
     if ui.ANDROID:
         adb_ok()
         unlock()
@@ -182,6 +211,9 @@ def ready():
 def close():
     """the end of a run: lock the Pixel, or quit iPhone Mirroring"""
     if flag("POGO_KEEP_OPEN"):
+        return
+    if who := claim():
+        log(f"not closing the phone: {who} is using it")
         return
     if ui.ANDROID:
         if ui.android.adb("get-state").strip() == "device":

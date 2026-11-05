@@ -7299,12 +7299,26 @@
   "item behind it": 0.5416,
   "no CANCEL either": null
  },
+ "ui.gift_banner": {
+  "friend rows": false,
+  "opened": true,
+  "over the ME tab": true,
+  "the list": false,
+  "two lines": true
+ },
  "ui.nickname_field": {
   "OK not read": "Pvp U87",
   "OK read": "Pvp U87",
   "empty, OK not read": "",
   "item behind it": "87 A",
   "no CANCEL either": "Pvp U87"
+ },
+ "ui.profile_tabs": {
+  "friend rows": true,
+  "opened": false,
+  "over the ME tab": false,
+  "the list": false,
+  "two lines": false
  },
  "ui.tiles": {
   "a number with no name": [],

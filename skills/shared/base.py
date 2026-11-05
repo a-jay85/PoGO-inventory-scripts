@@ -261,6 +261,7 @@ def wait_for(*screens, timeout=10, capture=True, look=None, poll=None, catch=Tru
     see = look or globals()["look"]
     pause = poll_gap(0.12) if poll is None else poll
     end, last, nudges, cards, nos, friends, held = time.time() + timeout, "?", 0, 0, 0, 0, None
+    banner = False
     while True:
         try:
             screen, texts, path, bounds = see()
@@ -294,6 +295,9 @@ def wait_for(*screens, timeout=10, capture=True, look=None, poll=None, catch=Tru
                 time.sleep(1.0)
                 end = max(end, time.time() + 3)
                 continue
+            if screen == "unknown" and not banner and ui.gift_banner(texts):
+                banner = True  # a friend's banner hides the screen for a few seconds: give it the time, once
+                end = max(end, time.time() + 8)
             last = screen
             words = {ui.norm(t[4]) for t in texts}
             scrolled = "detail" in screens and screen == "unknown" and "STARDUST" in words and \

@@ -155,6 +155,8 @@ def iphone_open():
 # ---------- start ----------
 
 backs, reopened = 0, False  # this run's steps out of screens nobody knows
+banner_seen = 0  # when unstick started waiting on the gift banner that's up now
+BANNER_WAIT = 15  # seconds a gift banner gets to go away before its screen counts as unknown
 HATCH_SCREENS = 40  # seconds after an egg's "Oh?" when an unknown screen is its rewards, its Pokémon or the eggs
 
 
@@ -188,8 +190,16 @@ def leave_scopely(texts):
 def unstick(texts):
     """one step out of a screen the scripts don't know. Android: Back. iPhone: the home screen and the game's icon,
     once. Raises Stop when out of steps. -> True if the game was (re)opened"""
-    global backs, reopened
+    global backs, reopened, banner_seen
     seen = ui.summary(texts, 200)
+    if ui.gift_banner(texts):  # it goes by itself, and the screen under it may be one everyone knows
+        now = time.time()
+        if now > banner_seen + 4 * BANNER_WAIT:
+            banner_seen = now
+            log(f"  a gift banner is up: waiting for it to go: {seen[:80]}")
+        if now < banner_seen + BANNER_WAIT:
+            time.sleep(2.0)
+            return False
     if leave_scopely(texts):
         return False
     if ui.ANDROID:
@@ -330,7 +340,7 @@ def start(storage=True):
             raise Stop("the phone says Pokémon GO isn't responding: close it by hand")
         elif screen == "unknown" and challenge_invite(texts, bounds):
             pass
-        elif screen == "unknown" and storage and (profile(texts) or profile_tabs(texts)):  # a stop or a reopen left
+        elif screen == "unknown" and storage and (profile(texts) or ui.profile_tabs(texts)):  # a stop or a reopen left
             log("  on the profile: closing it")  # the profile up (any of its tabs): its X
             search.click(*X_BUTTON, bounds)
             time.sleep(1.5)
@@ -429,12 +439,6 @@ def profile(texts):
         return True
     words = {ui.norm(t[4]) for t in texts}
     return {"LEVEL", "BUDDY"} <= words and any(squash(n) in squash(" ".join(t[4] for t in texts)) for n in TRAINERS)
-
-
-def profile_tabs(texts):
-    """any tab of the profile (ME, FRIENDS or SOCIAL): its three tab names across the top. The round X at the bottom
-    closes each. (The iPhone came back on SOCIAL once and the start stopped there: 2026-11-02)"""
-    return {"ME", "FRIENDS", "SOCIAL"} <= {ui.norm(t[4]) for t in texts if t[1] < 0.2}
 
 
 def trainer(fast=True):

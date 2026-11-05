@@ -19,8 +19,9 @@ On each page it opens the Mega level page (the round Mega badge under the types)
 Free = no number next to the MEGA EVOLVE button, and no xN cost in the "Do you want to Mega Evolve" box.
 
 Then it searches mega1 and Mega Evolves any of those, any tag, only when it's free. That ends the Mega Evolution
-just made, so its rest timer starts now instead of in 8 hours. One Mega right now ("07:59 left") is skipped.
-An X/Y one there takes its nickname's form, or with no letter whichever form is free.
+just made, so its rest timer starts now instead of in 8 hours. A days line or timer by the Mega badge ("5 DAYS",
+"11:39 left") means not free: skipped from the Pokémon's page, without opening the level page. With neither, the level
+page and the box still check the cost. An X/Y one there takes its nickname's form, or with no letter whichever form is free.
 --dry-run goes as far as that box and taps NO. It still taps the phone.
 Log in runs/<time>-<phone>/log.txt.
 
@@ -274,6 +275,8 @@ def check(info, texts, free_only=False):
     if not free_only and TAG not in [t.strip() for t in info["tags"]]:
         raise Pass(f"tags {info['tags']}: no exact {TAG}")
     b = badge(texts)
+    if b and free_only:  # the line by the badge means it's resting or Mega now: never free
+        raise Pass(f"not free yet ({b[4].strip()})")
     if b and "left" in b[4].lower():
         raise Pass(f"Mega Evolved right now ({b[4].strip()})")
     mewtwo = "MEWTWO" in " ".join(ui.norm(t[4]) for t in texts)

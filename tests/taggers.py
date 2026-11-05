@@ -130,6 +130,9 @@ def main():
     bad = []
     if gym != set(rules.GYM_DEX):
         bad.append(f"rules.GYM_DEX {sorted(rules.GYM_DEX)} isn't ivc.GYM_DEFENDERS {sorted(gym)}")
+    safe = rules.NEVER_TRADE.lower()
+    bad += [f"rules.NEVER_TRADE lets {t} through" for t in ("xxl", "shiny", "traded", "shadow", "favorite", "4*", "3*", "#")
+            if f"!{t}" not in safe]
     count = tagged = 0
     for base in grid():
         count += 1

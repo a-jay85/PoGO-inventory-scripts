@@ -57,6 +57,7 @@ CASES = {
     "no species lists": (plain(sids=["machop"]), {"to": TAKER, "missing": "no a lucky /dex run for HashTagAJay yet"}),
     # by hand, for now
     "your tag": plain(other_tags=["Evo"]),
+    "the TODO tag (/mega)": plain(other_tags=["TODO"]),
     "your tags, as read": plain(other_tags=["OLD", "GUARANTEEDLUCKY"]),
     "your tag GIV, untraded": plain(other_tags=["GIV"]),
     "your tag, traded or not not read": plain(other_tags=["Old"], traded=None),

@@ -30,7 +30,7 @@ import savedsearch
 
 OWNER, SOURCE = "CyrillJan", "HashTagAJay"  # the shortcut is OWNER's, the list SOURCE's Lucky page
 NAME = "Luckydex"
-SAFE = "&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&"  # the user's: never trade these away
+from rules import NEVER_TRADE as SAFE
 MAX_FAVORITES = 12
 SEE = (0.88, 0.234)  # See More / See Less, right of the panel's header
 RECENT_X = 0.165  # the leftmost (newest) Recent search

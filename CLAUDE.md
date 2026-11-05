@@ -50,7 +50,7 @@ Before typing or building a storage search, read `skills/shared/SEARCH.md` (live
 
 ## Seeing the phone
 
-Scripts see the Android phone with its own screenshots (`adb exec-out screencap`, via `ui.capture()` / `android.capture()` in `skills/shared/android.py`). Never use scrcpy or a Mac window grab (`screencapture`) for it: scrcpy's picture freezes at random while the Mac is in use. New scripts reuse `ui.capture()` and don't add their own capture path. `POGO_SCRCPY=1` brings the old scrcpy window back, only if the user asks for it.
+Scripts see the Android phone with its own screenshots (`adb exec-out screencap`, via `ui.capture()` / `android.capture()` in `skills/shared/android.py`). Never use scrcpy or a Mac window grab (`screencapture`) for it: scrcpy's picture froze at random while the Mac was in use, and its code is gone. New scripts reuse `ui.capture()` and don't add their own capture path.
 
 When Claude needs to see the screen (a live look or a run's saved png), use `skills/shared/peek.py`. A picture costs about width × height / 750 tokens, and it stays in context for the rest of the session.
 

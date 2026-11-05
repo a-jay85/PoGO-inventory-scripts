@@ -93,12 +93,6 @@ def walk_list(visit, limit=10 ** 9, stop=None, odd=None):
                 log("the scroll opened a Pokémon: backing out")
                 back_to_list()
                 continue
-            if ui.ANDROID and not ui.android.NO_WINDOW and not {(ui.tile_name(t[0]).upper(), t[1]) for t in ui.tiles(texts)} - before:
-                # a frozen scrcpy picture of a scrolled list looks like a live one: ask the phone itself
-                ui.android.sharp("/tmp/pvpc_phone_list.png")
-                if {(ui.tile_name(t[0]).upper(), t[1]) for t in ui.tiles(ui.ocr("/tmp/pvpc_phone_list.png"))} - before:
-                    ui.android.restart()
-                    continue
             stale = 0 if {(ui.tile_name(t[0]).upper(), t[1]) for t in ui.tiles(texts)} - before else stale + 1
             if stale >= END_AFTER_STALE:
                 log("end of list")

@@ -229,15 +229,11 @@ def tick(T, box, want, bounds, poll=0.15, name=None, on_fail=None):
         if on_fail:
             on_fail(t2, bounds)
         raise Stop(f"tapped {name or T} but its tick didn't change")
-    if ui.ANDROID:
-        ui.android.fresh()
 
 
 def sheet_down(bounds):
     """scroll the tag sheet a small step: a big scroll skips rows"""
     base.drag(0.3, 0.62, 0.3, 0.4, bounds)
-    if ui.ANDROID:
-        ui.android.fresh()
 
 
 def cancel_sheet():

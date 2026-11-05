@@ -40,19 +40,20 @@ sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(HERE, "..", "cleanup"))
 import pvp
 from base import ALWAYS_KEEP  # an IV sum of 98%+ never loses its star
-import tradeable as tr  # the order, the numbers and the species lists: one copy, there
-from tradeable import GIVER, TAKER, XL_CAP, XLX_FOR
+import tradeable as tr  # builds the species lists
+import rules  # the numbers and lists: one copy, there
+from rules import GIVER, TAKER, XL_CAP, XLX_FOR
 from ivc import GYM_DEFENDERS, make_name as ivc_name
 from rules import NAMES as SIZE_NAMES  # a never-traded XXS one gets this name and IVC
 from rules import xxl_off
 from rules import EVO, EVO_FOR, TRADE_EVOS  # traded + a free trade evolution: Evo, on EVO_FOR's account
 
 TO = {GIVER: TAKER, TAKER: GIVER}
-OLD_DAYS = int(re.search(r"\d+", tr.OLD_AGE).group())
+OLD_DAYS = int(re.search(r"\d+", rules.OLD_AGE).group())
 LUCKY_YEARS = (2016, 2020)  # an untraded catch from these years is lucky once traded (tradeable.py's NOPE_OLD)
-# GIV (medal), from tradeable.py's MEDALS: dex -> (size it needs, or None; fits(kg); the kg range that reads right)
-MEDALS = {min(tr.dexes_of(q)): (("xxs", "xs") if "xxs,xs" in q else None, fits, tr.MEDAL_KG[name])
-          for name, q, fits in tr.MEDALS}
+# GIV (medal), from rules.py's MEDALS: dex -> (size it needs, or None; fits(kg); the kg range that reads right)
+MEDALS = {min(tr.dexes_of(q)): (("xxs", "xs") if "xxs,xs" in q else None, fits, rules.MEDAL_KG[name])
+          for name, q, fits in rules.MEDALS}
 FUSED = ("kyurem_black", "kyurem_white", "necrozma_dusk_mane", "necrozma_dawn_wings")  # trades.py: can't be traded
 TRADE_BY_HAND = {"meltan", "melmetal"}  # mythical, but trades.py retags them like a legendary
 OWN_TAGS = ("Old", EVO, "GuaranteedLucky")  # untraded with one of these: it stays, only IVC / PvpC comes off
@@ -146,7 +147,7 @@ def tables(to):
         why = sp["why"] if to == TAKER else {s: ("GIV", r) for s, r in sp["why"].items()}
         _TABLES[to] = {"to": to, "why": why, "lucky": sp.get("lucky", {}), "evolved": sp["evolved"],
                        "no_dmax": set(sp.get("no_dmax", ())), "xl_full": sp["xl_full"],
-                       "giv_for_taker": set(tr.GIV_FOR_TAKER), "from": sp["from"],
+                       "giv_for_taker": set(rules.GIV_FOR_TAKER), "from": sp["from"],
                        "raid": set(tr.pve(m)[0]),  # in DialgaDex's top PVE_TOP vs some boss, or evolves into one
                        "raid_self": {s for s in tr.raid_tops(m)[0] if s in m.by}}  # in some top as itself
     return _TABLES[to]

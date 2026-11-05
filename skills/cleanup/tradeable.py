@@ -74,31 +74,13 @@ import savedsearch
 import sizes
 from taps import Pass, next_one, owned
 from ivc import GYM_DEFENDERS
+from rules import (GIVER, TAKER, TAGS, XLX, TRANSFER, LUCKY_CANDY, XL_CAP, XLX_LEVEL, GIV_FOR_TAKER, XLX_FOR,
+    PVE_TOP, GIVER_MARGIN, PVP_FLOOR, HARD_CANDY, BABIES, SPECIAL, NO_SPECIAL, DYNAMAX, UNDER_360_XL)
 
-GIVER, TAKER = "CyrillJan", "HashTagAJay"  # Tradeable is the giver's; the taker's dex, candy and XL decide
 SHORTCUT = "Tradeable"
-TAGS = ["Luckydex", "Reroll", "GIV"]  # by species, in this order
-XLX, TRANSFER = "XLX", "Transfer"
-LUCKY_CANDY = 348  # under this, a lucky one of the family wants a new copy's candy
-XL_CAP = 360
-XLX_LEVEL = 26  # from here a power-up costs 4 Candy or more (4,000 Stardust at 26-26.5, 4,500+ after)
-# CyrillJan's pile only: GIV where it would get Transfer (tagged after XLX, like the evolved GIV ones)
-GIV_FOR_TAKER = {"tandemaus": "HashTagAJay still wants the family of 3 Maushold (and CyrillJan gets candy from the "
-                              "trade if it ever wants one)"}
-XLX_FOR = {TAKER: XLX_LEVEL, GIVER: 29}  # by who'd get it. CyrillJan: 5,000 Stardust+, likely to drop a Candy XL
-PVE_TOP = 6  # verdict.py's "raid" list: a traded copy would be this high against some raid boss in DialgaDex
-GIVER_MARGIN = 0.15  # CyrillJan's side (giver_species): GIV if a traded copy gets into one of CyrillJan's teams, or
-# comes within this much of the #6's rating (a move or stat buff away). Further behind on every boss: outclassed
 MAX_SUFFIX = 300  # characters added to the saved search: it's already in the bar
-PVP_FLOOR = 5  # every rank 1 IV at least this
 PVP_URL = "https://raw.githubusercontent.com/pvpoke/pvpoke/master/src/data/rankings/all/overall/rankings-%d.json"
 PM_URL = "https://raw.githubusercontent.com/PokeMiners/game_masters/master/latest/latest.json"
-HARD_CANDY = 100  # a stage 1 that costs this much candy to evolve into counts for the evolved GIV rule
-BABIES = {172, 173, 174, 175, 236, 238, 239, 240, 298, 360, 406, 433, 438, 439, 440, 446, 447, 458, 848}  # not a stage
-SPECIAL = ("legendary", "mythical", "ultrabeast")  # special trades by species: traded by hand, never tagged
-# every special trade: no search here tags or powers one up. (Not in the taker's dex is one too: the user checks that)
-NO_SPECIAL = "&!gigantamax&!shiny&!xxl" + "".join(f"&!{t}" for t in SPECIAL)  # (xxl: kept, keep_xxl_ones)
-DYNAMAX = "&dynamax&!traded"  # evolved GIV too
 
 
 # ---------- refresh: PvPoke ----------
@@ -583,11 +565,6 @@ def giver_species(m):
 NOT_TAGGED = NO_SPECIAL + "".join(f"&!#{t}" for t in TAGS)
 REST = NOT_TAGGED + f"&!#{XLX}&!#{TRANSFER}"  # not tagged yet
 EVOLVED_REST = REST + "&traded,!xxs"  # and not a never-traded XXS one (those get IVC)
-OLD, OLD_AGE = "Old", "&age300-"  # caught 300+ days ago: after Luckydex, before Reroll, GIV and XLX (verdict.py)
-# verdict.py, HashTagAJay only, after Old: medal ones (by weight, read on the detail page) -> GIV, for any other account.
-# The Youngster medal counts tiny Rattata (any region), the Fisherman medal big Magikarp
-MEDALS = [("Rattata", "&19&xxs,xs", lambda kg: kg <= 2.41), ("Magikarp", "&129", lambda kg: kg >= 13.13)]
-MEDAL_KG = {"Rattata": (0.5, 10), "Magikarp": (2, 30)}  # a weight outside this is a misread (a lost decimal point)
 
 
 def keep_xxl_ones(limit):
@@ -776,7 +753,7 @@ def cmd_tag(limit):
     rest = EVOLVED_REST  # (one passed over there stays out of Transfer too)
     unsure, power_ok = [], True
     # power-ups for the tagged ones (the taker transfers them), then XLX and power-ups for the rest
-    walks = [(traded, False, True, set(plan["taker_xl_full"])), (rest + powerup.UNDER_360_XL, True, True, ()),
+    walks = [(traded, False, True, set(plan["taker_xl_full"])), (rest + UNDER_360_XL, True, True, ()),
              (rest + f"&countcandyxl{XL_CAP}-", True, False, ())]
     for suffix, xlx, power, skip in walks:
         while xlx or (power and power_ok):

@@ -31,9 +31,9 @@ import cleantrades as ct
 from taps import Pass, next_one, press
 from tagsheet import search_exact, sheet_rows, still_sheet, tick, sheet_down, tag_chips
 from savedsearch import results, tag_pile
-from rules import EVO_FOR, TRADE_EVOS, NAMES, xxl_off
+from rules import EVO_FOR, TRADE_EVOS, NAMES, TRANSFER, xxl_off
 
-IVC, TRANSFER = "IVC", "Transfer"
+IVC = "IVC"
 SWEEP = f"#{TRANSFER}&!traded&%s"
 GIV = "GIV"
 XXL_SWEEP = "#&xxl&!#PvpC"

@@ -408,6 +408,8 @@ def pools(members=None):
         save("counts.json", wants)
         log(f"  {q}: {len(done[q])} tiles, {sum(sort.parse_name(n).iv is not None for n, _ in done[q])} with an IV")
     reread(members, done, wants)
+    save("bubbles.json", sorted(search.BUBBLES | {tuple(b) for b in (
+        load("bubbles.json") if os.path.exists(os.path.join(base.RUN_DIR, "bubbles.json")) else [])}))
 
 
 def closer(q, iv_only, got, want):
@@ -623,11 +625,13 @@ def in_pool(results, sid, pool, n, c):
 
 def fallen_candidates(scanned, results, wants):
     """tiles with an /ivc name, no IVC tag, that come out DOOR for every species the search could have shown.
-    A tile doesn't show lucky or Dynamax, but a tile on the family's lucky or Dynamax list has it (a lucky one
-    judged as plain looked fallen, and was typed for and opened for nothing). Size: act reads it on the detail
-    screen and judges again."""
+    A lucky tile shows gold bubbles, and a tile on the family's lucky or Dynamax list has that flag (a lucky one
+    judged as plain looked fallen, and was typed for and opened for nothing). A lucky one whose lucky list wasn't
+    read has a search missing, so it isn't opened. Size: act reads it on the detail screen and judges again."""
     ivc = Counter((sort.clean_name(m["tile"]), m["cp"]) for m in scanned)
     which, out, seen = species_of_search(), [], set()
+    saved = load("bubbles.json") if os.path.exists(os.path.join(base.RUN_DIR, "bubbles.json")) else []
+    bubbles = search.BUBBLES | {tuple(b) for b in saved}
     for q, tiles in results.items():
         if not (q.endswith("&shadow") or q.endswith("&!shadow")) or q not in which:
             continue
@@ -640,7 +644,7 @@ def fallen_candidates(scanned, results, wants):
             if not c or (n, c, shadow) in seen or not ivc_name(n) or p.size or p.pvp:
                 continue
             seen.add((n, c, shadow))
-            verdicts = {s: judge({"species": s, "cp": c, "name": n, "shadow": shadow, "lucky": in_pool(results, s, "lucky", n, c),
+            verdicts = {s: judge({"species": s, "cp": c, "name": n, "shadow": shadow, "lucky": (n, c) in bubbles or in_pool(results, s, "lucky", n, c),
                                   "dynamax": in_pool(results, s, "dmax", n, c)}, results, wants) for s in sorted(which[q])}
             if verdicts and all(v == "DOOR" for v, _ in verdicts.values()):
                 out.append({"name": n, "cp": c, "shadow": shadow, "species": sorted(verdicts),

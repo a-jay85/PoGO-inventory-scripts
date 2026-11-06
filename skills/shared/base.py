@@ -252,6 +252,16 @@ def friend_card(texts):
     return "AND YOU BECAME" in words and "FRIENDS" in words
 
 
+FRIEND_CARD_X = (0.5, 0.918)  # its round X, in the same spot on both phones: higher than X_BUTTON, which grazes its edge
+
+
+def close_friend_card(bounds):
+    """it's only news. Its X, because the iPhone has no Back key"""
+    log("  a new friend level card is up: closing it")
+    click(*FRIEND_CARD_X, bounds)
+    time.sleep(1.0)
+
+
 def wait_for(*screens, timeout=10, capture=True, look=None, poll=None, catch=True, detail=False):
     """poll until one of the screens shows up. Brief unknown screens (animations) are fine. It always looks at least
     once, and once more after the time is up, then raises Lost.
@@ -288,11 +298,9 @@ def wait_for(*screens, timeout=10, capture=True, look=None, poll=None, catch=Tru
                 time.sleep(1.0)
                 end = max(end, time.time() + 3)
                 continue
-            if screen == "unknown" and ui.ANDROID and friends < 3 and friend_card(texts):
-                friends += 1  # the game shows it on its own, over any screen. It's only news: Back closes it
-                log("  a new friend level card is up: closing it")
-                ui.android.key("back")
-                time.sleep(1.0)
+            if screen == "unknown" and friends < 3 and friend_card(texts):
+                friends += 1  # the game shows it on its own, over any screen
+                close_friend_card(bounds)
                 end = max(end, time.time() + 3)
                 continue
             if screen == "unknown" and not banner and ui.gift_banner(texts):

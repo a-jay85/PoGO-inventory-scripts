@@ -225,7 +225,7 @@ def leave_panel(texts, bounds):
     if box and ui.search_text(box):
         close_panel(bounds)  # the (x) empties the bar and closes it
     else:  # an empty bar has no (x): the < back arrow
-        click(0.10, 0.176, bounds)  # (on the bar's line: 0.155 misses it on the Pixel)
+        click(0.10, 0.176 if ui.ANDROID else 0.183, bounds)  # (on the bar's line: 0.155 misses it on the Pixel, 0.176 on the iPhone)
         time.sleep(random.uniform(1.2, 1.5))
     return True
 
@@ -473,10 +473,20 @@ def bar_ready():
         if got:
             for _ in range(max(1, got.upper().count("A"))):
                 key("delete")
+            if panel_text(quick=True)[0]:  # a late A from an earlier try: it would end up in front of the search
+                key("a", cmd=True)
+                key("delete")
             return True
     key("a", cmd=True)  # (an A that only showed after the last look)
     key("delete")
     return False
+
+
+def stray_a(got, q):
+    """the bar reads 'Apikachu', wanted 'pikachu': a late A from bar_ready. same_query lets one extra letter through,
+    and that search finds nothing"""
+    a, b = (re.sub(r"\s", "", x).lower() for x in (got, q))
+    return a == "a" + b
 
 
 def type_into_panel(q, bounds, check=None):
@@ -498,6 +508,9 @@ def type_into_panel(q, bounds, check=None):
         while time.time() - t0 < 5.6:
             got, texts = panel_text(quick=not ui.ANDROID)
             if got and check(got, q):
+                if stray_a(got, q):
+                    log(f"search bar says {got!r}, wanted {q!r}: a stray A")
+                    return False
                 return True
             late = time.time() - t0 < 2.8
             short = len(got) < len(q)  # the keys can land late, and a misread '!' stops the read matching q's start
@@ -510,6 +523,93 @@ def type_into_panel(q, bounds, check=None):
             log(f"search bar says {got!r}, wanted {q!r}")
             return False
     return False
+
+
+def nudge_bar(q):
+    """a search typed too fast can land with the bar right and the results blank: the game never ran it. One more key
+    and a delete make it run again, once the caller commits (Return, or the friend box's OK). The bar is focused and
+    q is what it holds. iPhone: a lost A would let the delete eat q's end, so the A has to show first. If it doesn't,
+    the bar gets emptied (the caller types it whole) -> False"""
+    if ui.ANDROID:  # adb's input text never loses keys
+        ui.android.shell("input keyevent KEYCODE_MOVE_END")
+        type_text("A")
+        key("delete")
+        return True
+    key("right", cmd=True)
+    type_text("A")
+    plain = lambda s: re.sub(r"[il1|]", "l", re.sub(r"[^a-z0-9|]", "", s.lower()))  # (OCR garbles & and !)
+    want = plain(q)[-6:] + "a"
+    end = time.time() + 2.0
+    while time.time() < end:
+        got, texts = panel_text(quick=True)
+        if plain(got).endswith(want) or any(plain(t[4]).endswith(want) for t in texts):
+            key("delete")
+            time.sleep(0.1)
+            return True
+    log(f"  the A didn't show after {q!r}: emptying the bar")
+    key("a", cmd=True)
+    key("delete")
+    return False
+
+
+def reopen_and_nudge(q, bounds):
+    """tap the filled bar and nudge it (nudge_bar): the caller presses Return. q None: whatever the bar holds.
+    False: the panel is shut again and the caller types the search whole"""
+    for attempt in range(2):  # the iPhone drops a bar tap now and then
+        click(0.45, 0.183 + random.uniform(-0.003, 0.003), bounds, gap=BAR_GAP)
+        for _ in range(10):
+            time.sleep(POLL)
+            got, texts = panel_text()
+            if ui.search_panel(texts) or "FAVORITE" in {ui.norm(t[4]) for t in texts}:  # (FAVORITE: the trade picker's panel)
+                if got and nudge_bar(q or got):
+                    return True
+                leave_panel(panel_text()[1], bounds)
+                return False
+    log("  the tap on the search bar didn't open it")
+    return False
+
+
+def rerun_blank(q, bounds, check=None):
+    """blank results: nudge the bar and press Return -> the texts after it, or None (the caller types it whole).
+    check(got, q): does the bar still show q"""
+    log(f"  {q or 'the search'}: nothing on the list: an A and a delete to make sure the game ran it")
+    if not reopen_and_nudge(q, bounds):
+        return None
+    key("return")
+    for _ in base.tries(30, 0.02):
+        got, texts = panel_text(quick=not ui.ANDROID)
+        if not ui.search_panel(texts) and ui.classify(texts) == "list":
+            return texts if not check or check(got, q) else None
+    log("the panel didn't close after Return")
+    return None
+
+
+BLANK_WAIT = 1.5  # seconds the tiles get to show under a count: a look right after Return can beat them to the screen
+
+
+def settle_list(path, texts):
+    """after a search: tiles, or a blank list? -> (blank, path, texts). A (0) goes at once. Anything but a list isn't blank"""
+    end = time.time() + BLANK_WAIT
+    while True:
+        if ui.tiles(texts) or ui.tile_cps(texts) or ui.search_panel(texts) or ui.classify(texts) != "list":
+            return False, path, texts
+        if result_count(texts) == 0 or time.time() > end:
+            return True, path, texts
+        time.sleep(0.2)
+        path = ui.capture()[0]
+        texts = ui.ocr(path)
+
+
+def unblank(q, bounds):
+    """Return was just pressed on a search with no check of its own (savedsearch.append). False: it needs typing again"""
+    for _ in base.tries(30, 0.02):
+        path = ui.capture()[0]
+        texts = ui.ocr(path)
+        if not ui.search_panel(texts) and ui.classify(texts) == "list":
+            break
+    else:
+        return True  # (the caller's count read says what's wrong)
+    return not settle_list(path, texts)[0] or rerun_blank(q, bounds) is not None
 
 
 def close_panel(bounds):
@@ -714,10 +814,11 @@ def edit_tail(prev, q, check):
     return texts
 
 
-def start_search(q, check=None, edit=False):
+def start_search(q, check=None, edit=False, nudges=2):
     """type one search (Return, SHOW EVOLUTIONARY LINE unticked). -> (path, texts, bounds) of the results, at the top.
     check(got, q): does the bar's read show q (default bar_shows; tagsheet.strict is stricter).
-    edit: if the bar still holds the last search and its list didn't scroll, edit its end (edit_tail)"""
+    edit: if the bar still holds the last search and its list didn't scroll, edit its end (edit_tail).
+    Blank results get nudged once (rerun_blank): only a 0 after that is a real 0. nudges: tries left if that goes wrong"""
     check = check or bar_shows
     global scrolled
     t0 = time.time()
@@ -773,6 +874,14 @@ def start_search(q, check=None, edit=False):
         raise Stop("SHOW EVOLUTIONARY LINE stays ticked")
     if ticked is None:
         log("can't see SHOW EVOLUTIONARY LINE after the search")
+    blank, path, texts = settle_list(path, texts)
+    if blank and nudges:
+        if rerun_blank(q, bounds, check) is None:
+            log(f"  {q}: typing it again")
+            return start_search(q, check, nudges=nudges - 1)
+        path, bounds = ui.capture()
+        blank, path, texts = settle_list(path, ui.ocr(path))
+        log(f"  {q}: {'really nothing' if blank else f'the nudge brought back {result_count(texts)}'}")
     want = result_count(texts)
     if want is not None and want <= len(ui.tiles(texts)):  # every result fits on one screen: nothing to scroll
         scrolled = False

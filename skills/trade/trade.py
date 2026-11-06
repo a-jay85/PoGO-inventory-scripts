@@ -389,7 +389,13 @@ def to_friend(p, ours=False):
                 # the name is in the search bar but no row came up (the game kept a search typed before the list
                 # loaded, and it stays empty): clear it with the bar's X, then the next look types it again
                 empty += 1
-                if empty >= 3:
+                if empty == 1:  # typed too fast for the game? An A and a delete make it run the search again
+                    log(f"{p.name}: the search for {p.friend} shows nobody: an A and a delete")
+                    p.tap_text(bar[0])
+                    time.sleep(1.2)
+                    p.call(op="nudge", q=p.friend)
+                    p.key("return")
+                elif empty >= 3:
                     x = p.find(lambda t: ui.norm(t[4]) == "X" and t[0] > 0.6 and abs(t[1] - bar[0][1]) < 0.03)
                     if x:
                         p.tap_text(x[0])
@@ -672,17 +678,47 @@ def type_search(p, q):
     raise Stop(f"{p.name}: couldn't type the search {q}: {bar(p)!r}, {p.summary()}")
 
 
+def blank_list(p, n):
+    """the search says n: is the list blank? (0, or a count and no tiles once they've had a moment to show)"""
+    if n == 0:
+        return True
+    for _ in range(4):
+        if ui.tile_cps(p.texts):
+            return False
+        time.sleep(0.4)
+        p.look()
+    return True
+
+
+def rerun_empty(p, q):
+    """q came back blank: an A and a delete make sure the game really ran it (a search read empty is never run again)
+    -> how many it found"""
+    log(f"{p.name}: {q} shows nothing: an A and a delete to make sure")
+    if p.call(op="reopen", q=q)["ok"]:
+        p.key("return")
+        for _ in range(12):
+            time.sleep(0.4)
+            p.look()
+            n = shown(p, q)
+            if n is not None:
+                return n
+    return type_search(p, q)
+
+
 def search_for(p, q):
     """q's results in the picker, its saved shortcut or typed. The last trade's search stays on in the list: then
     nothing to run again. One left from before this run is run again: its end can match q while its tag doesn't (a
     Thursday search's end on a Friday). -> how many it found"""
     p.look()
     n = shown(p, q) if p.ran == q else None
+    fresh = n is None
     if n is None and q in SAVED:
         open_panel(p)
         n = pick_pile(p, q)
     elif n is None:
         n = type_search(p, q)
+    if fresh and blank_list(p, n):
+        n = rerun_empty(p, q)
     p.ran = q
     log(f"{p.name}: {q} ({n})")
     return n

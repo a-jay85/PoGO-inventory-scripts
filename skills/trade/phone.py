@@ -107,6 +107,13 @@ def main():
                 except base.Lost as e:  # a pause changed the screen: same as a search that came out wrong
                     base.log(f"not sent: {e}")
                     out = {"ok": False}
+            elif op in ("nudge", "reopen"):  # blank results: see search.nudge_bar. nudge: the bar is focused already
+                try:
+                    out = {"ok": search.nudge_bar(req["q"]) if op == "nudge"
+                           else search.reopen_and_nudge(req["q"], last or ui.capture()[1])}
+                except base.Lost as e:
+                    base.log(f"not sent: {e}")
+                    out = {"ok": False}
             elif op == "ready":
                 ready()
             elif op == "restart":

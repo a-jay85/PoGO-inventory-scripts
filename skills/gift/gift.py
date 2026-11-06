@@ -51,6 +51,7 @@ import ui
 import base
 from base import Stop, keep_capture
 import session
+from search import nudge_bar
 
 CITY = "SAN FRANCISCO"  # the only gifts sent: the rest (Chicago, North Carolina ...) are kept for sending by hand
 KEEP = re.compile(r"\b(lion|tree|(?<!mission )rock)", re.I)  # San Francisco gifts that are kept anyway (Lions, Trees, Rocky too; Mission Rock is sent)
@@ -538,25 +539,25 @@ def search(*parts):
         if not whole(box, q) or (box and short and not ends_zone(box_end(box), short)):
             log(f"the box holds only part of {q!r}: typing it again")
             continue
-        if n == 0 or rows():
+        if rows():
             return n
-        n = add_space(n)
+        n = rerun_search(n)  # (only a 0 after this is a real 0)
         if n is not None and (n == 0 or rows()):
             return n
         log(f"still ({n}) and no rows: typing it again")
     raise Stop(f"the search {q!r} didn't take after 4 tries: {summary()}")
 
 
-def add_space(n):
-    """a known game bug: a count with an empty list. A space added to the end runs the search again -> the count"""
-    global typed
-    log(f"the search shows ({n}) and no rows: adding a space")
+def rerun_search(n):
+    """a search typed too fast can land with the box right and the list blank: (n) or nothing at all. An A and a delete
+    make the game run it again -> the count, or None when it needs typing again"""
+    log(f"the search shows ({n}) and no rows: an A and a delete to run it again")
     box = search_line()
     tap_text(box) if box else tap(0.45, 0.22)
     time.sleep(1.2)
-    base.type_text(" ")
-    typed += " "
-    return commit_search()
+    nudged = nudge_bar(typed)
+    n = commit_search()
+    return n if nudged and whole(search_line(), typed) else None
 
 
 def swap_zone(base_q, old, new):
@@ -586,8 +587,8 @@ def swap_zone(base_q, old, new):
     if n is None or not took or not whole(box, typed):
         log(f"swapping {old!r} for {new!r} didn't take: typing the search again")
         return None
-    if n and not rows():
-        n = add_space(n)
+    if not rows():
+        n = rerun_search(n)
         if n is None or (n and not rows()):
             return None
     return n

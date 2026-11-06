@@ -103,6 +103,28 @@
   null,
   "keeps your tag Old, GuaranteedLucky"
  ],
+ "the CPD tag, ignored": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "no rule wants it"
+ ],
+ "the CPD tag, traded": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "traded: can't trade again"
+ ],
+ "CPD and Evo, Evo counts": [
+  "tag",
+  [],
+  null,
+  "keeps your tag Evo"
+ ],
  "your tag GIV, untraded": [
   "unsure",
   [],

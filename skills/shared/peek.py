@@ -35,7 +35,7 @@ def rows(texts, gap=0.012):
 
 
 def main():
-    p = argparse.ArgumentParser(usage=__doc__)
+    p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("png", nargs="?")
     p.add_argument("--text", action="store_true")
     p.add_argument("--crop")

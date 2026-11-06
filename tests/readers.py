@@ -170,6 +170,11 @@ BANNERS = {  # OCR from run captures: the banner over the ME tab, and the same w
                          (0.36, "1738Sanmiggz sent you a"), (0.38, "Gift!"), (0.52, "1D13GOD sent you a Gift!")),
     "the list": texts((0.18, "Q Search"), (0.3, "CP 1234")),
 }
+GIFTS = [("Mission Walk", "San Francisco, California,"), ("Mission Walk", "San Francisco, CA, United"), ("Mural", "Chicago, IL, United States"),
+         ("Hydrant", "Raleigh, NC, United"), ("Mural", "Fremont, CA, United"), ("Mural", "Fremont, California,"), ("Mural", "Fremont, Califomia,"),
+         ("Park", "Reno, NV, United"), ("Park", "Toronto, Canada"), ("Park", "Charlotte, North Carolina,"), ("Sea Lion", "San Francisco, CA, United"),
+         ("Sea Lion", "Oakland, CA, United"), ("Tree", "Oakland, California,"), ("Mission Rock", "San Francisco, CA, United"), ("Rocky", "Fremont, CA, United"),
+         ("Olive My Love, Olive My Heart", "San Francisco, CA, United"), ("Mural", "California"), ("Mural", "")]
 NICKS = ["98 AD C* X", "93 D PsyS* Y", "GGB X", "Mewtwo", "100", "OpenGiftOnCD", "Max", "X", ""]
 BADGES = {k: texts((0.69, v)) for k, v in {"days": "5 DAYS", "1 day": "1 DAY", "left": "07:59 left",
                                            "none": "WEIGHT", "hours": "6 HOURS"}.items()}
@@ -323,6 +328,10 @@ def answers():
     out["mega.form_of"] = {n: answer(mega.form_of, n) for n in NICKS}
     out["trade.km"] = {s: answer(lambda s: trade.km(SimpleNamespace(texts=[box(.4, .56, s)])), s) for s in DISTANCES}
     out["mega.badge"] = {k: answer(lambda ts: (lambda b: b and b[4])(mega.badge(ts)), ts) for k, ts in BADGES.items()}
+    for whole_state in (False, True):
+        gift.whole_state = whole_state
+        out[f"gift.ours, whole_state {whole_state}"] = {f"{t} | {c}": answer(gift.ours, t, c) for t, c in GIFTS}
+    gift.whole_state = False
     return json.loads(json.dumps(out))  # (tuples -> lists, as the file has them)
 
 

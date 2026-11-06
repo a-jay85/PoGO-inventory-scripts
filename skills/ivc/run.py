@@ -1118,12 +1118,28 @@ def sort_all(limit, look):
     return True
 
 
+def plain_pile():
+    """one search for two: none of #IVC is XXL or a costume, as most runs find. Then the XXL pass has nothing to do and
+    the door needn't search for costumes. xxs ones are left out: untraded ones stay in #IVC for good"""
+    import home, tagsheet
+    who = home.trainer()  # (before a search hides the storage limit)
+    front()
+    to_search_list()
+    q = f"#{TAG}&xxl,costume"
+    n = result_count(tagsheet.search_exact(q))
+    log(f"{q}: the game says {n}")
+    if n != 0:  # (None: a count that didn't read, so nothing is known)
+        return False
+    door.EMPTY.append((who, {f"#{TAG}".lower()}, "costume"))
+    return True
+
+
 def names(limit, dry=False):
     """the names pass: an XXL one in #IVC is kept (the user, 2026-11-04). Then the old /ivc loop over what's left of
     #IVC. It names the xxs ones (never in the sort) and
     opens a nickname that's no species to read it in full. One still named after its species is named too (the sort
     couldn't look at it). The next sort ranks what it named"""
-    if not dry:
+    if not dry and not plain_pile():
         sys.path.insert(0, os.path.join(HERE, "..", "cleanup"))
         import sizes
         sizes.keep_search(f"xxl&#{TAG}", limit)  # (not ending in xxl: the read of the bar drops its thin last l)

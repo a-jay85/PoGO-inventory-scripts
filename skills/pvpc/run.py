@@ -48,7 +48,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.realpath(__file__)), "..
 import ui, pvp, base, search, fallen, session, door
 from base import GYM, Lost, Skip, Stop, appraisal_species, appraise, back_to_list, candy, detail_name, \
     do_rename, exact_ivs, front, go, high_iv, is_shadow, is_tag, keep_capture, load, log, new_run_dir, \
-    open_appraisal, open_tile, opened_right, recover, same_name, save, scroll_for_new, set_star, set_tags, slots_of, \
+    open_appraisal, open_tile, opened_right, recover, same_name, save, set_star, set_tags, slots_of, \
     start, steady_detail, tap, think, to_top, type_line, wait_for
 
 DOOR = None  # door.Door for this run
@@ -254,17 +254,6 @@ def beaten(info, sp, shadow, slots, cp, ivs, raws, tile_name, tile_cp):
 
 
 # ---------- the list ----------
-
-def pick(ts, skipped):
-    """first tile, passing over ones skipped earlier this run. A Pvp-named one still here (an older run named it and
-    left PvpC on) is judged again like the rest: kept (star, PvpC off) or the door (user, 2026-11-02)"""
-    seen = Counter()
-    for i, (n, c, _, _) in enumerate(ts, 1):
-        seen[(n, c)] += 1
-        if seen[(n, c)] > skipped[(n, c)]:
-            return i, n, c
-    return None
-
 
 # ---------- fallen out and trims ----------
 # New names can push older Pvp Pokémon out of the top. Per league and form only the best one owned keeps its place
@@ -666,57 +655,30 @@ def main(limit, dry):
         skipped.update(DOOR.listed())  # not sure last time, under the same rules: pass them
         log(f"door: {sum(skipped.values())} on the not-sure list, passed over")
     to_top()
-    skips_in_a_row = 0
-    scroll_how = "drag"  # Mirroring ignores the scroll wheel here
-    seen = set()  # CPs of every tile read so far: a scroll that shows none we haven't seen got nowhere
-    stale = 0
     log(f"start, log in {base.RUN_DIR}")
-    while counts["done"] + counts["skip"] < limit:
-        _, texts, _, bounds = wait_for("list")
-        ts = [(ui.tile_name(n), c, x, y) for n, c, x, y in ui.tiles(texts)]  # without the tag icon ('$96 AD')
-        seen.update(t[1] for t in ts)
-        p = pick(ts, skipped)
-        if not p:
-            if dry:
-                log("DRY nothing to do on this screen, would scroll")
-                return counts
-            if search.list_ended(ts):
-                log("end of list (room for another row, none there)")
-                counts["end"] = 1
-                break
-            fresh, scroll_how = scroll_for_new(ts, seen, bounds, scroll_how)
-            stale = 0 if fresh else stale + 1
-            if stale >= search.END_AFTER_STALE:
-                log("no new Pokémon after scrolling: end of list")
-                counts["end"] = 1
-                break
-            continue
-        i, n, c = p
-        if dry:
-            log(f"DRY next is tile {i}: {n} CP{c}")
-            tap(f"tile {i}", dry=True)
-            return counts
+    if dry:
+        ts = ui.tiles(wait_for("list")[1])
+        if ts:
+            log(f"DRY next is tile 1: {ui.tile_name(ts[0][0])} CP{ts[0][1]}")
+            tap("tile 1", dry=True)
+        return counts
+
+    def visit(i, n, c):
+        """a Pvp-named one still here (an older run named it and left PvpC on) is judged again like the rest: kept
+        (star, PvpC off) or the door (user, 2026-11-02)"""
         log(f"tile {i}: {n} CP{c}")
         try:
             result = process(i, n, c)
-            counts["door" if result == "NOPE" else result if result == door.UNSURE else "renamed"] += 1
-            counts["done"] += 1
-            if result == door.UNSURE:  # (one left as it is is still in the list, unnamed)
-                skipped[(n, c)] += 1
-            skips_in_a_row = 0
-            stale = 0
-        except (Skip, Lost) as e:
-            if isinstance(e, Lost):
-                recover(e, f"{n} CP{c}")
-            else:
-                keep_capture(f"skip-{n}")
-                log(f"SKIP {n} CP{c}: {e}")
-            skipped[(n, c)] += 1
+        except (Skip, Lost):
             counts["skip"] += 1
-            skips_in_a_row += str(e) != GYM  # a row of gym defenders is nothing wrong
-            if skips_in_a_row >= search.MAX_SKIPS_IN_A_ROW:
-                raise Stop(f"{skips_in_a_row} skips in a row, something's off")
-            back_to_list()
+            raise
+        counts["door" if result == "NOPE" else result if result == door.UNSURE else "renamed"] += 1
+        counts["done"] += 1
+        return result != door.UNSURE  # (one left as it is is still in the list, unnamed)
+
+    # (walk_list's limit counts passed ones too)
+    if search.walk_list(visit, stop=lambda n: counts["done"] + counts["skip"] >= limit, passed=skipped):
+        counts["end"] = 1
     return counts
 
 

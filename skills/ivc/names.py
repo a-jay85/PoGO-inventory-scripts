@@ -16,7 +16,7 @@ HERE = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import ui, pvp
 import base
-from base import Stop, Skip, log, keep_capture, go, wait_for, appraise, think, back_to_list, scroll_for_new, front, settle, \
+from base import Stop, Skip, log, keep_capture, go, wait_for, appraise, think, back_to_list, front, settle, \
     extras, drag, open_tile, exact_ivs, do_rename
 import ivc, door, search
 
@@ -294,21 +294,19 @@ def read_one(i, tile_name, tile_cp):
 
 # ---------- the list ----------
 
-def pick(ts, passed):
-    """first tile still named after its species or with a nickname, passing over ones skipped (or dry-run)
-    earlier. A name that's neither (a nickname, or OCR cut it short) gets opened, and the detail reads it in full"""
-    seen = Counter()
-    for i, (n, c, _, _) in enumerate(ts, 1):
-        if not untouched(n):
-            if not_mine(n):
-                continue
-            if (n, c) not in odd:
-                odd.add((n, c))
-                log(f"  {n!r} CP{c}: not a species name or a done name, opening it to read the full name")
-        seen[(n, c)] += 1
-        if seen[(n, c)] > passed[(n, c)]:
-            return i, n, c
-    return None
+def wanted(odd):
+    """-> want(name, cp) for the walk: a tile still named after its species or with a nickname. A name that's neither
+    (a nickname, or OCR cut it short) gets opened, and the detail reads it in full"""
+    def want(n, c):
+        if untouched(n):
+            return True
+        if not_mine(n):
+            return False
+        if (n, c) not in odd:
+            odd.add((n, c))
+            log(f"  {n!r} CP{c}: not a species name or a done name, opening it to read the full name")
+        return True
+    return want
 
 
 def to_top():
@@ -324,48 +322,29 @@ def main(limit, dry):
         passed.update(DOOR.listed())  # not sure last time, under the same rules: pass them
         log(f"door: {sum(passed.values())} on the not-sure list, passed over")
     to_top()
-    skips_in_a_row, stale, seen = 0, 0, set()
-    scroll_how = "drag"
     log(f"start{' (dry run)' if dry else ''}, log in {base.RUN_DIR}")
-    while counts["done"] + counts["skip"] < limit:
-        _, texts, _, bounds = wait_for("list")
-        ts = ui.tiles(texts)
-        seen.update(t[1] for t in ts)
-        p = pick(ts, passed)
-        if not p:
-            if search.list_ended(ts):
-                log("end of list (room for another row, none there)")
-                counts["end"] = 1
-                break
-            fresh, scroll_how = scroll_for_new(ts, seen, bounds, scroll_how)
-            stale = 0 if fresh else stale + 1
-            if stale >= search.END_AFTER_STALE:
-                log("no new Pokémon after scrolling: end of list")
-                counts["end"] = 1
-                break
-            continue
-        i, n, c = p
+
+    def visit(i, n, c):
         log(f"tile {i}: {n} CP{c}")
         try:
             result = process(i, n, c, dry)
-            counts["door" if result is None else result if result in ("->PvpC", door.UNSURE) else "renamed"] += 1
-            counts["done"] += 1
-            if dry or result == door.UNSURE:  # (one left as it is still looks untouched)
-                passed[(n, c)] += 1
-            skips_in_a_row = stale = 0
-        except (Skip, base.Lost) as e:
-            if isinstance(e, base.Lost):
-                base.recover(e, f"{n} CP{c}")
-            elif str(e) == NOT_MINE:
+        except Skip as e:
+            if str(e) == NOT_MINE:
                 log(f"  {n} CP{c} is {NOT_MINE}, passing it")
-            else:
-                keep_capture(f"skip-{n}")
-                log(f"SKIP {n} CP{c}: {e}")
-            passed[(n, c)] += 1
-            counts["skip"] += str(e) != NOT_MINE
-            skips_in_a_row += str(e) not in (base.GYM, NOT_MINE)  # a row of gym defenders is nothing wrong
-            if skips_in_a_row >= search.MAX_SKIPS_IN_A_ROW:
-                raise Stop(f"{skips_in_a_row} skips in a row, something's off")
-            back_to_list()
+                back_to_list()
+                return False
+            counts["skip"] += 1
+            raise
+        except base.Lost:
+            counts["skip"] += 1
+            raise
+        counts["door" if result is None else result if result in ("->PvpC", door.UNSURE) else "renamed"] += 1
+        counts["done"] += 1
+        return not (dry or result == door.UNSURE)  # (one left as it is still looks untouched)
+
+    # (walk_list's limit counts passed ones too)
+    if search.walk_list(visit, stop=lambda n: counts["done"] + counts["skip"] >= limit, passed=passed,
+                        want=wanted(set())):
+        counts["end"] = 1
     return counts
 

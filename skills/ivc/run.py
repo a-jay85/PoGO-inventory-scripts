@@ -1156,6 +1156,8 @@ def script(a, cmd, limit):
             except (Stop, Skip) as e:
                 base.keep_capture("fallen")
                 log(f"fallen out step STOPPED: {e} (run `run.py fallen {base.RUN_DIR}` to go on)")
+    elif cmd == "names":
+        names(limit, "--dry-run" in a)
     elif cmd in ("fallen", "act-fallen"):  # one step now (act-fallen: the old name of the second half)
         fallen_out(limit)
     elif cmd == "search":

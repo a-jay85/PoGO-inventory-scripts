@@ -69,9 +69,7 @@
    "untraded",
    "wait_for"
   ],
-  "runs": [
-   "skills/cleanup/runs"
-  ]
+  "runs": []
  },
  "skills/cleanup/savedsearches.py": {
   "copies": {},
@@ -91,9 +89,7 @@
    "pieces",
    "script"
   ],
-  "runs": [
-   "skills/cleanup/runs"
-  ]
+  "runs": []
  },
  "skills/cleanup/sizes.py": {
   "copies": {},
@@ -134,9 +130,7 @@
    "walk",
    "xxl_off"
   ],
-  "runs": [
-   "skills/cleanup/runs"
-  ]
+  "runs": []
  },
  "skills/cleanup/tradeable.py": {
   "copies": {},
@@ -226,8 +220,6 @@
    "walk"
   ],
   "runs": [
-   "skills/cleanup/runs",
-   "skills/cleanup/runs/tagged.json",
    "skills/pvpc/runs/<time>/dynamax.json",
    "skills/pvpc/runs/<time>/plan.json",
    "skills/pvpc/runs/<time>/plan.md",
@@ -308,7 +300,6 @@
    "write_searches"
   ],
   "runs": [
-   "skills/dex/runs",
    "skills/pvpc/runs/<time>/evolve-lucky.txt",
    "skills/pvpc/runs/<time>/trainer.txt"
   ]
@@ -349,9 +340,7 @@
    "unnamed",
    "view"
   ],
-  "runs": [
-   "skills/dex/runs"
-  ]
+  "runs": []
  },
  "skills/gift/gift.py": {
   "copies": {},
@@ -604,7 +593,6 @@
    "not_mine",
    "odd",
    "open_tile",
-   "pick",
    "process",
    "pvp_candidate",
    "read_moves",
@@ -612,12 +600,12 @@
    "remember",
    "retag",
    "same_name",
-   "scroll_for_new",
    "settle",
    "think",
    "to_top",
    "untouched",
-   "wait_for"
+   "wait_for",
+   "wanted"
   ],
   "runs": [
    "skills/pvpc/runs/<time>/read.json"
@@ -926,7 +914,6 @@
    "open_appraisal",
    "open_tile",
    "opened_right",
-   "pick",
    "plan",
    "pools_of",
    "process",
@@ -935,7 +922,6 @@
    "same_name",
    "save",
    "script",
-   "scroll_for_new",
    "set_star",
    "set_tags",
    "settle_here",
@@ -992,9 +978,7 @@
    "save",
    "script"
   ],
-  "runs": [
-   "skills/roster/runs"
-  ]
+  "runs": []
  },
  "skills/shared/account.py": {
   "copies": {},
@@ -1160,7 +1144,6 @@
    "save",
    "screen_changed",
    "scroll",
-   "scroll_for_new",
    "seek_tag",
    "set_star",
    "set_tags",

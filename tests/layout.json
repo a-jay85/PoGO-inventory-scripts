@@ -69,7 +69,9 @@
    "untraded",
    "wait_for"
   ],
-  "runs": []
+  "runs": [
+   "skills/cleanup/runs"
+  ]
  },
  "skills/cleanup/savedsearches.py": {
   "copies": {},
@@ -89,7 +91,9 @@
    "pieces",
    "script"
   ],
-  "runs": []
+  "runs": [
+   "skills/cleanup/runs"
+  ]
  },
  "skills/cleanup/sizes.py": {
   "copies": {},
@@ -130,7 +134,9 @@
    "walk",
    "xxl_off"
   ],
-  "runs": []
+  "runs": [
+   "skills/cleanup/runs"
+  ]
  },
  "skills/cleanup/tradeable.py": {
   "copies": {},
@@ -220,6 +226,8 @@
    "walk"
   ],
   "runs": [
+   "skills/cleanup/runs",
+   "skills/cleanup/runs/tagged.json",
    "skills/pvpc/runs/<time>/dynamax.json",
    "skills/pvpc/runs/<time>/plan.json",
    "skills/pvpc/runs/<time>/plan.md",
@@ -300,6 +308,7 @@
    "write_searches"
   ],
   "runs": [
+   "skills/dex/runs",
    "skills/pvpc/runs/<time>/evolve-lucky.txt",
    "skills/pvpc/runs/<time>/trainer.txt"
   ]
@@ -340,7 +349,9 @@
    "unnamed",
    "view"
   ],
-  "runs": []
+  "runs": [
+   "skills/dex/runs"
+  ]
  },
  "skills/gift/gift.py": {
   "copies": {},
@@ -675,6 +686,7 @@
    "names",
    "new_run_dir",
    "odd_name",
+   "plain_pile",
    "plan",
    "plan_key",
    "pools",
@@ -978,7 +990,9 @@
    "save",
    "script"
   ],
-  "runs": []
+  "runs": [
+   "skills/roster/runs"
+  ]
  },
  "skills/shared/account.py": {
   "copies": {},

@@ -172,22 +172,28 @@ def same_at_top(me, now):
     return me[2] == now[2] and bool(sizes) and all(a == b for a, b in sizes)
 
 
+WEIGHT_AT_TOP = 0.55  # the weight row sits at ~0.6 at the top of the page, higher once the page has moved
+
+
 def back_to_top(me, bounds):
     """drag down until the CP shows. Only drag from labels that are never buttons (weight, candy, the caught box,
     form text), never from the top strip: a drag there pulls down the phone's notification shade.
     A drag at the top closes the page, so check a fresh read before each drag and size it from the weight row."""
+    no_hold = False
     for _ in range(12):
         texts = look()[1]  # the phone's own screenshot
         now = who(texts)[1] if ui.classify(texts) == "detail" else None
-        cp_top = any(t[1] < 0.15 and re.match(r"[cC]\s*[pP]", t[4].strip()) for t in texts)
+        kg = [t for t in texts if re.search(r"\d\s*kg$", t[4].strip())]
+        # the top, shown by the CP label, or by the weight row where only the top has it (a Mewtwo's CP read as a bare
+        # number with no label, every time: 2026-11-06)
+        cp_top = any(t[1] < 0.15 and re.match(r"[cC]\s*[pP]", t[4].strip()) for t in texts) or any(t[1] >= WEIGHT_AT_TOP for t in kg)
         if now and (now[1:3] == me[1:3] and now[1] is not None  # same CP and HP (name reads can wobble). No CP read
-                    # in either: not proof (half way down, 2026-10-31), the next line needs the CP at the top
+                    # in either: not proof (half way down, 2026-10-31), the next line needs the top
                     or cp_top and same_at_top(me, now)):
             return
         if any(re.fullmatch(r"[cC]\s*[pP]\s*\d+", t[4].strip()) for t in texts):
             time.sleep(0.3)  # CP in sight: at the top, maybe still settling
             continue
-        kg = [t for t in texts if re.search(r"\d\s*kg$", t[4].strip())]
         hold = [t for t in texts if 0.1 < t[1] < 0.8 and (t in kg or re.search(
             r"WEIGHT|HEIGHT|STARDUST|CANDY|CAUGHT|HATCHED|OBTAINED IN A TRADE|RECEIVED|MAX MOVES|WITH YOUR PARTY|THIS POK|BECOME|CAN USE|CAN FUSE|ADVENTURE EFFECT|DISTORTS", ui.norm(t[4])))]
         if hold:
@@ -196,7 +202,12 @@ def back_to_top(me, bounds):
             far = random.uniform(0.56, 0.58) - kg[0][1] if kg else random.uniform(0.4, 0.45)
             # (no CP in sight, so not at the top yet: a drag under 0.06 can leave it a hair short, the CP under the clock)
             base.drag(x, y, x, min(y + max(far, 0.06), 0.92), bounds)  # (drag waits for it to stop)
+            no_hold = False
+        elif no_hold and now:  # twice with no label in reach, no CP in sight: a tall page's middle. The left edge has no buttons
+            base.drag(0.08, 0.35, 0.08, 0.35 + random.uniform(0.4, 0.45), bounds)
+            no_hold = False
         else:
+            no_hold = True
             time.sleep(0.3)
     keep_capture("top")
     raise Stop(f"couldn't get back to the top of the detail page (wanted {me}, read {now})")

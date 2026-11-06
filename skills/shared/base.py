@@ -890,6 +890,18 @@ def back_out_of_tags(T, ticks):
     raise Skip(f"the {T} tick wouldn't take: left by the X, nothing saved, it stays as it was")
 
 
+def set_tick(T, v, name, ticks):
+    """row T of the open tag sheet (one Pokémon or a whole search's), showing: tap until its tick reads v. ticks: the
+    rows' ticks from show_tag. -> the ticks now: the caller looks at T and leaves the sheet if it didn't take"""
+    for wait in (3, 3, 6):  # a tick only gets tapped again once a slow read has shown it didn't change
+        if ticks.get(T) is not v:
+            if ui.ANDROID:
+                lift_tag_row(T)
+            tap_tag_row(T, name)
+            ticks = settle(tick_tags, lambda t: t.get(T) is v, timeout=wait)
+    return ticks
+
+
 def set_tags(on=(), off=(), only=False):
     """tick the on tags and untick the off ones, leave the rest. only: afterwards the detail must show just the on tags"""
     still_opened("before the tags")
@@ -907,12 +919,7 @@ def set_tags(on=(), off=(), only=False):
             ticks = show_tag(T)
             if ticks is None:  # an off tag this account doesn't have
                 continue
-            for wait in (3, 3, 6):  # a tick only gets tapped again once a slow read has shown it didn't change
-                if ticks.get(T) is not v:
-                    if ui.ANDROID:
-                        lift_tag_row(T)
-                    tap_tag_row(T, names[T])
-                    ticks = settle(tick_tags, lambda t: t.get(T) is v, timeout=wait)
+            ticks = set_tick(T, v, names[T], ticks)
             if ticks.get(T) is not v:
                 back_out_of_tags(T, ticks)
         tags_done()

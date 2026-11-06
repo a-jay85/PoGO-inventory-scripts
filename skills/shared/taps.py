@@ -85,9 +85,18 @@ def reopen_top():
 def select_all(button, n, poll=0.15):
     """long press the first tile (multi-select), then SELECT ALL, and wait for '<button> (n)'.
     -> (that button or None, the count it shows, texts, bounds): the caller backs out when the count is off"""
-    _, texts, _, bounds = look()
-    first = ui.tiles(texts)[0]
-    press((first[2] - 0.03, first[3] - 0.01, 0.06, 0.02, ""), bounds, hold=900)  # long press: multi-select
+    for _ in range(20):  # the iPhone's looks are quick: one right after a search can beat the tiles to the screen
+        _, texts, _, bounds = look()
+        cps = ui.tile_cps(texts)  # the CP labels: a name can fail to read (HashTagAJay's Pidgeys named '0', 2026-11-05)
+        if cps:
+            break
+        time.sleep(0.25)
+    else:
+        keep_capture("multiselect")
+        raise Stop("no tile on the list to long press")
+    c = min(cps, key=lambda c: (round(c[1] / 0.05), c[0]))
+    x, y = c[0] + c[2] / 2, c[1] + 0.06  # the tile's picture, under its CP
+    press((x - 0.03, y - 0.01, 0.06, 0.02, ""), bounds, hold=900)  # long press: multi-select
     pat = rf"{button} \((\d+)\)"
     for _ in range(20):
         time.sleep(poll)

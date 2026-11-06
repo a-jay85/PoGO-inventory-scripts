@@ -293,21 +293,22 @@ GRIDS = {  # what full reads make of made-up screens. The answer is used only wh
 }
 
 
-def _page_end(swap_y=0.829, swap="SWAP BUDDIES", label="CAUGHT IN THE WILD", date="11/3/2026"):
-    rows = [(0.658, label), (0.735, date)] + ([(swap_y, swap)] if swap else [])
+def _caught_box(label="CAUGHT IN THE WILD", date="11/3/2026", date_y=0.735, rows=()):
+    rows = [(0.658, label), (date_y, date), *rows]
     return [(0.1, y, 0.5, 0.02, t) for y, t in rows]
 
 
-AT_BOTTOM = {  # pagefacts.at_bottom: the page's lower rows after a drag, heights as read on the Pixel
-    "at the bottom": _page_end(),
-    "at the bottom, the OCR's own wobble": _page_end(0.827),
-    "an icon glued on": _page_end(swap="®3 SWAP BUDDIES"),
-    "still one short": _page_end(0.834),
-    "well short": _page_end(0.964),
-    "your buddy's page: no button": _page_end(swap=None),
-    "date not read": _page_end(date="11/3/20"),
-    "caught box not read": _page_end(label="San Francisco"),
-    "hatched": _page_end(label="HATCHED FROM A 5 KM EGG"),
+CAUGHT_READ = {  # pagefacts.caught_read: the page's lower rows after a drag, heights as read on the Pixel
+    "at the bottom": _caught_box(rows=[(0.829, "SWAP BUDDIES")]),
+    "a drag short, date on screen": _caught_box(date_y=0.87),
+    "date just clear of the edge": _caught_box(date_y=0.9),
+    "date too near the edge (its place misread once)": _caught_box(date_y=0.977),
+    "your buddy's page: no button": _caught_box(),
+    "date not read": _caught_box(date="11/3/20"),
+    "only the trade box's date, above the label": _caught_box(date_y=0.6),
+    "caught box not read": _caught_box(label="San Francisco"),
+    "two labels": _caught_box(rows=[(0.7, "HATCHED")]),
+    "hatched": _caught_box(label="HATCHED FROM A 5 KM EGG"),
 }
 
 _ME = ("Castform", 639, 94, "0.84kg", "0.31m")
@@ -357,7 +358,7 @@ def answers():
                          for k, ts in SHEETS.items()}
     out["ui.tiles"] = {k: answer(lambda ts: [t[:2] for t in ui.tiles(ts)], ts) for k, ts in LISTS.items()}
     out["search.grid_tiles"] = {k: answer(places, v) for k, v in GRIDS.items()}
-    out["pagefacts.at_bottom"] = {k: answer(pagefacts.at_bottom, v) for k, v in AT_BOTTOM.items()}
+    out["pagefacts.caught_read"] = {k: answer(pagefacts.caught_read, v) for k, v in CAUGHT_READ.items()}
     out["tagsheet.same_at_top"] = {k: answer(tagsheet.same_at_top, *v) for k, v in AT_TOP.items()}
     out["base.same_pokemon"] = {k: answer(base.same_pokemon, *v) for k, v in SAME.items()}
     out["ui.classify"] = {k: answer(ui.classify, ts) for k, ts in SCREENS.items()}

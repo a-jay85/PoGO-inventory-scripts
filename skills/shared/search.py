@@ -64,11 +64,12 @@ def list_ended(ts):
     return bool(ts) and max(t[3] for t in ts) < LAST_ROW_ABOVE
 
 
-def walk_list(visit, limit=10 ** 9, stop=None, odd=None):
+def walk_list(visit, limit=10 ** 9, stop=None, odd=None, passed=None, want=None):
     """call visit(i, name, cp) on each tile of the open list once, top to bottom. visit returns True if the tile
     left the list (so it isn't counted as passed). Ends after END_AFTER_STALE scrolls with nothing new.
-    stop(name): the list is past what's wanted. odd: see read_tiles."""
-    passed, seen = Counter(), set()
+    stop(name): the list is past what's wanted. odd: see read_tiles. passed: {(name, CP): n} to pass over from the
+    start. want(name, cp): False passes a tile over. -> True if the list ran out"""
+    passed, seen = Counter(passed), set()  # seen: CPs. At the bottom the list bounces and OCR reads names differently
     stale, done, skips = 0, 0, 0
     full = None  # started on the full Pokémon list (start_search's results), not a tag's list
     while done < limit:
@@ -80,16 +81,18 @@ def walk_list(visit, limit=10 ** 9, stop=None, odd=None):
         if now_full and not full:  # a tag's list turned into the whole Pokémon list: it was closed
             raise Stop("left the tag's list (the full Pokémon list is showing)")
         ts = read_tiles(texts, path, odd)
-        seen.update((t[0].upper(), t[1]) for t in ts)
+        seen.update(t[1] for t in ts)
         here, pick = Counter(), None
         for i, (n, c, _, _) in enumerate(ts, 1):
+            if want and not want(n, c):
+                continue
             here[(n, c)] += 1
             if here[(n, c)] > passed[(n, c)]:
                 pick = (i, n, c)
                 break
         if not pick and list_ended(ts):
             log("end of list (room for another row, none there)")
-            return
+            return True
         if not pick:
             before = set(seen)
             global scrolled
@@ -100,10 +103,10 @@ def walk_list(visit, limit=10 ** 9, stop=None, odd=None):
                 log("the scroll opened a Pokémon: backing out")
                 back_to_list()
                 continue
-            stale = 0 if {(ui.tile_name(t[0]).upper(), t[1]) for t in ui.tiles(texts)} - before else stale + 1
+            stale = 0 if {t[1] for t in ui.tiles(texts)} - before else stale + 1
             if stale >= END_AFTER_STALE:
                 log("end of list")
-                return
+                return True
             continue
         i, n, c = pick
         if stop and stop(n):
@@ -111,7 +114,7 @@ def walk_list(visit, limit=10 ** 9, stop=None, odd=None):
             return
         try:
             gone = visit(i, n, c)
-            skips = 0
+            skips = stale = 0
         except (Skip, Lost) as e:
             if isinstance(e, Lost):
                 base.recover(e, f"{n} CP{c}")

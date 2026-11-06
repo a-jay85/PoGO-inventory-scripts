@@ -1336,24 +1336,3 @@ import search, fallen, home, session  # down here: they `import base`, which has
 def start():
     """a run's first step: from wherever the phone is (Pokémon GO closed too) to the Pokémon screens"""
     home.start()
-
-
-def scroll_for_new(ts, seen, bounds, how):
-    """scroll the list down a screen -> (fresh, how). fresh: a tile with a CP not in seen showed up. At the bottom
-    the list bounces back and OCR reads it a bit differently each time, so "did the tiles change" never settles:
-    look for tiles we haven't seen instead. A scroll that doesn't move the list at all tries the other way of
-    scrolling; how is the way that worked, for next time"""
-    before = [t[:2] for t in ts]
-    search.scrolled = True  # (to_search_list and start_search go by it)
-    for way in ([how] + [h for h in ("wheel", "drag") if h != how]):
-        scroll(bounds, way)
-        _, texts, _, bounds = wait_for("list")
-        now = ui.tiles(texts)
-        if {t[1] for t in now} - seen:
-            return True, way
-        if [t[:2] for t in now] == before:
-            continue  # didn't move at all: try the other way of scrolling
-        break  # moved, but nothing new
-    return False, how
-
-

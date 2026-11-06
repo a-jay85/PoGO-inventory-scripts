@@ -375,7 +375,7 @@ def clear_search():
             continue
         if ui.profile_tabs(texts):  # the Friends tab mid-run (a tap on a friend's banner): its X, then the list
             log("  on the profile: closing it")
-            click(0.5, 0.937, bounds)
+            base.tap_x(bounds)
             time.sleep(random.uniform(1.5, 2.0))
             off_map()
             scrolled = False  # opened from the map: at the top

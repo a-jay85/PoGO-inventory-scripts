@@ -245,7 +245,7 @@ def through_hatch(texts, bounds, hatched):
     if time.time() < hatched + HATCH_SCREENS or re.search(r"\b\d+(\.\d+)?\s*/\s*\d+\s*km\b",
                                                           " ".join(t[4] for t in texts)):
         log(f"  after the hatch: closing {ui.summary(texts, 60)}")
-        search.click(*X_BUTTON, bounds)
+        base.tap_x(bounds)
         time.sleep(2.0)
         return hatched
     return None
@@ -352,7 +352,7 @@ def start(storage=True):
             pass
         elif screen == "unknown" and storage and (profile(texts) or ui.profile_tabs(texts)):  # a stop or a reopen left
             log("  on the profile: closing it")  # the profile up (any of its tabs): its X
-            search.click(*X_BUTTON, bounds)
+            base.tap_x(bounds)
             time.sleep(1.5)
         elif screen == "unknown" and passenger(texts, bounds):
             pass
@@ -386,7 +386,6 @@ def start(storage=True):
 # ---------- who's signed in ----------
 
 TRAINERS = ("HashTagAJay", "CyrillJan")  # the user's two accounts
-X_BUTTON = (0.5, 0.937)  # the round X at the bottom middle: closes the profile and the Pokémon list
 
 
 def squash(s):
@@ -437,7 +436,7 @@ def challenge_invite(texts, bounds):
         return True
     if "TOTAL KM EXPLORED" in ui.joined(texts):  # the summary after it: only its round X closes it
         log("  the party's summary is up: closing it")
-        search.click(*X_BUTTON, bounds)
+        base.tap_x(bounds)
         time.sleep(1.5)
         return True
     if "ROCKET RADAR" in ui.joined(texts) and press_text(texts, bounds, "EQUIP"):  # (2026-11-05: Back does nothing, no X)
@@ -498,7 +497,7 @@ def trainer(fast=True):
                 keep_capture("trainer")
                 raise Stop(f"can't read the trainer name on the profile: {[t[4] for t in texts if t[1] < 0.3]}")
             log(f"signed in: {got[0]}")
-            search.click(*X_BUTTON, bounds)
+            base.tap_x(bounds)
             time.sleep(1.5)
             return got[0]
         if "FRIENDS" in j and "ADD FRIEND" in j and press_text(texts, bounds, "ME"):  # the profile opens on its
@@ -520,13 +519,13 @@ def trainer(fast=True):
         elif screen == "list" and not {"TAGS", "EGGS"} <= {ui.norm(t[4]) for t in texts}:
             base.to_tags_tab()  # a tag's list: its X isn't the Pokémon screen's (stuck 12 looks, 2026-11-02)
         elif screen in ("list", "tag-tab"):
-            search.click(*X_BUTTON, bounds)
+            base.tap_x(bounds)
             time.sleep(1.5)
         elif screen == "mainmenu":
             if ui.ANDROID:
                 ui.android.key("back")
             else:  # no Back key: the menu's own X at the bottom middle
-                search.click(*X_BUTTON, bounds)
+                base.tap_x(bounds)
             time.sleep(1.5)
         elif screen == "exit":
             press_text(texts, bounds, "CANCEL")

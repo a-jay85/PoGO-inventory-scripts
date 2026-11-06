@@ -36,7 +36,6 @@ from rules import EVO, EVO_FOR, TRADE_EVOS
 
 SEARCH = f"#{EVO}&evolve&traded&!xxl&{TRADE_EVOS}"  # an XXL one stays as it is (the user, 2026-11-05)
 ANIMATION = 18.3  # YES to the evolved one's page: 18.2 s, every species (the user's run, 2026-11-05)
-X = (0.5, 0.937)  # the detail page's round X, bottom middle
 SETTLE = 0.4  # after a tap, for the page or box to stop moving: one look then is enough (each look is about 0.4 s)
 
 
@@ -146,7 +145,7 @@ def script(limit, dry, here, candy):
         log(f"{done} done, {(time.time() - t0) / done:.1f}s each")
         if dry or done >= limit:
             break
-        base.click(*X, page)  # no looks here: the next page's read checks it all, as the taps can do no harm
+        base.tap_x(page)  # no looks here: the next page's read checks it all, as the taps can do no harm
         time.sleep(0.45)
         base.click(*spot, page)
     log(f"done: {done} {'looked at' if dry else 'YES tapped'}")

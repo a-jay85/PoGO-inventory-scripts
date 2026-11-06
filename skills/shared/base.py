@@ -451,6 +451,15 @@ def to_points(fx, fy, bounds):
 TAP_WOBBLE = 0.002  # every tap lands up to this far off (x; half in y), under the tightest fuzz (0.004, gift's X)
 
 
+X_BUTTON = (0.5, 0.937)  # the round X at the bottom middle. It closes the screen it's on: a Pokémon, a tag's list, the
+# Pokémon screen, the profile, a gym, a badge, the main menu, a box
+
+
+def tap_x(bounds, **how):
+    """tap the round X at the bottom middle. how: as click()"""
+    click(*X_BUTTON, bounds, **how)
+
+
 def click(fx, fy, bounds, gap=0.0, ms=None, fuzz=0.0, rest=0.0, bring_front=True, spaced=True, counted=True):
     """a tap at a spot (window fractions), not a named button: every skill's taps go through here.
     gap: at least this long since the last tap (two quick taps on the search bar would make a double-tap).
@@ -1305,21 +1314,32 @@ def open_tag(name):
 
 def to_tags_tab():
     """get to the Tags tab. The full Pokémon list (TAGS / POKÉMON / EGGS header showing) has a TAGS tab to tap.
-    A tag-filtered list drops back to the Tags tab when pulled down past the top."""
+    A tag's list has the round X: back to the Tags tab from anywhere in the list, in under a second (2026-11-06).
+    If two X taps don't get there, it pulls down past the top of the list, which also drops back to the Tags tab."""
     _, texts, _, bounds = look()
     search.leave_panel(texts, bounds)  # home.trainer can leave the search panel up, empty
     if wait_for("list", "tag-tab", "detail", "menu", "appraisal", "gym")[0] not in ("list", "tag-tab"):
         back_to_list()  # a run that was cut off left a Pokémon open
-    for _ in range(150):  # a stop deep in a 700+ list needs 60+ pulls to get back up
-        screen, texts, _, bounds = wait_for("list", "tag-tab")
+    x_taps = 0
+    for _ in range(150):  # (the fallback: a stop deep in a 700+ list needs 60+ pulls to get back up)
+        screen, texts, _, bounds = wait_for("list", "tag-tab", "detail", "gym")
         if screen == "tag-tab":
             return
+        if screen != "list":  # a tap or a drag landed on a tile and opened it
+            back_to_list()
+            continue
         if search.leave_multiselect(texts, bounds):  # a run cut off mid-swipe can leave the list in multi-select
             continue
         words = {ui.norm(t[4]) for t in texts}
         if {"TAGS", "EGGS"} <= words:  # unfiltered list: pulling down here would close the Pokémon screen
             go("TAGS", "tag-tab")
             return
+        if x_taps < 2:
+            x_taps += 1
+            log("  a tag's list: its X, back to the Tags tab")
+            tap_x(bounds, fuzz=0.006, rest=(0.8, 1.0))
+            search.off_map()  # (the full list with its header misread: there this X closes the Pokémon screen)
+            continue
         scroll(bounds, "drag", up=True)
     raise Stop("never got back to the Tags tab")
 

@@ -295,6 +295,9 @@ def answer(fn, *a):
         return f"raises {type(e).__name__}"
 
 
+DISTANCES = ["4.125.4 km", "4,125.4 km", "2,981.5 km", "2,981,5 km", "125.4 km", "87.3 km", "38533 km", "1,234 km", "no number"]
+
+
 def answers():
     out = {}
     for name, fn in PAIRED.items():
@@ -318,6 +321,7 @@ def answers():
     out["ui.gift_banner"] = {k: answer(ui.gift_banner, ts) for k, ts in BANNERS.items()}
     out["ui.profile_tabs"] = {k: answer(ui.profile_tabs, ts) for k, ts in BANNERS.items()}
     out["mega.form_of"] = {n: answer(mega.form_of, n) for n in NICKS}
+    out["trade.km"] = {s: answer(lambda s: trade.km(SimpleNamespace(texts=[box(.4, .56, s)])), s) for s in DISTANCES}
     out["mega.badge"] = {k: answer(lambda ts: (lambda b: b and b[4])(mega.badge(ts)), ts) for k, ts in BADGES.items()}
     return json.loads(json.dumps(out))  # (tuples -> lists, as the file has them)
 

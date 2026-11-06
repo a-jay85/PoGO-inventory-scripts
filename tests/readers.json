@@ -4369,6 +4369,17 @@
   "y&Icostume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": false,
   "y&Icostume&legendary\t#Nope&!traded&!shiny&!costume&legendary": false
  },
+ "trade.km": {
+  "1,234 km": 1234.0,
+  "125.4 km": 125.4,
+  "2,981,5 km": 2981.5,
+  "2,981.5 km": 2981.5,
+  "38533 km": 38533.0,
+  "4,125.4 km": 4125.4,
+  "4.125.4 km": 4125.4,
+  "87.3 km": 87.3,
+  "no number": null
+ },
  "trade.pile": {
   "": null,
   "!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": null,

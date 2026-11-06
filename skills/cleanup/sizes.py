@@ -29,7 +29,7 @@ from base import Stop, Skip, log, go, wait_for
 import search, session, home
 import cleantrades as ct
 from taps import Pass, next_one, press
-from tagsheet import search_exact, sheet_rows, still_sheet, tick, sheet_down, tag_chips
+from tagsheet import search_exact, tag_chips
 from savedsearch import results, tag_pile
 from rules import EVO_FOR, TRADE_EVOS, NAMES, TRANSFER, xxl_off
 
@@ -44,47 +44,6 @@ def same(got, want):
     """OCR mixes the case of xxs (xXS) and drops spaces"""
     flat = lambda s: re.sub(r"\s", "", s or "").lower()
     return flat(got) == flat(want)
-
-
-def retag():
-    """IVC on, Transfer off. base.set_tags only sees the rows on screen, and Transfer can sit below them:
-    this scrolls the sheet down until it has seen every one. A tag this account doesn't have is fine, except IVC"""
-    base.still_opened("before the tags")
-    go("menu", "menu")
-    go("TAG", "tags")
-    left = {IVC.upper(): True, TRANSFER.upper(): False}  # tag -> the tick it should end with
-    names = {t.upper(): t for t in (IVC, TRANSFER)}
-    with base.changing("ticking tags"):  # the row's box, like tag_pile: the word Transfer is never tapped
-        same, before = 0, None
-        for _ in range(30):
-            texts, path, bounds = still_sheet()
-            rows = sheet_rows(texts, path)
-            T = next((T for T in left if T in rows), None)
-            if T:  # one at a time, then read the sheet again: a tick can move the rows
-                box, ticked = rows[T]
-                v = left.pop(T)
-                if ticked is not v:
-                    tick(T, box, v, bounds, name=names[T])
-                same = 0
-                continue
-            if not left:
-                break
-            now = [t[4] for t in texts]
-            same = same + 1 if now == before else 0
-            if same >= 2:  # the bottom of the sheet
-                break
-            before = now
-            sheet_down(bounds)
-        texts, _, bounds = still_sheet()
-        press(next(t for t in texts if ui.norm(t[4]) == "DONE"), bounds)
-        wait_for("detail")
-        if IVC.upper() in left:
-            raise Stop(f"no {IVC} tag on this account: {TRANSFER} may be off already, look at it")
-        good = lambda t: IVC.upper() in t and TRANSFER.upper() not in t
-        tags = base.settle(base.detail_tags, good)
-        if not good(tags):
-            base.keep_capture("tags")
-            raise Stop(f"after DONE tags are {tags}, wanted {IVC} on, {TRANSFER} off")
 
 
 def keep_xxl(info, texts):
@@ -102,7 +61,7 @@ def name_and_tag(info, size):
     new = old if re.search(r"xx[ls]", old, re.I) else NAMES[size]
     if new != old:
         base.do_rename(new, same)
-    retag()
+    base.set_tags(on=[IVC], off=[TRANSFER])
     log(f"{old} CP{info['cp']} -> {new}, tagged {IVC}")
 
 

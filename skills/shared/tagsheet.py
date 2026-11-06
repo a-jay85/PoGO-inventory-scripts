@@ -13,7 +13,6 @@ import ui
 import base
 from base import Stop, log, keep_capture, go, look, wait_for
 import search
-from taps import press, exact
 
 # ---------- search: start and end of the bar both read back ----------
 
@@ -215,19 +214,6 @@ def caught(texts):
 
 # ---------- the tag sheet ----------
 
-def sheet_rows(texts, path):
-    """tag rows that are safe to tap (not under the fade at the bottom): norm name -> (box, ticked)"""
-    def name(s):  # the icon by Remote Trade reads as a stray letter: "c Remote Trade"
-        return re.sub(r"^[A-Z] (?=[A-Z]{2})", "", ui.norm(s.lstrip("•· ")))
-    ticks = dict((name(n), on) for n, on in ui.ticked_tags(path, texts))
-    rows = {}
-    for t in texts:
-        n = name(t[4])
-        if n in ticks and 0.2 < t[1] < 0.7:
-            rows[n] = (t, ticks[n])
-    return rows
-
-
 def still_sheet():
     last = None
     for _ in range(10):
@@ -238,47 +224,3 @@ def still_sheet():
         last = ys
         time.sleep(0.25)
     return texts, path, bounds
-
-
-def tick(T, box, want, bounds, poll=0.15, name=None, on_fail=None):
-    """tap row T's box and wait until its tick reads want. on_fail(texts, bounds) backs out before the Stop"""
-    press(box, bounds)
-    for _ in range(20):
-        time.sleep(poll)
-        _, t2, p2, _ = wait_for("tags")
-        r = sheet_rows(t2, p2)
-        if T in r and r[T][1] is want:
-            break
-    else:
-        keep_capture("tick")
-        if on_fail:
-            on_fail(t2, bounds)
-        raise Stop(f"tapped {name or T} but its tick didn't change")
-
-
-def sheet_down(bounds):
-    """scroll the tag sheet a small step: a big scroll skips rows"""
-    base.drag(0.3, 0.62, 0.3, 0.4, bounds)
-
-
-def done_sheet(texts, bounds):
-    """tap DONE (where the last read of the sheet saw it) -> the detail page's texts. One caught in the last month
-    gets a popup first ("Cannot Trade Recently Caught Pokémon Remotely ... will keep the Remote Trade tag"):
-    its OK saves the tags"""
-    press(next(t for t in texts if ui.norm(t[4]) == "DONE"), bounds)
-    end, again = time.time() + 8, True
-    while time.time() < end:
-        time.sleep(0.15)
-        screen, texts, _, bounds = look()
-        if screen == "detail":
-            return texts
-        if any("RECENTLY CAUGHT" in ui.norm(t[4]) for t in texts) and exact(texts, "OK"):
-            log("  recently caught: OK on the popup (it keeps the Remote Trade tag)")
-            press(exact(texts, "OK")[0], bounds)
-            end = time.time() + 6
-        elif screen == "tags" and again and time.time() > end - 5:
-            log("  tap DONE didn't land, again")
-            press(next(t for t in texts if ui.norm(t[4]) == "DONE"), bounds)
-            again = False
-    keep_capture("done")
-    raise Stop("after DONE: never got back to the detail page")

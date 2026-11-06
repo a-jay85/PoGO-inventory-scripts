@@ -10,7 +10,7 @@ import base
 from base import Stop, log, keep_capture, go, look, wait_for
 import search
 from taps import press, select_all, settled_tiles
-from tagsheet import sheet_rows, still_sheet, search_exact, tick, sheet_down
+from tagsheet import still_sheet, search_exact
 from rules import CLEAN
 
 UNTAGGED_ONLY = {"PvpC1", "PvpC2", CLEAN}  # their own search already has !# (and on the Pixel PvpC1 fills the bar)
@@ -254,33 +254,21 @@ def tag_pile(name, tag, suffix=None, off=(), query=None):
     if not re.search(rf"TAG\s*{n}\s*POK", head.upper()):  # (ui.norm drops digits)
         close_sheet(texts, bounds)
         raise Stop(f"the tag sheet says {head!r}, wanted {n}")
-    # tag -> its last tick, keyed like sheet_rows' names (ui.norm drops digits: 2XL is XL there)
-    left, same = {**{ui.norm(t): False for t in off}, **({ui.norm(tag): True} if tag else {})}, 0
-    for _ in range(30):
-        rows = sheet_rows(texts, path)
-        T = next((T for T in left if T in rows), None)
-        if T:  # one at a time, then read the sheet again: a tick can move the rows
-            box, ticked = rows[T]
-            if ticked is left[T]:  # the search said none have tag and all have off: a tick here is a misread or a partial mark
-                close_sheet(texts, bounds)
-                raise Stop(f"{T} already shows {'a' if ticked else 'no'} tick for this lot: nothing tagged")
-            tick(T, box, left[T], bounds, poll=search.POLL, on_fail=close_sheet)
-            del left[T]
-            texts, path, bounds = still_sheet()
-            same = 0
-            continue
-        if not left:
-            break
-        before = [t[4] for t in texts]
-        sheet_down(bounds)
-        texts, path, bounds = still_sheet()
-        same = same + 1 if [t[4] for t in texts] == before else 0
-        if same >= 2:
-            close_sheet(texts, bounds)
-            raise Stop(f"no {', '.join(left)} tag on this account: nothing tagged")
-    else:
+    def give_up(why):
+        texts, _, bounds = still_sheet()
         close_sheet(texts, bounds)
-        raise Stop(f"couldn't find {', '.join(left)} in the tag sheet")
+        raise Stop(why)
+    # (ui.norm drops digits: 2XL is XL on the sheet)
+    for t, v in [*((t, False) for t in off), *([(tag, True)] if tag else [])]:
+        T = ui.norm(t)
+        ticks = base.show_tag(T)
+        if ticks is None:
+            give_up(f"no {t} tag on this account: nothing tagged")
+        if ticks.get(T) is v:  # the search said none have tag and all have off: a tick here is a misread or a partial mark
+            give_up(f"{t} already shows {'a' if v else 'no'} tick for this lot: nothing tagged")
+        if base.set_tick(T, v, t, ticks).get(T) is not v:
+            keep_capture("tick")
+            give_up(f"tapped {t} but its tick didn't change: nothing tagged")
     texts, _, bounds = still_sheet()
     press(next(t for t in texts if ui.norm(t[4]) == "DONE"), bounds)
     wait_for("list", timeout=8)

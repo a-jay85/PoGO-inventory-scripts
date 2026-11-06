@@ -1296,6 +1296,8 @@ def open_tag(name):
 def to_tags_tab():
     """get to the Tags tab. The full Pokémon list (TAGS / POKÉMON / EGGS header showing) has a TAGS tab to tap.
     A tag-filtered list drops back to the Tags tab when pulled down past the top."""
+    _, texts, _, bounds = look()
+    search.leave_panel(texts, bounds)  # home.trainer can leave the search panel up, empty
     if wait_for("list", "tag-tab", "detail", "menu", "appraisal", "gym")[0] not in ("list", "tag-tab"):
         back_to_list()  # a run that was cut off left a Pokémon open
     for _ in range(150):  # a stop deep in a 700+ list needs 60+ pulls to get back up

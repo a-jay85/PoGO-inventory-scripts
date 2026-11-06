@@ -683,752 +683,6 @@
   "y&Icostume&!xxl&!xxs": "y&lcostume&lxxl&lxxs",
   "y&Icostume&legendary": "y&lcostume&legendary"
  },
- "dex.bar_holds": {
-  "\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
-  "\t#Nope&!traded&!shiny&!costume&793-806,808,809": false,
-  "\t#Nope&!traded&!shiny&!costume&legendary": false,
-  "\t#Nope&purified": false,
-  "\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": false,
-  "\t#Nope&shadow&3*,4*": false,
-  "\t#Transfer,#Nope&!traded&xxl": false,
-  "\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": false,
-  "\t1-151&countcandyxl0-359": false,
-  "\t1-26,172&countcandyxl360-": false,
-  "\t144&3*,4*&!galar": false,
-  "\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
-  "\t4&3*,4*&shadow": false,
-  "\t530&3*,4*&shadow": false,
-  "\tPvpC": false,
-  "\tgiv,xlx&distance0-100&countcandy0-2499": false,
-  "\tgiv,xlx&distance0-100&countcandy2500-": false,
-  "\tgiv,xlx&distance100-&countcandy0-2499": false,
-  "\tlucky&320&!costume": false,
-  "!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": true,
-  "!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": false,
-  "!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": false,
-  "#NOPE&!SHADOW&4ATTACK,4DEFENSE&4ATTACK,4HP&4DEFENSE,4HP\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": true,
-  "#NOPE&!TRADED&!SHINY&!COSTUME&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": true,
-  "#NOPE&!TRADED&!SHINY&!COSTUME&LEGENDARY\t#Nope&!traded&!shiny&!costume&legendary": true,
-  "#NOPE&PURIFIED\t#Nope&purified": true,
-  "#NOPE&SHADOW&!SHINY&!COSTUME&!XXL&!XXS\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": true,
-  "#NOPE&SHADOW&3*,4*\t#Nope&shadow&3*,4*": true,
-  "#Nope&!shadow&4attac\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
-  "#Nope&!shadow&4attack,4defen\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": true,
-  "#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4h\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": true,
-  "#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": true,
-  "#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&shadow&3*,4*": false,
-  "#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hpx\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": true,
-  "#Nope&!traded&!shiny\t#Nope&!traded&!shiny&!costume&793-806,808,809": false,
-  "#Nope&!traded&!shiny\t#Nope&!traded&!shiny&!costume&legendary": false,
-  "#Nope&!traded&!shiny&!costum\t#Nope&!traded&!shiny&!costume&793-806,808,809": true,
-  "#Nope&!traded&!shiny&!costum\t#Nope&!traded&!shiny&!costume&legendary": true,
-  "#Nope&!traded&!shiny&!costume&1egendary\t#Nope&!traded&!shiny&!costume&legendary": true,
-  "#Nope&!traded&!shiny&!costume&793-806,808,80\t#Nope&!traded&!shiny&!costume&793-806,808,809": true,
-  "#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": true,
-  "#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&purified": false,
-  "#Nope&!traded&!shiny&!costume&793-806,808,809x\t#Nope&!traded&!shiny&!costume&793-806,808,809": true,
-  "#Nope&!traded&!shiny&!costume&793-8o6,8o8,8o9\t#Nope&!traded&!shiny&!costume&793-806,808,809": true,
-  "#Nope&!traded&!shiny&!costume&793806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": false,
-  "#Nope&!traded&!shiny&!costume&legendar\t#Nope&!traded&!shiny&!costume&legendary": true,
-  "#Nope&!traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&793-806,808,809": false,
-  "#Nope&!traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": true,
-  "#Nope&!traded&!shiny&!costume&legendaryx\t#Nope&!traded&!shiny&!costume&legendary": true,
-  "#Nope&!traded&shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": false,
-  "#Nope&!traded&shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": false,
-  "#Nope&.shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": true,
-  "#Nope&.traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": true,
-  "#Nope&.traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": true,
-  "#Nope&lshadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": true,
-  "#Nope&ltraded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": true,
-  "#Nope&ltraded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": true,
-  "#Nope&purifie\t#Nope&purified": false,
-  "#Nope&purified\t#Nope&purified": true,
-  "#Nope&purified\t#Transfer,#Nope&!traded&xxl": false,
-  "#Nope&purifiedx\t#Nope&purified": true,
-  "#Nope&shadow&!shiny&\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": false,
-  "#Nope&shadow&!shiny&!costume\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": false,
-  "#Nope&shadow&!shiny&!costume&!\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": false,
-  "#Nope&shadow&!shiny&!costume&!xx1&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": true,
-  "#Nope&shadow&!shiny&!costume&!xxl&!xx\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": true,
-  "#Nope&shadow&!shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": true,
-  "#Nope&shadow&!shiny&!costume&!xxl&!xxs\t1-26,172&countcandyxl360-": false,
-  "#Nope&shadow&!shiny&!costume&!xxl&!xxsx\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": true,
-  "#Nope&shadow&!shiny&costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": false,
-  "#Nope&shadow&.shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": true,
-  "#Nope&shadow&3\",4\"\t#Nope&shadow&3*,4*": true,
-  "#Nope&shadow&3*,4\t#Nope&shadow&3*,4*": false,
-  "#Nope&shadow&3*,4*\t#Nope&!traded&!shiny&!costume&legendary": false,
-  "#Nope&shadow&3*,4*\t#Nope&shadow&3*,4*": true,
-  "#Nope&shadow&3*,4*x\t#Nope&shadow&3*,4*": true,
-  "#Nope&shadow&4attack,4defen\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
-  "#Nope&shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
-  "#Nope&shadow&lshiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": true,
-  "#Nope&shadow&shiny&!costume\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": false,
-  "#Nope&shadow&shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": false,
-  "#Nope&shadow&|shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": true,
-  "#Nope&traded&!shiny&!costum\t#Nope&!traded&!shiny&!costume&793-806,808,809": false,
-  "#Nope&traded&!shiny&!costum\t#Nope&!traded&!shiny&!costume&legendary": false,
-  "#Nope&traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": false,
-  "#Nope&traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": false,
-  "#Nope&|shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": true,
-  "#Nope&|traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": true,
-  "#Nope&|traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": true,
-  "#Nope8!shadow84attack,4defense84attack,4hp84defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": true,
-  "#Nope8!traded8!shiny8!costume8793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": true,
-  "#Nope8!traded8!shiny8!costume8legendary\t#Nope&!traded&!shiny&!costume&legendary": true,
-  "#Nope8purified\t#Nope&purified": true,
-  "#Nope8shadow8!shiny8!costume8!xxl8!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": true,
-  "#Nope8shadow83*,4*\t#Nope&shadow&3*,4*": true,
-  "#TRANSFER,#NOPE&!TRADED&XXL\t#Transfer,#Nope&!traded&xxl": true,
-  "#Transfer,#Nope&!tra\t#Transfer,#Nope&!traded&xxl": false,
-  "#Transfer,#Nope&!traded&xx\t#Transfer,#Nope&!traded&xxl": true,
-  "#Transfer,#Nope&!traded&xx1\t#Transfer,#Nope&!traded&xxl": true,
-  "#Transfer,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": true,
-  "#Transfer,#Nope&!traded&xxl\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": false,
-  "#Transfer,#Nope&!traded&xxlx\t#Transfer,#Nope&!traded&xxl": true,
-  "#Transfer,#Nope&.traded&xxl\t#Transfer,#Nope&!traded&xxl": true,
-  "#Transfer,#Nope&ltraded&xxl\t#Transfer,#Nope&!traded&xxl": true,
-  "#Transfer,#Nope&traded&xxl\t#Transfer,#Nope&!traded&xxl": false,
-  "#Transfer,#Nope&|traded&xxl\t#Transfer,#Nope&!traded&xxl": true,
-  "#Transfer,#Nope8!traded8xxl\t#Transfer,#Nope&!traded&xxl": true,
-  "&!#&!FAVORITE&!TRADED&!SHADOW&!SHINY&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": true,
-  "&!#&!favorite&!trade\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": false,
-  "&!#&!favorite&!traded&!shado\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": false,
-  "&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4\"&!3\"&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": true,
-  "&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": true,
-  "&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": true,
-  "&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\tgiv,xlx&distance100-&countcandy0-2499": false,
-  "&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&x\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": true,
-  "&!#&favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": false,
-  "&#&!favorite&!traded&!shado\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": false,
-  "&#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": false,
-  "&.#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": true,
-  "&3*,4*&shadow\t4&3*,4*&shadow": false,
-  "&l#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": true,
-  "&|#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": true,
-  ",#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": true,
-  ",#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": true,
-  ",#Nope&!traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": true,
-  ",#Nope&purified\t#Nope&purified": true,
-  ",#Nope&shadow&!shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": true,
-  ",#Nope&shadow&3*,4*\t#Nope&shadow&3*,4*": true,
-  ",#Transfer,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": true,
-  ",&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": true,
-  ",1-151&countcandyxl0-359\t1-151&countcandyxl0-359": true,
-  ",1-26,172&countcandyxl360-\t1-26,172&countcandyxl360-": true,
-  ",144&3*,4*&!galar\t144&3*,4*&!galar": true,
-  ",150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": true,
-  ",4&3*,4*&shadow\t4&3*,4*&shadow": true,
-  ",530&3*,4*&shadow\t530&3*,4*&shadow": true,
-  ",PvpC\tPvpC": true,
-  ",giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  ",giv,xlx&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": true,
-  ",giv,xlx&distance100-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": true,
-  ",lucky&320&!costume\tlucky&320&!costume": true,
-  "-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": false,
-  "-151&countcandyxl0-359\t1-151&countcandyxl0-359": false,
-  "-26,172&countcandyxl360-\t1-26,172&countcandyxl360-": false,
-  "00-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": false,
-  "1-151&COUNTCANDYXL0-359\t1-151&countcandyxl0-359": true,
-  "1-151&countcandyx10-359\t1-151&countcandyxl0-359": true,
-  "1-151&countcandyxl0-\t1-151&countcandyxl0-359": false,
-  "1-151&countcandyxl0-35\t1-151&countcandyxl0-359": false,
-  "1-151&countcandyxl0-359\t1-151&countcandyxl0-359": true,
-  "1-151&countcandyxl0-359\tPvpC": false,
-  "1-151&countcandyxl0-359x\t1-151&countcandyxl0-359": true,
-  "1-151&countcandyxlo-359\t1-151&countcandyxl0-359": true,
-  "1-1518countcandyxl0-359\t1-151&countcandyxl0-359": true,
-  "1-26,172&COUNTCANDYXL360-\t1-26,172&countcandyxl360-": true,
-  "1-26,172&countcandyx\t1-26,172&countcandyxl360-": false,
-  "1-26,172&countcandyx1360-\t1-26,172&countcandyxl360-": true,
-  "1-26,172&countcandyxl360\t1-26,172&countcandyxl360-": false,
-  "1-26,172&countcandyxl360-\t1-26,172&countcandyxl360-": true,
-  "1-26,172&countcandyxl360-\t144&3*,4*&!galar": false,
-  "1-26,172&countcandyxl360-x\t1-26,172&countcandyxl360-": true,
-  "1-26,172&countcandyxl36o-\t1-26,172&countcandyxl360-": true,
-  "1-26,172&countcandyx|360-\t1-26,172&countcandyxl360-": true,
-  "1-26,1728countcandyxl360-\t1-26,172&countcandyxl360-": true,
-  "100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": false,
-  "1151&countcandyxl0359\t1-151&countcandyxl0-359": false,
-  "126,172&countcandyxl360\t1-26,172&countcandyxl360-": false,
-  "144&3\",4\"&!galar\t144&3*,4*&!galar": true,
-  "144&3*,*,4*&!galar\t144&3*,4*&!galar": true,
-  "144&3*,4*&!GALAR\t144&3*,4*&!galar": true,
-  "144&3*,4*&!ga1ar\t144&3*,4*&!galar": true,
-  "144&3*,4*&!gala\t144&3*,4*&!galar": false,
-  "144&3*,4*&!galar\t144&3*,4*&!galar": true,
-  "144&3*,4*&!galar\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
-  "144&3*,4*&!galarx\t144&3*,4*&!galar": true,
-  "144&3*,4*&.galar\t144&3*,4*&!galar": true,
-  "144&3*,4*&Igalar\t144&3*,4*&!galar": true,
-  "144&3*,4*&galar\t144&3*,4*&!galar": false,
-  "144&3*,4*&lgalar\t144&3*,4*&!galar": true,
-  "144&3*,4*&|galar\t144&3*,4*&!galar": true,
-  "14483*,4*&!galar\t144&3*,4*&!galar": true,
-  "14483*,4*8!galar\t144&3*,4*&!galar": true,
-  "150&3\",4\"&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": true,
-  "150&3*,4*&@FLAMETHROWER,@FOCUSBLAST,@HYPERBEAM,@ICEBEAM,@PSYCHOCUT,@SHADOWBALL,@THUNDERBOLT\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": true,
-  "150&3*,4*&@f1amethrower,@focusb1ast,@hyperbeam,@icebeam,@psychocut,@shadowba11,@thunderbo1t\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": true,
-  "150&3*,4*&@flamethro\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
-  "150&3*,4*&@flamethrower,@foc\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": true,
-  "150&3*,4*&@flamethrower,@focus\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": true,
-  "150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": true,
-  "150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt\t4&3*,4*&shadow": false,
-  "150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbol\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": true,
-  "150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": true,
-  "150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderboltx\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": true,
-  "15083*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": true,
-  "15083*,4*8@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": true,
-  "15o&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": true,
-  "172&countcandyxl360-\t1-26,172&countcandyxl360-": false,
-  "1ucky&320&!costume\tlucky&320&!costume": true,
-  "30&3*,4*&shadow\t530&3*,4*&shadow": false,
-  "4&3\",4\"&shadow\t4&3*,4*&shadow": true,
-  "4&3*,4*&SHADOW\t4&3*,4*&shadow": true,
-  "4&3*,4*&shado\t4&3*,4*&shadow": false,
-  "4&3*,4*&shadow\t4&3*,4*&shadow": true,
-  "4&3*,4*&shadow\t530&3*,4*&shadow": false,
-  "4&3*,4*&shadowx\t4&3*,4*&shadow": true,
-  "44&3*,4*&!galar\t144&3*,4*&!galar": false,
-  "483*,\t4&3*,4*&shadow": false,
-  "483*,4*&shadow\t4&3*,4*&shadow": true,
-  "483*,4*8shadow\t4&3*,4*&shadow": true,
-  "50&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": true,
-  "51&countcandyxl0-359\t1-151&countcandyxl0-359": false,
-  "530&3\",4\"&shadow\t530&3*,4*&shadow": true,
-  "530&3**,4*&shadowx\t530&3*,4*&shadow": true,
-  "530&3*,4*&SHADOW\t530&3*,4*&shadow": true,
-  "530&3*,4*&shado\t530&3*,4*&shadow": false,
-  "530&3*,4*&shadow\t530&3*,4*&shadow": true,
-  "530&3*,4*&shadow\tgiv,xlx&distance0-100&countcandy0-2499": false,
-  "530&3*,4*&shadowx\t530&3*,4*&shadow": true,
-  "53083*,4*&shadow\t530&3*,4*&shadow": true,
-  "53083*,4*8shadow\t530&3*,4*&shadow": true,
-  "53o&3*,4*&shadow\t530&3*,4*&shadow": true,
-  "8!#8!favorite8!traded8!shadow8!shiny8!XXL8!4*8!3*8\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": true,
-  "9#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": true,
-  "9#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": true,
-  "9#Nope&!traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": true,
-  "9#Nope&purified\t#Nope&purified": true,
-  "9#Nope&shadow&!shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": true,
-  "9#Nope&shadow&3*,4*\t#Nope&shadow&3*,4*": true,
-  "9#Transfer,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": true,
-  "9&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": true,
-  "91-151&countcandyxl0-359\t1-151&countcandyxl0-359": true,
-  "91-26,172&countcandyxl360-\t1-26,172&countcandyxl360-": true,
-  "9144&3*,4*&!galar\t144&3*,4*&!galar": true,
-  "9150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": true,
-  "94&3*,4*&shadow\t4&3*,4*&shadow": true,
-  "9530&3*,4*&shadow\t530&3*,4*&shadow": true,
-  "9PvpC\tPvpC": true,
-  "9giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "9giv,xlx&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": true,
-  "9giv,xlx&distance100-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": true,
-  "9lucky&320&!costume\tlucky&320&!costume": true,
-  "<#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": true,
-  "<#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": true,
-  "<#Nope&!traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": true,
-  "<#Nope&purified\t#Nope&purified": true,
-  "<#Nope&shadow&!shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": true,
-  "<#Nope&shadow&3*,4*\t#Nope&shadow&3*,4*": true,
-  "<#Transfer,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": true,
-  "<&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": true,
-  "<1-151&countcandyxl0-359\t1-151&countcandyxl0-359": true,
-  "<1-26,172&countcandyxl360-\t1-26,172&countcandyxl360-": true,
-  "<144&3*,4*&!galar\t144&3*,4*&!galar": true,
-  "<150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": true,
-  "<4&3*,4*&shadow\t4&3*,4*&shadow": true,
-  "<530&3*,4*&shadow\t530&3*,4*&shadow": true,
-  "<PvpC\tPvpC": true,
-  "<giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "<giv,xlx&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": true,
-  "<giv,xlx&distance100-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": true,
-  "<lucky&320&!costume\tlucky&320&!costume": true,
-  "GIV,XLX&DISTANCE0-100&COUNTCANDY0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "GIV,XLX&DISTANCE0-100&COUNTCANDY2500-\tgiv,xlx&distance0-100&countcandy2500-": true,
-  "GIV,XLX&DISTANCE100-&COUNTCANDY0-2499\tgiv,xlx&distance100-&countcandy0-2499": true,
-  "Ishiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": false,
-  "LUCKY&320&!COSTUME\tlucky&320&!costume": true,
-  "Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": true,
-  "Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": true,
-  "Nope&!traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": true,
-  "Nope&purified\t#Nope&purified": false,
-  "Nope&shadow&!shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": true,
-  "Nope&shadow&3*,4*\t#Nope&shadow&3*,4*": false,
-  "PVPC\tPvpC": true,
-  "Pvp\tPvpC": false,
-  "PvpC\tPvpC": true,
-  "PvpCx\tPvpC": true,
-  "Q#Nope&!shadow&4attack,4defen\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": true,
-  "Q#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": true,
-  "Q#Nope&!traded&!shiny&!costum\t#Nope&!traded&!shiny&!costume&793-806,808,809": true,
-  "Q#Nope&!traded&!shiny&!costum\t#Nope&!traded&!shiny&!costume&legendary": true,
-  "Q#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": true,
-  "Q#Nope&!traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": true,
-  "Q#Nope&purified\t#Nope&purified": true,
-  "Q#Nope&shadow&!shiny&!costume\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": false,
-  "Q#Nope&shadow&!shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": true,
-  "Q#Nope&shadow&3*,4*\t#Nope&shadow&3*,4*": true,
-  "Q#Transfer,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": true,
-  "Q&!#&!favorite&!traded&!shado\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": false,
-  "Q&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": true,
-  "Q1-151&countcandyxl0-359\t1-151&countcandyxl0-359": true,
-  "Q1-26,172&countcandyxl360-\t1-26,172&countcandyxl360-": true,
-  "Q144&3*,4*&!galar\t144&3*,4*&!galar": true,
-  "Q150&3*,4*&@flamethrower,@foc\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": true,
-  "Q150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": true,
-  "Q4&3*,4*&shadow\t4&3*,4*&shadow": true,
-  "Q530&3*,4*&shadow\t530&3*,4*&shadow": true,
-  "QPvpC\tPvpC": true,
-  "Qgiv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "Qgiv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy2500-": true,
-  "Qgiv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "Qgiv,xlx&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": true,
-  "Qgiv,xlx&distance100-&countca\tgiv,xlx&distance100-&countcandy0-2499": true,
-  "Qgiv,xlx&distance100-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": true,
-  "Qlucky&320&!costume\tlucky&320&!costume": true,
-  "Transfer,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": true,
-  "ack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
-  "cut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": true,
-  "dowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
-  "ed&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": false,
-  "er,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": false,
-  "er,#Nope&Itraded&xxl\t#Transfer,#Nope&!traded&xxl": false,
-  "giv,x1x&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,x1x&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": true,
-  "giv,x1x&distance100-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": true,
-  "giv,xl&distanceo-1i0&conntcandy\tgiv,xlx&distance0-100&countcandy0-2499": false,
-  "giv,xlx&distance0-10\tgiv,xlx&distance0-100&countcandy0-2499": false,
-  "giv,xlx&distance0-10\tgiv,xlx&distance0-100&countcandy2500-": false,
-  "giv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy2500-": true,
-  "giv,xlx&distance0-100&countcandy0-249\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distance0-100&countcandy0-2499\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
-  "giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distance0-100&countcandy0-2499x\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distance0-100&countcandy2500\tgiv,xlx&distance0-100&countcandy2500-": true,
-  "giv,xlx&distance0-100&countcandy2500-\t1-151&countcandyxl0-359": false,
-  "giv,xlx&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": true,
-  "giv,xlx&distance0-100&countcandy2500-x\tgiv,xlx&distance0-100&countcandy2500-": true,
-  "giv,xlx&distance0-1008countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distance0-1008countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": true,
-  "giv,xlx&distance0100&countcandy02499\tgiv,xlx&distance0-100&countcandy0-2499": false,
-  "giv,xlx&distance0100&countcandy2500\tgiv,xlx&distance0-100&countcandy2500-": false,
-  "giv,xlx&distance100&countcandy02499\tgiv,xlx&distance100-&countcandy0-2499": false,
-  "giv,xlx&distance100-\tgiv,xlx&distance100-&countcandy0-2499": false,
-  "giv,xlx&distance100-&countca\tgiv,xlx&distance100-&countcandy0-2499": true,
-  "giv,xlx&distance100-&countcandy0-249\tgiv,xlx&distance100-&countcandy0-2499": true,
-  "giv,xlx&distance100-&countcandy0-2499\tgiv,xlx&distance0-100&countcandy2500-": false,
-  "giv,xlx&distance100-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": true,
-  "giv,xlx&distance100-&countcandy0-2499x\tgiv,xlx&distance100-&countcandy0-2499": true,
-  "giv,xlx&distance1oo-&countcandyo-2499\tgiv,xlx&distance100-&countcandy0-2499": true,
-  "giv,xlx&distanceo-1oo&countcandy25oo-\tgiv,xlx&distance0-100&countcandy2500-": true,
-  "giv,xlx&distanceo-1oo&countcandyo-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx8distance0-1008countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx8distance0-1008countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": true,
-  "giv,xlx8distance100-8countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": true,
-  "iny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": false,
-  "istance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": true,
-  "istance100-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": true,
-  "iv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "iv,xlx&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": true,
-  "iv,xlx&distance100-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": true,
-  "lucky&320&!costum\tlucky&320&!costume": false,
-  "lucky&320&!costume\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": false,
-  "lucky&320&!costume\tlucky&320&!costume": true,
-  "lucky&320&!costumex\tlucky&320&!costume": true,
-  "lucky&320&.costume\tlucky&320&!costume": true,
-  "lucky&320&Icostume\tlucky&320&!costume": true,
-  "lucky&320&costume\tlucky&320&!costume": false,
-  "lucky&320&lcostume\tlucky&320&!costume": true,
-  "lucky&320&|costume\tlucky&320&!costume": true,
-  "lucky&3208!costume\tlucky&320&!costume": true,
-  "lucky&32o&!costume\tlucky&320&!costume": true,
-  "lucky83208!costume\tlucky&320&!costume": true,
-  "nse&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
-  "ow&!shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": true,
-  "stance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "tume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": false,
-  "ucky&320&!costume\tlucky&320&!costume": false,
-  "vpC\tPvpC": false,
-  "y&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": false,
-  "y&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": false,
-  "y&Icostume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": false,
-  "y&Icostume&legendary\t#Nope&!traded&!shiny&!costume&legendary": false
- },
- "dex.bar_read": {
-  "\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
-  "\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
-  "\t#Nope&!traded&!shiny&!costume&legendary": "",
-  "\t#Nope&purified": "",
-  "\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
-  "\t#Nope&shadow&3*,4*": "",
-  "\t#Transfer,#Nope&!traded&xxl": "",
-  "\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
-  "\t1-151&countcandyxl0-359": "",
-  "\t1-26,172&countcandyxl360-": "",
-  "\t144&3*,4*&!galar": "",
-  "\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
-  "\t4&3*,4*&shadow": "",
-  "\t530&3*,4*&shadow": "",
-  "\tPvpC": "",
-  "\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "\tgiv,xlx&distance0-100&countcandy2500-": "",
-  "\tgiv,xlx&distance100-&countcandy0-2499": "",
-  "\tlucky&320&!costume": "",
-  "!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
-  "!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
-  "!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
-  "#NOPE&!SHADOW&4ATTACK,4DEFENSE&4ATTACK,4HP&4DEFENSE,4HP\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
-  "#NOPE&!TRADED&!SHINY&!COSTUME&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
-  "#NOPE&!TRADED&!SHINY&!COSTUME&LEGENDARY\t#Nope&!traded&!shiny&!costume&legendary": "",
-  "#NOPE&PURIFIED\t#Nope&purified": "",
-  "#NOPE&SHADOW&!SHINY&!COSTUME&!XXL&!XXS\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
-  "#NOPE&SHADOW&3*,4*\t#Nope&shadow&3*,4*": "",
-  "#Nope&!shadow&4attac\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
-  "#Nope&!shadow&4attack,4defen\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
-  "#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4h\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
-  "#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
-  "#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&shadow&3*,4*": "",
-  "#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hpx\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
-  "#Nope&!traded&!shiny\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
-  "#Nope&!traded&!shiny\t#Nope&!traded&!shiny&!costume&legendary": "",
-  "#Nope&!traded&!shiny&!costum\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
-  "#Nope&!traded&!shiny&!costum\t#Nope&!traded&!shiny&!costume&legendary": "",
-  "#Nope&!traded&!shiny&!costume&1egendary\t#Nope&!traded&!shiny&!costume&legendary": "",
-  "#Nope&!traded&!shiny&!costume&793-806,808,80\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
-  "#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
-  "#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&purified": "",
-  "#Nope&!traded&!shiny&!costume&793-806,808,809x\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
-  "#Nope&!traded&!shiny&!costume&793-8o6,8o8,8o9\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
-  "#Nope&!traded&!shiny&!costume&793806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
-  "#Nope&!traded&!shiny&!costume&legendar\t#Nope&!traded&!shiny&!costume&legendary": "",
-  "#Nope&!traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
-  "#Nope&!traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": "",
-  "#Nope&!traded&!shiny&!costume&legendaryx\t#Nope&!traded&!shiny&!costume&legendary": "",
-  "#Nope&!traded&shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
-  "#Nope&!traded&shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": "",
-  "#Nope&.shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
-  "#Nope&.traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
-  "#Nope&.traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": "",
-  "#Nope&lshadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
-  "#Nope&ltraded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
-  "#Nope&ltraded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": "",
-  "#Nope&purifie\t#Nope&purified": "",
-  "#Nope&purified\t#Nope&purified": "",
-  "#Nope&purified\t#Transfer,#Nope&!traded&xxl": "",
-  "#Nope&purifiedx\t#Nope&purified": "",
-  "#Nope&shadow&!shiny&\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
-  "#Nope&shadow&!shiny&!costume\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
-  "#Nope&shadow&!shiny&!costume&!\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
-  "#Nope&shadow&!shiny&!costume&!xx1&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
-  "#Nope&shadow&!shiny&!costume&!xxl&!xx\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
-  "#Nope&shadow&!shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
-  "#Nope&shadow&!shiny&!costume&!xxl&!xxs\t1-26,172&countcandyxl360-": "",
-  "#Nope&shadow&!shiny&!costume&!xxl&!xxsx\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
-  "#Nope&shadow&!shiny&costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
-  "#Nope&shadow&.shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
-  "#Nope&shadow&3\",4\"\t#Nope&shadow&3*,4*": "",
-  "#Nope&shadow&3*,4\t#Nope&shadow&3*,4*": "",
-  "#Nope&shadow&3*,4*\t#Nope&!traded&!shiny&!costume&legendary": "",
-  "#Nope&shadow&3*,4*\t#Nope&shadow&3*,4*": "",
-  "#Nope&shadow&3*,4*x\t#Nope&shadow&3*,4*": "",
-  "#Nope&shadow&4attack,4defen\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
-  "#Nope&shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
-  "#Nope&shadow&lshiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
-  "#Nope&shadow&shiny&!costume\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
-  "#Nope&shadow&shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
-  "#Nope&shadow&|shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
-  "#Nope&traded&!shiny&!costum\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
-  "#Nope&traded&!shiny&!costum\t#Nope&!traded&!shiny&!costume&legendary": "",
-  "#Nope&traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
-  "#Nope&traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": "",
-  "#Nope&|shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
-  "#Nope&|traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
-  "#Nope&|traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": "",
-  "#Nope8!shadow84attack,4defense84attack,4hp84defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
-  "#Nope8!traded8!shiny8!costume8793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
-  "#Nope8!traded8!shiny8!costume8legendary\t#Nope&!traded&!shiny&!costume&legendary": "",
-  "#Nope8purified\t#Nope&purified": "",
-  "#Nope8shadow8!shiny8!costume8!xxl8!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
-  "#Nope8shadow83*,4*\t#Nope&shadow&3*,4*": "",
-  "#TRANSFER,#NOPE&!TRADED&XXL\t#Transfer,#Nope&!traded&xxl": "",
-  "#Transfer,#Nope&!tra\t#Transfer,#Nope&!traded&xxl": "",
-  "#Transfer,#Nope&!traded&xx\t#Transfer,#Nope&!traded&xxl": "",
-  "#Transfer,#Nope&!traded&xx1\t#Transfer,#Nope&!traded&xxl": "",
-  "#Transfer,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": "",
-  "#Transfer,#Nope&!traded&xxl\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
-  "#Transfer,#Nope&!traded&xxlx\t#Transfer,#Nope&!traded&xxl": "",
-  "#Transfer,#Nope&.traded&xxl\t#Transfer,#Nope&!traded&xxl": "",
-  "#Transfer,#Nope&ltraded&xxl\t#Transfer,#Nope&!traded&xxl": "",
-  "#Transfer,#Nope&traded&xxl\t#Transfer,#Nope&!traded&xxl": "",
-  "#Transfer,#Nope&|traded&xxl\t#Transfer,#Nope&!traded&xxl": "",
-  "#Transfer,#Nope8!traded8xxl\t#Transfer,#Nope&!traded&xxl": "",
-  "&!#&!FAVORITE&!TRADED&!SHADOW&!SHINY&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
-  "&!#&!favorite&!trade\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
-  "&!#&!favorite&!traded&!shado\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
-  "&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4\"&!3\"&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
-  "&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
-  "&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
-  "&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\tgiv,xlx&distance100-&countcandy0-2499": "",
-  "&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&x\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
-  "&!#&favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
-  "&#&!favorite&!traded&!shado\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
-  "&#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
-  "&.#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
-  "&3*,4*&shadow\t4&3*,4*&shadow": "",
-  "&l#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
-  "&|#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
-  ",#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
-  ",#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
-  ",#Nope&!traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": "",
-  ",#Nope&purified\t#Nope&purified": "",
-  ",#Nope&shadow&!shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
-  ",#Nope&shadow&3*,4*\t#Nope&shadow&3*,4*": "",
-  ",#Transfer,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": "",
-  ",&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
-  ",1-151&countcandyxl0-359\t1-151&countcandyxl0-359": "",
-  ",1-26,172&countcandyxl360-\t1-26,172&countcandyxl360-": "",
-  ",144&3*,4*&!galar\t144&3*,4*&!galar": "",
-  ",150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
-  ",4&3*,4*&shadow\t4&3*,4*&shadow": "",
-  ",530&3*,4*&shadow\t530&3*,4*&shadow": "",
-  ",PvpC\tPvpC": "",
-  ",giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  ",giv,xlx&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": "",
-  ",giv,xlx&distance100-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": "",
-  ",lucky&320&!costume\tlucky&320&!costume": "",
-  "-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": "",
-  "-151&countcandyxl0-359\t1-151&countcandyxl0-359": "",
-  "-26,172&countcandyxl360-\t1-26,172&countcandyxl360-": "",
-  "00-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": "",
-  "1-151&COUNTCANDYXL0-359\t1-151&countcandyxl0-359": "",
-  "1-151&countcandyx10-359\t1-151&countcandyxl0-359": "",
-  "1-151&countcandyxl0-\t1-151&countcandyxl0-359": "",
-  "1-151&countcandyxl0-35\t1-151&countcandyxl0-359": "",
-  "1-151&countcandyxl0-359\t1-151&countcandyxl0-359": "",
-  "1-151&countcandyxl0-359\tPvpC": "",
-  "1-151&countcandyxl0-359x\t1-151&countcandyxl0-359": "",
-  "1-151&countcandyxlo-359\t1-151&countcandyxl0-359": "",
-  "1-1518countcandyxl0-359\t1-151&countcandyxl0-359": "",
-  "1-26,172&COUNTCANDYXL360-\t1-26,172&countcandyxl360-": "",
-  "1-26,172&countcandyx\t1-26,172&countcandyxl360-": "",
-  "1-26,172&countcandyx1360-\t1-26,172&countcandyxl360-": "",
-  "1-26,172&countcandyxl360\t1-26,172&countcandyxl360-": "",
-  "1-26,172&countcandyxl360-\t1-26,172&countcandyxl360-": "",
-  "1-26,172&countcandyxl360-\t144&3*,4*&!galar": "",
-  "1-26,172&countcandyxl360-x\t1-26,172&countcandyxl360-": "",
-  "1-26,172&countcandyxl36o-\t1-26,172&countcandyxl360-": "",
-  "1-26,172&countcandyx|360-\t1-26,172&countcandyxl360-": "",
-  "1-26,1728countcandyxl360-\t1-26,172&countcandyxl360-": "",
-  "100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "1151&countcandyxl0359\t1-151&countcandyxl0-359": "",
-  "126,172&countcandyxl360\t1-26,172&countcandyxl360-": "",
-  "144&3\",4\"&!galar\t144&3*,4*&!galar": "",
-  "144&3*,*,4*&!galar\t144&3*,4*&!galar": "",
-  "144&3*,4*&!GALAR\t144&3*,4*&!galar": "",
-  "144&3*,4*&!ga1ar\t144&3*,4*&!galar": "",
-  "144&3*,4*&!gala\t144&3*,4*&!galar": "",
-  "144&3*,4*&!galar\t144&3*,4*&!galar": "",
-  "144&3*,4*&!galar\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
-  "144&3*,4*&!galarx\t144&3*,4*&!galar": "",
-  "144&3*,4*&.galar\t144&3*,4*&!galar": "",
-  "144&3*,4*&Igalar\t144&3*,4*&!galar": "",
-  "144&3*,4*&galar\t144&3*,4*&!galar": "",
-  "144&3*,4*&lgalar\t144&3*,4*&!galar": "",
-  "144&3*,4*&|galar\t144&3*,4*&!galar": "",
-  "14483*,4*&!galar\t144&3*,4*&!galar": "",
-  "14483*,4*8!galar\t144&3*,4*&!galar": "",
-  "150&3\",4\"&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
-  "150&3*,4*&@FLAMETHROWER,@FOCUSBLAST,@HYPERBEAM,@ICEBEAM,@PSYCHOCUT,@SHADOWBALL,@THUNDERBOLT\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
-  "150&3*,4*&@f1amethrower,@focusb1ast,@hyperbeam,@icebeam,@psychocut,@shadowba11,@thunderbo1t\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
-  "150&3*,4*&@flamethro\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
-  "150&3*,4*&@flamethrower,@foc\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
-  "150&3*,4*&@flamethrower,@focus\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
-  "150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
-  "150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt\t4&3*,4*&shadow": "",
-  "150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbol\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
-  "150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
-  "150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderboltx\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
-  "15083*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
-  "15083*,4*8@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
-  "15o&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
-  "172&countcandyxl360-\t1-26,172&countcandyxl360-": "",
-  "1ucky&320&!costume\tlucky&320&!costume": "",
-  "30&3*,4*&shadow\t530&3*,4*&shadow": "",
-  "4&3\",4\"&shadow\t4&3*,4*&shadow": "",
-  "4&3*,4*&SHADOW\t4&3*,4*&shadow": "",
-  "4&3*,4*&shado\t4&3*,4*&shadow": "",
-  "4&3*,4*&shadow\t4&3*,4*&shadow": "",
-  "4&3*,4*&shadow\t530&3*,4*&shadow": "",
-  "4&3*,4*&shadowx\t4&3*,4*&shadow": "",
-  "44&3*,4*&!galar\t144&3*,4*&!galar": "",
-  "483*,\t4&3*,4*&shadow": "",
-  "483*,4*&shadow\t4&3*,4*&shadow": "",
-  "483*,4*8shadow\t4&3*,4*&shadow": "",
-  "50&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
-  "51&countcandyxl0-359\t1-151&countcandyxl0-359": "",
-  "530&3\",4\"&shadow\t530&3*,4*&shadow": "",
-  "530&3**,4*&shadowx\t530&3*,4*&shadow": "",
-  "530&3*,4*&SHADOW\t530&3*,4*&shadow": "",
-  "530&3*,4*&shado\t530&3*,4*&shadow": "",
-  "530&3*,4*&shadow\t530&3*,4*&shadow": "",
-  "530&3*,4*&shadow\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "530&3*,4*&shadowx\t530&3*,4*&shadow": "",
-  "53083*,4*&shadow\t530&3*,4*&shadow": "",
-  "53083*,4*8shadow\t530&3*,4*&shadow": "",
-  "53o&3*,4*&shadow\t530&3*,4*&shadow": "",
-  "8!#8!favorite8!traded8!shadow8!shiny8!XXL8!4*8!3*8\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
-  "9#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
-  "9#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
-  "9#Nope&!traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": "",
-  "9#Nope&purified\t#Nope&purified": "",
-  "9#Nope&shadow&!shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
-  "9#Nope&shadow&3*,4*\t#Nope&shadow&3*,4*": "",
-  "9#Transfer,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": "",
-  "9&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
-  "91-151&countcandyxl0-359\t1-151&countcandyxl0-359": "",
-  "91-26,172&countcandyxl360-\t1-26,172&countcandyxl360-": "",
-  "9144&3*,4*&!galar\t144&3*,4*&!galar": "",
-  "9150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
-  "94&3*,4*&shadow\t4&3*,4*&shadow": "",
-  "9530&3*,4*&shadow\t530&3*,4*&shadow": "",
-  "9PvpC\tPvpC": "",
-  "9giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "9giv,xlx&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": "",
-  "9giv,xlx&distance100-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": "",
-  "9lucky&320&!costume\tlucky&320&!costume": "",
-  "<#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
-  "<#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
-  "<#Nope&!traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": "",
-  "<#Nope&purified\t#Nope&purified": "",
-  "<#Nope&shadow&!shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
-  "<#Nope&shadow&3*,4*\t#Nope&shadow&3*,4*": "",
-  "<#Transfer,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": "",
-  "<&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
-  "<1-151&countcandyxl0-359\t1-151&countcandyxl0-359": "",
-  "<1-26,172&countcandyxl360-\t1-26,172&countcandyxl360-": "",
-  "<144&3*,4*&!galar\t144&3*,4*&!galar": "",
-  "<150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
-  "<4&3*,4*&shadow\t4&3*,4*&shadow": "",
-  "<530&3*,4*&shadow\t530&3*,4*&shadow": "",
-  "<PvpC\tPvpC": "",
-  "<giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "<giv,xlx&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": "",
-  "<giv,xlx&distance100-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": "",
-  "<lucky&320&!costume\tlucky&320&!costume": "",
-  "GIV,XLX&DISTANCE0-100&COUNTCANDY0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "GIV,XLX&DISTANCE0-100&COUNTCANDY2500-\tgiv,xlx&distance0-100&countcandy2500-": "",
-  "GIV,XLX&DISTANCE100-&COUNTCANDY0-2499\tgiv,xlx&distance100-&countcandy0-2499": "",
-  "Ishiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
-  "LUCKY&320&!COSTUME\tlucky&320&!costume": "",
-  "Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
-  "Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
-  "Nope&!traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": "",
-  "Nope&purified\t#Nope&purified": "",
-  "Nope&shadow&!shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
-  "Nope&shadow&3*,4*\t#Nope&shadow&3*,4*": "",
-  "PVPC\tPvpC": "",
-  "Pvp\tPvpC": "",
-  "PvpC\tPvpC": "",
-  "PvpCx\tPvpC": "",
-  "Q#Nope&!shadow&4attack,4defen\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
-  "Q#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
-  "Q#Nope&!traded&!shiny&!costum\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
-  "Q#Nope&!traded&!shiny&!costum\t#Nope&!traded&!shiny&!costume&legendary": "",
-  "Q#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
-  "Q#Nope&!traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": "",
-  "Q#Nope&purified\t#Nope&purified": "",
-  "Q#Nope&shadow&!shiny&!costume\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
-  "Q#Nope&shadow&!shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
-  "Q#Nope&shadow&3*,4*\t#Nope&shadow&3*,4*": "",
-  "Q#Transfer,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": "",
-  "Q&!#&!favorite&!traded&!shado\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
-  "Q&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
-  "Q1-151&countcandyxl0-359\t1-151&countcandyxl0-359": "",
-  "Q1-26,172&countcandyxl360-\t1-26,172&countcandyxl360-": "",
-  "Q144&3*,4*&!galar\t144&3*,4*&!galar": "",
-  "Q150&3*,4*&@flamethrower,@foc\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
-  "Q150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
-  "Q4&3*,4*&shadow\t4&3*,4*&shadow": "",
-  "Q530&3*,4*&shadow\t530&3*,4*&shadow": "",
-  "QPvpC\tPvpC": "",
-  "Qgiv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "Qgiv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy2500-": "",
-  "Qgiv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "Qgiv,xlx&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": "",
-  "Qgiv,xlx&distance100-&countca\tgiv,xlx&distance100-&countcandy0-2499": "",
-  "Qgiv,xlx&distance100-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": "",
-  "Qlucky&320&!costume\tlucky&320&!costume": "",
-  "Transfer,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": "",
-  "ack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
-  "cut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
-  "dowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
-  "ed&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": "",
-  "er,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": "",
-  "er,#Nope&Itraded&xxl\t#Transfer,#Nope&!traded&xxl": "",
-  "giv,x1x&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "giv,x1x&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": "",
-  "giv,x1x&distance100-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": "",
-  "giv,xl&distanceo-1i0&conntcandy\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "giv,xlx&distance0-10\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "giv,xlx&distance0-10\tgiv,xlx&distance0-100&countcandy2500-": "",
-  "giv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "giv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy2500-": "",
-  "giv,xlx&distance0-100&countcandy0-249\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "giv,xlx&distance0-100&countcandy0-2499\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
-  "giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "giv,xlx&distance0-100&countcandy0-2499x\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "giv,xlx&distance0-100&countcandy2500\tgiv,xlx&distance0-100&countcandy2500-": "",
-  "giv,xlx&distance0-100&countcandy2500-\t1-151&countcandyxl0-359": "",
-  "giv,xlx&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": "",
-  "giv,xlx&distance0-100&countcandy2500-x\tgiv,xlx&distance0-100&countcandy2500-": "",
-  "giv,xlx&distance0-1008countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "giv,xlx&distance0-1008countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": "",
-  "giv,xlx&distance0100&countcandy02499\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "giv,xlx&distance0100&countcandy2500\tgiv,xlx&distance0-100&countcandy2500-": "",
-  "giv,xlx&distance100&countcandy02499\tgiv,xlx&distance100-&countcandy0-2499": "",
-  "giv,xlx&distance100-\tgiv,xlx&distance100-&countcandy0-2499": "",
-  "giv,xlx&distance100-&countca\tgiv,xlx&distance100-&countcandy0-2499": "",
-  "giv,xlx&distance100-&countcandy0-249\tgiv,xlx&distance100-&countcandy0-2499": "",
-  "giv,xlx&distance100-&countcandy0-2499\tgiv,xlx&distance0-100&countcandy2500-": "",
-  "giv,xlx&distance100-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": "",
-  "giv,xlx&distance100-&countcandy0-2499x\tgiv,xlx&distance100-&countcandy0-2499": "",
-  "giv,xlx&distance1oo-&countcandyo-2499\tgiv,xlx&distance100-&countcandy0-2499": "",
-  "giv,xlx&distanceo-1oo&countcandy25oo-\tgiv,xlx&distance0-100&countcandy2500-": "",
-  "giv,xlx&distanceo-1oo&countcandyo-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "giv,xlx8distance0-1008countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "giv,xlx8distance0-1008countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": "",
-  "giv,xlx8distance100-8countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": "",
-  "iny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
-  "istance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": "",
-  "istance100-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": "",
-  "iv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "iv,xlx&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": "",
-  "iv,xlx&distance100-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": "",
-  "lucky&320&!costum\tlucky&320&!costume": "",
-  "lucky&320&!costume\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
-  "lucky&320&!costume\tlucky&320&!costume": "",
-  "lucky&320&!costumex\tlucky&320&!costume": "",
-  "lucky&320&.costume\tlucky&320&!costume": "",
-  "lucky&320&Icostume\tlucky&320&!costume": "",
-  "lucky&320&costume\tlucky&320&!costume": "",
-  "lucky&320&lcostume\tlucky&320&!costume": "",
-  "lucky&320&|costume\tlucky&320&!costume": "",
-  "lucky&3208!costume\tlucky&320&!costume": "",
-  "lucky&32o&!costume\tlucky&320&!costume": "",
-  "lucky83208!costume\tlucky&320&!costume": "",
-  "nse&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
-  "ow&!shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
-  "stance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "tume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
-  "ucky&320&!costume\tlucky&320&!costume": "",
-  "vpC\tPvpC": "",
-  "y&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
-  "y&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": "",
-  "y&Icostume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
-  "y&Icostume&legendary\t#Nope&!traded&!shiny&!costume&legendary": ""
- },
  "gift.same_name": {
   "\t": true,
   "\t96": false,
@@ -2697,6 +1951,379 @@
   "y&Icostume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "y&Icostume&!xxl&!xxs",
   "y&Icostume&legendary\t#Nope&!traded&!shiny&!costume&legendary": "y&Icostume&legendary"
  },
+ "search.bar_read": {
+  "\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
+  "\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
+  "\t#Nope&!traded&!shiny&!costume&legendary": "",
+  "\t#Nope&purified": "",
+  "\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
+  "\t#Nope&shadow&3*,4*": "",
+  "\t#Transfer,#Nope&!traded&xxl": "",
+  "\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
+  "\t1-151&countcandyxl0-359": "",
+  "\t1-26,172&countcandyxl360-": "",
+  "\t144&3*,4*&!galar": "",
+  "\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
+  "\t4&3*,4*&shadow": "",
+  "\t530&3*,4*&shadow": "",
+  "\tPvpC": "",
+  "\tgiv,xlx&distance0-100&countcandy0-2499": "",
+  "\tgiv,xlx&distance0-100&countcandy2500-": "",
+  "\tgiv,xlx&distance100-&countcandy0-2499": "",
+  "\tlucky&320&!costume": "",
+  "!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
+  "!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
+  "!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
+  "#NOPE&!SHADOW&4ATTACK,4DEFENSE&4ATTACK,4HP&4DEFENSE,4HP\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
+  "#NOPE&!TRADED&!SHINY&!COSTUME&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
+  "#NOPE&!TRADED&!SHINY&!COSTUME&LEGENDARY\t#Nope&!traded&!shiny&!costume&legendary": "",
+  "#NOPE&PURIFIED\t#Nope&purified": "",
+  "#NOPE&SHADOW&!SHINY&!COSTUME&!XXL&!XXS\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
+  "#NOPE&SHADOW&3*,4*\t#Nope&shadow&3*,4*": "",
+  "#Nope&!shadow&4attac\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
+  "#Nope&!shadow&4attack,4defen\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
+  "#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4h\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
+  "#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
+  "#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&shadow&3*,4*": "",
+  "#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hpx\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
+  "#Nope&!traded&!shiny\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
+  "#Nope&!traded&!shiny\t#Nope&!traded&!shiny&!costume&legendary": "",
+  "#Nope&!traded&!shiny&!costum\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
+  "#Nope&!traded&!shiny&!costum\t#Nope&!traded&!shiny&!costume&legendary": "",
+  "#Nope&!traded&!shiny&!costume&1egendary\t#Nope&!traded&!shiny&!costume&legendary": "",
+  "#Nope&!traded&!shiny&!costume&793-806,808,80\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
+  "#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
+  "#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&purified": "",
+  "#Nope&!traded&!shiny&!costume&793-806,808,809x\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
+  "#Nope&!traded&!shiny&!costume&793-8o6,8o8,8o9\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
+  "#Nope&!traded&!shiny&!costume&793806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
+  "#Nope&!traded&!shiny&!costume&legendar\t#Nope&!traded&!shiny&!costume&legendary": "",
+  "#Nope&!traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
+  "#Nope&!traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": "",
+  "#Nope&!traded&!shiny&!costume&legendaryx\t#Nope&!traded&!shiny&!costume&legendary": "",
+  "#Nope&!traded&shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
+  "#Nope&!traded&shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": "",
+  "#Nope&.shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
+  "#Nope&.traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
+  "#Nope&.traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": "",
+  "#Nope&lshadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
+  "#Nope&ltraded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
+  "#Nope&ltraded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": "",
+  "#Nope&purifie\t#Nope&purified": "",
+  "#Nope&purified\t#Nope&purified": "",
+  "#Nope&purified\t#Transfer,#Nope&!traded&xxl": "",
+  "#Nope&purifiedx\t#Nope&purified": "",
+  "#Nope&shadow&!shiny&\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
+  "#Nope&shadow&!shiny&!costume\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
+  "#Nope&shadow&!shiny&!costume&!\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
+  "#Nope&shadow&!shiny&!costume&!xx1&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
+  "#Nope&shadow&!shiny&!costume&!xxl&!xx\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
+  "#Nope&shadow&!shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
+  "#Nope&shadow&!shiny&!costume&!xxl&!xxs\t1-26,172&countcandyxl360-": "",
+  "#Nope&shadow&!shiny&!costume&!xxl&!xxsx\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
+  "#Nope&shadow&!shiny&costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
+  "#Nope&shadow&.shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
+  "#Nope&shadow&3\",4\"\t#Nope&shadow&3*,4*": "",
+  "#Nope&shadow&3*,4\t#Nope&shadow&3*,4*": "",
+  "#Nope&shadow&3*,4*\t#Nope&!traded&!shiny&!costume&legendary": "",
+  "#Nope&shadow&3*,4*\t#Nope&shadow&3*,4*": "",
+  "#Nope&shadow&3*,4*x\t#Nope&shadow&3*,4*": "",
+  "#Nope&shadow&4attack,4defen\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
+  "#Nope&shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
+  "#Nope&shadow&lshiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
+  "#Nope&shadow&shiny&!costume\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
+  "#Nope&shadow&shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
+  "#Nope&shadow&|shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
+  "#Nope&traded&!shiny&!costum\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
+  "#Nope&traded&!shiny&!costum\t#Nope&!traded&!shiny&!costume&legendary": "",
+  "#Nope&traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
+  "#Nope&traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": "",
+  "#Nope&|shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
+  "#Nope&|traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
+  "#Nope&|traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": "",
+  "#Nope8!shadow84attack,4defense84attack,4hp84defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
+  "#Nope8!traded8!shiny8!costume8793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
+  "#Nope8!traded8!shiny8!costume8legendary\t#Nope&!traded&!shiny&!costume&legendary": "",
+  "#Nope8purified\t#Nope&purified": "",
+  "#Nope8shadow8!shiny8!costume8!xxl8!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
+  "#Nope8shadow83*,4*\t#Nope&shadow&3*,4*": "",
+  "#TRANSFER,#NOPE&!TRADED&XXL\t#Transfer,#Nope&!traded&xxl": "",
+  "#Transfer,#Nope&!tra\t#Transfer,#Nope&!traded&xxl": "",
+  "#Transfer,#Nope&!traded&xx\t#Transfer,#Nope&!traded&xxl": "",
+  "#Transfer,#Nope&!traded&xx1\t#Transfer,#Nope&!traded&xxl": "",
+  "#Transfer,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": "",
+  "#Transfer,#Nope&!traded&xxl\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
+  "#Transfer,#Nope&!traded&xxlx\t#Transfer,#Nope&!traded&xxl": "",
+  "#Transfer,#Nope&.traded&xxl\t#Transfer,#Nope&!traded&xxl": "",
+  "#Transfer,#Nope&ltraded&xxl\t#Transfer,#Nope&!traded&xxl": "",
+  "#Transfer,#Nope&traded&xxl\t#Transfer,#Nope&!traded&xxl": "",
+  "#Transfer,#Nope&|traded&xxl\t#Transfer,#Nope&!traded&xxl": "",
+  "#Transfer,#Nope8!traded8xxl\t#Transfer,#Nope&!traded&xxl": "",
+  "&!#&!FAVORITE&!TRADED&!SHADOW&!SHINY&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
+  "&!#&!favorite&!trade\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
+  "&!#&!favorite&!traded&!shado\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
+  "&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4\"&!3\"&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
+  "&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
+  "&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
+  "&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\tgiv,xlx&distance100-&countcandy0-2499": "",
+  "&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&x\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
+  "&!#&favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
+  "&#&!favorite&!traded&!shado\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
+  "&#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
+  "&.#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
+  "&3*,4*&shadow\t4&3*,4*&shadow": "",
+  "&l#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
+  "&|#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
+  ",#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
+  ",#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
+  ",#Nope&!traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": "",
+  ",#Nope&purified\t#Nope&purified": "",
+  ",#Nope&shadow&!shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
+  ",#Nope&shadow&3*,4*\t#Nope&shadow&3*,4*": "",
+  ",#Transfer,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": "",
+  ",&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
+  ",1-151&countcandyxl0-359\t1-151&countcandyxl0-359": "",
+  ",1-26,172&countcandyxl360-\t1-26,172&countcandyxl360-": "",
+  ",144&3*,4*&!galar\t144&3*,4*&!galar": "",
+  ",150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
+  ",4&3*,4*&shadow\t4&3*,4*&shadow": "",
+  ",530&3*,4*&shadow\t530&3*,4*&shadow": "",
+  ",PvpC\tPvpC": "",
+  ",giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
+  ",giv,xlx&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": "",
+  ",giv,xlx&distance100-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": "",
+  ",lucky&320&!costume\tlucky&320&!costume": "",
+  "-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": "",
+  "-151&countcandyxl0-359\t1-151&countcandyxl0-359": "",
+  "-26,172&countcandyxl360-\t1-26,172&countcandyxl360-": "",
+  "00-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": "",
+  "1-151&COUNTCANDYXL0-359\t1-151&countcandyxl0-359": "",
+  "1-151&countcandyx10-359\t1-151&countcandyxl0-359": "",
+  "1-151&countcandyxl0-\t1-151&countcandyxl0-359": "",
+  "1-151&countcandyxl0-35\t1-151&countcandyxl0-359": "",
+  "1-151&countcandyxl0-359\t1-151&countcandyxl0-359": "",
+  "1-151&countcandyxl0-359\tPvpC": "",
+  "1-151&countcandyxl0-359x\t1-151&countcandyxl0-359": "",
+  "1-151&countcandyxlo-359\t1-151&countcandyxl0-359": "",
+  "1-1518countcandyxl0-359\t1-151&countcandyxl0-359": "",
+  "1-26,172&COUNTCANDYXL360-\t1-26,172&countcandyxl360-": "",
+  "1-26,172&countcandyx\t1-26,172&countcandyxl360-": "",
+  "1-26,172&countcandyx1360-\t1-26,172&countcandyxl360-": "",
+  "1-26,172&countcandyxl360\t1-26,172&countcandyxl360-": "",
+  "1-26,172&countcandyxl360-\t1-26,172&countcandyxl360-": "",
+  "1-26,172&countcandyxl360-\t144&3*,4*&!galar": "",
+  "1-26,172&countcandyxl360-x\t1-26,172&countcandyxl360-": "",
+  "1-26,172&countcandyxl36o-\t1-26,172&countcandyxl360-": "",
+  "1-26,172&countcandyx|360-\t1-26,172&countcandyxl360-": "",
+  "1-26,1728countcandyxl360-\t1-26,172&countcandyxl360-": "",
+  "100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
+  "1151&countcandyxl0359\t1-151&countcandyxl0-359": "",
+  "126,172&countcandyxl360\t1-26,172&countcandyxl360-": "",
+  "144&3\",4\"&!galar\t144&3*,4*&!galar": "",
+  "144&3*,*,4*&!galar\t144&3*,4*&!galar": "",
+  "144&3*,4*&!GALAR\t144&3*,4*&!galar": "",
+  "144&3*,4*&!ga1ar\t144&3*,4*&!galar": "",
+  "144&3*,4*&!gala\t144&3*,4*&!galar": "",
+  "144&3*,4*&!galar\t144&3*,4*&!galar": "",
+  "144&3*,4*&!galar\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
+  "144&3*,4*&!galarx\t144&3*,4*&!galar": "",
+  "144&3*,4*&.galar\t144&3*,4*&!galar": "",
+  "144&3*,4*&Igalar\t144&3*,4*&!galar": "",
+  "144&3*,4*&galar\t144&3*,4*&!galar": "",
+  "144&3*,4*&lgalar\t144&3*,4*&!galar": "",
+  "144&3*,4*&|galar\t144&3*,4*&!galar": "",
+  "14483*,4*&!galar\t144&3*,4*&!galar": "",
+  "14483*,4*8!galar\t144&3*,4*&!galar": "",
+  "150&3\",4\"&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
+  "150&3*,4*&@FLAMETHROWER,@FOCUSBLAST,@HYPERBEAM,@ICEBEAM,@PSYCHOCUT,@SHADOWBALL,@THUNDERBOLT\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
+  "150&3*,4*&@f1amethrower,@focusb1ast,@hyperbeam,@icebeam,@psychocut,@shadowba11,@thunderbo1t\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
+  "150&3*,4*&@flamethro\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
+  "150&3*,4*&@flamethrower,@foc\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
+  "150&3*,4*&@flamethrower,@focus\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
+  "150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
+  "150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt\t4&3*,4*&shadow": "",
+  "150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbol\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
+  "150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
+  "150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderboltx\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
+  "15083*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
+  "15083*,4*8@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
+  "15o&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
+  "172&countcandyxl360-\t1-26,172&countcandyxl360-": "",
+  "1ucky&320&!costume\tlucky&320&!costume": "",
+  "30&3*,4*&shadow\t530&3*,4*&shadow": "",
+  "4&3\",4\"&shadow\t4&3*,4*&shadow": "",
+  "4&3*,4*&SHADOW\t4&3*,4*&shadow": "",
+  "4&3*,4*&shado\t4&3*,4*&shadow": "",
+  "4&3*,4*&shadow\t4&3*,4*&shadow": "",
+  "4&3*,4*&shadow\t530&3*,4*&shadow": "",
+  "4&3*,4*&shadowx\t4&3*,4*&shadow": "",
+  "44&3*,4*&!galar\t144&3*,4*&!galar": "",
+  "483*,\t4&3*,4*&shadow": "",
+  "483*,4*&shadow\t4&3*,4*&shadow": "",
+  "483*,4*8shadow\t4&3*,4*&shadow": "",
+  "50&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
+  "51&countcandyxl0-359\t1-151&countcandyxl0-359": "",
+  "530&3\",4\"&shadow\t530&3*,4*&shadow": "",
+  "530&3**,4*&shadowx\t530&3*,4*&shadow": "",
+  "530&3*,4*&SHADOW\t530&3*,4*&shadow": "",
+  "530&3*,4*&shado\t530&3*,4*&shadow": "",
+  "530&3*,4*&shadow\t530&3*,4*&shadow": "",
+  "530&3*,4*&shadow\tgiv,xlx&distance0-100&countcandy0-2499": "",
+  "530&3*,4*&shadowx\t530&3*,4*&shadow": "",
+  "53083*,4*&shadow\t530&3*,4*&shadow": "",
+  "53083*,4*8shadow\t530&3*,4*&shadow": "",
+  "53o&3*,4*&shadow\t530&3*,4*&shadow": "",
+  "8!#8!favorite8!traded8!shadow8!shiny8!XXL8!4*8!3*8\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
+  "9#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
+  "9#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
+  "9#Nope&!traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": "",
+  "9#Nope&purified\t#Nope&purified": "",
+  "9#Nope&shadow&!shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
+  "9#Nope&shadow&3*,4*\t#Nope&shadow&3*,4*": "",
+  "9#Transfer,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": "",
+  "9&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
+  "91-151&countcandyxl0-359\t1-151&countcandyxl0-359": "",
+  "91-26,172&countcandyxl360-\t1-26,172&countcandyxl360-": "",
+  "9144&3*,4*&!galar\t144&3*,4*&!galar": "",
+  "9150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
+  "94&3*,4*&shadow\t4&3*,4*&shadow": "",
+  "9530&3*,4*&shadow\t530&3*,4*&shadow": "",
+  "9PvpC\tPvpC": "",
+  "9giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
+  "9giv,xlx&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": "",
+  "9giv,xlx&distance100-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": "",
+  "9lucky&320&!costume\tlucky&320&!costume": "",
+  "<#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
+  "<#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
+  "<#Nope&!traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": "",
+  "<#Nope&purified\t#Nope&purified": "",
+  "<#Nope&shadow&!shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
+  "<#Nope&shadow&3*,4*\t#Nope&shadow&3*,4*": "",
+  "<#Transfer,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": "",
+  "<&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
+  "<1-151&countcandyxl0-359\t1-151&countcandyxl0-359": "",
+  "<1-26,172&countcandyxl360-\t1-26,172&countcandyxl360-": "",
+  "<144&3*,4*&!galar\t144&3*,4*&!galar": "",
+  "<150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
+  "<4&3*,4*&shadow\t4&3*,4*&shadow": "",
+  "<530&3*,4*&shadow\t530&3*,4*&shadow": "",
+  "<PvpC\tPvpC": "",
+  "<giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
+  "<giv,xlx&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": "",
+  "<giv,xlx&distance100-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": "",
+  "<lucky&320&!costume\tlucky&320&!costume": "",
+  "GIV,XLX&DISTANCE0-100&COUNTCANDY0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
+  "GIV,XLX&DISTANCE0-100&COUNTCANDY2500-\tgiv,xlx&distance0-100&countcandy2500-": "",
+  "GIV,XLX&DISTANCE100-&COUNTCANDY0-2499\tgiv,xlx&distance100-&countcandy0-2499": "",
+  "Ishiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
+  "LUCKY&320&!COSTUME\tlucky&320&!costume": "",
+  "Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
+  "Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
+  "Nope&!traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": "",
+  "Nope&purified\t#Nope&purified": "",
+  "Nope&shadow&!shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
+  "Nope&shadow&3*,4*\t#Nope&shadow&3*,4*": "",
+  "PVPC\tPvpC": "",
+  "Pvp\tPvpC": "",
+  "PvpC\tPvpC": "",
+  "PvpCx\tPvpC": "",
+  "Q#Nope&!shadow&4attack,4defen\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
+  "Q#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
+  "Q#Nope&!traded&!shiny&!costum\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
+  "Q#Nope&!traded&!shiny&!costum\t#Nope&!traded&!shiny&!costume&legendary": "",
+  "Q#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
+  "Q#Nope&!traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": "",
+  "Q#Nope&purified\t#Nope&purified": "",
+  "Q#Nope&shadow&!shiny&!costume\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
+  "Q#Nope&shadow&!shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
+  "Q#Nope&shadow&3*,4*\t#Nope&shadow&3*,4*": "",
+  "Q#Transfer,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": "",
+  "Q&!#&!favorite&!traded&!shado\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
+  "Q&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
+  "Q1-151&countcandyxl0-359\t1-151&countcandyxl0-359": "",
+  "Q1-26,172&countcandyxl360-\t1-26,172&countcandyxl360-": "",
+  "Q144&3*,4*&!galar\t144&3*,4*&!galar": "",
+  "Q150&3*,4*&@flamethrower,@foc\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
+  "Q150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
+  "Q4&3*,4*&shadow\t4&3*,4*&shadow": "",
+  "Q530&3*,4*&shadow\t530&3*,4*&shadow": "",
+  "QPvpC\tPvpC": "",
+  "Qgiv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": "",
+  "Qgiv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy2500-": "",
+  "Qgiv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
+  "Qgiv,xlx&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": "",
+  "Qgiv,xlx&distance100-&countca\tgiv,xlx&distance100-&countcandy0-2499": "",
+  "Qgiv,xlx&distance100-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": "",
+  "Qlucky&320&!costume\tlucky&320&!costume": "",
+  "Transfer,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": "",
+  "ack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
+  "cut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
+  "dowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
+  "ed&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": "",
+  "er,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": "",
+  "er,#Nope&Itraded&xxl\t#Transfer,#Nope&!traded&xxl": "",
+  "giv,x1x&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
+  "giv,x1x&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": "",
+  "giv,x1x&distance100-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": "",
+  "giv,xl&distanceo-1i0&conntcandy\tgiv,xlx&distance0-100&countcandy0-2499": "",
+  "giv,xlx&distance0-10\tgiv,xlx&distance0-100&countcandy0-2499": "",
+  "giv,xlx&distance0-10\tgiv,xlx&distance0-100&countcandy2500-": "",
+  "giv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": "",
+  "giv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy2500-": "",
+  "giv,xlx&distance0-100&countcandy0-249\tgiv,xlx&distance0-100&countcandy0-2499": "",
+  "giv,xlx&distance0-100&countcandy0-2499\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
+  "giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
+  "giv,xlx&distance0-100&countcandy0-2499x\tgiv,xlx&distance0-100&countcandy0-2499": "",
+  "giv,xlx&distance0-100&countcandy2500\tgiv,xlx&distance0-100&countcandy2500-": "",
+  "giv,xlx&distance0-100&countcandy2500-\t1-151&countcandyxl0-359": "",
+  "giv,xlx&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": "",
+  "giv,xlx&distance0-100&countcandy2500-x\tgiv,xlx&distance0-100&countcandy2500-": "",
+  "giv,xlx&distance0-1008countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
+  "giv,xlx&distance0-1008countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": "",
+  "giv,xlx&distance0100&countcandy02499\tgiv,xlx&distance0-100&countcandy0-2499": "",
+  "giv,xlx&distance0100&countcandy2500\tgiv,xlx&distance0-100&countcandy2500-": "",
+  "giv,xlx&distance100&countcandy02499\tgiv,xlx&distance100-&countcandy0-2499": "",
+  "giv,xlx&distance100-\tgiv,xlx&distance100-&countcandy0-2499": "",
+  "giv,xlx&distance100-&countca\tgiv,xlx&distance100-&countcandy0-2499": "",
+  "giv,xlx&distance100-&countcandy0-249\tgiv,xlx&distance100-&countcandy0-2499": "",
+  "giv,xlx&distance100-&countcandy0-2499\tgiv,xlx&distance0-100&countcandy2500-": "",
+  "giv,xlx&distance100-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": "",
+  "giv,xlx&distance100-&countcandy0-2499x\tgiv,xlx&distance100-&countcandy0-2499": "",
+  "giv,xlx&distance1oo-&countcandyo-2499\tgiv,xlx&distance100-&countcandy0-2499": "",
+  "giv,xlx&distanceo-1oo&countcandy25oo-\tgiv,xlx&distance0-100&countcandy2500-": "",
+  "giv,xlx&distanceo-1oo&countcandyo-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
+  "giv,xlx8distance0-1008countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
+  "giv,xlx8distance0-1008countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": "",
+  "giv,xlx8distance100-8countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": "",
+  "iny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
+  "istance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": "",
+  "istance100-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": "",
+  "iv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
+  "iv,xlx&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": "",
+  "iv,xlx&distance100-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": "",
+  "lucky&320&!costum\tlucky&320&!costume": "",
+  "lucky&320&!costume\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
+  "lucky&320&!costume\tlucky&320&!costume": "",
+  "lucky&320&!costumex\tlucky&320&!costume": "",
+  "lucky&320&.costume\tlucky&320&!costume": "",
+  "lucky&320&Icostume\tlucky&320&!costume": "",
+  "lucky&320&costume\tlucky&320&!costume": "",
+  "lucky&320&lcostume\tlucky&320&!costume": "",
+  "lucky&320&|costume\tlucky&320&!costume": "",
+  "lucky&3208!costume\tlucky&320&!costume": "",
+  "lucky&32o&!costume\tlucky&320&!costume": "",
+  "lucky83208!costume\tlucky&320&!costume": "",
+  "nse&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
+  "ow&!shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
+  "stance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
+  "tume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
+  "ucky&320&!costume\tlucky&320&!costume": "",
+  "vpC\tPvpC": "",
+  "y&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
+  "y&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": "",
+  "y&Icostume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
+  "y&Icostume&legendary\t#Nope&!traded&!shiny&!costume&legendary": ""
+ },
  "search.bar_shows": {
   "\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
   "\t#Nope&!traded&!shiny&!costume&793-806,808,809": false,
@@ -3454,6 +3081,379 @@
   "y&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": true,
   "y&Icostume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": true,
   "y&Icostume&legendary\t#Nope&!traded&!shiny&!costume&legendary": true
+ },
+ "tagsheet.bar_whole": {
+  "\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
+  "\t#Nope&!traded&!shiny&!costume&793-806,808,809": false,
+  "\t#Nope&!traded&!shiny&!costume&legendary": false,
+  "\t#Nope&purified": false,
+  "\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": false,
+  "\t#Nope&shadow&3*,4*": false,
+  "\t#Transfer,#Nope&!traded&xxl": false,
+  "\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": false,
+  "\t1-151&countcandyxl0-359": false,
+  "\t1-26,172&countcandyxl360-": false,
+  "\t144&3*,4*&!galar": false,
+  "\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
+  "\t4&3*,4*&shadow": false,
+  "\t530&3*,4*&shadow": false,
+  "\tPvpC": false,
+  "\tgiv,xlx&distance0-100&countcandy0-2499": false,
+  "\tgiv,xlx&distance0-100&countcandy2500-": false,
+  "\tgiv,xlx&distance100-&countcandy0-2499": false,
+  "\tlucky&320&!costume": false,
+  "!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": false,
+  "!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": false,
+  "!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": false,
+  "#NOPE&!SHADOW&4ATTACK,4DEFENSE&4ATTACK,4HP&4DEFENSE,4HP\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": true,
+  "#NOPE&!TRADED&!SHINY&!COSTUME&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": true,
+  "#NOPE&!TRADED&!SHINY&!COSTUME&LEGENDARY\t#Nope&!traded&!shiny&!costume&legendary": true,
+  "#NOPE&PURIFIED\t#Nope&purified": true,
+  "#NOPE&SHADOW&!SHINY&!COSTUME&!XXL&!XXS\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": true,
+  "#NOPE&SHADOW&3*,4*\t#Nope&shadow&3*,4*": true,
+  "#Nope&!shadow&4attac\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
+  "#Nope&!shadow&4attack,4defen\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
+  "#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4h\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
+  "#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": true,
+  "#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&shadow&3*,4*": false,
+  "#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hpx\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": true,
+  "#Nope&!traded&!shiny\t#Nope&!traded&!shiny&!costume&793-806,808,809": false,
+  "#Nope&!traded&!shiny\t#Nope&!traded&!shiny&!costume&legendary": false,
+  "#Nope&!traded&!shiny&!costum\t#Nope&!traded&!shiny&!costume&793-806,808,809": false,
+  "#Nope&!traded&!shiny&!costum\t#Nope&!traded&!shiny&!costume&legendary": false,
+  "#Nope&!traded&!shiny&!costume&1egendary\t#Nope&!traded&!shiny&!costume&legendary": true,
+  "#Nope&!traded&!shiny&!costume&793-806,808,80\t#Nope&!traded&!shiny&!costume&793-806,808,809": false,
+  "#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": true,
+  "#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&purified": false,
+  "#Nope&!traded&!shiny&!costume&793-806,808,809x\t#Nope&!traded&!shiny&!costume&793-806,808,809": true,
+  "#Nope&!traded&!shiny&!costume&793-8o6,8o8,8o9\t#Nope&!traded&!shiny&!costume&793-806,808,809": true,
+  "#Nope&!traded&!shiny&!costume&793806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": false,
+  "#Nope&!traded&!shiny&!costume&legendar\t#Nope&!traded&!shiny&!costume&legendary": false,
+  "#Nope&!traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&793-806,808,809": false,
+  "#Nope&!traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": true,
+  "#Nope&!traded&!shiny&!costume&legendaryx\t#Nope&!traded&!shiny&!costume&legendary": true,
+  "#Nope&!traded&shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": false,
+  "#Nope&!traded&shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": false,
+  "#Nope&.shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": true,
+  "#Nope&.traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": true,
+  "#Nope&.traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": true,
+  "#Nope&lshadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": true,
+  "#Nope&ltraded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": true,
+  "#Nope&ltraded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": true,
+  "#Nope&purifie\t#Nope&purified": false,
+  "#Nope&purified\t#Nope&purified": true,
+  "#Nope&purified\t#Transfer,#Nope&!traded&xxl": false,
+  "#Nope&purifiedx\t#Nope&purified": true,
+  "#Nope&shadow&!shiny&\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": false,
+  "#Nope&shadow&!shiny&!costume\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": false,
+  "#Nope&shadow&!shiny&!costume&!\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": false,
+  "#Nope&shadow&!shiny&!costume&!xx1&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": true,
+  "#Nope&shadow&!shiny&!costume&!xxl&!xx\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": false,
+  "#Nope&shadow&!shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": true,
+  "#Nope&shadow&!shiny&!costume&!xxl&!xxs\t1-26,172&countcandyxl360-": false,
+  "#Nope&shadow&!shiny&!costume&!xxl&!xxsx\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": true,
+  "#Nope&shadow&!shiny&costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": false,
+  "#Nope&shadow&.shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": true,
+  "#Nope&shadow&3\",4\"\t#Nope&shadow&3*,4*": true,
+  "#Nope&shadow&3*,4\t#Nope&shadow&3*,4*": false,
+  "#Nope&shadow&3*,4*\t#Nope&!traded&!shiny&!costume&legendary": false,
+  "#Nope&shadow&3*,4*\t#Nope&shadow&3*,4*": true,
+  "#Nope&shadow&3*,4*x\t#Nope&shadow&3*,4*": true,
+  "#Nope&shadow&4attack,4defen\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
+  "#Nope&shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
+  "#Nope&shadow&lshiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": true,
+  "#Nope&shadow&shiny&!costume\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": false,
+  "#Nope&shadow&shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": false,
+  "#Nope&shadow&|shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": true,
+  "#Nope&traded&!shiny&!costum\t#Nope&!traded&!shiny&!costume&793-806,808,809": false,
+  "#Nope&traded&!shiny&!costum\t#Nope&!traded&!shiny&!costume&legendary": false,
+  "#Nope&traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": false,
+  "#Nope&traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": false,
+  "#Nope&|shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": true,
+  "#Nope&|traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": true,
+  "#Nope&|traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": true,
+  "#Nope8!shadow84attack,4defense84attack,4hp84defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": true,
+  "#Nope8!traded8!shiny8!costume8793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": true,
+  "#Nope8!traded8!shiny8!costume8legendary\t#Nope&!traded&!shiny&!costume&legendary": true,
+  "#Nope8purified\t#Nope&purified": true,
+  "#Nope8shadow8!shiny8!costume8!xxl8!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": true,
+  "#Nope8shadow83*,4*\t#Nope&shadow&3*,4*": true,
+  "#TRANSFER,#NOPE&!TRADED&XXL\t#Transfer,#Nope&!traded&xxl": true,
+  "#Transfer,#Nope&!tra\t#Transfer,#Nope&!traded&xxl": false,
+  "#Transfer,#Nope&!traded&xx\t#Transfer,#Nope&!traded&xxl": false,
+  "#Transfer,#Nope&!traded&xx1\t#Transfer,#Nope&!traded&xxl": true,
+  "#Transfer,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": true,
+  "#Transfer,#Nope&!traded&xxl\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": false,
+  "#Transfer,#Nope&!traded&xxlx\t#Transfer,#Nope&!traded&xxl": true,
+  "#Transfer,#Nope&.traded&xxl\t#Transfer,#Nope&!traded&xxl": true,
+  "#Transfer,#Nope&ltraded&xxl\t#Transfer,#Nope&!traded&xxl": true,
+  "#Transfer,#Nope&traded&xxl\t#Transfer,#Nope&!traded&xxl": false,
+  "#Transfer,#Nope&|traded&xxl\t#Transfer,#Nope&!traded&xxl": true,
+  "#Transfer,#Nope8!traded8xxl\t#Transfer,#Nope&!traded&xxl": true,
+  "&!#&!FAVORITE&!TRADED&!SHADOW&!SHINY&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": true,
+  "&!#&!favorite&!trade\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": false,
+  "&!#&!favorite&!traded&!shado\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": false,
+  "&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4\"&!3\"&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": true,
+  "&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": false,
+  "&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": true,
+  "&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\tgiv,xlx&distance100-&countcandy0-2499": false,
+  "&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&x\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": true,
+  "&!#&favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": false,
+  "&#&!favorite&!traded&!shado\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": false,
+  "&#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": false,
+  "&.#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": true,
+  "&3*,4*&shadow\t4&3*,4*&shadow": false,
+  "&l#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": true,
+  "&|#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": true,
+  ",#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": true,
+  ",#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": true,
+  ",#Nope&!traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": true,
+  ",#Nope&purified\t#Nope&purified": true,
+  ",#Nope&shadow&!shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": true,
+  ",#Nope&shadow&3*,4*\t#Nope&shadow&3*,4*": true,
+  ",#Transfer,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": true,
+  ",&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": true,
+  ",1-151&countcandyxl0-359\t1-151&countcandyxl0-359": true,
+  ",1-26,172&countcandyxl360-\t1-26,172&countcandyxl360-": true,
+  ",144&3*,4*&!galar\t144&3*,4*&!galar": true,
+  ",150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
+  ",4&3*,4*&shadow\t4&3*,4*&shadow": true,
+  ",530&3*,4*&shadow\t530&3*,4*&shadow": true,
+  ",PvpC\tPvpC": true,
+  ",giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
+  ",giv,xlx&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": true,
+  ",giv,xlx&distance100-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": true,
+  ",lucky&320&!costume\tlucky&320&!costume": true,
+  "-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": false,
+  "-151&countcandyxl0-359\t1-151&countcandyxl0-359": false,
+  "-26,172&countcandyxl360-\t1-26,172&countcandyxl360-": false,
+  "00-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": false,
+  "1-151&COUNTCANDYXL0-359\t1-151&countcandyxl0-359": true,
+  "1-151&countcandyx10-359\t1-151&countcandyxl0-359": true,
+  "1-151&countcandyxl0-\t1-151&countcandyxl0-359": false,
+  "1-151&countcandyxl0-35\t1-151&countcandyxl0-359": false,
+  "1-151&countcandyxl0-359\t1-151&countcandyxl0-359": true,
+  "1-151&countcandyxl0-359\tPvpC": false,
+  "1-151&countcandyxl0-359x\t1-151&countcandyxl0-359": true,
+  "1-151&countcandyxlo-359\t1-151&countcandyxl0-359": true,
+  "1-1518countcandyxl0-359\t1-151&countcandyxl0-359": true,
+  "1-26,172&COUNTCANDYXL360-\t1-26,172&countcandyxl360-": true,
+  "1-26,172&countcandyx\t1-26,172&countcandyxl360-": false,
+  "1-26,172&countcandyx1360-\t1-26,172&countcandyxl360-": true,
+  "1-26,172&countcandyxl360\t1-26,172&countcandyxl360-": false,
+  "1-26,172&countcandyxl360-\t1-26,172&countcandyxl360-": true,
+  "1-26,172&countcandyxl360-\t144&3*,4*&!galar": false,
+  "1-26,172&countcandyxl360-x\t1-26,172&countcandyxl360-": true,
+  "1-26,172&countcandyxl36o-\t1-26,172&countcandyxl360-": true,
+  "1-26,172&countcandyx|360-\t1-26,172&countcandyxl360-": true,
+  "1-26,1728countcandyxl360-\t1-26,172&countcandyxl360-": true,
+  "100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": false,
+  "1151&countcandyxl0359\t1-151&countcandyxl0-359": false,
+  "126,172&countcandyxl360\t1-26,172&countcandyxl360-": false,
+  "144&3\",4\"&!galar\t144&3*,4*&!galar": true,
+  "144&3*,*,4*&!galar\t144&3*,4*&!galar": true,
+  "144&3*,4*&!GALAR\t144&3*,4*&!galar": true,
+  "144&3*,4*&!ga1ar\t144&3*,4*&!galar": true,
+  "144&3*,4*&!gala\t144&3*,4*&!galar": false,
+  "144&3*,4*&!galar\t144&3*,4*&!galar": true,
+  "144&3*,4*&!galar\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
+  "144&3*,4*&!galarx\t144&3*,4*&!galar": true,
+  "144&3*,4*&.galar\t144&3*,4*&!galar": true,
+  "144&3*,4*&Igalar\t144&3*,4*&!galar": true,
+  "144&3*,4*&galar\t144&3*,4*&!galar": false,
+  "144&3*,4*&lgalar\t144&3*,4*&!galar": true,
+  "144&3*,4*&|galar\t144&3*,4*&!galar": true,
+  "14483*,4*&!galar\t144&3*,4*&!galar": true,
+  "14483*,4*8!galar\t144&3*,4*&!galar": true,
+  "150&3\",4\"&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
+  "150&3*,4*&@FLAMETHROWER,@FOCUSBLAST,@HYPERBEAM,@ICEBEAM,@PSYCHOCUT,@SHADOWBALL,@THUNDERBOLT\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
+  "150&3*,4*&@f1amethrower,@focusb1ast,@hyperbeam,@icebeam,@psychocut,@shadowba11,@thunderbo1t\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
+  "150&3*,4*&@flamethro\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
+  "150&3*,4*&@flamethrower,@foc\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
+  "150&3*,4*&@flamethrower,@focus\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
+  "150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
+  "150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt\t4&3*,4*&shadow": false,
+  "150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbol\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
+  "150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
+  "150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderboltx\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
+  "15083*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
+  "15083*,4*8@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
+  "15o&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
+  "172&countcandyxl360-\t1-26,172&countcandyxl360-": false,
+  "1ucky&320&!costume\tlucky&320&!costume": true,
+  "30&3*,4*&shadow\t530&3*,4*&shadow": false,
+  "4&3\",4\"&shadow\t4&3*,4*&shadow": true,
+  "4&3*,4*&SHADOW\t4&3*,4*&shadow": true,
+  "4&3*,4*&shado\t4&3*,4*&shadow": false,
+  "4&3*,4*&shadow\t4&3*,4*&shadow": true,
+  "4&3*,4*&shadow\t530&3*,4*&shadow": false,
+  "4&3*,4*&shadowx\t4&3*,4*&shadow": true,
+  "44&3*,4*&!galar\t144&3*,4*&!galar": false,
+  "483*,\t4&3*,4*&shadow": false,
+  "483*,4*&shadow\t4&3*,4*&shadow": true,
+  "483*,4*8shadow\t4&3*,4*&shadow": true,
+  "50&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
+  "51&countcandyxl0-359\t1-151&countcandyxl0-359": false,
+  "530&3\",4\"&shadow\t530&3*,4*&shadow": true,
+  "530&3**,4*&shadowx\t530&3*,4*&shadow": true,
+  "530&3*,4*&SHADOW\t530&3*,4*&shadow": true,
+  "530&3*,4*&shado\t530&3*,4*&shadow": false,
+  "530&3*,4*&shadow\t530&3*,4*&shadow": true,
+  "530&3*,4*&shadow\tgiv,xlx&distance0-100&countcandy0-2499": false,
+  "530&3*,4*&shadowx\t530&3*,4*&shadow": true,
+  "53083*,4*&shadow\t530&3*,4*&shadow": true,
+  "53083*,4*8shadow\t530&3*,4*&shadow": true,
+  "53o&3*,4*&shadow\t530&3*,4*&shadow": true,
+  "8!#8!favorite8!traded8!shadow8!shiny8!XXL8!4*8!3*8\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": true,
+  "9#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": true,
+  "9#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": true,
+  "9#Nope&!traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": true,
+  "9#Nope&purified\t#Nope&purified": true,
+  "9#Nope&shadow&!shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": true,
+  "9#Nope&shadow&3*,4*\t#Nope&shadow&3*,4*": true,
+  "9#Transfer,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": true,
+  "9&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": true,
+  "91-151&countcandyxl0-359\t1-151&countcandyxl0-359": true,
+  "91-26,172&countcandyxl360-\t1-26,172&countcandyxl360-": true,
+  "9144&3*,4*&!galar\t144&3*,4*&!galar": true,
+  "9150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
+  "94&3*,4*&shadow\t4&3*,4*&shadow": true,
+  "9530&3*,4*&shadow\t530&3*,4*&shadow": true,
+  "9PvpC\tPvpC": true,
+  "9giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
+  "9giv,xlx&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": true,
+  "9giv,xlx&distance100-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": true,
+  "9lucky&320&!costume\tlucky&320&!costume": true,
+  "<#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": true,
+  "<#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": true,
+  "<#Nope&!traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": true,
+  "<#Nope&purified\t#Nope&purified": true,
+  "<#Nope&shadow&!shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": true,
+  "<#Nope&shadow&3*,4*\t#Nope&shadow&3*,4*": true,
+  "<#Transfer,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": true,
+  "<&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": true,
+  "<1-151&countcandyxl0-359\t1-151&countcandyxl0-359": true,
+  "<1-26,172&countcandyxl360-\t1-26,172&countcandyxl360-": true,
+  "<144&3*,4*&!galar\t144&3*,4*&!galar": true,
+  "<150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
+  "<4&3*,4*&shadow\t4&3*,4*&shadow": true,
+  "<530&3*,4*&shadow\t530&3*,4*&shadow": true,
+  "<PvpC\tPvpC": true,
+  "<giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
+  "<giv,xlx&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": true,
+  "<giv,xlx&distance100-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": true,
+  "<lucky&320&!costume\tlucky&320&!costume": true,
+  "GIV,XLX&DISTANCE0-100&COUNTCANDY0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
+  "GIV,XLX&DISTANCE0-100&COUNTCANDY2500-\tgiv,xlx&distance0-100&countcandy2500-": true,
+  "GIV,XLX&DISTANCE100-&COUNTCANDY0-2499\tgiv,xlx&distance100-&countcandy0-2499": true,
+  "Ishiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": false,
+  "LUCKY&320&!COSTUME\tlucky&320&!costume": true,
+  "Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
+  "Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": false,
+  "Nope&!traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": false,
+  "Nope&purified\t#Nope&purified": false,
+  "Nope&shadow&!shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": false,
+  "Nope&shadow&3*,4*\t#Nope&shadow&3*,4*": false,
+  "PVPC\tPvpC": true,
+  "Pvp\tPvpC": false,
+  "PvpC\tPvpC": true,
+  "PvpCx\tPvpC": true,
+  "Q#Nope&!shadow&4attack,4defen\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
+  "Q#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": true,
+  "Q#Nope&!traded&!shiny&!costum\t#Nope&!traded&!shiny&!costume&793-806,808,809": false,
+  "Q#Nope&!traded&!shiny&!costum\t#Nope&!traded&!shiny&!costume&legendary": false,
+  "Q#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": true,
+  "Q#Nope&!traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": true,
+  "Q#Nope&purified\t#Nope&purified": true,
+  "Q#Nope&shadow&!shiny&!costume\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": false,
+  "Q#Nope&shadow&!shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": true,
+  "Q#Nope&shadow&3*,4*\t#Nope&shadow&3*,4*": true,
+  "Q#Transfer,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": true,
+  "Q&!#&!favorite&!traded&!shado\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": false,
+  "Q&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": true,
+  "Q1-151&countcandyxl0-359\t1-151&countcandyxl0-359": true,
+  "Q1-26,172&countcandyxl360-\t1-26,172&countcandyxl360-": true,
+  "Q144&3*,4*&!galar\t144&3*,4*&!galar": true,
+  "Q150&3*,4*&@flamethrower,@foc\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
+  "Q150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
+  "Q4&3*,4*&shadow\t4&3*,4*&shadow": true,
+  "Q530&3*,4*&shadow\t530&3*,4*&shadow": true,
+  "QPvpC\tPvpC": true,
+  "Qgiv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": false,
+  "Qgiv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy2500-": false,
+  "Qgiv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
+  "Qgiv,xlx&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": true,
+  "Qgiv,xlx&distance100-&countca\tgiv,xlx&distance100-&countcandy0-2499": false,
+  "Qgiv,xlx&distance100-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": true,
+  "Qlucky&320&!costume\tlucky&320&!costume": true,
+  "Transfer,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": false,
+  "ack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
+  "cut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
+  "dowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
+  "ed&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": false,
+  "er,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": false,
+  "er,#Nope&Itraded&xxl\t#Transfer,#Nope&!traded&xxl": false,
+  "giv,x1x&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
+  "giv,x1x&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": true,
+  "giv,x1x&distance100-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": true,
+  "giv,xl&distanceo-1i0&conntcandy\tgiv,xlx&distance0-100&countcandy0-2499": false,
+  "giv,xlx&distance0-10\tgiv,xlx&distance0-100&countcandy0-2499": false,
+  "giv,xlx&distance0-10\tgiv,xlx&distance0-100&countcandy2500-": false,
+  "giv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": false,
+  "giv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy2500-": false,
+  "giv,xlx&distance0-100&countcandy0-249\tgiv,xlx&distance0-100&countcandy0-2499": false,
+  "giv,xlx&distance0-100&countcandy0-2499\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
+  "giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
+  "giv,xlx&distance0-100&countcandy0-2499x\tgiv,xlx&distance0-100&countcandy0-2499": true,
+  "giv,xlx&distance0-100&countcandy2500\tgiv,xlx&distance0-100&countcandy2500-": false,
+  "giv,xlx&distance0-100&countcandy2500-\t1-151&countcandyxl0-359": false,
+  "giv,xlx&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": true,
+  "giv,xlx&distance0-100&countcandy2500-x\tgiv,xlx&distance0-100&countcandy2500-": true,
+  "giv,xlx&distance0-1008countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
+  "giv,xlx&distance0-1008countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": true,
+  "giv,xlx&distance0100&countcandy02499\tgiv,xlx&distance0-100&countcandy0-2499": false,
+  "giv,xlx&distance0100&countcandy2500\tgiv,xlx&distance0-100&countcandy2500-": false,
+  "giv,xlx&distance100&countcandy02499\tgiv,xlx&distance100-&countcandy0-2499": false,
+  "giv,xlx&distance100-\tgiv,xlx&distance100-&countcandy0-2499": false,
+  "giv,xlx&distance100-&countca\tgiv,xlx&distance100-&countcandy0-2499": false,
+  "giv,xlx&distance100-&countcandy0-249\tgiv,xlx&distance100-&countcandy0-2499": false,
+  "giv,xlx&distance100-&countcandy0-2499\tgiv,xlx&distance0-100&countcandy2500-": false,
+  "giv,xlx&distance100-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": true,
+  "giv,xlx&distance100-&countcandy0-2499x\tgiv,xlx&distance100-&countcandy0-2499": true,
+  "giv,xlx&distance1oo-&countcandyo-2499\tgiv,xlx&distance100-&countcandy0-2499": true,
+  "giv,xlx&distanceo-1oo&countcandy25oo-\tgiv,xlx&distance0-100&countcandy2500-": true,
+  "giv,xlx&distanceo-1oo&countcandyo-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
+  "giv,xlx8distance0-1008countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
+  "giv,xlx8distance0-1008countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": true,
+  "giv,xlx8distance100-8countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": true,
+  "iny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": false,
+  "istance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": false,
+  "istance100-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": false,
+  "iv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": false,
+  "iv,xlx&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": false,
+  "iv,xlx&distance100-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": false,
+  "lucky&320&!costum\tlucky&320&!costume": false,
+  "lucky&320&!costume\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": false,
+  "lucky&320&!costume\tlucky&320&!costume": true,
+  "lucky&320&!costumex\tlucky&320&!costume": true,
+  "lucky&320&.costume\tlucky&320&!costume": true,
+  "lucky&320&Icostume\tlucky&320&!costume": true,
+  "lucky&320&costume\tlucky&320&!costume": false,
+  "lucky&320&lcostume\tlucky&320&!costume": true,
+  "lucky&320&|costume\tlucky&320&!costume": true,
+  "lucky&3208!costume\tlucky&320&!costume": true,
+  "lucky&32o&!costume\tlucky&320&!costume": true,
+  "lucky83208!costume\tlucky&320&!costume": true,
+  "nse&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
+  "ow&!shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": false,
+  "stance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": false,
+  "tume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": false,
+  "ucky&320&!costume\tlucky&320&!costume": false,
+  "vpC\tPvpC": false,
+  "y&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": false,
+  "y&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": false,
+  "y&Icostume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": false,
+  "y&Icostume&legendary\t#Nope&!traded&!shiny&!costume&legendary": false
  },
  "trade.in_bar android": {
   "\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
@@ -5088,8 +5088,13 @@
    []
   ],
   "#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hpx\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     56
+    ]
+   ]
   ],
   "#Nope&!traded&!shiny\t#Nope&!traded&!shiny&!costume&793-806,808,809": [
    true,
@@ -5128,8 +5133,13 @@
    ]
   ],
   "#Nope&!traded&!shiny&!costume&1egendary\t#Nope&!traded&!shiny&!costume&legendary": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     39
+    ]
+   ]
   ],
   "#Nope&!traded&!shiny&!costume&793-806,808,80\t#Nope&!traded&!shiny&!costume&793-806,808,809": [
    true,
@@ -5154,12 +5164,22 @@
    []
   ],
   "#Nope&!traded&!shiny&!costume&793-806,808,809x\t#Nope&!traded&!shiny&!costume&793-806,808,809": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     46
+    ]
+   ]
   ],
   "#Nope&!traded&!shiny&!costume&793-8o6,8o8,8o9\t#Nope&!traded&!shiny&!costume&793-806,808,809": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     45
+    ]
+   ]
   ],
   "#Nope&!traded&!shiny&!costume&793806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": [
    false,
@@ -5188,8 +5208,13 @@
    ]
   ],
   "#Nope&!traded&!shiny&!costume&legendaryx\t#Nope&!traded&!shiny&!costume&legendary": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     40
+    ]
+   ]
   ],
   "#Nope&!traded&shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": [
    false,
@@ -5200,16 +5225,31 @@
    []
   ],
   "#Nope&.shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     55
+    ]
+   ]
   ],
   "#Nope&.traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     45
+    ]
+   ]
   ],
   "#Nope&.traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     39
+    ]
+   ]
   ],
   "#Nope&lshadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": [
    true,
@@ -5256,8 +5296,13 @@
    []
   ],
   "#Nope&purifiedx\t#Nope&purified": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     15
+    ]
+   ]
   ],
   "#Nope&shadow&!shiny&\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": [
    true,
@@ -5287,8 +5332,13 @@
    ]
   ],
   "#Nope&shadow&!shiny&!costume&!xx1&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     38
+    ]
+   ]
   ],
   "#Nope&shadow&!shiny&!costume&!xxl&!xx\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": [
    true,
@@ -5313,20 +5363,35 @@
    []
   ],
   "#Nope&shadow&!shiny&!costume&!xxl&!xxsx\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     39
+    ]
+   ]
   ],
   "#Nope&shadow&!shiny&costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": [
    false,
    []
   ],
   "#Nope&shadow&.shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     38
+    ]
+   ]
   ],
   "#Nope&shadow&3\",4\"\t#Nope&shadow&3*,4*": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     18
+    ]
+   ]
   ],
   "#Nope&shadow&3*,4\t#Nope&shadow&3*,4*": [
    true,
@@ -5351,8 +5416,13 @@
    ]
   ],
   "#Nope&shadow&3*,4*x\t#Nope&shadow&3*,4*": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     19
+    ]
+   ]
   ],
   "#Nope&shadow&4attack,4defen\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": [
    false,
@@ -5432,28 +5502,58 @@
    ]
   ],
   "#Nope8!shadow84attack,4defense84attack,4hp84defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     55
+    ]
+   ]
   ],
   "#Nope8!traded8!shiny8!costume8793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     45
+    ]
+   ]
   ],
   "#Nope8!traded8!shiny8!costume8legendary\t#Nope&!traded&!shiny&!costume&legendary": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     39
+    ]
+   ]
   ],
   "#Nope8purified\t#Nope&purified": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     14
+    ]
+   ]
   ],
   "#Nope8shadow8!shiny8!costume8!xxl8!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     38
+    ]
+   ]
   ],
   "#Nope8shadow83*,4*\t#Nope&shadow&3*,4*": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     18
+    ]
+   ]
   ],
   "#TRANSFER,#NOPE&!TRADED&XXL\t#Transfer,#Nope&!traded&xxl": [
    true,
@@ -5483,8 +5583,13 @@
    ]
   ],
   "#Transfer,#Nope&!traded&xx1\t#Transfer,#Nope&!traded&xxl": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     27
+    ]
+   ]
   ],
   "#Transfer,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": [
    true,
@@ -5500,12 +5605,22 @@
    []
   ],
   "#Transfer,#Nope&!traded&xxlx\t#Transfer,#Nope&!traded&xxl": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     28
+    ]
+   ]
   ],
   "#Transfer,#Nope&.traded&xxl\t#Transfer,#Nope&!traded&xxl": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     27
+    ]
+   ]
   ],
   "#Transfer,#Nope&ltraded&xxl\t#Transfer,#Nope&!traded&xxl": [
    true,
@@ -5530,8 +5645,13 @@
    ]
   ],
   "#Transfer,#Nope8!traded8xxl\t#Transfer,#Nope&!traded&xxl": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     27
+    ]
+   ]
   ],
   "&!#&!FAVORITE&!TRADED&!SHADOW&!SHINY&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": [
    true,
@@ -5561,8 +5681,13 @@
    ]
   ],
   "&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4\"&!3\"&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     50
+    ]
+   ]
   ],
   "&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": [
    true,
@@ -5587,8 +5712,13 @@
    []
   ],
   "&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&x\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     51
+    ]
+   ]
   ],
   "&!#&favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": [
    false,
@@ -5603,8 +5733,13 @@
    []
   ],
   "&.#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     50
+    ]
+   ]
   ],
   "&3*,4*&shadow\t4&3*,4*&shadow": [
    false,
@@ -5633,7 +5768,7 @@
    [
     [
      "all",
-     55
+     56
     ]
    ]
   ],
@@ -5642,7 +5777,7 @@
    [
     [
      "all",
-     45
+     46
     ]
    ]
   ],
@@ -5651,7 +5786,7 @@
    [
     [
      "all",
-     39
+     40
     ]
    ]
   ],
@@ -5660,7 +5795,7 @@
    [
     [
      "all",
-     14
+     15
     ]
    ]
   ],
@@ -5669,7 +5804,7 @@
    [
     [
      "all",
-     38
+     39
     ]
    ]
   ],
@@ -5678,7 +5813,7 @@
    [
     [
      "all",
-     18
+     19
     ]
    ]
   ],
@@ -5687,7 +5822,7 @@
    [
     [
      "all",
-     27
+     28
     ]
    ]
   ],
@@ -5696,7 +5831,7 @@
    [
     [
      "all",
-     50
+     51
     ]
    ]
   ],
@@ -5705,7 +5840,7 @@
    [
     [
      "all",
-     23
+     24
     ]
    ]
   ],
@@ -5714,7 +5849,7 @@
    [
     [
      "all",
-     25
+     26
     ]
    ]
   ],
@@ -5723,7 +5858,7 @@
    [
     [
      "all",
-     16
+     17
     ]
    ]
   ],
@@ -5732,7 +5867,7 @@
    [
     [
      "all",
-     91
+     92
     ]
    ]
   ],
@@ -5741,7 +5876,7 @@
    [
     [
      "all",
-     14
+     15
     ]
    ]
   ],
@@ -5750,7 +5885,7 @@
    [
     [
      "all",
-     16
+     17
     ]
    ]
   ],
@@ -5759,7 +5894,7 @@
    [
     [
      "all",
-     4
+     5
     ]
    ]
   ],
@@ -5768,7 +5903,7 @@
    [
     [
      "all",
-     38
+     39
     ]
    ]
   ],
@@ -5777,7 +5912,7 @@
    [
     [
      "all",
-     37
+     38
     ]
    ]
   ],
@@ -5786,7 +5921,7 @@
    [
     [
      "all",
-     37
+     38
     ]
    ]
   ],
@@ -5795,7 +5930,7 @@
    [
     [
      "all",
-     18
+     19
     ]
    ]
   ],
@@ -5845,8 +5980,13 @@
    ]
   ],
   "1-151&countcandyx10-359\t1-151&countcandyxl0-359": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     23
+    ]
+   ]
   ],
   "1-151&countcandyxl0-\t1-151&countcandyxl0-359": [
    true,
@@ -5880,16 +6020,31 @@
    []
   ],
   "1-151&countcandyxl0-359x\t1-151&countcandyxl0-359": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     24
+    ]
+   ]
   ],
   "1-151&countcandyxlo-359\t1-151&countcandyxl0-359": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     23
+    ]
+   ]
   ],
   "1-1518countcandyxl0-359\t1-151&countcandyxl0-359": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     23
+    ]
+   ]
   ],
   "1-26,172&COUNTCANDYXL360-\t1-26,172&countcandyxl360-": [
    true,
@@ -5910,8 +6065,13 @@
    ]
   ],
   "1-26,172&countcandyx1360-\t1-26,172&countcandyxl360-": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     25
+    ]
+   ]
   ],
   "1-26,172&countcandyxl360\t1-26,172&countcandyxl360-": [
    true,
@@ -5936,12 +6096,22 @@
    []
   ],
   "1-26,172&countcandyxl360-x\t1-26,172&countcandyxl360-": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     26
+    ]
+   ]
   ],
   "1-26,172&countcandyxl36o-\t1-26,172&countcandyxl360-": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     25
+    ]
+   ]
   ],
   "1-26,172&countcandyx|360-\t1-26,172&countcandyxl360-": [
    true,
@@ -5953,8 +6123,13 @@
    ]
   ],
   "1-26,1728countcandyxl360-\t1-26,172&countcandyxl360-": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     25
+    ]
+   ]
   ],
   "100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": [
    true,
@@ -5974,12 +6149,22 @@
    []
   ],
   "144&3\",4\"&!galar\t144&3*,4*&!galar": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     16
+    ]
+   ]
   ],
   "144&3*,*,4*&!galar\t144&3*,4*&!galar": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     18
+    ]
+   ]
   ],
   "144&3*,4*&!GALAR\t144&3*,4*&!galar": [
    true,
@@ -5991,8 +6176,13 @@
    ]
   ],
   "144&3*,4*&!ga1ar\t144&3*,4*&!galar": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     16
+    ]
+   ]
   ],
   "144&3*,4*&!gala\t144&3*,4*&!galar": [
    true,
@@ -6017,12 +6207,22 @@
    []
   ],
   "144&3*,4*&!galarx\t144&3*,4*&!galar": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     17
+    ]
+   ]
   ],
   "144&3*,4*&.galar\t144&3*,4*&!galar": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     16
+    ]
+   ]
   ],
   "144&3*,4*&Igalar\t144&3*,4*&!galar": [
    true,
@@ -6056,16 +6256,31 @@
    ]
   ],
   "14483*,4*&!galar\t144&3*,4*&!galar": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     16
+    ]
+   ]
   ],
   "14483*,4*8!galar\t144&3*,4*&!galar": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     16
+    ]
+   ]
   ],
   "150&3\",4\"&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     91
+    ]
+   ]
   ],
   "150&3*,4*&@FLAMETHROWER,@FOCUSBLAST,@HYPERBEAM,@ICEBEAM,@PSYCHOCUT,@SHADOWBALL,@THUNDERBOLT\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": [
    true,
@@ -6077,8 +6292,13 @@
    ]
   ],
   "150&3*,4*&@f1amethrower,@focusb1ast,@hyperbeam,@icebeam,@psychocut,@shadowba11,@thunderbo1t\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     91
+    ]
+   ]
   ],
   "150&3*,4*&@flamethro\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": [
    true,
@@ -6139,20 +6359,40 @@
    ]
   ],
   "150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderboltx\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     92
+    ]
+   ]
   ],
   "15083*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     91
+    ]
+   ]
   ],
   "15083*,4*8@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     91
+    ]
+   ]
   ],
   "15o&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     91
+    ]
+   ]
   ],
   "172&countcandyxl360-\t1-26,172&countcandyxl360-": [
    true,
@@ -6164,8 +6404,13 @@
    ]
   ],
   "1ucky&320&!costume\tlucky&320&!costume": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     18
+    ]
+   ]
   ],
   "30&3*,4*&shadow\t530&3*,4*&shadow": [
    true,
@@ -6177,8 +6422,13 @@
    ]
   ],
   "4&3\",4\"&shadow\t4&3*,4*&shadow": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     14
+    ]
+   ]
   ],
   "4&3*,4*&SHADOW\t4&3*,4*&shadow": [
    true,
@@ -6207,8 +6457,13 @@
    []
   ],
   "4&3*,4*&shadowx\t4&3*,4*&shadow": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     15
+    ]
+   ]
   ],
   "44&3*,4*&!galar\t144&3*,4*&!galar": [
    true,
@@ -6224,12 +6479,22 @@
    []
   ],
   "483*,4*&shadow\t4&3*,4*&shadow": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     14
+    ]
+   ]
   ],
   "483*,4*8shadow\t4&3*,4*&shadow": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     14
+    ]
+   ]
   ],
   "50&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": [
    true,
@@ -6250,12 +6515,22 @@
    ]
   ],
   "530&3\",4\"&shadow\t530&3*,4*&shadow": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     16
+    ]
+   ]
   ],
   "530&3**,4*&shadowx\t530&3*,4*&shadow": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     18
+    ]
+   ]
   ],
   "530&3*,4*&SHADOW\t530&3*,4*&shadow": [
    true,
@@ -6289,31 +6564,56 @@
    []
   ],
   "530&3*,4*&shadowx\t530&3*,4*&shadow": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     17
+    ]
+   ]
   ],
   "53083*,4*&shadow\t530&3*,4*&shadow": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     16
+    ]
+   ]
   ],
   "53083*,4*8shadow\t530&3*,4*&shadow": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     16
+    ]
+   ]
   ],
   "53o&3*,4*&shadow\t530&3*,4*&shadow": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     16
+    ]
+   ]
   ],
   "8!#8!favorite8!traded8!shadow8!shiny8!XXL8!4*8!3*8\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     50
+    ]
+   ]
   ],
   "9#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": [
    true,
    [
     [
      "all",
-     55
+     56
     ]
    ]
   ],
@@ -6322,7 +6622,7 @@
    [
     [
      "all",
-     45
+     46
     ]
    ]
   ],
@@ -6331,7 +6631,7 @@
    [
     [
      "all",
-     39
+     40
     ]
    ]
   ],
@@ -6340,7 +6640,7 @@
    [
     [
      "all",
-     14
+     15
     ]
    ]
   ],
@@ -6349,7 +6649,7 @@
    [
     [
      "all",
-     38
+     39
     ]
    ]
   ],
@@ -6358,7 +6658,7 @@
    [
     [
      "all",
-     18
+     19
     ]
    ]
   ],
@@ -6367,77 +6667,83 @@
    [
     [
      "all",
-     27
+     28
     ]
    ]
   ],
   "9&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     51
+    ]
+   ]
   ],
   "91-151&countcandyxl0-359\t1-151&countcandyxl0-359": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     24
+    ]
+   ]
   ],
   "91-26,172&countcandyxl360-\t1-26,172&countcandyxl360-": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     26
+    ]
+   ]
   ],
   "9144&3*,4*&!galar\t144&3*,4*&!galar": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     17
+    ]
+   ]
   ],
   "9150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     92
+    ]
+   ]
   ],
   "94&3*,4*&shadow\t4&3*,4*&shadow": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     15
+    ]
+   ]
   ],
   "9530&3*,4*&shadow\t530&3*,4*&shadow": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     17
+    ]
+   ]
   ],
   "9PvpC\tPvpC": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     5
+    ]
+   ]
   ],
   "9giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": [
-   false,
-   []
-  ],
-  "9giv,xlx&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": [
-   false,
-   []
-  ],
-  "9giv,xlx&distance100-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": [
-   false,
-   []
-  ],
-  "9lucky&320&!costume\tlucky&320&!costume": [
-   false,
-   []
-  ],
-  "<#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": [
-   true,
-   [
-    [
-     "all",
-     55
-    ]
-   ]
-  ],
-  "<#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": [
-   true,
-   [
-    [
-     "all",
-     45
-    ]
-   ]
-  ],
-  "<#Nope&!traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": [
    true,
    [
     [
@@ -6446,16 +6752,7 @@
     ]
    ]
   ],
-  "<#Nope&purified\t#Nope&purified": [
-   true,
-   [
-    [
-     "all",
-     14
-    ]
-   ]
-  ],
-  "<#Nope&shadow&!shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": [
+  "9giv,xlx&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": [
    true,
    [
     [
@@ -6464,12 +6761,75 @@
     ]
    ]
   ],
+  "9giv,xlx&distance100-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": [
+   true,
+   [
+    [
+     "all",
+     38
+    ]
+   ]
+  ],
+  "9lucky&320&!costume\tlucky&320&!costume": [
+   true,
+   [
+    [
+     "all",
+     19
+    ]
+   ]
+  ],
+  "<#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": [
+   true,
+   [
+    [
+     "all",
+     56
+    ]
+   ]
+  ],
+  "<#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": [
+   true,
+   [
+    [
+     "all",
+     46
+    ]
+   ]
+  ],
+  "<#Nope&!traded&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": [
+   true,
+   [
+    [
+     "all",
+     40
+    ]
+   ]
+  ],
+  "<#Nope&purified\t#Nope&purified": [
+   true,
+   [
+    [
+     "all",
+     15
+    ]
+   ]
+  ],
+  "<#Nope&shadow&!shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": [
+   true,
+   [
+    [
+     "all",
+     39
+    ]
+   ]
+  ],
   "<#Nope&shadow&3*,4*\t#Nope&shadow&3*,4*": [
    true,
    [
     [
      "all",
-     18
+     19
     ]
    ]
   ],
@@ -6478,57 +6838,117 @@
    [
     [
      "all",
-     27
+     28
     ]
    ]
   ],
   "<&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     51
+    ]
+   ]
   ],
   "<1-151&countcandyxl0-359\t1-151&countcandyxl0-359": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     24
+    ]
+   ]
   ],
   "<1-26,172&countcandyxl360-\t1-26,172&countcandyxl360-": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     26
+    ]
+   ]
   ],
   "<144&3*,4*&!galar\t144&3*,4*&!galar": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     17
+    ]
+   ]
   ],
   "<150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     92
+    ]
+   ]
   ],
   "<4&3*,4*&shadow\t4&3*,4*&shadow": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     15
+    ]
+   ]
   ],
   "<530&3*,4*&shadow\t530&3*,4*&shadow": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     17
+    ]
+   ]
   ],
   "<PvpC\tPvpC": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     5
+    ]
+   ]
   ],
   "<giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     39
+    ]
+   ]
   ],
   "<giv,xlx&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     38
+    ]
+   ]
   ],
   "<giv,xlx&distance100-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     38
+    ]
+   ]
   ],
   "<lucky&320&!costume\tlucky&320&!costume": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     19
+    ]
+   ]
   ],
   "GIV,XLX&DISTANCE0-100&COUNTCANDY0-2499\tgiv,xlx&distance0-100&countcandy0-2499": [
    true,
@@ -6647,8 +7067,13 @@
    ]
   ],
   "PvpCx\tPvpC": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     5
+    ]
+   ]
   ],
   "Q#Nope&!shadow&4attack,4defen\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": [
    true,
@@ -6664,7 +7089,7 @@
    [
     [
      "all",
-     55
+     56
     ]
    ]
   ],
@@ -6691,7 +7116,7 @@
    [
     [
      "all",
-     45
+     46
     ]
    ]
   ],
@@ -6700,7 +7125,7 @@
    [
     [
      "all",
-     39
+     40
     ]
    ]
   ],
@@ -6709,7 +7134,7 @@
    [
     [
      "all",
-     14
+     15
     ]
    ]
   ],
@@ -6727,7 +7152,7 @@
    [
     [
      "all",
-     38
+     39
     ]
    ]
   ],
@@ -6736,7 +7161,7 @@
    [
     [
      "all",
-     18
+     19
     ]
    ]
   ],
@@ -6745,77 +7170,162 @@
    [
     [
      "all",
-     27
+     28
     ]
    ]
   ],
   "Q&!#&!favorite&!traded&!shado\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": [
-   false,
-   []
+   true,
+   [
+    [
+     "start",
+     28
+    ]
+   ]
   ],
   "Q&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     51
+    ]
+   ]
   ],
   "Q1-151&countcandyxl0-359\t1-151&countcandyxl0-359": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     24
+    ]
+   ]
   ],
   "Q1-26,172&countcandyxl360-\t1-26,172&countcandyxl360-": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     26
+    ]
+   ]
   ],
   "Q144&3*,4*&!galar\t144&3*,4*&!galar": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     17
+    ]
+   ]
   ],
   "Q150&3*,4*&@flamethrower,@foc\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": [
-   false,
-   []
+   true,
+   [
+    [
+     "start",
+     28
+    ]
+   ]
   ],
   "Q150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     92
+    ]
+   ]
   ],
   "Q4&3*,4*&shadow\t4&3*,4*&shadow": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     15
+    ]
+   ]
   ],
   "Q530&3*,4*&shadow\t530&3*,4*&shadow": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     17
+    ]
+   ]
   ],
   "QPvpC\tPvpC": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     5
+    ]
+   ]
   ],
   "Qgiv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": [
-   false,
-   []
+   true,
+   [
+    [
+     "start",
+     28
+    ]
+   ]
   ],
   "Qgiv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy2500-": [
-   false,
-   []
+   true,
+   [
+    [
+     "start",
+     28
+    ]
+   ]
   ],
   "Qgiv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     39
+    ]
+   ]
   ],
   "Qgiv,xlx&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     38
+    ]
+   ]
   ],
   "Qgiv,xlx&distance100-&countca\tgiv,xlx&distance100-&countcandy0-2499": [
-   false,
-   []
+   true,
+   [
+    [
+     "start",
+     28
+    ]
+   ]
   ],
   "Qgiv,xlx&distance100-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     38
+    ]
+   ]
   ],
   "Qlucky&320&!costume\tlucky&320&!costume": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     19
+    ]
+   ]
   ],
   "Transfer,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": [
    true,
@@ -6881,16 +7391,31 @@
    ]
   ],
   "giv,x1x&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     38
+    ]
+   ]
   ],
   "giv,x1x&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     37
+    ]
+   ]
   ],
   "giv,x1x&distance100-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     37
+    ]
+   ]
   ],
   "giv,xl&distanceo-1i0&conntcandy\tgiv,xlx&distance0-100&countcandy0-2499": [
    false,
@@ -6955,8 +7480,13 @@
    ]
   ],
   "giv,xlx&distance0-100&countcandy0-2499x\tgiv,xlx&distance0-100&countcandy0-2499": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     39
+    ]
+   ]
   ],
   "giv,xlx&distance0-100&countcandy2500\tgiv,xlx&distance0-100&countcandy2500-": [
    true,
@@ -6981,16 +7511,31 @@
    ]
   ],
   "giv,xlx&distance0-100&countcandy2500-x\tgiv,xlx&distance0-100&countcandy2500-": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     38
+    ]
+   ]
   ],
   "giv,xlx&distance0-1008countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     38
+    ]
+   ]
   ],
   "giv,xlx&distance0-1008countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     37
+    ]
+   ]
   ],
   "giv,xlx&distance0100&countcandy02499\tgiv,xlx&distance0-100&countcandy0-2499": [
    false,
@@ -7045,32 +7590,67 @@
    ]
   ],
   "giv,xlx&distance100-&countcandy0-2499x\tgiv,xlx&distance100-&countcandy0-2499": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     38
+    ]
+   ]
   ],
   "giv,xlx&distance1oo-&countcandyo-2499\tgiv,xlx&distance100-&countcandy0-2499": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     37
+    ]
+   ]
   ],
   "giv,xlx&distanceo-1oo&countcandy25oo-\tgiv,xlx&distance0-100&countcandy2500-": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     37
+    ]
+   ]
   ],
   "giv,xlx&distanceo-1oo&countcandyo-2499\tgiv,xlx&distance0-100&countcandy0-2499": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     38
+    ]
+   ]
   ],
   "giv,xlx8distance0-1008countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     38
+    ]
+   ]
   ],
   "giv,xlx8distance0-1008countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     37
+    ]
+   ]
   ],
   "giv,xlx8distance100-8countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     37
+    ]
+   ]
   ],
   "iny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": [
    true,
@@ -7149,12 +7729,22 @@
    ]
   ],
   "lucky&320&!costumex\tlucky&320&!costume": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     19
+    ]
+   ]
   ],
   "lucky&320&.costume\tlucky&320&!costume": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     18
+    ]
+   ]
   ],
   "lucky&320&Icostume\tlucky&320&!costume": [
    true,
@@ -7188,16 +7778,31 @@
    ]
   ],
   "lucky&3208!costume\tlucky&320&!costume": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     18
+    ]
+   ]
   ],
   "lucky&32o&!costume\tlucky&320&!costume": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     18
+    ]
+   ]
   ],
   "lucky83208!costume\tlucky&320&!costume": [
-   false,
-   []
+   true,
+   [
+    [
+     "all",
+     18
+    ]
+   ]
   ],
   "nse&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": [
    true,

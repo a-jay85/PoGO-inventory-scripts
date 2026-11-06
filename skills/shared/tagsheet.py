@@ -26,7 +26,7 @@ def strict(got, q):
     The sharp read can drop a thin last letter ('...,!xx' for '...,!xxl') that the caller's read has: either read
     showing all of it counts."""
     reads = [got]
-    if ui.ANDROID:
+    if ui.ANDROID and ("!" in q or (bar_view(got, q) or ("",))[0] != "all"):  # the sharp read keeps the '!'s
         box = ui.search_box(ui.ocr(ui.android.sharp()))
         if box:  # (the search panel's bar isn't found that way: keep the caller's read)
             reads.insert(0, ui.search_text(box))
@@ -37,9 +37,26 @@ def strict(got, q):
     return True
 
 
+def bar_whole(got, q):
+    """this read of the bar is all of q, allowing for what OCR does: a '!' read as '.', ':' or 'l', a '&' as '8', a '*' as
+    '"', a 0 as an o (and back), an l as '|' or '/'. It can drop a '*' with more typed after it ('683,4&shadow'), but
+    a missing last one may be untyped: '3*,4' is dex 4"""
+    swaps = {"!": "[!.|il1:']", "&": "[&8a]", "*": '[*"]?', "0": "[0o]", "o": "[o0]", "l": "[l|1I/]"}
+    pat = lambda s: "".join('[*"]' if ch == "*" and k == len(s) - 1 else swaps.get(ch.lower()) or re.escape(ch)
+                            for k, ch in enumerate(s))
+    magnifier = r"(?:q|9|[^\w&!*]){0,3}?"  # the magnifier glued on in front (read as Q, 9, < or ,)
+    if re.fullmatch(magnifier + pat(q), got, flags=re.I):  # ...but one that's really gone leaves nothing there
+        return True
+    # the bar's (x) glued on at the end, a '*' or '*,' read twice ('530&3**,4*&shadowx', '144&3*,*,4*&!galar')
+    g2 = re.sub(r"(?:\*[,.])+\*,", "*,", re.sub(r"(?:\*,)+", "*,", re.sub(r"\*+", "*", re.sub(r"[x×⊗]$", "", got))))
+    return got != g2 and bar_whole(g2, q)
+
+
 def bar_view(got, q):
     """-> ('all' | 'end' | 'start', how many symbols) of q this read of the bar shows, or None"""
     s = re.sub(r"\s", "", got or "").lower()
+    if s and bar_whole(s, re.sub(r"\s", "", q)):
+        return "all", len(s)
     s = re.sub(r"^[<‹]?[q9]?(?=#)", "", s)  # the magnifier glued on
     s = re.sub(r"^[,.'`]+", "", s)  # the panel's cursor end can read as a stray ","
     Q = re.sub(r"\s", "", q).lower()
@@ -49,15 +66,17 @@ def bar_view(got, q):
     bang = re.sub(r"^[q9]?[il|]", "!", s)  # the end of a long search: a '!' at its start reads as 'I' or 'QI'
     if bang != s and len(s) >= 15 and Q.endswith(bang):
         s = bang
-    # the iPhone reads a '!' as 'l' anywhere ('!shadow&llucky'). Only where q has a '!': a lost one still fails (shorter)
-    same = lambda a, b: len(a) == len(b) and all(x == y or (y == "!" and x == "l") for x, y in zip(a, b))
+    # OCR's swaps, one symbol for one ('!shadow&llucky', '!xxl&!4"&:3"'). Only where q has that symbol: a lost one
+    # still fails (shorter)
+    swaps = {"!": "l.1:'", "&": "8a", "*": '"', "0": "o", "o": "0", "l": "1/"}
+    same = lambda a, b: len(a) == len(b) and all(x == y or x in swaps.get(y, "") for x, y in zip(a, b))
     if same(s, Q):
         return "all", len(s)
     if 15 <= len(s) < len(Q) and same(s, Q[-len(s):]):
         return "end", len(s)
     if 15 <= len(s) < len(Q) and same(s, Q[:len(s)]):
         return "start", len(s)
-    return None
+    return bar_view(s[1:], q) if s[:1] in ("q", "9", "<", "‹") else None  # the magnifier glued on a long search's start
 
 
 def ios_start(q):
@@ -85,20 +104,26 @@ def ios_start(q):
             return
 
 
-def search_exact(q):
+def search_exact(q, gap_ok=False):
+    """type q until the bar reads back all of it. -> the results' OCR texts.
+    gap_ok: a search too long for its start and end to meet may leave a middle unread, if there's no '!' in it. Only
+    for a search that just counts: one that tags goes through savedsearch.long_search, which checks every piece"""
     Q = re.sub(r"\s", "", q)
     for attempt in range(3):
         _views.clear()
-        search.start_search(q, check=strict)
+        _, texts, _ = search.start_search(q, check=strict)
+        def enough():
+            got.update((k, max(n for v, n in _views if v == k)) for k, _ in _views)
+            seen = got.get("start", 0) + got.get("end", 0)
+            return "all" in got or seen > len(Q) or (
+                gap_ok and seen and "!" not in Q[got.get("start", 0):len(Q) - got.get("end", 0)])
         got = {}
-        for k, n in _views:
-            got[k] = max(got.get(k, 0), n)
-        if not ui.ANDROID and "all" not in got and "start" not in got and got.get("end"):
-            ios_start(q)
-            for k, n in _views:
-                got[k] = max(got.get(k, 0), n)
-        if "all" in got or got.get("start", 0) + got.get("end", 0) > len(Q):
-            return
+        if enough():
+            return texts
+        if not ui.ANDROID and "start" not in got and got.get("end"):
+            ios_start(q)  # (costs about 10 s)
+            if enough():
+                return texts
         log(f"only part of {q!r} read back ({got}): typing it again")
     keep_capture("search")
     raise Stop(f"couldn't read back all of {q!r} in the search bar")

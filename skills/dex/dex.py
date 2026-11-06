@@ -31,7 +31,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import ui
 import base
 from base import Stop, log, keep_capture
-import home, search, session
+import home, search, session, tagsheet
 
 PAGES = {"lucky": "LUCKY", "100": "100%"}  # page -> its chip's label
 MAX_CHARS = 1000  # per search. The Pixel's search bar took 1,397 characters and failed at 1,497 (2026-10-21)
@@ -461,55 +461,16 @@ def covered(targets, counts, parent, by):
     return any(want <= set().union(*pick) for pick in itertools.product(*[[set()] + w for w in copies]))
 
 
-def bar_read(texts):
-    """the search bar's text, no spaces. OCR can split a long query in two boxes on the bar's line ('483*,' +
-    '4*&shadow'): join them"""
-    box = ui.search_box(texts)
-    if not box:
-        return ""
-    rest = sorted((t for t in texts if t is not box and t[0] > box[0] and abs(t[1] - box[1]) < 0.01), key=lambda t: t[0])
-    return re.sub(r"\s", "", ui.search_text(box) + "".join(t[4] for t in rest))
-
-
-def bar_holds(got, q):
-    """does the bar's read show q? A long q runs off one end of the bar: then what shows must be its start or its end,
-    and the hidden part can't hold a '!' (a lost one is what this guards against)"""
-    q = re.sub(r"\s", "", q)
-    # OCR reads a '!' as '.' or 'l', a '&' as '8', a '*' as '"', a 0 as an o, an l as '|' or '/'. It can drop a '*'
-    # with more typed after it ('683,4&shadow'), but a missing last one may be untyped: '3*,4' is dex 4
-    swaps = {"!": "[!.|il1]", "&": "[&8]", "*": '[*"]?', "0": "[0o]", "l": "[l|1I/]"}
-    pat = lambda s: "".join('[*"]' if ch == "*" and k == len(s) - 1 else swaps.get(ch) or re.escape(ch)
-                            for k, ch in enumerate(s))
-    magnifier = r"(?:q|9|[^\w&!*]){0,3}?"  # the magnifier glued on in front (read as Q, 9, < or ,)
-    if re.fullmatch(magnifier + pat(q), got, flags=re.I):  # ...but one that's really gone leaves nothing there
-        return True
-    if got != (g2 := re.sub(r"(?:\*[,.])+\*,", "*,", re.sub(r"(?:\*,)+", "*,", re.sub(r"\*+", "*", re.sub(r"[x×⊗]$", "", got))))) \
-            and bar_holds(g2, q):  # the bar's (x) glued on at the end, a '*' or '*,' read twice
-        return True  # ('530&3**,4*&shadowx', '144&3*,*,4*&!galar', '555&3*.*,4*&galar')
-    return any(re.fullmatch(magnifier + pat(q[:k]), got, flags=re.I) for k in range(len(q) - 1, 24, -1)
-               if "!" not in q[k:]) \
-        or any(re.fullmatch(magnifier + pat(q[k:]), got, flags=re.I) for k in range(1, len(q) - 24)
-               if "!" not in q[:k])  # ...or its start ran off, while it's being typed
-
-
 def search_exact(q):
     """type q and make sure the bar holds exactly q: a lost '!' would turn '!galar' into 'galar'. -> result count"""
     for attempt in range(3):
-        path, texts, bounds = search.start_search(q)
-        got, sharp = bar_read(texts), None
-        if "!" in q or not bar_holds(got, q):  # the sharp read keeps the '!'s: the normal one can lose them
-            sharp = ui.ocr(ui.android.sharp() if ui.ANDROID else ui.capture()[0])  # (no sharper picture on the iPhone)
-            reads = [bar_read(sharp), got]
-            got = next((g for g in reads if bar_holds(g, q)), reads[0])
-        if bar_holds(got, q):
-            for look_ in (lambda: texts, lambda: sharp, lambda: ui.ocr(ui.capture()[0])):
-                seen = look_()
-                n = search.result_count(seen) if seen is not None else None
-                if n is not None:
-                    return n
-            log(f"  {q}: can't read the result count: typing it again")
-            continue
-        log(f"search bar reads {got!r}, wanted exactly {q!r}: typing it again")
+        texts = tagsheet.search_exact(q, gap_ok=True)
+        for look_ in (lambda: texts, lambda: ui.ocr(ui.android.sharp() if ui.ANDROID else ui.capture()[0]),
+                      lambda: ui.ocr(ui.capture()[0])):
+            n = search.result_count(look_())
+            if n is not None:
+                return n
+        log(f"  {q}: can't read the result count: typing it again")
     keep_capture("search")
     raise Stop(f"couldn't search exactly {q!r}")
 

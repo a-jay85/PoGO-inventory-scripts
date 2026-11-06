@@ -62,6 +62,7 @@ let KEYS: [Character: (CGKeyCode, Bool)] = {
     k["&"] = (26, true)
     k["!"] = (18, true)
     k["#"] = (20, true)
+    k["@"] = (19, true)
     k["?"] = (44, true)
     k["$"] = (21, true)
     k[":"] = (41, true)

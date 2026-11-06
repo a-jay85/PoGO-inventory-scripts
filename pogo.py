@@ -34,6 +34,7 @@ STEPS = {
     "gift":        ("gift/gift.py", {"run", "look"}, set()),
     "trade":       ("trade/trade.py", {"run", "look", "restart"}, set()),
     "mega":        ("mega/mega.py", set(), set()),
+    "evo":         ("evo/evo.py", set(), set()),
     "roster":      ("roster/roster.py", {"count", "report"}, {"report"}),
     "gymfeed":     ("gymfeed/gymfeed.py", set(), set()),
     "account":     ("shared/account.py", {"HashTagAJay", "CyrillJan"}, set()),

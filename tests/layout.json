@@ -352,13 +352,15 @@
  "skills/evo/evo.py": {
   "copies": {},
   "names": [
+   "ANIMATION",
    "EVO",
-   "EVOLVE_WAIT",
    "EVO_FOR",
    "HERE",
    "SEARCH",
+   "SETTLE",
    "Stop",
    "TRADE_EVOS",
+   "X",
    "evolve_one",
    "evolve_row",
    "exact",
@@ -367,12 +369,10 @@
    "look",
    "main",
    "press",
-   "reopen_top",
    "script",
    "search_exact",
    "settled_tiles",
-   "wait_box",
-   "wait_evolved"
+   "wait_box"
   ],
   "runs": [
    "skills/evo/runs"

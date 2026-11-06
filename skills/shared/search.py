@@ -428,13 +428,22 @@ def result_count(texts):
             return int(m.group(1).replace(",", ""))
 
 
+def bar_read(texts):
+    """the search bar's text, no spaces. OCR can split a long query in two boxes on the bar's line ('483*,' +
+    '4*&shadow'): join them"""
+    box = ui.search_box(texts)
+    if not box:
+        return ""
+    rest = sorted((t for t in texts if t is not box and t[0] > box[0] and abs(t[1] - box[1]) < 0.01), key=lambda t: t[0])
+    return re.sub(r"\s", "", ui.search_text(box) + "".join(t[4] for t in rest))
+
+
 def panel_text(quick=False):
     """quick: no waiting for the looks' pace (for a loop that goes by the clock, not by how many looks it took)"""
     if quick:
         ui.last_look = None
     texts = ui.ocr(ui.capture()[0])
-    box = ui.search_box(texts)
-    return (ui.search_text(box) if box else ""), texts
+    return bar_read(texts), texts
 
 
 def bar_shows(got, q):

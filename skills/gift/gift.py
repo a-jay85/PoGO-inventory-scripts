@@ -68,7 +68,6 @@ ZONES = [  # farthest ahead of Pacific time first; "" (no zone) last picks up ev
 ]
 NICK_MAX = 12  # the game keeps the first 12 characters of a friend nickname
 TYPEABLE = re.compile(r"[A-Za-z0-9 .,&!#+/*^=?$:;-]*")  # what the helper's keyboard (and adb) can type
-X_BUTTON = (0.5, 0.937)  # the round X at the bottom middle (friend page, friendship screen, picker, gift preview)
 SORT_BUTTON = (0.85, 0.935)
 CLEAR_SEARCH = (0.86, 0.22)
 HEART_Y = 0.384 if ui.ANDROID else 0.397  # the five big hearts on the friendship screen
@@ -274,7 +273,7 @@ def drag(fy1, fy2, ms=500, x=None):
 
 
 def close():
-    tap(*X_BUTTON, fuzz=0.004)  # (the preview's SEND sits just above: keep the X tap tight)
+    tap(*base.X_BUTTON, fuzz=0.004)  # (the preview's SEND sits just above: keep the X tap tight)
     time.sleep(1.0)
 
 
@@ -945,7 +944,7 @@ def send_gift():
             for tries in range(2):
                 tap_text(send, rest=0)
                 if sent_away(send, button):  # SEND is gone and the gift flies off: an X right now skips the animation
-                    tap(*X_BUTTON, fuzz=0.004, rest=0)
+                    tap(*base.X_BUTTON, fuzz=0.004, rest=0)
                 with base.changing("sending a gift"):  # (the gift may be gone: a lost screen stops the run, no retry)
                     s = wait("friend", "picker", "preview", "unknown", "blank", timeout=8 * LAG)
                 for _ in range(int(10 * LAG)):

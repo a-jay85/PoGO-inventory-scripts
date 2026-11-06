@@ -243,7 +243,7 @@ def close_sheet():
             if not any(t[4].strip().endswith("Mega Level") for t in texts):  # the X there would close the Pokémon too
                 keep_capture("notsheet")
                 raise Stop(f"not on the Mega level page: {' | '.join(t[4] for t in texts)[:200]}")
-            base.click(0.5, 0.937, bounds)
+            base.tap_x(bounds)
         for _ in range(15):
             time.sleep(0.15)
             screen, texts, _, _ = look()
@@ -382,7 +382,7 @@ def finish():
             if ui.ANDROID:
                 ui.android.key("back")
             else:
-                base.click(0.5, 0.937, bounds)
+                base.tap_x(bounds)
             time.sleep(1.0)
             continue
         s = sheet(texts)

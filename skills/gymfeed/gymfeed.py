@@ -38,7 +38,6 @@ from base import Stop, log, keep_capture
 import home, session
 
 PHONE = "android" if ui.ANDROID else "iphone"
-X_BUTTON = (0.5, 0.937)  # the round X at the bottom middle: closes a Pokémon, the gym, the badge, the badge list
 SORT_BUTTON = (0.85, 0.93)  # the badge list's sort button, bottom right; its menu's X sits in the same spot
 BERRY = (0.5, 0.80)  # the floating berry on a gym Pokémon's page
 BERRY_MENU = (0.12, 0.90)  # the round berry button at its lower left: opens the BERRIES menu (Pixel, 2026-10-28)
@@ -323,7 +322,7 @@ def to_badge_list():
         if screen == "badgelist":
             return
         if screen in ("feed", "gymview", "badge", "sortmenu"):
-            base.click(*(SORT_BUTTON if screen == "sortmenu" else X_BUTTON), bounds, fuzz=0.006)
+            base.click(*(SORT_BUTTON if screen == "sortmenu" else base.X_BUTTON), bounds, fuzz=0.006)
             time.sleep(1.5)
         elif screen == "profile":
             gb = [t for t in texts if ui.norm(t[4]) == "GYM BADGES"]
@@ -351,11 +350,11 @@ def to_badge_list():
             if ui.ANDROID:
                 ui.android.key("back")
             else:
-                base.click(*X_BUTTON, bounds)
+                base.tap_x(bounds)
             time.sleep(1.5)
         elif screen in ("list", "tag-tab") or screen in home.OPEN:
             home.start(storage=True)  # the Pokémon screens: out to the map the known way
-            base.click(*X_BUTTON, base.look()[3])
+            base.tap_x(base.look()[3])
             time.sleep(1.5)
         elif screen == "exit":
             home.press_text(texts, bounds, "CANCEL")
@@ -529,7 +528,7 @@ def open_at(cx, cy, bounds, seen):
         if me not in seen:
             return drop
         log(f"    tap {cx:.2f},{cy + drop:.2f}: {me[0]} again")
-        base.click(*X_BUTTON, look()[3], fuzz=0.006)  # one already fed: the tap went to the one in front
+        base.tap_x(look()[3], fuzz=0.006)  # one already fed: the tap went to the one in front
         _, _, _, bounds = base.wait_for("gymview", look=look, timeout=8)
         time.sleep(0.8)
     return None
@@ -556,7 +555,7 @@ def gym(total, limit):
             if drop != TAP_DROPS[0]:
                 missed.append((cx, cy))  # unsure it's this label's one
             fed += feed_here(seen, total + fed, limit)
-            base.click(*X_BUTTON, look()[3], fuzz=0.006)
+            base.tap_x(look()[3], fuzz=0.006)
             _, _, _, bounds = base.wait_for("gymview", look=look, timeout=8)
             time.sleep(0.8)
         if len(seen) >= n or not missed:
@@ -577,7 +576,7 @@ def gym(total, limit):
     else:
         return fed
     fed += explore(seen, n, total + fed, limit)
-    base.click(*X_BUTTON, look()[3], fuzz=0.006)
+    base.tap_x(look()[3], fuzz=0.006)
     base.wait_for("gymview", look=look, timeout=8)
     return fed
 
@@ -674,7 +673,7 @@ def script(limit):
         screen, _, _, bounds = look()
         if screen not in ("badgelist", "profile"):
             break
-        base.click(*X_BUTTON, bounds, fuzz=0.006)
+        base.tap_x(bounds, fuzz=0.006)
         time.sleep(1.5)
 
 

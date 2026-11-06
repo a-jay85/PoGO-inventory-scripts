@@ -132,7 +132,7 @@ def run_shortcut(name, suffix=""):
         _, texts, _, bounds = look()
         if any("MANAGE FAVORITE" in ui.norm(u[4]) for u in texts):  # the tap landed as a long press
             log(f"{name}: the shortcut tap was a long press: again")
-            search.click(0.5, 0.937, bounds)  # the box's X
+            base.tap_x(bounds)  # the box's X
             time.sleep(1.0)
             continue
         got = results(texts)

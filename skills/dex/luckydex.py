@@ -36,7 +36,6 @@ SEE = (0.88, 0.234)  # See More / See Less, right of the panel's header
 RECENT_X = 0.165  # the leftmost (newest) Recent search
 BUTTON_UP = 0.055  # a shortcut's round button sits this far above its label
 HOLD_MS = 900
-BOX_X = (0.5, 0.937)  # the round X that closes the Manage Favorite Search box
 TOO_MANY = savedsearch.key("too many search")  # 'You have too many search queries favorited...', a banner for a few seconds
 
 
@@ -79,7 +78,7 @@ def view(want):
         time.sleep(0.6)
         texts, bounds = read()
         if any(ui.norm(t[4]) == "MANAGE FAVORITE SEARCH" for t in texts):
-            search.click(*BOX_X, bounds)
+            base.tap_x(bounds)  # closes the Manage Favorite Search box
             continue
         if TOO_MANY in savedsearch.key(ui.joined(texts)):  # 12 already. Its banner blurs the labels under it: wait it out
             log("  the game says there are too many favorites")

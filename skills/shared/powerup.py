@@ -163,7 +163,7 @@ def read_dialog(cp, after=None):
         dust = next((int(m.group(1).replace(",", "")) for t in texts if line[1] + 0.02 < t[1] < line[1] + 0.075
                      and (m := re.fullmatch(r"\D{0,3}?(\d{1,2},\d{3}|\d{3})", t[4].strip()))), None)
         plus = [t for t in texts if t[4].strip() == "+" and t[0] > 0.6 and line[1] < t[1] < ok[0][1]]
-        if not plus and ui.ANDROID:  # the thin + on its pale ring mostly goes unread: it sits right of the cost.
+        if not plus:  # the thin + on its pale ring mostly goes unread: it sits right of the cost.
             plus = [(0.723, line[1] + 0.058, 0.073, 0.04, "+?")]  # more() checks the CP moved
         return b, dust, ok[0], no[0], plus[0] if plus else None, bounds, head[4]
     keep_capture("powerdialog")
@@ -226,9 +226,9 @@ def steps(cands):
 def power_up(info, texts, levels=None):
     """1-2 power-ups if this one sits right under an XL tier. -> power-ups made. Raise Pass to leave it.
     Its level comes from the dialog: + adds a power-up, and each total (CP after, Stardust) rules levels out.
-    levels: the caller's, used when the page's cost doesn't read"""
+    levels: the caller's (its IVs, CP and HP can name the one level): narrows the cost's, or stands in when it doesn't read"""
     cost, lvs = cost_levels(texts, info["cp"])
-    lvs = lvs or sorted(levels or ())
+    lvs = sorted(set(lvs) & set(levels or ())) or lvs or sorted(levels or ())
     if not lvs:
         raise Unsure(f"can't read the power-up cost ({cost})")
     if not any(math.floor(lv) in PLAYS for lv in lvs):  # the cost rules out every play: no taps
@@ -245,6 +245,7 @@ def power_up(info, texts, levels=None):
     d = dialog(info)
     rows = [(1, d[0], d[1])]
     cands = [c for c in candidates(species, info["hp"], cp, d[0]) if fits(c, rows)]
+    cands = [c for c in cands if c[2] in lvs] or cands  # (a level already known needs no + to find it)
     while len(steps(cands)) > 1 and len(rows) < MAX_PLUS + 1:  # a play for some levels only: one more +
         d = more(cp, d)
         rows.append((len(rows) + 1, d[0], d[1]))

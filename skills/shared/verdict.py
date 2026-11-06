@@ -58,6 +58,7 @@ FUSED = ("kyurem_black", "kyurem_white", "necrozma_dusk_mane", "necrozma_dawn_wi
 TRADE_BY_HAND = {"meltan", "melmetal"}  # mythical, but trades.py retags them like a legendary
 OWN_TAGS = ("Old", EVO, "GuaranteedLucky")  # untraded with one of these: it stays, only IVC / PvpC comes off
 TRADE_TAGS = ("GIV", "XLX", "2XL", "Reroll", "Old", "Special", "GuaranteedLucky")  # "trade it": off a traded one
+IGNORED_TAGS = ("CPD",)  # as if these tags weren't there: no rule reads them, none takes them off (the user, 2026-11-05)
 STALE_DAYS = 7  # a species list for HashTagAJay older than this counts as missing
 OVER_93 = 42  # a costume one at 93%+ (42 of 45) is named and a favorite (the user, 2026-11-02)
 TRADE_EVO_DEX = {int(d) for d in TRADE_EVOS.split(",")}  # evolve free once traded
@@ -164,6 +165,7 @@ def canon(t):
 
 def final_tag(f, t, today=None):
     """f: Facts. t: tables(TO[f.account]). -> Verdict"""
+    f = replace(f, other_tags=[x for x in f.other_tags if x.strip().upper() not in IGNORED_TAGS])
     if f.size == "xxl":  # first: shiny() below hides a traded one's tags, and no other rule applies
         return xxl(f)
     if not f.shiny:

@@ -19,6 +19,9 @@ most, so it goes where the candy is needed (under 2,500): PLANS, first one with 
 When only 0-100km ones are left on both, they're traded with each other, the species with 2,500+ candy first. Then it stops, and the 100+km ones are kept
 for another day. At most 99 trades a day (one is left for a special trade by hand), counted in .state.json;
 --done N says N were already made today. --limit N: at most N trades this run (default 48).
+Fridays are Friendship Fridays: every trade gives 2 Candy XL and double the lucky odds, so a Friday run trades only
+the ones tagged 2XL, on both phones. The rules above stay, with #2xl in place of giv,xlx. No GIV or XLX on a Friday,
+and no 2XL any other day. A run stops at midnight if that changes what it may trade.
 Log and captures go in runs/<time>/.
 
 Keep both phones on and both games open. A long pause on the iPhone during a trade can let the game's trade timer run
@@ -43,24 +46,39 @@ from session import TROUBLE
 STATE = os.path.join(HERE, ".state.json")
 PER_DAY = 99  # the game allows 100: one is kept for a special trade made by hand
 PER_RUN = 48  # a run makes at most this many (--limit): two runs (96) stay under PER_DAY, one leaves trades for other friends
-NEAR, FAR = "giv,xlx&distance0-100", "giv,xlx&distance100-"  # the two piles
-SAVED = {NEAR: "0-100km", FAR: "100+km"}  # their saved searches, on both accounts
 NEED = "&countcandy0-2499"  # typed after a pile: only species this account has under 2,500 candy of
-# typed: the 0-100km ones of species this account has 2,500+ candy of. A long search doesn't fit in the bar: the
-# iPhone shows its end, the Pixel its first ~30 characters. So the candy part goes last on the iPhone and right after
-# the distance on the Pixel: NEAR + NEED and NEAR + "&countcandy2500-" look the same for 30 characters
-RICH_I = NEAR + "&countcandy2500-"
-RICH_A = "distance0-100&countcandy2500-&giv,xlx"
-# (iPhone search, Android search, why), in order: the first with Pokémon left on both phones is traded. Each account
-# gets candy for the one it sends, so a needy search keeps the far-apart bonus for species that account needs.
-# 0-100km with 0-100km trades the 2,500+ candy ones first: the needy 0-100km ones are kept for a far-apart pair later
-PLANS = [(NEAR + NEED, FAR + NEED, "both need the candy"), (FAR + NEED, NEAR + NEED, "both need the candy"),
-         (NEAR + NEED, FAR, "HashTagAJay needs the candy"), (FAR + NEED, NEAR, "HashTagAJay needs the candy"),
-         (NEAR, FAR + NEED, "CyrillJan needs the candy"), (FAR, NEAR + NEED, "CyrillJan needs the candy"),
-         (RICH_I, RICH_A, "0-100km with 0-100km, both 2,500+ candy"),
-         (RICH_I, NEAR, "0-100km with 0-100km, HashTagAJay's 2,500+ candy"),
-         (NEAR, RICH_A, "0-100km with 0-100km, CyrillJan's 2,500+ candy"),
-         (NEAR, NEAR, "0-100km with 0-100km")]  # no far-apart bonus: the 100+km ones are kept for another day
+
+
+def set_piles(tags, saved):
+    """what this run trades: the two piles (their saved searches, on both accounts, if they have them) and PLANS.
+    NEAR: 0-100 km, FAR: 100+ km. RICH_I, RICH_A: the 0-100km ones of species this account has 2,500+ candy of. A long
+    search doesn't fit in the bar: the iPhone shows its end, the Pixel its first ~30 characters. So the candy part goes
+    last on the iPhone and right after the distance on the Pixel: NEAR + NEED and NEAR + "&countcandy2500-" look the
+    same for 30 characters.
+    PLANS: (iPhone search, Android search, why), in order: the first with Pokémon left on both phones is traded. Each
+    account gets candy for the one it sends, so a needy search keeps the far-apart bonus for species that account needs.
+    0-100km with 0-100km trades the 2,500+ candy ones first: the needy 0-100km ones are kept for a far-apart pair later"""
+    global NEAR, FAR, SAVED, RICH_I, RICH_A, PLANS
+    NEAR, FAR = f"{tags}&distance0-100", f"{tags}&distance100-"
+    SAVED = {NEAR: "0-100km", FAR: "100+km"} if saved else {}
+    RICH_I = NEAR + "&countcandy2500-"
+    RICH_A = f"distance0-100&countcandy2500-&{tags}"
+    PLANS = [(NEAR + NEED, FAR + NEED, "both need the candy"), (FAR + NEED, NEAR + NEED, "both need the candy"),
+             (NEAR + NEED, FAR, "HashTagAJay needs the candy"), (FAR + NEED, NEAR, "HashTagAJay needs the candy"),
+             (NEAR, FAR + NEED, "CyrillJan needs the candy"), (FAR, NEAR + NEED, "CyrillJan needs the candy"),
+             (RICH_I, RICH_A, "0-100km with 0-100km, both 2,500+ candy"),
+             (RICH_I, NEAR, "0-100km with 0-100km, HashTagAJay's 2,500+ candy"),
+             (NEAR, RICH_A, "0-100km with 0-100km, CyrillJan's 2,500+ candy"),
+             (NEAR, NEAR, "0-100km with 0-100km")]  # no far-apart bonus: the 100+km ones are kept for another day
+
+
+set_piles("giv,xlx", saved=True)  # main() switches a Friday run to #2xl, typed
+
+
+def friendship_friday():
+    return datetime.date.today().weekday() == 4
+
+
 MIN_KM = 100
 EARTH_KM = 20040  # the farthest two spots on Earth can be apart
 SKIPS = 3  # pairs caught under MIN_KM apart: how many of the Android's next ones to try before stopping
@@ -115,6 +133,7 @@ class Phone:
         self.live = False  # in a trade: from here an "expired" box means start the trade over
         self.stale = False  # a pause changed the screen under a tap: nothing more is sent until the next look
         self.landed = None  # when this phone's last result screen showed
+        self.ran = None  # the search this run last put on. A long one left from before can look like another in the bar
 
     def call(self, **req):
         self.proc.stdin.write(json.dumps(req) + "\n")
@@ -540,7 +559,7 @@ def in_bar(p, q):
     'distance100'), and reads a '&' after a digit as an 8 or a 0 as an o. A long search doesn't fit in the bar: the
     Pixel shows its first ~30 characters, the iPhone its last. Either counts once it's past where they all differ.
     A worse read still counts when it's clearly closest to q of this phone's searches (near_bar)"""
-    got, want = same_l(bar(p) or "").replace("-", ""), same_l(q).replace("-", "")
+    got, want = same_l(bar(p) or "").replace("-", ""), same_l(q).replace("-", "").lstrip("#")  # (a '#' can read as a 9)
     if 0 < got.find(want[:3]) <= 2:
         got = got[got.find(want[:3]):]  # (the magnifier can read as a letter or two in front)
     for g in (got, got[1:]):
@@ -652,14 +671,16 @@ def type_search(p, q):
 
 def search_for(p, q):
     """q's results in the picker, its saved shortcut or typed. The last trade's search stays on in the list: then
-    nothing to run again. -> how many it found"""
+    nothing to run again. One left from before this run is run again: its end can match q while its tag doesn't (a
+    Thursday search's end on a Friday). -> how many it found"""
     p.look()
-    n = shown(p, q)
+    n = shown(p, q) if p.ran == q else None
     if n is None and q in SAVED:
         open_panel(p)
         n = pick_pile(p, q)
     elif n is None:
         n = type_search(p, q)
+    p.ran = q
     log(f"{p.name}: {q} ({n})")
     return n
 
@@ -1056,9 +1077,16 @@ def main():
             log(f"{p.name}: Pokémon GO up, on {p.start()}")
         if a.done is not None:
             set_made(a.done)
+        friday = friendship_friday()
+        if friday:
+            set_piles("#2xl", saved=False)
+            log("Friendship Friday: only the ones tagged 2XL")
         made, n, specials, expired, fresh = made_today(), 0, {}, 0, False
         log(f"{made} trades made today so far, {PER_DAY} a day; this run: at most {a.limit}")
         while n < a.limit:
+            if friendship_friday() != friday:
+                log("midnight: what can be traded changed. Start the run again")
+                break
             if made_today() >= PER_DAY:
                 log(f"{PER_DAY} trades today: done for the day")
                 break
@@ -1075,14 +1103,14 @@ def main():
                 continue
             expired, fresh = 0, False
             if not got:
-                log("no pairs left (the 100+km ones are kept for another day): done")
+                log(f"no {'2XL ' if friday else ''}pairs left (the 100+km ones are kept for another day): done")
                 break
             set_made(made_today() + 1)  # counted once both have confirmed: a missed result screen never undercounts
             n += 1
             names, d, candy = got
             log(f"trade {made_today()} today: {names[0]} (iPhone) <-> {names[1]} (Android), {d:,.1f} km, {candy} candy")
             try:
-                finish(phones, n < a.limit and made_today() < PER_DAY)
+                finish(phones, n < a.limit and made_today() < PER_DAY and friendship_friday() == friday)
             except Lost as e:  # both confirmed: the trade went through, only its result screens are left
                 log(f"{e}: the trade went through")
                 reconnect(phones)

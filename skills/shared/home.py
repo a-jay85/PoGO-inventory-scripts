@@ -350,6 +350,12 @@ def start(storage=True):
             raise Stop("the phone says Pokémon GO isn't responding: close it by hand")
         elif screen == "unknown" and challenge_invite(texts, bounds):
             pass
+        elif screen == "unknown" and base.friend_card(texts):
+            base.close_friend_card(bounds)
+        elif screen == "unknown" and storage and "SEND GIFT" in ui.joined(texts):  # /trade and /gift can end here, and
+            log("  on a friend's page: closing it")  # the iPhone has no Back key: the X, then the profile's X below
+            base.tap_x(bounds)
+            time.sleep(1.5)
         elif screen == "unknown" and storage and (profile(texts) or ui.profile_tabs(texts)):  # a stop or a reopen left
             log("  on the profile: closing it")  # the profile up (any of its tabs): its X
             base.tap_x(bounds)

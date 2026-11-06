@@ -2,7 +2,7 @@
 """Evolve every free trade evolution tagged Evo, as fast as the game lets it. CyrillJan on the Pixel only: the Mac stays
 free, and HashTagAJay doesn't need the XP.
 
-  POGO_PHONE=android caffeinate -dimsu python3 evo.py [--limit N] [--dry-run]
+  POGO_PHONE=android caffeinate -dimsu python3 evo.py [--limit N] [--dry-run] [--here] [--candy]
 
 Signed in as HashTagAJay: it switches to CyrillJan first, and the phone stays on CyrillJan after. A Lucky Egg is up to
 the user: switch first (pogo.py account CyrillJan), pop it, then run this.
@@ -10,12 +10,15 @@ the user: switch first (pogo.py account CyrillJan), pop it, then run this.
 The search is rules.EVO + evolve + traded + !xxl + rules.TRADE_EVOS (dex numbers), sorted by RECENT. An evolved one isn't one
 of those numbers any more, so it drops out, and the top tile is the next one each time.
 
-For each one: open the top tile, read the EVOLVE row, tap it, YES, wait for the animation, back to the list.
+For each one: read the EVOLVE row, tap it, read YES, tap it, wait out the animation, X, the top tile. Only two looks: the
+EVOLVE row moves with the page's rows, and YES moves with the box (0.60, 0.70, 0.74 seen, with NO right under it).
 It stops rather than guesses:
-- A cost on the EVOLVE row: this search should only find free ones, so no candy is ever spent.
-- No EVOLVE row: the list still shows an evolved one. It searches again once, then stops.
-- A screen it doesn't know after the animation (keeps a capture in the run folder).
+- A cost on the EVOLVE row: this search should only find free ones, so no candy is spent unless --candy says so.
+- No EVOLVE row: the list is empty, still shows an evolved one, or a tap was lost. It searches again once, then stops.
+- Anything else in the way after the animation (a level-up, a medal) shows up as no EVOLVE row: the same new search, then
+  a stop with a capture in the run folder.
 
+--here starts from the Pokémon list on screen (a tag's list, your own search) as it is. It doesn't check the account.
 --dry-run goes as far as the YES / NO box for the top one and taps NO. It still taps the phone.
 Log in runs/<time>-android/log.txt.
 """
@@ -27,12 +30,14 @@ import ui
 import base
 from base import Stop, log, keep_capture, look
 import search, session, home, account
-from taps import exact, press, reopen_top, settled_tiles
+from taps import exact, press, settled_tiles
 from tagsheet import search_exact
 from rules import EVO, EVO_FOR, TRADE_EVOS
 
 SEARCH = f"#{EVO}&evolve&traded&!xxl&{TRADE_EVOS}"  # an XXL one stays as it is (the user, 2026-11-05)
-EVOLVE_WAIT = 45  # seconds from YES to the evolved one's page
+ANIMATION = 18.3  # YES to the evolved one's page: 18.2 s, every species (the user's run, 2026-11-05)
+X = (0.5, 0.937)  # the detail page's round X, bottom middle
+SETTLE = 0.4  # after a tap, for the page or box to stop moving: one look then is enough (each look is about 0.4 s)
 
 
 def evolve_row(texts):
@@ -48,86 +53,89 @@ def evolve_row(texts):
 
 
 def wait_box():
-    """after the EVOLVE tap: the YES / NO box -> (texts, bounds). Never wait_for here: it says NO to this box"""
+    """after the EVOLVE tap: the "want to evolve" box -> (texts, bounds). Its height changes (Karrablast's has a league
+    warning), so YES is read, once it has grown in. A Power Up box has YES / NO too: never that one.
+    Never wait_for here: it says NO to this box"""
+    time.sleep(SETTLE)
     for _ in range(30):
-        time.sleep(0.1)
         _, texts, _, bounds = look()
-        if len(exact(texts, "YES")) == 1 and len(exact(texts, "NO")) == 1:
+        if len(exact(texts, "YES")) == 1 and len(exact(texts, "NO")) == 1 and "WANT TO EVOLVE" in ui.joined(texts):
             return texts, bounds
+        time.sleep(0.05)
     keep_capture("nobox")
-    raise Stop("no YES / NO box after EVOLVE")
+    raise Stop("no 'want to evolve' box after EVOLVE")
 
 
-def wait_evolved(name):
-    """after YES: the page of the evolved one, which has no EVOLVE row. Logs each new kind of screen on the way"""
-    t0, end, seen = time.time(), time.time() + EVOLVE_WAIT, None
-    while time.time() < end:
-        time.sleep(0.1)
-        try:
-            screen, texts, _, bounds = look()
-        except ui.Refused:
-            continue
-        if screen != seen:
-            seen = screen
-            log(f"  {time.time() - t0:.1f}s: {screen}: {ui.summary(texts, 80)}")
-        if screen == "detail" and not evolve_row(texts) and any(ui.norm(t[4]).startswith("POWER UP") for t in texts):
-            log(f"  {name}: evolved in {time.time() - t0:.1f}s")
-            return
-    keep_capture("afterevolve")
-    raise Stop(f"{name}: no evolved page {EVOLVE_WAIT} s after YES, last screen {seen}: check by hand")
-
-
-def evolve_one(dry):
-    """on the page of one to evolve. -> False when it has no EVOLVE row"""
-    for _ in range(10):  # the page slides in
+def evolve_one(dry, candy):
+    """on the page of one to evolve, or just tapped. -> the page's bounds, or None when it has no EVOLVE row. Its place
+    moves with the page's rows (0.863 to 0.948), so it's read each time"""
+    time.sleep(SETTLE)
+    for _ in range(6):
         screen, texts, _, bounds = look()
         got = evolve_row(texts) if screen == "detail" else None
         if got:
             break
-        time.sleep(0.1)
+        time.sleep(0.05)
     else:
-        return False
+        return None
     name = ui.detail_info(texts)["name"]
     box, cost = got
-    if cost:
+    if cost and not candy:
         keep_capture("cost")
-        raise Stop(f"{name}: its EVOLVE costs {cost}: this search should only find free ones")
+        raise Stop(f"{name}: its EVOLVE costs {cost}: this search should only find free ones (--candy spends it)")
+    log(f"  {name}: EVOLVE at {box[1]:.3f}, {cost} candy")
     press(box, bounds)
     texts, bounds = wait_box()
     if dry:
         log(f"  DRY: {ui.summary(texts, 200)}")
         press(exact(texts, "NO")[0], bounds)
-        return True
+        return bounds
     press(exact(texts, "YES")[0], bounds)
-    wait_evolved(name)
-    return True
+    time.sleep(ANIMATION)
+    return bounds
 
 
-def script(limit, dry):
+def script(limit, dry, here, candy):
     if not ui.ANDROID:
         raise Stop("evo.py is Pixel only: POGO_PHONE=android")
-    who = home.trainer()
-    if who != EVO_FOR:
-        account.switch(EVO_FOR)
-    base.start()
-    search_exact(SEARCH)
-    if not settled_tiles():
-        log(f"nothing in {SEARCH}")
-        return
-    _, texts, _, bounds = look()
-    log(f"{SEARCH}: {search.result_count(texts)} to evolve")
-    search.sort_by("RECENT", bounds)
+    if here:
+        session.ready()
+        if look()[0] == "detail":  # left open on one: its list is under it
+            base.go("close", "list")
+    else:
+        who = home.trainer()
+        if who != EVO_FOR:
+            account.switch(EVO_FOR)
+        base.start()
+        search_exact(SEARCH)
+        if not settled_tiles():
+            log(f"nothing in {SEARCH}")
+            return
+        _, texts, _, bounds = look()
+        log(f"{SEARCH}: {search.result_count(texts)} to evolve")
+        search.sort_by("RECENT", bounds)
+    screen, texts, _, bounds = look()
+    if not ui.tiles(texts):
+        keep_capture("nolist")
+        raise Stop(f"no Pokémon list on screen ('{screen}')")
+    spot = ui.tiles(texts)[0][2:]  # the top tile. It doesn't move while the list stays at the top
     base.go("tile 1", "detail")
     done, retried = 0, False
     t0 = time.time()
     while done < limit:
-        if not evolve_one(dry):
+        page = evolve_one(dry, candy)
+        if not page:
+            if here:
+                log("no EVOLVE row: the list on screen is done, or something's in the way")
+                keep_capture("noevolve")
+                break
             if retried:
                 keep_capture("noevolve")
                 raise Stop("the top tile has no EVOLVE row, after a new search too")
-            log("  no EVOLVE row: the list didn't update. Searching again")
+            log("  no EVOLVE row: searching again")  # the list is empty, didn't update, or a tap was lost
             retried = True
-            base.go("close", "list")
+            if look()[0] != "list":
+                base.go("close", "list")
             search_exact(SEARCH)
             if not settled_tiles():
                 break
@@ -136,18 +144,23 @@ def script(limit, dry):
         retried = False
         done += 1
         log(f"{done} done, {(time.time() - t0) / done:.1f}s each")
-        if dry or done >= limit or not reopen_top():
+        if dry or done >= limit:
             break
-    log(f"done: {done} {'looked at' if dry else 'evolved'}")
+        base.click(*X, page)  # no looks here: the next page's read checks it all, as the taps can do no harm
+        time.sleep(0.45)
+        base.click(*spot, page)
+    log(f"done: {done} {'looked at' if dry else 'YES tapped'}")
 
 
 def main():
     ap = argparse.ArgumentParser(usage=__doc__)
     ap.add_argument("--limit", type=int, default=10 ** 9, help="at most N evolutions this run")
     ap.add_argument("--dry-run", action="store_true", help="the top one, up to the YES / NO box, then NO")
+    ap.add_argument("--candy", action="store_true", help="evolve the ones that cost candy too")
+    ap.add_argument("--here", action="store_true", help="the list on screen: no account check, search or sort")
     a = ap.parse_args()
     base.new_run_dir(os.path.join(HERE, "runs"), suffix="android")
-    session.main(script, a.limit, a.dry_run)
+    session.main(script, a.limit, a.dry_run, a.here, a.candy)
 
 
 if __name__ == "__main__":

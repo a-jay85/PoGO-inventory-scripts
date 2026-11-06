@@ -10,6 +10,10 @@ Sources, fetched 2026-10-08:
 
 The bug notes come from Leidwesen. They haven't been tested on the phone.
 
+## A blank list can be a search the game never ran
+
+A search typed fast can land with the bar right and nothing on the list. Friend searches do it too. An A and a delete, then Return, make the game run it again (`search.nudge_bar`). Typed searches through the shared code do this on their own, so only a 0 after that counts as a real 0. New code that types a search goes through `start_search`, or calls `nudge_bar` when it gets no results.
+
 ## How a search is read
 
 - Case doesn't matter. Spaces don't matter, except inside names, move names and tags.

@@ -136,6 +136,10 @@ def run_shortcut(name, suffix=""):
             time.sleep(1.0)
             continue
         got = results(texts)
+        if got == 0:  # (its label says there are some: n == 0 stopped above)
+            if search.rerun_blank(None, bounds) is None:
+                continue
+            got = results()
         if not suffix:
             log(f"{name}: {got}")
             return got
@@ -182,7 +186,7 @@ def append(suffix, bounds=None, before=None):
             texts = ui.ocr(ui.android.sharp()) if ui.ANDROID and i % 2 else ui.ocr(ui.capture()[0])
             if any(same_l(t[4]).endswith(want) for t in texts):
                 base.key("return")
-                return True
+                return search.unblank(suffix, bounds)
         if attempt or not old or not any(same_l(t[4]).endswith(old) for t in texts):
             break
         log(f"  {suffix!r} didn't land in the bar: typing it again")

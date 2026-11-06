@@ -255,7 +255,10 @@ class Door:
             base.drag(0.08, 0.75, 0.08, 0.2, bounds)  # down the left edge: no buttons there
             _, t, p, _ = base.look()
             shots.append((t, p))
-            reads = tagsheet.scrolled_bottom(bounds, drags=1)
+            if ui.ANDROID and pagefacts.at_bottom(t):  # most pages are this short: a second drag would change nothing
+                reads = [t, ui.ocr(ui.android.sharp())]
+            else:
+                reads = tagsheet.scrolled_bottom(bounds, drags=1)
         finally:
             tagsheet.back_to_top(me, bounds)
         xl = next((n for t, p in shots if (n := pagefacts.candy_xl(t)) is not None), None)

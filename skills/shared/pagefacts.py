@@ -6,6 +6,7 @@
   candy_xl(texts)          the Candy XL count on the page's top half (the number over "CANDY XL")
   bottom(reads)            the page's bottom: traded ("OBTAINED IN A TRADE"), the catch or hatch place, in
                            California or not (not: 100 km+ away, like the distance100- search)
+  at_bottom(texts)         the page has stopped at its bottom and the caught date shows: no more drags needed
 
 Each says None when it can't tell. Pixel sizes are the Android capture's (406 px wide): other sizes are scaled.
 Taught 2026-10-31 on Pixel captures: shiny tiles score 56-62 sparkle pixels (others 0). Background: retaught
@@ -16,6 +17,7 @@ import re
 import ui
 
 CAP_W = 406  # the Android capture's width, that the boxes below are measured in
+SWAP_AT_BOTTOM = (0.822, 0.832)  # how far down the SWAP BUDDIES row sits at the page's bottom (read 0.827-0.829)
 COLUMNS = (0.185, 0.5, 0.815)  # the list's three tile columns' middles (fractions of the width)
 
 # shiny: dark teal sparkle pixels left of the sprite, under the CP. Machamp's blue doesn't pass (g - r too small)
@@ -178,6 +180,16 @@ def candy_xl_close(path, texts=None):
     crop.save(tmp)
     k = (bottom - top) / H  # back to the whole page's fractions
     return candy_xl([(t[0], top / H + t[1] * k, t[2], t[3] * k, t[4]) for t in ui.ocr(tmp)])
+
+
+def at_bottom(texts):
+    """Pixel: SWAP BUDDIES at its resting height, with the caught or hatched box and a date below that box. Seen on 58
+    pages of every kind, 2026-11-06: the row never moved again once it read here, and one drag short it read lower
+    (0.834 and down), so it showing isn't enough. Your buddy's own page has no such button (False: the caller drags as
+    it always did). The iPhone's height wasn't measured"""
+    swap = any("SWAP BUDDIES" in ui.norm(t[4]) and SWAP_AT_BOTTOM[0] <= t[1] <= SWAP_AT_BOTTOM[1] for t in texts)
+    label = [t[1] for t in texts if re.search(r"\b(CAUGHT|HATCHED)\b", ui.norm(t[4]))]
+    return swap and bool(label) and any(t[1] > min(label) and re.search(r"\b\d{1,2}/\d{1,2}/20\d\d\b", t[4]) for t in texts)
 
 
 def bottom(reads):

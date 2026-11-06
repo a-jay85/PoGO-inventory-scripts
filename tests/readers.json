@@ -1252,6 +1252,17 @@
   "lycбo\tlycbo": false,
   "xXS 96\tXXS 96": true
  },
+ "pagefacts.at_bottom": {
+  "an icon glued on": true,
+  "at the bottom": true,
+  "at the bottom, the OCR's own wobble": true,
+  "caught box not read": false,
+  "date not read": false,
+  "hatched": true,
+  "still one short": false,
+  "well short": false,
+  "your buddy's page: no button": false
+ },
  "run.same_name": {
   "\t": false,
   "\t96": false,

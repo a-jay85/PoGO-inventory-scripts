@@ -24,6 +24,7 @@
    "account": "shared/account.py",
    "cleantrades": "cleanup/cleantrades.py",
    "dex": "dex/dex.py",
+   "evo": "evo/evo.py",
    "gift": "gift/gift.py",
    "gymfeed": "gymfeed/gymfeed.py",
    "ivc": "ivc/run.py",
@@ -346,6 +347,35 @@
   ],
   "runs": [
    "skills/dex/runs"
+  ]
+ },
+ "skills/evo/evo.py": {
+  "copies": {},
+  "names": [
+   "EVO",
+   "EVOLVE_WAIT",
+   "EVO_FOR",
+   "HERE",
+   "SEARCH",
+   "Stop",
+   "TRADE_EVOS",
+   "evolve_one",
+   "evolve_row",
+   "exact",
+   "keep_capture",
+   "log",
+   "look",
+   "main",
+   "press",
+   "reopen_top",
+   "script",
+   "search_exact",
+   "settled_tiles",
+   "wait_box",
+   "wait_evolved"
+  ],
+  "runs": [
+   "skills/evo/runs"
   ]
  },
  "skills/gift/gift.py": {

@@ -828,6 +828,15 @@ def slider_to_top(bounds):
     return path, texts, bounds
 
 
+def sort_by_name(bounds):
+    """sorted by Name, at the top of the list (sorting by what it's sorted by already wouldn't move it: so HP first)"""
+    global scrolled
+    _, _, bounds = sort_by("HP", bounds)
+    got = sort_by("NAME", bounds)
+    scrolled = False
+    return got
+
+
 def to_top(bounds):
     """back to the top of the list, the search still in the bar: the slider (Android), else sort by HP then Name"""
     global scrolled
@@ -838,8 +847,7 @@ def to_top(bounds):
         path, bounds = ui.capture()
         if leave_multiselect(ui.ocr(path), bounds):  # the hold on the slider landed on a tile after it faded: a long press
             bounds = ui.capture()[1]
-        _, _, bounds = sort_by("HP", bounds)
-        got, how = sort_by("NAME", bounds), "sort HP, then Name"
+        got, how = sort_by_name(bounds), "sort HP, then Name"
     scrolled = False
     log(f"  back to the top ({how}): {time.time() - t0:.1f}s")
     return got
@@ -856,8 +864,9 @@ def run_search(q, iv_only=False, edit=False):
 BUBBLES = set()  # (name, cp) of every tile read in this run that showed a lucky's gold bubbles
 
 
-def read_results(q, path, texts, bounds, iv_only=False):
-    """read every tile of the results on screen (any search: typed, or a saved one). q: for the log. -> as run_search"""
+def read_results(q, path, texts, bounds, iv_only=False, resorted=False):
+    """read every tile of the results on screen (any search: typed, or a saved one). q: for the log. -> as run_search
+    resorted: this list was just sorted by Name, because it looked like it wasn't"""
     if leave_multiselect(texts, bounds):
         path, bounds = ui.capture()
         texts = ui.ocr(path)
@@ -881,7 +890,11 @@ def read_results(q, path, texts, bounds, iv_only=False):
         order = [bool(re.match(r"\d", ui.tile_name(t[0]))) for t in ui.tiles(texts)]  # row by row
         if iv_only and order.count(False) >= 3:  # past the IV names
             if True in order[order.index(False):]:  # an IV name after a plain one: not sorted by name
-                log(f"  {q}: the list isn't sorted by Name (IV names after plain ones): reading all of it")
+                if not resorted:  # (reading it all took 4 minutes for 156 Pikachu, and lost twins on different screens)
+                    log(f"  {q}: the list isn't sorted by Name (IV names after plain ones): sorting it")
+                    path, texts, bounds = sort_by_name(bounds)
+                    return read_results(q, path, texts, bounds, iv_only, resorted=True)
+                log(f"  {q}: still IV names after plain ones, sorted by Name: reading all of it")
                 iv_only = False
             else:
                 if want is not None and sum(most.values()) < want:

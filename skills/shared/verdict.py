@@ -29,10 +29,10 @@ Before everything: an XXL one, traded or not, is a favorite and its trade, Trans
 2026-11-04: it has value in showcases). Every Transfer for an untraded one goes through transfer() last: an xxs one gets IVC instead, a trade evolution
 (free to evolve once traded) GIV, signed in as HashTagAJay only (only CyrillJan wants the XP, the user 2026-11-02). The user's own tags first: untraded with Old, Evo or GuaranteedLucky,
 those stay and only IVC / PvpC comes off; traded, the "trade it" tags (TRADE_TAGS) come off. The species lists come
-from tradeable.py's taker_species() and giver_species(), the same ones its tag searches use; one of HashTagAJay's saved
-more than STALE_DAYS ago counts as missing. CyrillJan's have no age limit: an old one is still good enough (the user, 2026-11-04).
+from tradeable.py's taker_species() and giver_species(), the same ones its tag searches use. Neither account's have an age
+limit: the newest saved copy is used, however old (the user, 2026-11-04 and 2026-11-06).
 """
-import datetime, os, re, sys, time
+import datetime, os, re, sys
 from dataclasses import dataclass, field, replace
 
 HERE = os.path.dirname(os.path.realpath(__file__))
@@ -59,7 +59,6 @@ TRADE_BY_HAND = {"meltan", "melmetal"}  # mythical, but trades.py retags them li
 OWN_TAGS = ("Old", EVO, "GuaranteedLucky")  # untraded with one of these: it stays, only IVC / PvpC comes off
 TRADE_TAGS = ("GIV", "XLX", "2XL", "Reroll", "Old", "Special", "GuaranteedLucky")  # "trade it": off a traded one
 IGNORED_TAGS = ("CPD",)  # as if these tags weren't there: no rule reads them, none takes them off (the user, 2026-11-05)
-STALE_DAYS = 7  # a species list for HashTagAJay older than this counts as missing
 OVER_93 = 42  # a costume one at 93%+ (42 of 45) is named and a favorite (the user, 2026-11-02)
 TRADE_EVO_DEX = {int(d) for d in TRADE_EVOS.split(",")}  # evolve free once traded
 
@@ -120,18 +119,6 @@ def unsure(why):
 _TABLES = {}
 
 
-def stale(files, now=None):
-    """{what: file} -> 'what (n days)' for each file saved more than STALE_DAYS ago"""
-    now = now or time.time()
-    return [f"{k} ({days:.0f} days)" for k, p in files.items()
-            if p and os.path.exists(p) and (days := (now - os.path.getmtime(p)) / 86400) > STALE_DAYS]
-
-
-def too_old(to, files, now=None):
-    """the lists too old to judge for `to`: only HashTagAJay's age (the user, 2026-11-04: CyrillJan's can be old)"""
-    return stale(files, now) if to == TAKER else []
-
-
 def tables(to):
     """the species lists for judging a pile that goes to `to`, loaded once a run. None if a file is missing (then
     every species rule answers unsure). Each has 'to' and, if missing, 'missing'"""
@@ -141,9 +128,6 @@ def tables(to):
             sp = tr.taker_species(m) if to == TAKER else tr.giver_species(m)
         except (tr.NoData, SystemExit, OSError) as e:  # (pve() exits with no DialgaDex counters; no runs folder)
             _TABLES[to] = {"to": to, "missing": str(e)}
-            return _TABLES[to]
-        if old := too_old(to, sp["from"]):
-            _TABLES[to] = {"to": to, "missing": f"older than {STALE_DAYS} days: {', '.join(old)}"}
             return _TABLES[to]
         why = sp["why"] if to == TAKER else {s: ("GIV", r) for s, r in sp["why"].items()}
         _TABLES[to] = {"to": to, "why": why, "lucky": sp.get("lucky", {}), "evolved": sp["evolved"],

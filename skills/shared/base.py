@@ -644,10 +644,13 @@ def who(info):
 
 
 def same_pokemon(a, b):
-    """two who() reads: the same Pokémon? Unread values, or a dropped CP digit ('CP62' for CP626), still match"""
+    """two who() reads: the same Pokémon? Unread values, or a dropped CP digit ('CP62' for CP626), still match. So does
+    any CP, if HP, weight and height were all read and agree: something moving can cover a digit (Castform's bubble)"""
     (c1, *r1), (c2, *r2) = a, b
     if any(x is not None and y is not None and x != y for x, y in zip(r1, r2)):
         return False
+    if None not in r1 + r2:
+        return True
     return not (c1 and c2 and c1 != c2 and not (str(c1).startswith(str(c2)) or str(c2).startswith(str(c1))))
 
 

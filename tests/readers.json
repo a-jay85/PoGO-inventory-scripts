@@ -1,4 +1,12 @@
 {
+ "base.same_pokemon": {
+  "digit misread, all else agrees": true,
+  "dropped digit, size unread": true,
+  "other CP, size unread": false,
+  "other HP": false,
+  "other height": false,
+  "same": true
+ },
  "base.screen_changed": {
   "a popup over it": true,
   "another number": false,
@@ -3662,6 +3670,15 @@
   "y&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": false,
   "y&Icostume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": false,
   "y&Icostume&legendary\t#Nope&!traded&!shiny&!costume&legendary": false
+ },
+ "tagsheet.same_at_top": {
+  "CP not read": true,
+  "bubble: extra digits": true,
+  "other HP": false,
+  "other weight": false,
+  "same": true,
+  "weight and height covered": false,
+  "weight covered": true
  },
  "trade.in_bar android": {
   "\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,

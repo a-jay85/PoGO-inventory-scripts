@@ -293,6 +293,26 @@ GRIDS = {  # what full reads make of made-up screens. The answer is used only wh
 }
 
 
+_ME = ("Castform", 639, 94, "0.84kg", "0.31m")
+AT_TOP = {  # tagsheet.same_at_top: the first read, then a later one, with a CP label at the top
+    "same": (_ME, _ME),
+    "bubble: extra digits": (("Castform", 63, 94, "0.84kg", "0.31m"), ("Castform", 6399, 94, "0.84kg", "0.31m")),
+    "CP not read": (_ME, ("Castform", None, 94, "0.84kg", "0.31m")),
+    "weight covered": (_ME, ("Castform", 639, 94, None, "0.31m")),
+    "weight and height covered": (_ME, ("Castform", 639, 94, None, None)),
+    "other HP": (_ME, ("Castform", 639, 95, "0.84kg", "0.31m")),
+    "other weight": (_ME, ("Castform", 639, 94, "0.85kg", "0.31m")),
+}
+SAME = {  # base.same_pokemon: two who() reads
+    "same": ((639, 94, 0.84, 0.31), (639, 94, 0.84, 0.31)),
+    "dropped digit, size unread": ((63, 94, None, None), (639, 94, None, None)),
+    "other CP, size unread": ((629, 94, None, None), (639, 94, None, None)),
+    "digit misread, all else agrees": ((629, 94, 0.84, 0.31), (639, 94, 0.84, 0.31)),
+    "other HP": ((639, 94, 0.84, 0.31), (639, 95, 0.84, 0.31)),
+    "other height": ((639, 94, 0.84, 0.31), (639, 94, 0.84, 0.32)),
+}
+
+
 def answer(fn, *a):
     try:
         return fn(*a)
@@ -320,6 +340,8 @@ def answers():
                          for k, ts in SHEETS.items()}
     out["ui.tiles"] = {k: answer(lambda ts: [t[:2] for t in ui.tiles(ts)], ts) for k, ts in LISTS.items()}
     out["search.grid_tiles"] = {k: answer(places, v) for k, v in GRIDS.items()}
+    out["tagsheet.same_at_top"] = {k: answer(tagsheet.same_at_top, *v) for k, v in AT_TOP.items()}
+    out["base.same_pokemon"] = {k: answer(base.same_pokemon, *v) for k, v in SAME.items()}
     out["ui.classify"] = {k: answer(ui.classify, ts) for k, ts in SCREENS.items()}
     out["base.screen_changed"] = {k: answer(base.screen_changed, *v) for k, v in CHANGES.items()}
     out["mega.ask_cost"] ={k: answer(mega.ask_cost, ts) for k, ts in ASKS.items()}

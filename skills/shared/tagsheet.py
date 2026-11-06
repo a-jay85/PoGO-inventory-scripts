@@ -164,10 +164,12 @@ def scrolled_bottom(bounds, drags=2):
     return reads
 
 
-def one_digit_off(a, b):
-    """two CP reads the same length that differ in just one digit (an OCR slip)"""
-    a, b = str(a), str(b)
-    return len(a) == len(b) and sum(x != y for x, y in zip(a, b)) == 1
+def same_at_top(me, now):
+    """two who() reads with a CP label at the top of the screen: the same one? The CP itself can't vote: sparkles or a
+    moving part can cover it, in either read (Castform's bubble: 63 and 6399 for CP639, 2026-11-06). So the same HP, and
+    a weight or height read in both, with neither one different"""
+    sizes = [(a, b) for a, b in zip(me[3:], now[3:]) if a and b]
+    return me[2] == now[2] and bool(sizes) and all(a == b for a, b in sizes)
 
 
 def back_to_top(me, bounds):
@@ -180,10 +182,8 @@ def back_to_top(me, bounds):
         cp_top = any(t[1] < 0.15 and re.match(r"[cC]\s*[pP]", t[4].strip()) for t in texts)
         if now and (now[1:3] == me[1:3] and now[1] is not None  # same CP and HP (name reads can wobble). No CP read
                     # in either: not proof (half way down, 2026-10-31), the next line needs the CP at the top
-                    or cp_top and (None in (now[1], me[1]) or one_digit_off(now[1], me[1]))
-                    and None not in me[2:] and now[2:] == me[2:]):
-            return  # (a lucky one's sparkles can garble the CP, in this read or the first: then the same HP, weight
-            # and height, with a CP at the top. One digit misread counts too: 264 for 261, 2026-11-02)
+                    or cp_top and same_at_top(me, now)):
+            return
         if any(re.fullmatch(r"[cC]\s*[pP]\s*\d+", t[4].strip()) for t in texts):
             time.sleep(0.3)  # CP in sight: at the top, maybe still settling
             continue

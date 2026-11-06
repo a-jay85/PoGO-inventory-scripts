@@ -222,7 +222,7 @@ def leave_panel(texts, bounds):
     if box and ui.search_text(box):
         close_panel(bounds)  # the (x) empties the bar and closes it
     else:  # an empty bar has no (x): the < back arrow
-        click(0.10, 0.155, bounds)
+        click(0.10, 0.176, bounds)  # (on the bar's line: 0.155 misses it on the Pixel)
         time.sleep(random.uniform(1.2, 1.5))
     return True
 

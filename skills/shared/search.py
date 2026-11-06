@@ -594,6 +594,57 @@ def merge_cutoffs(most, sightings, together=()):
             del most[k]
 
 
+def screen_rows(cps, tiles):
+    """one screen's rows, top down: [{column: (cp, name)}]. cps: (x middle, y, cp), tiles: as ui.tiles"""
+    column = lambda x: 0 if x < 0.33 else 1 if x < 0.66 else 2
+    rows = []
+    for x, y, cp in sorted(cps, key=lambda c: c[1]):
+        name = next((ui.tile_name(t[0]) for t in tiles if t[1] == cp and column(t[2]) == column(x) and 0 < t[3] - y < 0.13), "")
+        row = next((r for r in rows if abs(r[0] - y) < 0.03), None)
+        if row is None:
+            row = (y, {})
+            rows.append(row)
+        row[1][column(x)] = (cp, name)
+    return [r[1] for r in rows]
+
+
+def add_to_grid(grid, rows):
+    """lay a screen's rows on the rows read so far, where most CPs agree. A row is a place on the list, so twins on two
+    screens stay two. Screens of nothing but twins can line up wrong: the count then comes out off, and grid_tiles' answer
+    isn't used. grid: [{column: (Counter of CPs, Counter of names)}]"""
+    def score(at):
+        good = bad = 0
+        for i, row in enumerate(rows[:len(grid) - at]):
+            for col, (cp, _) in row.items():
+                if col in grid[at + i]:
+                    if cp in grid[at + i][col][0]:
+                        good += 1
+                    else:
+                        bad += 1
+        return good - 2 * bad
+    at = max(range(max(0, len(grid) - len(rows) - 1), len(grid) + 1), key=score, default=0)
+    for i, row in enumerate(rows):
+        if at + i == len(grid):
+            grid.append({})
+        for col, (cp, name) in row.items():
+            cell = grid[at + i].setdefault(col, (Counter(), Counter()))
+            cell[0][cp] += 1
+            cell[1][name] += 1
+
+
+def grid_tiles(grid):
+    """one (name, cp) per place on the list: what most screens read there, and the longest name that starts the same
+    (a name half hidden by a button or an edge comes out short)"""
+    out = []
+    for row in grid:
+        for col in sorted(row):
+            cps, names = row[col]
+            names = Counter({n: v for n, v in names.items() if n}) or names
+            top = max(names, key=lambda n: (names[n], len(n)))
+            out.append((max(n for n in names if n.startswith(top)) if top else "", cps.most_common(1)[0][0]))
+    return out
+
+
 def drop_misreads(most, sightings, extra):
     """more tiles than the game counts: a CP read wrong once makes a twin of a real tile.
     Drop the twins seen on the fewest screens whose name matches a tile with a CP one digit away."""
@@ -875,7 +926,10 @@ def read_results(q, path, texts, bounds, iv_only=False, resorted=False):
         return [], 0
     most, sightings, seen, stale, last, together = Counter(), Counter(), set(), 0, None, set()
     held = False
+    grid = []
     for turn in range(300):
+        add_to_grid(grid, screen_rows([(c[0] + c[2] / 2, c[1], int(re.sub(r"\D", "", c[4]))) for c in ui.tile_cps(texts)],
+                                      ui.tiles(texts)))
         now = Counter((ui.tile_name(t[0]), t[1]) for t in ui.tiles(texts))
         BUBBLES.update((ui.tile_name(t[0]), t[1]) for t in ui.tiles(texts) if pagefacts.tile_icons(path, t).get("lucky"))
         now.update(nameless(texts))
@@ -924,6 +978,11 @@ def read_results(q, path, texts, bounds, iv_only=False, resorted=False):
     if want is not None and sum(most.values()) > want:
         drop_misreads(most, sightings, sum(most.values()) - want)
     got = [k for k, v in most.items() for _ in range(v)]
+    if want is not None and len(got) < want:  # twins on different screens count once above: count places on the list
+        places = grid_tiles(grid)
+        if len(places) == want:
+            log(f"  {q}: read {len(got)} tiles, {want} places on the list, as the game says: using those")
+            return places, want
     if want is not None and len(got) != want:
         log(f"  {q}: read {len(got)} tiles, the game says {want}")
     return got, want

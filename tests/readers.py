@@ -260,6 +260,34 @@ CHANGES = {  # (before a pause, after it): another screen, or the same one?
 }
 
 
+def row_of(y, *tiles):
+    return [(.17 + i * .32, y, cp) for i, (_, cp) in enumerate(tiles)], [(n, cp, .17 + i * .32, y + .065) for i, (n, cp) in enumerate(tiles)]
+
+
+def screen(top, *rows):
+    made = [row_of(top + i * .165, *r) for i, r in enumerate(rows)]
+    return [c for m in made for c in m[0]], [t for m in made for t in m[1]]
+
+
+def places(screens):
+    grid = []
+    for cps, tiles in screens:
+        search.add_to_grid(grid, search.screen_rows(cps, tiles))
+    return search.grid_tiles(grid)
+
+
+_A, _B, _C, _D = [("96 HA", 398), ("Pikachu", 379), ("Pikachu", 384)], [("Pikachu", 379), ("Pichu", 255), ("Lego", 512)], \
+    [("Pikachu", 121), ("Pikachu", 379), ("Pichu", 90)], [("Pikachu", 379), ("Pikachu", 200), ("Lego", 77)]
+_TWIN = [("Pikachu", 379)] * 3
+GRIDS = {  # what full reads make of made-up screens. The answer is used only when its count is the game's
+    "twins on two screens stay two": [screen(.3, _A, _B), screen(.3, _B, _C), screen(.3, _C, _D)],
+    "one CP misread once": [screen(.3, _A, _B), screen(.3, [("96 HA", 398), ("Pikachu", 379), ("Pikachu", 334)], _B, _C), screen(.3, _A, _B, _C)],
+    "a name cut short once": [screen(.3, _A, [("Pik", 379), ("Pichu", 255), ("Lego", 512)]), screen(.3, _A, _B)],
+    "a screen that didn't move": [screen(.3, _A, _B), screen(.35, _A, _B)],
+    "nothing but twins (lines up short: not used)": [screen(.3, _TWIN, _TWIN), screen(.3, _TWIN, _TWIN), screen(.3, _TWIN, _TWIN)],
+}
+
+
 def answer(fn, *a):
     try:
         return fn(*a)
@@ -283,6 +311,7 @@ def answers():
                                                                                  "more", "cost")} | {"button": bool(r["button"])})(mega.sheet(ts)), ts)
                          for k, ts in SHEETS.items()}
     out["ui.tiles"] = {k: answer(lambda ts: [t[:2] for t in ui.tiles(ts)], ts) for k, ts in LISTS.items()}
+    out["search.grid_tiles"] = {k: answer(places, v) for k, v in GRIDS.items()}
     out["ui.classify"] = {k: answer(ui.classify, ts) for k, ts in SCREENS.items()}
     out["base.screen_changed"] = {k: answer(base.screen_changed, *v) for k, v in CHANGES.items()}
     out["mega.ask_cost"] ={k: answer(mega.ask_cost, ts) for k, ts in ASKS.items()}

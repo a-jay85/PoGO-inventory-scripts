@@ -1708,6 +1708,7 @@
   "names": [
    "HERE",
    "Stop",
+   "WEIGHT_AT_TOP",
    "_views",
    "back_to_top",
    "bar_view",

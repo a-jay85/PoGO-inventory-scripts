@@ -259,6 +259,10 @@ class Door:
                 reads = [t, ui.ocr(ui.android.sharp())]
             else:
                 reads = tagsheet.scrolled_bottom(bounds, drags=1)
+                for _ in range(2):  # a tall page (Mewtwo's two Mega rows): the date is a drag or two further
+                    if any(pagefacts.caught_read(r) for r in reads):
+                        break
+                    reads = tagsheet.scrolled_bottom(bounds, drags=1)
         finally:
             tagsheet.back_to_top(me, bounds)
         xl = next((n for t, p in shots if (n := pagefacts.candy_xl(t)) is not None), None)
@@ -266,6 +270,8 @@ class Door:
             xl = next((n for t, p in shots if (n := pagefacts.candy_xl_close(p, t)) is not None), None)
         days = {tagsheet.caught(catch_date(r)) for r in reads}
         base.OPENED["page"] = {"caught": days.pop() if len(days) == 1 else None, "xl": xl, **pagefacts.bottom(reads)}
+        if base.OPENED["page"]["california"] is False:  # read wrong once and never again (2026-11-06): leave the words to check
+            base.log(f"  not California: {[[t[4] for t in r if t[1] > 0.5] for r in reads]}")
         return base.OPENED["page"]
 
     def purify(self, info, v):

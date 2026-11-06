@@ -20,7 +20,7 @@ for d in ("shared", "cleanup", "dex", "trade", "gift", "mega", "ivc"):
     sys.path.append(os.path.join(SKILLS, d))
 
 import base, search, ui  # noqa: E402
-import tagsheet, savedsearch, dex, trade, gift, mega  # noqa: E402
+import pagefacts, tagsheet, savedsearch, dex, trade, gift, mega  # noqa: E402
 
 
 def by_path(name, rel):
@@ -293,6 +293,23 @@ GRIDS = {  # what full reads make of made-up screens. The answer is used only wh
 }
 
 
+def _page_end(swap_y=0.829, swap="SWAP BUDDIES", label="CAUGHT IN THE WILD", date="11/3/2026"):
+    rows = [(0.658, label), (0.735, date)] + ([(swap_y, swap)] if swap else [])
+    return [(0.1, y, 0.5, 0.02, t) for y, t in rows]
+
+
+AT_BOTTOM = {  # pagefacts.at_bottom: the page's lower rows after a drag, heights as read on the Pixel
+    "at the bottom": _page_end(),
+    "at the bottom, the OCR's own wobble": _page_end(0.827),
+    "an icon glued on": _page_end(swap="®3 SWAP BUDDIES"),
+    "still one short": _page_end(0.834),
+    "well short": _page_end(0.964),
+    "your buddy's page: no button": _page_end(swap=None),
+    "date not read": _page_end(date="11/3/20"),
+    "caught box not read": _page_end(label="San Francisco"),
+    "hatched": _page_end(label="HATCHED FROM A 5 KM EGG"),
+}
+
 _ME = ("Castform", 639, 94, "0.84kg", "0.31m")
 AT_TOP = {  # tagsheet.same_at_top: the first read, then a later one, with a CP label at the top
     "same": (_ME, _ME),
@@ -340,6 +357,7 @@ def answers():
                          for k, ts in SHEETS.items()}
     out["ui.tiles"] = {k: answer(lambda ts: [t[:2] for t in ui.tiles(ts)], ts) for k, ts in LISTS.items()}
     out["search.grid_tiles"] = {k: answer(places, v) for k, v in GRIDS.items()}
+    out["pagefacts.at_bottom"] = {k: answer(pagefacts.at_bottom, v) for k, v in AT_BOTTOM.items()}
     out["tagsheet.same_at_top"] = {k: answer(tagsheet.same_at_top, *v) for k, v in AT_TOP.items()}
     out["base.same_pokemon"] = {k: answer(base.same_pokemon, *v) for k, v in SAME.items()}
     out["ui.classify"] = {k: answer(ui.classify, ts) for k, ts in SCREENS.items()}

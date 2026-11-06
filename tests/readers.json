@@ -1252,16 +1252,17 @@
   "lycбo\tlycbo": false,
   "xXS 96\tXXS 96": true
  },
- "pagefacts.at_bottom": {
-  "an icon glued on": true,
+ "pagefacts.caught_read": {
+  "a drag short, date on screen": true,
   "at the bottom": true,
-  "at the bottom, the OCR's own wobble": true,
   "caught box not read": false,
+  "date just clear of the edge": true,
   "date not read": false,
+  "date too near the edge (its place misread once)": false,
   "hatched": true,
-  "still one short": false,
-  "well short": false,
-  "your buddy's page: no button": false
+  "only the trade box's date, above the label": false,
+  "two labels": false,
+  "your buddy's page: no button": true
  },
  "run.same_name": {
   "\t": false,

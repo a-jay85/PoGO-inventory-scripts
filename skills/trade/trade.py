@@ -11,7 +11,7 @@ driven by its own phone.py process. A touch on the Mac pauses the iPhone's side 
 Each round: both phones go to the other account's friend page (map -> profile -> FRIENDS -> SEARCH -> name -> X on
 the gift), both tap LOCAL TRADE, each picks the newest Pokémon of a search (the saved "0-100km" / "100+km"
 shortcuts, or one of them typed with '&countcandy0-2499' added), NEXT, and on the confirm screen both costs must read
-a regular 100 Stardust (white on blue; a special trade shows purple on pink) and, for a far-apart pair, the catch
+a regular 100 Stardust, 80 on a Friday (white on blue; a special trade shows purple on pink) and, for a far-apart pair, the catch
 spots must be 100+ km apart. Then CONFIRM on both. Each phone goes at its own speed: it picks as soon as its own search
 is on, and closes its result screen and taps LOCAL TRADE again as soon as its result screen shows.
 Each account gets a trade's candy for the Pokémon it sends. A far-apart pair (one 0-100km, one 100+km) gives the
@@ -21,7 +21,8 @@ for another day. At most 99 trades a day (one is left for a special trade by han
 --done N says N were already made today. --limit N: at most N trades this run (default 48).
 Fridays are Friendship Fridays: every trade gives 2 Candy XL and double the lucky odds, so a Friday run trades only
 the ones tagged 2XL, on both phones. The rules above stay, with #2xl in place of giv,xlx. No GIV or XLX on a Friday,
-and no 2XL any other day. A run stops at midnight if that changes what it may trade.
+and no 2XL any other day. A regular trade costs 80 Stardust on a Friday (20% off). A run stops at midnight if that
+changes what it may trade.
 Log and captures go in runs/<time>/.
 
 Keep both phones on and both games open. A long pause on the iPhone during a trade can let the game's trade timer run
@@ -83,6 +84,8 @@ MIN_KM = 100
 EARTH_KM = 20040  # the farthest two spots on Earth can be apart
 SKIPS = 3  # pairs caught under MIN_KM apart: how many of the Android's next ones to try before stopping
 COST = 100  # Stardust for a regular trade between these two accounts
+COST_READS = {"100"}  # all digits, and still this cost
+FRIDAY_COST, FRIDAY_READS = 80, {"80", "180"}  # 20% off on Fridays. (The iPhone reads the Stardust icon as a 1: 180)
 OK_WARNINGS = ("MAX MOVE LEVELS WILL BE RESET",)  # trade warnings tapped YES; any other one stops the run
 X_BUTTON = (0.5, 0.935)  # the round X at the bottom middle (gift, result, friend page, picker)
 MANAGE_X = (0.5, 0.906)  # the round X that closes the Manage Favorite Search box
@@ -801,7 +804,7 @@ def cost_ok(p):
     if not box:
         return False, "no cost read"
     text = box[4].strip()
-    if not re.fullmatch(r"(?:\S\s*)?%d" % COST, text) or re.fullmatch(r"\d{2,}", text) and text != str(COST):
+    if not re.fullmatch(r"(?:\S\s*)?%d" % COST, text) or re.fullmatch(r"\d{2,}", text) and text not in COST_READS:
         return False, f"cost {text!r}"
     im = Image.open(p.path).convert("RGB")
     W, H = im.size
@@ -818,10 +821,13 @@ def cost_ok(p):
 
 
 def km(p):
+    """the catch spots' distance. OCR can swap ',' and '.' ('4,125.4' as '4.125.4'), so the last group says which it
+    is: 1 or 2 digits are the decimals, 3 are thousands"""
     for t in p.texts:
-        m = re.search(r"([\d,]+(?:\.\d+)?)\s*km", t[4], re.I)
+        m = re.search(r"(\d+(?:[.,]\d+)*)\s*km", t[4], re.I)
         if m and 0.48 < t[1] < 0.6:
-            return float(m.group(1).replace(",", ""))
+            *whole, last = re.split(r"[.,]", m.group(1))
+            return float("".join(whole) + "." + last) if whole and len(last) < 3 else float("".join(whole) + last)
     return None
 
 
@@ -1059,6 +1065,7 @@ def cmd_look(phones):
 
 
 def main():
+    global COST, COST_READS
     ap = argparse.ArgumentParser()
     ap.add_argument("cmd", nargs="?", default="run", choices=("run", "look", "restart"))
     ap.add_argument("--limit", type=int, default=PER_RUN)
@@ -1080,6 +1087,7 @@ def main():
         friday = friendship_friday()
         if friday:
             set_piles("#2xl", saved=False)
+            COST, COST_READS = FRIDAY_COST, FRIDAY_READS
             log("Friendship Friday: only the ones tagged 2XL")
         made, n, specials, expired, fresh = made_today(), 0, {}, 0, False
         log(f"{made} trades made today so far, {PER_DAY} a day; this run: at most {a.limit}")

@@ -1929,9 +1929,12 @@
   "copies": {},
   "names": [
    "COST",
+   "COST_READS",
    "EARTH_KM",
    "Expired",
    "FAR",
+   "FRIDAY_COST",
+   "FRIDAY_READS",
    "HERE",
    "IN_TRADE",
    "Lost",

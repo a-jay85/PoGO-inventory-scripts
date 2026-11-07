@@ -1,4 +1,17 @@
 {
+ "base.row_name": {
+  "Evo": "EVO",
+  "GIV": "GIV",
+  "IVC": "IVC",
+  "L Remote Trade": "REMOTE TRADE",
+  "Remote Trade": "REMOTE TRADE",
+  "Transferl": "TRANSFER",
+  "Transter": "TRANSFER",
+  "Tronster": "TRONSTER",
+  "• Spot Transfer": "SPOT TRANSFER",
+  "• Transfer": "TRANSFER",
+  "• Transfes": "TRANSFER"
+ },
  "base.same_pokemon": {
   "digit misread, all else agrees": true,
   "dropped digit, size unread": true,

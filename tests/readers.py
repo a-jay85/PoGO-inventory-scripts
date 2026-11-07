@@ -339,6 +339,18 @@ def answer(fn, *a):
         return f"raises {type(e).__name__}"
 
 
+ROWS = ["• Transfer", "Transter", "• Transfes", "• Spot Transfer", "Transferl", "Tronster", "GIV", "IVC", "Remote Trade", "L Remote Trade", "Evo"]  # asked: Transfer, GIV, Remote Trade
+
+
+def row_name(s):
+    base.ASKED.clear()
+    base.ASKED.update({"TRANSFER", "GIV", "REMOTE TRADE"})
+    try:
+        return base.row_name(s)
+    finally:
+        base.ASKED.clear()
+
+
 DISTANCES = ["4.125.4 km", "4,125.4 km", "2,981.5 km", "2,981,5 km", "125.4 km", "87.3 km", "38533 km", "1,234 km", "no number"]
 
 
@@ -367,6 +379,7 @@ def answers():
     out["mega.ask_cost"] ={k: answer(mega.ask_cost, ts) for k, ts in ASKS.items()}
     out["ui.gift_banner"] = {k: answer(ui.gift_banner, ts) for k, ts in BANNERS.items()}
     out["ui.profile_tabs"] = {k: answer(ui.profile_tabs, ts) for k, ts in BANNERS.items()}
+    out["base.row_name"] = {s: answer(row_name, s) for s in ROWS}
     out["mega.form_of"] = {n: answer(mega.form_of, n) for n in NICKS}
     out["trade.km"] = {s: answer(lambda s: trade.km(SimpleNamespace(texts=[box(.4, .56, s)])), s) for s in DISTANCES}
     out["mega.badge"] = {k: answer(lambda ts: (lambda b: b and b[4])(mega.badge(ts)), ts) for k, ts in BADGES.items()}

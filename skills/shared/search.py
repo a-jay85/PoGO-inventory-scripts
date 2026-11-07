@@ -546,21 +546,33 @@ def type_into_panel(q, bounds, check=None):
 def nudge_bar(q):
     """a search typed too fast can land with the bar right and the results blank: the game never ran it. One more key
     and a delete make it run again, once the caller commits (Return, or the friend box's OK). The bar is focused and
-    q is what it holds. iPhone: a lost A would let the delete eat q's end, so the A has to show first. If it doesn't,
+    q is what it holds. iPhone: a lost A would let the delete eat q's end, so the A has to show first. A search too
+    long for the bar hides its end under the clear X: there the A shows by the text sliding left. If neither shows,
     the bar gets emptied (the caller types it whole) -> False"""
     if ui.ANDROID:  # adb's input text never loses keys
         ui.android.shell("input keyevent KEYCODE_MOVE_END")
         type_text("A")
         key("delete")
         return True
-    key("right", cmd=True)
-    type_text("A")
     plain = lambda s: re.sub(r"[il1|]", "l", re.sub(r"[^a-z0-9|]", "", s.lower()))  # (OCR garbles & and !)
-    want = plain(q)[-6:] + "a"
+    whole_q = plain(q)
+
+    def shown(texts):
+        """the line showing the middle of q, cut off at the bar's left edge -> its start, plain"""
+        lines = [plain(t[4]) for t in texts]
+        return next((p for p in lines if len(p) >= 16 and p[:8] in whole_q and not whole_q.startswith(p[:8])), None)
+
+    key("right", cmd=True)
+    time.sleep(0.2)
+    before = shown(panel_text(quick=True)[1])
+    type_text("A")
+    want = whole_q[-6:] + "a"
     end = time.time() + 2.0
     while time.time() < end:
         got, texts = panel_text(quick=True)
-        if plain(got).endswith(want) or any(plain(t[4]).endswith(want) for t in texts):
+        now = shown(texts)
+        slid = before and now and not now.startswith(before[:8]) and any(now.startswith(before[k:k + 8]) for k in range(1, 5))
+        if plain(got).endswith(want) or any(plain(t[4]).endswith(want) for t in texts) or slid:
             key("delete")
             time.sleep(0.1)
             return True

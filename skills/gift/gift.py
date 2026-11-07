@@ -6,6 +6,7 @@
   POGO_PHONE=both caffeinate -dimsu python3 gift.py [--limit N]       both phones at once
   [POGO_PHONE=android] python3 gift.py look                           what the script reads now; taps nothing
   add --dry-run: everything but SEND and the nickname's OK.
+  add --dry-run --walk: a speed test that works after every gift is sent: each friend's page, always its friendship screen, no gift list.
 
 HashTagAJay is on the iPhone (iPhone Mirroring: a touch on the Mac pauses it), CyrillJan on the Android phone (adb).
 Each phone runs in its own process (ui.py keeps one phone's state in module globals).
@@ -78,6 +79,7 @@ HEART_NEAR = {2: 0.75, 3: 0.9, 4: 0.9, 5: 0.9}  # by hearts full: open the frien
 # (2026-11-07 layout, iPhone). 4th/5th heart: 8 to go read 97%, 20 read 67%, 74 read 18%. Forever bar: 18 read 80%, 56 read 38%
 PHONE = "android" if ui.ANDROID else "ios"
 DRY = False  # --dry-run: everything but SEND and the nickname box's OK
+WALK = False  # --walk: a speed test on friends already gifted (see main)
 typed = ""  # the last search typed: the box shows its end ('ea', 'mo')
 LAG = 1 if ui.ANDROID else 2.5  # iPhone Mirroring now and then freezes for several seconds: wait longer there
 PICKER_DRAG = (0.85, 0.25)  # a scroll down the gift list: long, to pass other cities fast, but no longer than the
@@ -200,18 +202,22 @@ def look():
 
 def wait(*screens, timeout=10):
     """run.wait_for with gift's screens: a Refused look is raised, no capture kept (as gift always had it).
-    Between looks: 0.4 s on the iPhone, none on Android"""
+    Between looks: POLL on the iPhone, none on Android"""
     return base.wait_for(*screens, timeout=timeout, look=lambda: (look(), texts, path, bounds),
-                         poll=base.poll_gap(0.4), catch=False, capture=False, detail=True)[0]
+                         poll=base.poll_gap(POLL), catch=False, capture=False, detail=True)[0]
+
+
+TAP_REST = (0.03, 0.08)  # after a tap: a moment only, as the wait after it looks for the next screen (was 0.25-0.4 s)
+POLL = 0.1  # iPhone: seconds between two looks while waiting for a screen (a look takes 0.1-0.3 s; was 0.4)
 
 
 def tap(fx, fy, fuzz=0.008, rest=None):
-    """rest: seconds to wait after the tap (default a short random pause)"""
-    base.click(fx, fy, bounds, fuzz=fuzz, rest=(0.25, 0.4) if rest is None else rest)
+    """rest: seconds to wait after the tap (default TAP_REST)"""
+    base.click(fx, fy, bounds, fuzz=fuzz, rest=TAP_REST if rest is None else rest)
 
 
 def tap_text(t, dy=0.0, rest=None):
-    base.tap_box(t, bounds, dy=dy, fuzz=min(0.008, t[2] / 4), rest=(0.25, 0.4) if rest is None else rest)
+    base.tap_box(t, bounds, dy=dy, fuzz=min(0.008, t[2] / 4), rest=TAP_REST if rest is None else rest)
 
 
 def tap_into(t, *screens, dy=0.0, timeout=8, on="friends"):
@@ -219,7 +225,7 @@ def tap_into(t, *screens, dy=0.0, timeout=8, on="friends"):
     button just sits there): when the screen is still `on`, with that word in the same spot, tap it again, twice at
     most. (A tap that only landed late at worst opens a gift's preview or a friend page: nothing is sent by it)"""
     for attempt in range(3):
-        if attempt == 0 and t[1] > 0.25 and look() == on and dimmed():  # (the tabs up top work under the veil)
+        if attempt == 0 and t[1] > 0.25 and classify() == on and dimmed():  # (the capture t came from: no new look)  # (the tabs up top work under the veil)
             s = undim(*screens)  # (a tap on a greyed-out screen does nothing, or lands late)
             if s in screens:
                 return s
@@ -263,22 +269,23 @@ def undim(*screens, timeout=45):
     raise base.Lost(f"the screen stayed greyed out {timeout}s: {summary()}")
 
 
-def drag(fy1, fy2, ms=500, x=None):
+def drag(fy1, fy2, ms=500, x=None, settle=(0.7, 1.0)):
     """scroll by dragging from fy1 to fy2. x: where to grab (the gift list: the gap between its two columns, as a
     drag that starts on a card can land as a tap on it)"""
     x = x if x is not None else random.uniform(0.4, 0.6)
-    base.drag(x, fy1, x + random.uniform(-0.005, 0.005), fy2, bounds, ms=ms, settle=(0.7, 1.0),
+    base.drag(x, fy1, x + random.uniform(-0.005, 0.005), fy2, bounds, ms=ms, settle=settle,
               android_settle=base.LIST_SETTLE)
 
 
 def close():
+    """the X. No pause after it: every caller waits for the screen it opens (to_list won't X twice within 3 LAG)"""
     tap(*base.X_BUTTON, fuzz=0.004)  # (the preview's SEND sits just above: keep the X tap tight)
-    time.sleep(1.0)
 
 
-def close_popup(*screens, timeout=6):
+def close_popup(*screens, timeout=6, also=()):
     """X on a gift or Lucky Trade popup over a friend page -> one of the screens. The X can miss (a dropped tap, or
-    the popup still sliding in): while the popup still shows, X again, twice at most"""
+    the popup still sliding in): while the popup still shows, X again, twice at most. also: more screens whose X
+    may be tapped again (only after the full wait and a fresh look still show them)"""
     for attempt in range(3):
         close()
         try:
@@ -288,7 +295,7 @@ def close_popup(*screens, timeout=6):
             s = look()
             if s in screens:
                 return s
-            if attempt == 2 or s not in ("giftpopup", "luckytrade"):
+            if attempt == 2 or s not in ("giftpopup", "luckytrade", *also):
                 raise
             log(f"  the {s} popup's X didn't land: again")
 
@@ -336,7 +343,7 @@ def to_list():
         if s == "friends":
             return
         if s == acted[0] and s != "unknown" and time.time() - acted[1] < 3 * LAG:
-            time.sleep(0.3)  # the last tap hasn't shown yet: look again, don't tap twice
+            time.sleep(POLL)  # the last tap hasn't shown yet: look again, don't tap twice
             continue
         unknown = unknown + 1 if s == "unknown" else 0
         acted = (s, time.time())
@@ -367,7 +374,7 @@ def to_list():
                 loading = time.time() + REOPEN_LOAD  # the game reopened: wait out its loading screens
                 end = max(end, loading + 30)
             unknown = 0
-        time.sleep(0.5)
+        time.sleep(POLL if s in ("friend", "meter", "giftpopup") else 0.5)  # (a friend page's X: the list comes fast)
     keep_capture("lost")
     raise Stop(f"couldn't get to the friend list: {summary()}")
 
@@ -463,8 +470,10 @@ def box_end(box):
 
 
 def ends_zone(t, z):
-    """t (box_end) ends with the short zone z. One letter of two may be misread: OCR read 'mo' as 'mg'"""
-    return len(t) >= len(z) and sum(a != b for a, b in zip(t[-len(z):], z.upper())) <= len(z) // 2
+    """t (box_end) ends with the short zone z. One letter of two may be misread: OCR read 'mo' as 'mg'. One stray
+    l, I or | after it is the box's edge or cursor (2026-11-07: '&mo' read '&mol' four times and stopped the run)"""
+    same = lambda t: len(t) >= len(z) and sum(a != b for a, b in zip(t[-len(z):], z.upper())) <= len(z) // 2
+    return same(t) or (t[-1:] in ("L", "I", "|", "1") and same(t[:-1]))
 
 
 def commit_search():
@@ -787,22 +796,44 @@ def heart_fill():
     return full, (fill[full][1] if full < 5 else 1.0)
 
 
+def poll_until(ok, timeout):
+    """look every POLL seconds until ok() -> True, or False once timeout seconds have passed"""
+    end = time.time() + timeout
+    while True:
+        look()
+        if ok():
+            return True
+        if time.time() >= end:
+            return False
+        time.sleep(POLL)
+
+
+meter_spot = None  # which kind of spot opened the friendship screen last: tried first next time
+hearts_kept = 0  # captures kept of a friend page whose hearts didn't read (a few a run, to see why)
+
+
 def meter():
     """-> friendship points to the next level when that level is the 3rd, 4th or 5th heart or the Forever bar,
     else None (a level-up there doesn't matter). Leaves the friend page showing again"""
+    global meter_spot, hearts_kept
     hf = heart_fill()
-    if hf and (hf[0] < WATCH_FROM or hf[1] < HEART_NEAR[hf[0]]):  # (5 full hearts read 100%: always opened)
+    if hf and (hf[0] < WATCH_FROM or hf[1] < HEART_NEAR[hf[0]]) and not WALK:  # (5 full hearts read 100%: always opened)
         log(f"  {hf[0]} hearts + {hf[1]:.0%} of the next: no level-up close, friendship screen not opened")
         return None
+    if not hf and hearts_kept < 3:
+        hearts_kept += 1
+        keep_capture("hearts")
     spot = hearts_spot()
-    spots = [(spot[0] + 2 * 0.0644, spot[1])] if spot else []  # the third heart
     nick, line = page_nickname()
-    spots += [(0.12, line[1] + line[3] / 2)] if line else []
-    spots += [(0.15, 0.177), (0.15, 0.204)]
-    for fx, fy in spots:
+    spots = [("heart", (spot[0] + 2 * 0.0644, spot[1]))] if spot else []  # the third heart
+    spots += [("nick", (0.12, line[1] + line[3] / 2))] if line else []
+    spots += [("top", (0.15, 0.177)), ("top2", (0.15, 0.204))]
+    spots.sort(key=lambda k: k[0] != meter_spot)  # (the one that worked last time first)
+    for kind, (fx, fy) in spots:
         tap(fx, fy, fuzz=0.004)
         try:
             wait("meter", timeout=4)
+            meter_spot = kind
             break
         except Stop:
             if look() != "friend":
@@ -810,17 +841,16 @@ def meter():
     else:
         keep_capture("meter")
         raise base.Lost(f"the friendship screen didn't open: {summary()}")  # (no gift yet: back to the list, as above)
-    if not ribbon():  # (still sliding in: wait() caught it early)
-        time.sleep(0.8)
-        look()
+    poll_until(lambda: ribbon() or points_text() is not None, 1.0)  # (still sliding in: wait() caught it early)
     level = ribbon()
     n = points_text()  # the Forever Friends bar shows its points with no tap
     if n is None and level != "GOOD":
         start = LEVELS[level] if level in LEVELS and LEVELS[level] >= WATCH_FROM else WATCH_FROM
+        if level not in LEVELS and hf and WATCH_FROM <= hf[0] < 5:
+            start = hf[0]  # (the ribbon unread: the small hearts say which one is next. Each wrong heart cost ~1 s)
         for i in range(start, 5):
             tap(HEART_X[i], HEART_Y, fuzz=0.004)
-            time.sleep(0.9)
-            look()
+            poll_until(lambda: points_text() is not None, 1.0)
             n = points_text()
             if n is not None:
                 break  # (counts from now, so a later heart's number is bigger: the first one is the next level)
@@ -946,9 +976,8 @@ def send_gift():
                 log(f"  the tap on {title!r} didn't open it: looking again")
                 continue
             ok, got = preview_ok(title)
-            if not ok:  # (caught mid-animation: one more look)
-                time.sleep(0.5)
-                look()
+            if not ok:  # (caught mid-animation: looks for 1.5 s more)
+                poll_until(lambda: classify() == "preview" and preview_ok(title)[0], 1.5)
                 ok, got = preview_ok(title)
             if not ok:
                 keep_capture("preview")
@@ -1130,10 +1159,12 @@ def grey_check(t):
     return None
 
 
-def one_friend(row, check=False):
+def one_friend(row, check=False, done=None):
     """open the row's friend page, check, gift and/or tag. -> the gift sent, None (no gift, on purpose), "grey",
-    "misread" (another friend's page opened), "empty" or "raid".
-    check: on a grey SEND GIFT, tap it anyway to see whether my bag is empty"""
+    "misread" (a friend already dealt with opened), "empty" or "raid".
+    check: on a grey SEND GIFT, tap it anyway to see whether my bag is empty. done: name_keys dealt with this run.
+    A page that isn't the row's name but no one done yet is a friend from the same list (OCR garbles some rows'
+    names each look, 2026-11-07: '1234Lo', '1234) Jading'): it goes on with them"""
     t0 = time.time()
     s = tap_into(row["t"], "friend", "giftpopup", "luckytrade", "raid")
     if s == "raid":
@@ -1143,20 +1174,33 @@ def one_friend(row, check=False):
     if s in ("giftpopup", "luckytrade"):
         close_popup("friend")  # their gift to me: X, never OPEN. A Lucky Trade request: X, left for the user
     name = page_name()
-    if not name or not same_name(name, row["name"]):
+    if name and not same_name(name, row["name"]) and done is not None and name_key(name) not in done:
+        log(f"  opened {name!r}, the list read {row['name']!r}: going on with them")
+        row = dict(row, name=name, nick="")  # (the list's nickname is unknown: a rename is left to the user)
+    elif not name or not same_name(name, row["name"]):
         log(f"  opened {name!r}, wanted {row['name']!r}: skipped")
         return "misread"
+    if done is not None:
+        done.add(name_key(name))
     nick, _ = page_nickname()
+    if re.match(r"WAIT", nick):
+        log(f"{name} ({nick}): tagged WAIT, skipped")  # (the list's WAIT check, for a page opened by a garbled row)
+        return None
     if never_gift(name, nick):
         log(f"{name} ({nick}): never gets a gift from the script: left alone")
         return None
     t = send_gift_label()
     if not t or not gift_icon(t):
-        time.sleep(0.8)  # (or a Lucky Trade request fading in over the page: it pales the icon)
-        if look() == "luckytrade":
+        # (or a Lucky Trade request fading in over the page: it pales the icon)
+        poll_until(lambda: classify() == "luckytrade" or ((u := send_gift_label()) and gift_icon(u)), 0.8)
+        if classify() == "luckytrade":
             close_popup("friend")
         t = send_gift_label()
     if not t or not gift_icon(t):
+        if WALK:  # (a speed test: the friendship screen as for a gift, then back. Never the gift list)
+            n = meter()
+            log(f"{name} ({nick}): walked, {n if n is not None else '-'} points ({time.time() - t0:.1f}s)")
+            return "walked"
         keep_capture("grey")
         got = grey_check(t) if t and check else None
         if got == "empty":
@@ -1281,6 +1325,8 @@ def run_searches(limit):
             top = True  # the list is as a search sorted it: no gift sent since (scrolled or not)
             bounced = 0  # scrolls that landed off the list since the last friend reached
             finished, missed, seen = False, False, set()  # missed: a friend here wasn't dealt with; seen: names on the list
+            tapped = []  # where rows were tapped since the list last moved: done, whatever OCR reads there next
+            pinned = set()  # rows skipped for their spot alone (logged once)
             while True:
                 if not fresh and look() != "friends":  # a drag that landed as a tap opened something: back first
                     bounced += 1
@@ -1297,15 +1343,22 @@ def run_searches(limit):
                         break
                     if arrow() != "down":
                         set_sort()
-                    stale, fresh, top = 0, True, True
+                    stale, fresh, top, tapped = 0, True, True, []
                     continue
                 on_screen = rows()
                 seen |= {r["name"] for r in on_screen}
                 # a Remote Trade friend stays at the top whatever the sort: their arrow says nothing about the rest
                 # (never_gift here too: OCR can read a name differently each look, so done alone could reopen them)
-                todo = [r for r in on_screen if r["name"] not in done and not (r["trade"] and r["badged"])
+                todo = [r for r in on_screen if name_key(r["name"]) not in done and not (r["trade"] and r["badged"])
                         and not never_gift(r["name"], r["nick"])]
-                if todo and todo[0]["badged"]:
+                spot = [r for r in todo if any(abs(r["t"][1] - y) < 0.012 for y in tapped)]
+                for r in spot:  # (a row already tapped, its name read another way: not opened again, but not proven done)
+                    if r["name"] not in pinned:
+                        pinned.add(r["name"])
+                        log(f"  {r['name']!r} sits where a friend was tapped: skipped as done")
+                missed = missed or bool(spot)
+                todo = [r for r in todo if r not in spot]
+                if todo and todo[0]["badged"] and not WALK:
                     if top:
                         finished = True
                         break  # sorted can-receive first, and the first friend not done has the arrow: nobody left
@@ -1317,14 +1370,15 @@ def run_searches(limit):
                         break
                     if arrow() != "down":
                         set_sort()
-                    stale, fresh, top = 0, True, True
+                    stale, fresh, top, tapped = 0, True, True, []
                     continue
                 if not todo:
                     before = [r["name"] for r in rows()]
                     # (a scroll leaves top alone: the sort holds below too. 2026-10-31: friends gifted this run sat
                     # unarrowed at the top after the new search, so every re-search scrolled past them to the same
                     # arrow, and searched again, forever)
-                    drag(0.75, 0.4)
+                    drag(0.75, 0.4, settle=(0.35, 0.45))  # (a slow drag barely glides on: the list holds still soon)
+                    tapped = []
                     look()
                     stale = stale + 1 if [r["name"] for r in rows()] == before else 0
                     if stale:
@@ -1334,7 +1388,8 @@ def run_searches(limit):
                     continue
                 row = todo[0]
                 bounced = 0
-                done.add(row["name"])
+                done.add(name_key(row["name"]))  # (I and l, O and 0 alike: OCR reads them either way)
+                tapped.append(row["t"][1])
                 if re.match(r"WAIT", row["nick"].strip()):
                     log(f"  {row['name']} ({row['nick']}): tagged WAIT, skipped")  # (1 point to level up: no gift)
                     fresh = True
@@ -1342,7 +1397,7 @@ def run_searches(limit):
                 # a grey SEND GIFT alone proves nothing (that friend may not take one now). Every 3rd grey in a row,
                 # tap it anyway: the gift list opening, or send_gift's OutOfGifts, tells whether the bag is empty
                 try:
-                    got = one_friend(row, check=greys % 3 == 2)
+                    got = one_friend(row, check=greys % 3 == 2, done=done)
                 except base.Lost as e:
                     # a late iPhone tap (two X's landing at once closed the friend page, 2026-10-28) left a screen
                     # nobody expected. Nothing was sent unseen: after SEND a lost screen is a Stop. Back to the list, the
@@ -1357,13 +1412,13 @@ def run_searches(limit):
                     to_list()
                     if row["name"] not in retried:
                         retried.add(row["name"])
-                        done.discard(row["name"])  # (gifted after all: their SEND GIFT reads grey next time)
+                        done.discard(name_key(row["name"]))  # (gifted after all: their SEND GIFT reads grey next time)
                     n = search(base_q, zq)
                     if not n:
                         break
                     if arrow() != "down":
                         set_sort()
-                    stale, fresh, top = 0, True, True
+                    stale, fresh, top, tapped = 0, True, True, []
                     continue
                 lost = 0
                 missed = missed or got in ("grey", "misread", "raid")  # (a grey one can take a gift minutes later)
@@ -1372,7 +1427,8 @@ def run_searches(limit):
                 if got == "raid":  # (a raid invite popped up under the tap: not this friend's fault)
                     if row["name"] not in retried:
                         retried.add(row["name"])
-                        done.discard(row["name"])
+                        done.discard(name_key(row["name"]))
+                        tapped.pop()  # (its spot too: the second try taps it again)
                     got = None
                 if got == "empty":
                     log(f"the game says I have no gifts: out of gifts, done ({sent} sent)")
@@ -1388,7 +1444,11 @@ def run_searches(limit):
                         log(f"{sent} gifts: the limit for this run")
                         return sent, None
                 to_list()
-                fresh = True
+                # the next friend is already known (rows keep their place until a new search): tap it the moment
+                # the list shows. Only its rows may lag a moment behind the header
+                if not rows():
+                    poll_until(lambda: classify() != "friends" or rows(), 2.0)
+                fresh = classify() == "friends"
             if remembered and finished and not missed:
                 iii_remember(zone, day)
     return sent, "nobody left who can take one"
@@ -1397,8 +1457,8 @@ def run_searches(limit):
 def one_phone(a):
     ui.CAP = f"/tmp/gift_{PHONE}.png"
     base.new_run_dir(os.path.join(HERE, "runs"), suffix=PHONE)
-    global DRY
-    DRY = a.dry_run
+    global DRY, WALK
+    DRY, WALK = a.dry_run, a.walk
     if a.cmd == "look":
         s = look()
         print(f"{PHONE}: {s}  rows: {rows() if s == 'friends' else '-'}  arrow: {arrow()}  gift sort: {sorted_gift()}")
@@ -1433,7 +1493,11 @@ def main():
     ap.add_argument("cmd", nargs="?", default="run", choices=("run", "look"))
     ap.add_argument("--limit", type=int, default=1000, help="at most N gifts per phone this run")
     ap.add_argument("--dry-run", action="store_true", help="everything but SEND and the nickname's OK")
+    ap.add_argument("--walk", action="store_true", help="speed test, with --dry-run: friends already gifted too; "
+                    "opens each one's page and friendship screen as for a gift, never the gift list")
     a = ap.parse_args()
+    if a.walk and not a.dry_run:
+        ap.error("--walk needs --dry-run")
     if os.environ.get("POGO_PHONE", "").lower() != "both":  # ui read POGO_PHONE on import: android, else the iPhone
         return one_phone(a)
     ui.ensure_helper()  # built once here, so the two phones don't both compile it
@@ -1442,6 +1506,7 @@ def main():
         env = dict(os.environ, POGO_PHONE=phone)
         cmd = [sys.executable, os.path.realpath(__file__), a.cmd, "--limit", str(a.limit)]
         cmd += ["--dry-run"] if a.dry_run else []
+        cmd += ["--walk"] if a.walk else []
         procs.append(subprocess.Popen(cmd, env=env))
     codes = [p.wait() for p in procs]
     sys.exit(max(codes))

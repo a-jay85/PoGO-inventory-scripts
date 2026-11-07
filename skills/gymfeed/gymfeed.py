@@ -11,10 +11,13 @@
   so the run ends. A gym with a raid on is skipped.
 - Taps each Pokémon in the gym view, right-most first, lower if nothing new opens (a back-row one shows only a bit).
   On its page it picks a berry from the berry menu (FEEDABLE: Razz, Nanab, Pinap, each down to a floor; never Golden
-  Razz or Silver Pinap), taps the floating berry every 1.5 s until it goes away (full for now), then the round X back
-  to the gym view. No berry to spare: the run ends.
-- A Pokémon a tap can't open (one in the back row, behind another) is found by swiping from the ones it did open.
-  Some swipes only take with the finger held still first, on the spot where the hidden one shows.
+  Razz or Silver Pinap), taps the floating berry about every 2 s until it stays gone for 3 s (full for now; a picture
+  is kept), then the round X back to the gym view. No berry to spare: the run ends. It looks again right before each
+  tap: a tap with no berry there hits the faint Pokémon behind and jumps to its page. If the page did change, feeding
+  stops (a picture is kept) and that one gets its turn later.
+- The CP labels undercount a gym (one in the back row may have none), so after the taps it always swipes from the
+  ones it opened, until 6 are seen or no swipe is left to try. Some swipes only take with the finger held still
+  first, on the spot where the hidden one shows.
 - Back to the badge list, sorted again, the next badge. It ends after N berries (--limit, default 100) or when no
   gym is left.
 
@@ -29,6 +32,7 @@ finds a gym: switching accounts doesn't. The berry menu was measured on the Pixe
 """
 import argparse, os, re, subprocess, sys, time
 from collections import deque
+from difflib import SequenceMatcher
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "shared"))
@@ -53,7 +57,10 @@ FEED_GAP = 1.5  # seconds from one berry tap to the next. Tested on the Pixel 20
 # (half the taps lost)
 LIMIT = 100
 TIMER = os.path.expanduser("~/.config/pogo/gymfeed_timer")  # the local timer's on/off switch, out of the repo
-MAX_SWIPES = 24  # per gym, looking for Pokémon a tap didn't open
+MAX_SWIPES = 40  # per gym. Each swipe is about 3.7 s. The held ones work only now and then (the Pokémon bob): the same swipe from Chansey found Scizor once, then not; 24 ran out before Hitmonchan (2026-11-06)
+GYM_SIZE = 6  # the most a gym holds. The CP labels can't count them: 4 labels, 5+ Pokémon on 2026-11-06
+MAX_DROP = 3  # the most a berry count really falls between two looks
+FULL_WAIT = 3.0  # seconds a berry must stay gone to call a Pokémon full
 
 # swipes on a gym Pokémon's page: (x1, y1, x2, y2, hold ms). Left to right goes one way along the gym, right to
 # left the other. A plain swipe on the lower half; the held ones start where a back-row Pokémon shows behind the
@@ -182,13 +189,31 @@ def menu_counts(menu, texts, path):
     return out
 
 
-def who(texts):
-    """one gym Pokémon's page -> (its name, its trainer): the name at the top, the trainer beside its CP"""
+known = []  # the (name, trainer)s met in this gym
+
+
+def like(a, b, enough):
+    return SequenceMatcher(None, a, b).ratio() >= enough
+
+
+def page_name(texts):
+    """the name at the top of a gym Pokémon's page"""
     top = [t for t in texts if (0.05 if ui.ANDROID else 0.08) < t[1] < 0.13 and not re.fullmatch(r"\W*[cC][pP]?\s*\d+\W*", t[4].strip())]
-    name = " ".join(t[4].strip() for t in sorted(top, key=lambda t: t[0]))
+    return " ".join(t[4].strip() for t in sorted(top, key=lambda t: t[0]))
+
+
+def who(texts):
+    """one gym Pokémon's page -> (its name, its trainer): the name at the top, the trainer beside its CP. OCR reads the
+    trainer over the busy gym differently each time ('sCyrillJan', 'RCyrillJan'), so a close read gives the one known"""
+    name = page_name(texts)
     mid = [t[4].strip() for t in texts if 0.3 < t[1] < 0.5 and not LABEL_RE.match(t[4].strip())
            and not re.fullmatch(r"[\d\W]+", t[4].strip()) and len(t[4].strip()) > 2]
-    return name, " ".join(sorted(mid))
+    trainer = " ".join(sorted(mid))
+    for k in known:
+        if k[0] == name and like(k[1], trainer, 0.5):
+            return k
+    known.append((name, trainer))
+    return name, trainer
 
 
 def gym_name(texts):
@@ -425,10 +450,34 @@ def choose():
     return None
 
 
-def feed(kind, have, left):
-    """on a gym Pokémon's page with `kind` picked (`have` in the bag): the berry every FEED_GAP s while it floats,
-    the bag keeps more than FEEDABLE[kind] and fewer than `left` are fed -> (berries fed, why it stopped: "full",
-    "floor", "limit" or "stuck"). A berry counts when the number under it goes down"""
+def moved(screen, texts, me):
+    """a page that reads as a gym Pokémon's, with another name than me's. The feeding can hide the name: not moved"""
+    name = page_name(texts)
+    return screen == "feed" and name and not like(name, me[0], 0.6)
+
+
+def sane(now, count):
+    """a count read while feeding -> it, or `count` if it fell too far for one tap: a misread (143 read so low it
+    counted 100 berries and ended a run, 2026-11-06)"""
+    return count if now is not None and count - now > MAX_DROP else now
+
+
+def berry_back():
+    """the berry isn't showing: look for FULL_WAIT s -> (its count or None: still gone, the last look's screen, texts,
+    bounds)"""
+    end = time.time() + FULL_WAIT
+    while True:
+        time.sleep(0.6)
+        screen, texts, _, bounds = look()
+        count = berry_count(texts)
+        if count is not None or time.time() >= end:
+            return count, screen, texts, bounds
+
+
+def feed(kind, have, left, me):
+    """on `me`'s page with `kind` picked (`have` in the bag): the berry every FEED_GAP s while it floats, the bag keeps
+    more than FEEDABLE[kind] and fewer than `left` are fed -> (berries fed, why it stopped: "full", "floor", "limit",
+    "stuck" or "moved": another Pokémon's page). A berry counts when the number under it goes down"""
     floor = FEEDABLE[kind]
     _, texts, path, bounds = look()
     count = berry_count(texts)
@@ -441,25 +490,52 @@ def feed(kind, have, left):
         if count <= floor:
             why = "floor"
             break
+        # the number can still show just before a full Pokémon's berry goes. A tap with no berry jumps to the faint
+        # Pokémon behind (Blissey and Hitmonchan -> Greninja, 2026-11-06), so a fresh look right before each tap
+        screen, texts, path, bounds = look()
+        now = sane(berry_count(texts), count)
+        if now is None and not moved(screen, texts, me):
+            now, screen, texts, bounds = berry_back()
+            now = sane(now, count)
+        if moved(screen, texts, me):
+            keep_capture(f"moved-{me[0]}")
+            log(f"    the page changed from {me[0]} to {page_name(texts)}: stopping")
+            why = "moved"
+            break
+        if now is None:
+            keep_capture(f"full-{me[0]}")
+            why = "full"
+            break
+        if now < count:
+            fed += count - now
+        count = now
+        if fed >= spare or count <= floor:
+            continue
         t0 = time.time()
         base.click(*BERRY, bounds, fuzz=0.02)
         taps += 1
         time.sleep(max(0.0, t0 + FEED_GAP - time.time() - 0.6))
-        _, texts, path, bounds = look()
-        now = berry_count(texts)
+        screen, texts, path, bounds = look()
+        now = sane(berry_count(texts), count)
         if now is None:  # gone, or a "+30 stardust" banner over it: look once more
             time.sleep(0.6)
-            _, texts, path, bounds = look()
-            now = berry_count(texts)
+            screen, texts, path, bounds = look()
+            now = sane(berry_count(texts), count)
         if now is not None and now < count:
             fed += count - now
             stuck = 0
         elif now is None:
             fed += 1  # the last one: the berry goes as it's eaten
-            time.sleep(1.2)
-            _, texts, path, bounds = look()
-            now = berry_count(texts)
+            now, screen, texts, bounds = berry_back()
+            now = sane(now, count)
+            if moved(screen, texts, me):  # that tap found no berry, so it fed nothing here
+                fed -= 1
+                keep_capture(f"moved-{me[0]}")
+                log(f"    the page changed from {me[0]} to {page_name(texts)}: stopping")
+                why = "moved"
+                break
             if now is None:
+                keep_capture(f"full-{me[0]}")
                 why = "full"
                 break
         else:
@@ -496,11 +572,10 @@ def feed_here(seen, total, limit):
     seen.add(me)
     if total >= limit or out_of_berries:
         return 0
-    if berry_count(texts) is None:  # it floats in late
-        time.sleep(1.0)
-        if berry_count(look()[1]) is None:
-            log(f"  {me[0]} ({me[1]}): full")
-            return 0
+    if berry_count(texts) is None and berry_back()[0] is None:  # it floats in late
+        keep_capture(f"full-{me[0]}")
+        log(f"  {me[0]} ({me[1]}): full")
+        return 0
     got = 0
     while total + got < limit:
         picked = choose()
@@ -508,7 +583,7 @@ def feed_here(seen, total, limit):
             log(f"  no berry to spare: every kind is down to what's kept ("
                 + ", ".join(f"{k} {n}" for k, n in FEEDABLE.items()) + ")")
             break
-        n, why = feed(*picked, limit - total - got)
+        n, why = feed(*picked, limit - total - got, me)
         got += n
         if why != "floor":
             break
@@ -536,10 +611,10 @@ def open_at(cx, cy, bounds, seen):
 
 def gym(total, limit):
     """in a gym's view: feed every Pokémon in it -> berries fed here"""
+    known.clear()
     labels = sorted(all_labels(), key=lambda c: -c[0])
     _, _, _, bounds = look()
-    n = len(labels)
-    log(f"  {n} Pokémon in the gym view")
+    log(f"  {len(labels)} CP labels in the gym view")
     seen, fed, todo = set(), 0, labels
     # right-most first. A label whose first tap opened nothing new may have opened the one in front of it (not seen
     # yet then): a 2nd pass over those, with the front ones seen, reaches the one behind
@@ -558,12 +633,12 @@ def gym(total, limit):
             base.tap_x(look()[3], fuzz=0.006)
             _, _, _, bounds = base.wait_for("gymview", look=look, timeout=8)
             time.sleep(0.8)
-        if len(seen) >= n or not missed:
+        if len(seen) >= GYM_SIZE or not missed:
             break
         todo = missed
-    if len(seen) >= n or total + fed >= limit or out_of_berries:
+    if len(seen) >= GYM_SIZE or total + fed >= limit or out_of_berries:
         return fed
-    log(f"  {len(missed)} didn't open on a tap: looking by swiping")
+    log(f"  {len(seen)} opened on a tap: looking for more by swiping")
     # into the front Pokémon nearest the first one missed, then try each swipe from every page reached
     if seen:
         mx, my = missed[0] if missed else (0.5, 0.45)
@@ -575,7 +650,9 @@ def gym(total, limit):
             return fed
     else:
         return fed
-    fed += explore(seen, n, total + fed, limit)
+    used = len(seen)
+    fed += explore(seen, GYM_SIZE, total + fed, limit)
+    log(f"  {len(seen) - used} more by swiping, {len(seen)} in all: " + ", ".join(k[0] for k in seen))
     base.tap_x(look()[3], fuzz=0.006)
     base.wait_for("gymview", look=look, timeout=8)
     return fed
@@ -603,9 +680,11 @@ def explore(seen, n, total, limit):
                 keep_capture("swipelost")
                 raise Stop("a swipe in the gym left the Pokémon page")
             now = who(look()[1])
+            log(f"    swipe {i} ({used}): {here[0]} -> {now[0]}")
             edges.setdefault(here, {})[i] = now
             if now not in seen:
                 fed += feed_here(seen, total + fed, limit)
+                now = who(look()[1])  # feeding can leave it on another page
             here = now
     return fed
 

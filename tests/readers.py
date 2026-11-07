@@ -196,6 +196,7 @@ def in_bar(phone):
 
 PAIRED = {
     "search.same_query": search.same_query,
+    "search.lost_tail": search.lost_tail,
     "search.bar_shows": search.bar_shows,
     "search.amp_as_8": search.amp_as_8,
     "tagsheet.bar_whole": lambda g, q: tagsheet.bar_whole(g.replace(" ", ""), q),

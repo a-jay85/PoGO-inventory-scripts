@@ -976,9 +976,8 @@ def send_gift():
                 log(f"  the tap on {title!r} didn't open it: looking again")
                 continue
             ok, got = preview_ok(title)
-            if not ok:  # (caught mid-animation: one more look)
-                time.sleep(0.5)
-                look()
+            if not ok:  # (caught mid-animation: looks for 1.5 s more)
+                poll_until(lambda: classify() == "preview" and preview_ok(title)[0], 1.5)
                 ok, got = preview_ok(title)
             if not ok:
                 keep_capture("preview")
@@ -1327,6 +1326,7 @@ def run_searches(limit):
             bounced = 0  # scrolls that landed off the list since the last friend reached
             finished, missed, seen = False, False, set()  # missed: a friend here wasn't dealt with; seen: names on the list
             tapped = []  # where rows were tapped since the list last moved: done, whatever OCR reads there next
+            pinned = set()  # rows skipped for their spot alone (logged once)
             while True:
                 if not fresh and look() != "friends":  # a drag that landed as a tap opened something: back first
                     bounced += 1
@@ -1350,7 +1350,14 @@ def run_searches(limit):
                 # a Remote Trade friend stays at the top whatever the sort: their arrow says nothing about the rest
                 # (never_gift here too: OCR can read a name differently each look, so done alone could reopen them)
                 todo = [r for r in on_screen if name_key(r["name"]) not in done and not (r["trade"] and r["badged"])
-                        and not never_gift(r["name"], r["nick"]) and not any(abs(r["t"][1] - y) < 0.012 for y in tapped)]
+                        and not never_gift(r["name"], r["nick"])]
+                spot = [r for r in todo if any(abs(r["t"][1] - y) < 0.012 for y in tapped)]
+                for r in spot:  # (a row already tapped, its name read another way: not opened again, but not proven done)
+                    if r["name"] not in pinned:
+                        pinned.add(r["name"])
+                        log(f"  {r['name']!r} sits where a friend was tapped: skipped as done")
+                missed = missed or bool(spot)
+                todo = [r for r in todo if r not in spot]
                 if todo and todo[0]["badged"] and not WALK:
                     if top:
                         finished = True
@@ -1421,6 +1428,7 @@ def run_searches(limit):
                     if row["name"] not in retried:
                         retried.add(row["name"])
                         done.discard(name_key(row["name"]))
+                        tapped.pop()  # (its spot too: the second try taps it again)
                     got = None
                 if got == "empty":
                     log(f"the game says I have no gifts: out of gifts, done ({sent} sent)")

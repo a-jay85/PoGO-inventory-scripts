@@ -149,7 +149,8 @@ def classify():
         return "picker"
     if "ADD STICKER" in j and "SEND" in w:
         return "preview"
-    if "GREETINGS FROM" in j and "OPEN" in w:
+    if "GREETINGS FRO" in j and "OPEN" in w:
+        # (a long title cuts the line short: 'Greetings fro..', crecos1's Yacht Club gift, 2026-11-07)
         return "giftpopup"
     if "REVIEW LUCKY" in j:
         return "luckytrade"  # a friend's Lucky Trade request over their page: its X shows the page

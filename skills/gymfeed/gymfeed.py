@@ -31,7 +31,7 @@ A run that hit --limit or ran out of spare berries also says "on". The timer onl
 finds a gym: switching accounts doesn't. The berry menu was measured on the Pixel only.
 """
 import argparse, os, re, subprocess, sys, time
-from collections import deque
+from collections import Counter, deque
 from difflib import SequenceMatcher
 
 HERE = os.path.dirname(os.path.realpath(__file__))
@@ -56,8 +56,9 @@ BERRY_WAIT = 1.1  # seconds from a berry tap to the look before the next. The sc
 # tap: at 1.3 s the number still showed on a full Pokémon, then the next tap hit no berry and jumped (2026-11-06)
 LIMIT = 100
 TIMER = os.path.expanduser("~/.config/pogo/gymfeed_timer")  # the local timer's on/off switch, out of the repo
-MAX_SWIPES = 24  # per gym. Each swipe is about 2.5 s
-SWIPE_TRIES = 2  # a swipe that stays on the same page gets one more go
+MAX_SWIPES = 40  # per gym. Each swipe is about 3 s
+SWIPE_STAYS = 4  # a swipe that stayed on the page this often isn't tried from there again. Most stays end with a retry:
+# Chansey's left to right stayed twice in a row, then a run gave up on it and never found Scizor (2026-11-06)
 GYM_SIZE = 6  # the most a gym holds. The CP labels can't count them: 4 labels, 5+ Pokémon on 2026-11-06
 MAX_DROP = 3  # the most a berry count really falls between two looks
 FULL_WAIT = 2.0  # seconds a berry must stay gone to call a Pokémon full
@@ -672,46 +673,51 @@ def gym(total, limit):
 
 def explore(seen, n, total, limit):
     """on a gym Pokémon's page: try SWIPES from each page reached until n are seen or nothing's left to try.
-    -> berries fed. Each page is known by its name and trainer; a path of swipes leads back to one with swipes left"""
-    edges = {}  # page -> {swipe: page it led to}
+    -> berries fed. Each page is known by its name; a path of swipes leads back to one with swipes left"""
+    edges, stays = {}, Counter()  # page -> {swipe: page it led to}; (page, swipe) -> times it stayed on that page
     here, fed, used = who(look()[1]), 0, 0
     while len(seen) < n and used < MAX_SWIPES and total + fed < limit and not out_of_berries:
-        todo = [i for i in range(len(SWIPES)) if i not in edges.get(here, {})]
-        if todo:
-            path = [todo[0]]
-        else:  # the nearest page with a swipe not tried yet
-            path = route(edges, here)
-            if not path:
-                break
+        path = untried(edges, stays, here)[:1] or route(edges, stays, here)
+        if not path:
+            break
         for i in path:
-            for _ in range(SWIPE_TRIES):
-                x1, y1, x2, y2 = SWIPES[i]
-                _, _, _, bounds = look()
-                base.drag(x1, y1, x2, y2, bounds, ms=150, settle=(0.7, 0.8))
-                used += 1
-                if not wait_feed(3):
-                    keep_capture("swipelost")
-                    raise Stop("a swipe in the gym left the Pokémon page")
-                now = who(look()[1])
-                log(f"    swipe {i} ({used}): {here[0]} -> {now[0]}")
-                if now != here:
-                    break
-            edges.setdefault(here, {})[i] = now
+            x1, y1, x2, y2 = SWIPES[i]
+            _, _, _, bounds = look()
+            base.drag(x1, y1, x2, y2, bounds, ms=150, settle=(0.7, 0.8))
+            used += 1
+            if not wait_feed(3):
+                keep_capture("swipelost")
+                raise Stop("a swipe in the gym left the Pokémon page")
+            now = who(look()[1])
+            log(f"    swipe {i} ({used}): {here[0]} -> {now[0]}")
+            went = now != here
+            if went:
+                edges.setdefault(here, {})[i] = now
+            else:
+                stays[here, i] += 1
             if now not in seen:
                 fed += feed_here(seen, total + fed, limit)
                 now = who(look()[1])  # feeding can leave it on another page
             here = now
+            if not went:
+                break  # the rest of a path started from the page this one should have left
     return fed
 
 
-def route(edges, start):
+def untried(edges, stays, page):
+    """-> the swipes still to try from a page, the ones that stayed least first"""
+    todo = [i for i in range(len(SWIPES)) if i not in edges.get(page, {}) and stays[page, i] < SWIPE_STAYS]
+    return sorted(todo, key=lambda i: stays[page, i])
+
+
+def route(edges, stays, start):
     """-> the swipes from start to the nearest page with an untried swipe (then that swipe), or None"""
     q, back = deque([start]), {start: None}
     while q:
         p = q.popleft()
-        todo = [i for i in range(len(SWIPES)) if i not in edges.get(p, {})]
+        todo = untried(edges, stays, p)
         if todo and p != start:
-            path = [todo[0]]
+            path = todo[:1]
             while back[p]:
                 p, i = back[p]
                 path.insert(0, i)

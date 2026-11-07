@@ -493,6 +493,7 @@ def search(*parts):
     """type a search (its parts, joined) into the friend list -> its result count"""
     global typed
     q = "".join(parts)
+    zeros = 0
     for attempt in range(4):
         to_top()
         box = search_line()
@@ -528,6 +529,10 @@ def search(*parts):
             continue
         if rows():
             return n
+        zeros += n == 0
+        if zeros == 2:  # (typed whole twice, (0) twice, 2026-11-07: a real 0, and a long box can hide the nudge's A)
+            log("  (0) again after typing it whole: nobody in this search")
+            return 0
         n = rerun_search(n)  # (only a 0 after this is a real 0)
         if n is not None and (n == 0 or rows()):
             return n

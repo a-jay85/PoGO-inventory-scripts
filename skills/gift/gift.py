@@ -6,7 +6,7 @@
   POGO_PHONE=both caffeinate -dimsu python3 gift.py [--limit N]       both phones at once
   [POGO_PHONE=android] python3 gift.py look                           what the script reads now; taps nothing
   add --dry-run: everything but SEND and the nickname's OK.
-  add --dry-run --walk: a speed test that works after every gift is sent: each friend's page and friendship screen, no gift list.
+  add --dry-run --walk: a speed test that works after every gift is sent: each friend's page, always its friendship screen, no gift list.
 
 HashTagAJay is on the iPhone (iPhone Mirroring: a touch on the Mac pauses it), CyrillJan on the Android phone (adb).
 Each phone runs in its own process (ui.py keeps one phone's state in module globals).
@@ -269,11 +269,11 @@ def undim(*screens, timeout=45):
     raise base.Lost(f"the screen stayed greyed out {timeout}s: {summary()}")
 
 
-def drag(fy1, fy2, ms=500, x=None):
+def drag(fy1, fy2, ms=500, x=None, settle=(0.7, 1.0)):
     """scroll by dragging from fy1 to fy2. x: where to grab (the gift list: the gap between its two columns, as a
     drag that starts on a card can land as a tap on it)"""
     x = x if x is not None else random.uniform(0.4, 0.6)
-    base.drag(x, fy1, x + random.uniform(-0.005, 0.005), fy2, bounds, ms=ms, settle=(0.7, 1.0),
+    base.drag(x, fy1, x + random.uniform(-0.005, 0.005), fy2, bounds, ms=ms, settle=settle,
               android_settle=base.LIST_SETTLE)
 
 
@@ -817,7 +817,7 @@ def meter():
     else None (a level-up there doesn't matter). Leaves the friend page showing again"""
     global meter_spot, hearts_kept
     hf = heart_fill()
-    if hf and (hf[0] < WATCH_FROM or hf[1] < HEART_NEAR[hf[0]]):  # (5 full hearts read 100%: always opened)
+    if hf and (hf[0] < WATCH_FROM or hf[1] < HEART_NEAR[hf[0]]) and not WALK:  # (5 full hearts read 100%: always opened)
         log(f"  {hf[0]} hearts + {hf[1]:.0%} of the next: no level-up close, friendship screen not opened")
         return None
     if not hf and hearts_kept < 3:
@@ -846,6 +846,8 @@ def meter():
     n = points_text()  # the Forever Friends bar shows its points with no tap
     if n is None and level != "GOOD":
         start = LEVELS[level] if level in LEVELS and LEVELS[level] >= WATCH_FROM else WATCH_FROM
+        if level not in LEVELS and hf and WATCH_FROM <= hf[0] < 5:
+            start = hf[0]  # (the ribbon unread: the small hearts say which one is next. Each wrong heart cost ~1 s)
         for i in range(start, 5):
             tap(HEART_X[i], HEART_Y, fuzz=0.004)
             poll_until(lambda: points_text() is not None, 1.0)
@@ -1158,10 +1160,12 @@ def grey_check(t):
     return None
 
 
-def one_friend(row, check=False):
+def one_friend(row, check=False, done=None):
     """open the row's friend page, check, gift and/or tag. -> the gift sent, None (no gift, on purpose), "grey",
-    "misread" (another friend's page opened), "empty" or "raid".
-    check: on a grey SEND GIFT, tap it anyway to see whether my bag is empty"""
+    "misread" (a friend already dealt with opened), "empty" or "raid".
+    check: on a grey SEND GIFT, tap it anyway to see whether my bag is empty. done: name_keys dealt with this run.
+    A page that isn't the row's name but no one done yet is a friend from the same list (OCR garbles some rows'
+    names each look, 2026-11-07: '1234Lo', '1234) Jading'): it goes on with them"""
     t0 = time.time()
     s = tap_into(row["t"], "friend", "giftpopup", "luckytrade", "raid")
     if s == "raid":
@@ -1171,10 +1175,18 @@ def one_friend(row, check=False):
     if s in ("giftpopup", "luckytrade"):
         close_popup("friend")  # their gift to me: X, never OPEN. A Lucky Trade request: X, left for the user
     name = page_name()
-    if not name or not same_name(name, row["name"]):
+    if name and not same_name(name, row["name"]) and done is not None and name_key(name) not in done:
+        log(f"  opened {name!r}, the list read {row['name']!r}: going on with them")
+        row = dict(row, name=name, nick="")  # (the list's nickname is unknown: a rename is left to the user)
+    elif not name or not same_name(name, row["name"]):
         log(f"  opened {name!r}, wanted {row['name']!r}: skipped")
         return "misread"
+    if done is not None:
+        done.add(name_key(name))
     nick, _ = page_nickname()
+    if re.match(r"WAIT", nick):
+        log(f"{name} ({nick}): tagged WAIT, skipped")  # (the list's WAIT check, for a page opened by a garbled row)
+        return None
     if never_gift(name, nick):
         log(f"{name} ({nick}): never gets a gift from the script: left alone")
         return None
@@ -1314,6 +1326,7 @@ def run_searches(limit):
             top = True  # the list is as a search sorted it: no gift sent since (scrolled or not)
             bounced = 0  # scrolls that landed off the list since the last friend reached
             finished, missed, seen = False, False, set()  # missed: a friend here wasn't dealt with; seen: names on the list
+            tapped = []  # where rows were tapped since the list last moved: done, whatever OCR reads there next
             while True:
                 if not fresh and look() != "friends":  # a drag that landed as a tap opened something: back first
                     bounced += 1
@@ -1330,14 +1343,14 @@ def run_searches(limit):
                         break
                     if arrow() != "down":
                         set_sort()
-                    stale, fresh, top = 0, True, True
+                    stale, fresh, top, tapped = 0, True, True, []
                     continue
                 on_screen = rows()
                 seen |= {r["name"] for r in on_screen}
                 # a Remote Trade friend stays at the top whatever the sort: their arrow says nothing about the rest
                 # (never_gift here too: OCR can read a name differently each look, so done alone could reopen them)
                 todo = [r for r in on_screen if name_key(r["name"]) not in done and not (r["trade"] and r["badged"])
-                        and not never_gift(r["name"], r["nick"])]
+                        and not never_gift(r["name"], r["nick"]) and not any(abs(r["t"][1] - y) < 0.012 for y in tapped)]
                 if todo and todo[0]["badged"] and not WALK:
                     if top:
                         finished = True
@@ -1350,14 +1363,15 @@ def run_searches(limit):
                         break
                     if arrow() != "down":
                         set_sort()
-                    stale, fresh, top = 0, True, True
+                    stale, fresh, top, tapped = 0, True, True, []
                     continue
                 if not todo:
                     before = [r["name"] for r in rows()]
                     # (a scroll leaves top alone: the sort holds below too. 2026-10-31: friends gifted this run sat
                     # unarrowed at the top after the new search, so every re-search scrolled past them to the same
                     # arrow, and searched again, forever)
-                    drag(0.75, 0.4)
+                    drag(0.75, 0.4, settle=(0.35, 0.45))  # (a slow drag barely glides on: the list holds still soon)
+                    tapped = []
                     look()
                     stale = stale + 1 if [r["name"] for r in rows()] == before else 0
                     if stale:
@@ -1368,6 +1382,7 @@ def run_searches(limit):
                 row = todo[0]
                 bounced = 0
                 done.add(name_key(row["name"]))  # (I and l, O and 0 alike: OCR reads them either way)
+                tapped.append(row["t"][1])
                 if re.match(r"WAIT", row["nick"].strip()):
                     log(f"  {row['name']} ({row['nick']}): tagged WAIT, skipped")  # (1 point to level up: no gift)
                     fresh = True
@@ -1375,7 +1390,7 @@ def run_searches(limit):
                 # a grey SEND GIFT alone proves nothing (that friend may not take one now). Every 3rd grey in a row,
                 # tap it anyway: the gift list opening, or send_gift's OutOfGifts, tells whether the bag is empty
                 try:
-                    got = one_friend(row, check=greys % 3 == 2)
+                    got = one_friend(row, check=greys % 3 == 2, done=done)
                 except base.Lost as e:
                     # a late iPhone tap (two X's landing at once closed the friend page, 2026-10-28) left a screen
                     # nobody expected. Nothing was sent unseen: after SEND a lost screen is a Stop. Back to the list, the
@@ -1396,7 +1411,7 @@ def run_searches(limit):
                         break
                     if arrow() != "down":
                         set_sort()
-                    stale, fresh, top = 0, True, True
+                    stale, fresh, top, tapped = 0, True, True, []
                     continue
                 lost = 0
                 missed = missed or got in ("grey", "misread", "raid")  # (a grey one can take a gift minutes later)

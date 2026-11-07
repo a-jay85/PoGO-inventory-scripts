@@ -494,9 +494,10 @@ LOST_KEY_WAIT = 1.5  # seconds a bar can sit one or two keys short before they c
 
 def lost_tail(got, q):
     """iPhone: the last key of a search can get lost, and typing it all again loses it again ('150' stays '15', with the
-    list already showing dex 15, 2026-11-06). -> the one or two keys the bar is short of q, or ''"""
+    list already showing dex 15, 2026-11-06). -> the one or two digits the bar is short of q, or ''.
+    Digits only: OCR can drop a last '*', and one more typed would pass the bar's checks ('4**' reads as '4*')"""
     tail = q[len(got):]
-    return tail if got and len(tail) in (1, 2) and q.lower().startswith(got.lower()) else ""
+    return tail if got and len(tail) in (1, 2) and tail.isdigit() and q.lower().startswith(got.lower()) else ""
 
 
 def type_into_panel(q, bounds, check=None):

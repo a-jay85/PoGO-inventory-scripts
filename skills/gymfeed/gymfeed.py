@@ -11,7 +11,7 @@
   so the run ends. A gym with a raid on is skipped.
 - Taps each Pokémon in the gym view, right-most first, lower if nothing new opens (a back-row one shows only a bit).
   On its page it picks a berry from the berry menu (FEEDABLE: Razz, Nanab, Pinap, each down to a floor; never Golden
-  Razz or Silver Pinap), taps the floating berry about every 2 s until it stays gone for 3 s (full for now; a picture
+  Razz or Silver Pinap), taps the floating berry about every 2.5 s until it stays gone for 2 s (full for now; a picture
   is kept), then the round X back to the gym view. No berry to spare: the run ends. It looks again right before each
   tap: a tap with no berry there hits the faint Pokémon behind and jumps to its page. If the page did change, feeding
   stops (a picture is kept) and that one gets its turn later.
@@ -52,15 +52,14 @@ FEEDABLE = {"RAZZ": 1, "NANAB": 1, "PINAP": 30}
 # how far below its CP label to tap a Pokémon in the gym view. A back-row one shows only a bit between the ones in
 # front: the Dragonite behind a Blissey opened at 0.125, not at 0.08 (2026-10-28)
 TAP_DROPS = (0.08, 0.125, 0.165)
-FEED_GAP = 1.5  # seconds from one berry tap to the next. Tested on the Pixel 2026-10-28, seconds per Pokémon for
-# 10-11 berries: 2.5 s -> 26-28, 2.0 -> 30-34 (the count reads late), 1.5 -> 24 (about 1 tap in 12 lost), 1.0 -> 30
-# (half the taps lost)
+BERRY_WAIT = 1.5  # seconds from a berry tap to the look before the next. The screenshot must come about 2 s after the
+# tap: at 1.3 s the number still showed on a full Pokémon, then the next tap hit no berry and jumped (2026-11-06)
 LIMIT = 100
 TIMER = os.path.expanduser("~/.config/pogo/gymfeed_timer")  # the local timer's on/off switch, out of the repo
 MAX_SWIPES = 40  # per gym. Each swipe is about 3.7 s. The held ones work only now and then (the Pokémon bob): the same swipe from Chansey found Scizor once, then not; 24 ran out before Hitmonchan (2026-11-06)
 GYM_SIZE = 6  # the most a gym holds. The CP labels can't count them: 4 labels, 5+ Pokémon on 2026-11-06
 MAX_DROP = 3  # the most a berry count really falls between two looks
-FULL_WAIT = 3.0  # seconds a berry must stay gone to call a Pokémon full
+FULL_WAIT = 2.0  # seconds a berry must stay gone to call a Pokémon full
 
 # swipes on a gym Pokémon's page: (x1, y1, x2, y2, hold ms). Left to right goes one way along the gym, right to
 # left the other. A plain swipe on the lower half; the held ones start where a back-row Pokémon shows behind the
@@ -304,7 +303,7 @@ def sort_defending():
     base.wait_for("sortmenu", look=look, timeout=6)
     seen = []
     while len(seen) < 2 or seen[-1] != seen[-2]:  # the menu slides in: two reads in a row must agree
-        time.sleep(0.6)
+        time.sleep(0.25)
         _, texts, path, bounds = look()
         hit = next(t for t in texts if ui.norm(t[4]) == "DEFENDING")
         seen.append(arrow(path, hit[1] + hit[3] / 2))
@@ -312,11 +311,10 @@ def sort_defending():
             break
     if seen[-1] == "down":
         base.click(*SORT_BUTTON, bounds, fuzz=0.01)  # its X sits where the sort button was
-        time.sleep(1.0)
     else:
         base.tap_box(hit, bounds)
     base.wait_for("badgelist", look=look, timeout=6)
-    time.sleep(0.8)  # the tiles shuffle into place
+    time.sleep(0.5)  # the tiles shuffle into place
 
 
 def pick(done):
@@ -339,6 +337,17 @@ def pick(done):
 
 # ---------- getting around ----------
 
+def off_screen(screen, timeout=3.0):
+    """after a tap meant to leave `screen`: look until another screen the walk knows shows. Sooner than a fixed wait,
+    and no 2nd tap on the way (a blank or half-drawn screen doesn't count)"""
+    end = time.time() + timeout
+    while time.time() < end:
+        now = look()[0]
+        if now not in (screen, "blank", "unknown"):
+            return
+        time.sleep(0.15)
+
+
 def to_badge_list():
     """from wherever (a gym, a badge, the profile, the map) to the gym badge list"""
     scrolls = 0
@@ -348,20 +357,20 @@ def to_badge_list():
             return
         if screen in ("feed", "gymview", "badge", "sortmenu"):
             base.click(*(SORT_BUTTON if screen == "sortmenu" else base.X_BUTTON), bounds, fuzz=0.006)
-            time.sleep(1.5)
+            off_screen(screen)
         elif screen == "profile":
             gb = [t for t in texts if ui.norm(t[4]) == "GYM BADGES"]
             lst = [t for t in texts if gb and ui.norm(t[4]).startswith("LIST") and t[1] > gb[0][1]]
             if lst and lst[0][1] < 0.85:
                 base.tap_box(lst[0], bounds, dy=-0.03)  # the green diamond over LIST >
-                time.sleep(2.0)
+                off_screen(screen)
             elif re.search(r"ADD FRIEND|SENT YOU A GIFT|DAYS AGO|HOURS? AGO|MINUTES? AGO", ui.joined(texts).upper()):
                 # the FRIENDS tab (where /gift leaves it), maybe scrolled past its ADD FRIEND
                 home.press_text(texts, bounds, "ME")  # the profile opens on its last tab
                 time.sleep(1.5)
             elif gb or scrolls < 8:
                 scrolls += 1
-                base.drag(0.5, 0.85, 0.5, 0.45 if gb else 0.3, bounds)
+                base.drag(0.5, 0.85, 0.5, 0.45 if gb else 0.12, bounds, android_settle=base.LIST_SETTLE)  # 0.9 starts on the bottom banner: no scroll
             elif scrolls < 20:  # the profile keeps its scroll: /gift can leave it down in the medals, past the badges
                 scrolls += 1
                 base.drag(0.5, 0.3, 0.5, 0.85, bounds)
@@ -370,7 +379,7 @@ def to_badge_list():
                 raise Stop("scrolled the profile and found no GYM BADGES ... LIST")
         elif screen == "map":
             base.click(0.13, 0.91, bounds)  # the profile picture
-            time.sleep(2.0)
+            off_screen(screen)
         elif screen == "mainmenu":
             if ui.ANDROID:
                 ui.android.key("back")
@@ -418,13 +427,21 @@ def into_gym():
 
 out_of_berries = False  # set when no FEEDABLE kind has more than its floor: the run ends
 spent = set()  # kinds fed down to their floor this run: not picked again
+razz_seen = None  # the Razz in the bag as last read this run. None: not read yet
 
 
 def choose():
     """on a gym Pokémon's page: the BERRIES menu, the first FEEDABLE kind with more than its floor picked
     -> (kind, its count), or None: none to spare (the menu shut again, out_of_berries set)"""
-    global out_of_berries
-    base.click(*BERRY_MENU, look()[3], fuzz=0.01)
+    global out_of_berries, razz_seen
+    # the page opens on Razz. Its number matching the bag's Razz (read in the menu earlier this run) proves that, so
+    # no menu: 4.5 s saved per Pokémon, and it can't be a Golden Razz with another number
+    _, texts, _, bounds = look()
+    shown = berry_count(texts)
+    if razz_seen is not None and "RAZZ" not in spent and shown is not None and shown > FEEDABLE["RAZZ"] \
+            and abs(shown - razz_seen) <= MAX_DROP:
+        return "RAZZ", shown
+    base.click(*BERRY_MENU, bounds, fuzz=0.01)
     base.wait_for("berrymenu", look=look, timeout=6)
     seen = []
     while len(seen) < 2 or seen[-1] != seen[-2]:  # it slides up: two reads in a row must agree
@@ -437,6 +454,7 @@ def choose():
     menu = menu_counts(menu, texts, path)
     seen[-1] = {k: c for k, (c, _) in menu.items()}
     log("    bag: " + ", ".join(f"{k} {c}" for k, c in seen[-1].items()))
+    razz_seen = seen[-1].get("RAZZ")
     for kind, floor in FEEDABLE.items():
         count, spot = menu.get(kind, (None, None))
         if count is not None and count > floor and kind not in spent:
@@ -457,9 +475,9 @@ def moved(screen, texts, me):
 
 
 def sane(now, count):
-    """a count read while feeding -> it, or `count` if it fell too far for one tap: a misread (143 read so low it
+    """a count read while feeding -> it, or `count` if it moved too far for one tap: a misread (143 read so low it
     counted 100 berries and ended a run, 2026-11-06)"""
-    return count if now is not None and count - now > MAX_DROP else now
+    return count if now is not None and abs(count - now) > MAX_DROP else now
 
 
 def berry_back():
@@ -475,23 +493,18 @@ def berry_back():
 
 
 def feed(kind, have, left, me):
-    """on `me`'s page with `kind` picked (`have` in the bag): the berry every FEED_GAP s while it floats, the bag keeps
+    """on `me`'s page with `kind` picked (`have` in the bag): tap the berry, wait, look, while it floats, the bag keeps
     more than FEEDABLE[kind] and fewer than `left` are fed -> (berries fed, why it stopped: "full", "floor", "limit",
     "stuck" or "moved": another Pokémon's page). A berry counts when the number under it goes down"""
+    global razz_seen
     floor = FEEDABLE[kind]
-    _, texts, path, bounds = look()
-    count = berry_count(texts)
-    if count is None:
-        return 0, "full"
-    count = min(count, have)  # the menu's number and this one: the lower, in case one is misread high
+    count = have
     spare = min(have - floor, left)
     fed, stuck, taps, start, why = 0, 0, 0, time.time(), "limit"
-    while fed < spare:
-        if count <= floor:
-            why = "floor"
-            break
+    while True:
         # the number can still show just before a full Pokémon's berry goes. A tap with no berry jumps to the faint
-        # Pokémon behind (Blissey and Hitmonchan -> Greninja, 2026-11-06), so a fresh look right before each tap
+        # Pokémon behind (Blissey and Hitmonchan -> Greninja, 2026-11-06), so no tap before a look BERRY_WAIT after
+        # the last one
         screen, texts, path, bounds = look()
         now = sane(berry_count(texts), count)
         if now is None and not moved(screen, texts, me):
@@ -503,42 +516,14 @@ def feed(kind, have, left, me):
             why = "moved"
             break
         if now is None:
+            fed += 1 if taps else 0  # the last one: the berry goes as it's eaten
             keep_capture(f"full-{me[0]}")
             why = "full"
             break
         if now < count:
             fed += count - now
-        count = now
-        if fed >= spare or count <= floor:
-            continue
-        t0 = time.time()
-        base.click(*BERRY, bounds, fuzz=0.02)
-        taps += 1
-        time.sleep(max(0.0, t0 + FEED_GAP - time.time() - 0.6))
-        screen, texts, path, bounds = look()
-        now = sane(berry_count(texts), count)
-        if now is None:  # gone, or a "+30 stardust" banner over it: look once more
-            time.sleep(0.6)
-            screen, texts, path, bounds = look()
-            now = sane(berry_count(texts), count)
-        if now is not None and now < count:
-            fed += count - now
             stuck = 0
-        elif now is None:
-            fed += 1  # the last one: the berry goes as it's eaten
-            now, screen, texts, bounds = berry_back()
-            now = sane(now, count)
-            if moved(screen, texts, me):  # that tap found no berry, so it fed nothing here
-                fed -= 1
-                keep_capture(f"moved-{me[0]}")
-                log(f"    the page changed from {me[0]} to {page_name(texts)}: stopping")
-                why = "moved"
-                break
-            if now is None:
-                keep_capture(f"full-{me[0]}")
-                why = "full"
-                break
-        else:
+        elif taps:
             stuck += 1
             if stuck >= 4:
                 keep_capture("berrystuck")
@@ -546,10 +531,20 @@ def feed(kind, have, left, me):
                 why = "stuck"
                 break
         count = now
+        if count <= floor:
+            why = "floor"
+            break
+        if fed >= spare:
+            break
+        base.click(*BERRY, bounds, fuzz=0.02)
+        taps += 1
+        time.sleep(BERRY_WAIT)
     if fed >= spare and why == "limit" and spare < left:
         why = "floor"
     if why == "floor":
         spent.add(kind)
+    if kind == "RAZZ":
+        razz_seen = count
     log(f"    {kind}: {taps} taps in {time.time() - start:.0f}s, {why}")
     return fed, why
 

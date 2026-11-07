@@ -415,14 +415,31 @@ def set_sort():
     raise Stop("couldn't get the list sorted Can receive a gift, arrow down")
 
 
+def sort_to_top():
+    """a new sort puts the list back at its top, so this beats dragging up through hundreds of friends (the user's
+    tip, 2026-11-07): pick Name, then set_sort() picks Can receive a gift again"""
+    tap(*SORT_BUTTON, fuzz=0.004)
+    wait("sortmenu", timeout=6 * LAG)
+    name = label("NAME")
+    if name:
+        tap_text(name)
+        time.sleep(1.2)
+        wait("friends", "sortmenu", timeout=6 * LAG)
+    set_sort()  # (from the menu too, when Name wasn't read: the sort stays right, and the caller drags)
+
+
 def to_top():
     global typed
-    before = None
+    before, shortcut = None, True
     for _ in range(15):
         if look() != "friends":
             to_list()  # (a drag can land as a tap and open a friend's gift)
         if search_line() or label("SEARCH", 0.18, 0.28):
             return
+        if shortcut:
+            shortcut = False
+            sort_to_top()
+            continue
         rows_now = [r["name"] for r in rows()]
         box = [t for t in texts if 0.18 < t[1] < 0.26 and t[0] < 0.25 and len(t[4].strip()) >= 2]
         if rows_now == before and count() is not None and box:

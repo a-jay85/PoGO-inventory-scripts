@@ -485,7 +485,7 @@ def read_egg(kept):
     base.click(*EGG_ICON, bounds, fuzz=0.005)
     time.sleep(1.0)
     screen, texts, _, bounds = look()
-    left = egg_left(texts)
+    left = None if screen == "feed" else egg_left(texts)  # the tap hit a defender: its numbers can read like a timer
     hatch = None if left is None else time.time() + left
     if left is not None:
         keep_capture("egg")

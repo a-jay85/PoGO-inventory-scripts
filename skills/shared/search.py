@@ -489,6 +489,16 @@ def stray_a(got, q):
     return a == "a" + b
 
 
+LOST_KEY_WAIT = 1.5  # seconds a bar can sit one or two keys short before they count as lost
+
+
+def lost_tail(got, q):
+    """iPhone: the last key of a search can get lost, and typing it all again loses it again ('150' stays '15', with the
+    list already showing dex 15, 2026-11-06). -> the one or two keys the bar is short of q, or ''"""
+    tail = q[len(got):]
+    return tail if got and len(tail) in (1, 2) and q.lower().startswith(got.lower()) else ""
+
+
 def type_into_panel(q, bounds, check=None):
     """the panel doesn't always put the cursor in the bar, and a tap on the bar doesn't always either.
     Tap the bar, type, wait for the letters to show. False if they come out wrong (the caller starts over).
@@ -504,7 +514,7 @@ def type_into_panel(q, bounds, check=None):
             log("  the bar isn't taking keys: tapping it")
             continue
         type_text(q)
-        got, t0 = "", time.time()
+        got, t0, mended = "", time.time(), False
         while time.time() - t0 < 5.6:
             got, texts = panel_text(quick=not ui.ANDROID)
             if got and check(got, q):
@@ -512,6 +522,11 @@ def type_into_panel(q, bounds, check=None):
                     log(f"search bar says {got!r}, wanted {q!r}: a stray A")
                     return False
                 return True
+            if not ui.ANDROID and not mended and time.time() - t0 > LOST_KEY_WAIT and lost_tail(got, q):
+                log(f"  search bar says {got!r}, wanted {q!r}: typing the lost end")
+                type_text(lost_tail(got, q))
+                mended = True
+                continue
             late = time.time() - t0 < 2.8
             short = len(got) < len(q)  # the keys can land late, and a misread '!' stops the read matching q's start
             if got and not (short and (late or q.lower().startswith(re.sub(r"\s", "", got).lower()))):

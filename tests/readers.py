@@ -16,11 +16,11 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SKILLS = os.path.join(ROOT, "skills")
 GOLD = os.path.join(ROOT, "tests", "readers.json")
 os.environ.pop("POGO_PHONE", None)  # the iPhone path: every reader stays on the text it's given (no screenshot)
-for d in ("shared", "cleanup", "dex", "trade", "gift", "mega", "ivc"):
+for d in ("shared", "cleanup", "dex", "trade", "gift", "mega", "ivc", "gymfeed"):
     sys.path.append(os.path.join(SKILLS, d))
 
 import base, search, ui  # noqa: E402
-import pagefacts, tagsheet, savedsearch, dex, trade, gift, mega  # noqa: E402
+import pagefacts, tagsheet, savedsearch, dex, trade, gift, mega, gymfeed  # noqa: E402
 
 
 def by_path(name, rel):
@@ -332,6 +332,21 @@ SAME = {  # base.same_pokemon: two who() reads
 }
 
 
+EGGS = {k: [(0.1, 0.5, 0.1, 0.02, v)] for k, v in {
+    "mm:ss": "18:37", "long mm:ss": "47:53", "h:mm:ss": "1:02:10", "0 hours": "0:47:53", "m:ss": "5:14", "O for 0": "1O:O7",
+    "; for :": "18;37", ". for :": "18.37", "in words": "Raid starts in 18:37", "cut off": "3:2", "seconds 75": "18:75",
+    "minutes 75": "1:75:10", "too long": "9:00:00", "all zero": "00:00", "CP": "CP 1447", "time": "Od 2h 10m", "hp": "76 / 76",
+    "distance": "2,981.5 km", "date": "11/3/2026", "stuck to a word": "a18:37", "": "",
+}.items()}
+EGGS["clock only"] = [(0.1, 0.03, 0.1, 0.02, "5:14")]
+EGGS["clock, then timer"] = [(0.1, 0.03, 0.1, 0.02, "5:14"), (0.1, 0.9, 0.1, 0.02, "18:37")]
+RAIDS = {  # minutes to each gym's hatch, None: no egg
+    "no gyms": [], "no egg": [None], "user's 18:37": [18.6], "user's 47:53": [47.9], "just under the line": [37.9],
+    "on the line": [38], "hatched during the run": [-2], "other gym free": [18, None], "other gym far": [18, 50],
+    "two soon: first ends first": [30, 10], "a raid on, egg soon": [None, 18],
+}
+
+
 def answer(fn, *a):
     try:
         return fn(*a)
@@ -344,6 +359,11 @@ DISTANCES = ["4.125.4 km", "4,125.4 km", "2,981.5 km", "2,981,5 km", "125.4 km",
 
 def answers():
     out = {}
+    out["gymfeed.egg_left"] = {k: answer(gymfeed.egg_left, ts) for k, ts in EGGS.items()}
+    # minutes from now to the next run, None: the normal wait
+    out["gymfeed.raid_floor"] = {k: answer(
+        lambda: (lambda f: None if f is None else round(f / 60, 1))(
+            gymfeed.raid_floor(0, [None if m is None else m * 60 for m in ms]))) for k, ms in RAIDS.items()}
     for name, fn in PAIRED.items():
         out[name] = {f"{g}\t{q}": answer(fn, g, q) for g, q in PAIRS}
     for name, fn in SINGLE.items():

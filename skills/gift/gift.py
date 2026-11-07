@@ -119,6 +119,13 @@ def label(name, lo=0.0, hi=1.0):
     return hits[0] if hits else None
 
 
+def menu_label(name):
+    """a sort menu row's label, or None. Its round pick button sits right before it, and OCR can read that as a
+    letter glued on ('OCAN RECEIVE A GIFT', 2026-11-07 Pixel: the run crashed on it)"""
+    hits = find(lambda t: re.fullmatch(r"[OQCD]? ?" + re.escape(name), ui.norm(t[4])) is not None)
+    return hits[0] if hits else None
+
+
 def send_gift_label():
     """the SEND GIFT label's box, or None. OCR can tack a letter on ('SEND GIFTI') or glue the buttons beside it
     onto the same line ('SEND GIFTI  LOCAL  REMOTE  BATTLE', 2026-11-03 iPhone): then the box is cut to its SEND GIFT part"""
@@ -359,9 +366,11 @@ def to_list():
         elif s == "nickname":
             cancel_nickname()
         elif s == "sortmenu":
-            tap_text(label("CAN RECEIVE A GIFT"))  # set_sort() checks the arrow after
+            t = menu_label("CAN RECEIVE A GIFT")
+            tap_text(t) if t else time.sleep(POLL)  # set_sort() checks the arrow after (unread: look again)
         elif s == "exit":
-            tap_text(label("CANCEL"))
+            t = label("CANCEL")
+            tap_text(t) if t else time.sleep(POLL)
         elif s == "unknown" and home.passenger(texts, bounds):
             unknown = 0
         elif s == "unknown" and (step := home.through_hatch(texts, bounds, hatched)) is not None:
@@ -408,7 +417,12 @@ def set_sort():
         if look() != "sortmenu":
             tap(*SORT_BUTTON, fuzz=0.004)
             wait("sortmenu", timeout=6 * LAG)
-        tap_text(label("CAN RECEIVE A GIFT"))
+        t = menu_label("CAN RECEIVE A GIFT")
+        if not t:
+            log("the sort menu's Can receive a gift wasn't read: looking again")
+            time.sleep(0.5)  # (the menu may still be sliding in)
+            continue
+        tap_text(t)
         time.sleep(1.2)
         if wait("friends", "sortmenu", timeout=6 * LAG) == "sortmenu":
             log("the sort menu is still open: picking again")
@@ -427,7 +441,7 @@ def sort_to_top():
     tip, 2026-11-07): pick Name, then set_sort() picks Can receive a gift again"""
     tap(*SORT_BUTTON, fuzz=0.004)
     wait("sortmenu", timeout=6 * LAG)
-    name = label("NAME")
+    name = menu_label("NAME")
     if name:
         tap_text(name)
         time.sleep(1.2)

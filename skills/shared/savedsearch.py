@@ -136,10 +136,15 @@ def run_shortcut(name, suffix=""):
             time.sleep(1.0)
             continue
         got = results(texts)
-        if got == 0:  # (its label says there are some: n == 0 stopped above)
+        if got == 0 and n is None:  # no count on its label. A tap types nothing, so this is a real 0. A nudge here could
+            log(f"{name}: 0")  # change it: a bar the search fills loses its last character (PvpC1 0 -> 1182, 2026-11-06)
+            return 0
+        if got == 0:  # its label says there are some: the game didn't run it
             if search.rerun_blank(None, bounds) is None:
                 continue
             got = results()
+            if got != n:  # the nudge changed the search, or the label is old: nothing may act on this list
+                raise Stop(f"{name}: its label says {n}, but after a nudge the search shows {got}")
         if not suffix:
             log(f"{name}: {got}")
             return got

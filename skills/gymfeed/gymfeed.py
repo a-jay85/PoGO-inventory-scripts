@@ -21,6 +21,12 @@
 - Back to the badge list, sorted again, the next badge. It ends after N berries (--limit, default 100) or when no
   gym is left.
 
+- Raid eggs: in each gym view it taps the egg/portal's spot (bottom left) and reads the timer, then feeds as usual.
+  When the egg hatches before the next run could finish, and every gym found this run is like that, the next run waits
+  until that raid is over (45 min after the hatch; ~/.config/pogo/gymfeed_raid_until, read by the local timer). An egg
+  with more time left changes nothing: the next run reads it again. So does a gym with no egg in the same run, because
+  it still needs its feed. The spot and the timer's look haven't been seen on the phone yet.
+
 A berry counts when the number under it goes down. Log in runs/<time>-<phone>/log.txt.
 
 At the end of a run that wasn't stopped, it tells a local timer whether any gym is left to feed: it runs
@@ -30,7 +36,7 @@ badge gold, or none of yours in a gym). A gym that didn't open leaves the timer 
 A run that hit --limit or ran out of spare berries also says "on". The timer only turns back on through a run that
 finds a gym: switching accounts doesn't. The berry menu was measured on the Pixel only.
 """
-import argparse, os, re, subprocess, sys, time
+import argparse, os, random, re, subprocess, sys, time
 from collections import Counter, deque
 from difflib import SequenceMatcher
 
@@ -56,6 +62,11 @@ BERRY_WAIT = 1.1  # seconds from a berry tap to the look before the next. The sc
 # tap: at 1.3 s the number still showed on a full Pokémon, then the next tap hit no berry and jumped (2026-11-06)
 LIMIT = 100
 TIMER = os.path.expanduser("~/.config/pogo/gymfeed_timer")  # the local timer's on/off switch, out of the repo
+RAID_UNTIL = os.path.expanduser("~/.config/pogo/gymfeed_raid_until")  # epoch seconds: the local timer waits for this
+EGG_ICON = (0.11, 0.90)  # the egg/portal in a gym view's bottom left. A guess from the user's words: not seen yet
+RAID_TIME = 45 * 60  # how long a raid is on
+NEXT_RUN = 38 * 60  # an egg hatching sooner would cut the next run short: 32 min at most till it starts, 5 to run, 1 spare
+MAX_EGG = 2 * 3600  # a longer timer is a misread: eggs show about an hour
 MAX_SWIPES = 40  # per gym. Each swipe is about 3 s
 SWIPE_STAYS = 4  # a swipe that stayed on the page this often isn't tried from there again. Most stays end with a retry:
 # Chansey's left to right stayed twice in a row, then a run gave up on it and never found Scizor (2026-11-06)
@@ -79,6 +90,7 @@ CP_RE = re.compile(r"^\W*[cC][pP]\s*\d{2,4}\W*$")
 # a gym view's CP label as OCR reads it over the busy gym: 'CP2407', 'P633', '฿633', 'GP2940', 'g2855', '2833'
 LABEL_RE = re.compile(r"^\W*[^\W\d]{0,2}\s*\d{2,4}\W*$")
 # '0d 3h 7m' on a gym Pokémon's page. OCR reads any 0 as O: 'Od 3h 7m.', 'Od 12h Om'
+EGG_RE = re.compile(r"(?<![\w:;.])(?:([0-9O]{1,2})[:;.])?([0-9O]{1,2})[:;.]([0-9O]{2})(?![\w:;.])")  # 47:53, 1:02:10
 DEFEND_RE = re.compile(r"\b[0-9O]+d\s*[0-9O]+h\s*[0-9O]+m")
 
 
@@ -426,6 +438,77 @@ def into_gym():
     return "shut"  # a raid whose words came and went, most likely: the next run tries again
 
 
+# ---------- raid eggs ----------
+
+def egg_left(texts):
+    """OCR boxes -> seconds on the first timer below the phone's clock, or None. mm:ss or h:mm:ss"""
+    for t in texts:
+        if t[1] < 0.08:  # the clock in the status bar
+            continue
+        m = EGG_RE.search(t[4])
+        if not m:
+            continue
+        h, mm, ss = (int(g.replace("O", "0")) if g else 0 for g in m.groups())
+        if ss < 60 and (mm < 60 or not m.group(1)) and 0 < h * 3600 + mm * 60 + ss <= MAX_EGG:
+            return h * 3600 + mm * 60 + ss
+    return None
+
+
+def raid_floor(now, hatches):
+    """this run's gyms: each one's hatch time, None for no egg or none readable -> when the next run may start, or
+    None for the normal wait. A gym free at the next run still needs its feed, and a raid there is skipped anyway.
+    Several raids: the first to end, since the run after that has a gym to feed"""
+    if not hatches or any(h is None or h - now >= NEXT_RUN for h in hatches):
+        return None
+    return min(hatches) + RAID_TIME
+
+
+def save_raid(floor):
+    """tell the local timer. No floor takes an old one away. Only the Pixel has the timer"""
+    if not ui.ANDROID:
+        return
+    if floor is None:
+        if os.path.exists(RAID_UNTIL):
+            os.remove(RAID_UNTIL)
+        return
+    floor += random.randint(0, 120)  # never on a steady beat
+    with open(RAID_UNTIL, "w") as f:
+        f.write(f"{floor:.0f}\n")
+    log("raid: next run after " + time.strftime("%H:%M:%S", time.localtime(floor)))
+
+
+def read_egg(kept):
+    """in a gym view: tap the egg's spot -> (hatch time or None, still in the gym view). A failed read never stops the
+    feed. kept: holds "noegg" once this run has a picture of a tap that showed nothing, to check the spot by"""
+    _, _, _, bounds = look()
+    log(f"  egg: tapping {EGG_ICON}")
+    base.click(*EGG_ICON, bounds, fuzz=0.005)
+    time.sleep(1.0)
+    screen, texts, _, bounds = look()
+    left = None if screen == "feed" else egg_left(texts)  # the tap hit a defender: its numbers can read like a timer
+    hatch = None if left is None else time.time() + left
+    if left is not None:
+        keep_capture("egg")
+        log(f"  egg: {left // 60}:{left % 60:02d} left, hatches " + time.strftime("%H:%M:%S", time.localtime(hatch)))
+    elif screen != "gymview":
+        keep_capture("eggscreen")
+        log(f"  egg: the tap opened {screen}, no timer on it: " + " | ".join(t[4] for t in texts)[:200])
+    elif "noegg" not in kept:
+        kept.add("noegg")
+        keep_capture("noegg")
+    if screen == "gymview":
+        return hatch, True
+    base.tap_x(bounds, fuzz=0.006)
+    try:
+        base.wait_for("gymview", look=look, timeout=5, capture=False)
+        time.sleep(0.8)
+        return hatch, True
+    except base.Lost:
+        keep_capture("eggclose")
+        log("  egg: the X didn't go back to the gym view")
+        return hatch, False
+
+
 # ---------- one Pokémon ----------
 
 out_of_berries = False  # set when no FEEDABLE kind has more than its floor: the run ends
@@ -738,6 +821,7 @@ def script(limit):
     global feedable
     total, done, t0 = 0, set(), time.time()
     found, unsure = False, False  # a gym to feed seen; a gym that didn't open
+    hatches, kept = [], set()  # each gym's hatch time, None: no egg read
     home.start(storage=False)
     while total < limit:
         to_badge_list()
@@ -755,16 +839,25 @@ def script(limit):
             break
         found |= inside in ("gym", "raid")
         unsure |= inside == "shut"
+        if inside == "raid":
+            hatches.append(None)  # its end can't be read: the normal wait looks again
         if inside != "gym":
             log(f"{name}: " + ("a raid is on there" if inside == "raid" else "the gym didn't open") + ", skipped")
             continue
         log(f"--- {name}")
+        hatch, back = read_egg(kept)
+        hatches.append(hatch)
+        if not back:
+            log(f"{name}: skipped, the egg's screen didn't close")
+            continue
         total += gym(total, limit)
         log(f"  {total} berries so far")
         if out_of_berries:
             break
     if total >= limit:
         log(f"--limit {limit} reached")
+    # a run cut short left gyms unseen, so it can't say every gym has a raid coming
+    save_raid(None if total >= limit or out_of_berries else raid_floor(time.time(), hatches))
     feedable = True if found else (None if unsure else False)
     log("gyms to feed: " + {True: "yes", False: "none", None: "not sure"}[feedable])
     log(f"done: {total} berries fed, {time.time() - t0:.0f}s")

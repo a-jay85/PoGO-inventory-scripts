@@ -994,6 +994,15 @@ def send_gift():
             if not ok:  # (caught mid-animation: looks for 1.5 s more)
                 poll_until(lambda: classify() == "preview" and preview_ok(title)[0], 1.5)
                 ok, got = preview_ok(title)
+            if not ok and got and retaps < 2:
+                # (the list was still moving: the tap opened the card next to it, 2026-11-07 'Mission Creek Park'
+                # for 'Mission Walk'). Back to the list, nothing sent, and look again
+                keep_capture("preview")
+                retaps += 1
+                log(f"  the tap on {title!r} opened {got!r}: back to the list, looking again")
+                close()
+                wait("picker", timeout=6 * LAG)
+                continue
             if not ok:
                 keep_capture("preview")
                 close()

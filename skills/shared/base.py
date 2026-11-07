@@ -509,7 +509,10 @@ def tap(target, dry=False):
             time.sleep(0.15)
             continue
         except Refused as e:
-            if ("screen is 'unknown'" in str(e) or "found 0 matches" in str(e)) and _ < 7:  # caught mid-animation (a menu still opening)
+            # caught mid-animation: a menu still opening, or the appraisal still fading off the detail page, its X not
+            # drawn yet ("found 0 close buttons on 'detail'" stopped /pvpc, Pixel, 2026-11-07)
+            if ("screen is 'unknown'" in str(e) or "found 0 matches" in str(e) or "found 0 close buttons" in str(e)) \
+                    and _ < 7:
                 ui._seen = ui._older = None  # that look was mid-animation: don't reuse it
                 time.sleep(0.4)
                 continue

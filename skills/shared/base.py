@@ -710,9 +710,20 @@ VIEW = [None]  # where the rows showing now start, on that same scale (None: no 
 ASKED = set()  # the tags this run looked for
 
 
+def one_letter_off(a, b):
+    """'TRANSTER' and 'TRANSFER'. Long names only: GIV and IVC, or two short tags, are too close to call"""
+    return len(a) == len(b) >= 6 and sum(x != y for x, y in zip(a, b)) == 1
+
+
 def clean_row(n):
-    """the sheet's scroll bar can glue on as a letter ('REMOTE TRADEL' after a scroll): drop it off a tag we know"""
-    return n[:-1] if n[-1:] in ("L", "I", "|") and (n[:-1] in ASKED or n[:-1] in TAG_AT) else n
+    """the sheet's scroll bar can glue on as a letter ('REMOTE TRADEL' after a scroll): drop it off a tag we know.
+    OCR can get one letter of a row wrong ('Transter', 2026-11-06): that's the tag we're looking for"""
+    if n in ASKED:
+        return n
+    if n[-1:] in ("L", "I", "|") and (n[:-1] in ASKED or n[:-1] in TAG_AT):
+        return n[:-1]
+    near = [T for T in ASKED if one_letter_off(n, T)]
+    return near[0] if len(near) == 1 else n
 
 
 def tick_tags():
@@ -913,6 +924,7 @@ def back_out_of_tags(T, ticks):
 def set_tick(T, v, name, ticks):
     """row T of the open tag sheet (one Pokémon or a whole search's), showing: tap until its tick reads v. ticks: the
     rows' ticks from show_tag. -> the ticks now: the caller looks at T and leaves the sheet if it didn't take"""
+    ASKED.add(T)  # (a row seen earlier this run skips show_tag)
     for wait in (3, 3, 6):  # a tick only gets tapped again once a slow read has shown it didn't change
         if ticks.get(T) is not v:
             if ui.ANDROID:

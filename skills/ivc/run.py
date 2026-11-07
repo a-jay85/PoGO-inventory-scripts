@@ -1067,6 +1067,8 @@ def sort_all(limit, look):
     loses nothing: `sort <run dir>` carries on. look: decide only (plan.txt), change nothing"""
     done = load("sorted.json") if os.path.exists(os.path.join(base.RUN_DIR, "sorted.json")) else []
     fams_done = load("families.json") if os.path.exists(os.path.join(base.RUN_DIR, "families.json")) else []
+    if not os.path.exists(os.path.join(base.RUN_DIR, "pools.json")):  # a family may need no search: nothing else would write it
+        save("pools.json", {})
     left = limit
     for a, b in chunks_for(done):
         key = f"{a}-{b}"

@@ -242,9 +242,11 @@ def to_search_list():
             return
     leave_panel(texts, bounds)
     if base.look()[0] == "tags":  # cut off with the tag sheet open
-        if not any(base.tick_tags().values()):  # ticks half changed (IVC off, Nope not on yet): DONE would save that
-            raise Stop("left on the tag sheet with nothing ticked: finish this Pokémon by hand")
-        go("DONE", "detail")
+        if any(base.tick_tags().values()):
+            go("DONE", "detail")
+        else:  # ticks may be half changed (IVC off, the next tag not on yet): DONE would save that, the X saves nothing
+            log("  left on the tag sheet with nothing ticked: out by its X, that Pokémon stays as it was")
+            base.cancel_tags()
     if base.look()[0] in ("detail", "menu", "appraisal", "gym"):  # left on a Pokémon (a stop mid-visit): back out first
         back_to_list()
     off_map()

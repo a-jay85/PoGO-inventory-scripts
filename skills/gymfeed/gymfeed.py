@@ -52,25 +52,26 @@ FEEDABLE = {"RAZZ": 1, "NANAB": 1, "PINAP": 30}
 # how far below its CP label to tap a Pokémon in the gym view. A back-row one shows only a bit between the ones in
 # front: the Dragonite behind a Blissey opened at 0.125, not at 0.08 (2026-10-28)
 TAP_DROPS = (0.08, 0.125, 0.165)
-BERRY_WAIT = 1.5  # seconds from a berry tap to the look before the next. The screenshot must come about 2 s after the
+BERRY_WAIT = 1.1  # seconds from a berry tap to the look before the next. The screenshot must come about 2 s after the
 # tap: at 1.3 s the number still showed on a full Pokémon, then the next tap hit no berry and jumped (2026-11-06)
 LIMIT = 100
 TIMER = os.path.expanduser("~/.config/pogo/gymfeed_timer")  # the local timer's on/off switch, out of the repo
-MAX_SWIPES = 40  # per gym. Each swipe is about 3.7 s. The held ones work only now and then (the Pokémon bob): the same swipe from Chansey found Scizor once, then not; 24 ran out before Hitmonchan (2026-11-06)
+MAX_SWIPES = 24  # per gym. Each swipe is about 2.5 s
+SWIPE_TRIES = 2  # a swipe that stays on the same page gets one more go
 GYM_SIZE = 6  # the most a gym holds. The CP labels can't count them: 4 labels, 5+ Pokémon on 2026-11-06
 MAX_DROP = 3  # the most a berry count really falls between two looks
 FULL_WAIT = 2.0  # seconds a berry must stay gone to call a Pokémon full
 
-# swipes on a gym Pokémon's page: (x1, y1, x2, y2, hold ms). Left to right goes one way along the gym, right to
-# left the other. A plain swipe on the lower half; the held ones start where a back-row Pokémon shows behind the
-# front one's CP (the Dragonite behind a Blissey took a hold at 0.42, 0.38)
+# swipes on a gym Pokémon's page: (x1, y1, x2, y2). The direction and the height pick who comes next, and the speed
+# doesn't matter. In 130 swipes on a full gym (2026-11-06), right to left at 0.72 went round
+# Chansey > Blissey > Greninja > Hitmonchan > Ampharos > Chansey, and left to right at 0.72 took Chansey to Scizor, the
+# one off that ring. At 0.62 Greninja went to Ampharos 9 of 9, so that height misses Hitmonchan and Scizor. Held swipes
+# higher up gave a different answer each time
 SWIPES = [
-    (0.15, 0.62, 0.85, 0.62, None),
-    (0.85, 0.62, 0.15, 0.62, None),
-    (0.42, 0.38, 0.90, 0.38, 600),
-    (0.58, 0.38, 0.10, 0.38, 600),
-    (0.30, 0.38, 0.90, 0.38, 600),
-    (0.70, 0.38, 0.10, 0.38, 600),
+    (0.85, 0.72, 0.15, 0.72),
+    (0.15, 0.72, 0.85, 0.72),
+    (0.85, 0.62, 0.15, 0.62),
+    (0.15, 0.62, 0.85, 0.62),
 ]
 
 CP_RE = re.compile(r"^\W*[cC][pP]\s*\d{2,4}\W*$")
@@ -188,7 +189,7 @@ def menu_counts(menu, texts, path):
     return out
 
 
-known = []  # the (name, trainer)s met in this gym
+known = []  # the (name, trainer)s met in this gym. A gym holds one of each species, so the name alone says who
 
 
 def like(a, b, enough):
@@ -203,13 +204,14 @@ def page_name(texts):
 
 def who(texts):
     """one gym Pokémon's page -> (its name, its trainer): the name at the top, the trainer beside its CP. OCR reads the
-    trainer over the busy gym differently each time ('sCyrillJan', 'RCyrillJan'), so a close read gives the one known"""
+    trainer over the busy gym differently each time ('Beidoutabao', '.2196 Beidubadhr'), and a page met before keeps
+    its first read. A 2nd Ampharos read that way once made 6 seen with Scizor still unfound (2026-11-06)"""
     name = page_name(texts)
     mid = [t[4].strip() for t in texts if 0.3 < t[1] < 0.5 and not LABEL_RE.match(t[4].strip())
            and not re.fullmatch(r"[\d\W]+", t[4].strip()) and len(t[4].strip()) > 2]
     trainer = " ".join(sorted(mid))
     for k in known:
-        if k[0] == name and like(k[1], trainer, 0.5):
+        if like(k[0], name, 0.8):
             return k
     known.append((name, trainer))
     return name, trainer
@@ -474,6 +476,18 @@ def moved(screen, texts, me):
     return screen == "feed" and name and not like(name, me[0], 0.6)
 
 
+def steady_look(me):
+    """look(), again if the page seems to have changed: the stardust a berry gives floats over the name ('+10',
+    'Scizor STARGUSTO') and goes in a moment. It stopped Blissey at 3 berries (2026-11-06). A real change stays"""
+    got = look()
+    for _ in range(2):
+        if not moved(got[0], got[1], me):
+            break
+        time.sleep(0.7)
+        got = look()
+    return got
+
+
 def sane(now, count):
     """a count read while feeding -> it, or `count` if it moved too far for one tap: a misread (143 read so low it
     counted 100 berries and ended a run, 2026-11-06)"""
@@ -505,10 +519,13 @@ def feed(kind, have, left, me):
         # the number can still show just before a full Pokémon's berry goes. A tap with no berry jumps to the faint
         # Pokémon behind (Blissey and Hitmonchan -> Greninja, 2026-11-06), so no tap before a look BERRY_WAIT after
         # the last one
-        screen, texts, path, bounds = look()
+        screen, texts, path, bounds = steady_look(me)
         now = sane(berry_count(texts), count)
         if now is None and not moved(screen, texts, me):
             now, screen, texts, bounds = berry_back()
+            if moved(screen, texts, me):
+                screen, texts, path, bounds = steady_look(me)
+                now = berry_count(texts)
             now = sane(now, count)
         if moved(screen, texts, me):
             keep_capture(f"moved-{me[0]}")
@@ -667,15 +684,18 @@ def explore(seen, n, total, limit):
             if not path:
                 break
         for i in path:
-            x1, y1, x2, y2, hold = SWIPES[i]
-            _, _, _, bounds = look()
-            base.drag(x1, y1, x2, y2, bounds, ms=450, hold=hold, settle=(1.0, 1.3))
-            used += 1
-            if not wait_feed(3):
-                keep_capture("swipelost")
-                raise Stop("a swipe in the gym left the Pokémon page")
-            now = who(look()[1])
-            log(f"    swipe {i} ({used}): {here[0]} -> {now[0]}")
+            for _ in range(SWIPE_TRIES):
+                x1, y1, x2, y2 = SWIPES[i]
+                _, _, _, bounds = look()
+                base.drag(x1, y1, x2, y2, bounds, ms=150, settle=(0.7, 0.8))
+                used += 1
+                if not wait_feed(3):
+                    keep_capture("swipelost")
+                    raise Stop("a swipe in the gym left the Pokémon page")
+                now = who(look()[1])
+                log(f"    swipe {i} ({used}): {here[0]} -> {now[0]}")
+                if now != here:
+                    break
             edges.setdefault(here, {})[i] = now
             if now not in seen:
                 fed += feed_here(seen, total + fed, limit)

@@ -74,9 +74,8 @@ HEART_Y = 0.384 if ui.ANDROID else 0.397  # the five big hearts on the friendshi
 HEART_X = (0.222, 0.362, 0.50, 0.64, 0.778) if ui.ANDROID else (0.234, 0.369, 0.505, 0.635, 0.768)
 LEVELS = {"GOOD": 1, "GREAT": 2, "ULTRA": 3, "BEST": 4, "FOREVER": 5}  # ribbon -> hearts filled
 WATCH_FROM = 2  # hearts index (0-based) from which a level-up is watched: the 3rd, 4th and 5th heart
-HEART_NEAR = {2: 0.9, 3: 0.97, 4: 0.97, 5: 0.95}  # by hearts full: open the friendship screen only when the next one is this full.
-# 3rd heart (~30 points): 1 to go read 100%, 2 read 94%, 5-6 read 81%. 4th/5th (~90-100 points, ~5 a pixel): 9 read 94%,
-# 11 read 88%, 26 read 75%, 5 read 100%. The Forever bar (5, ~90 points over ~47 pixels): 60 read 36%
+HEART_NEAR = {2: 0.75, 3: 0.9, 4: 0.9, 5: 0.9}  # by hearts full: open the friendship screen only when the next one is this full
+# (2026-11-07 layout, iPhone). 4th/5th heart: 8 to go read 97%, 20 read 67%, 74 read 18%. Forever bar: 18 read 80%, 56 read 38%
 PHONE = "android" if ui.ANDROID else "ios"
 DRY = False  # --dry-run: everything but SEND and the nickname box's OK
 typed = ""  # the last search typed: the box shows its end ('ea', 'mo')
@@ -705,21 +704,27 @@ def points_text():
     return int(m.group(1)) if m else None
 
 
-def forever_fill(im, W, H):
-    """a Forever Friend's bar right of the small heart -> (5, how full, 0-1), or None. It fills orange from the left
-    over grey; each step is about 90 points (60 to go read 34%, 80 read 13%)"""
+def hearts_spot():
+    """-> (x of the first heart's centre, y of the row, 0-1), measured from the FRIENDSHIP LEVEL label above the hearts, or None"""
+    lab = next((t for t in texts if "FRIENDSHIP LEV" in ui.up(t)), None)
+    return (lab[0] + 0.028, lab[1] + 0.0304) if lab else None
+
+
+def forever_fill(im, W, H, cy):
+    """a Forever Friend's bar right of the one heart -> (5, how full, 0-1), or None when there's no bar.
+    It fills orange from the left over grey; each step is about 90 points"""
     def kind(r, g, b):
-        if r > 220 and 90 < g < 200 and b < 120:
+        if r > 220 and 90 < g < 225 and b < r - 50:
             return "O"
-        if abs(r - g) < 14 and abs(g - b) < 14 and 140 < r < 230:
+        if abs(r - g) < 14 and abs(g - b) < 14 and 140 < r < 235:
             return "g"
         return "."
 
     best = None
-    for cy in range(int(H * 0.15), int(H * 0.23)):
-        line = "".join(kind(*im.getpixel((x, cy))) for x in range(int(W * 0.08), int(W * 0.35)))
+    for y in range(cy - 4, cy + 5):
+        line = "".join(kind(*im.getpixel((x, y))) for x in range(int(W * 0.45), int(W * 0.95)))
         for run in re.split(r"\.{2,}", line):  # (one stray pixel inside the bar is fine)
-            if len(run) > 0.08 * W and (best is None or len(run) > len(best)):
+            if len(run) > 0.2 * W and (best is None or len(run) > len(best)):
                 best = run
     if best is None:
         return None
@@ -727,36 +732,36 @@ def forever_fill(im, W, H):
 
 
 def heart_fill():
-    """the five small hearts under the name on the friend page -> (hearts full, how full the next one is, 0-1),
-    or None when they can't be read (a Forever Friend's smaller heart + bar, a lucky friend's swirl).
-    A full heart is red; the next one fills yellow from the left, the rest grey. The gaps between hearts are
-    sometimes grey too, so each heart is cut out by its spot, measured from the first one's left edge"""
+    """the five hearts right of Level on the friend page -> (hearts full, how full the next one is, 0-1), or None when
+    they can't be read. A full heart has a red ring. The next one's ring fills orange from the left, over grey.
+    A Forever Friend has one heart, then a bar"""
+    spot = hearts_spot()
+    if not spot:
+        return None
     im = Image.open(path).convert("RGB")
     W, H = im.size
-
-    def kind(ps):
-        if any(p[0] > 230 and p[1] < 140 and p[2] < p[0] - 60 for p in ps):
-            return "R"
-        if any(p[0] > 230 and 140 <= p[1] < 215 and p[2] < p[0] - 60 for p in ps):
-            return "Y"
-        return "."
-
-    best = ""
-    for cy in range(int(H * 0.15), int(H * 0.23)):  # (a nickname above is orange-yellow text: count red only)
-        line = "".join(kind([im.getpixel((x, y)) for y in range(cy - 2, cy + 3)]) for x in range(int(W * 0.04), int(W * 0.32)))
-        if line.count("R") > best.count("R"):
-            best = line
-    if "R" not in best:
-        return None
-    pitch = (0.0456 if ui.ANDROID else 0.0437) * W  # 18.5 / 17.7 px apart on a 406 px wide capture
-    a, width = best.index("R"), round(0.0394 * W)  # 16 px hearts
-    if len(best[a:]) - len(best[a:].lstrip("R")) < 0.8 * width:
-        return forever_fill(im, W, H)  # a Forever Friend: a smaller heart, then the bar
+    cy = round(spot[1] * H)
+    bar = forever_fill(im, W, H, cy)
+    if bar:
+        return bar
+    r = round(0.032 * W)
     fill = []
     for i in range(5):
-        seg = best[a + round(i * pitch):][:width]
-        fill.append((seg.count("R") >= 0.7 * width, (seg.count("R") + seg.count("Y")) / width))
-    full = next((i for i, (red, _) in enumerate(fill) if not red), 5)
+        cx = round((spot[0] + i * 0.0644) * W)
+        red = orange = grey = 0
+        for x in range(cx - r, cx + r + 1):
+            for y in range(cy - r, cy + r + 1):
+                p = im.getpixel((x, y))
+                if p[0] > 220 and p[1] < 140 and p[2] < p[0] - 60:
+                    red += 1
+                elif p[0] > 220 and 140 <= p[1] < 225 and p[2] < p[0] - 50:
+                    orange += 1
+                elif abs(p[0] - p[1]) < 14 and abs(p[1] - p[2]) < 14 and 150 < p[0] < 235:
+                    grey += 1
+        if red + orange + grey < 150:
+            return None  # no ring where a heart should be: the friendship screen can say
+        fill.append((red >= 100, orange / (orange + grey) if orange + grey else 0))
+    full = next((i for i, (is_red, _) in enumerate(fill) if not is_red), 5)
     return full, (fill[full][1] if full < 5 else 1.0)
 
 
@@ -767,8 +772,10 @@ def meter():
     if hf and (hf[0] < WATCH_FROM or hf[1] < HEART_NEAR[hf[0]]):  # (5 full hearts read 100%: always opened)
         log(f"  {hf[0]} hearts + {hf[1]:.0%} of the next: no level-up close, friendship screen not opened")
         return None
+    spot = hearts_spot()
+    spots = [(spot[0] + 2 * 0.0644, spot[1])] if spot else []  # the third heart
     nick, line = page_nickname()
-    spots = [(0.12, line[1] + line[3] / 2)] if line else []
+    spots += [(0.12, line[1] + line[3] / 2)] if line else []
     spots += [(0.15, 0.177), (0.15, 0.204)]
     for fx, fy in spots:
         tap(fx, fy, fuzz=0.004)

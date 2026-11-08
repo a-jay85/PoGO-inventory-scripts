@@ -208,6 +208,8 @@ def ask_claude(prompt):
            "--dangerously-skip-permissions"]
     env = dict(os.environ, CLAUDE_HEADLESS="1")
     env.pop("POGO_HEAL_STATE", None)
+    for k in ("POGO_TRACE", "POGO_TRACE_ROOT"):  # (its tests and tools aren't the phone run: keep them out of its trace)
+        env.pop(k, None)
     try:
         p = subprocess.Popen(cmd, cwd=HERE, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
                              errors="replace", stdin=subprocess.DEVNULL)

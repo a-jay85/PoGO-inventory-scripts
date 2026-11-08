@@ -8,13 +8,15 @@ Claude starts it with Bash run_in_background, so a run makes one notice: the end
 (its own session), so it keeps going if the waiter is killed. Everything it prints goes to
 /tmp/pogo-watch/<stamp>.log; read that file for details. <stamp>.json says where the run came from (the command,
 the script's git checkout, its HEAD, its files' state as a tree, POGO_PHONE, start, end, exit code): merge_gate.py
-reads it to find a PR's phone test.
+reads it to find a PR's phone test. Every python3 the run starts records which lines of that checkout ran
+(linetrace/sitecustomize.py): <stamp>.lines.<pid>-<n>, one per process. merge_gate.py reads those too.
 
 The summary is the exit code, the STOPPED / CRASHED / interrupted / error lines, and the last few lines.
 """
 import json, os, re, subprocess, sys, tempfile, time
 
 DIR = "/tmp/pogo-watch"
+TRACER = os.path.join(os.path.dirname(os.path.realpath(__file__)), "linetrace")  # (its sitecustomize.py)
 ALARM = re.compile(r"STOPPED|CRASHED|interrupted|Error")
 TAIL = 4
 
@@ -41,15 +43,27 @@ def origin(cmd):
     return out
 
 
+def trace_env(stamp, top, env=None):
+    """the run's environment, with line tracing on for the checkout at top (or as it was, with no checkout)"""
+    env = dict(os.environ if env is None else env)
+    if not top or not os.path.exists(os.path.join(TRACER, "sitecustomize.py")):
+        return env
+    env["PYTHONPATH"] = os.pathsep.join([TRACER] + [p for p in env.get("PYTHONPATH", "").split(os.pathsep) if p])
+    env.update(POGO_TRACE=os.path.join(DIR, stamp + ".lines"), POGO_TRACE_ROOT=top)
+    return env
+
+
 def run(stamp, cmd):
     """the detached half: run cmd, its output to the log, then its exit code to <stamp>.rc (and <stamp>.json)"""
     info = dict(origin(cmd), start=time.strftime("%Y-%m-%dT%H:%M:%S"), end=None, rc=None)
+    env = trace_env(stamp, info.get("toplevel"))
+    info["lines"] = env.get("POGO_TRACE")
     meta = os.path.join(DIR, stamp + ".json")
     with open(meta, "w") as f:
         json.dump(info, f, indent=1)
     with open(os.path.join(DIR, stamp + ".log"), "ab") as f:
         try:
-            rc = subprocess.call(cmd, stdout=f, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL)
+            rc = subprocess.call(cmd, stdout=f, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, env=env)
         except OSError as e:
             f.write(f"watch.py: can't start {cmd[0]}: {e}\n".encode())
             rc = 127

@@ -13,6 +13,9 @@ What it checks, on the PR head as GitHub has it:
 - Phone test: a PR that changes a .py under skills/ or one of PHONE_ROOT needs a watch.py run (its
   /tmp/pogo-watch/<stamp>.json) that ended with exit 0 and ran exactly the PR head's copy of each of those files
   (committed then or not). Or a body line `No phone test: <why, 10+ characters>`: it passes, with a warning.
+- Changed lines: the lines each such run ran (watch.py's <stamp>.lines.* files). The PR's changed code lines that
+  none of them ran are listed by function, as notes. More than half never ran and no body line `Unreached: <why>`:
+  it blocks. A run with no line files (from before tracing) gets a note. watch.py and the tracer aren't traced.
 - Siblings: for a .py under skills/, the functions the PR changes (an AST diff from the merge base), who calls each
   one, and phone / account branches where only one side changed. The body needs a line `Siblings: <what was checked,
   what it found>`. Without one it blocks and shows the list; with one the list comes along as notes.
@@ -28,7 +31,9 @@ TESTS = ["readers", "layout", "verdicts", "taggers", "heal"]  # must be there
 OPTIONAL = ["lints", "gate"]  # run when there
 DONE = re.compile(r"^all\b.*\b(the same|right)\b", re.M)
 TEST_S = 480
-PHONE_ROOT = {"pogo.py", "heal.py", "watch.py"}  # root scripts a phone run goes through
+PHONE_ROOT = {"pogo.py", "heal.py", "watch.py", "linetrace/sitecustomize.py"}  # root files a phone run goes through
+UNTRACED = {"watch.py", "linetrace/sitecustomize.py"}  # (they run the trace: their own lines aren't in it)
+SHOW_LINES = 40  # unreached lines shown per note
 SIDES = re.compile(r"ANDROID|IOS|IPHONE|\b(ios|android|iphone|pixel)\b|HashTagAJay|CyrillJan", re.I)
 TWINS = [("android", "ios"), ("android", "iphone"), ("pixel", "iphone"), ("hashtagajay", "cyrilljan")]
 SKIP_DIRS = {".git", "__pycache__", "runs", "tests"}
@@ -187,7 +192,8 @@ def run_tests(path):
     """-> [what failed, with its last lines]"""
     have_ = [t for t in TESTS + OPTIONAL if os.path.exists(os.path.join(path, "tests", t + ".py"))]
     bad = [f"tests/{t}.py is missing" for t in TESTS if t not in have_]
-    env = {k: v for k, v in os.environ.items() if k not in ("POGO_PHONE", "POGO_HEAL_STATE", "POGO_HEAL_PHONE")}
+    env = {k: v for k, v in os.environ.items() if k not in ("POGO_PHONE", "POGO_HEAL_STATE", "POGO_HEAL_PHONE",
+                                                           "POGO_TRACE", "POGO_TRACE_ROOT")}  # (never in a phone trace)
     runs = []
     for t in have_:
         f = tempfile.TemporaryFile("w+")
@@ -270,6 +276,176 @@ def phone_test(files, head, wt):
                 why = "ran other contents of " + ", ".join(diff) + " (changed since: run it again)"
             near.append(f"run {stamp} ({cmd}) {why}")
     return None, near
+
+
+# ---------- which changed lines the phone test ran ----------
+
+def run_lines(stamp):
+    """-> {file: set of lines that ran} from a run's line files (watch.py's tracer), or None: it has none"""
+    names = [f for f in os.listdir(WATCH_DIR) if f.startswith(stamp + ".lines.") and not f.endswith(".tmp")] \
+        if os.path.isdir(WATCH_DIR) else []
+    if not names:
+        return None
+    out = {}
+    for n in names:
+        try:
+            with open(os.path.join(WATCH_DIR, n)) as f:
+                d = json.load(f)
+        except (OSError, ValueError):
+            continue
+        for k, v in (d.items() if isinstance(d, dict) else []):
+            out.setdefault(k, set()).update(x for x in v if isinstance(x, int))
+    return out
+
+
+def added_lines(base, head, f):
+    """the line numbers at the head that the PR added or changed in f"""
+    out = set()
+    for m in re.finditer(r"^@@ -\S+ \+(\d+)(?:,(\d+))? @@", git("diff", "-U0", base, head, "--", f) or "", re.M):
+        start, count = int(m.group(1)), int(m.group(2) or 1)
+        out.update(range(start, start + count))
+    return out
+
+
+def code_lines(code):
+    """every line a code object (and the ones inside it) can report as run"""
+    out = {l for _, _, l in code.co_lines() if l}
+    for c in code.co_consts:
+        if hasattr(c, "co_lines"):
+            out |= code_lines(c)
+    return out
+
+
+SIMPLE_AT_TOP = (ast.Assign, ast.AnnAssign, ast.AugAssign, ast.Import, ast.ImportFrom)
+
+
+def units(src, name):
+    """-> [(first line, the lines it covers, its function, set-at-import)]: each statement a run can reach, by the
+    lines it spans. A compound statement counts by its header (`if x:`, `for ...:`). Not counted: def/class
+    headers and decorators, docstrings, `try:`, `else:`/`finally:` lines (no code of their own), lines with no code
+    (blank, comments, `global`)."""
+    tree = parse(src)
+    if tree is None:
+        return []
+    try:
+        can = code_lines(compile(tree, name, "exec"))
+    except (SyntaxError, ValueError):
+        return []
+    out = []
+
+    def doc(body):
+        return body and isinstance(body[0], ast.Expr) and isinstance(body[0].value, ast.Constant) \
+            and isinstance(body[0].value.value, str)
+
+    def walk(body, fn, top):
+        for i, n in enumerate(body):
+            if i == 0 and doc(body):
+                continue
+            if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                walk(n.body, (fn + "." if fn != "<module>" else "") + n.name, False)
+                continue
+            if isinstance(n, ast.ClassDef):
+                walk(n.body, (fn + "." if fn != "<module>" else "") + n.name, top)
+                continue
+            kids = [b for b in ("body", "orelse", "finalbody", "handlers", "cases") if getattr(n, b, None)]
+            if kids:
+                if not isinstance(n, (ast.Try, getattr(ast, "TryStar", ast.Try))):
+                    end = max(n.lineno, n.body[0].lineno - 1) if getattr(n, "body", None) else n.lineno
+                    span = set(range(n.lineno, end + 1)) & can
+                    if span:
+                        out.append((n.lineno, span, fn, False))
+                for b in kids:
+                    for k in getattr(n, b):
+                        if isinstance(k, ast.ExceptHandler):
+                            span = set(range(k.lineno, max(k.lineno, k.body[0].lineno - 1) + 1)) & can
+                            if span:
+                                out.append((k.lineno, span, fn, False))
+                            walk(k.body, fn, False)
+                        elif isinstance(k, ast.match_case):
+                            walk(k.body, fn, False)
+                        else:
+                            walk([k], fn, False)
+                continue
+            span = set(range(n.lineno, (n.end_lineno or n.lineno) + 1)) & can
+            if span:
+                out.append((n.lineno, span, fn, top and isinstance(n, SIMPLE_AT_TOP)))
+
+    walk(tree.body, "<module>", True)
+    return out
+
+
+def unreached(base, head, files, ran):
+    """-> (how many changed statements the run could have reached, {file: {function: [lines never run]}})"""
+    total, missed = 0, {}
+    for f in files:
+        new = added_lines(base, head, f)
+        if not new:
+            continue
+        src = git("show", f"{head}:{f}", check=False) or ""
+        text = src.splitlines()
+        real = {l for l in new if 0 < l <= len(text) and text[l - 1].strip() and
+                not text[l - 1].strip().startswith("#")}
+        hit = ran.get(f, set())
+        for first, span, fn, at_import in units(src, f):
+            if not span & real:
+                continue
+            if at_import and hit:  # (a constant set at import: it ran if the file was loaded)
+                continue
+            total += 1
+            if not span & hit:
+                missed.setdefault(f, {}).setdefault(fn, []).append(first)
+    return total, missed
+
+
+def lines_check(base, head, files, body, edit):
+    """-> (block or None, note): the PR's changed lines that no phone run of the head's copy ran. Per file: the lines
+    of every run that ended with exit 0 and ran the head's copy of that file (so its line numbers are the head's)"""
+    files = [f for f in files if f not in UNTRACED and blob(head, f)]
+    if not files:
+        return None, None
+    want = {f: blob(head, f) for f in files}
+    ran, traced, untraced = {f: set() for f in files}, [], []
+    for stamp, r in phone_runs():
+        same_ = [f for f in files if r.get("rc") == 0 and blob(r["tree"], f) == want[f]]
+        if not same_:
+            continue
+        got = run_lines(stamp)
+        if got is None:
+            untraced.append(stamp)
+            continue
+        traced.append(stamp)
+        for f in same_:
+            ran[f] |= got.get(f, set())
+    if not traced:
+        return None, (f"changed lines: not checked, the phone run ({', '.join(untraced[:3])}) has no line "
+                      f"record (a watch.py from before line tracing)")
+    total, missed = unreached(base, head, files, ran)
+    if not total:
+        return None, "changed lines: no changed code lines in the phone files"
+    n = sum(len(v) for fs in missed.values() for v in fs.values())
+    where = f"runs {', '.join(traced[:3])}" if len(traced) > 1 else f"run {traced[0]}"
+    if not n:
+        return None, f"changed lines: all {total} changed code lines ran in the phone test ({where})"
+    shown, listing = 0, []
+    for f, fns in missed.items():
+        for fn, ls in fns.items():
+            if shown < SHOW_LINES:
+                take = sorted(ls)[:SHOW_LINES - shown]
+                listing.append(f"  {f} {fn}: line{'s' if len(take) > 1 else ''} {', '.join(map(str, take))}"
+                               + (" ..." if len(take) < len(ls) else ""))
+                shown += len(take)
+    listing = "\n".join(listing) + ("\n  ..." if shown < n else "")
+    head_line = (f"changed lines: {n} of {total} changed code lines never ran in the phone test ({where}). These "
+                 "changed lines never ran in the phone test: either reach them with a run that does, or say in the "
+                 "PR body why they can't be reached")
+    why = line(body, "Unreached")
+    if n * 2 > total and not why:
+        return (f"Most of the changed code never ran in the phone test: {n} of {total} changed code lines never ran "
+                f"({where}):\n{listing}\n  Do: run the phone test again with a run that reaches them (the "
+                "smallest one that does: the step, flags or screen that takes that path), then merge again. If they "
+                "can't be reached on the phone, add a body line `Unreached: <why they can't be reached>`. "
+                + edit), None
+    return None, head_line + (f" (the PR says: {why[:200]})" if why else "") + ":\n" + listing
 
 
 # ---------- siblings ----------
@@ -433,6 +609,11 @@ def check(target, cwd):
         if ran:
             notes.append(f"phone test: run {ran[0]} ({' '.join(ran[1].get('command') or [])[:150]}), exit 0, "
                          f"ran the head's copy of {', '.join(phone)}")
+            stop, note = lines_check(base, head, phone, body, edit)
+            if stop:
+                blocks.append(stop)
+            if note:
+                notes.append(note)
             cmd = " ".join(ran[1].get("command") or [])
             own = {f.split("/")[1] for f in phone if f.count("/") >= 2 and not f.startswith("skills/shared/")}
             if own and not any(f"/{k}/" in cmd or f" {k}" in cmd for k in own):

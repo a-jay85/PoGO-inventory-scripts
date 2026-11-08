@@ -4,7 +4,7 @@
 
   python3 tests/gate.py
 """
-import io, json, os, subprocess, sys, tempfile
+import io, json, os, signal, subprocess, sys, tempfile, time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
@@ -44,6 +44,14 @@ def pick(x):
 def use():
     return pick(3)
 '''
+EXTRA = '''
+
+def extra():
+    a = 1
+    b = 2
+    return a + b
+'''  # (new at the head: lines 16-18, after pick's line 6)
+HEAD_SKILL = SKILL.replace("x + 1", "x + 2") + EXTRA
 os.makedirs(REPO)
 sh("git", "init", "-q", "-b", "main")
 sh("git", "config", "user.email", "t@t")
@@ -60,7 +68,7 @@ sh("git", "init", "-q", "--bare", BARE, cwd=T)
 sh("git", "remote", "add", "origin", BARE)
 sh("git", "push", "-q", "origin", "main")
 sh("git", "worktree", "add", "-q", "-b", "fix/aa", WT, "origin/main")
-write(os.path.join(WT, "skills/aa/run.py"), SKILL.replace("x + 1", "x + 2"))
+write(os.path.join(WT, "skills/aa/run.py"), HEAD_SKILL)
 write(os.path.join(WT, "README.md"), "hi there\n")
 sh("git", "commit", "-qam", "fix", cwd=WT)
 HEAD = sh("git", "rev-parse", "HEAD", cwd=WT)
@@ -89,6 +97,15 @@ def watch_run(stamp, rc=0, cwd=WT, script="skills/aa/run.py"):
     """a real watch.py record of a run of the skill as the checkout at cwd has it now"""
     cmd = ["python3", os.path.join(cwd, script), "--limit", "1"]
     write(os.path.join(g.WATCH_DIR, stamp + ".json"), json.dumps(dict(watch.origin(cmd), rc=rc)))
+
+
+def ran_lines(stamp, *hits, name="1-1"):
+    """a made-up line file of a run: the lines of skills/aa/run.py it ran"""
+    write(os.path.join(g.WATCH_DIR, f"{stamp}.lines.{name}"), json.dumps({"skills/aa/run.py": sorted(hits)}))
+
+
+def notes(o):
+    return o["hookSpecificOutput"].get("additionalContext", "") if o else ""
 
 
 def clear_runs():
@@ -158,6 +175,42 @@ case("a phone run of the head code + Siblings: passes, the list comes as notes",
      lambda o: passed(o) and "phone test: run 20260101-000001" in o["hookSpecificOutput"]["additionalContext"]
      and "only the if side changed" in o["hookSpecificOutput"]["additionalContext"]
      and "tests: all passed" in o["hookSpecificOutput"]["additionalContext"])
+case("a run with no line files: a note, not a block", o,
+     lambda o: passed(o) and "changed lines: not checked" in notes(o) and "20260101-000001" in notes(o))
+
+ran_lines("20260101-000001", 1, 4, 5, 6, 11, 15, 16, 17, 18)
+o = gate()
+case("every changed line ran: says so", o, lambda o: passed(o) and "all 4 changed code lines ran" in notes(o))
+
+clear_runs()
+watch_run("20260101-000001")
+ran_lines("20260101-000001", 1, 4, 5, 6, 15, name="1-1")
+ran_lines("20260101-000001", 16, 17, name="2-1")
+write(os.path.join(g.WATCH_DIR, "20260101-000001.lines.3-1.tmp"), json.dumps({"skills/aa/run.py": [18]}))
+o = gate()
+case("one changed line never ran: passes, a note with it by function (two pid files merged, a .tmp left out)", o,
+     lambda o: passed(o) and "1 of 4 changed code lines never ran" in notes(o)
+     and "skills/aa/run.py extra: line 18" in notes(o) and "either reach them with a run that does" in notes(o))
+
+clear_runs()
+watch_run("20260101-000001")
+ran_lines("20260101-000001", 1, 4, 5, 6, 15)
+o = gate()
+case("most changed lines never ran, no Unreached: line: blocked, lists them, asks for the line", o,
+     lambda o: denied(o, "3 of 4 changed code lines never ran", "skills/aa/run.py extra: lines 16, 17, 18",
+                      "`Unreached: <why"))
+pr(body="Fixes it.\n" + SIB + "\nUnreached: extra() runs only on a full moon")
+o = gate()
+case("most never ran, with an Unreached: line: passes, the reason and the list in the notes", o,
+     lambda o: passed(o) and "3 of 4" in notes(o) and "full moon" in notes(o))
+watch_run("20260101-000006")
+ran_lines("20260101-000006", 16, 17, 18)
+pr(body="Fixes it.\n" + SIB)
+case("two runs of the head code: their lines add up", gate(),
+     lambda o: passed(o) and "all 4 changed code lines ran" in notes(o) and "runs 2026" in notes(o))
+clear_runs()
+watch_run("20260101-000001")
+
 case("-R this repo and a url of this repo count too",
      [gate("gh pr merge -R a-jay85/PoGO-inventory-scripts 7"),
       gate("gh pr merge https://github.com/a-jay85/PoGO-inventory-scripts/pull/7 --squash")],
@@ -172,7 +225,7 @@ case("a run of other contents: blocked, says run it again", gate(),
 
 clear_runs()
 sh("git", "checkout", "-q", "--detach", "origin/main", cwd=WT)
-write(os.path.join(WT, "skills/aa/run.py"), SKILL.replace("x + 1", "x + 2"))
+write(os.path.join(WT, "skills/aa/run.py"), HEAD_SKILL)
 watch_run("20260101-000003")  # (tested before the commit: HEAD was the base, the file the PR's)
 sh("git", "checkout", "-q", "--", ".", cwd=WT)
 sh("git", "checkout", "-q", "fix/aa", cwd=WT)
@@ -235,6 +288,101 @@ try:
 finally:
     g.check = real
 case("the gate crashing: blocked, with the crash", o, lambda o: denied(o, "crashed", "ZeroDivisionError"))
+
+# ---------- what counts as a changed code line ----------
+
+SRC = """\"\"\"doc\"\"\"
+import os
+
+
+@property
+def f(a,
+      b):
+    \"\"\"doc
+    more\"\"\"
+    # note
+    try:
+        y = call(a,
+                 b)
+    except KeyError:
+        pass
+    else:
+        y = 2
+    if a:
+        return 1
+    elif b:
+        return 2
+"""
+got = {u[0]: sorted(u[1]) for u in g.units(SRC, "x.py")}
+case("code lines: no docstring, decorator, def, comment, try:, else:; a call over two lines is one", got,
+     lambda d: d == {2: [2], 12: [12, 13], 14: [14], 15: [15], 17: [17], 18: [18], 19: [19], 20: [20], 21: [21]})
+
+# ---------- the tracer, as watch.py starts it ----------
+
+TR = os.path.join(T, "traced")
+os.makedirs(TR)
+write(os.path.join(TR, "a.py"), """import os, subprocess, sys
+
+
+def f(x):
+    if x:
+        return 1
+    return 2
+
+
+f(True)
+subprocess.run([sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), "b.py")])
+""")
+write(os.path.join(TR, "b.py"), "import json\ny = json.dumps(3)\nif y == 4:\n    print('no')\n")
+write(os.path.join(TR, "c.py"), "import sys, time\nopen(sys.argv[1], 'w').close()\ntime.sleep(30)\n")
+sh("git", "init", "-q", cwd=TR)
+watch.DIR = os.path.join(T, "trwatch")
+os.makedirs(watch.DIR)
+watch.run("20260101-000100", ["python3", os.path.join(TR, "a.py")])
+
+
+def lines_of(stamp):
+    out, n = {}, 0
+    for f in os.listdir(watch.DIR):
+        if f.startswith(stamp + ".lines."):
+            n += 1
+            for k, v in json.load(open(os.path.join(watch.DIR, f))).items():
+                out.setdefault(k, set()).update(v)
+    return n, {k: sorted(v) for k, v in out.items()}
+
+
+n, got = lines_of("20260101-000100")
+case("tracer: a run's lines, its child process's too, one file each, the untaken branch not in it", (n, got),
+     lambda x: x == (2, {"a.py": [1, 4, 5, 6, 10, 11], "b.py": [1, 2, 3]}))
+case("tracer: the run record says where its lines go",
+     json.load(open(os.path.join(watch.DIR, "20260101-000100.json"))),
+     lambda r: r.get("lines") == os.path.join(watch.DIR, "20260101-000100.lines") and r.get("rc") == 0)
+
+env = watch.trace_env("20260101-000101", TR, dict(os.environ, PYTHONPATH="/somewhere"))
+case("tracer: watch.py's env keeps a PYTHONPATH there was, after the tracer's", env["PYTHONPATH"],
+     lambda p: p == watch.TRACER + os.pathsep + "/somewhere")
+ready = os.path.join(T, "ready")
+p = subprocess.Popen([sys.executable, os.path.join(TR, "c.py"), ready], env=env)
+end = time.time() + 20
+while not os.path.exists(ready) and time.time() < end:
+    time.sleep(0.05)
+p.send_signal(signal.SIGTERM)
+p.wait(timeout=20)
+case("tracer: a run stopped by SIGTERM still writes its lines, and still dies of SIGTERM",
+     (p.returncode, lines_of("20260101-000101")[1]), lambda x: x == (-signal.SIGTERM, {"c.py": [1, 2, 3]}))
+
+env = dict(os.environ, PYTHONPATH=watch.TRACER)
+quiet = subprocess.run([sys.executable, os.path.join(TR, "b.py")], env=env, capture_output=True, text=True)
+case("tracer: off with no POGO_TRACE, and Homebrew's sitecustomize still runs", [quiet.returncode, quiet.stderr,
+     subprocess.run([sys.executable, "-c", "import sys; print(sys.executable)"], env=env, capture_output=True,
+                    text=True).stdout.strip() == subprocess.run([sys.executable, "-c", "import sys; print(sys.executable)"],
+                                                                capture_output=True, text=True).stdout.strip()],
+     lambda x: x == [0, "", True])
+if os.path.exists("/usr/bin/python3"):
+    old = subprocess.run(["/usr/bin/python3", os.path.join(TR, "b.py")],
+                         env=watch.trace_env("20260101-000102", TR), capture_output=True, text=True)
+    case("tracer: an old python3 (no sys.monitoring) runs fine, untraced", [old.returncode, old.stderr],
+         lambda x: x == [0, ""])
 
 print(f"\n{'all gate cases right' if not fails else f'{fails} WRONG'}")
 sys.exit(1 if fails else 0)

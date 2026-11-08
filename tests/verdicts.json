@@ -386,6 +386,64 @@
   null,
   "shadow: Candy XL not read"
  ],
+ "shadow, under 360 XL, 2019 catch": [
+  "tag",
+  [
+   "GuaranteedLucky"
+  ],
+  null,
+  "shadow, caught 2019: lucky once purified and traded (else shadow, under 360 Candy XL: purify and transfer)"
+ ],
+ "shadow, 360+ XL, 2019 catch": [
+  "tag",
+  [
+   "GuaranteedLucky"
+  ],
+  null,
+  "shadow, caught 2019: lucky once purified and traded (else shadow, 360+ Candy XL: transfer, no purify)"
+ ],
+ "shadow, under 360 XL, old": [
+  "tag",
+  [
+   "Old"
+  ],
+  null,
+  "shadow, caught 515 days ago (else shadow, under 360 Candy XL: purify and transfer)"
+ ],
+ "shadow, 360+ XL, old": [
+  "tag",
+  [
+   "Old"
+  ],
+  null,
+  "shadow, caught 515 days ago (else shadow, 360+ Candy XL: transfer, no purify)"
+ ],
+ "shadow xxs, old still IVC": [
+  "tag",
+  [
+   "IVC"
+  ],
+  "xxs",
+  "never traded XXS (else Transfer: shadow, 360+ Candy XL: transfer, no purify)"
+ ],
+ "H shadow, old": [
+  "tag",
+  [
+   "Old"
+  ],
+  null,
+  "shadow, caught 515 days ago (else shadow, 360+ Candy XL: transfer, no purify)"
+ ],
+ "shiny shadow, 2019 catch": [
+  "tag",
+  [
+   "Remote Trade",
+   "RT"
+  ],
+  null,
+  "shiny, doesn't qualify (shadow, caught 2019: lucky once purified and traded (else shadow, 360+ Candy XL: transfer, no purify))",
+  "star"
+ ],
  "shadow, no species lists": [
   "unsure",
   [],

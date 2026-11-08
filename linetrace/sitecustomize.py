@@ -4,8 +4,9 @@ PYTHONPATH, so every python3 the run starts (pogo.py's steps, the scripts they s
 It does nothing unless POGO_TRACE is set (watch.py sets it to /tmp/pogo-watch/<stamp>.lines). Then it records,
 with sys.monitoring LINE events, the lines that ran in .py files under POGO_TRACE_ROOT (the run's checkout).
 Each spot reports once, then is switched off, so a run goes at full speed. Each process writes its own
-<stamp>.lines.<pid>-<n>: {"skills/x/y.py": [line, ...]}, at exit, on SIGTERM, before an exec, and at most every
-30 s as new lines come in. merge_gate.py reads them all.
+<stamp>.lines.<pid>-<n>: {"skills/x/y.py": [line, ...], "__blobs__": {"skills/x/y.py": <git blob sha>}}, at exit, on SIGTERM, before an exec, and at most every
+30 s as new lines come in. merge_gate.py reads them all. The blob is the file as it was when this process first ran
+it (its import): a heal can pull new code into the checkout mid-run, and its lines must not count for the old copy.
 
 It must never break or slow a phone script: any error just turns tracing off. Python without sys.monitoring
 (before 3.12) isn't traced. It first runs the sitecustomize this one hides (Homebrew's), so that still happens.
@@ -38,7 +39,7 @@ def _start():
     mon = getattr(sys, "monitoring", None)
     if not out or not root or mon is None:
         return
-    import atexit, json, signal, time
+    import atexit, hashlib, json, signal, time
     root = os.path.realpath(root) + os.sep
     me = os.path.realpath(__file__)
     tool = None
@@ -52,6 +53,7 @@ def _start():
     if tool is None:
         return
     hits = {}  # relpath -> set of lines
+    blobs = {}  # relpath -> git blob sha of the file when first run here
     where = {}  # co_filename -> relpath, or None (not ours)
     state = {"dirty": False, "last": time.time(), "busy": False, "path": None, "pid": None}
     DISABLE = mon.DISABLE
@@ -69,8 +71,10 @@ def _start():
         try:
             p = path()
             tmp = p + ".tmp"
+            d = {k: sorted(v) for k, v in hits.items()}
+            d["__blobs__"] = {k: blobs[k] for k in hits if k in blobs}
             with open(tmp, "w") as f:
-                json.dump({k: sorted(v) for k, v in hits.items()}, f)
+                json.dump(d, f)
             os.replace(tmp, p)
             state["dirty"] = False
             state["last"] = time.time()
@@ -87,6 +91,13 @@ def _start():
             full = os.path.realpath(fn) if fn and not fn.startswith("<") else ""
             rel = full[len(root):] if full.startswith(root) and full != me and full.endswith(".py") else None
             where[fn] = rel
+            if rel is not None and rel not in blobs:
+                try:
+                    with open(full, "rb") as f:
+                        data = f.read()
+                    blobs[rel] = hashlib.sha1(b"blob %d\0" % len(data) + data).hexdigest()
+                except Exception:
+                    pass
         return rel
 
     def start(code, offset):
@@ -127,6 +138,7 @@ def _start():
 
     def forked():
         hits.clear()  # (a fork's child keeps the parent's lines: those are the parent's to write)
+        # (blobs stay: the child runs the same loaded code)
         state["path"] = None
         state["pid"] = None
         state["dirty"] = False

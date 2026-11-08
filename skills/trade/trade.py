@@ -4,6 +4,7 @@
   caffeinate -dimsu python3 trade.py [--limit N] [--done N]
   caffeinate -dimsu python3 trade.py look          (what the script reads on each phone; taps nothing)
   caffeinate -dimsu python3 trade.py restart       (force-close and reopen Pokémon GO on both phones; trades nothing)
+  caffeinate -dimsu python3 trade.py --rehearse N  (N rounds up to the confirm screen, never confirmed: for timing)
 
 HashTagAJay plays on the iPhone (iPhone Mirroring on the Mac), CyrillJan on the Android phone (adb). Each phone is
 driven by its own phone.py process. A touch on the Mac pauses the iPhone's side until the Mac has been idle 5 s (base.yield_to_user).
@@ -90,7 +91,7 @@ OK_WARNINGS = ("MAX MOVE LEVELS WILL BE RESET",)  # trade warnings tapped YES; a
 X_BUTTON = (0.5, 0.935)  # the round X at the bottom middle (gift, result, friend page, picker)
 MANAGE_X = (0.5, 0.906)  # the round X that closes the Manage Favorite Search box
 SORT_BUTTON = (0.838, 0.937)
-TAPS = 6  # how many times to tap LOCAL TRADE before stopping: about 6 s apart
+TAPS = 9  # how many times to tap LOCAL TRADE before stopping: 5 s, then 10 s apart (~85 s in all)
 IN_TRADE = ("picker", "lobby", "sortmenu")
 
 
@@ -135,10 +136,13 @@ class Phone:
         self.texts, self.path, self.screen = [], None, "?"
         self.live = False  # in a trade: from here an "expired" box means start the trade over
         self.stale = False  # a pause changed the screen under a tap: nothing more is sent until the next look
+        self.fresh = False  # nothing tapped, typed or keyed since the last look
         self.landed = None  # when this phone's last result screen showed
         self.ran = None  # the search this run last put on. A long one left from before can look like another in the bar
 
     def call(self, **req):
+        if req["op"] != "look":
+            self.fresh = False
         self.proc.stdin.write(json.dumps(req) + "\n")
         self.proc.stdin.flush()
         line = self.proc.stdout.readline()
@@ -153,12 +157,23 @@ class Phone:
         if not self.stale:
             self.stale = "stale" in self.call(**req)
 
+    def trace(self, what):
+        """trace.txt in the run folder: each look and tap to the 1/100 s, for timing a run (a look's capture is
+        taken when it's sent, before its OCR)"""
+        if base.RUN_DIR:
+            os.makedirs(base.RUN_DIR, exist_ok=True)
+            with open(os.path.join(base.RUN_DIR, "trace.txt"), "a") as f:
+                f.write(f"{time.time():.2f} {self.name} {what}\n")
+
     def look(self):
+        t0 = time.time()
         out = self.call(op="look")
         self.stale = False
         self.texts = [tuple(t) for t in out["texts"]]
         self.path = out["path"]
         self.screen = classify(self.texts, self.path)
+        self.fresh = True
+        self.trace(f"look {self.screen} sent {t0:.2f} cap {out.get('cap')} ocr {out.get('ocr')}")
         if self.screen == "mirroring":
             self.keep("mirroring")
             raise Lost(f"{self.name}: iPhone Mirroring lost the iPhone: {self.summary()}")
@@ -167,7 +182,13 @@ class Phone:
             self.expired()
         return self.screen
 
+    def now(self):
+        """the screen: the last look's, when nothing was sent to the phone since. Only where the look just before
+        is known to be of a settled screen (a Pixel look takes ~1.8 s in a run, an iPhone one ~0.8 s)"""
+        return self.screen if self.fresh else self.look()
+
     def tap(self, fx, fy, fuzz=0.008):
+        self.trace(f"tap {fx:.3f} {fy:.3f}")
         self.send(op="tap", fx=fx + random.uniform(-fuzz, fuzz), fy=fy + random.uniform(-fuzz / 2, fuzz / 2))
         time.sleep(random.uniform(0.15, 0.3))
 
@@ -347,8 +368,8 @@ def to_friend(p, ours=False):
     """ours: this run's own round failed, so a half-made trade is left too (nothing is ever confirmed on the way out)"""
     p.live = False
     unknown, backs, empty = 0, 0, 0
-    for _ in range(40):  # room for a few Backs out of popups
-        s = p.look()
+    for i in range(40):  # room for a few Backs out of popups
+        s = p.now() if i == 0 else p.look()
         unknown = unknown + 1 if s == "unknown" else 0
         if s == "friend":
             name = friend_name(p)
@@ -426,7 +447,9 @@ def to_friend(p, ours=False):
             if t and ui.norm(t[4]) == "CANCEL":
                 p.tap_text(t)  # takes back a CONFIRM that landed
             else:
-                p.tap(0.5, 0.932)  # change Pokémon: back to the list
+                # the exit door, top left: leave the trade. (Change Pokémon went back to the list, and the list's X
+                # back to this screen while the pick stood: the two went round for minutes)
+                p.tap(0.09, 0.115)
         elif ours and s == "select":
             p.tap(*X_BUTTON)
         elif s in ("select", "warning", "confirm"):
@@ -446,6 +469,8 @@ def tap_local(p):
     """LOCAL TRADE on this phone, as soon as it's on the friend page. Done once the phone has left the page. Too soon
     after the last trade, the game keeps it on the page with a message: tap again"""
     for attempt in range(TAPS + 1):
+        # (always a new look first: a LOCAL tap on the very look that first showed the page, right after the result
+        # screen's X, often didn't take, and then no tap took for ~30 s. Old runs: 69 taps a look later, none lost)
         s = p.wait("friend", "waiting", *IN_TRADE, "expired", "range", timeout=8)  # (a banner can cover it for a moment)
         if s == "range":
             p.expired()  # the round starts over: its to_friend taps the OK
@@ -459,11 +484,21 @@ def tap_local(p):
             raise Stop(f"{p.name}: LOCAL TRADE didn't open: {p.summary()}")
         if attempt:
             log(f"{p.name}: still on the friend page after LOCAL TRADE, tap {attempt + 1}: {p.summary()}")
+            if attempt == 1:
+                p.keep("local")
+        if attempt == 0 and p.android and p.landed:
+            # (a Pixel LOCAL tap 2-3 s after the result screen often did nothing, and then no tap took for 30-45 s.
+            # Taps 3.7 s or more after it took: old runs tapped 3-5.7 s after, 69 taps, none lost)
+            time.sleep(max(0.0, p.landed + 4.0 - time.time()))
         since = f", {time.time() - p.landed:.1f} s after its result screen" if p.landed else ""
         p.tap_text(t, dy=-0.035)  # the round icon above the label
         log(f"{p.name}: LOCAL TRADE tapped{since}")
-        for _ in range(10):  # the iPhone can take a few seconds to leave the page
-            time.sleep(0.6)
+        # a tap that takes leaves the page within ~2-3 s; one that didn't take is tapped again after 5 s, then
+        # every 10 s. (Right after the game comes back from a locked Pixel, no LOCAL tap takes for 15-45 s:
+        # seen 3 runs in a row on 2026-11-07, the page looked normal the whole time)
+        end = time.time() + (5 if attempt == 0 else 10)
+        while time.time() < end:
+            time.sleep(0.4)
             if p.look() != "friend":
                 break
 
@@ -483,7 +518,7 @@ def open_trade(phones):
 
 def to_picker(p):
     for _ in range(6):
-        s = p.look()
+        s = p.now()
         if s == "picker":
             return
         if s == "sortmenu":
@@ -508,7 +543,7 @@ def specials_left(p):
 
 def open_panel(p):
     """the search panel with the saved shortcuts. Android: the keyboard comes up over them and is put away"""
-    for attempt in range(3):
+    for attempt in range(5):
         if not label(p, "FAVORITE"):
             p.tap(0.5, 0.18)
             time.sleep(1.2)
@@ -520,6 +555,11 @@ def open_panel(p):
             p.look()
         if label(p, "FAVORITE") and shortcut(p, SAVED[NEAR]) and shortcut(p, SAVED[FAR]):
             return
+        if label(p, "FAVORITE"):  # the panel is up, a shortcut isn't read: a banner ("... has connected!") can
+            time.sleep(1.0)       # cover it for a few seconds. (This used to go round on the same look)
+            p.look()
+            if shortcut(p, SAVED[NEAR]) and shortcut(p, SAVED[FAR]):
+                return
     p.keep("panel")
     raise Stop(f"{p.name}: the search panel with the saved shortcuts didn't show: {p.summary()}")
 
@@ -709,7 +749,7 @@ def search_for(p, q):
     """q's results in the picker, its saved shortcut or typed. The last trade's search stays on in the list: then
     nothing to run again. One left from before this run is run again: its end can match q while its tag doesn't (a
     Thursday search's end on a Friday). -> how many it found"""
-    p.look()
+    p.now()
     n = shown(p, q) if p.ran == q else None
     fresh = n is None
     if n is None and q in SAVED:
@@ -782,7 +822,13 @@ def tile(p, i=0):
 def choose(p, i=0):
     """tile i -> its screen -> NEXT (-> YES on a known warning) -> the confirm screen. -> its name"""
     for attempt in range(3):  # a tap on a list that's still settling can do nothing: tap again
-        p.tap_text(tile(p, i), dy=0.06)
+        try:
+            t = tile(p, i)
+        except Stop:  # (the look was made before the tiles showed)
+            time.sleep(0.4)
+            p.look()
+            t = tile(p, i)
+        p.tap_text(t, dy=0.06)
         try:
             p.wait("select", timeout=4 if attempt < 2 else 8)
             break
@@ -871,22 +917,22 @@ def check_confirm(p):
     """three tries at a clean read: a regular cost and the catch spots far enough apart"""
     why = ""
     p.wait("confirm", timeout=20)  # the first to pick waits in the lobby for the other
-    for _ in range(3):
-        if p.look() == "confirm":
+    for k in range(5):
+        if (p.screen if k == 0 else p.look()) == "confirm":
             ok, why = cost_ok(p)
             d = km(p)
             if ok and d is not None:
                 candy = next((ui.up(t) for t in p.texts if re.fullmatch(r"\+\d", ui.up(t))), "?")
                 return d, candy
             why += f", {d} km"
-        time.sleep(0.5)
+        time.sleep(0.3)
     p.keep("confirm")
     raise Stop(f"{p.name}: won't confirm: {why}")
 
 
 def confirm(p):
     """CONFIRM once. Once it lands the button reads CANCEL in the same spot: only tap again while it says CONFIRM"""
-    for attempt in range(4):
+    for attempt in range(6):
         if p.screen == "detail":
             # the tap landed on the Pokémon's own card: its info opened over the confirm screen. Close it
             log(f"{p.name}: CONFIRM opened the Pokémon's info: closing it")
@@ -900,8 +946,9 @@ def confirm(p):
         if attempt:
             log(f"{p.name}: CONFIRM didn't land, again")
         p.tap_text(t)
-        for _ in range(6):
-            time.sleep(0.4)
+        end = time.time() + 2.5  # a tap that took reads CANCEL within a look or two. (Six looks here kept a lost
+        while time.time() < end:  # iPhone tap waiting ~9 s)
+            time.sleep(0.3)
             if p.look() == "detail":
                 break
             t = confirm_label(p.texts) if p.screen == "confirm" else None
@@ -937,7 +984,7 @@ def pick(p, q, specials):
     n = search_for(p, q)
     if not n:
         return n, None
-    p.look()
+    p.now()
     if p.name not in specials.setdefault("sorted", []):  # once a run: the sort stays put between trades
         if sorted_recent(p.path):
             log(f"{p.name}: already sorted Recent, newest first")
@@ -959,6 +1006,12 @@ def plan(phones, specials):
         qs = (qi, qa)
         if any(left[p.name].get(q, 1) < 1 for p, q in zip(phones, qs)):
             continue
+        if any(q not in left[p.name] for p, q in zip(phones, qs)):
+            ns = both(search_for, *[(p, q) for p, q in zip(phones, qs)])
+            for p, q, n in zip(phones, qs, ns):
+                left[p.name][q] = n
+            if not all(ns):
+                continue
         out = both(pick, *[(p, q, specials) for p, q in zip(phones, qs)])
         for p, q, (n, _) in zip(phones, qs, out):
             left[p.name][q] = n
@@ -972,15 +1025,16 @@ def plan(phones, specials):
     return None
 
 
-def trade_once(ios, android, specials, fresh=False):
+def trade_once(ios, android, specials, fresh=False, rehearse=False):
     """one trade. specials: what the run remembers between trades (special trades left, phones already sorted).
-    fresh: the last round failed, so both phones back out to the friend page first"""
+    fresh: the last round failed, so both phones back out to the friend page first. rehearse: everything up to the
+    confirm screen's reads, then no CONFIRM (-> "rehearsed"): the next round backs out (fresh)"""
     phones = (ios, android)
     if fresh:
         both(lambda p: to_friend(p, ours=True), *[(p,) for p in phones])
         open_trade(phones)
     else:
-        screens = [p.look() for p in phones]
+        screens = both(lambda p: p.look(), *[(p,) for p in phones])  # (each look takes a while: at once)
         if all(s in IN_TRADE for s in screens):
             both(to_picker, *[(p,) for p in phones])  # both still in a trade from before: carry on in it
         elif all(s in IN_TRADE or s == "waiting" for s in screens):
@@ -1027,9 +1081,13 @@ def trade_once(ios, android, specials, fresh=False):
         android.tap(0.5, 0.932)  # change Pokémon: back to the list, search kept
         android.wait("picker", timeout=10)
         got[1] = choose(android, skip + 1)
+    if rehearse:
+        log(f"rehearsal: {got[0]} <-> {got[1]}, {d:,.1f} km, read OK: no CONFIRM")
+        return "rehearsed"
     def tap_confirm(p):
         try:  # (the reader can miss a letter of CONFIRM on one capture)
-            p.wait("confirm", timeout=4)
+            if not (p.fresh and p.screen == "confirm" and confirm_label(p.texts)):
+                p.wait("confirm", timeout=4)
         except Expired:
             raise
         except Stop:
@@ -1105,6 +1163,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("cmd", nargs="?", default="run", choices=("run", "look", "restart"))
     ap.add_argument("--limit", type=int, default=PER_RUN)
+    ap.add_argument("--rehearse", type=int, default=0,
+                    help="N rounds up to the confirm screen, never confirmed (for timing): trades nothing")
     ap.add_argument("--done", type=int, help="trades already made today (sets the day's count)")
     a = ap.parse_args()
     ios = Phone("ios", False, "HashTagAJay", "CyrillJan")
@@ -1126,8 +1186,9 @@ def main():
             COST, COST_READS = FRIDAY_COST, FRIDAY_READS
             log("Friendship Friday: only the ones tagged 2XL")
         made, n, specials, expired, fresh = made_today(), 0, {}, 0, False
+        rehearsed = 0
         log(f"{made} trades made today so far, {PER_DAY} a day; this run: at most {a.limit}")
-        while n < a.limit:
+        while n < a.limit and (not a.rehearse or rehearsed < a.rehearse):
             if friendship_friday() != friday:
                 log("midnight: what can be traded changed. Start the run again")
                 break
@@ -1135,7 +1196,7 @@ def main():
                 log(f"{PER_DAY} trades today: done for the day")
                 break
             try:
-                got = trade_once(ios, android, specials, fresh)
+                got = trade_once(ios, android, specials, fresh, rehearse=bool(a.rehearse))
             except Expired as e:
                 expired += 1
                 if expired > 3:
@@ -1146,6 +1207,9 @@ def main():
                 fresh = True
                 continue
             expired, fresh = 0, False
+            if got == "rehearsed":
+                rehearsed, fresh = rehearsed + 1, True  # the next round backs both out of this one first
+                continue
             if not got:
                 log(f"no {'2XL ' if friday else ''}pairs left (the 100+km ones are kept for another day): done")
                 break
@@ -1159,6 +1223,8 @@ def main():
                 log(f"{e}: the trade went through")
                 reconnect(phones)
                 fresh = True
+        if rehearsed:  # the last rehearsal is still on the confirm screen: leave it, nothing confirmed
+            both(lambda p: to_friend(p, ours=True), *[(p,) for p in phones])
         log(f"{n} trades this run, {made_today()} today")
     except Stop as e:
         log(f"STOPPED: {e}")

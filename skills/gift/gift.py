@@ -216,6 +216,8 @@ def wait(*screens, timeout=10):
 
 
 TAP_REST = (0.03, 0.08)  # after a tap: a moment only, as the wait after it looks for the next screen (was 0.25-0.4 s)
+NAME_WAIT = 3.0  # seconds a friend page may take to show its trainer name
+ICON_WAIT = 5.0  # seconds a friend the list shows as able to take a gift may take to colour their SEND GIFT icon
 POLL = 0.1  # iPhone: seconds between two looks while waiting for a screen (a look takes 0.1-0.3 s; was 0.4)
 
 
@@ -1198,10 +1200,18 @@ def one_friend(row, check=False, done=None):
     if s in ("giftpopup", "luckytrade"):
         close_popup("friend")  # their gift to me: X, never OPEN. A Lucky Trade request: X, left for the user
     name = page_name()
+    if not name:
+        # the page can count as open before its name loads (iPhone, 2026-11-07: 5 friends skipped as 'opened None')
+        w0 = time.time()
+        if poll_until(page_name, NAME_WAIT):
+            log(f"  the name showed after {time.time() - w0:.1f}s")
+        name = page_name()
     if name and not same_name(name, row["name"]) and done is not None and name_key(name) not in done:
         log(f"  opened {name!r}, the list read {row['name']!r}: going on with them")
         row = dict(row, name=name, nick="")  # (the list's nickname is unknown: a rename is left to the user)
     elif not name or not same_name(name, row["name"]):
+        if not name:
+            keep_capture("noname")
         log(f"  opened {name!r}, wanted {row['name']!r}: skipped")
         return "misread"
     if done is not None:
@@ -1216,7 +1226,12 @@ def one_friend(row, check=False, done=None):
     t = send_gift_label()
     if not t or not gift_icon(t):
         # (or a Lucky Trade request fading in over the page: it pales the icon)
-        poll_until(lambda: classify() == "luckytrade" or ((u := send_gift_label()) and gift_icon(u)), 0.8)
+        # The list showed no sent badge, so they can take one: the icon is grey only till the game has asked the
+        # server (iPhone, 2026-11-07). Look again every POLL till it colours, up to ICON_WAIT
+        wait_s, w0 = 0.8 if WALK or row["badged"] else ICON_WAIT, time.time()
+        poll_until(lambda: classify() == "luckytrade" or ((u := send_gift_label()) and gift_icon(u)), wait_s)
+        if (u := send_gift_label()) and gift_icon(u):
+            log(f"  SEND GIFT coloured after {time.time() - w0:.1f}s")
         if classify() == "luckytrade":
             close_popup("friend")
         t = send_gift_label()

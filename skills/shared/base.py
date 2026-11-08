@@ -1317,7 +1317,13 @@ def to_tags_tab():
     If two X taps don't get there, it pulls down past the top of the list, which also drops back to the Tags tab."""
     _, texts, _, bounds = look()
     search.leave_panel(texts, bounds)  # home.trainer can leave the search panel up, empty
-    if wait_for("list", "tag-tab", "detail", "menu", "appraisal", "gym")[0] not in ("list", "tag-tab"):
+    try:
+        screen = wait_for("list", "tag-tab", "detail", "menu", "appraisal", "gym")[0]
+    except Lost as e:  # another screen came up over the list (a trade's late 'expired' box -> OK -> a friend's page)
+        log(f"  lost the Pokémon screens ({str(e)[:100]}): back to them from wherever this is")
+        home.start()
+        screen = wait_for("list", "tag-tab", "detail", "menu", "appraisal", "gym")[0]
+    if screen not in ("list", "tag-tab"):
         back_to_list()  # a run that was cut off left a Pokémon open
     x_taps = 0
     for _ in range(150):  # (the fallback: a stop deep in a 700+ list needs 60+ pulls to get back up)

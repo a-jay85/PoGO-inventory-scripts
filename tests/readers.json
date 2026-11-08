@@ -1278,7 +1278,13 @@
   "your buddy's page: no button": true
  },
  "pages.which": {
-  "friend page": null,
+  "friend page": [
+   "gift: friend page",
+   [
+    0.5,
+    0.937
+   ]
+  ],
   "gift: Lucky Trade request": [
    "gift: Lucky Trade request",
    [

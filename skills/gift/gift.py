@@ -156,7 +156,7 @@ def classify():
         return "picker"
     if pages.gift_sortmenu(texts):
         return "sortmenu"
-    if "SEND GIFT" in j:
+    if pages.friend_page(texts):
         return "friend"
     if pages.friend_meter(texts):
         return "meter"

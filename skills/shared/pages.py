@@ -173,6 +173,12 @@ def ribbon(texts):
     return None
 
 
+def friend_page(texts):
+    """a friend's page: SEND GIFT, LOCAL / REMOTE TRADE, BATTLE. Its X goes back to the Friends tab. A trade's late
+    'expired' box lands here after its OK, over any script (2026-11-08: /cleantrades stopped on it)"""
+    return "SEND GIFT" in ui.joined(texts)
+
+
 def friend_meter(texts):
     """a friend's friendship meter (a tap on their hearts)"""
     return "BONUS" in words(texts) or "MORE FRIENDSHIP POINT" in ui.joined(texts) or bool(ribbon(texts))
@@ -267,6 +273,7 @@ PAGES = (
     ("gift: trainer code", trainer_code, x_button),
     ("gift: gift list (scrolled)", gift_list_scrolled, x_button),
     ("gift: sort menu", gift_sortmenu, can_receive),
+    ("gift: friend page", friend_page, x_button),
     ("gift: friendship meter", friend_meter, x_button),
     ("gymfeed: sort menu", gym_sortmenu, lambda texts: GYM_SORT_BUTTON),
     ("gymfeed: badge", gym_badge, x_button),

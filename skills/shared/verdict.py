@@ -21,7 +21,8 @@ Signed in as HashTagAJay (the pile goes to CyrillJan):
   GIV (far) > Transfer
   (its raid GIV: a new copy gets into one of CyrillJan's /roster teams, or within 15% of the #6: giver_species())
 Before all of them: a special trade (trades.py's legendary rules, else unsure), a traded one (Transfer), an untraded
-shadow, costume or background one (odd_one: the user's rules for each), and a lucky one, traded or not (lucky()).
+shadow, costume or background one (odd_one: the user's rules for each; a shadow's Transfer becomes GuaranteedLucky or
+Old when its catch date fits, no purify: shadow_transfer), and a lucky one, traded or not (lucky()).
 A costume one (the user, 2026-11-02): 93%+ is named and a favorite, traded or not. Else the usual rules, but if its plain
 form evolves and it can't (no Evolve button: dead_end), only as its own species: CyrillJan's raid list and 2XL go by
 its own place in DialgaDex's tops (raid_self), and no trade-evolution GIV.
@@ -250,7 +251,7 @@ def usual(f, t, today=None):
         return Verdict("keep", (), f"costume, {round(f.iv_sum / 45 * 100)}%: named and a favorite", name=name)
     if f.lucky:
         return lucky(f, sid, dexn, strip)
-    if odd and not f.traded and (v := odd_one(f, t, sid, odd)):
+    if odd and not f.traded and (v := odd_one(f, t, sid, odd, today)):
         return v
     dead = dead_end(f, sid)
     if f.traded:
@@ -377,7 +378,7 @@ def dead_end(f, sid):
     return bool(f.costume) and f.evolves is False and plain_evolves(sid)
 
 
-def odd_one(f, t, sid, odd):
+def odd_one(f, t, sid, odd, today):
     """an untraded shadow, costume or background one (the user's rules, 2026-10-29; 360+ Candy XL, 2026-10-30).
     -> Verdict, or None: a costume one goes on to the usual rules once its Evolve button is read"""
     if "background" in odd:
@@ -403,8 +404,21 @@ def odd_one(f, t, sid, odd):
     if f.candy_xl is None:
         return unsure("shadow: Candy XL not read")
     if f.candy_xl < XL_CAP:
-        return transfer(f, sid, f"shadow, under {XL_CAP} Candy XL: purify and transfer", purify=True)
-    return transfer(f, sid, f"shadow, {XL_CAP}+ Candy XL: transfer, no purify")
+        return shadow_transfer(f, sid, f"shadow, under {XL_CAP} Candy XL: purify and transfer", today, purify=True)
+    return shadow_transfer(f, sid, f"shadow, {XL_CAP}+ Candy XL: transfer, no purify", today)
+
+
+def shadow_transfer(f, sid, why, today, purify=False):
+    """a shadow's Transfer (the user, 2026-11-08): a catch date that would get GuaranteedLucky or Old gets that tag
+    instead, and it isn't purified (the user purifies by hand). Anything else transfer() gives (IVC for xxs) stays"""
+    v = transfer(f, sid, why, purify=purify)
+    if v.tags != ("Transfer",):
+        return v
+    if LUCKY_YEARS[0] <= f.caught.year <= LUCKY_YEARS[1]:
+        return tag("GuaranteedLucky", why=f"shadow, caught {f.caught.year}: lucky once purified and traded (else {why})")
+    if (today - f.caught).days >= OLD_DAYS:
+        return tag("Old", why=f"shadow, caught {(today - f.caught).days} days ago (else {why})")
+    return v
 
 
 if __name__ == "__main__":

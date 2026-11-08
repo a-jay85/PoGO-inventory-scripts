@@ -172,6 +172,8 @@ Do this:
      itself acting up): no fix, just run it again.
    - Something only Ajay can decide (a rule change, a new screen whose right answer is a judgment call) or do: stop.
    A lost tap or lost screen on the iPhone has no known cause. Don't guess a fix for one seen once: run it again.
+   A read that found nothing may be a screen still loading: the fix looks again with base.settle, never a tap or
+   key to make it show up.
    Earlier heals list the stops already fixed this run. The same one again means the fix didn't work: stop.
 3. To fix: a worktree from origin/main, the fix, the tests CLAUDE.md lists for what you changed, then a phone test of
    the fix on the phone that failed, with a small --limit. Run the phone test in the foreground (watch.py, no

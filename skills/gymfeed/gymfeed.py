@@ -39,7 +39,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import ui
 import base
 from base import Stop, log, keep_capture
-import home, session
+import home, session, pages
 
 PHONE = "android" if ui.ANDROID else "iphone"
 SORT_BUTTON = (0.85, 0.93)  # the badge list's sort button, bottom right; its menu's X sits in the same spot
@@ -75,11 +75,10 @@ SWIPES = [
     (0.15, 0.62, 0.85, 0.62),
 ]
 
-CP_RE = re.compile(r"^\W*[cC][pP]\s*\d{2,4}\W*$")
+CP_RE = pages.CP_RE
 # a gym view's CP label as OCR reads it over the busy gym: 'CP2407', 'P633', '฿633', 'GP2940', 'g2855', '2833'
 LABEL_RE = re.compile(r"^\W*[^\W\d]{0,2}\s*\d{2,4}\W*$")
-# '0d 3h 7m' on a gym Pokémon's page. OCR reads any 0 as O: 'Od 3h 7m.', 'Od 12h Om'
-DEFEND_RE = re.compile(r"\b[0-9O]+d\s*[0-9O]+h\s*[0-9O]+m")
+DEFEND_RE = pages.DEFEND_RE  # '0d 3h 7m' on a gym Pokémon's page
 
 
 # ---------- reading ----------
@@ -88,20 +87,19 @@ def where(path, texts):
     """profile, badgelist, sortmenu, badge, gymview, feed, or what home.where says (map, mainmenu, exit ...)"""
     j = ui.joined(texts)
     words = {ui.norm(t[4]) for t in texts}
-    if "DEFENDING" in words and any(w.startswith("NAME") for w in words) and "RECENT" in words:
+    if pages.gym_sortmenu(texts):
         return "sortmenu"
-    if "TIME DEFENDING" in j or "TOTAL GYM ACTIVITY" in j:
+    if pages.gym_badge(texts):
         return "badge"
     if {"ME", "FRIENDS"} <= words:  # (scrolled down, its GYM BADGES can sit near the top too)
         return "profile"
-    if any(ui.norm(t[4]) == "GYM BADGES" and t[1] < 0.15 for t in texts):
+    if pages.gym_badgelist(texts):
         return "badgelist"
     if "BERRIES" in words and "RAZZ BERRY" in j.upper():
         return "berrymenu"
-    if any(DEFEND_RE.search(t[4]) and t[1] < 0.22 for t in texts):
+    if pages.gym_feed(texts):
         return "feed"
-    if any(CP_RE.match(t[4].strip()) and 0.3 < t[1] < 0.66 for t in texts) \
-            and any(t[1] < 0.18 and t[2] > 0.15 for t in texts if not CP_RE.match(t[4])):
+    if pages.gym_view(texts):
         return "gymview"
     return home.where(path, texts)
 

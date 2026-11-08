@@ -44,7 +44,7 @@ from base import Stop, log
 from search import pokeball, amp_as_8
 from home import main_menu
 from session import TROUBLE
-import popups
+import popups, pages
 
 STATE = os.path.join(HERE, ".state.json")
 PER_DAY = 99  # the game allows 100: one is kept for a special trade made by hand
@@ -296,35 +296,15 @@ def classify(texts, path):
         return "exit"  # Android: "Do you want to exit Pokémon GO?"
     if popups.trade_box(texts):
         return "expired"  # a trade left open too long, the other side left, or the server lost it: OK, start over
-    if "CANCEL THIS TRADE" in joined:
-        return "leave"  # "Do you want to cancel this trade?" after the exit door: YES / NO
-    if "ARE YOU SURE YOU WANT TO TRADE" in joined:
-        return "warning"
-    if confirm_label(texts) and any(re.search(r"\d\s*KM$", r) for r in raw):
-        return "confirm"
-    if "RECENT" in words and any(w.startswith("COMBAT POWER") for w in words):
-        return "sortmenu"  # the picker's sort menu
-    if "WAITING FOR" in joined and "TRADING" in joined:
-        return "waiting"
-    if re.search(r"\bME LV", joined):
-        return "lobby"  # in the trade, nothing picked: "Waiting for ... to select their Pokémon", picker button below
-    # the trade's Pokémon list: only a POKÉMON header (storage has TAGS and EGGS tabs beside it). The SPECIAL TRADES
-    # REMAINING line shows only while no search is on: the picker keeps the last search between trades. A pile
-    # search can leave fewer than 3 tiles, or none: then the distance search in the bar vouches for it. (The iPhone
-    # can read the header POKÉMONI)
-    if "SPECIAL TRADES REMAINING" in joined or words & {"POKMON", "POKMONI"} and not words & {"TAGS", "EGGS"} and (
-            sum(bool(re.fullmatch(r"CP\s*\d+", r.replace("С", "C"))) for r in raw) >= 3 or "FAVORITE" in words
-            or "DISTANCE" in joined or "COUNTCANDY" in joined):
-        return "picker"
-    if "NEXT" in words and any(re.search(r"CP\s*\d+\s*>", r) for r in raw):
-        return "select"
-    if any(re.search(r"CP\s*\d+\s*>\s*CP\s*\d+\s*-\s*\d+", r) for r in raw):
-        return "detail"  # a Pokémon's info over the confirm screen (its card tapped): CP 434 > CP 407 - 509, no NEXT
-    if "STARDUST" in words and ("POWER UP" in words or any("CANDY" in w for w in words)):
-        return "result"
+    for name, test in (("leave", pages.trade_leave), ("warning", pages.trade_warning), ("confirm", pages.trade_confirm),
+                       ("sortmenu", pages.trade_sortmenu), ("waiting", pages.trade_waiting), ("lobby", pages.trade_lobby),
+                       ("picker", pages.trade_picker), ("select", pages.trade_select), ("detail", pages.trade_detail),
+                       ("result", pages.trade_result)):
+        if test(texts):
+            return name  # (pages.py has each one, so every script can leave it the way this one does)
     if "SEND GIFT" in words and "LOCAL" in words:
         return "friend"
-    if "OPEN" in words and ("GREETINGS FROM" in joined or "SENT" in joined):
+    if pages.trade_gift(texts):
         return "gift"
     if "ADD FRIEND" in words or "INVITE" in words and "FRIENDS" in words:
         return "friends"
@@ -341,12 +321,7 @@ def classify(texts, path):
     return "unknown"
 
 
-def confirm_label(texts):
-    """the CONFIRM button (CANCEL once tapped), left of the middle"""
-    for t in texts:
-        if t[0] < 0.3 and 0.45 < t[1] < 0.6 and ui.norm(t[4]) in ("CONFIRM", "CANCEL"):
-            return t
-    return None
+confirm_label = pages.confirm_label
 
 
 def friend_name(p):

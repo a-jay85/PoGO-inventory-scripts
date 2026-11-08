@@ -47,7 +47,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import ui
 import base
 from base import Stop, keep_capture
-import session, popups
+import session, popups, pages
 from search import nudge_bar
 
 CITY = "SAN FRANCISCO"  # the only gifts sent: the rest (Chicago, North Carolina ...) are kept for sending by hand
@@ -145,34 +145,20 @@ def summary():
 
 def classify():
     j, w = joined(), words()
-    if "WHICH GIFT" in j:
-        return "picker"
-    if "ADD STICKER" in j and "SEND" in w:
-        return "preview"
-    if "GREETINGS FRO" in j and "OPEN" in w:
-        # (a long title cuts the line short: 'Greetings fro..', crecos1's Yacht Club gift, 2026-11-07)
-        return "giftpopup"
-    if "REVIEW LUCKY" in j:
-        return "luckytrade"  # a friend's Lucky Trade request over their page: its X shows the page
-    if "REMOTE RAID PASS" in j and "BATTLE" in w:
-        return "raid"  # a raid's gym screen (2026-10-27: a friend-row tap opened one). Its X leaves; never BATTLE
-    if "TOTAL DAYS SPENT TOGETHER" in j:
-        return "buddy"  # the buddy's history page (a stray tap on the ME tab's buddy): its X goes back
-    if "TRAINER CODE" in j and "2D CODE" in j:
-        return "trainercode"  # (a tap on our own picture in the friend list)
+    for name, test in (("picker", pages.gift_picker), ("preview", pages.gift_preview), ("giftpopup", pages.gift_popup),
+                       ("luckytrade", pages.lucky_trade), ("raid", pages.raid), ("buddy", pages.buddy),
+                       ("trainercode", pages.trainer_code)):
+        if test(texts):
+            return name  # (pages.py has each one, so every script can leave it the way this one does)
     if "SET NICKNAME" in j and w & {"OK", "CANCEL"}:
         return "nickname"
-    # the gift list scrolled past its header: two columns of city lines ('Chicago, IL, United States')
-    # (letters: the profile's ME tab has two columns of numbers like '145,619,768')
-    cities = [t for t in texts if t[1] > 0.12 and t[4].count(",") >= 1 and len(t[4]) > 8
-              and re.search(r"[^\W\d_]{3}", t[4])]
-    if "SEND GIFT" not in j and {t[0] < 0.4 for t in cities} == {True, False} and len(cities) >= 3:
+    if pages.gift_list_scrolled(texts):
         return "picker"
-    if "CAN RECEIVE A GIFT" in j and "FRIENDSHIP LEVEL" in j:
+    if pages.gift_sortmenu(texts):
         return "sortmenu"
     if "SEND GIFT" in j:
         return "friend"
-    if "BONUS" in w or "MORE FRIENDSHIP POINT" in j or ribbon():
+    if pages.friend_meter(texts):
         return "meter"
     if "EXIT POK" in j:
         return "exit"
@@ -739,11 +725,7 @@ def sent_away(t, before):
 
 
 def ribbon():
-    for t in texts:
-        m = re.fullmatch(r"(GOOD|GREAT|ULTRA|BEST|FOREVER) FRIEND", ui.up(t))
-        if m and 0.2 < t[1] < 0.36:
-            return m.group(1)
-    return None
+    return pages.ribbon(texts)
 
 
 def points_text():

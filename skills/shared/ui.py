@@ -238,6 +238,8 @@ def classify(texts):
     words = [norm(t[4]) for t in texts]
     if "WEEKLY CHALLENGE" in words:  # its title sits where the list's search bar does: popups.challenge closes it
         return "unknown"
+    if any("SPECIAL TRADES REMAINING" in w for w in words):  # the trade's Pokémon list, left up by /trade: pages.py leaves it
+        return "unknown"
     if "TOTAL KM EXPLORED" in words:  # a party's summary: its 'Me & friend' line sits there too. popups.party_summary closes it
         return "unknown"
     if "SEARCH" in {w.lstrip("Q ").strip() for w in words} and sum(bool(re.match(r"CP\s*\d", w.upper())) for w in [t[4] for t in texts]) >= 3:

@@ -13,7 +13,7 @@ Whatever is on the main checkout's `main` branch is what runs on the phone.
 
 The skills import each other by relative path (`HERE/../shared`), so they must stay siblings under `skills/`.
 
-`pogo.py` (at the repo root) is the one front door: it runs any skill's script by step name, and chains steps with `+` (`pogo.py pvpc --limit 5 + ivc`). Each step is its own process. A new script gets a line in its `STEPS` table. `pogo.py --heal ...` heals a run that stops or crashes: a headless Claude fixes it (worktree, tests, phone test, PR, merge, pull), then the step runs again with only what's left (`heal.py`, at the repo root, says how). Code two skills both need goes in `skills/shared/` (the shared library), never copied. The tapper (taps, timing, run folders, logging) is `skills/shared/base.py`; scripts `import base`. Also in `skills/shared/`: `taps.py` (one tap, the swipe to the next Pokémon, SELECT ALL, purify), `tagsheet.py` (exact search, detail page reads, the tag sheet), `savedsearch.py` (saved searches, tag a whole search), `powerup.py` (level reads, power-ups), `rules.py` (tag names and rule constants).
+`pogo.py` (at the repo root) is the one front door: it runs any skill's script by step name, and chains steps with `+` (`pogo.py pvpc --limit 5 + ivc`). Each step is its own process. A new script gets a line in its `STEPS` table. Every `pogo.py` run heals a step that stops or crashes: a headless Claude fixes it (worktree, tests, phone test, PR, merge, pull), then the step runs again with only what's left (`heal.py`, at the repo root, says how). Off with `--no-heal`, and off when Claude starts `pogo.py` (the Claude watching fixes it). Scripts run on their own never heal. Code two skills both need goes in `skills/shared/` (the shared library), never copied. The tapper (taps, timing, run folders, logging) is `skills/shared/base.py`; scripts `import base`. Also in `skills/shared/`: `taps.py` (one tap, the swipe to the next Pokémon, SELECT ALL, purify), `tagsheet.py` (exact search, detail page reads, the tag sheet), `savedsearch.py` (saved searches, tag a whole search), `powerup.py` (level reads, power-ups), `rules.py` (tag names and rule constants).
 
 ## Running the scripts
 
@@ -81,7 +81,7 @@ The repo is public. These stay local and are in `.gitignore`:
 
 `python3 tests/layout.py` pins how the scripts find each other and their files: each script's names, the one shared copy of `run.py` (its run folder), where every run folder goes, and that every path and `module.name` the code uses exists. Run it after moving or renaming a file, or moving code between files. It must say "all ... the same". Same `--record` rule.
 
-`python3 tests/heal.py` checks `pogo.py --heal` with a made-up failing step and a stand-in Claude. Run it after any change to `heal.py` or `pogo.py`.
+`python3 tests/heal.py` checks `pogo.py`'s healing with a made-up failing step and a stand-in Claude. Run it after any change to `heal.py` or `pogo.py`.
 
 `python3 tests/verdicts.py` pins the final tag `verdict.py` gives made-up Pokémon. `python3 tests/taggers.py` runs the bulk taggers' searches (`tradeable.py tag`, `cleantrades.py`) over made-up Pokémon and checks they tag what `verdict.py` says. Run both after any change to a rule or a tag search.
 

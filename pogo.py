@@ -5,8 +5,7 @@
   POGO_PHONE=android caffeinate -dimsu python3 pogo.py pvpc --limit 5 + ivc --limit 5
   POGO_PHONE=android caffeinate -dimsu python3 pogo.py ivc --limit 5 + ivc fallen last
   python3 pogo.py list                       every step and what it runs
-  caffeinate -dimsu python3 pogo.py --heal <step> [args] [+ ...]   a step that stops or crashes gets fixed by a
-                                             headless Claude, then runs again with only what's left (heal.py)
+  python3 pogo.py --no-heal <step> ...       a stop just stops (see below)
 
 A step's args are the same as its own script's (see the top of its script; `pogo.py list` shows every step). `last` in a step's args is the run folder that
 an earlier step of the same skill folder made in this chain (pvpc, then `pvpc fallen last`).
@@ -14,6 +13,10 @@ an earlier step of the same skill folder made in this chain (pvpc, then `pvpc fa
 Every step runs as its own python3 process, so each one starts clean: its own run folder, its own state. The phone
 stays unlocked (iPhone Mirroring stays open) between steps and is closed once at the end, the same way a single
 script closes it. POGO_KEEP_OPEN=1 leaves it open at the end too.
+
+A step that stops or crashes gets healed (heal.py): a headless Claude finds why and fixes it, then the step runs
+again with only what's left. Off with --no-heal or POGO_HEAL=0, and off when a Claude session starts pogo.py
+(CLAUDECODE set: that Claude is the one watching). --heal turns it on there too.
 
 The whole chain is checked before step 1 runs: an unknown step or a bad first word stops it with nothing done. The
 chain stops at the first step that doesn't end well (stopped, crashed, interrupted, usage error), with its exit code.
@@ -142,11 +145,11 @@ def main(argv):
             extra = f"  [{' | '.join(sorted(words))}]" if words else ""
             print(f"  {name:12} {script}{extra}" + (f"   (Mac only: {', '.join(sorted(mac))})" if mac else ""))
         return 0
-    healing = argv[0] == "--heal"
-    if healing:
+    healing = heal.wanted(argv[0])
+    if argv[0] in ("--heal", "--no-heal"):
         argv = argv[1:]
         if not argv:
-            usage("--heal needs a step")
+            usage("--heal / --no-heal needs a step")
     steps = split(argv)
     check(steps)
     phone_first = os.environ.pop("POGO_HEAL_PHONE", None)  # heal.py: the first step on the one phone that failed

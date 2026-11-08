@@ -1,7 +1,11 @@
-"""pogo.py --heal: a step that stops or crashes gets fixed, then runs again with only what's left.
+"""pogo.py heals: a step that stops or crashes gets fixed, then runs again with only what's left.
 
-  POGO_PHONE=android caffeinate -dimsu python3 ~/PoGO-inventory-scripts/pogo.py --heal pvpc --limit 50 + ivc
-  python3 ~/PoGO-inventory-scripts/pogo.py --heal ...     the iPhone (POGO_PHONE unset), from a tmux pane too
+  POGO_PHONE=android caffeinate -dimsu python3 ~/PoGO-inventory-scripts/pogo.py pvpc --limit 50 + ivc
+  python3 ~/PoGO-inventory-scripts/pogo.py ...             the iPhone (POGO_PHONE unset), from a tmux pane too
+
+On for every pogo.py run. Off: --no-heal, POGO_HEAL=0, or pogo.py started by a Claude session (CLAUDECODE set: the
+Claude watching it fixes it, and a heal's own phone test never starts another heal). --heal: on there too.
+A script run on its own (python3 skills/<x>/<y>.py, the gymfeed timer) never heals.
 
 When a step ends STOPPED (exit 1) or CRASHED (exit 2):
 - A stop only you can clear (phone in use, not plugged in, locked, PIN, Screen Recording) ends the run with a note.
@@ -35,6 +39,13 @@ END = re.compile(r"\b(STOPPED|CRASHED): (.*)")
 HUMAN = ("is using the Pixel", "is using the iPhone", "phone not connected", "PIN", "the phone is locked",
          "unlock it by hand", "won't let this terminal take pictures")
 CANT_REACH = "iPhone Mirroring can't reach the iPhone"
+
+
+def wanted(first):
+    """pogo.py's first word -> heal this run?"""
+    if first in ("--heal", "--no-heal"):
+        return first == "--heal"
+    return os.environ.get("POGO_HEAL", "1") != "0" and not os.environ.get("CLAUDECODE")
 
 
 def say(msg):

@@ -5,6 +5,8 @@
   POGO_PHONE=android caffeinate -dimsu python3 pogo.py pvpc --limit 5 + ivc --limit 5
   POGO_PHONE=android caffeinate -dimsu python3 pogo.py ivc --limit 5 + ivc fallen last
   python3 pogo.py list                       every step and what it runs
+  caffeinate -dimsu python3 pogo.py --heal <step> [args] [+ ...]   a step that stops or crashes gets fixed by a
+                                             headless Claude, then runs again with only what's left (heal.py)
 
 A step's args are the same as its own script's (see the top of its script; `pogo.py list` shows every step). `last` in a step's args is the run folder that
 an earlier step of the same skill folder made in this chain (pvpc, then `pvpc fallen last`).
@@ -17,6 +19,7 @@ The whole chain is checked before step 1 runs: an unknown step or a bad first wo
 chain stops at the first step that doesn't end well (stopped, crashed, interrupted, usage error), with its exit code.
 """
 import os, subprocess, sys, time
+import heal
 
 HERE = os.path.dirname(os.path.realpath(__file__))  # the repo root
 SKILLS = os.path.join(HERE, "skills")
@@ -139,8 +142,14 @@ def main(argv):
             extra = f"  [{' | '.join(sorted(words))}]" if words else ""
             print(f"  {name:12} {script}{extra}" + (f"   (Mac only: {', '.join(sorted(mac))})" if mac else ""))
         return 0
+    healing = argv[0] == "--heal"
+    if healing:
+        argv = argv[1:]
+        if not argv:
+            usage("--heal needs a step")
     steps = split(argv)
     check(steps)
+    phone_first = os.environ.pop("POGO_HEAL_PHONE", None)  # heal.py: the first step on the one phone that failed
     keep_open = os.environ.get("POGO_KEEP_OPEN", "") not in ("", "0")
     chain = len(steps) > 1
     env = dict(os.environ, POGO_KEEP_OPEN="1") if chain else dict(os.environ)  # each step leaves the phone up
@@ -159,10 +168,23 @@ def main(argv):
                 say(f"step {i}/{len(steps)}: {name} {' '.join(args)}".rstrip())
             before = runs_in(folder)
             touched |= on_phone(s)
-            code = run_one([sys.executable, os.path.join(SKILLS, script), *args], env)
+            cmd = [sys.executable, os.path.join(SKILLS, script), *args]
+            step_env = dict(env, POGO_PHONE=phone_first) if phone_first and i == 1 else env
+            if healing:
+                last_before, started, out = dict(last), time.time(), heal.out_file()
+                code, lines = heal.tee(cmd, step_env, out)
+            else:
+                code = run_one(cmd, step_env)
             new = sorted(runs_in(folder) - before)
             if new:
                 last[folder] = new[-1]
+            if code and healing:
+                phone = (step_env.get("POGO_PHONE") or "ios").lower()
+                phone = phone if phone in ("android", "both") else "ios"
+                code = heal.handle(steps, i - 1, args, code, lines, out, started,
+                                   lambda n: os.path.dirname(STEPS[n][0]), last_before, check, phone)
+                if code == 0:
+                    break  # (Claude found nothing left to do in the last step)
             if code:
                 if chain:
                     say(f"step {i} ({name}) ended with exit code {code}: the chain stops here")

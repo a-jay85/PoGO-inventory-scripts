@@ -1,13 +1,5 @@
 {
- "none": [
-  "skills/gift/gift.py send_gift: t = send_gift_label(...); tap_into(t, 'picker', dy=-0.04, on='friend')",
-  "skills/trade/trade.py long_pressed: p.tap_text(shortcut(p, name), dy=-0.055)",
-  "skills/trade/trade.py pick_pile: p.tap_text(shortcut(p, name), dy=-0.055)",
-  "skills/trade/trade.py to_friend: p.tap_text(label(p, 'FRIENDS'))",
-  "skills/trade/trade.py to_friend: p.tap_text(label(p, 'RECENT'))",
-  "skills/trade/trade.py to_friend: p.tap_text(label(p, 'YES'))",
-  "skills/trade/trade.py to_picker: p.tap_text(label(p, 'RECENT'))"
- ],
+ "none": [],
  "thin": [],
  "waits": {
   "skills/cleanup/cleantrades.py power_walk": 2,

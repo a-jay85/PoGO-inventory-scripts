@@ -138,6 +138,7 @@ class Phone:
         self.stale = False  # a pause changed the screen under a tap: nothing more is sent until the next look
         self.fresh = False  # nothing tapped, typed or keyed since the last look
         self.landed = None  # when this phone's last result screen showed
+        self.cooled = False  # a "Trade cooldown" box was kept as a capture this run
         self.ran = None  # the search this run last put on. A long one left from before can look like another in the bar
 
     def call(self, **req):
@@ -490,11 +491,36 @@ def tap_local(p):
         # a tap that takes leaves the page within ~2-3 s; one that didn't take is tapped again after 5 s, then
         # every 10 s. (Right after the game comes back from a locked Pixel, no LOCAL tap takes for 15-45 s:
         # seen 3 runs in a row on 2026-11-07, the page looked normal the whole time)
+        # A "Trade cooldown: 0:xx" box in the middle says how long: wait just that, then tap at once
         end = time.time() + (5 if attempt == 0 else 10)
         while time.time() < end:
             time.sleep(0.4)
-            if p.look() != "friend":
+            sent = time.time()  # (a look's capture is taken when it's sent)
+            p.look()
+            left = cooldown(p)  # (first: the box may hide what makes the page read as the friend page)
+            if left is None and p.screen != "friend":
                 break
+            if left is not None:
+                if not p.cooled:
+                    p.cooled = True
+                    p.keep("cooldown")
+                log(f"{p.name}: trade cooldown, {left} s: tapping LOCAL TRADE again once it's over")
+                time.sleep(max(0.0, sent + left + 0.5 - time.time()))
+                break
+
+
+def cooldown(p):
+    """the seconds the "Trade cooldown: 0:xx" box in the middle of the friend page says are left, or None when it
+    isn't there. A box with no time read waits 3 s"""
+    boxes = p.find(lambda t: "COOLDOWN" in ui.up(t) and 0.25 < t[1] < 0.75)
+    if not boxes:
+        return None
+    y = boxes[0][1]
+    for t in sorted(p.find(lambda t: abs(t[1] - y) < 0.06), key=lambda t: abs(t[1] - y)):
+        m = re.search(r"(\d{1,2})\s*[:.]\s*(\d{2})\b", t[4])
+        if m:
+            return int(m.group(1)) * 60 + int(m.group(2))
+    return 3
 
 
 def open_trade(phones):

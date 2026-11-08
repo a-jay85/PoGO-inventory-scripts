@@ -280,8 +280,10 @@ def phone_test(files, head, wt):
 
 # ---------- which changed lines the phone test ran ----------
 
-def run_lines(stamp):
-    """-> {file: set of lines that ran} from a run's line files (watch.py's tracer), or None: it has none"""
+def run_lines(stamp, want=None):
+    """-> {file: set of lines that ran} from a run's line files (watch.py's tracer), or None: it has none.
+    want: {file: blob}. A line file that says it ran another copy of a file (its __blobs__: a heal pulled new code
+    mid-run) gives no lines for that file. Older line files with no __blobs__ count as they are"""
     names = [f for f in os.listdir(WATCH_DIR) if f.startswith(stamp + ".lines.") and not f.endswith(".tmp")] \
         if os.path.isdir(WATCH_DIR) else []
     if not names:
@@ -293,7 +295,13 @@ def run_lines(stamp):
                 d = json.load(f)
         except (OSError, ValueError):
             continue
-        for k, v in (d.items() if isinstance(d, dict) else []):
+        if not isinstance(d, dict):
+            continue
+        blobs = d.pop("__blobs__", None)
+        blobs = blobs if isinstance(blobs, dict) else {}
+        for k, v in d.items():
+            if want and k in want and k in blobs and blobs[k] != want[k]:
+                continue
             out.setdefault(k, set()).update(x for x in v if isinstance(x, int))
     return out
 
@@ -409,7 +417,7 @@ def lines_check(base, head, files, body, edit):
         same_ = [f for f in files if r.get("rc") == 0 and blob(r["tree"], f) == want[f]]
         if not same_:
             continue
-        got = run_lines(stamp)
+        got = run_lines(stamp, want)
         if got is None:
             untraced.append(stamp)
             continue

@@ -99,9 +99,12 @@ def watch_run(stamp, rc=0, cwd=WT, script="skills/aa/run.py"):
     write(os.path.join(g.WATCH_DIR, stamp + ".json"), json.dumps(dict(watch.origin(cmd), rc=rc)))
 
 
-def ran_lines(stamp, *hits, name="1-1"):
-    """a made-up line file of a run: the lines of skills/aa/run.py it ran"""
-    write(os.path.join(g.WATCH_DIR, f"{stamp}.lines.{name}"), json.dumps({"skills/aa/run.py": sorted(hits)}))
+def ran_lines(stamp, *hits, name="1-1", blob=None):
+    """a made-up line file of a run: the lines of skills/aa/run.py it ran (blob: the copy it says it ran)"""
+    d = {"skills/aa/run.py": sorted(hits)}
+    if blob:
+        d["__blobs__"] = {"skills/aa/run.py": blob}
+    write(os.path.join(g.WATCH_DIR, f"{stamp}.lines.{name}"), json.dumps(d))
 
 
 def notes(o):
@@ -191,6 +194,14 @@ o = gate()
 case("one changed line never ran: passes, a note with it by function (two pid files merged, a .tmp left out)", o,
      lambda o: passed(o) and "1 of 4 changed code lines never ran" in notes(o)
      and "skills/aa/run.py extra: line 18" in notes(o) and "either reach them with a run that does" in notes(o))
+
+clear_runs()
+watch_run("20260101-000001")
+ran_lines("20260101-000001", 1, 4, 5, 6, 15, name="1-1", blob=g.blob(HEAD, "skills/aa/run.py"))
+ran_lines("20260101-000001", 16, 17, 18, name="2-1", blob="0" * 40)
+o = gate()
+case("lines from a process that ran another copy of the file (a heal pulled new code mid-run) don't count", o,
+     lambda o: denied(o, "3 of 4 changed code lines never ran"))
 
 clear_runs()
 watch_run("20260101-000001")
@@ -341,12 +352,17 @@ os.makedirs(watch.DIR)
 watch.run("20260101-000100", ["python3", os.path.join(TR, "a.py")])
 
 
+BLOBS = {}
+
+
 def lines_of(stamp):
     out, n = {}, 0
     for f in os.listdir(watch.DIR):
         if f.startswith(stamp + ".lines."):
             n += 1
-            for k, v in json.load(open(os.path.join(watch.DIR, f))).items():
+            d = json.load(open(os.path.join(watch.DIR, f)))
+            BLOBS.update(d.pop("__blobs__", {}))
+            for k, v in d.items():
                 out.setdefault(k, set()).update(v)
     return n, {k: sorted(v) for k, v in out.items()}
 
@@ -354,6 +370,9 @@ def lines_of(stamp):
 n, got = lines_of("20260101-000100")
 case("tracer: a run's lines, its child process's too, one file each, the untaken branch not in it", (n, got),
      lambda x: x == (2, {"a.py": [1, 4, 5, 6, 10, 11], "b.py": [1, 2, 3]}))
+case("tracer: each file's git blob, as it was when the process ran it", BLOBS,
+     lambda b: b == {f: subprocess.run(["git", "hash-object", os.path.join(TR, f)], capture_output=True, text=True)
+                     .stdout.strip() for f in ("a.py", "b.py")})
 case("tracer: the run record says where its lines go",
      json.load(open(os.path.join(watch.DIR, "20260101-000100.json"))),
      lambda r: r.get("lines") == os.path.join(watch.DIR, "20260101-000100.lines") and r.get("rc") == 0)

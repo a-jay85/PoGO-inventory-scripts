@@ -363,7 +363,8 @@ def to_friend(p, ours=False):
             if not ours and p.find(lambda t: "UNAVAILABLE" in ui.up(t)):
                 raise ServiceDown(f"{p.name}: the trading service is down")
         elif s == "leave":
-            p.tap_text(label(p, "YES"))
+            if yes := label(p, "YES"):  # (not read yet: the next look tries again)
+                p.tap_text(yes)
         elif s == "manage":
             p.tap(*popups.MANAGE_X)
         elif s in ("gift", "result", "mainmenu", "detail", "storage"):
@@ -395,7 +396,8 @@ def to_friend(p, ours=False):
                     log(f"{p.name}: the search for {p.friend} came up empty: cleared it")
                     empty = 0
             elif s == "profile":
-                p.tap_text(label(p, "FRIENDS"))
+                if friends := label(p, "FRIENDS"):  # (not read yet: the next look tries again)
+                    p.tap_text(friends)
             else:
                 search = label(p, "SEARCH")
                 if not search:
@@ -405,7 +407,8 @@ def to_friend(p, ours=False):
                 p.type(p.friend)
                 p.key("return")
         elif s == "sortmenu":
-            p.tap_text(label(p, "RECENT"))  # closes it (sort_recent fixes the order later)
+            if recent := label(p, "RECENT"):  # closes it (sort_recent fixes the order later). Not read: look again
+                p.tap_text(recent)
         elif s == "picker":
             p.tap(*X_BUTTON)  # back to the trade's lobby
         elif s in ("lobby", "waiting"):
@@ -525,7 +528,8 @@ def to_picker(p):
         if s == "picker":
             return
         if s == "sortmenu":
-            p.tap_text(label(p, "RECENT"))  # closes it (sort_recent fixes the order later)
+            if recent := label(p, "RECENT"):  # closes it (sort_recent fixes the order later). Not read: look again
+                p.tap_text(recent)
         elif s == "lobby":
             p.tap(0.5, 0.932)  # the Pokémon button at the bottom
         else:
@@ -581,7 +585,9 @@ def long_pressed(p, name):
     p.tap(*popups.MANAGE_X)
     time.sleep(1)
     p.look()
-    p.tap_text(shortcut(p, name), dy=-0.055)
+    if not (b := shortcut(p, name)):
+        raise Stop(f"{p.name}: the {name} shortcut isn't showing after closing Manage Favorite Search: {p.summary()}")
+    p.tap_text(b, dy=-0.055)
     return True
 
 
@@ -673,7 +679,9 @@ def shown(p, q):
 def pick_pile(p, q):
     """tap the saved search and check the bar shows exactly it. -> how many it found"""
     name = SAVED[q]
-    p.tap_text(shortcut(p, name), dy=-0.055)  # the round button above the label
+    if not (b := shortcut(p, name)):
+        raise Stop(f"{p.name}: the {name} shortcut isn't showing: {p.summary()}")
+    p.tap_text(b, dy=-0.055)  # the round button above the label
     for _ in range(12):
         time.sleep(0.4)
         p.look()

@@ -947,6 +947,10 @@ def send_gift():
     """from the friend page: picker -> one of our two gifts -> SEND. Raises OutOfGifts when neither is there"""
     global picker_drags
     t = send_gift_label()
+    if not t:  # (not read on this look: the page may still be drawing it)
+        t = base.settle(lambda: (look(), send_gift_label())[1], bool, timeout=3)
+    if not t:
+        raise Stop(f"no SEND GIFT on the friend page: {summary()}")
     tap_into(t, "picker", dy=-0.04, on="friend")
     blind = max(0, picker_drags - 1)  # where the last gift was found, less one scroll (a sent gift can shift the list up)
     drags = 0

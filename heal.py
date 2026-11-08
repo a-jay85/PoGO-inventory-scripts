@@ -179,6 +179,7 @@ Do this:
    phone test and before pulling the main checkout, check with ps that no phone script runs other than
    pogo.py pid {pid} (this run, waiting for you). Then commit, push, PR, squash-merge, ExitWorktree keep, pull the
    main checkout, wt_cleanup.py. If the test fails and you can't make it pass, close the PR and stop.
+   The merge goes through merge_gate.py (a hook). If it blocks, do what it says (it may ask for a `Siblings:` line).
 4. Work out the step's args to run again with only what's left. Read the step's script top comment for how it
    carries on (ivc `sort <run dir>`, trade --done N, a --limit less what got done, a run folder in place of `last`).
    The old args: {args}. A --limit, if any, may only go down. Args for this one step only: the steps after it run

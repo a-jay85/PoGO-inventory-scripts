@@ -348,6 +348,10 @@ POPUPS = {
     "weekly invite": texts((0.2, "Weekly Challenge"), (0.7, "ACCEPT"), (0.8, "MAYBE LATER")),
     "weekly progress": texts((0.2, "Weekly Challenge"), (0.8, "LET'S GO!")),
     "party done": texts((0.2, "Party Challenge"), (0.8, "CLAIM REWARD")),
+    "party pick, countdown glued on (Pixel, 2026-11-07)": [
+        box(.3, .11, "PARTY CHALLENGE"), box(.1, .19, "Choose a Party Challenge and complete it with"),
+        box(.2, .21, "your party to earn a reward!"), box(.2, .31, "Make 25 Nice Throws"), box(.3, .90, "58  START")],
+    "party pick, countdown done": texts((0.19, "Choose a Party Challenge and complete it with"), (0.90, "START")),
     "party ended": texts((0.4, "The party has ended"), (0.6, "OK")),
     "party summary": texts((0.4, "Total km explored"), (0.5, "12.3")),
     "rocket radar": texts((0.4, "Rocket Radar"), (0.8, "EQUIP")),

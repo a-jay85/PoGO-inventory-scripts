@@ -116,6 +116,15 @@ def party_done(texts):
     return center(hit) if hit and "PARTY CHALLENGE" in ui.joined(texts) else None
 
 
+def party_pick(texts):
+    """'Choose a Party Challenge' (the party's leader picks one): Back does nothing, and its countdown on START ran
+    out without closing it (Pixel, 2026-11-07). The user's rule: START. OCR glues the countdown on: '58  START'"""
+    if "CHOOSE A PARTY CHALLENGE" not in ui.joined(texts):
+        return None
+    hit = next((t for t in texts if re.fullmatch(r"[\d\s]*START", ui.up(t))), None)
+    return center(hit) if hit else None
+
+
 def party_ended(texts):
     """'The party has ended' (a party lasts 3 hours): OK"""
     hit = label(texts, "OK")
@@ -143,6 +152,7 @@ BOXES = (
     ("passenger", passenger, "'going too fast' popup: tapping I'M A PASSENGER", 1.5),
     ("challenge", challenge, "a Weekly Challenge box is up: {}", 1.5),
     ("party done", party_done, "a finished Party Challenge is up: tapping CLAIM REWARD", 2.5),
+    ("party pick", party_pick, "the party's challenge picker is up: tapping START", 2.5),
     ("party ended", party_ended, "the party has ended: tapping OK", 1.5),
     ("party summary", party_summary, "the party's summary is up: closing it", 1.5),
     ("rocket radar", rocket_radar, "a new Rocket Radar is up: tapping EQUIP, its only button", 2.5),

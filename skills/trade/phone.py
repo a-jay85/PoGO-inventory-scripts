@@ -25,7 +25,9 @@ HERE = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import ui
 import base
-import home, search, session
+import home, search, session, popups
+
+popups.HANDS_OFF.update({"trade box", "manage favorite"})  # trade.py handles these itself (an expired trade: a new round)
 
 NAME = sys.argv[1]
 ui.CAP = f"/tmp/trade_{NAME}.png"  # each phone its own capture: with one shared file a phone could read the other's

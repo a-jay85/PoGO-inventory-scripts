@@ -44,6 +44,7 @@ from base import Stop, log
 from search import pokeball, amp_as_8
 from home import main_menu
 from session import TROUBLE
+import popups
 
 STATE = os.path.join(HERE, ".state.json")
 PER_DAY = 99  # the game allows 100: one is kept for a special trade made by hand
@@ -89,7 +90,6 @@ COST_READS = {"100"}  # all digits, and still this cost
 FRIDAY_COST, FRIDAY_READS = 80, {"80", "180"}  # 20% off on Fridays. (The iPhone reads the Stardust icon as a 1: 180)
 OK_WARNINGS = ("MAX MOVE LEVELS WILL BE RESET", "MEGA LEVEL WILL BE RESET")  # (mega level: user OK, 2026-11-07); trade warnings tapped YES; any other one stops the run
 X_BUTTON = (0.5, 0.935)  # the round X at the bottom middle (gift, result, friend page, picker)
-MANAGE_X = (0.5, 0.906)  # the round X that closes the Manage Favorite Search box
 SORT_BUTTON = (0.838, 0.937)
 TAPS = 9  # how many times to tap LOCAL TRADE before stopping: 5 s, then 10 s apart (~85 s in all)
 IN_TRADE = ("picker", "lobby", "sortmenu")
@@ -288,16 +288,14 @@ def classify(texts, path):
     joined = " ".join(raw)
     if any(w in joined for w in TROUBLE):
         return "mirroring"  # iPhone Mirroring's own screen: it can't reach the iPhone (never on the Pixel)
-    if "MANAGE FAVORITE" in joined:
+    if popups.manage_favorite(texts):
         return "manage"  # the Manage Favorite Search box: a shortcut tap that landed as a long press
-    if "OUT OF RANGE" in joined:
+    if popups.trade_box(texts) == "range":
         return "range"  # "... is out of range for trading": OK
     if "EXIT POK" in joined:
         return "exit"  # Android: "Do you want to exit Pokémon GO?"
-    if "TRADE EXPIRED" in joined or "TRADE WAS CANCELED" in joined or "HAS EXPIRED" in joined:
-        return "expired"  # a trade left open too long (or the other side left): OK
-    if "ERROR FETCHING TRADE" in joined or "TRADING SERVICE" in joined:
-        return "expired"  # the server lost the trade ("Trading service temporarily unavailable"): OK, start over
+    if popups.trade_box(texts):
+        return "expired"  # a trade left open too long, the other side left, or the server lost it: OK, start over
     if "CANCEL THIS TRADE" in joined:
         return "leave"  # "Do you want to cancel this trade?" after the exit door: YES / NO
     if "ARE YOU SURE YOU WANT TO TRADE" in joined:
@@ -379,14 +377,10 @@ def to_friend(p, ours=False):
             p.tap(*X_BUTTON)
         elif s in ("exit", "expired", "range"):
             button = label(p, "CANCEL" if s == "exit" else "OK")
-            if not button and s != "exit":
-                # the iPhone's "This trade with ... has expired." and "... is out of range" boxes: OCR can miss their
-                # white-on-green OK, which sits just under the message (on the Android, "expired." gets a line of its own)
-                msg = p.find(lambda t: "EXPIRED" in ui.up(t) or "OUT OF RANGE" in ui.up(t))
-                if msg:
-                    p.tap(0.5, max(t[1] for t in msg) + 0.077)
-                    time.sleep(1)
-                    continue
+            if not button and s != "exit" and (at := popups.trade_ok(p.texts)):  # (OCR can miss the iPhone's green OK)
+                p.tap(*at)
+                time.sleep(1)
+                continue
             if not button:
                 raise Stop(f"{p.name}: {s} dialog without its button: {p.summary()}")
             p.tap_text(button)
@@ -395,7 +389,7 @@ def to_friend(p, ours=False):
         elif s == "leave":
             p.tap_text(label(p, "YES"))
         elif s == "manage":
-            p.tap(*MANAGE_X)
+            p.tap(*popups.MANAGE_X)
         elif s in ("gift", "result", "mainmenu", "detail", "storage"):
             p.tap(*X_BUTTON)
         elif s == "map":
@@ -575,7 +569,7 @@ def long_pressed(p, name):
     if not p.find(lambda t: "MANAGE FAVORITE" in ui.up(t)):
         return False
     log(f"{p.name}: the shortcut tap was a long press: tapping again")
-    p.tap(*MANAGE_X)
+    p.tap(*popups.MANAGE_X)
     time.sleep(1)
     p.look()
     p.tap_text(shortcut(p, name), dy=-0.055)

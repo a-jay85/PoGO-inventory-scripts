@@ -20,7 +20,7 @@ for d in ("shared", "cleanup", "dex", "trade", "gift", "mega", "ivc"):
     sys.path.append(os.path.join(SKILLS, d))
 
 import base, search, ui  # noqa: E402
-import pagefacts, tagsheet, savedsearch, dex, trade, gift, mega  # noqa: E402
+import pagefacts, tagsheet, savedsearch, dex, trade, gift, mega, popups  # noqa: E402
 
 
 def by_path(name, rel):
@@ -332,6 +332,42 @@ SAME = {  # base.same_pokemon: two who() reads
 }
 
 
+# boxes over any screen (popups.py): real OCR where there is one, and screens that must not count as a box
+POPUPS = {
+    "trade expired, Pixel over the Pokémon screens (2026-11-07)": [
+        (0.064, 0.038, 0.079, 0.013, "7:06"), (0.34, 0.425, 0.325, 0.022, "Trade expired."),
+        (0.256, 0.481, 0.488, 0.022, "This trade was canceled."), (0.463, 0.562, 0.074, 0.02, "OK")],
+    "trade expired, iPhone, OK not read": texts((0.45, "This trade with TrainerOne has expired.")),
+    "out of range": texts((0.45, "TrainerTwo is out of range for trading."), (0.55, "OK")),
+    "trading service down": texts((0.45, "Trading service temporarily unavailable"), (0.55, "OK")),
+    "manage favorite": texts((0.3, "Manage Favorite Search"), (0.5, "Edit")),
+    "exit": texts((0.45, "Do you want to exit Pokémon GO?"), (0.55, "CANCEL"), (0.6, "YES")),
+    "evolve": texts((0.45, "Do you want to evolve Eevee?"), (0.55, "YES"), (0.6, "NO")),
+    "friend card": texts((0.4, "You and Bob and you became Great Friends!"), (0.6, "SHARE")),
+    "passenger": texts((0.4, "You're going too fast!"), (0.6, "I'M APASSENGER")),
+    "weekly invite": texts((0.2, "Weekly Challenge"), (0.7, "ACCEPT"), (0.8, "MAYBE LATER")),
+    "weekly progress": texts((0.2, "Weekly Challenge"), (0.8, "LET'S GO!")),
+    "party done": texts((0.2, "Party Challenge"), (0.8, "CLAIM REWARD")),
+    "party pick, countdown glued on (Pixel, 2026-11-07)": [
+        box(.3, .11, "PARTY CHALLENGE"), box(.1, .19, "Choose a Party Challenge and complete it with"),
+        box(.2, .21, "your party to earn a reward!"), box(.2, .31, "Make 25 Nice Throws"), box(.3, .90, "58  START")],
+    "party pick, countdown done": texts((0.19, "Choose a Party Challenge and complete it with"), (0.90, "START")),
+    "party ended": texts((0.4, "The party has ended"), (0.6, "OK")),
+    "party summary": texts((0.4, "Total km explored"), (0.5, "12.3")),
+    "rocket radar": texts((0.4, "Rocket Radar"), (0.8, "EQUIP")),
+    "friend page": texts((0.1, "TrainerOne"), (0.5, "SEND GIFT"), (0.55, "LOCAL"), (0.56, "TRADE")),
+    "list": texts((0.12, "Q Search"), (0.3, "CP 120"), (0.3, "CP 431"), (0.3, "CP 99"), (0.9, "TAGS"), (0.9, "EGGS")),
+    "rename OK": texts((0.3, "Set Nickname"), (0.6, "OK")),
+    "evolve, no NO read": texts((0.45, "Do you want to evolve Eevee?"), (0.55, "YES")),
+    "trade warning YES": texts((0.4, "Are you sure you want to trade?"), (0.6, "YES"), (0.65, "NO")),
+}
+
+
+def popup(ts):
+    got = popups.which(ts)
+    return got and [got[0], round(got[1][0], 3), round(got[1][1], 3)]
+
+
 def answer(fn, *a):
     try:
         return fn(*a)
@@ -380,6 +416,7 @@ def answers():
     out["ui.gift_banner"] = {k: answer(ui.gift_banner, ts) for k, ts in BANNERS.items()}
     out["ui.profile_tabs"] = {k: answer(ui.profile_tabs, ts) for k, ts in BANNERS.items()}
     out["base.row_name"] = {s: answer(row_name, s) for s in ROWS}
+    out["popups.which"] = {k: answer(popup, ts) for k, ts in POPUPS.items()}
     out["mega.form_of"] = {n: answer(mega.form_of, n) for n in NICKS}
     out["trade.km"] = {s: answer(lambda s: trade.km(SimpleNamespace(texts=[box(.4, .56, s)])), s) for s in DISTANCES}
     out["mega.badge"] = {k: answer(lambda ts: (lambda b: b and b[4])(mega.badge(ts)), ts) for k, ts in BADGES.items()}

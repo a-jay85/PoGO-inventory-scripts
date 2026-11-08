@@ -23,7 +23,7 @@ import os, random, re, sys, time
 import ui
 import base
 from base import Stop, log, keep_capture
-import search, session
+import search, session, popups
 
 STORAGE = ("list", "tag-tab", "detail", "menu", "appraisal", "appraise-intro", "gym")
 OPEN = ("detail", "menu", "appraisal", "appraise-intro", "gym")  # a Pokémon open: back_to_list() closes it
@@ -62,20 +62,6 @@ def splash(texts):
     """the game's loading picture ('SCOPELY  The Pokémon Company' at the bottom): Back there closes the game
     (2026-10-28), so it's waited out"""
     return "POKÉMON COMPANY" in ui.joined(texts) or "POKEMON COMPANY" in ui.joined(texts)
-
-
-def passenger(texts, bounds):
-    """'You're going too fast!' (the phone moving): tap I'M A PASSENGER -> True if it was up. OCR runs the words
-    together ('I'M APASSENGER', 2026-10-28)"""
-    if "TOO FAST" not in ui.joined(texts):
-        return False
-    hit = next((t for t in texts if "PASSENGER" in ui.up(t)), None)
-    if not hit:
-        return False
-    log("  'going too fast' popup: tapping I'M A PASSENGER")
-    base.tap_box(hit, bounds)
-    time.sleep(1.5)
-    return True
 
 
 def where(path, texts):
@@ -196,8 +182,9 @@ def leave_scopely(texts):
 
 
 def unstick(texts):
-    """one step out of a screen the scripts don't know. Android: Back. iPhone: the home screen and the game's icon,
-    once. Raises Stop when out of steps. -> True if the game was (re)opened"""
+    """one step out of a screen the scripts don't know. A box popups.py knows gets its button first. Then Android:
+    Back. iPhone: the home screen and the game's icon, once. Raises Stop when out of steps. -> True if the game was
+    (re)opened"""
     global backs, reopened, banner_seen
     seen = ui.summary(texts, 200)
     if ui.gift_banner(texts):  # it goes by itself, and the screen under it may be one everyone knows
@@ -208,6 +195,8 @@ def unstick(texts):
         if now < banner_seen + BANNER_WAIT:
             time.sleep(2.0)
             return False
+    if popups.clear(texts, ui.capture()[1]):  # a box another script knows (a trade's late 'expired'...): its button
+        return False
     if leave_scopely(texts):
         return False
     if ui.ANDROID:
@@ -348,10 +337,8 @@ def start(storage=True):
         elif screen == "anr":
             keep_capture("anr")
             raise Stop("the phone says Pokémon GO isn't responding: close it by hand")
-        elif screen == "unknown" and challenge_invite(texts, bounds):
+        elif screen == "unknown" and popups.clear(texts, bounds):  # a box any script may meet (popups.py)
             pass
-        elif screen == "unknown" and base.friend_card(texts):
-            base.close_friend_card(bounds)
         elif screen == "unknown" and storage and "SEND GIFT" in ui.joined(texts):  # /trade and /gift can end here, and
             log("  on a friend's page: closing it")  # the iPhone has no Back key: the X, then the profile's X below
             base.tap_x(bounds)
@@ -360,8 +347,6 @@ def start(storage=True):
             log("  on the profile: closing it")  # the profile up (any of its tabs): its X
             base.tap_x(bounds)
             time.sleep(1.5)
-        elif screen == "unknown" and passenger(texts, bounds):
-            pass
         elif screen == "unknown" and (step := through_hatch(texts, bounds, hatched)) is not None:
             hatched = step
         elif screen == "unknown" and storage and search.sort_menu(texts):  # a stop left the sort menu up (a slow
@@ -427,40 +412,6 @@ def storage_limit(texts):
     return None
 
 
-def challenge_invite(texts, bounds):
-    """a Weekly Challenge box. A friend's invite over the profile: its X is greyed out and Back does nothing, so only
-    its two buttons get past it. The user's rule (2026-11-03): MAYBE LATER, so a run never sticks here. The "You've
-    completed 77%" box over the map (2026-11-04) has one button, LET'S GO! A finished Party Challenge over the map
-    (2026-11-04): Back does nothing there either, and it comes back each time the map does, so CLAIM REWARD"""
-    if "PARTY CHALLENGE" in ui.joined(texts) and press_text(texts, bounds, "CLAIM REWARD"):
-        log("  a finished Party Challenge is up: tapping CLAIM REWARD")
-        time.sleep(2.5)
-        return True
-    if "THE PARTY HAS ENDED" in ui.joined(texts) and press_text(texts, bounds, "OK"):  # (a party lasts 3 hours)
-        log("  the party has ended: tapping OK")
-        time.sleep(1.5)
-        return True
-    if "TOTAL KM EXPLORED" in ui.joined(texts):  # the summary after it: only its round X closes it
-        log("  the party's summary is up: closing it")
-        base.tap_x(bounds)
-        time.sleep(1.5)
-        return True
-    if "ROCKET RADAR" in ui.joined(texts) and press_text(texts, bounds, "EQUIP"):  # (2026-11-05: Back does nothing, no X)
-        log("  a new Rocket Radar is up: tapping EQUIP, its only button")
-        time.sleep(2.5)
-        return True
-    if "WEEKLY CHALLENGE" not in ui.joined(texts):
-        return False
-    if press_text(texts, bounds, "MAYBE LATER"):
-        log("  a friend's Weekly Challenge invite is up: tapping MAYBE LATER")
-    elif press_text(texts, bounds, "LETS GO"):
-        log("  the Weekly Challenge progress box is up: tapping LET'S GO!")
-    else:
-        return False
-    time.sleep(1.5)
-    return True
-
-
 def profile(texts):
     """the profile's ME tab. A friend's banner ('... opened your Gifts!') can cover its tabs: then the trainer name
     with LEVEL and BUDDY under it tells it"""
@@ -495,7 +446,7 @@ def trainer(fast=True):
     for _ in range(12):
         screen, texts, path, bounds = look()
         j = ui.joined(texts)
-        if challenge_invite(texts, bounds):
+        if popups.clear(texts, bounds):
             continue
         if profile(texts):
             got = [n for n in TRAINERS if squash(n) in squash(" ".join(t[4] for t in texts))]

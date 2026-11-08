@@ -20,7 +20,7 @@ for d in ("shared", "cleanup", "dex", "trade", "gift", "mega", "ivc"):
     sys.path.append(os.path.join(SKILLS, d))
 
 import base, search, ui  # noqa: E402
-import pagefacts, tagsheet, savedsearch, dex, trade, gift, mega, popups  # noqa: E402
+import pagefacts, tagsheet, savedsearch, dex, trade, gift, mega, popups, pages  # noqa: E402
 
 
 def by_path(name, rel):
@@ -362,6 +362,40 @@ POPUPS = {
     "trade warning YES": texts((0.4, "Are you sure you want to trade?"), (0.6, "YES"), (0.65, "NO")),
 }
 
+# whole screens of one script that every other script can leave (pages.py), and ones that must not count as one
+PAGES = {
+    "trade: cancel this trade?": texts((0.45, "Do you want to cancel this trade?"), (0.55, "YES"), (0.6, "NO")),
+    "trade: are you sure?": texts((0.4, "Are you sure you want to trade?"), (0.6, "YES"), (0.65, "NO")),
+    "trade: confirm": [box(.1, .5, "CONFIRM"), box(.4, .56, "12 km")],
+    "trade: confirm, CANCEL up": [box(.1, .5, "CANCEL"), box(.4, .56, "12 km")],
+    "trade: sort menu": texts((0.6, "RECENT"), (0.65, "COMBAT POWER")),
+    "trade: lobby": texts((0.1, "TrainerOne"), (0.2, "ME LV. 50"), (0.5, "Waiting for TrainerOne to select")),
+    "trade: Pokémon list": texts((0.08, "POKÉMON"), (0.2, "SPECIAL TRADES REMAINING: 1")),
+    "trade: picked": texts((0.3, "CP 434 > "), (0.9, "NEXT")),
+    "trade: result": texts((0.6, "STARDUST"), (0.65, "POWER UP")),
+    "gift: gift list": texts((0.1, "Which gift would you like to send?")),
+    "gift: preview": texts((0.8, "ADD STICKER"), (0.9, "SEND")),
+    "gift: gift box": texts((0.3, "Greetings fro.."), (0.8, "OPEN")),
+    "gift: Lucky Trade request": texts((0.4, "Review Lucky Trade request")),
+    "gift: raid": texts((0.7, "REMOTE RAID PASS"), (0.85, "BATTLE")),
+    "gift: sort menu": [box(.2, .6, "OCAN RECEIVE A GIFT"), box(.2, .7, "FRIENDSHIP LEVEL")],
+    "gift: friendship meter": [box(.3, .3, "GREAT FRIEND"), box(.3, .5, "TrainerTwo")],
+    "gymfeed: sort menu": texts((0.6, "DEFENDING"), (0.65, "NAME"), (0.7, "RECENT")),
+    "gymfeed: badge": texts((0.5, "Time defending"), (0.6, "Total gym activity")),
+    "gymfeed: badge list": texts((0.08, "GYM BADGES")),
+    "gymfeed: defender": texts((0.15, "Od 3h 7m"), (0.5, "Chansey")),
+    "tag list (a gym's CP labels, and a search bar)": [box(.1, .09, "PvpC"), box(.1, .18, "Q Search"),
+        box(.1, .25, "CP 43"), box(.4, .25, "CP42"), box(.7, .25, "CP40"), box(.1, .41, "CP 38")],
+    "storage list": texts((0.12, "Q Search"), (0.3, "CP 120"), (0.3, "CP 431"), (0.9, "TAGS"), (0.9, "EGGS")),
+    "friend page": texts((0.1, "TrainerOne"), (0.5, "SEND GIFT"), (0.55, "LOCAL"), (0.56, "TRADE")),
+    "map": texts((0.04, "7:06")),
+}
+
+
+def page(ts):
+    got = pages.which(ts)
+    return got and [got[0], got[1] and [round(got[1][0], 3), round(got[1][1], 3)]]
+
 
 def popup(ts):
     got = popups.which(ts)
@@ -417,6 +451,7 @@ def answers():
     out["ui.profile_tabs"] = {k: answer(ui.profile_tabs, ts) for k, ts in BANNERS.items()}
     out["base.row_name"] = {s: answer(row_name, s) for s in ROWS}
     out["popups.which"] = {k: answer(popup, ts) for k, ts in POPUPS.items()}
+    out["pages.which"] = {k: answer(page, ts) for k, ts in PAGES.items()}
     out["mega.form_of"] = {n: answer(mega.form_of, n) for n in NICKS}
     out["trade.km"] = {s: answer(lambda s: trade.km(SimpleNamespace(texts=[box(.4, .56, s)])), s) for s in DISTANCES}
     out["mega.badge"] = {k: answer(lambda ts: (lambda b: b and b[4])(mega.badge(ts)), ts) for k, ts in BADGES.items()}

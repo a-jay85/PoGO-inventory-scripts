@@ -23,7 +23,7 @@ import os, random, re, sys, time
 import ui
 import base
 from base import Stop, log, keep_capture
-import search, session, popups
+import search, session, popups, pages
 
 STORAGE = ("list", "tag-tab", "detail", "menu", "appraisal", "appraise-intro", "gym")
 OPEN = ("detail", "menu", "appraisal", "appraise-intro", "gym")  # a Pokémon open: back_to_list() closes it
@@ -182,7 +182,8 @@ def leave_scopely(texts):
 
 
 def unstick(texts):
-    """one step out of a screen the scripts don't know. A box popups.py knows gets its button first. Then Android:
+    """one step out of a screen the scripts don't know. A box popups.py knows gets its button first, then a
+    screen pages.py knows (another script's) its way out. Then Android:
     Back. iPhone: the home screen and the game's icon, once. Raises Stop when out of steps. -> True if the game was
     (re)opened"""
     global backs, reopened, banner_seen
@@ -195,7 +196,10 @@ def unstick(texts):
         if now < banner_seen + BANNER_WAIT:
             time.sleep(2.0)
             return False
-    if popups.clear(texts, ui.capture()[1]):  # a box another script knows (a trade's late 'expired'...): its button
+    bounds = ui.capture()[1]
+    if popups.clear(texts, bounds):  # a box another script knows (a trade's late 'expired'...): its button
+        return False
+    if pages.step_out(texts, bounds):  # a whole screen another script knows (a trade's lobby, a gym...): its way out
         return False
     if leave_scopely(texts):
         return False

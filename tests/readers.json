@@ -1277,6 +1277,152 @@
   "two labels": false,
   "your buddy's page: no button": true
  },
+ "pages.which": {
+  "friend page": null,
+  "gift: Lucky Trade request": [
+   "gift: Lucky Trade request",
+   [
+    0.5,
+    0.937
+   ]
+  ],
+  "gift: friendship meter": [
+   "gift: friendship meter",
+   [
+    0.5,
+    0.937
+   ]
+  ],
+  "gift: gift box": [
+   "gift: gift box",
+   [
+    0.5,
+    0.937
+   ]
+  ],
+  "gift: gift list": [
+   "gift: gift list",
+   [
+    0.5,
+    0.937
+   ]
+  ],
+  "gift: preview": [
+   "gift: preview",
+   [
+    0.5,
+    0.937
+   ]
+  ],
+  "gift: raid": [
+   "gift: raid",
+   [
+    0.5,
+    0.937
+   ]
+  ],
+  "gift: sort menu": [
+   "gift: sort menu",
+   [
+    0.25,
+    0.61
+   ]
+  ],
+  "gymfeed: badge": [
+   "gymfeed: badge",
+   [
+    0.5,
+    0.937
+   ]
+  ],
+  "gymfeed: badge list": [
+   "gymfeed: badge list",
+   [
+    0.5,
+    0.937
+   ]
+  ],
+  "gymfeed: defender": [
+   "gymfeed: defender",
+   [
+    0.5,
+    0.937
+   ]
+  ],
+  "gymfeed: sort menu": [
+   "gymfeed: sort menu",
+   [
+    0.85,
+    0.93
+   ]
+  ],
+  "map": null,
+  "storage list": null,
+  "tag list (a gym's CP labels, and a search bar)": null,
+  "trade: Pokémon list": [
+   "trade: Pokémon list",
+   [
+    0.5,
+    0.937
+   ]
+  ],
+  "trade: are you sure?": [
+   "trade: are you sure?",
+   [
+    0.5,
+    0.665
+   ]
+  ],
+  "trade: cancel this trade?": [
+   "trade: cancel this trade?",
+   [
+    0.5,
+    0.565
+   ]
+  ],
+  "trade: confirm": [
+   "trade: confirm",
+   [
+    0.09,
+    0.115
+   ]
+  ],
+  "trade: confirm, CANCEL up": [
+   "trade: confirm",
+   [
+    0.15,
+    0.51
+   ]
+  ],
+  "trade: lobby": [
+   "trade: lobby",
+   [
+    0.09,
+    0.115
+   ]
+  ],
+  "trade: picked": [
+   "trade: picked",
+   [
+    0.5,
+    0.937
+   ]
+  ],
+  "trade: result": [
+   "trade: result",
+   [
+    0.5,
+    0.937
+   ]
+  ],
+  "trade: sort menu": [
+   "trade: sort menu",
+   [
+    0.5,
+    0.615
+   ]
+  ]
+ },
  "popups.which": {
   "evolve": [
    "evolve",

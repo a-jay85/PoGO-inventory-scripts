@@ -1,3 +1,17 @@
 {
-  "disableClaudeAiConnectors": true
+  "disableClaudeAiConnectors": true,
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"$CLAUDE_PROJECT_DIR/merge_gate.py\"; [ ! -f \"$f\" ] || python3 \"$f\" --hook",
+            "timeout": 600
+          }
+        ]
+      }
+    ]
+  }
 }

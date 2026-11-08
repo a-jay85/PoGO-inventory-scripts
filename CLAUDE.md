@@ -31,6 +31,7 @@ The skills import each other by relative path (`HERE/../shared`), so they must s
 2. Enter it with `EnterWorktree(path=...)`. Don't `cd` into it.
 3. Commit, then push in a separate command. Never chain `git commit && git push`.
 4. Open a PR with `gh pr create`. Squash-merge only: `gh pr merge --squash --delete-branch`.
+   `merge_gate.py` (repo root, a hook in `.claude/settings.json`) checks every `gh pr merge` of this repo first, and blocks it with what to do. It runs every test below on the PR head. A PR that changes a `.py` under `skills/`, or `pogo.py`, `heal.py` or `watch.py`, needs a `watch.py` phone run, ended with exit 0, of the files as they are at the PR head. If one can't be done, a body line `No phone test: <why>`. Such a PR also needs a body line `Siblings: <what was checked, what it found>`. The gate lists the changed functions, their callers, and phone or account branches where only one side changed. `python3 merge_gate.py <n>` runs the same checks by hand.
 5. Claude does this step itself and never hands it to the user. Leave the worktree (`ExitWorktree` with `keep`), pull the main checkout (above), then remove every merged worktree:
    `python3 ~/PoGO-inventory-scripts/wt_cleanup.py`
    It removes only worktrees whose PR merged, with nothing uncommitted and no process inside, and it saves their `runs/` folders to `~/claude-plans/_backups/worktree-runs/` first. It also sweeps leftovers from other sessions. `--dry-run` shows what it would do.
@@ -85,14 +86,16 @@ The repo is public. These stay local and are in `.gitignore`:
 
 `python3 tests/heal.py` checks `pogo.py`'s healing with a made-up failing step and a stand-in Claude. Run it after any change to `heal.py` or `pogo.py`.
 
+`python3 tests/gate.py` checks `merge_gate.py` with a made-up repo and PR, a stand-in `gh` and made-up phone runs. Run it after any change to `merge_gate.py` or `watch.py`. It must say "all gate cases right".
+
 `python3 tests/verdicts.py` pins the final tag `verdict.py` gives made-up Pokémon. `python3 tests/taggers.py` runs the bulk taggers' searches (`tradeable.py tag`, `cleantrades.py`) over made-up Pokémon and checks they tag what `verdict.py` says. Run both after any change to a rule or a tag search.
 
 `skills/cleanup/savedsearches.py` reads the saved searches off the Pixel and checks they hold the terms in `rules.SAVED`. Run it after changing one on the phone.
 
-Nothing tests taps and timing off the phone. A change to how a skill reads or taps the phone isn't done until it has run on the phone:
-`POGO_PHONE=android caffeinate -dimsu python3 ~/PoGO-inventory-scripts/skills/pvpc/run.py --limit 1`. Claude starts it and watches it itself; no need to ask the user to watch.
+Nothing tests taps and timing off the phone. A change to how a skill reads or taps the phone isn't done until it has run on the phone, from its worktree, through `watch.py` (the merge gate looks for that run):
+`POGO_PHONE=android python3 <worktree>/watch.py caffeinate -dimsu python3 <worktree>/skills/pvpc/run.py --limit 1`. Claude starts it and watches it itself; no need to ask the user to watch.
 
 Claude watches a phone run quietly, through `watch.py` (repo root) started with Bash `run_in_background: true, timeout: 7200000`:
 `POGO_PHONE=android python3 ~/PoGO-inventory-scripts/watch.py caffeinate -dimsu python3 <script> [args]`.
-It prints nothing while the script runs, then one short summary at the end (exit code, STOPPED / CRASHED / error lines, last lines). The full output is in `/tmp/pogo-watch/<stamp>.log`. The script runs detached, so if the waiter times out, `watch.py --wait` waits again. No `Monitor` on a run: a user hook blocks it.
+It prints nothing while the script runs, then one short summary at the end (exit code, STOPPED / CRASHED / error lines, last lines). The full output is in `/tmp/pogo-watch/<stamp>.log`, and where the run came from (checkout, HEAD, file contents, exit code) in `<stamp>.json`. The script runs detached, so if the waiter times out, `watch.py --wait` waits again. No `Monitor` on a run: a user hook blocks it.
 `--dry-run` still taps for real, so it isn't a safe first test. If you couldn't run it, say so in the PR body.

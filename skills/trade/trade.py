@@ -138,6 +138,7 @@ class Phone:
         self.stale = False  # a pause changed the screen under a tap: nothing more is sent until the next look
         self.fresh = False  # nothing tapped, typed or keyed since the last look
         self.landed = None  # when this phone's last result screen showed
+        self.cooled = False  # a "Trade cooldown" box was kept as a capture this run
         self.ran = None  # the search this run last put on. A long one left from before can look like another in the bar
 
     def call(self, **req):
@@ -437,6 +438,7 @@ def to_friend(p, ours=False):
 def tap_local(p):
     """LOCAL TRADE on this phone, as soon as it's on the friend page. Done once the phone has left the page. Too soon
     after the last trade, the game keeps it on the page with a message: tap again"""
+    restarted, reloaded, waited = False, False, False
     for attempt in range(TAPS + 1):
         # (always a new look first: a LOCAL tap on the very look that first showed the page, right after the result
         # screen's X, often didn't take, and then no tap took for ~30 s. Old runs: 69 taps a look later, none lost)
@@ -451,25 +453,57 @@ def tap_local(p):
         t = label(p, "LOCAL")
         if attempt == TAPS or not t:
             raise Stop(f"{p.name}: LOCAL TRADE didn't open: {p.summary()}")
-        if attempt:
+        if attempt and not reloaded:
             log(f"{p.name}: still on the friend page after LOCAL TRADE, tap {attempt + 1}: {p.summary()}")
             if attempt == 1:
                 p.keep("local")
-        if attempt == 0 and p.android and p.landed:
-            # (a Pixel LOCAL tap 2-3 s after the result screen often did nothing, and then no tap took for 30-45 s.
-            # Taps 3.7 s or more after it took: old runs tapped 3-5.7 s after, 69 taps, none lost)
-            time.sleep(max(0.0, p.landed + 4.0 - time.time()))
+        if attempt == 2 and p.android and not restarted and not waited:
+            # two taps that did nothing, no cooldown box: the game itself is stuck. A game that had run for hours
+            # (2026-11-07) ignored LOCAL taps for 20-107 s after most trades; after a restart 16 in a row took
+            # first time, Pixel locks in between too. A restart takes less time than waiting it out
+            log(f"{p.name}: LOCAL TRADE taps do nothing: restarting the game")
+            p.keep("stuck")
+            restarted = reloaded = True
+            reload(p)
+            to_friend(p)
+            continue
+        reloaded = False
         since = f", {time.time() - p.landed:.1f} s after its result screen" if p.landed else ""
         p.tap_text(t, dy=-0.035)  # the round icon above the label
         log(f"{p.name}: LOCAL TRADE tapped{since}")
         # a tap that takes leaves the page within ~2-3 s; one that didn't take is tapped again after 5 s, then
-        # every 10 s. (Right after the game comes back from a locked Pixel, no LOCAL tap takes for 15-45 s:
-        # seen 3 runs in a row on 2026-11-07, the page looked normal the whole time)
+        # every 10 s.
+        # A "Trade cooldown: 0:xx" box in the middle says how long: wait just that, then tap at once
         end = time.time() + (5 if attempt == 0 else 10)
         while time.time() < end:
             time.sleep(0.4)
-            if p.look() != "friend":
+            sent = time.time()  # (a look's capture is taken when it's sent)
+            p.look()
+            left = cooldown(p)  # (first: the box may hide what makes the page read as the friend page)
+            if left is None and p.screen != "friend":
                 break
+            if left is not None:
+                waited = True
+                if not p.cooled:
+                    p.cooled = True
+                    p.keep("cooldown")
+                log(f"{p.name}: trade cooldown, {left} s: tapping LOCAL TRADE again once it's over")
+                time.sleep(max(0.0, sent + left + 0.5 - time.time()))
+                break
+
+
+def cooldown(p):
+    """the seconds the "Trade cooldown: 0:xx" box in the middle of the friend page says are left, or None when it
+    isn't there. A box with no time read waits 3 s"""
+    boxes = p.find(lambda t: "COOLDOWN" in ui.up(t) and 0.25 < t[1] < 0.75)
+    if not boxes:
+        return None
+    y = boxes[0][1]
+    for t in sorted(p.find(lambda t: abs(t[1] - y) < 0.06), key=lambda t: abs(t[1] - y)):
+        m = re.search(r"(\d{1,2})\s*[:.]\s*(\d{2})\b", t[4])
+        if m:
+            return int(m.group(1)) * 60 + int(m.group(2))
+    return 3
 
 
 def open_trade(phones):
@@ -1004,6 +1038,14 @@ def trade_once(ios, android, specials, fresh=False, rehearse=False):
         open_trade(phones)
     else:
         screens = both(lambda p: p.look(), *[(p,) for p in phones])  # (each look takes a while: at once)
+        for _ in range(6):
+            # a look caught between two screens (unknown, blank) says nothing: look again. (2026-11-08: the Pixel
+            # read "unknown" on its way into the picker, got backed out, and the iPhone's wait expired)
+            if not any(s in ("unknown", "blank") for s in screens):
+                break
+            time.sleep(0.5)
+            screens = both(lambda p: p.look() if p.screen in ("unknown", "blank") else p.screen,
+                           *[(p,) for p in phones])
         if all(s in IN_TRADE for s in screens):
             both(to_picker, *[(p,) for p in phones])  # both still in a trade from before: carry on in it
         elif all(s in IN_TRADE or s == "waiting" for s in screens):
@@ -1102,13 +1144,26 @@ def restart(phones):
     for p in phones:
         p.restart()
     for p in phones:
-        end = time.time() + 120
-        while p.look() in ("unknown", "blank"):  # loading screens and their tips
-            if time.time() > end:
-                p.keep("restart")
-                raise Stop(f"{p.name}: the game didn't load after the restart: {p.summary()}")
-            time.sleep(3)
+        loaded(p)
     log("both phones restarted")
+
+
+def reload(p):
+    """force-close and open the game on this phone, then wait until it's past the loading screens"""
+    t0 = time.time()
+    p.restart()
+    loaded(p)
+    log(f"{p.name}: the game is back after {time.time() - t0:.0f} s")
+
+
+def loaded(p):
+    end = time.time() + 120
+    time.sleep(3)  # (the old game can still be on screen for a moment)
+    while p.look() in ("unknown", "blank"):  # loading screens and their tips
+        if time.time() > end:
+            p.keep("restart")
+            raise Stop(f"{p.name}: the game didn't load after the restart: {p.summary()}")
+        time.sleep(3)
 
 
 def reconnect(phones):

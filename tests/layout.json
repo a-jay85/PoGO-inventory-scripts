@@ -2049,6 +2049,7 @@
    "warning"
   ],
   "runs": [
+   "skills/pvpc/runs/<time>/trace.txt",
    "skills/trade/runs"
   ]
  }

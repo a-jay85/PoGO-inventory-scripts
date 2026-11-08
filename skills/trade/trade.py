@@ -91,7 +91,7 @@ OK_WARNINGS = ("MAX MOVE LEVELS WILL BE RESET",)  # trade warnings tapped YES; a
 X_BUTTON = (0.5, 0.935)  # the round X at the bottom middle (gift, result, friend page, picker)
 MANAGE_X = (0.5, 0.906)  # the round X that closes the Manage Favorite Search box
 SORT_BUTTON = (0.838, 0.937)
-TAPS = 6  # how many times to tap LOCAL TRADE before stopping: about 6 s apart
+TAPS = 9  # how many times to tap LOCAL TRADE before stopping: 5 s, then 10 s apart (~85 s in all)
 IN_TRADE = ("picker", "lobby", "sortmenu")
 
 
@@ -469,10 +469,9 @@ def tap_local(p):
     """LOCAL TRADE on this phone, as soon as it's on the friend page. Done once the phone has left the page. Too soon
     after the last trade, the game keeps it on the page with a message: tap again"""
     for attempt in range(TAPS + 1):
-        if attempt == 0 and p.fresh and p.screen == "friend":
-            s = "friend"
-        else:
-            s = p.wait("friend", "waiting", *IN_TRADE, "expired", "range", timeout=8)  # (a banner can cover it for a moment)
+        # (always a new look first: a LOCAL tap on the very look that first showed the page, right after the result
+        # screen's X, often didn't take, and then no tap took for ~30 s. Old runs: 69 taps a look later, none lost)
+        s = p.wait("friend", "waiting", *IN_TRADE, "expired", "range", timeout=8)  # (a banner can cover it for a moment)
         if s == "range":
             p.expired()  # the round starts over: its to_friend taps the OK
         if s == "expired":  # the box from an old trade can come up late, on the friend page
@@ -485,12 +484,19 @@ def tap_local(p):
             raise Stop(f"{p.name}: LOCAL TRADE didn't open: {p.summary()}")
         if attempt:
             log(f"{p.name}: still on the friend page after LOCAL TRADE, tap {attempt + 1}: {p.summary()}")
+            if attempt == 1:
+                p.keep("local")
+        if attempt == 0 and p.android and p.landed:
+            # (a Pixel LOCAL tap 2-3 s after the result screen often did nothing, and then no tap took for 30-45 s.
+            # Taps 3.7 s or more after it took: old runs tapped 3-5.7 s after, 69 taps, none lost)
+            time.sleep(max(0.0, p.landed + 4.0 - time.time()))
         since = f", {time.time() - p.landed:.1f} s after its result screen" if p.landed else ""
         p.tap_text(t, dy=-0.035)  # the round icon above the label
         log(f"{p.name}: LOCAL TRADE tapped{since}")
-        # a tap that takes leaves the page within ~2-3 s; one that didn't take is tapped again after 5 s (this
-        # waited 10 looks: ~20 s on the Pixel)
-        end = time.time() + 5
+        # a tap that takes leaves the page within ~2-3 s; one that didn't take is tapped again after 5 s, then
+        # every 10 s. (Right after the game comes back from a locked Pixel, no LOCAL tap takes for 15-45 s:
+        # seen 3 runs in a row on 2026-11-07, the page looked normal the whole time)
+        end = time.time() + (5 if attempt == 0 else 10)
         while time.time() < end:
             time.sleep(0.4)
             if p.look() != "friend":
@@ -537,7 +543,7 @@ def specials_left(p):
 
 def open_panel(p):
     """the search panel with the saved shortcuts. Android: the keyboard comes up over them and is put away"""
-    for attempt in range(3):
+    for attempt in range(5):
         if not label(p, "FAVORITE"):
             p.tap(0.5, 0.18)
             time.sleep(1.2)
@@ -549,6 +555,11 @@ def open_panel(p):
             p.look()
         if label(p, "FAVORITE") and shortcut(p, SAVED[NEAR]) and shortcut(p, SAVED[FAR]):
             return
+        if label(p, "FAVORITE"):  # the panel is up, a shortcut isn't read: a banner ("... has connected!") can
+            time.sleep(1.0)       # cover it for a few seconds. (This used to go round on the same look)
+            p.look()
+            if shortcut(p, SAVED[NEAR]) and shortcut(p, SAVED[FAR]):
+                return
     p.keep("panel")
     raise Stop(f"{p.name}: the search panel with the saved shortcuts didn't show: {p.summary()}")
 

@@ -1277,6 +1277,88 @@
   "two labels": false,
   "your buddy's page: no button": true
  },
+ "popups.which": {
+  "evolve": [
+   "evolve",
+   0.5,
+   0.615
+  ],
+  "evolve, no NO read": null,
+  "exit": [
+   "exit",
+   0.5,
+   0.565
+  ],
+  "friend card": [
+   "friend card",
+   0.5,
+   0.918
+  ],
+  "friend page": null,
+  "list": null,
+  "manage favorite": [
+   "manage favorite",
+   0.5,
+   0.906
+  ],
+  "out of range": [
+   "trade box",
+   0.5,
+   0.565
+  ],
+  "party done": [
+   "party done",
+   0.5,
+   0.815
+  ],
+  "party ended": [
+   "party ended",
+   0.5,
+   0.615
+  ],
+  "party summary": [
+   "party summary",
+   0.5,
+   0.937
+  ],
+  "passenger": [
+   "passenger",
+   0.5,
+   0.615
+  ],
+  "rename OK": null,
+  "rocket radar": [
+   "rocket radar",
+   0.5,
+   0.815
+  ],
+  "trade expired, Pixel over the Pokémon screens (2026-11-07)": [
+   "trade box",
+   0.5,
+   0.572
+  ],
+  "trade expired, iPhone, OK not read": [
+   "trade box",
+   0.5,
+   0.527
+  ],
+  "trade warning YES": null,
+  "trading service down": [
+   "trade box",
+   0.5,
+   0.565
+  ],
+  "weekly invite": [
+   "challenge",
+   0.5,
+   0.815
+  ],
+  "weekly progress": [
+   "challenge",
+   0.5,
+   0.815
+  ]
+ },
  "run.same_name": {
   "\t": false,
   "\t96": false,

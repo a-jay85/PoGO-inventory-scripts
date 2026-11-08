@@ -47,7 +47,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import ui
 import base
 from base import Stop, keep_capture
-import session
+import session, popups
 from search import nudge_bar
 
 CITY = "SAN FRANCISCO"  # the only gifts sent: the rest (Chicago, North Carolina ...) are kept for sending by hand
@@ -372,7 +372,7 @@ def to_list():
         elif s == "exit":
             t = label("CANCEL")
             tap_text(t) if t else time.sleep(POLL)
-        elif s == "unknown" and home.passenger(texts, bounds):
+        elif s == "unknown" and popups.clear(texts, bounds):  # a box any script may meet (popups.py)
             unknown = 0
         elif s == "unknown" and (step := home.through_hatch(texts, bounds, hatched)) is not None:
             hatched, unknown = step, 0

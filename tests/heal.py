@@ -178,5 +178,34 @@ finally:
     heal.tee = real_tee
 case("POGO_HEAL_PHONE goes to the first step only", seen, lambda g: g[0] == "android" and g[1] != "android")
 
+
+def wanted(first, **env):
+    keep = {k: os.environ.pop(k) for k in ("CLAUDECODE", "POGO_HEAL") if k in os.environ}
+    os.environ.update(env)
+    try:
+        return heal.wanted(first)
+    finally:
+        for k in env:
+            os.environ.pop(k, None)
+        os.environ.update(keep)
+
+
+case("on by default", wanted("pvpc"), lambda g: g is True)
+case("--no-heal: off", wanted("--no-heal"), lambda g: g is False)
+case("POGO_HEAL=0: off", wanted("pvpc", POGO_HEAL="0"), lambda g: g is False)
+case("started by a Claude session: off", wanted("pvpc", CLAUDECODE="1"), lambda g: g is False)
+case("--heal in a Claude session: on", wanted("--heal", CLAUDECODE="1"), lambda g: g is True)
+
+os.environ["CLAUDECODE"] = "1"
+seen = []
+heal.tee = lambda cmd, env, out: (seen.append(1), (0, []))[1]
+real_run_one = pogo.run_one
+pogo.run_one = lambda cmd, env: 0
+try:
+    pogo.main(["bb"])
+finally:
+    heal.tee, pogo.run_one = real_tee, real_run_one
+case("pogo.py in a Claude session runs a step the plain way", seen, lambda g: g == [])
+
 print(f"\n{'all heal cases right' if not fails else f'{fails} WRONG'}")
 sys.exit(1 if fails else 0)

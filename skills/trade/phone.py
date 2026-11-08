@@ -34,9 +34,12 @@ last = None  # the latest look's bounds: taps are placed in it
 
 def look():
     global last
+    t0 = time.time()
     path, bounds = ui.capture()
     last = bounds
-    return {"path": path, "bounds": bounds, "texts": [list(t) for t in ui.ocr(path)]}
+    t1 = time.time()
+    texts = [list(t) for t in ui.ocr(path)]
+    return {"path": path, "bounds": bounds, "texts": texts, "cap": round(t1 - t0, 2), "ocr": round(time.time() - t1, 2)}
 
 
 def tap(fx, fy):

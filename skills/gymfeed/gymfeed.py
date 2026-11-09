@@ -521,18 +521,23 @@ spent = set()  # kinds fed down to their floor this run: not picked again
 razz_seen = None  # the Razz in the bag as last read this run. None: not read yet
 
 
-def menu_tap(spot, bounds):
-    """a tap in the BERRIES menu that shuts it (a berry, or above it), again if the menu stays: the iPhone lost
-    the tap on NANAB once and the run stopped there (2026-11-08)"""
+def tap_to(spot, bounds, want, then):
+    """a tap that should bring `want` from the `then` screen, again while `then` stays: the iPhone loses a tap now
+    and then (NANAB in the menu, the berry button: two runs stopped there, 2026-11-08)"""
     for _ in range(3):
         base.click(*spot, bounds, fuzz=0.01)
         try:
-            return base.wait_for("feed", look=look, timeout=3, capture=False)
+            return base.wait_for(want, look=look, timeout=3, capture=False)
         except base.Lost:
             screen, _, _, bounds = look()
-            if screen != "berrymenu":
+            if screen != then:
                 break
-    return base.wait_for("feed", look=look, timeout=3)
+    return base.wait_for(want, look=look, timeout=3)
+
+
+def menu_tap(spot, bounds):
+    """a tap in the BERRIES menu that shuts it: a berry, or above it"""
+    return tap_to(spot, bounds, "feed", "berrymenu")
 
 
 def choose():
@@ -544,8 +549,7 @@ def choose():
     _, texts, path, bounds = look()
     if razz_seen is not None and "RAZZ" not in spent and razz_seen > FEEDABLE["RAZZ"] and razz_up(path):
         return "RAZZ", razz_seen
-    base.click(*BERRY_MENU, bounds, fuzz=0.01)
-    base.wait_for("berrymenu", look=look, timeout=6)
+    tap_to(BERRY_MENU, bounds, "berrymenu", "feed")
     seen = []
     while len(seen) < 2 or seen[-1] != seen[-2]:  # it slides up: two reads in a row must agree
         time.sleep(0.4)

@@ -210,11 +210,11 @@ def line_of(sp, shadow):
     return first + ("+shadow" if shadow else ""), first, line_searches(pvp.tree(first), "shadow" if shadow else "plain")
 
 
-def holders(key, first, qs, cp):
+def holders(key, first, qs, cp, name=None):
     """[(who, slots)] Pvp ones already in this line: this run's new names (appraised), and the names the newest
     earlier run on this account read off the line's searches. A slot only ever passes to a better one (a trim or a
     fallen tag happens because someone beats it), so an older read can miss a holder but never shows a wrong one.
-    Same CP as this one: left out (it could be this one)"""
+    Same CP as this one: left out (it could be this one). So is one read with no CP (0) and this one's name."""
     out = [(f"{r['name']!r} CP{r['cp']} (this run)", to_slots(r["slots"])) for r in load("renamed.json", [])
            if r.get("slots") and r["cp"] != cp and (line_of(r["species"], r["shadow"]) or [None])[0] == key]
     runs, me = os.path.split(base.RUN_DIR)
@@ -230,8 +230,8 @@ def holders(key, first, qs, cp):
             continue
         if any(wants.get(q) is not None and len(reads[q]) > wants[q] for q in qs):
             break  # extra tiles could be misread copies that look better than they are: as plan() does
-        out += [(f"{n!r} CP{c} (read {d})", sl) for q in qs for n, c in reads[q]
-                if c and c != cp and (sl := pvp.name_slots(n, first))]
+        out += [(f"{n!r} CP{c or '?'} (read {d})", sl) for q in qs for n, c in reads[q]  # CP 0: CP not read
+                if c != cp and not (c == 0 and name and same_name(n, name)) and (sl := pvp.name_slots(n, first))]
         break
     return out
 
@@ -244,7 +244,7 @@ def beaten(info, sp, shadow, slots, cp, ivs, raws, tile_name, tile_cp):
     if not line or high_iv(ivs, raws)[0]:
         return None
     mine = to_slots(slots)
-    others = holders(*line, cp)
+    others = holders(*line, cp, tile_name)
     if not others or pvp.kept(mine, others):
         return None
     if door.tile_icons(info).get("shiny") is None:
@@ -305,11 +305,15 @@ def add_truth(pool, n, c, slots):
 
 def members(results, qs, first, truths):
     """[(name, cp, search, slots, known)] for every clean Pvp name the pool's searches showed. Appraised ones come
-    with their real slots. Appraised ones no search showed (a misread tile) still count, with no search."""
-    left, out = list(truths), []
+    with their real slots. Appraised ones no search showed (a misread tile) still count, with no search.
+    A tile read with no CP (CP 0: a chip row under the search bar hid the top row's CPs) still holds what its name
+    shows, so it beats others, but it can't be found again to open: it comes last, CP 0, and plan() never acts on it.
+    One with the name of an appraised one no search showed is that one (Skrelp U2 under the chips, 2026-11-09)."""
+    left, out, blind = list(truths), [], []
     for q in qs:
         for n, c in results.get(q, []):
             if not c:
+                blind.append((n, q))
                 continue
             t = next((t for t in left if t["cp"] == c and same_name(n, t["name"])), None)
             if t:
@@ -319,7 +323,12 @@ def members(results, qs, first, truths):
                 sl = pvp.name_slots(n, first)
                 if sl:
                     out.append((n, c, q, sl, False))
-    return out + [(t["name"], t["cp"], None, to_slots(t["slots"]), True) for t in left]
+    out += [(t["name"], t["cp"], None, to_slots(t["slots"]), True) for t in left]
+    for n, q in blind:
+        sl = pvp.name_slots(n, first)
+        if sl and not any(same_name(n, m[0]) for m in out if not m[1] or m[2] is None):
+            out.append((n, 0, q, sl, False))
+    return out
 
 
 @functools.cache
@@ -356,7 +365,7 @@ def plan(pools, results, wants, truths, only=None):
                                               lambda x, y: twins(kn[x], kn[y]))):  # appraised ones decide a fall
                 acts[i] = a
         for (n, c, q, sl, k), a in zip(ms, acts):
-            if a[0] != "keep":
+            if a[0] != "keep" and c:  # (CP 0: only there to beat others, see members())
                 out.append({"name": n, "cp": c, "pool": key, "q": q, "shadow": shadow, "act": a[0],
                             "new": a[1] if a[0] == "rename" else None, "why": [] if a[0] == "rename" else a[1],
                             "all": a[0] == "fallen" or (a[0] == "check" and a[2]),

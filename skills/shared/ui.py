@@ -551,10 +551,11 @@ def check_rows(species, cp, hp, ivs, own=False):
 TEAL_TOL = 52 if ANDROID else 24  # the Pixel: (64, 131, 146) in its own screenshot
 
 
-def circles(path):
+def circles(path, top=0.82):
+    """the teal round buttons in the screen's bottom part (from top down, a fraction of the height)"""
     im = Image.open(path).convert("RGB")
     W, H = im.size
-    y0 = int(0.82 * H)
+    y0 = int(top * H)
     mask = {(x, y) for y in range(y0, H) for x in range(W)
             if sum(abs(a - b) for a, b in zip(im.getpixel((x, y)), (32, 122, 141))) < TEAL_TOL}
     seen, out = set(), []
@@ -809,7 +810,7 @@ def appraisal_button(cs):
 def locate(T, path, texts, screen, aspect):
     """-> (centre x, centre y, fuzz()) in window fractions, or exits with REFUSED"""
     if T in ("MENU", "CLOSE", "APPRAISAL"):
-        cs = circles(path)
+        cs = circles(path, 0.7 if T == "APPRAISAL" else 0.82)  # (the appraisal button sits higher)
         if T == "MENU" and screen == "detail":
             c = right_buttons(cs)
         elif T == "APPRAISAL" and screen == "detail":

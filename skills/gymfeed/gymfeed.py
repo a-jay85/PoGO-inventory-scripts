@@ -379,17 +379,14 @@ def sort_defending():
     time.sleep(0.5)  # the tiles shuffle into place
 
 
-def to_top():
-    """the badge list back at its top: the game keeps its scroll, and a run that starts on a list scrolled down saw
-    gyms not yours first and ended (2026-11-08). Drags down until the names stop changing"""
-    before = None
-    for _ in range(6):
-        _, texts, _, bounds = look()
-        names = [n for n, _, _ in tiles(texts)]
-        if names == before:
-            return
-        before = names
-        base.drag(0.5, 0.35, 0.5, 0.8, bounds, android_settle=base.LIST_SETTLE)
+def fresh_list():
+    """the gym badge list, opened anew so it starts at its top. The game keeps the list's scroll while it's open, and
+    a run that started on a list left scrolled down saw gyms not yours first and ended. A drag down at the top shuts
+    the list instead of scrolling (2026-11-08); shut and opened again it starts at the top"""
+    to_badge_list()
+    base.tap_x(look()[3], fuzz=0.006)
+    off_screen("badgelist")
+    to_badge_list()
 
 
 def pick(done):
@@ -397,7 +394,6 @@ def pick(done):
     Gold takes both reads: no meter under it and a gold frame. A badge that fails one is opened (one open too many
     costs a few seconds; a silver badge read as gold goes unfed). None also once a badge without the defender
     bubble shows: the sort put every gym of yours before it. Scrolls down a screen at most twice"""
-    to_top()
     for page in range(3):
         _, texts, path, bounds = look()
         for name, cx, top in tiles(texts):
@@ -406,6 +402,7 @@ def pick(done):
             if name in done:
                 continue
             if not defended(path, cx, top):
+                keep_capture("lastgym")
                 log(f"  {name}: none of yours in it, so the gyms you're in end here")
                 return None
             meter, frame = has_meter(path, cx, top), gold_frame(path, cx, top)
@@ -803,7 +800,7 @@ def script(limit):
     found, unsure = False, False  # a gym to feed seen; a gym that didn't open
     home.start(storage=False)
     while total < limit:
-        to_badge_list()
+        fresh_list()
         sort_defending()
         got = pick(done)
         if not got:

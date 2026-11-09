@@ -134,6 +134,16 @@ def android_launch():
     raise Stop("opened Pokémon GO but it never came to the front")
 
 
+def android_restart():
+    """force-stop the Pixel's game and open it again. A game left running for hours can stop taking taps while its
+    page looks normal (/trade's dead spells, PR #311; 2026-11-09 /ivc: 16 h up, no X or tag tap took for 4 min)"""
+    a = ui.android
+    log("  the game takes no taps: restarting it")
+    a.shell(f"am force-stop {a.PKG}")
+    time.sleep(1.0)
+    android_launch()
+
+
 def keyboard_up():
     return "mInputShown=true" in ui.android.shell("dumpsys input_method | grep mInputShown=")
 
@@ -258,7 +268,7 @@ def start(storage=True):
         base.front()
     t_open = time.time()
     end = t_open + LOAD_TIMEOUT
-    prev, same, unknowns, reconnected, hatched, home_taps = None, 0, 0, False, 0, 0
+    prev, same, unknowns, reconnected, hatched, home_taps, restarted = None, 0, 0, False, 0, 0, False
     while True:
         try:
             screen, texts, path, bounds = look()
@@ -286,6 +296,11 @@ def start(storage=True):
                 continue
             except Stop as e:  # not a storage Pokémon after all (a trade's result screen): out the other way
                 log(f"  couldn't close the Pokémon the usual way: {e}")
+                if ui.ANDROID and not restarted:  # its X took no tap at all: a stuck game, a restart fixes it
+                    restarted = True
+                    android_restart()
+                    opened, t_open, end = True, time.time(), time.time() + LOAD_TIMEOUT
+                    continue
                 unstick(texts)
         elif screen in ("map", "mainmenu"):
             if not storage:

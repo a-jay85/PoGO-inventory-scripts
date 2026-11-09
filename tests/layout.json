@@ -1485,6 +1485,8 @@
    "passenger",
    "rocket_radar",
    "trade_box",
+   "trade_limit",
+   "trade_limit_ok",
    "trade_ok",
    "which"
   ],
@@ -2050,6 +2052,7 @@
   "names": [
    "COST",
    "COST_READS",
+   "DailyLimit",
    "EARTH_KM",
    "Expired",
    "FAR",

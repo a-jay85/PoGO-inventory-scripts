@@ -379,11 +379,25 @@ def sort_defending():
     time.sleep(0.5)  # the tiles shuffle into place
 
 
+def to_top():
+    """the badge list back at its top: the game keeps its scroll, and a run that starts on a list scrolled down saw
+    gyms not yours first and ended (2026-11-08). Drags down until the names stop changing"""
+    before = None
+    for _ in range(6):
+        _, texts, _, bounds = look()
+        names = [n for n, _, _ in tiles(texts)]
+        if names == before:
+            return
+        before = names
+        base.drag(0.5, 0.35, 0.5, 0.8, bounds, android_settle=base.LIST_SETTLE)
+
+
 def pick(done):
     """sorted badge list -> (name, the tile to tap) of the first badge not gold and not done yet, or None.
     Gold takes both reads: no meter under it and a gold frame. A badge that fails one is opened (one open too many
     costs a few seconds; a silver badge read as gold goes unfed). None also once a badge without the defender
     bubble shows: the sort put every gym of yours before it. Scrolls down a screen at most twice"""
+    to_top()
     for page in range(3):
         _, texts, path, bounds = look()
         for name, cx, top in tiles(texts):

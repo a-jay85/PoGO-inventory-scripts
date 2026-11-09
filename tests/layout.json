@@ -1341,6 +1341,7 @@
    "Stop",
    "TRAINERS",
    "android_launch",
+   "android_restart",
    "backs",
    "banner_seen",
    "by_storage",

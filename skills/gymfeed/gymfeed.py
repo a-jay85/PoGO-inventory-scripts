@@ -401,17 +401,21 @@ def pick(done):
     Gold takes both reads: no meter under it and a gold frame. A badge that fails one is opened (one open too many
     costs a few seconds; a silver badge read as gold goes unfed). None also once a badge without the defender
     bubble shows: the sort put every gym of yours before it. Scrolls down a screen at most twice"""
+    mine = False  # a defender bubble seen: only then does a badge without one end the list. The bubble was measured
+    # on the iPhone only; a badge opened without one still ends the run by its missing TIME DEFENDING
     for page in range(3):
         _, texts, path, bounds = look()
         for name, cx, top in tiles(texts):
             if top < 0.25:  # its badge runs off the top of the list: a scroll left only part of it ('Statue')
                 continue
-            if name in done:
-                continue
-            if not defended(path, cx, top):
+            if defended(path, cx, top):
+                mine = True
+            elif mine:
                 keep_capture("lastgym")
                 log(f"  {name}: none of yours in it, so the gyms you're in end here")
                 return None
+            if name in done:
+                continue
             meter, frame = has_meter(path, cx, top), gold_frame(path, cx, top)
             if not meter and frame:
                 log(f"  {name}: gold, skipped")

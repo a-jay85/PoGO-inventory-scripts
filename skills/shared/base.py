@@ -1248,8 +1248,16 @@ def open_tile(i):
 
 
 def open_appraisal():
-    go("menu", "menu")
-    go("APPRAISE", "appraise-intro", "appraisal")
+    """from the detail screen to the appraisal, its bars showing. Taps the appraisal button above the menu
+    button. A detail screen without one (an older game) goes through the menu's APPRAISE instead"""
+    try:
+        go("appraisal", "appraise-intro", "appraisal")
+    except Lost as e:
+        if "appraisal button" not in str(e):
+            raise
+        log("  no appraisal button: through the menu")
+        go("menu", "menu")
+        go("APPRAISE", "appraise-intro", "appraisal")
     go("dialog", "appraisal")
 
 

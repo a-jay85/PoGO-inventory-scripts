@@ -791,19 +791,29 @@ CONFIRM_SCREENS = {"OK": ("rename",), "CANCEL": ("rename", "tags"), "DONE": ("ta
 
 
 def right_buttons(cs):
-    """the round buttons on the right. Some detail screens have a ribbon button just above the menu button:
+    """the round buttons on the right. The appraisal button sits just above the menu button:
     the menu button is the bottom one, so only the bottom row counts"""
     r = [c for c in cs if c[0] > 0.7]
     low = max((c[1] for c in r), default=0)
     return [c for c in r if c[1] > low - 0.04]
 
 
+def appraisal_button(cs):
+    """the round appraisal button (a ribbon) just above the menu button on the detail screen (2026-11-09)"""
+    r = [c for c in cs if c[0] > 0.7]
+    low = max((c[1] for c in r), default=0)
+    up = [c for c in r if 0.04 < low - c[1] < 0.15]
+    return [max(up, key=lambda c: c[2])] if up else []  # the ribbon inside can read as a second, smaller circle
+
+
 def locate(T, path, texts, screen, aspect):
     """-> (centre x, centre y, fuzz()) in window fractions, or exits with REFUSED"""
-    if T in ("MENU", "CLOSE"):
+    if T in ("MENU", "CLOSE", "APPRAISAL"):
         cs = circles(path)
         if T == "MENU" and screen == "detail":
             c = right_buttons(cs)
+        elif T == "APPRAISAL" and screen == "detail":
+            c = appraisal_button(cs)
         elif T == "CLOSE" and screen in ("detail", "gym"):  # the gym screen has the same X and menu buttons
             c = [c for c in cs if 0.35 < c[0] < 0.65]
             menu = right_buttons(cs)

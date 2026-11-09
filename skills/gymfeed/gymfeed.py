@@ -242,9 +242,17 @@ def tiles(texts):
             lines.append([t])
     out = []
     for col, names in cols.items():
-        for parts in names:
-            out.append((" ".join(p[4].strip() for p in parts), col, min(p[1] for p in parts)))
+        tops = [min(p[1] for p in parts) for parts in names]
+        for parts, top in zip(names, tops):
+            # text on a badge's own picture, just above its name, isn't a name: Oracle Park's Giants logo read as
+            # 'GANT)' (iPhone, 2026-11-08). Names in a column sit about 0.175 apart
+            if any(0 < t - top < 0.1 for t in tops):
+                continue
+            out.append((" ".join(p[4].strip() for p in parts), col, top))
     return sorted(out, key=lambda o: (round(o[2] / 0.08), o[1]))
+
+
+METER_GAP = 2  # pixels that aren't meter allowed inside one bar (see has_meter)
 
 
 def is_meter(px):
@@ -256,21 +264,45 @@ def is_meter(px):
 
 def has_meter(path, cx, top):
     """the progress meter under a badge (bronze, silver: it fills to the next one). A gold badge has none.
-    A thin teal or grey bar 1-3 % of the screen above the name's first line (a one-line name sits a bit lower)"""
+    A thin teal or grey bar 1-3 % of the screen above the name's first line (a one-line name sits a bit lower).
+    Where the teal meets the grey sits a blended pixel, neither colour. On the small iPhone capture (406 px wide)
+    that split Oracle Park's silver meter into two short pieces and it read as gold (2026-11-08): so up to
+    METER_GAP pixels that aren't meter don't end the bar"""
     from PIL import Image
     im = Image.open(path).convert("RGB")
     W, H = im.size
     for fy in range(int((top - 0.035) * H), int((top - 0.004) * H)):
-        run = best = 0
+        run = best = gap = 0
         for fx in range(int((cx - 0.1) * W), int((cx + 0.1) * W)):
             if is_meter(im.getpixel((fx, fy))):
-                run += 1
+                run, gap = run + 1, 0
                 best = max(best, run)
             else:
-                run = 0
+                gap += 1
+                if gap > METER_GAP:
+                    run = 0
         if best > 0.08 * W:
             return True
     return False
+
+
+def is_gold(px):
+    r, g, b = px
+    return r > 190 and 140 < g < 235 and b < 120 and r - b > 100
+
+
+GOLD_SHARE = 0.02  # a gold badge's yellow frame: 4.3-5.6 % of the area round it; a silver one 0 % (iPhone, 2026-11-08)
+
+
+def gold_frame(path, cx, top):
+    """the badge above a name has a gold frame: yellow pixels make up GOLD_SHARE or more of the area round it
+    (its photo sits inside the frame, so a yellow photo alone could add some)"""
+    from PIL import Image
+    im = Image.open(path).convert("RGB")
+    W, H = im.size
+    px = [im.getpixel((fx, fy)) for fy in range(int((top - 0.16) * H), int((top - 0.03) * H))
+          for fx in range(int((cx - 0.09) * W), int((cx + 0.09) * W))]
+    return bool(px) and sum(map(is_gold, px)) >= GOLD_SHARE * len(px)
 
 
 def arrow(path, cy):
@@ -324,16 +356,21 @@ def sort_defending():
 
 def pick(done):
     """sorted badge list -> (name, the tile to tap) of the first badge not gold and not done yet, or None.
-    Scrolls down a screen at most twice"""
+    Gold takes both reads: no meter under it and a gold frame. A badge that fails one is opened (one open too many
+    costs a few seconds; a silver badge read as gold goes unfed). Scrolls down a screen at most twice"""
     for page in range(3):
         _, texts, path, bounds = look()
         for name, cx, top in tiles(texts):
             if name in done:
                 continue
-            if not has_meter(path, cx, top):
+            meter, frame = has_meter(path, cx, top), gold_frame(path, cx, top)
+            if not meter and frame:
                 log(f"  {name}: gold, skipped")
                 done.add(name)
                 continue
+            if meter == frame:
+                log(f"  {name}: " + ("a meter but a gold frame" if meter else "no meter but not a gold frame")
+                    + ", opened to be sure")
             return name, (cx, top - 0.09), bounds
         if page < 2:
             base.drag(0.5, 0.8, 0.5, 0.35, bounds, android_settle=base.LIST_SETTLE)

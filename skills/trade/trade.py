@@ -31,6 +31,8 @@ out: that round starts over. Trades made by hand aren't counted: pass --done N. 
 The picker keeps the last search: when the bar already shows the one it wants, it isn't typed again.
 A failing trading service or an expired trade backs both phones out to the friend page and starts the round over,
 with no game restart; after 4 failures in a row it stops. If the special trades left go down during a run, it stops.
+When the game says an account has reached its daily trading limit (trades with other friends count too), the run
+ends there, done for the day.
 """
 import argparse, datetime, json, os, random, re, shutil, statistics, subprocess, sys, time
 from concurrent.futures import ThreadPoolExecutor
@@ -108,6 +110,12 @@ class OutOfRange(Expired):
     round taps its OK and LOCAL TRADE again. main() stops the run if it keeps coming"""
 
 
+class DailyLimit(Stop):
+    """the game says an account has made its 100 trades today ("Daily trading limit reached", "... has reached the
+    daily trading limit"): trades by hand or with other friends count too, so it can come before PER_DAY. main()
+    ends the run there, done for the day"""
+
+
 class Lost(ServiceDown):
     """iPhone Mirroring lost the iPhone mid-run ("Connection Interrupted"): open Mirroring again, then the round
     starts over. Before both confirmed nothing traded; after, the trade went through and is counted"""
@@ -175,6 +183,9 @@ class Phone:
         self.screen = classify(self.texts, self.path)
         self.fresh = True
         self.trace(f"look {self.screen} sent {t0:.2f} cap {out.get('cap')} ocr {out.get('ocr')}")
+        if self.screen == "limit":
+            self.keep("limit")
+            raise DailyLimit(f"{self.name}: {self.account} has reached the game's daily trading limit")
         if self.screen == "mirroring":
             self.keep("mirroring")
             raise Lost(f"{self.name}: iPhone Mirroring lost the iPhone: {self.summary()}")
@@ -274,7 +285,7 @@ def both(fn, *argsets):
         except BaseException as e:
             out.append(None)
             errs.append(e)
-    for kind in (ServiceDown, Expired, BaseException):
+    for kind in (DailyLimit, ServiceDown, Expired, BaseException):
         for e in errs:
             if isinstance(e, kind):
                 raise e
@@ -289,6 +300,8 @@ def classify(texts, path):
     joined = " ".join(raw)
     if any(w in joined for w in TROUBLE):
         return "mirroring"  # iPhone Mirroring's own screen: it can't reach the iPhone (never on the Pixel)
+    if popups.trade_limit(texts):
+        return "limit"  # the account's 100 trades today are made: the run is done for the day
     if popups.manage_favorite(texts):
         return "manage"  # the Manage Favorite Search box: a shortcut tap that landed as a long press
     if popups.trade_box(texts) == "range":
@@ -1243,6 +1256,10 @@ def main():
                 break
             try:
                 got = trade_once(ios, android, specials, fresh, rehearse=bool(a.rehearse))
+            except DailyLimit as e:
+                log(f"{e}: done for the day")
+                set_made(max(made_today(), PER_DAY))  # a later run today stops at once
+                break
             except Expired as e:
                 expired += 1
                 if expired > 3:

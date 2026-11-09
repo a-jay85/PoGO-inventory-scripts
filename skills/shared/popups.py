@@ -64,6 +64,21 @@ def trade_ok(texts):
     return (0.5, max(t[1] for t in msg) + 0.077) if msg else None
 
 
+def trade_limit(texts):
+    """the account has made the game's 100 trades today: the Pixel's "<trainer> has reached the daily trading limit
+    for today." box (its OK), or the iPhone's "Daily trading limit reached. Come back tomorrow to trade more." (a
+    message with no button, which goes by itself: None). -> True when either is up"""
+    return "TRADING LIMIT" in ui.joined(texts)
+
+
+def trade_limit_ok(texts):
+    """the daily trading limit box's OK (Pixel), or None"""
+    if not trade_limit(texts):
+        return None
+    ok = label(texts, "OK")
+    return center(ok) if ok else None
+
+
 def manage_favorite(texts):
     """the Manage Favorite Search box (a saved-search tap that landed as a long press): its round X"""
     return MANAGE_X if "MANAGE FAVORITE" in ui.joined(texts) else None
@@ -145,6 +160,7 @@ def rocket_radar(texts):
 # name, where its tap goes, what the log says, seconds the box takes to go
 BOXES = (
     ("trade box", trade_ok, "a trade's box is up ({}): tapping OK", 1.5),
+    ("trade limit", trade_limit_ok, "the daily trading limit box is up: tapping OK", 1.5),
     ("manage favorite", manage_favorite, "the Manage Favorite Search box is up: its X", 1.0),
     ("exit", exit_box, "'exit Pokémon GO?' is up: CANCEL", 1.5),
     ("evolve", evolve_box, "an 'evolve?' box came up: NO", 1.0),

@@ -351,12 +351,24 @@ def label(p, name):
 
 # ---------- getting to the friend page ----------
 
+def own_leftover(p):
+    """a half-made trade with the other account, at a regular cost: one a stopped run of this script left (2026-11-09:
+    a stop with the iPhone on a detail page left the Pixel on the confirm screen, and the next run stopped on it).
+    Backing out never confirms. A special trade (made by hand) or a trade with anyone else is left alone"""
+    if not p.find(lambda t: p.friend.lower() in t[4].lower() and t[1] < 0.2):
+        return False
+    return p.screen == "warning" or cost_ok(p)[0]
+
+
 def to_friend(p, ours=False):
     """ours: this run's own round failed, so a half-made trade is left too (nothing is ever confirmed on the way out)"""
     p.live = False
     unknown, backs, empty = 0, 0, 0
     for i in range(40):  # room for a few Backs out of popups
         s = p.now() if i == 0 else p.look()
+        if not ours and s in ("warning", "confirm") and own_leftover(p):
+            log(f"{p.name}: a trade with {p.friend} left half-made ({s}): backing out of it")
+            ours = True
         unknown = unknown + 1 if s == "unknown" else 0
         if s == "friend":
             name = friend_name(p)

@@ -310,7 +310,7 @@ class Door:
         return got
 
     def power_up(self, info, v, tile_cp, levels=None):
-        """one or two power-ups first if that reaches a higher Candy XL tier on transfer (cleantrades' rule).
+        """a few power-ups first if that reaches a higher Candy XL tier on transfer (cleantrades' rule).
         levels: what the facts found, for when the cost doesn't read now"""
         for _ in range(3):  # back from the caught date at the bottom: wait until the cost reads
             now, texts, _ = base.steady_detail()

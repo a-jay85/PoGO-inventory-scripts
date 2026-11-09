@@ -17,12 +17,39 @@ class Unsure(Pass):
 
 DUST_FLOOR = 1_000_000
 LOOK = False  # --look: read the levels, power up and tag nothing
-PLAYS = {14: 15, 19: 20, 22: 23, 30: 31}  # level -> the tier it crosses into (2 taps, or 1 from the half level)
-CANDY = {14: 2, 19: 2, 22: 3, 30: 4}  # candy per tap there (purified rounds up to the same)
+XL_ODDS = [(1, 25), (15, 125), (20, 250), (23, 400), (26, 500), (31, 750)]  # (from level, Candy XL on transfer, per mille)
+PLAY_DUST = 40_000  # Stardust per Candy XL gained, at most: the dearest of the normal plays (19, 22 and 30 each cost it)
 DUST = [(1, 200), (3, 400), (5, 600), (7, 800), (9, 1000), (11, 1300), (13, 1600), (15, 1900), (17, 2200),
         (19, 2500), (21, 3000), (23, 3500), (25, 4000), (27, 4500), (29, 5000), (31, 6000), (33, 7000),
         (35, 8000), (37, 9000), (39, 10000)]  # (from level, Stardust a power-up)
 DUST_RATE = (1, 0.5, 0.9, 0.45)  # normal, lucky, purified, both
+
+
+def dust_at(lv):
+    """Stardust for one power-up from this level (before the lucky / purified discount)"""
+    return next(c for first, c in reversed(DUST) if lv >= first)
+
+
+def xl_odds(lv):
+    return next(p for first, p in reversed(XL_ODDS) if lv >= first)
+
+
+def plays_for(rate):
+    """level -> the next Candy XL tier on transfer, where reaching it costs at most PLAY_DUST Stardust per Candy XL
+    gained (~/claude-plans/_reports/personal/pogo/xl-transfer-roi.md). Candy isn't counted: it's plentiful. The next
+    tier only: a step past it is scored on its own, and none passes"""
+    out = {}
+    for lv in range(1, XL_ODDS[-1][0]):
+        to = next(first for first, _ in XL_ODDS if first > lv)
+        dust = sum(round(dust_at(lv + k / 2) * rate) for k in range((to - lv) * 2))
+        if dust * 1000 <= PLAY_DUST * (xl_odds(to) - xl_odds(lv)):
+            out[lv] = to
+    return out
+
+
+PLAYS = plays_for(DUST_RATE[0])  # {14: 15, 19: 20, 22: 23, 30: 31}: 2 taps (1 from the half level)
+# lucky, half the Stardust: a level 2 back costs the same per Candy XL (4 taps), and 25 -> 26 sits right on PLAY_DUST
+LUCKY_PLAYS = plays_for(DUST_RATE[1])  # {13: 15, 14: 15, 18: 20, 19: 20, 21: 23, 22: 23, 25: 26, 29: 31, 30: 31}
 PURIFIED_AT = 25  # purifying sets the level to 25
 MAX_PLUS = 4  # + taps to find the level: from 19 the cost only jumps on the 5th power-up (at 21)
 
@@ -78,11 +105,6 @@ def cp_levels(species, hp, cp):
     return sorted(out)
 
 
-def dust_at(lv):
-    """Stardust for one power-up from this level (before the lucky / purified discount)"""
-    return next(c for first, c in reversed(DUST) if lv >= first)
-
-
 def page_cost(texts):
     """the Stardust next to POWER UP on the detail page, or None if it can't be read"""
     btn = [t for t in texts if ui.norm(t[4]) == "POWER UP" and t[0] < 0.4 and t[1] > 0.6]
@@ -126,8 +148,7 @@ def cost_levels(texts, cp):
         cost = None
     if cost is None:
         return None, []
-    lucky = any(ui.norm(t[4]).startswith("LUCKY POK") for t in texts)
-    rate, purified = DUST_RATE[1::2] if lucky else DUST_RATE[0::2]
+    rate, purified = DUST_RATE[1::2] if is_lucky(texts) else DUST_RATE[0::2]
     if cost == round(dust_at(PURIFIED_AT) * purified):
         return cost, [PURIFIED_AT]
     if cost > round(DUST[-1][1] * rate):  # past the table: an XL Candy power-up, level 40+
@@ -218,21 +239,26 @@ def fits(c, rows):
                for m in DUST_RATE)
 
 
-def steps(cands):
+def is_lucky(texts):
+    return any(ui.norm(t[4]).startswith("LUCKY POK") for t in texts)
+
+
+def steps(cands, plays=PLAYS):
     """power-ups each possible level needs to reach its XL tier (None: not a play)"""
-    return {int((PLAYS[math.floor(lv)] - lv) * 2) if math.floor(lv) in PLAYS else None for _, _, lv in cands}
+    return {int((plays[math.floor(lv)] - lv) * 2) if math.floor(lv) in plays else None for _, _, lv in cands}
 
 
 def power_up(info, texts, levels=None):
-    """1-2 power-ups if this one sits right under an XL tier. -> power-ups made. Raise Pass to leave it.
+    """1-2 power-ups (up to 4 for a lucky one) if this one sits right under an XL tier (PLAYS, LUCKY_PLAYS). -> power-ups made. Raise Pass to leave it.
     Its level comes from the dialog: + adds a power-up, and each total (CP after, Stardust) rules levels out.
     levels: the caller's (its IVs, CP and HP can name the one level): narrows the cost's, or stands in when it doesn't read"""
     cost, lvs = cost_levels(texts, info["cp"])
     lvs = sorted(set(lvs) & set(levels or ())) or lvs or sorted(levels or ())
     if not lvs:
         raise Unsure(f"can't read the power-up cost ({cost})")
-    if not any(math.floor(lv) in PLAYS for lv in lvs):  # the cost rules out every play: no taps
-        raise Pass(f"{cost} dust a power-up means level {lvs[0]}-{lvs[-1]}: none is {'/'.join(map(str, PLAYS))}")
+    plays = LUCKY_PLAYS if is_lucky(texts) else PLAYS  # (lucky: half the Stardust, more plays)
+    if not any(math.floor(lv) in plays for lv in lvs):  # the cost rules out every play: no taps
+        raise Pass(f"{cost} dust a power-up means level {lvs[0]}-{lvs[-1]}: none is {'/'.join(map(str, plays))}")
     species = ui.species_for(info["name"], info["texts"]) or nickname_species(info, texts)
     if not species:
         raise Unsure(f"{cost} dust: don't know the species of {info['name']!r}")
@@ -246,18 +272,18 @@ def power_up(info, texts, levels=None):
     rows = [(1, d[0], d[1])]
     cands = [c for c in candidates(species, info["hp"], cp, d[0]) if fits(c, rows)]
     cands = [c for c in cands if c[2] in lvs] or cands  # (a level already known needs no + to find it)
-    while len(steps(cands)) > 1 and len(rows) < MAX_PLUS + 1:  # a play for some levels only: one more +
+    while len(steps(cands, plays)) > 1 and len(rows) < MAX_PLUS + 1:  # a play for some levels only: one more +
         d = more(cp, d)
         rows.append((len(rows) + 1, d[0], d[1]))
         cands = [c for c in cands if fits(c, rows)]
     lvs = sorted({lv for _, _, lv in cands})
-    need = steps(cands)
+    need = steps(cands, plays)
     say = f"level {lvs or '?'} (CP{cp} -> " + ", ".join(f"{n}x: CP{b} {t} dust" for n, b, t in rows) + ")"
     if len(need) != 1 or None in need:
         cancel(d[3], d[5])
-        raise Pass(f"{say}: no XL tier one or two power-ups away")
+        raise Pass(f"{say}: no XL tier a cheap jump away")
     n = need.pop()
-    target = PLAYS[math.floor(lvs[0])]
+    target = plays[math.floor(lvs[0])]
     if n != len(rows):  # the dialog shows more power-ups than it needs: open it again and count up
         cancel(d[3], d[5])
         d = dialog(info)
@@ -268,7 +294,7 @@ def power_up(info, texts, levels=None):
     if after not in want:  # (IVs that fit can still part ways on the CP n power-ups later: the level is the same)
         cancel(d[3], d[5])
         raise Stop(f"{n} power-up(s) should give CP{sorted(want)}, the dialog says CP{after}")
-    candy = sum(CANDY[math.floor(lvs[0])] for _ in range(n))
+    candy = sum(candy_at(lvs[0] + 0.5 * k) for k in range(n))  # (25.5 -> 26 is still 3)
     if have_candy < candy:
         cancel(d[3], d[5])
         raise Pass(f"{say}: needs {candy} candy, has {have_candy}")

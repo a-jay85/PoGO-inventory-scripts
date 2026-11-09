@@ -15,7 +15,8 @@ Start with Pokémon GO on the Pokémon screen. Four steps, always in this order:
  2. Clean Trades + &countcandyxl0-359 (under 360 Candy XL). Each one is opened and POWER UP tapped: the dialog's
     "CP a -> b" and Stardust cost narrow its level. Each + (one more power-up) shows new totals that narrow it
     more. At level 14, 19, 22 or 30 (or the half level after) it gets 1-2 power-ups in one go, to reach 15, 20, 23
-    or 31: the next XL-on-transfer tier
+    or 31: the next XL-on-transfer tier. A lucky one (half the Stardust) also at 13, 18, 21, 25 or 29, up to 4
+    (powerup.LUCKY_PLAYS: at most 40,000 Stardust per Candy XL, as the normal ones)
     (~/claude-plans/_reports/personal/pogo/xl-transfer-roi.md). Anything else: CANCEL. Never below 1,000,000 Stardust.
  3. CyrillJan only (HashTagAJay doesn't need the XP): Clean Trades + a trade evolution (free once traded: Kadabra, Machoke, Graveler, Haunter, Boldore, Gurdurr,
     Karrablast, Shelmet, Phantump, Pumpkaboo) -> tag Evo. Not the base forms (Abra...).

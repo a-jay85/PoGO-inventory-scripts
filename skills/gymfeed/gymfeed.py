@@ -139,15 +139,19 @@ def berry_count(texts):
     small 1-digit count there"""
     count = berries(texts)
     if count is None and ui.ANDROID:
-        from PIL import Image
+        from PIL import Image, ImageOps
         im = Image.open(ui.android.sharp())
         W, H = im.size
         x0, y0, x1, y1 = 0.38, 0.84, 0.78, 0.93
         crop = im.crop((int(x0 * W), int(y0 * H), int(x1 * W), int(y1 * H)))
-        crop.resize((crop.width * 2, crop.height * 2)).save("/tmp/gymfeed_count.png")
-        for t in ui.ocr("/tmp/gymfeed_count.png"):
-            if re.fullmatch(r"\d{1,4}", t[4].strip()):
-                return int(t[4].strip())
+        crop = crop.resize((crop.width * 2, crop.height * 2))
+        # a 1-digit count sits faint, grey on a dark bubble: OCR saw no '8' or '3' there, so 5 hungry Pokémon read as
+        # full and a run fed 5 berries of the 47 it had to spare (2026-11-08). Stretched to full contrast it reads
+        for pic in (crop, ImageOps.autocontrast(crop.convert("L"), cutoff=1)):
+            pic.save("/tmp/gymfeed_count.png")
+            for t in ui.ocr("/tmp/gymfeed_count.png"):
+                if re.fullmatch(r"\d{1,4}", t[4].strip()):
+                    return int(t[4].strip())
     return count
 
 
@@ -487,10 +491,16 @@ def steady_look(me):
     return got
 
 
-def sane(now, count):
-    """a count read while feeding -> it, or `count` if it moved too far for one tap: a misread (143 read so low it
-    counted 100 berries and ended a run, 2026-11-06)"""
-    return count if now is not None and abs(count - now) > MAX_DROP else now
+def sane(now, count, taps=0, since=1):
+    """a count read while feeding -> it, or `count` if it's a misread: it moved too far (143 read so low it counted
+    100 berries and ended a run, 2026-11-06), or it went up after a tap. A count only falls while feeding: one 9 read
+    over a real 7 stuck the run at 9, every real count (5, 4, 3) then thrown out as too far, and it left a hungry
+    Pokémon with 1 counted of 5 eaten (2026-11-08). It may fall by one per tap (`since`: taps since it last fell)"""
+    if now is None:
+        return None
+    if taps and now > count:
+        return count
+    return count if abs(count - now) > max(MAX_DROP, since) else now
 
 
 def berry_back():
@@ -519,13 +529,13 @@ def feed(kind, have, left, me):
         # Pokémon behind (Blissey and Hitmonchan -> Greninja, 2026-11-06), so no tap before a look BERRY_WAIT after
         # the last one
         screen, texts, path, bounds = steady_look(me)
-        now = sane(berry_count(texts), count)
+        now = sane(berry_count(texts), count, taps, stuck + 1)
         if now is None and not moved(screen, texts, me):
             now, screen, texts, bounds = berry_back()
             if moved(screen, texts, me):
                 screen, texts, path, bounds = steady_look(me)
                 now = berry_count(texts)
-            now = sane(now, count)
+            now = sane(now, count, taps, stuck + 1)
         if moved(screen, texts, me):
             keep_capture(f"moved-{me[0]}")
             log(f"    the page changed from {me[0]} to {page_name(texts)}: stopping")

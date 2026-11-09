@@ -357,6 +357,11 @@ def to_friend(p, ours=False):
                 p.tap(*at)
                 time.sleep(1)
                 continue
+            if not button and s == "expired" and p.find(lambda t: "TRY AGAIN LATER" in ui.up(t)):
+                # 2026-11-08 iPhone: "Trading service temporarily unavailable. Try again later." can be a pink toast
+                # with no OK over the trade screen. It fades by itself: look again, then back out of what's under it
+                time.sleep(1)
+                continue
             if not button:
                 raise Stop(f"{p.name}: {s} dialog without its button: {p.summary()}")
             p.tap_text(button)

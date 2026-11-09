@@ -521,6 +521,20 @@ spent = set()  # kinds fed down to their floor this run: not picked again
 razz_seen = None  # the Razz in the bag as last read this run. None: not read yet
 
 
+def menu_tap(spot, bounds):
+    """a tap in the BERRIES menu that shuts it (a berry, or above it), again if the menu stays: the iPhone lost
+    the tap on NANAB once and the run stopped there (2026-11-08)"""
+    for _ in range(3):
+        base.click(*spot, bounds, fuzz=0.01)
+        try:
+            return base.wait_for("feed", look=look, timeout=3, capture=False)
+        except base.Lost:
+            screen, _, _, bounds = look()
+            if screen != "berrymenu":
+                break
+    return base.wait_for("feed", look=look, timeout=3)
+
+
 def choose():
     """on a gym Pokémon's page: the BERRIES menu, the first FEEDABLE kind with more than its floor picked
     -> (kind, its count), or None: none to spare (the menu shut again, out_of_berries set)"""
@@ -547,12 +561,10 @@ def choose():
     for kind, floor in FEEDABLE.items():
         count, spot = menu.get(kind, (None, None))
         if count is not None and count > floor and kind not in spent:
-            base.click(*spot, bounds, fuzz=0.01)
-            base.wait_for("feed", look=look, timeout=6)
+            menu_tap(spot, bounds)
             time.sleep(0.8)  # the picked berry floats in
             return kind, count
-    base.click(*OFF_MENU, bounds)
-    base.wait_for("feed", look=look, timeout=6)
+    menu_tap(OFF_MENU, bounds)
     out_of_berries = True
     return None
 

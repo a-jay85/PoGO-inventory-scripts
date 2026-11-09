@@ -941,9 +941,18 @@ def check_confirm(p):
     raise Stop(f"{p.name}: won't confirm: {why}")
 
 
+def look_past_lobby(p):
+    """a look on the confirm screen. A capture that misses its CONFIRM/CANCEL button reads as the lobby (it has
+    ME LV too): look again for up to 2 s. (11-08 one lobby read right after a lost iPhone tap passed for the trade
+    animation: CONFIRM was never tapped again and the run stopped on the confirm screen)"""
+    return base.settle(p.look, lambda s: s != "lobby", timeout=2)
+
+
 def confirm(p):
     """CONFIRM once. Once it lands the button reads CANCEL in the same spot: only tap again while it says CONFIRM"""
     for attempt in range(6):
+        if p.screen == "lobby":
+            look_past_lobby(p)
         if p.screen == "detail":
             # the tap landed on the Pokémon's own card: its info opened over the confirm screen. Close it
             log(f"{p.name}: CONFIRM opened the Pokémon's info: closing it")
@@ -960,7 +969,7 @@ def confirm(p):
         end = time.time() + 2.5  # a tap that took reads CANCEL within a look or two. (Six looks here kept a lost
         while time.time() < end:  # iPhone tap waiting ~9 s)
             time.sleep(0.3)
-            if p.look() == "detail":
+            if look_past_lobby(p) == "detail":
                 break
             t = confirm_label(p.texts) if p.screen == "confirm" else None
             if not t or ui.norm(t[4]) == "CANCEL":

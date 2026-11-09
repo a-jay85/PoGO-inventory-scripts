@@ -83,7 +83,6 @@
   "skills/trade/trade.py blank_list": 1,
   "skills/trade/trade.py check_confirm": 1,
   "skills/trade/trade.py choose": 2,
-  "skills/trade/trade.py confirm": 1,
   "skills/trade/trade.py finish.close": 1,
   "skills/trade/trade.py open_panel": 1,
   "skills/trade/trade.py pick_pile": 1,

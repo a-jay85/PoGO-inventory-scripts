@@ -84,7 +84,7 @@ SWIPES = [
 
 CP_RE = pages.CP_RE
 # a gym view's CP label as OCR reads it over the busy gym: 'CP2407', 'P633', '฿633', 'GP2940', 'g2855', '2833'
-LABEL_RE = re.compile(r"^\W*[^\W\d]{0,2}\s*\d{2,4}\W*$")
+LABEL_RE = re.compile(r"^\W*[^\W\d]{0,2}\W?\s*\d{2,4}\W*$")  # and 'c*1677' (iPhone, 2026-11-08)
 DEFEND_RE = pages.DEFEND_RE  # '0d 3h 7m' on a gym Pokémon's page
 
 
@@ -106,7 +106,7 @@ def where(path, texts):
         return "berrymenu"
     if pages.gym_feed(texts):
         return "feed"
-    if pages.gym_view(texts):
+    if gym_view(texts):
         return "gymview"
     return home.where(path, texts)
 
@@ -129,16 +129,6 @@ def all_labels():
         if all(abs(c[0] - o[0]) > 0.06 or abs(c[1] - o[1]) > 0.03 for o in labels):
             labels.append(c)
     return labels
-
-
-def shown_count(texts):
-    """the number beside the floating berry: berries this Pokémon got since it went into the gym, or None. For the log
-    only (it shows what a run really fed); OCR often misses it"""
-    for t in texts:
-        st = t[4].strip()
-        if re.fullmatch(r"\d{1,4}", st) and 0.84 < t[1] < 0.92 and 0.38 < t[0] + t[2] / 2 < 0.72:
-            return int(st)
-    return None
 
 
 def berry_colours(path):
@@ -213,7 +203,24 @@ def like(a, b, enough):
 def page_name(texts):
     """the name at the top of a gym Pokémon's page"""
     top = [t for t in texts if (0.05 if ui.ANDROID else 0.08) < t[1] < 0.13 and not re.fullmatch(r"\W*[cC][pP]?\s*\d+\W*", t[4].strip())]
-    return " ".join(t[4].strip() for t in sorted(top, key=lambda t: t[0]))
+    words = " ".join(t[4].strip() for t in sorted(top, key=lambda t: t[0])).split()
+    return " ".join(w for w in words if not dust(w))
+
+
+def dust(word):
+    """a word of the '+10 STARDUST' that floats over the name after each berry: 'STABEUST', 'STARNUST•', '+10'.
+    Left in, it made the page read as another Pokémon's and stopped the feeding (5 of 6 on 2026-11-08)"""
+    letters = re.sub(r"[^A-Z]", "", word.upper())
+    return bool(re.fullmatch(r"\+\d+\W*", word)) or (len(letters) >= 6 and like(letters, "STARDUST", 0.6))
+
+
+def gym_view(texts):
+    """pages.gym_view, or the same with the looser CP labels OCR reads over a busy gym ('GP2008,', 'c*1677'): the
+    gym's name across the top, a label in the middle. With only those, it read as an unknown screen (2026-11-08)"""
+    if pages.gym_view(texts):
+        return True
+    return any(LABEL_RE.match(t[4].strip()) and 0.3 < t[1] < 0.66 and t[3] < 0.04 for t in texts) \
+        and any(t[1] < 0.18 and t[2] > 0.15 for t in texts if not LABEL_RE.match(t[4].strip()))
 
 
 def who(texts):
@@ -552,15 +559,15 @@ def choose():
 
 def moved(screen, texts, me):
     """a page that reads as a gym Pokémon's, with another name than me's. The feeding can hide the name: not moved"""
-    name = page_name(texts)
-    return screen == "feed" and name and not like(name, me[0], 0.6)
+    name, mine = (re.sub(r"\s", "", n.upper()) for n in (page_name(texts), me[0]))
+    return screen == "feed" and name and not like(name, mine, 0.6)
 
 
 def steady_look(me):
     """look(), again if the page seems to have changed: the stardust a berry gives floats over the name ('+10',
     'Scizor STARGUSTO') and goes in a moment. It stopped Blissey at 3 berries (2026-11-06). A real change stays"""
     got = look()
-    for _ in range(2):
+    for _ in range(4):
         if not moved(got[0], got[1], me):
             break
         time.sleep(0.7)
@@ -646,7 +653,6 @@ def feed_here(seen, total, limit):
         keep_capture(f"full-{me[0]}")
         log(f"  {me[0]} ({me[1]}): full")
         return 0
-    before = shown_count(texts)
     got = 0
     while total + got < limit:
         picked = choose()
@@ -658,9 +664,7 @@ def feed_here(seen, total, limit):
         got += n
         if why != "floor":
             break
-    after = shown_count(look()[1])
-    seen_n = f" (the page's count {before} -> {after})" if before is not None or after is not None else ""
-    log(f"  {me[0]} ({me[1]}): fed {got}{seen_n}")
+    log(f"  {me[0]} ({me[1]}): fed {got}")
     return got
 
 

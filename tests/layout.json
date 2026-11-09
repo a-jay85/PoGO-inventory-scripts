@@ -1198,6 +1198,7 @@
    "log",
    "look",
    "lost",
+   "lost_name_tail",
    "narrow",
    "new_run_dir",
    "newest",

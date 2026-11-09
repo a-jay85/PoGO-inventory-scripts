@@ -1025,6 +1025,14 @@ def leave_rename(button, name=None, same=same_name):
     raise Stop(f"{button} didn't close the nickname dialog")
 
 
+def lost_name_tail(got, name, same=same_name):
+    """iPhone: the last key or two of a typed name can get lost, and a whole retype loses them again ('Pvp L94' showed
+    'Pvp L', then 'Pvp L9', 2026-11-09; the same bug as search.lost_tail). -> the 1-2 digits the box is short of, or ''"""
+    got = (got or "").strip()
+    tail = name[len(got):]
+    return tail if got and len(tail) in (1, 2) and tail.isdigit() and same(got, name[:len(got)]) else ""
+
+
 def do_rename(name, same=same_name):
     """same(read, wanted): how loosely the OCR of the name may match (each skill's names misread their own way)"""
     still_opened("before the rename")
@@ -1038,6 +1046,11 @@ def do_rename(name, same=same_name):
             time.sleep(random.uniform(0.15, 0.25))  # typing straight after cmd+a once dropped the first letter
             type_text(name)
             got = settle(field_text, lambda g: same(g, name), timeout=1.5)
+            tail = lost_name_tail(got, name, same)
+            if tail and not ui.ANDROID:  # typing it all again loses the same keys again
+                log(f"  field shows {got!r}, wanted {name!r}: typing the lost end")
+                type_text(tail)
+                got = settle(field_text, lambda g: same(g, name), timeout=1.5)
             if same(got, name):  # the typing itself is exact keycodes; only the reading is fuzzy
                 break
             log(f"  field shows {got!r}, wanted {name!r}" + (", retyping" if attempt == 0 else ""))

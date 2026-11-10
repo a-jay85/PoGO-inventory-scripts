@@ -486,9 +486,10 @@ def tap(target, dry=False):
             continue
         except Refused as e:
             # caught mid-animation: a menu still opening, or the appraisal still fading off the detail page, its X not
-            # drawn yet ("found 0 close buttons on 'detail'" stopped /pvpc, Pixel, 2026-11-07)
+            # drawn yet ("found 0 close buttons on 'detail'" stopped /pvpc, Pixel, 2026-11-07), or a power-up's "CP417 +2"
+            # still over the page, its buttons hidden ("found 0 menu buttons", tradeable, Pixel, 2026-11-09)
             if any(w in str(e) for w in ("screen is 'unknown'", "found 0 matches", "found 0 close buttons",
-                                         "found 0 appraisal buttons")) and _ < 7:
+                                         "found 0 appraisal buttons", "found 0 menu buttons")) and _ < 7:
                 ui._seen = ui._older = None  # that look was mid-animation: don't reuse it
                 time.sleep(0.4)
                 continue

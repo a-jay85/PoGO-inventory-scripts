@@ -43,6 +43,7 @@ STEPS = {
     "evo":         ("evo/evo.py", set(), set()),
     "roster":      ("roster/roster.py", {"count", "report"}, {"report"}),
     "gymfeed":     ("gymfeed/gymfeed.py", set(), set()),
+    "goplus":      ("goplus/goplus.py", set(), set()),
     "account":     ("shared/account.py", {"HashTagAJay", "CyrillJan"}, set()),
 }
 NEEDS_WORD = {"dex", "roster"}  # these have no default: the first word is a must

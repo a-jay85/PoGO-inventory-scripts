@@ -64,7 +64,7 @@ Python 3, standard library only.
 
 ## Skills
 
-`skills/` holds the scripts, one folder per job: `pvpc`, `ivc`, `cleanup`, `trade`, `gift`, `mega`, `evo`, `dex`, `roster` and `gymfeed`, plus the shared library in `skills/shared/`. Each script's top comment says what it does and how to run it. `python3 pogo.py list` shows every step.
+`skills/` holds the scripts, one folder per job: `pvpc`, `ivc`, `cleanup`, `trade`, `gift`, `mega`, `evo`, `dex`, `roster`, `gymfeed` and `goplus`, plus the shared library in `skills/shared/`. Each script's top comment says what it does and how to run it. `python3 pogo.py list` shows every step.
 
 ## Data files
 

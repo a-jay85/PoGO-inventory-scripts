@@ -26,6 +26,7 @@
    "dex": "dex/dex.py",
    "evo": "evo/evo.py",
    "gift": "gift/gift.py",
+   "goplus": "goplus/goplus.py",
    "gymfeed": "gymfeed/gymfeed.py",
    "ivc": "ivc/run.py",
    "luckydex": "dex/luckydex.py",
@@ -509,6 +510,34 @@
   ],
   "runs": [
    "skills/gift/runs"
+  ]
+ },
+ "skills/goplus/goplus.py": {
+  "copies": {},
+  "names": [
+   "AREA",
+   "CONNECT_TIMEOUT",
+   "FOR",
+   "HERE",
+   "Stop",
+   "ball",
+   "blue",
+   "connect",
+   "green",
+   "keep_capture",
+   "log",
+   "main",
+   "map_trainer",
+   "mauve",
+   "navy",
+   "read",
+   "red",
+   "script",
+   "to_map",
+   "white"
+  ],
+  "runs": [
+   "skills/goplus/runs"
   ]
  },
  "skills/gymfeed/gymfeed.py": {

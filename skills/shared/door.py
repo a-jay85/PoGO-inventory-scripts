@@ -260,7 +260,7 @@ class Door:
             _, t, p, _ = base.look()
             shots.append((t, p))
             if ui.ANDROID and pagefacts.caught_read(t):  # on most pages it shows by now: a second drag adds nothing
-                reads = [t, ui.ocr(ui.android.sharp())]
+                reads = [t, base.sharp_again()]  # (the same screenshot, read 3x bigger: the date's two reads)
             else:
                 reads = tagsheet.scrolled_bottom(bounds, drags=1)
                 for _ in range(2):  # a tall page (Mewtwo's two Mega rows): the date is a drag or two further
@@ -296,7 +296,7 @@ class Door:
     def levels(self, texts, info, sp, ivs, tile_cp):
         """the levels the power-up cost fits. A cost that spans two (4,000 dust: 25 to 26.5, the candy digit not read)
         is narrowed by the appraisal's IVs, CP and HP (two Gengar unsure at 26+, 2026-11-02). -> list, or None"""
-        lvs = powerup.cost_levels(texts, info["cp"])[1]
+        lvs = cost_levels(texts, info["cp"])[1]
         got = self.iv_levels(sp, ivs, info["cp"] or tile_cp, info["hp"], quiet=bool(lvs)) if len(lvs) != 1 else []
         if lvs and got:
             both = sorted(set(lvs) & set(got))
@@ -316,13 +316,13 @@ class Door:
     def power_up(self, info, v, tile_cp, levels=None):
         """a few power-ups first if that reaches a higher Candy XL tier on transfer (cleantrades' rule).
         levels: what the facts found, for when the cost doesn't read now"""
-        for _ in range(3):  # back from the caught date at the bottom: wait until the cost reads
-            now, texts, _ = base.steady_detail()
-            if powerup.cost_levels(texts, now["cp"] or tile_cp)[1]:
+        for _ in range(3):  # back from the caught date at the bottom: wait until the cost reads (read once already: no wait)
+            now, texts, _ = base.steady_detail()  # (power_up still reads its Stardust and Candy off this page)
+            if (known := cost_levels(texts, now["cp"] or tile_cp))[1]:
                 break
             time.sleep(0.5)
-        try:
-            n = powerup.power_up({**info, "cp": now["cp"] or tile_cp}, texts, levels)  # (the walk checked the tile's CP)
+        try:  # (the walk checked the tile's CP)
+            n = powerup.power_up({**info, "cp": now["cp"] or tile_cp}, texts, levels, known=known if known[1] else None)
             log(f"  powered up {n}x before Transfer")
             for _ in range(12):  # the "CP710+31" animation hides the page's buttons: wait it out (2026-10-31)
                 texts = base.look()[1]
@@ -339,6 +339,19 @@ class Door:
                 raise
             log(f"  no power-up: {e}")
         return v
+
+
+def cost_levels(texts, cp):
+    """powerup.cost_levels(), once an open: the same one at the same CP again (OPENED's who: a power-up or a purify
+    changes it) gets the first read that found levels, with no looks. Each look there took ~0.5 s, and a page back from
+    its caught date could take 9 of them (2026-11-09)"""
+    k = (base.OPENED.get("who"), cp)
+    if base.OPENED.get("cost", (None,))[0] == k:
+        return base.OPENED["cost"][1]
+    got = powerup.cost_levels(texts, cp)
+    if got[1]:
+        base.OPENED["cost"] = (k, got)
+    return got
 
 
 def can_evolve(texts):

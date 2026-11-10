@@ -177,7 +177,7 @@ def scrolled_bottom(bounds, drags=2):
         _, texts, _, _ = look()
         reads.append(texts)
         if ui.ANDROID:
-            reads.append(ui.ocr(ui.android.sharp()))
+            reads.append(base.sharp_again())  # (the same screenshot, read 3x bigger)
             break
         time.sleep(0.3)
     return reads

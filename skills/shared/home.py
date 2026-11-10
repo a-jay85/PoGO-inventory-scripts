@@ -29,8 +29,9 @@ STORAGE = ("list", "tag-tab", "detail", "menu", "appraisal", "appraise-intro", "
 OPEN = ("detail", "menu", "appraisal", "appraise-intro", "gym")  # a Pokémon open: back_to_list() closes it
 LOAD_TIMEOUT = 150  # seconds for the game to open and get past its loading screens
 MAX_BACKS = 12  # Back presses (Android) on screens it doesn't know before it gives up
-IOS_OPEN_TRIES = 3  # iPhone: taps on the game's icon (home screen) before it gives up
-DOCK = (0.73, 0.926)  # iPhone: the Poké Ball in the dock, third icon (Spotlight doesn't list the app near the top)
+IOS_OPEN_TRIES = 3  # iPhone: tries at opening the game from the home screen before it gives up
+APP_NAME = "Pokemon GO"  # iPhone: typed into Spotlight, whose Top Hit is then the game wherever its icon sits
+PILL = (0.5, 0.84)  # iPhone: the home screen's Search pill, if its text isn't read
 
 
 def main_menu(texts):
@@ -45,17 +46,19 @@ def home_search(texts):
                for t in texts)
 
 
-def dock_icon(path):
-    """iPhone: the game's icon in the home screen's dock (red top, black band, white button: the usual icon). Its
-    weather widget reads as a search bar, so this and home_search go before classify"""
-    from PIL import Image
-    im = Image.open(path).convert("RGB")
-    W, H = im.size
-    px = lambda fx, fy: im.getpixel((int(fx * W), int(fy * H)))
-    red = [px(DOCK[0] + dx, 0.91) for dx in (-0.03, 0.03)]
-    white = [px(DOCK[0] + dx, 0.945) for dx in (-0.03, 0, 0.03)]
-    return all(r > 200 and g < 120 and b < 90 for r, g, b in red) and min(px(DOCK[0], 0.93)) > 230 \
-        and all(min(p) > 200 for p in white)
+def spotlight(texts):
+    """iPhone: Spotlight is open (its 'Top Hit' heading). A run left there counts as the home screen"""
+    return any(ui.norm(t[4]) == "TOP HIT" for t in texts)
+
+
+def top_hit(texts):
+    """iPhone: Spotlight's Top Hit, upper case (the row just under the 'Top Hit' heading), None if none.
+    Pokémon HOME can be in the same list, so only an exact POKÉMON GO opens anything"""
+    head = next((t for t in texts if ui.norm(t[4]) == "TOP HIT"), None)
+    if not head:
+        return None
+    below = [t for t in texts if head[1] + head[3] < t[1] < head[1] + 0.2]
+    return ui.norm(min(below, key=lambda t: t[1])[4]).replace("POKMON", "POKEMON") if below else None
 
 
 def splash(texts):
@@ -67,7 +70,7 @@ def splash(texts):
 def where(path, texts):
     """the screens start() cares about: a storage screen, tags/rename, map, mainmenu, exit, signin, anr, ios-home,
     mirroring, blank, unknown"""
-    if not ui.ANDROID and (home_search(texts) or dock_icon(path)):
+    if not ui.ANDROID and (home_search(texts) or spotlight(texts)):
         return "ios-home"
     screen = ui.classify(texts)
     if screen != "unknown":
@@ -149,11 +152,28 @@ def keyboard_up():
 
 
 def iphone_open():
-    """iPhone Mirroring's own shortcut cmd+1 goes to the home screen, then the game's icon in the dock: opens the
-    game, or brings it back where it was"""
+    """the game in front on the iPhone, wherever its icon sits (dock, any page, a folder, the App Library):
+    iPhone Mirroring's cmd+1 goes to the home screen, its Search pill opens Spotlight, 'Pokemon GO' typed there
+    makes the game the Top Hit, and Return opens it (or brings it back where it was). Return is only pressed when
+    the Top Hit reads POKÉMON GO. -> True if it pressed Return"""
     base.key("1", cmd=True)
-    time.sleep(1.5)
-    base.click(*DOCK, ui.capture()[1], spaced=False)  # (front() first, as before; no tap gap, but it counts as a tap)
+    _, texts, _, bounds = base.settle(look, lambda got: home_search(got[1]), timeout=4)
+    pill = next((t for t in texts if home_search([t])), None)
+    if pill:
+        base.tap_box(pill, bounds)
+    else:
+        base.click(*PILL, bounds)
+    base.settle(look, lambda got: not home_search(got[1]), timeout=3)  # the pill goes when Spotlight opens
+    base.key("a", cmd=True)  # (a query left from last time would get the name added to it)
+    base.key("delete")
+    base.type_text(APP_NAME)
+    hit = top_hit(base.settle(look, lambda got: top_hit(got[1]) == "POKEMON GO", timeout=4)[1])
+    if hit != "POKEMON GO":
+        log(f"  Spotlight's Top Hit is {hit!r}, not Pokémon GO: back to the home screen")
+        base.key("1", cmd=True)
+        return False
+    base.key("return")
+    return True
 
 
 # ---------- start ----------

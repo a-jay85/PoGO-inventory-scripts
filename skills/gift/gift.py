@@ -1006,6 +1006,12 @@ def send_gift():
                 raise Stop("a sticker seems attached: nothing sent")
             send = label("SEND", 0.78, 0.9)
             if not send:
+                # (a toast can slide over SEND for a few seconds: '2 Pass Tasks Updated' left 'SEN', 2026-11-10
+                # Pixel). Look again until it slides away, no taps
+                send = base.settle(lambda: look() == "preview" and label("SEND", 0.78, 0.9), bool, timeout=6)
+                if send:
+                    log("  SEND was covered: found it once the screen cleared")
+            if not send:
                 raise Stop(f"no SEND on the preview: {summary()}")
             if DRY:
                 log(f"  DRY RUN: would SEND {title}")

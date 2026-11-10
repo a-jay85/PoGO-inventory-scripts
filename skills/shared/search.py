@@ -844,7 +844,77 @@ def edit_tail(prev, q, check):
     return texts
 
 
-def start_search(q, check=None, edit=False, nudges=2):
+LIVE = {"q": None}  # Android: the search count_live() left typed in the bar, keyboard still up (None: not)
+LIVE_WAIT = 3.0  # seconds a search typed with the keyboard up gets for its count and tiles to show
+
+
+def keyboard_up(texts):
+    return any(t[1] > 0.85 and t[4].strip() == "?123" for t in texts)
+
+
+def live_read(q, check):
+    """one look with the keyboard up -> (count or None, path, texts, bounds). The count only when the bar reads q and
+    every result shows as a tile above the keyboard, SHOW EVOLUTIONARY LINE unticked: then nothing is hidden under it"""
+    path, bounds = ui.capture()
+    texts = ui.ocr(path)
+    n = result_count(texts)
+    if n is None or ui.search_panel(texts) or not keyboard_up(texts) or len(ui.tile_cps(texts)) != n \
+            or ui.evo_ticked(path, texts) is not False or not check(bar_read(texts), q):
+        return None, path, texts, bounds
+    return n, path, texts, bounds
+
+
+def live_settle(q, check):
+    """live_read until two looks in a row agree -> as live_read (None: the results fill the space above the keyboard,
+    or never showed right)"""
+    last = [None]
+
+    def read():
+        r = live_read(q, check)
+        same, last[0] = r[0] is not None and last[0] == r[0], r[0]
+        return r, same
+    return base.settle(read, lambda v: v[1], LIVE_WAIT)[0]
+
+
+def count_live(q, check):
+    """Android, a search only counted: type it with the keyboard up and read the count above the keyboard. When every
+    result is a tile above it, the count is sure without Return, and the next search edits this one in place (no
+    Return, no tap on the bar, no clear). -> (path, texts, bounds), or None: the caller goes on the usual way, and if
+    LIVE["q"] == q the search is typed, keyboard up, and only needs Return"""
+    prev, LIVE["q"], LAST["q"] = LIVE["q"], None, None
+    typed = False
+    if prev:
+        path, bounds = ui.capture()
+        texts = ui.ocr(path)
+        if keyboard_up(texts) and not ui.search_panel(texts) and check(bar_read(texts), prev):
+            k = len(os.path.commonprefix([prev, q]))
+            ui.android.shell("input keyevent KEYCODE_MOVE_END" + " 67" * (len(prev) - k))
+            type_text(q[k:])
+            typed = True
+        else:
+            log(f"  the keyboard isn't up holding {prev!r}: typing {q!r} the usual way")
+    if not typed:
+        c = clear_search()
+        if c == "list":
+            tap("search")
+            time.sleep(random.uniform(1.0, 1.3))
+        path, bounds = ui.capture()
+        if not ui.search_panel(ui.ocr(path)) or not type_into_panel(q, bounds, check):
+            return None
+    LIVE["q"] = q
+    n, path, texts, bounds = live_settle(q, check)
+    if n == 0:  # a 0 gets a nudge, as rerun_blank's: one more key and a delete make the game run it again
+        ui.android.shell("input keyevent KEYCODE_MOVE_END")
+        type_text("A")
+        key("delete")
+        time.sleep(0.3)
+        n, path, texts, bounds = live_settle(q, check)
+    if n is None:
+        return None
+    return path, texts, bounds
+
+
+def start_search(q, check=None, edit=False, nudges=2, live=False):
     """type one search (Return, SHOW EVOLUTIONARY LINE unticked). -> (path, texts, bounds) of the results, at the top.
     check(got, q): does the bar's read show q (default bar_shows; tagsheet.strict is stricter).
     edit: if the bar still holds the last search and its list didn't scroll, edit its end (edit_tail).
@@ -852,24 +922,36 @@ def start_search(q, check=None, edit=False, nudges=2):
     check = check or bar_shows
     global scrolled
     t0 = time.time()
+    typed = False
+    if live and ui.ANDROID:
+        got = count_live(q, check)
+        if got:
+            log(f"  timing: counted with the keyboard up, {time.time() - t0:.1f}s")
+            return got
+        typed = LIVE["q"] == q  # typed, keyboard up, but more results than show above it: Return and read the list
+    LIVE["q"] = None
     prev, LAST["q"] = LAST["q"], None
-    if edit and prev and prev != q and not scrolled and edit_tail(prev, q, check):
+    if typed:
+        attempts = range(3)
+    elif edit and prev and prev != q and not scrolled and edit_tail(prev, q, check):
         log(f"  timing: edited the end, {time.time() - t0:.1f}s")
         attempts = []  # (no clear, no typing it whole)
     else:
         attempts = range(3)
     for attempt in attempts:
-        c = clear_search()
-        t1 = time.time()
-        if c == "list":
-            tap("search")
-            time.sleep(random.uniform(1.0, 1.3))  # the panel comes up
-        path, bounds = ui.capture()
-        if not ui.search_panel(ui.ocr(path)):
-            log("search panel didn't open")
-            continue
-        if not type_into_panel(q, bounds, check):
-            continue
+        c, t1 = "typed", time.time()
+        if not (typed and not attempt):
+            c = clear_search()
+            t1 = time.time()
+            if c == "list":
+                tap("search")
+                time.sleep(random.uniform(1.0, 1.3))  # the panel comes up
+            path, bounds = ui.capture()
+            if not ui.search_panel(ui.ocr(path)):
+                log("search panel didn't open")
+                continue
+            if not type_into_panel(q, bounds, check):
+                continue
         key("return")
         for _ in base.tries(30, 0.02):  # the panel closes and the results show
             got, texts = panel_text(quick=not ui.ANDROID)

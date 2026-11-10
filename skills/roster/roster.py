@@ -211,16 +211,59 @@ def move_term(m):
     return m
 
 
+def family(model, t):
+    """-> [t, its earlier stages one search can count with it] (t first): the earlier stages whose copies all count
+    for t and for nothing else (no attacker of their own, no other form of their dex), same region. Their copies go in
+    t's pile, theirs get 0: team() only ever adds a pile's copies to t's"""
+    known = {s for s in model.sid if s} | set(model.assign)
+    key = lambda s: (model.by[s]["dex"], region(s))
+    alone = lambda s: sum(key(x) == key(s) for x in known) == 1 and model.by[s]["dex"] not in APEX
+    if t in model.assign or not alone(t):
+        return [t]
+    attackers = {s for s in model.sid if s}
+    return [t] + sorted(x for x, to in model.assign.items() if to == t and x not in attackers and alone(x)
+                        and region(x) == region(t))
+
+
+def dex_list(ds):
+    """[246, 247, 248, 404] -> '246-248,404'"""
+    out, ds = [], sorted(set(ds))
+    for d in ds:
+        if out and d == out[-1][1] + 1:
+            out[-1][1] = d
+        else:
+            out.append([d, d])
+    return ",".join(str(a) if a == b else f"{a}-{b}" for a, b in out)
+
+
 def plan(model, pools):
-    """the pools to count -> [(dex, region, [sids])]: each species' forms that one set of searches splits"""
-    out = {}
+    """the pools to count -> [(dex, region, [sids])]: each species' forms that one set of searches splits, or
+    (None, None, family(t)): a family counted by one search"""
+    out, fams = {}, {}
     for s, g, sh in pools:
-        out.setdefault((model.by[s]["dex"], region(s)), set())
+        t = s if s in model.sid else model.assign.get(s, s)
+        f = family(model, t)
+        if len(f) > 1 and s in f:
+            fams[t] = f
+        else:
+            out.setdefault((model.by[s]["dex"], region(s)), set())
     for s in {s for s in model.sid if s} | set(model.assign):
         k = (model.by[s]["dex"], region(s))
         if k in out:
             out[k].add(s)
-    return [(d, r, sorted(ss)) for (d, r), ss in sorted(out.items(), key=lambda kv: (kv[0][0], kv[0][1] or ""))]
+    return [(d, r, sorted(ss)) for (d, r), ss in sorted(out.items(), key=lambda kv: (kv[0][0], kv[0][1] or ""))] + \
+        [(None, None, fams[t]) for t in sorted(fams, key=lambda t: model.by[t]["dex"])]
+
+
+def count_family(model, sids, n):
+    """one search for a whole family (family()): every copy in the first one's pile"""
+    terms = "".join(dict.fromkeys(x for s in sids for x in re.findall(r"&[^&]+", dex.form_terms(s, model.by))))
+    q = f"{dex_list(model.by[s]['dex'] for s in sids)}&{GOOD}{terms}"
+    tot = n(q)
+    sh = n(q + "&shadow") if tot else 0
+    got = {(s, None, b): 0 for s in sids for b in (False, True)}
+    got[(sids[0], None, False)], got[(sids[0], None, True)] = tot - sh, sh
+    return got
 
 
 def count_class(model, d, sids, n, unsure):
@@ -289,7 +332,7 @@ def cmd_count(model, resume):
         raise Stop(f"{resume} is {was}'s count, but {who} is signed in")
     home.start()
     cache = {}
-    n = dex.counter(cache, lambda q, c: log(f"  {q}: {c}"), edit=True)  # 'q' then 'q&shadow': edit the end
+    n = dex.counter(cache, lambda q, c: log(f"  {q}: {c}"), edit=True, live=True)  # 'q' then 'q&shadow': edit the end
 
     for rnd in range(1, 200):
         need = set()
@@ -300,7 +343,7 @@ def cmd_count(model, resume):
         todo = plan(model, need)
         log(f"round {rnd}: {len(todo)} species to count")
         for d, r, sids in todo:
-            counts.update(count_class(model, d, sids, n, unsure))
+            counts.update(count_family(model, sids, n) if d is None else count_class(model, d, sids, n, unsure))
             save(os.path.join(base.RUN_DIR, "counts.json"), counts, unsure, who)
     log(f"counted {len(cache)} searches")
     return counts, unsure, who, base.RUN_DIR

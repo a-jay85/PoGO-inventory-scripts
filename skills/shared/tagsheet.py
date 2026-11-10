@@ -105,23 +105,24 @@ def ios_start(q):
             return
 
 
-def search_exact(q, gap_ok=False, edit=False):
+def search_exact(q, gap_ok=False, edit=False, live=False):
     """type q until the bar reads back all of it. -> the results' OCR texts.
     gap_ok: a search too long for its start and end to meet may leave a middle unread, if there's no '!' in it. Only
     for a search that just counts: one that tags goes through savedsearch.long_search, which checks every piece.
-    edit: when the bar holds the last search, edit its end instead of typing q whole (search.edit_tail)"""
+    edit: when the bar holds the last search, edit its end instead of typing q whole (search.edit_tail).
+    live: only the count matters: read it with the keyboard up when it can (search.count_live)"""
     Q = re.sub(r"\s", "", q)
     _for[0] = q
     try:
-        return _search_exact(q, Q, gap_ok, edit)
+        return _search_exact(q, Q, gap_ok, edit, live)
     finally:
         _for[0] = None
 
 
-def _search_exact(q, Q, gap_ok, edit):
+def _search_exact(q, Q, gap_ok, edit, live):
     for attempt in range(3):
         _views.clear()
-        _, texts, _ = search.start_search(q, check=strict, edit=edit and not attempt)
+        _, texts, _ = search.start_search(q, check=strict, edit=edit and not attempt, live=live and not attempt)
         def enough():
             got.update((k, max(n for v, n in _views if v == k)) for k, _ in _views)
             seen = got.get("start", 0) + got.get("end", 0)

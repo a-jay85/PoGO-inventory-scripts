@@ -895,9 +895,16 @@ def choose(p, i=0):
         if s == "warning":
             warning(p)
             s = p.wait("confirm", "lobby", timeout=8)
-        if s == "confirm" or s == "lobby" and any(re.search(r"CP\s*\d+\s*-\s*\d+", ui.up(t)) for t in p.texts):
+        if s == "lobby" and not picked_card(p):  # the lobby draws our picked card a moment after it shows (11-10)
+            s = base.settle(p.look, lambda s: s != "lobby" or picked_card(p), timeout=4)
+        if s == "confirm" or s == "lobby" and picked_card(p):
             return name.strip()  # (lobby: picked, waiting for the other side to pick)
     raise Stop(f"{p.name}: NEXT didn't lead to the confirm screen: {p.summary()}")
+
+
+def picked_card(p):
+    """the lobby shows the Pokémon we picked: its card's CP range (CP 417 - 470)"""
+    return any(re.search(r"CP\s*\d+\s*-\s*\d+", ui.up(t)) for t in p.texts)
 
 
 def warning(p):

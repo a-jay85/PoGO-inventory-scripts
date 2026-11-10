@@ -1070,6 +1070,9 @@ def do_rename(name, same=same_name):
         tap("field")
         time.sleep(random.uniform(0.25, 0.4))  # field taking focus
         for attempt in range(2):
+            if attempt:  # the field's tap can miss the keyboard: the box stays up with no keys, and nothing types
+                tap("field")  # (iPhone /ivc, 2026-11-10: 'Grookey' stayed through both tries)
+                time.sleep(random.uniform(0.5, 0.7))
             key("a", cmd=True)
             key("delete")
             time.sleep(random.uniform(0.15, 0.25))  # typing straight after cmd+a once dropped the first letter

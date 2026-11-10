@@ -441,6 +441,14 @@ def profile(texts):
     return {"LEVEL", "BUDDY"} <= words and any(squash(n) in squash(" ".join(t[4] for t in texts)) for n in TRAINERS)
 
 
+def clipped_names(texts, below):
+    """OCR can drop the last letter or two of a name that's all there ('HashTagAJa' for HashTagAJay, iPhone, 2026-11-10,
+    on the profile under a gift banner and on /gift's ME tab): the trainers one line above `below` is the start of,
+    all but those letters"""
+    return [n for n in TRAINERS if any(len(n) - 2 <= len(w := squash(t[4])) < len(n) and squash(n).startswith(w)
+                                       for t in texts if t[1] < below)]
+
+
 def trainer(fast=True):
     """the signed-in trainer's name. fast: the storage limit tells it, read twice the same. The header only shows it
     over an empty search ('Q (33)' over any other), so a look on the way in counts, and otherwise the bar gets cleared
@@ -473,10 +481,8 @@ def trainer(fast=True):
             if len(got) != 1:  # the name may still be coming in ('HashTagAJa' under a gift banner, iPhone, 2026-11-10)
                 texts = base.settle(lambda: look()[1], lambda tx: len(names(tx)) == 1, timeout=3)
                 got = names(texts)
-            if not got:  # OCR can drop the last letter or two of a name that's all there ('HashTagAJa' for HashTagAJay,
-                # a gift banner up, iPhone, 2026-11-10): a line that is one trainer's start, all but those letters
-                got = [n for n in TRAINERS if any(len(n) - 2 <= len(w := squash(t[4])) < len(n) and squash(n).startswith(w)
-                                                  for t in texts if t[1] < 0.3)]
+            if not got:
+                got = clipped_names(texts, 0.3)
             if len(got) != 1:
                 keep_capture("trainer")
                 raise Stop(f"can't read the trainer name on the profile: {[t[4] for t in texts if t[1] < 0.3]}")

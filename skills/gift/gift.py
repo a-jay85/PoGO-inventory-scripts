@@ -479,6 +479,17 @@ def ends_zone(t, z):
     return same(t) or (t[-1:] in ("L", "I", "|", "1") and same(t[:-1]))
 
 
+def ends_query(t, q):
+    """t (box_end) ends with the last letters of q: its short zone and the 3 letters before it ('EGG' + 'EA'), one
+    misread allowed. 2026-11-10 iPhone: the box lost its last keys and read '...&interactable&!EG' (the eastern
+    zone gone, 486 friends, not ~20). The zone alone passed: 'EG' is one letter off 'EA'. Then the swap to 'ce'
+    left '...interactable&ce' with the '!EGG' gone, and that passed too"""
+    want = ui.norm(q).replace(" ", "")
+    want = want[-(len(ui.norm(q.rstrip("&").split("&")[-1]).replace(" ", "")) + 3):] if want else ""
+    same = lambda t: len(t) >= len(want) and sum(a != b for a, b in zip(t[-len(want):], want)) <= 1
+    return not want or same(t) or (t[-1:] in ("L", "I", "|", "1") and same(t[:-1]))
+
+
 def commit_search():
     """the search is typed: commit it -> its result count, or None when none shows"""
     time.sleep(0.5)
@@ -552,8 +563,8 @@ def search(*parts):
         log(f"  search box reads {box[4] if box else None!r}")
         # (2026-11-05: the box ended '!EGG' with the '&ea' lost: (514), not (46), so every zone went as one. whole() can't
         # see that, as the box still holds '&'. Only the short zones: OCR garbles the end of a long one)
-        short = parts[-1] if len(parts[-1]) == 2 else ""
-        if not whole(box, q) or (box and short and not ends_zone(box_end(box), short)):
+        short = len(parts[-1]) <= 2  # (a short zone, or none: the box's end is all there, so it must be the query's)
+        if not whole(box, q) or (box and short and not ends_query(box_end(box), q)):
             log(f"the box holds only part of {q!r}: typing it again")
             continue
         if rows():
@@ -604,7 +615,8 @@ def swap_zone(base_q, old, new):
     box = search_line()
     t = box_end(box)
     log(f"  search box reads {box[4] if box else None!r}")
-    took = (ends_zone(t, new) and not t.endswith(old.upper())) if new else not ends_zone(t, old)
+    took = (ends_query(t, typed) and not t.endswith(old.upper())) if new else \
+        (not ends_zone(t, old) and ends_query(t, base_q))
     if n is None or not took or not whole(box, typed):
         log(f"swapping {old!r} for {new!r} didn't take: typing the search again")
         return None
@@ -1294,6 +1306,10 @@ def whose():
                 top = home.squash(" ".join(u[4] for u in texts if u[1] < 0.4))
                 me = next((k for k in home.TRAINERS if home.squash(k) in top), None)
                 if me:
+                    break
+                clipped = home.clipped_names(texts, 0.4)  # (2026-11-10 iPhone: 'HashTagAJa' all ten looks)
+                if len(clipped) == 1:
+                    me = clipped[0]
                     break
             else:
                 keep_capture("whose")

@@ -126,9 +126,20 @@ def sharp(path="/tmp/pvpc_sharp.png"):
     return path
 
 
+_raw = [None]  # the phone's own screenshot the last capture() was made from
+
+
+def sharp_last(path="/tmp/pvpc_sharp.png"):
+    """sharp() of the last capture()'s own screenshot: no new one. Only right after that capture, so the two reads are
+    of the same screen (a second read of small text at another size)"""
+    shape(_raw[0], 3)[0].save(path, compress_level=1)
+    return path
+
+
 def capture(path):
     global bounds
-    im, top = shape(phone_shot())  # Mac "points" are the phone's own pixels here, so taps need no conversion
+    _raw[0] = phone_shot()
+    im, top = shape(_raw[0])  # Mac "points" are the phone's own pixels here, so taps need no conversion
     im.save(path, compress_level=1)  # (the default packing took ~100 ms a look)
     W, H = size()
     globals()["phone"] = [0.0, 0.0, float(W), float(H)]

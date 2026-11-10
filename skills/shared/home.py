@@ -291,7 +291,7 @@ def start(storage=True):
         if screen in OPEN:
             try:
                 if screen == "appraise-intro":
-                    base.go("dialog", "appraisal")
+                    base.skip_intro(texts, path, bounds)
                 base.back_to_list()  # the known-safe way out
                 continue
             except Stop as e:  # not a storage Pokémon after all (a trade's result screen): out the other way

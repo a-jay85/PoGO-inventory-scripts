@@ -172,6 +172,17 @@ def look(where=None, remember=True):
     return screen, texts, path, bounds
 
 
+def sharp_again():
+    """Android, right after look(): that look's own screenshot read again 3x bigger (small text, like a date: two
+    reads that should agree), with no new screenshot. Its seconds go to steps.txt too, as 'sharp'. -> texts"""
+    t0 = time.time()
+    path = ui.android.sharp_last()
+    t1 = time.time()
+    texts = ui.ocr(path)
+    step(t0, t1, "sharp")
+    return texts
+
+
 def step(t0, t1, screen):
     """one line in steps.txt: when, who looked, the screen, capture and OCR (+ classify) seconds, to see where a
     run's time goes. Only once the run folder is there (a log line or new_run_dir made it): a read-only look makes
@@ -780,48 +791,51 @@ def row_name(s):
     return clean_row(re.sub(r"^[A-Z] (?=[A-Z]{2})", "", ui.norm(s.lstrip("•· "))))
 
 
-def tap_tag_row(T, name):
+def tap_tag_row(T, name, first=None):
     """tap a row of the open tag sheet. A tag tap() doesn't know (GIV, RT ...) or with a never-tap button's word in it
-    (Transfer, Remote Trade) is tapped by its own row, and only when two looks agree it's the tag sheet, standing
-    still, with exactly one row that says just that"""
+    (Transfer, Remote Trade) is tapped by its own row, and only when two looks in a row agree it's the tag sheet,
+    standing still, with exactly one row that says just that. first: a look at the sheet from just now, no tap since"""
     if T in ui.CONFIRM_SCREENS and not any(z in T for z in ui.HAZARDS):
         return tap(name)
-    seen = []
-    for i in range(2):
-        if i and not ui.ANDROID:  # (Android: a look takes ~0.5 s, so the two are that far apart already)
+    seen = [first] if first else []
+
+    def read():
+        if seen and not ui.ANDROID:  # (Android: a look takes ~0.5 s, so the two are that far apart already)
             time.sleep(0.4)
         _, texts, _, bounds = wait_for("tags")
-        rows = [t for t in texts if row_name(t[4]) == T]
-        if len(rows) != 1:
-            raise Stop(f"tag sheet: {len(rows)} rows read {name!r}, wanted 1")
-        seen.append(rows[0])
-    if abs(seen[0][0] - seen[1][0]) > 0.01 or abs(seen[0][1] - seen[1][1]) > 0.01:
+        seen.append((texts, bounds))
+        return seen
+    still = lambda s: len(s) > 1 and all(len(r) == 1 for r in map(rows, s[-2:])) and \
+        abs(rows(s[-2])[0][0] - rows(s[-1])[0][0]) <= 0.01 and abs(rows(s[-2])[0][1] - rows(s[-1])[0][1]) <= 0.01
+    rows = lambda look: [t for t in look[0] if row_name(t[4]) == T]
+    settle(read, lambda s: len(s) > 1 and (still(s) or len(rows(s[-1])) != 1), timeout=2)  # (a glide stops in ~1 s)
+    if len(rows(seen[-1])) != 1:
+        raise Stop(f"tag sheet: {len(rows(seen[-1]))} rows read {name!r}, wanted 1")
+    if not still(seen):
         raise Stop(f"tag sheet: the {name} row moved between two looks")
-    tap_box(seen[1], bounds)
+    tap_box(rows(seen[-1])[0], seen[-1][1])
 
 
 def lift_tag_row(T):
     """Android: a tap on the last row showing, or the first one of a scrolled list (under the list's fades), doesn't
-    take. Scroll it up (or down) a little first. At the list's top the down scroll changes nothing"""
-    _, texts, _, _ = wait_for("tags")
+    take. Drag it to about the sheet's middle first, sized from where it is now: the finger stops before it lifts, so
+    the rows don't glide on (tap_tag_row waits for two looks that agree). At the list's top the down drag changes
+    nothing. -> the look at the sheet, when nothing moved (tap_tag_row's first)"""
+    _, texts, _, bounds = wait_for("tags")
     row = next((t for t in texts if row_name(t[4]) == T), None)
     # Remote Trade at the list's top is no fade: a tap takes there. After the down scroll two taps didn't (2026-11-03)
     top = T == "REMOTE TRADE" and row and row[1] >= 0.28
-    if row and (row[1] > 0.7 or row[1] < 0.33) and not top:
-        x, y = random.randint(650, 790), random.randint(1960, 2040)
-        dy = -random.randint(370, 430)
-        if row[1] < 0.33:  # (seen 2026-10-29: IVC at 28%, faded, two taps didn't untick it)
-            y, dy = random.randint(1150, 1250), random.randint(280, 320)
-        ui.android.shell(f"input swipe {x} {y} {x + random.randint(-8, 8)} {y + dy} {random.randint(520, 680)}")
-        time.sleep(0.2)  # the loop below waits for the rows to hold still
-        last = None
-        for _ in range(8):  # then wait until the rows hold still
-            _, texts, _, _ = wait_for("tags")
-            ys = [round(t[1], 3) for t in texts]
-            if ys == last:
-                break
-            last = ys
-            time.sleep(0.15)
+    if not row or 0.33 <= row[1] <= 0.7 or top:
+        return texts, bounds
+    x, mid = random.uniform(0.45, 0.55), random.uniform(0.47, 0.53)
+    if row[1] > 0.7:
+        y = random.uniform(0.64, 0.67)
+        to = max(0.3, y - (row[1] - mid))
+    else:  # (seen 2026-10-29: IVC at 28%, faded, two taps didn't untick it)
+        y = random.uniform(0.38, 0.41)
+        to = min(0.72, y + (mid - row[1]))
+    drag(x, y, x, to, bounds, ms=random.randint(450, 600), android_settle=(0.15, 0.2))
+    return None
 
 
 def high_iv(ivs=None, raws=None):
@@ -907,9 +921,7 @@ def set_tick(T, v, name, ticks):
     ASKED.add(T)  # (a row seen earlier this run skips show_tag)
     for wait in (3, 3, 6):  # a tick only gets tapped again once a slow read has shown it didn't change
         if ticks.get(T) is not v:
-            if ui.ANDROID:
-                lift_tag_row(T)
-            tap_tag_row(T, name)
+            tap_tag_row(T, name, lift_tag_row(T) if ui.ANDROID else None)
             ticks = settle(tick_tags, lambda t: t.get(T) is v, timeout=wait)
     return ticks
 
@@ -1252,14 +1264,35 @@ def open_appraisal():
     """from the detail screen to the appraisal, its bars showing. Taps the appraisal button above the menu
     button. A detail screen without one (an older game) goes through the menu's APPRAISE instead"""
     try:
-        go("appraisal", "appraise-intro", "appraisal")
+        got = go("appraisal", "appraise-intro", "appraisal")
     except Lost as e:
         if "appraisal button" not in str(e):
             raise
         log("  no appraisal button: through the menu")
         go("menu", "menu")
-        go("APPRAISE", "appraise-intro", "appraisal")
-    go("dialog", "appraisal")
+        got = go("APPRAISE", "appraise-intro", "appraisal")
+    if got[0] == "appraise-intro":
+        skip_intro(*got[1:])
+
+
+INTRO_TAPS = 4
+
+
+def skip_intro(texts, path, bounds):
+    """the gym leader's first box ('...check out your Mareep?'): nothing on it the appraisal doesn't show. Its box is
+    tapped the moment it shows, its words still typing out (no two looks that agree first, as tap() wants: ~1 s).
+    A tap mid-typing may only finish the words: then the box is still up a moment later, and gets one more tap.
+    Never two taps without a look between: a tap on the appraisal closes it"""
+    for _ in range(INTRO_TAPS):
+        low = [t[1] for t in texts if t[1] > 0.88]  # the box's last line ('dialog' in ui.locate)
+        click(random.uniform(0.3, 0.7), (min(low) if low else 0.9) + random.uniform(0, 0.02), bounds, bring_front=False)
+        try:
+            return wait_for("appraisal", timeout=0.8, capture=False)
+        except Lost:
+            screen, texts, path, bounds = look()
+            if screen != "appraise-intro":
+                raise
+    raise Stop(f"the appraisal's first box was still up after {INTRO_TAPS} taps")
 
 
 def appraisal_species(detail_texts):

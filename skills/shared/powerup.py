@@ -138,13 +138,16 @@ def cost_levels(texts, cp):
     level 25 (3,600, or 1,800 lucky): purifying puts it there and it's transferred from there. No levels = a cost no
     table has, or no two looks in a row agreed on it"""
     cost = page_cost(texts)
+    seen = [cost]
     for _ in range(6):  # right after a swipe the page still slides: a cost read then can be another's (2,200 read as
         _, texts, _, _ = look()  # level 40+, 2026-10-23). Two looks in a row on this CP must agree
-        again = page_cost(texts)
-        if again == cost and ui.detail_info(texts)["cp"] == cp:
+        again, now = page_cost(texts), ui.detail_info(texts)["cp"]
+        seen.append((again, now))
+        if again == cost and now == cp:
             break
         cost = again
     else:
+        log(f"  power-up cost: no two looks agreed on CP{cp}: {seen}")  # (why is not known yet, 2026-11-09)
         cost = None
     if cost is None:
         return None, []
@@ -248,11 +251,12 @@ def steps(cands, plays=PLAYS):
     return {int((plays[math.floor(lv)] - lv) * 2) if math.floor(lv) in plays else None for _, _, lv in cands}
 
 
-def power_up(info, texts, levels=None):
+def power_up(info, texts, levels=None, known=None):
     """1-2 power-ups (up to 4 for a lucky one) if this one sits right under an XL tier (PLAYS, LUCKY_PLAYS). -> power-ups made. Raise Pass to leave it.
     Its level comes from the dialog: + adds a power-up, and each total (CP after, Stardust) rules levels out.
-    levels: the caller's (its IVs, CP and HP can name the one level): narrows the cost's, or stands in when it doesn't read"""
-    cost, lvs = cost_levels(texts, info["cp"])
+    levels: the caller's (its IVs, CP and HP can name the one level): narrows the cost's, or stands in when it doesn't read.
+    known: cost_levels() already read on this open, at this CP (no more looks for it)"""
+    cost, lvs = known or cost_levels(texts, info["cp"])
     lvs = sorted(set(lvs) & set(levels or ())) or lvs or sorted(levels or ())
     if not lvs:
         raise Unsure(f"can't read the power-up cost ({cost})")

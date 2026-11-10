@@ -1,6 +1,6 @@
 # PoGO-inventory-scripts
 
-Scripts that sort a Pokémon GO storage: `pvpc`, `ivc`, `cleanup`, `trade`, `gift`, `mega`, `evo`, `dex`, `roster` and `gymfeed`. Each one lives in `skills/<name>/`. The scripts are the source of truth: each script's top comment says how to run it, and the code says the rules. There are no `SKILL.md` files. `/pvpc` or `/ivc` in chat means run that step through `pogo.py`.
+Scripts that sort a Pokémon GO storage: `pvpc`, `ivc`, `cleanup`, `trade`, `gift`, `mega`, `evo`, `dex`, `roster`, `gymfeed` and `goplus`. Each one lives in `skills/<name>/`. The scripts are the source of truth: each script's top comment says how to run it, and the code says the rules. There are no `SKILL.md` files. `/pvpc` or `/ivc` in chat means run that step through `pogo.py`.
 
 ## The live scripts run from the main checkout
 

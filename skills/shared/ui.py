@@ -551,10 +551,11 @@ def check_rows(species, cp, hp, ivs, own=False):
 TEAL_TOL = 52 if ANDROID else 24  # the Pixel: (64, 131, 146) in its own screenshot
 
 
-def circles(path):
+def circles(path, top=0.82):
+    """the teal round buttons in the screen's bottom part (from top down, a fraction of the height)"""
     im = Image.open(path).convert("RGB")
     W, H = im.size
-    y0 = int(0.82 * H)
+    y0 = int(top * H)
     mask = {(x, y) for y in range(y0, H) for x in range(W)
             if sum(abs(a - b) for a, b in zip(im.getpixel((x, y)), (32, 122, 141))) < TEAL_TOL}
     seen, out = set(), []
@@ -791,19 +792,29 @@ CONFIRM_SCREENS = {"OK": ("rename",), "CANCEL": ("rename", "tags"), "DONE": ("ta
 
 
 def right_buttons(cs):
-    """the round buttons on the right. Some detail screens have a ribbon button just above the menu button:
+    """the round buttons on the right. The appraisal button sits just above the menu button:
     the menu button is the bottom one, so only the bottom row counts"""
     r = [c for c in cs if c[0] > 0.7]
     low = max((c[1] for c in r), default=0)
     return [c for c in r if c[1] > low - 0.04]
 
 
+def appraisal_button(cs):
+    """the round appraisal button (a ribbon) just above the menu button on the detail screen (2026-11-09)"""
+    r = [c for c in cs if c[0] > 0.7]
+    low = max((c[1] for c in r), default=0)
+    up = [c for c in r if 0.04 < low - c[1] < 0.15]
+    return [max(up, key=lambda c: c[2])] if up else []  # the ribbon inside can read as a second, smaller circle
+
+
 def locate(T, path, texts, screen, aspect):
     """-> (centre x, centre y, fuzz()) in window fractions, or exits with REFUSED"""
-    if T in ("MENU", "CLOSE"):
-        cs = circles(path)
+    if T in ("MENU", "CLOSE", "APPRAISAL"):
+        cs = circles(path, 0.7 if T == "APPRAISAL" else 0.82)  # (the appraisal button sits higher)
         if T == "MENU" and screen == "detail":
             c = right_buttons(cs)
+        elif T == "APPRAISAL" and screen == "detail":
+            c = appraisal_button(cs)
         elif T == "CLOSE" and screen in ("detail", "gym"):  # the gym screen has the same X and menu buttons
             c = [c for c in cs if 0.35 < c[0] < 0.65]
             menu = right_buttons(cs)

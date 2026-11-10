@@ -94,7 +94,9 @@ def read():
 
 def map_trainer(texts):
     """the trainer name under the profile picture, bottom left of the map. None: not read"""
-    got = [n for n in home.TRAINERS if any(home.squash(n) == home.squash(t[4]) for t in texts if t[1] > 0.85)]
+    from difflib import SequenceMatcher  # the small name reads loosely: 'CyrilJan', 'CyrilJaı' (Pixel, 2026-11-10)
+    near = lambda a, b: SequenceMatcher(None, home.squash(a), home.squash(b)).ratio() >= 0.8
+    got = [n for n in home.TRAINERS if any(near(n, t[4]) for t in texts if t[1] > 0.85 and t[0] < 0.5)]
     return got[0] if len(got) == 1 else None
 
 

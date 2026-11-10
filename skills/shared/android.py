@@ -90,9 +90,9 @@ def raw_shot():
     return Image.frombuffer("RGBA", (w, h), raw[len(raw) - w * h * 4:], "raw", "RGBA", 0, 1).convert("RGB")
 
 
-PREFETCH_AGE = 0.8  # seconds: a screenshot started this recently (and after the last adb command) counts as now.
-# (0.3 threw most away: a look's shrink, save and OCR alone take 0.3-0.6 s, so the next look came too late for it.
-# A wait loop that gets an older picture only looks once more, and that look is the cheap one, 2026-11-09)
+PREFETCH_AGE = 0.3  # seconds: a screenshot started this recently (and after the last adb command) counts as now.
+# A script whose reads all look again till right can raise it (tradeable: 0.8). Not gymfeed: its berry count read early
+# once fed 41 instead of 1
 _next = [None]  # (when it started, its thread, [the picture or the error])
 
 

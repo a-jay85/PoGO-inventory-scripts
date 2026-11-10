@@ -289,7 +289,7 @@ def cmd_count(model, resume):
         raise Stop(f"{resume} is {was}'s count, but {who} is signed in")
     home.start()
     cache = {}
-    n = dex.counter(cache, lambda q, c: log(f"  {q}: {c}"))
+    n = dex.counter(cache, lambda q, c: log(f"  {q}: {c}"), edit=True)  # 'q' then 'q&shadow': edit the end
 
     for rnd in range(1, 200):
         need = set()

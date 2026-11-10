@@ -17,6 +17,7 @@ import search
 # ---------- search: start and end of the bar both read back ----------
 
 _views = []
+_for = [None]  # the search search_exact() is typing: only its views count
 
 
 def strict(got, q):
@@ -32,7 +33,8 @@ def strict(got, q):
     views = [v for v in (bar_view(g, q) for g in reads) if v]
     if not views:
         return False
-    _views.append(next((v for v in views if v[0] == "all"), views[0]))
+    if _for[0] in (None, q):  # (an edit also checks the bar still holds the last search: not q's view)
+        _views.append(next((v for v in views if v[0] == "all"), views[0]))
     return True
 
 
@@ -103,14 +105,23 @@ def ios_start(q):
             return
 
 
-def search_exact(q, gap_ok=False):
+def search_exact(q, gap_ok=False, edit=False):
     """type q until the bar reads back all of it. -> the results' OCR texts.
     gap_ok: a search too long for its start and end to meet may leave a middle unread, if there's no '!' in it. Only
-    for a search that just counts: one that tags goes through savedsearch.long_search, which checks every piece"""
+    for a search that just counts: one that tags goes through savedsearch.long_search, which checks every piece.
+    edit: when the bar holds the last search, edit its end instead of typing q whole (search.edit_tail)"""
     Q = re.sub(r"\s", "", q)
+    _for[0] = q
+    try:
+        return _search_exact(q, Q, gap_ok, edit)
+    finally:
+        _for[0] = None
+
+
+def _search_exact(q, Q, gap_ok, edit):
     for attempt in range(3):
         _views.clear()
-        _, texts, _ = search.start_search(q, check=strict)
+        _, texts, _ = search.start_search(q, check=strict, edit=edit and not attempt)
         def enough():
             got.update((k, max(n for v, n in _views if v == k)) for k, _ in _views)
             seen = got.get("start", 0) + got.get("end", 0)

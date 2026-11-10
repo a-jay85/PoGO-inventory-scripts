@@ -1847,6 +1847,8 @@
    "PAGE_SETTLE",
    "Stop",
    "WEIGHT_AT_TOP",
+   "_for",
+   "_search_exact",
    "_views",
    "back_to_top",
    "bar_view",

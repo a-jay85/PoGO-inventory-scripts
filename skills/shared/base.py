@@ -1264,14 +1264,35 @@ def open_appraisal():
     """from the detail screen to the appraisal, its bars showing. Taps the appraisal button above the menu
     button. A detail screen without one (an older game) goes through the menu's APPRAISE instead"""
     try:
-        go("appraisal", "appraise-intro", "appraisal")
+        got = go("appraisal", "appraise-intro", "appraisal")
     except Lost as e:
         if "appraisal button" not in str(e):
             raise
         log("  no appraisal button: through the menu")
         go("menu", "menu")
-        go("APPRAISE", "appraise-intro", "appraisal")
-    go("dialog", "appraisal")
+        got = go("APPRAISE", "appraise-intro", "appraisal")
+    if got[0] == "appraise-intro":
+        skip_intro(*got[1:])
+
+
+INTRO_TAPS = 4
+
+
+def skip_intro(texts, path, bounds):
+    """the gym leader's first box ('...check out your Mareep?'): nothing on it the appraisal doesn't show. Its box is
+    tapped the moment it shows, its words still typing out (no two looks that agree first, as tap() wants: ~1 s).
+    A tap mid-typing may only finish the words: then the box is still up a moment later, and gets one more tap.
+    Never two taps without a look between: a tap on the appraisal closes it"""
+    for _ in range(INTRO_TAPS):
+        low = [t[1] for t in texts if t[1] > 0.88]  # the box's last line ('dialog' in ui.locate)
+        click(random.uniform(0.3, 0.7), (min(low) if low else 0.9) + random.uniform(0, 0.02), bounds, bring_front=False)
+        try:
+            return wait_for("appraisal", timeout=0.8, capture=False)
+        except Lost:
+            screen, texts, path, bounds = look()
+            if screen != "appraise-intro":
+                raise
+    raise Stop(f"the appraisal's first box was still up after {INTRO_TAPS} taps")
 
 
 def appraisal_species(detail_texts):

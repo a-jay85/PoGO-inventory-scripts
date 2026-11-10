@@ -12,9 +12,15 @@ const PW = process.env.PLAYWRIGHT || '/Users/ajaynicolas/GitHub/IBL5/ibl5/node_m
 const { chromium } = await import(PW);
 const HERE = path.dirname(new URL(import.meta.url).pathname);
 const limit = +(process.argv[2] || 0), DEPTH = 80;
+const t0 = Date.now();
+const log = msg => console.log(`[${((Date.now() - t0) / 1000).toFixed(0).padStart(4)}s] ${msg}`);
+log('starting the browser');
 const b = await chromium.launch(); const p = await b.newPage();
+await p.exposeFunction('progress', log);  // the page's loop below reports through this
+log('opening dialgadex.com');
 await p.goto('https://www.dialgadex.com/?strongest&t=Normal', { waitUntil: 'networkidle' });
 await p.waitForFunction(() => typeof jb_pkm !== 'undefined' && jb_pkm.length > 100 && typeof str_pokemons !== 'undefined' && str_pokemons.length > 20, null, { timeout: 120000 });
+log(`page ready, ${await p.evaluate(() => jb_pkm.length)} entries to check${limit ? `, stopping after ${limit} bosses` : ''}`);
 const r = await p.evaluate(async ({ limit, DEPTH }) => {
   // GetSearchParms() reads the page's checkboxes: set every filter here instead
   const sp = { versus: false, type: 'Any', unreleased: false, mega: true, shadow: true,
@@ -28,6 +34,7 @@ const r = await p.evaluate(async ({ limit, DEPTH }) => {
     const sig = JSON.stringify([pk.types, ep.stats, ep.moves]);
     if (seen.has(sig)) { bosses[seen.get(sig)].alias.push(`${pk.name} ${pk.form}`); continue; }
     if (limit && n++ >= limit) break;
+    if (bosses.length % 25 == 0) await progress(`boss ${bosses.length + 1}: ${pk.name}${pk.form && pk.form != 'Normal' ? ` (${pk.form})` : ''}`);
     const c = (await GetStrongestVersus(ep, sp)).reverse();  // weakest first
     const best = new Map();
     for (const e of c) {
@@ -51,9 +58,11 @@ const r = await p.evaluate(async ({ limit, DEPTH }) => {
   }
   return { params: sp, depth: DEPTH, attackers: atk, bosses };
 }, { limit, DEPTH });
+log(`pulled ${r.bosses.length} bosses, writing the file`);
 r.pulled = new Date().toLocaleDateString('sv');  // the local date, YYYY-MM-DD
 // (a cut-down test pull gets its own name: roster.py takes the newest dialgadex-counters-<date>.json)
 const out = path.join(HERE, `dialgadex-counters-${r.pulled.replaceAll('-', '')}${limit ? `-test${limit}` : ''}.json`);
 fs.writeFileSync(out, JSON.stringify(r));
 console.log(`${r.bosses.length} bosses, ${r.attackers.length} attackers -> ${out}`);
 await b.close();
+log('done');

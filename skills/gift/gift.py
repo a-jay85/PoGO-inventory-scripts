@@ -943,8 +943,12 @@ def same_list(a, b):
         and difflib.SequenceMatcher(None, a[1], b[1]).ratio() > 0.8
 
 
+restarted_game = False  # this run restarted a Pixel game that took no SEND taps (once a run)
+
+
 def send_gift():
     """from the friend page: picker -> one of our two gifts -> SEND. Raises OutOfGifts when neither is there"""
+    global restarted_game
     global picker_drags
     t = send_gift_label()
     if not t:  # (not read on this look: the page may still be drawing it)
@@ -1025,15 +1029,27 @@ def send_gift():
                 # iPhone Mirroring now and then drops the SEND tap (2026-11-02). The same preview after the full
                 # wait, its SEND untouched: tap it once more (the user's call). Never a third time
                 again = label("SEND", 0.78, 0.9)
-                if tries or s != "preview" or not again or not preview_ok(title)[0] \
-                        or abs(again[1] - send[1]) > 0.01 \
-                        or sum(abs(a - b) for u, v in zip(button, send_button(again))
-                               for a, b in zip(u, v)) / (3 * len(button)) > 20:
+                untouched = s == "preview" and again and preview_ok(title)[0] and abs(again[1] - send[1]) <= 0.01 \
+                    and sum(abs(a - b) for u, v in zip(button, send_button(again))
+                            for a, b in zip(u, v)) / (3 * len(button)) <= 20
+                if tries or not untouched:
                     break
                 keep_capture("send_again")
                 log(f"  SEND on {title!r} didn't land: the same preview after the full wait, tapping it once more")
                 send = again
             keep_capture("after_send")
+            if ui.ANDROID and untouched and not restarted_game:
+                # two SEND taps on the Pixel, both untouched: a game up for hours that takes no taps while its page
+                # looks normal (2026-11-10: up 3.5 h, PR #311's dead spell). Nothing went. Restart it once a run, then
+                # run_searches goes back to the list and tries this friend once more (a gift that went after all
+                # reads grey there, and a friend takes one gift a day)
+                restarted_game = True
+                import home
+                log("  the game takes no taps: restarting it")
+                ui.android.shell(f"am force-stop {ui.android.PKG}")
+                time.sleep(1.0)
+                home.start(storage=False)  # (opens it and waits out its loading screens)
+                raise base.Lost(f"two SEND taps on {title!r} didn't land: restarted the game")
             raise Stop(f"after SEND the screen is {s}: {summary()}")
         if classify() != "picker":
             # (the user took over and closed it, or a tap went astray. No SEND was tapped: run_searches goes back to the
@@ -1425,8 +1441,9 @@ def run_searches(limit):
                     got = one_friend(row, check=greys % 3 == 2, done=done)
                 except base.Lost as e:
                     # a late iPhone tap (two X's landing at once closed the friend page, 2026-10-28) left a screen
-                    # nobody expected. Nothing was sent unseen: after SEND a lost screen is a Stop. Back to the list, the
-                    # search typed again (the way back can pass the map), and this friend tried once more
+                    # nobody expected. Nothing was sent unseen: after SEND a lost screen is a Stop (but a Pixel game that
+                    # took neither SEND tap gets restarted, send_gift). Back to the list, the search typed again (the way
+                    # back can pass the map), and this friend tried once more
                     lost += 1
                     missed = True
                     if lost >= MAX_LOST:

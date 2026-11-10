@@ -15,6 +15,7 @@ On each page it opens the Mega level page (the round Mega badge under the types)
 - X/Y species (Mewtwo, Charizard, Raichu): the form is the nickname's last letter (' X' / ' Y'). None: a Mewtwo
   takes whichever form is free; any other is skipped.
 - No MEGA EVOLVE button on the level page (Max Level): skipped.
+- Less Mega Energy than the MEGA EVOLVE cost (the button does nothing then): skipped.
 
 Free = no number next to the MEGA EVOLVE button, and no xN cost in the "Do you want to Mega Evolve" box.
 
@@ -114,6 +115,13 @@ def sheet(texts):
         nums = [re.sub(r"[^\d]", "", t[4]) for t in row]
         nums = [int(n) for n in nums if n]
         cost = max(nums) if nums else 0
+    # the energy it has: the line under LEVEL UP, 'PINSIR MEGA ENERGY  • 26' or 'MEGA MEWTWO X N ENERGY 9,147'
+    have = None
+    for y, r in rows(texts):
+        if y > 0.45 and "ENERGY" in ui.norm(r) and "Use Mega Energy" not in r:
+            m = re.findall(r"\d[\d,]*", r.split("ENERGY", 1)[-1] if "ENERGY" in r else r)
+            if m:
+                have = int(m[-1].replace(",", ""))
     return {
         "done_today": "Daily level limit met" in j,
         "mega_now": "REMAINING MEGA EVOLUTION PERIOD" in ui.norm(j),
@@ -121,6 +129,7 @@ def sheet(texts):
         "more": int(more.group(1)) if more else None,
         "button": btn[0] if btn else None,
         "cost": cost,
+        "have": have,
         "text": j,
     }
 
@@ -302,6 +311,8 @@ def can(s, mewtwo, free_only=False):
     if not s["button"]:
         raise Pass(f"{s['level']} Level: no MEGA EVOLVE on the level page")
     cost = page_cost(s)
+    if cost and s["have"] is not None and s["have"] < cost:  # MEGA EVOLVE does nothing then: no box comes up
+        raise Pass(f"not enough Mega Energy: costs {cost}, has {s['have']}")
     one_more = s["level"] == "High" and s["more"] == 1
     need_free = mewtwo or one_more or free_only
     why = "mega1" if free_only else "Mewtwo" if mewtwo else "1 more time to Max Level" if one_more else ""

@@ -14,7 +14,7 @@ Each phone runs in its own process (ui.py keeps one phone's state in module glob
 Order: the "iii" search (no gift from me, not played with today) before "lll" (opened my gift or played with me
 today). Inside each, the time zones farthest ahead first: lasia, leuro, latam, ea, ce, mo, then the rest. The list
 is sorted "Can receive a gift", arrow down: friends who can take a gift come first, so the first row with the grey
-already-sent badge ends that search. A friend with a Remote Trade sits on top whatever the sort, so their badge doesn't count.
+already-sent badge ends that search. A friend with a Remote Trade sits on top whatever the sort (their row says Remote Trade, or shows its countdown), so their badge doesn't count.
 
 Before each gift the friendship screen is checked. When the next heart is the 3rd, 4th or 5th, or it's the Forever
 Friends bar: 1 point to go -> no gift, nickname "WAIT <old>"; 2 points -> gift, nickname "SENT <old>".
@@ -665,7 +665,11 @@ def rows():
         if len(clean(t[4])) >= 3:
             out.append([t, ""])
     im = Image.open(path).convert("RGB")
-    trade = lambda t: any("REMOTE TRADE" in ui.up(o) and 0 < o[1] - t[1] < 0.1 for o in texts)
+    # a Remote Trade friend: the words under the name, or (2026-11-10 iPhone) a countdown at the row's right where
+    # the others read '2+ days ago' ('46:04:14'). Missed, their grey badge on top ended the search at once
+    trade = lambda t: any("REMOTE TRADE" in ui.up(o) and 0 < o[1] - t[1] < 0.1
+                          or o[0] > 0.6 and -0.01 < o[1] - t[1] < 0.05 and re.fullmatch(r"\d{1,3}:\d{2}:\d{2}", o[4].strip())
+                          for o in texts)
     return [{"name": clean(t[4]), "nick": nick, "t": t, "badged": badged(im, t[1]), "trade": trade(t)}
             for t, nick in out if t[1] > 0.26]
 

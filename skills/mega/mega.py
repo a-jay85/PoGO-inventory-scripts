@@ -235,20 +235,22 @@ def show_me(texts, bounds):
     return True
 
 
-def close_sheet():
-    """Back (Android) or the round X: to the Pokémon page"""
+def close_sheet(done=("detail",)):
+    """Back (Android) or the round X: to the Pokémon page. done: the screens that end it, -> the one it ended on.
+    to_list passes the list too: a level page opened by a late close tap can close straight to the list, and a
+    Back there leaves the list for the map"""
     for _ in range(3):
         screen, texts, _, bounds = look()
         if show_me(texts, bounds):
             screen, texts, _, bounds = look()
-        if screen == "detail":  # Back here would close the Pokémon too
-            return
+        if screen in done:  # Back here would close the Pokémon too
+            return screen
         if ui.ANDROID:
             ui.android.key("back")
         else:
             screen, texts, _, bounds = look()
-            if screen == "detail":
-                return
+            if screen in done:
+                return screen
             if not any(t[4].strip().endswith("Mega Level") for t in texts):  # the X there would close the Pokémon too
                 keep_capture("notsheet")
                 raise Stop(f"not on the Mega level page: {' | '.join(t[4] for t in texts)[:200]}")
@@ -256,8 +258,8 @@ def close_sheet():
         for _ in range(15):
             time.sleep(0.15)
             screen, texts, _, _ = look()
-            if screen == "detail":
-                return
+            if screen in done:
+                return screen
     keep_capture("closesheet")
     raise Stop("couldn't get from the Mega level page back to the Pokémon")
 
@@ -271,7 +273,8 @@ def to_list():
             _, texts, _, bounds = look()
         if any(t[4].strip().endswith("Mega Level") for t in texts):
             log("  on the Mega level page: closing it")
-            close_sheet()
+            if close_sheet(("detail", "list")) == "list":
+                return
         try:
             return base.go("close", "list")
         except Stop:

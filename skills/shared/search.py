@@ -845,6 +845,7 @@ def edit_tail(prev, q, check):
 
 
 LIVE = {"q": None}  # Android: the search count_live() left typed in the bar, keyboard still up (None: not)
+KEYBOARD_TOP = 0.57  # the keyboard's suggestion row starts here (Pixel): the tiles' CPs above it are what shows
 LIVE_WAIT = 3.0  # seconds a search typed with the keyboard up gets for its count and tiles to show
 
 
@@ -853,27 +854,32 @@ def keyboard_up(texts):
 
 
 def live_read(q, check):
-    """one look with the keyboard up -> (count or None, path, texts, bounds). The count only when the bar reads q and
-    every result shows as a tile above the keyboard, SHOW EVOLUTIONARY LINE unticked: then nothing is hidden under it"""
+    """one look with the keyboard up -> (count, path, texts, bounds) when the bar reads q, SHOW EVOLUTIONARY LINE is
+    unticked and every result is a tile above the keyboard (nothing hidden under it). MORE: there are more results
+    than show above it. None: not that yet"""
     path, bounds = ui.capture()
     texts = ui.ocr(path)
     n = result_count(texts)
-    if n is None or ui.search_panel(texts) or not keyboard_up(texts) or len(ui.tile_cps(texts)) != n \
+    above = [c for c in ui.tile_cps(texts) if c[1] < KEYBOARD_TOP]  # (the keyboard's '?123' reads as a shiny's CP)
+    if n is None or ui.search_panel(texts) or not keyboard_up(texts) or len(above) > n \
             or ui.evo_ticked(path, texts) is not False or not check(bar_read(texts), q):
         return None, path, texts, bounds
-    return n, path, texts, bounds
+    return (n if len(above) == n else MORE), path, texts, bounds
+
+
+MORE = -1
 
 
 def live_settle(q, check):
-    """live_read until two looks in a row agree -> as live_read (None: the results fill the space above the keyboard,
-    or never showed right)"""
+    """live_read until two looks in a row agree -> as live_read (None: never showed right in LIVE_WAIT)"""
     last = [None]
 
     def read():
         r = live_read(q, check)
         same, last[0] = r[0] is not None and last[0] == r[0], r[0]
         return r, same
-    return base.settle(read, lambda v: v[1], LIVE_WAIT)[0]
+    r, same = base.settle(read, lambda v: v[1], LIVE_WAIT)
+    return r if same else (None,) + r[1:]
 
 
 def count_live(q, check):
@@ -909,7 +915,7 @@ def count_live(q, check):
         key("delete")
         time.sleep(0.3)
         n, path, texts, bounds = live_settle(q, check)
-    if n is None:
+    if n is None or n == MORE:
         return None
     return path, texts, bounds
 

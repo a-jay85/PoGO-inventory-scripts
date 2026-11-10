@@ -55,6 +55,9 @@ def bar_whole(got, q):
 
 def bar_view(got, q):
     """-> ('all' | 'end' | 'start', how many symbols) of q this read of the bar shows, or None"""
+    cut = re.sub(r"\s+[x×⊗]$", "", got or "")  # a long search's start, cut off, with the bar's (x) glued on ('...,@ x')
+    if cut != (got or "") and (v := bar_view(cut, q)) and v[0] == "start":
+        return v
     s = re.sub(r"\s", "", got or "").lower()
     if s and bar_whole(s, re.sub(r"\s", "", q)):
         return "all", len(s)

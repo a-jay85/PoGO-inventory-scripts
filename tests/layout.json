@@ -2160,6 +2160,7 @@
    "paused_so_far",
    "pick",
    "pick_pile",
+   "picked_card",
    "pile",
    "plan",
    "pokeball",

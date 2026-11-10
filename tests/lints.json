@@ -83,10 +83,10 @@
   "skills/trade/trade.py choose": 2,
   "skills/trade/trade.py finish.close": 1,
   "skills/trade/trade.py open_panel": 1,
-  "skills/trade/trade.py pick_pile": 1,
   "skills/trade/trade.py rerun_empty": 1,
   "skills/trade/trade.py sort_recent": 3,
   "skills/trade/trade.py tap_local": 1,
+  "skills/trade/trade.py tap_shortcut": 1,
   "skills/trade/trade.py to_friend": 1,
   "skills/trade/trade.py to_picker": 1,
   "skills/trade/trade.py type_search": 2

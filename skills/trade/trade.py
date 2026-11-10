@@ -706,8 +706,8 @@ def shown(p, q):
     return None
 
 
-def pick_pile(p, q):
-    """tap the saved search and check the bar shows exactly it. -> how many it found"""
+def tap_shortcut(p, q):
+    """tap q's saved shortcut and wait for the panel to close on its results. -> how many it found (None: not shown)"""
     name = SAVED[q]
     if not (b := shortcut(p, name)):
         raise Stop(f"{p.name}: the {name} shortcut isn't showing: {p.summary()}")
@@ -720,6 +720,23 @@ def pick_pile(p, q):
         n = shown(p, q)  # the panel closed and the search ran
         if n is not None:
             return n
+    return None
+
+
+def pick_pile(p, q):
+    """tap the saved search and check the bar shows exactly it. -> how many it found.
+    A tap on the shortcut of the search already in the bar changes nothing: the panel stays open over the list
+    (2026-11-10, twice). Then the bar is emptied with its (x) and the shortcut tapped once more"""
+    n = tap_shortcut(p, q)
+    if n is None and label(p, "FAVORITE") and in_bar(p, q):
+        log(f"{p.name}: the panel stays open over {q}, already in the bar: emptying the bar, then the shortcut again")
+        p.tap(0.905, 0.183, fuzz=0.004)  # the (x) at the bar's right end: empties it
+        time.sleep(1.3)
+        p.look()
+        open_panel(p)  # (the (x) can close the panel too: this opens it again)
+        n = tap_shortcut(p, q)
+    if n is not None:
+        return n
     p.keep("search")
     raise Stop(f"{p.name}: the search bar doesn't show {q}: {bar(p)!r}, {p.summary()}")
 
@@ -791,7 +808,11 @@ def search_for(p, q):
     nothing to run again. One left from before this run is run again: its end can match q while its tag doesn't (a
     Thursday search's end on a Friday). -> how many it found"""
     p.now()
-    n = shown(p, q) if p.ran == q else None
+    n = None
+    if p.ran == q:  # a picker just up can still be drawing the list under the kept search: look again for a moment
+        n = shown(p, q)
+        if n is None:
+            n = base.settle(lambda: (p.look(), shown(p, q))[1], lambda v: v is not None, timeout=2)
     fresh = n is None
     if n is None and q in SAVED:
         open_panel(p)

@@ -1217,6 +1217,8 @@
    "paused",
    "poll_gap",
    "recover",
+   "remote_trade_box",
+   "remote_trade_ok",
    "row_name",
    "same_name",
    "same_pokemon",
@@ -1862,6 +1864,7 @@
   "copies": {},
   "names": [
    "HERE",
+   "IOS_PAGE_SETTLE",
    "PAGE_SETTLE",
    "Stop",
    "WEIGHT_AT_TOP",

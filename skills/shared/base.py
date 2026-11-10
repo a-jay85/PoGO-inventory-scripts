@@ -862,21 +862,45 @@ def high_iv(ivs=None, raws=None):
     return sum(top) >= ALWAYS_KEEP, ivs, raws, what
 
 
+def remote_trade_box(texts):
+    """the 'Cannot Trade Recently Caught Pokémon Remotely' box ('This Pokémon will keep the Remote Trade tag')"""
+    return any("REMOTE TRADE TAG" in ui.norm(t[4]) for t in texts)
+
+
+def remote_trade_ok(texts, bounds):
+    ok = [t for t in texts if ui.norm(t[4]) == "OK"]
+    if len(ok) != 1:
+        raise Stop(f"the Remote Trade question: {len(ok)} OK buttons read")
+    log("  the game: it can trade remotely in a while and keeps the Remote Trade tag: OK")
+    tap_box(ok[0], bounds)
+    return wait_for("detail")
+
+
 def tags_done():
     """DONE on the tag sheet. A Remote Trade tag on one caught under 30 days asks first ('This Pokémon will keep the
-    Remote Trade tag'): OK keeps it"""
-    try:
+    Remote Trade tag'): OK keeps it. That box is looked for right after the first DONE: go()'s wait and second DONE
+    tap missed it and cost ~25 s each time (6 of 20 Meltans, iPhone /pvpc, 2026-11-10)"""
+    tap("DONE")
+
+    def read():
+        try:
+            return look()
+        except Refused:
+            return "?", [], None, None
+    seen = settle(read, lambda s: s[0] == "detail" or (
+        remote_trade_box(s[1]) and sum(ui.norm(t[4]) == "OK" for t in s[1]) == 1), timeout=4)
+    screen, texts, _, bounds = seen
+    if screen == "detail":
+        return seen
+    if remote_trade_box(texts):
+        return remote_trade_ok(texts, bounds)
+    try:  # neither yet: the old way (a DONE that didn't land gets a second tap)
         return go("DONE", "detail")
     except Lost:
         _, texts, _, bounds = look()
-        if not any("REMOTE TRADE TAG" in ui.norm(t[4]) for t in texts):
+        if not remote_trade_box(texts):
             raise
-        ok = [t for t in texts if ui.norm(t[4]) == "OK"]
-        if len(ok) != 1:
-            raise Stop(f"the Remote Trade question: {len(ok)} OK buttons read")
-        log("  the game: it can trade remotely in a while and keeps the Remote Trade tag: OK")
-        tap_box(ok[0], bounds)
-        return wait_for("detail")
+        return remote_trade_ok(texts, bounds)
 
 
 TAGS_BACKED_OUT = [0]  # sheets left in a row because a tick wouldn't take

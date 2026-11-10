@@ -25,6 +25,7 @@ closed = {}  # box name -> the times it was closed lately
 
 MANAGE_X = (0.5, 0.906)  # the round X that closes the Manage Favorite Search box
 FRIEND_CARD_X = (0.5, 0.918)  # its round X, in the same spot on both phones: higher than X_BUTTON, which grazes its edge
+EGG_TO_X = 0.082  # a friend card with USE LUCKY EGG: its X sits this far under the button's middle (Pixel 0.849 -> 0.931)
 
 
 def label(texts, word):
@@ -100,9 +101,13 @@ def evolve_box(texts):
 
 def friend_card(texts):
     """'... and you became Lucky Friends! New Bonus Unlocked', with SHARE and SAVE IMAGE under it: only news.
-    Its X, because the iPhone has no Back key"""
+    Its X, because the iPhone has no Back key. 'You and X are now Great Friends! 3 NEW BONUSES UNLOCKED!' (Pixel,
+    2026-11-10) has USE LUCKY EGG over its X instead, which puts the X lower: the X, never the egg"""
     j = ui.joined(texts)
-    return FRIEND_CARD_X if "AND YOU BECAME" in j and "FRIENDS" in j else None
+    if "FRIENDS" not in j or not ("AND YOU BECAME" in j or "NEW BONUS" in j):
+        return None
+    egg = label(texts, "USE LUCKY EGG")
+    return (0.5, center(egg)[1] + EGG_TO_X) if egg else FRIEND_CARD_X
 
 
 def passenger(texts):

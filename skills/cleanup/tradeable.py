@@ -80,6 +80,9 @@ from rules import (GIVER, TAKER, TAGS, XLX, TRANSFER, LUCKY_CANDY, XL_CAP, XLX_L
     PVE_TOP, GIVER_MARGIN, PVP_FLOOR, HARD_CANDY, BABIES, SPECIAL, NO_SPECIAL, DYNAMAX, UNDER_360_XL, TAG_SKIP, GUARANTEED,
     LUCKY_YEAR, OLD, OLD_AGE)
 
+if ui.ANDROID:  # a look's shrink, save and OCR take 0.3-0.6 s, so at 0.3 most head-start shots were thrown away. The
+    ui.android.PREFETCH_AGE = 0.8  # door's reads all look again till right: an older picture costs one cheap look (2026-11-09)
+
 SHORTCUT = "Tradeable"
 MAX_SUFFIX = 300  # characters added to the saved search: it's already in the bar
 PVP_URL = "https://raw.githubusercontent.com/pvpoke/pvpoke/master/src/data/rankings/all/overall/rankings-%d.json"

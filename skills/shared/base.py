@@ -486,9 +486,10 @@ def tap(target, dry=False):
             continue
         except Refused as e:
             # caught mid-animation: a menu still opening, or the appraisal still fading off the detail page, its X not
-            # drawn yet ("found 0 close buttons on 'detail'" stopped /pvpc, Pixel, 2026-11-07)
+            # drawn yet ("found 0 close buttons on 'detail'" stopped /pvpc, Pixel, 2026-11-07), or a power-up's "CP417 +2"
+            # still over the page, its buttons hidden ("found 0 menu buttons", tradeable, Pixel, 2026-11-09)
             if any(w in str(e) for w in ("screen is 'unknown'", "found 0 matches", "found 0 close buttons",
-                                         "found 0 appraisal buttons")) and _ < 7:
+                                         "found 0 appraisal buttons", "found 0 menu buttons")) and _ < 7:
                 ui._seen = ui._older = None  # that look was mid-animation: don't reuse it
                 time.sleep(0.4)
                 continue
@@ -787,7 +788,7 @@ def tap_tag_row(T, name):
         return tap(name)
     seen = []
     for i in range(2):
-        if i:
+        if i and not ui.ANDROID:  # (Android: a look takes ~0.5 s, so the two are that far apart already)
             time.sleep(0.4)
         _, texts, _, bounds = wait_for("tags")
         rows = [t for t in texts if row_name(t[4]) == T]
@@ -812,7 +813,7 @@ def lift_tag_row(T):
         if row[1] < 0.33:  # (seen 2026-10-29: IVC at 28%, faded, two taps didn't untick it)
             y, dy = random.randint(1150, 1250), random.randint(280, 320)
         ui.android.shell(f"input swipe {x} {y} {x + random.randint(-8, 8)} {y + dy} {random.randint(520, 680)}")
-        time.sleep(0.5)  # the loop below waits for the rows to hold still
+        time.sleep(0.2)  # the loop below waits for the rows to hold still
         last = None
         for _ in range(8):  # then wait until the rows hold still
             _, texts, _, _ = wait_for("tags")
@@ -820,7 +821,7 @@ def lift_tag_row(T):
             if ys == last:
                 break
             last = ys
-            time.sleep(0.3)
+            time.sleep(0.15)
 
 
 def high_iv(ivs=None, raws=None):

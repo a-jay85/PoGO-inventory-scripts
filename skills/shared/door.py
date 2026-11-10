@@ -248,11 +248,15 @@ class Door:
         the catch place in California or not -> {"caught", "traded", "california"}. Once per open (base.OPENED)"""
         if "page" in base.OPENED:
             return base.OPENED["page"]
-        _, texts, path, bounds = base.look()
+        seen = ui._seen  # Android: the detail page read just now, with no tap since, is the top (one look less)
+        if ui.ANDROID and seen and seen[4] == "detail" and time.time() - seen[0] < 1.5:
+            _, path, texts, bounds, _ = seen
+        else:
+            _, texts, path, bounds = base.look()
         me = tagsheet.who(texts)[1]
         shots = [(texts, path)]  # the Candy XL row: at the top, or (a Dynamax one's Max Moves box) one drag down
         try:
-            base.drag(0.08, 0.75, 0.08, 0.2, bounds)  # down the left edge: no buttons there
+            base.drag(0.08, 0.75, 0.08, 0.2, bounds, android_settle=tagsheet.PAGE_SETTLE)  # down the left edge: no buttons there
             _, t, p, _ = base.look()
             shots.append((t, p))
             if ui.ANDROID and pagefacts.caught_read(t):  # on most pages it shows by now: a second drag adds nothing

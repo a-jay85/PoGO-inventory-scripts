@@ -165,13 +165,15 @@ def tag_chips(texts):
 
 PAGE_SETTLE = (0.25, 0.35)  # Android, seconds after a drag of the detail page (0.7-0.9 by default): adb's drag pauses
 # before it lifts, so the page hardly glides, and each caller reads until it sees the date or the top (2026-11-09)
+IOS_PAGE_SETTLE = (0.4, 0.5)  # iPhone, the same (was 0.7-0.9): helper.swift's drag also holds still before it lifts,
+# but the mirrored picture runs a little behind the phone, so a bit more than the Pixel (2026-11-10)
 
 
 def scrolled_bottom(bounds, drags=2):
     """drag the detail page up to its bottom (caught date) -> texts seen there, both reads. drags: how many it takes
     from where the page is now"""
     for _ in range(drags):
-        base.drag(0.08, 0.75, 0.08, 0.2, bounds, android_settle=PAGE_SETTLE)  # down the left edge: no buttons there
+        base.drag(0.08, 0.75, 0.08, 0.2, bounds, settle=IOS_PAGE_SETTLE, android_settle=PAGE_SETTLE)  # down the left edge: no buttons there
     reads = []
     for _ in range(2):
         _, texts, _, _ = look()
@@ -220,10 +222,10 @@ def back_to_top(me, bounds):
             # at the top the weight sits at ~0.6: move it to just short of there, any more and the page closes
             far = random.uniform(0.56, 0.58) - kg[0][1] if kg else random.uniform(0.4, 0.45)
             # (no CP in sight, so not at the top yet: a drag under 0.06 can leave it a hair short, the CP under the clock)
-            base.drag(x, y, x, min(y + max(far, 0.06), 0.92), bounds, android_settle=PAGE_SETTLE)  # (the loop reads again)
+            base.drag(x, y, x, min(y + max(far, 0.06), 0.92), bounds, settle=IOS_PAGE_SETTLE, android_settle=PAGE_SETTLE)  # (the loop reads again)
             no_hold = False
         elif no_hold and now:  # twice with no label in reach, no CP in sight: a tall page's middle. The left edge has no buttons
-            base.drag(0.08, 0.35, 0.08, 0.35 + random.uniform(0.4, 0.45), bounds, android_settle=PAGE_SETTLE)
+            base.drag(0.08, 0.35, 0.08, 0.35 + random.uniform(0.4, 0.45), bounds, settle=IOS_PAGE_SETTLE, android_settle=PAGE_SETTLE)
             no_hold = False
         else:
             no_hold = True

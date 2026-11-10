@@ -468,7 +468,15 @@ def trainer(fast=True):
         if popups.clear(texts, bounds):
             continue
         if profile(texts):
-            got = [n for n in TRAINERS if squash(n) in squash(" ".join(t[4] for t in texts))]
+            names = lambda tx: [n for n in TRAINERS if squash(n) in squash(" ".join(t[4] for t in tx))]
+            got = names(texts)
+            if len(got) != 1:  # the name may still be coming in ('HashTagAJa' under a gift banner, iPhone, 2026-11-10)
+                texts = base.settle(lambda: look()[1], lambda tx: len(names(tx)) == 1, timeout=3)
+                got = names(texts)
+            if not got:  # OCR can drop the last letter or two of a name that's all there ('HashTagAJa' for HashTagAJay,
+                # a gift banner up, iPhone, 2026-11-10): a line that is one trainer's start, all but those letters
+                got = [n for n in TRAINERS if any(len(n) - 2 <= len(w := squash(t[4])) < len(n) and squash(n).startswith(w)
+                                                  for t in texts if t[1] < 0.3)]
             if len(got) != 1:
                 keep_capture("trainer")
                 raise Stop(f"can't read the trainer name on the profile: {[t[4] for t in texts if t[1] < 0.3]}")

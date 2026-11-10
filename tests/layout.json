@@ -1919,6 +1919,7 @@
    "select_all",
    "settled_tiles",
    "swipe_next",
+   "tile_names",
    "wait_for"
   ],
   "runs": []

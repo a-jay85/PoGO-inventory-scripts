@@ -92,11 +92,19 @@ def select_all(button, n, poll=0.15):
             break
         time.sleep(0.25)
     else:
-        keep_capture("multiselect")
-        raise Stop("no tile on the list to long press")
-    c = min(cps, key=lambda c: (round(c[1] / 0.05), c[0]))
-    x, y = c[0] + c[2] / 2, c[1] + 0.06  # the tile's picture, under its CP
-    press((x - 0.03, y - 0.01, 0.06, 0.02, ""), bounds, hold=900)  # long press: multi-select
+        names = tile_names(texts)
+        if not names:
+            keep_capture("multiselect")
+            raise Stop("no tile on the list to long press")
+        # a tile with no CP label at all (HashTagAJay's Seedot, 2026-11-10, 13 s of looks): its name is part of the tile
+        log(f"no CP label on the list: long press the name {names[0][4]!r}")
+        cps = None
+    if cps:
+        c = min(cps, key=lambda c: (round(c[1] / 0.05), c[0]))
+        x, y = c[0] + c[2] / 2, c[1] + 0.06  # the tile's picture, under its CP
+        press((x - 0.03, y - 0.01, 0.06, 0.02, ""), bounds, hold=900)  # long press: multi-select
+    else:
+        press(names[0], bounds, hold=900)
     pat = rf"{button} \((\d+)\)"
     for _ in range(20):
         time.sleep(poll)
@@ -117,6 +125,18 @@ def select_all(button, n, poll=0.15):
         if got == n:
             break
     return btn, got, texts, bounds
+
+
+def tile_names(texts):
+    """the tiles' name labels when no CP label reads: below SHOW EVOLUTIONARY LINE (or the #... + chip row), above the
+    round buttons, with a letter, not a chip. In reading order"""
+    top = [t for t in texts if t[1] < 0.4 and (ui.norm(t[4]).startswith("SHOW EVOL") or t[4].strip().startswith("#"))]
+    if not top:
+        return []
+    floor = max(t[1] + t[3] for t in top)
+    names = [t for t in texts if floor + 0.02 < t[1] < 0.9 and re.search(r"[A-Za-z]", t[4])
+             and not t[4].strip().startswith("#") and not re.fullmatch(r"TAG\s*\(\d+\)", t[4].strip())]
+    return sorted(names, key=lambda t: (round(t[1] / 0.05), t[0]))
 
 
 # ---------- search ----------

@@ -522,6 +522,8 @@ def evolvable(missing):
     name = lambda sid: re.sub(r" \((Male|Female)\)$", "", by[sid]["speciesName"])
     log(f"Lucky: {len(groups)} lines a lucky Pokémon could evolve into a missing number")
     to_storage()
+    # counts only, small ones: edit the end of the last search and read the count with the keyboard up (as roster)
+    count = counter({}, edit=True, live=True)
     drop, report, keep = set(), [], set()
     for srcs, targets in sorted(groups, key=lambda g: min(by[t]["dex"] for t in g[1])):
         srcs = sorted(srcs, key=lambda x: by[x]["dex"])
@@ -534,13 +536,13 @@ def evolvable(missing):
                    and any(targets <= {e, *ancestors(e, parent)} for e in targets))
         counts = {}
         if one_way:  # every copy of every source runs through all the holes: one search for all of them
-            n = search_exact(source_query(srcs, by))
+            n = count(source_query(srcs, by))
             if n:
                 counts[(srcs[0], None)] = n  # (any copy fills them all)
         else:
             for x in srcs:
                 for gender in (genders if sexed else (None,)):
-                    n = search_exact(source_query([x], by, gender))
+                    n = count(source_query([x], by, gender))
                     if n:
                         counts[(x, gender)] = n
         log(f"  {','.join(ranges({by[t]['dex'] for t in targets}))}: lucky {counts}")

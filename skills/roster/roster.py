@@ -37,7 +37,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 sys.path.insert(0, os.path.join(HERE, "..", "dex"))
 import dex
 from base import Stop, log, newest
-import session
+import search, session
 
 TRAINER = "HashTagAJay"  # the default; CyrillJan can be counted too (tradeable.py plan --to CyrillJan)
 TRAINERS = (TRAINER, "CyrillJan")
@@ -225,15 +225,7 @@ def family(model, t):
                         and region(x) == region(t))
 
 
-def dex_list(ds):
-    """[246, 247, 248, 404] -> '246-248,404'"""
-    out, ds = [], sorted(set(ds))
-    for d in ds:
-        if out and d == out[-1][1] + 1:
-            out[-1][1] = d
-        else:
-            out.append([d, d])
-    return ",".join(str(a) if a == b else f"{a}-{b}" for a, b in out)
+dex_list = search.dex_list  # [246, 247, 248, 404] -> '246-248,404'
 
 
 def plan(model, pools):

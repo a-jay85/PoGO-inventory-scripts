@@ -681,11 +681,7 @@ def dexes_of(q):
     """'&1-3,7&!galar' -> {1, 2, 3, 7}: the dex numbers a plan search is for. None if it has none (&dynamax)"""
     for term in q.split("&"):
         if term and re.fullmatch(r"[\d,\-]+", term):
-            out = set()
-            for r in term.split(","):
-                a, _, b = r.partition("-")
-                out.update(range(int(a), int(b or a) + 1))
-            return out
+            return search.dex_numbers(term)
     return None
 
 

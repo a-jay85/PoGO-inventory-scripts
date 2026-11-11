@@ -300,16 +300,7 @@ def walk_grid():
 
 # ---------- the search ----------
 
-def ranges(ns):
-    out, ns = [], sorted(ns)
-    i = 0
-    while i < len(ns):
-        j = i
-        while j + 1 < len(ns) and ns[j + 1] == ns[j] + 1:
-            j += 1
-        out.append(str(ns[i]) if i == j else f"{ns[i]}-{ns[j]}")
-        i = j + 1
-    return out
+ranges = search.dex_ranges  # {1, 2, 3, 7} -> ['1-3', '7'] (tradeable.py uses it too)
 
 
 def searches(ns):
@@ -323,14 +314,7 @@ def searches(ns):
     return out + [cur] if cur else out
 
 
-def parse(s):
-    """'14,22,29-33' -> {14, 22, 29, ..., 33}"""
-    out = set()
-    for part in s.replace("\n", ",").split(","):
-        if part.strip():
-            a, _, b = part.strip().partition("-")
-            out |= set(range(int(a), int(b or a) + 1))
-    return out
+parse = search.dex_numbers  # '14,22,29-33' -> {14, 22, 29, ..., 33}
 
 
 # ---------- Lucky: what a lucky Pokémon in storage could evolve into ----------

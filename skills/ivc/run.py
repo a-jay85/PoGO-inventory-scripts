@@ -695,15 +695,7 @@ def lucky_rank(m):
 ACT_QUERY_MAX = 120  # a longer dex list costs more typing than walking past the tiles it would hide
 
 
-def dex_terms(dexes):
-    """[1, 4, 5, 7] -> '1,4-5,7': the game's OR of dex numbers and ranges"""
-    runs = []
-    for d in sorted(set(dexes)):
-        if runs and d == runs[-1][1] + 1:
-            runs[-1][1] = d
-        else:
-            runs.append([d, d])
-    return ",".join(f"{a}-{b}" if a != b else str(a) for a, b in runs)
+dex_terms = search.dex_list  # [1, 4, 5, 7] -> '1,4-5,7'
 
 
 def act_query(plans):

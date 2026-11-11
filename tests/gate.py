@@ -57,7 +57,7 @@ sh("git", "init", "-q", "-b", "main")
 sh("git", "config", "user.email", "t@t")
 sh("git", "config", "user.name", "t")
 write(os.path.join(REPO, "skills/aa/run.py"), SKILL)
-write(os.path.join(REPO, "skills/bb/other.py"), "import run\n\n\ndef go():\n    return run.pick(1)\n")
+write(os.path.join(REPO, "skills/bb/other.py"), "import run\n\n\ndef go():\n    return run.pick(1)\n\n\ndef extra():\n    return 0\n")
 write(os.path.join(REPO, "README.md"), "hi\n")
 for t in g.TESTS:
     write(os.path.join(REPO, f"tests/{t}.py"), "import os, sys\nif os.environ.get('GATE_FAIL') == %r:\n"
@@ -288,6 +288,19 @@ case("a dirty worktree: tests run in a temporary checkout of the head, which is 
 
 pr(body=SIB, fail=True)
 case("gh failing: blocked, never let through", gate(), lambda o: denied(o, "couldn't check", "HTTP 502"))
+
+NPT = "No phone test: the screen it handles shows once a year\n"
+pr(title="fix(aa): faster pick", body=NPT + SIB)
+case("a speed PR with no Speed elsewhere: line: blocked, lists the same-named function in another skill", gate(),
+     lambda o: denied(o, "is about speed (it says 'faster')", "`Speed elsewhere:",
+                      "skills/aa/run.py extra: also in skills/bb/other.py:8"))
+pr(title="fix(aa): pick", body=NPT + SIB + "\nTaps went 2.0 s -> 1.2 s")
+case("a speed PR found by the body's timings: blocked too", gate(), lambda o: denied(o, "`Speed elsewhere:"))
+pr(title="fix(aa): faster pick", body=NPT + SIB + "\nSpeed elsewhere: bb's extra is another thing, nothing to do")
+case("a speed PR with a Speed elsewhere: line: passes, the line and the list in the notes", gate(),
+     lambda o: passed(o) and "another thing" in notes(o) and "skills/bb/other.py:8" in notes(o))
+pr(title="docs: faster", body="", files=["README.md"])
+case("a speed PR of docs only: no Speed elsewhere: needed", gate(), passed)
 
 pr(body=SIB, state="MERGED")
 case("a PR already merged: let through (gh says so itself)", gate(), passed)

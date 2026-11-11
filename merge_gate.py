@@ -19,6 +19,10 @@ What it checks, on the PR head as GitHub has it:
 - Siblings: for a .py under skills/, the functions the PR changes (an AST diff from the merge base), who calls each
   one, and phone / account branches where only one side changed. The body needs a line `Siblings: <what was checked,
   what it found>`. Without one it blocks and shows the list; with one the list comes along as notes.
+- Speed: a PR that changes a .py under skills/ and says it's about speed (SPEED, in the title or body) needs a body
+  line `Speed elsewhere: <which other scripts got the same win, or why none can>`. A speed win in one script goes to
+  every script that does the same step. Without the line it blocks, with the functions of the same name in other
+  skills (likely copies) as a place to start.
 A gate that can't check (gh down, a crash) blocks: a merge never goes through unchecked.
 POGO_GH_BIN: a stand-in for `gh` (tests/gate.py).
 """
@@ -37,6 +41,8 @@ SHOW_LINES = 40  # unreached lines shown per note
 SIDES = re.compile(r"ANDROID|IOS|IPHONE|\b(ios|android|iphone|pixel)\b|HashTagAJay|CyrillJan", re.I)
 TWINS = [("android", "ios"), ("android", "iphone"), ("pixel", "iphone"), ("hashtagajay", "cyrilljan")]
 SKIP_DIRS = {".git", "__pycache__", "runs", "tests"}
+SPEED = re.compile(r"\b(speed\w*|fast(er|est)?|quick(er|ly)?|slow(er|ly)?|fewer|sooner|less wait\w*"
+                   r"|shorter waits?|\d+(\.\d+)? ?s ?(->|→) ?\d)", re.I)
 
 
 class Blocked(Exception):
@@ -138,10 +144,11 @@ def pr_of(target, cwd):
         target = git("branch", "--show-current", cwd=cwd, check=False)
         if not target:
             raise Blocked("no PR number in the command and no branch here: write the number, gh pr merge <n> ...")
-    pr = json.loads(gh("pr", "view", target, "--json", "number,url,state,headRefName,headRefOid,baseRefName,body",
+    pr = json.loads(gh("pr", "view", target, "--json", "number,url,state,title,headRefName,headRefOid,baseRefName,body",
                        cwd=cwd))
     pr["files"] = [f for f in gh("pr", "diff", str(pr["number"]), "--name-only", cwd=cwd).splitlines() if f.strip()]
     pr["body"] = pr.get("body") or ""
+    pr["title"] = pr.get("title") or ""
     return pr
 
 
@@ -590,6 +597,30 @@ def siblings(base, head, files):
     return lines
 
 
+def copies(base, head, files):
+    """-> ['skills/a/x.py go: also in skills/b/y.py:12'] for each function a PR changes or adds in a skill, where
+    another skill has a function of the same name (a likely copy: the same speed win may belong there too)"""
+    others = {}
+    for f in code_files(head):
+        t = parse(git("show", f"{head}:{f}", check=False)) if f.startswith("skills/") else None
+        for name, node in defs(t).items() if t is not None else []:
+            if name != "<module>":
+                others.setdefault(name.split(".")[-1], []).append(f"{f}:{node.lineno}")
+    empty = ast.Module(body=[], type_ignores=[])
+    out = []
+    for f in [f for f in files if f.startswith("skills/") and f.endswith(".py")]:
+        o = defs(parse(git("show", f"{base}:{f}", check=False)) or empty)
+        n = defs(parse(git("show", f"{head}:{f}", check=False)) or empty)
+        for name in n:
+            short = name.split(".")[-1]
+            if name == "<module>" or short.startswith("__") or (name in o and same(o[name], n[name])):
+                continue
+            far = [x for x in others.get(short, []) if x.split("/")[1] != f.split("/")[1]]
+            if far:
+                out.append(f"{f} {name}: also in " + ", ".join(far[:6]) + (" ..." if len(far) > 6 else ""))
+    return out
+
+
 # ---------- the verdict ----------
 
 def line(body, key):
@@ -654,6 +685,22 @@ def check(target, cwd):
                 f"the same fix?):\n{listing}\n  Then add a body line `Siblings: <what you checked, what you found>`, "
                 f"e.g. `Siblings: gift.py read_card's 3 callers checked, the iPhone side has the same bug, fixed "
                 f"too`. {edit}")
+
+    speed = SPEED.search(pr["title"] + "\n" + body)
+    if speed and any(f.startswith("skills/") and f.endswith(".py") for f in files):
+        found = copies(base, head, files)
+        listing = "".join("\n  " + c for c in found) or "\n  (none: no other skill has a function of the same name)"
+        if line(body, "Speed elsewhere"):
+            notes.append("speed (the PR says: " + line(body, "Speed elsewhere")[:200] + "); same names elsewhere:"
+                         + listing)
+        else:
+            blocks.append(
+                f"This PR is about speed (it says {speed.group(0)!r}) and has no `Speed elsewhere:` line. A speed "
+                "win in one script goes to every script that does the same step. Grep skills/ for the same wait, "
+                "read, search or loop, give each one the win (best: move it into skills/shared/), then add a body "
+                "line `Speed elsewhere: <which scripts got it, or why none can>`, e.g. `Speed elsewhere: gift.py and "
+                "trade.py had the same 0.8 s settle, both use base.settle now`. Functions of the same name in "
+                f"other skills (likely copies):{listing}\n  {edit}")
 
     if all(f.endswith(".md") for f in files):
         notes.append("tests: skipped (only .md files)")

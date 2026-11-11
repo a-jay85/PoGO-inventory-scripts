@@ -39,7 +39,7 @@ import base
 from base import Stop, log, keep_capture, look, front
 import search
 import session
-from taps import Pass, exact, press, next_one, settled_tiles
+from taps import Pass, exact, press, next_one, settled_tiles, row_of
 from tagsheet import search_exact
 
 TAG = "TODO"
@@ -110,9 +110,7 @@ def sheet(texts):
     btn = [t for t in texts if ui.norm(t[4]) == "MEGA EVOLVE" and t[1] > 0.4]
     cost = None
     if btn:
-        b = btn[0]
-        row = [t for t in texts if abs((t[1] + t[3] / 2) - (b[1] + b[3] / 2)) < 0.015 and t[0] > b[0] + b[2]]
-        nums = [re.sub(r"[^\d]", "", t[4]) for t in row]
+        nums = [re.sub(r"[^\d]", "", t[4]) for t in row_of(texts, btn[0])]
         nums = [int(n) for n in nums if n]
         cost = max(nums) if nums else 0
     # the energy it has: the line under LEVEL UP, 'PINSIR MEGA ENERGY  • 26' or 'MEGA MEWTWO X N ENERGY 9,147'
@@ -146,22 +144,9 @@ def ask_cost(texts):
 # ---------- the level page ----------
 
 def sharp_texts():
-    """the phone's full-size screenshot read again (small numbers stay sharp), or the last look on the iPhone"""
-    return ui.ocr(ui.android.sharp()) if ui.ANDROID else look()[1]
-
-
-def steady(read, tries=30):
-    """look until read(texts) gives the same answer (not None) twice in a row: the level page slides up and the
-    Mega Evolve box grows in, and a read mid-way misses the cost. -> (answer or None, texts, bounds)"""
-    last = None
-    for _ in range(tries):
-        time.sleep(0.15)
-        _, texts, _, bounds = look()
-        r = read(texts)
-        if r is not None and r == last:
-            return r, texts, bounds
-        last = r
-    return None, texts, bounds
+    """right after steady(): its last look's own screenshot read again 3x bigger (small numbers stay sharp), with no
+    new screenshot. The last look itself on the iPhone"""
+    return base.sharp_again() if ui.ANDROID else look()[1]
 
 
 def sheet_key(texts):
@@ -184,7 +169,7 @@ def page_cost(s):
 
 
 def box_key(texts):
-    """the Mega Evolve box: its cost and where YES and NO are, so steady() waits until it's done growing (a tap while
+    """the Mega Evolve box: its cost and where YES and NO are, so base.steady() waits until it's done growing (a tap while
     it grows can miss, and the box closes with no Mega Evolution). None while it isn't there yet"""
     j = " ".join(t[4] for t in texts)
     yes, no = exact(texts, "YES"), exact(texts, "NO")
@@ -196,7 +181,7 @@ def box_key(texts):
 def open_sheet(texts, bounds):
     fx, fy = badge_spot(texts)
     base.click(fx, fy, bounds)
-    got, texts, bounds = steady(sheet_key)
+    got, texts, bounds = base.steady(sheet_key)
     if got is None:
         keep_capture("nosheet")
         raise Pass("the Mega level page didn't open (or never held still)")
@@ -214,7 +199,7 @@ def pick_form(form, texts, bounds):
         return sheet_key(texts) if re.search(rf"MEGA \S+ {form}", line) else None
     if shows(texts) is None:  # (the page opens on the form it last used)
         press(tab[0], bounds)
-    got, texts, bounds = steady(shows, tries=12)
+    got, texts, bounds = base.steady(shows, tries=12)
     if got is not None:
         return sheet(texts), texts, bounds
     # while it rests after one form, the other form's tab is greyed out and a tap does nothing
@@ -347,7 +332,7 @@ def mega(info, dry, free_only=False):
             if len(forms) > 1:
                 why = f"{why}, Mega {form}"
         press(s["button"], bounds)
-        asked, texts, bounds = steady(box_key)
+        asked, texts, bounds = base.steady(box_key)
         if asked is None:
             keep_capture("noask")
             raise Stop("no 'Do you want to Mega Evolve' box after MEGA EVOLVE")

@@ -160,10 +160,21 @@ def num(s):
     return int(d) if d else None
 
 
+def row_of(texts, button, tol=0.015, past=True, middle=True):
+    """the texts on a button's row, left to right: its cost ('EVOLVE 25', 'MEGA EVOLVE  40', 'PURIFY 5,000 50').
+    past: only those right of the button's end (False: from its start, the button too, for a cost glued to its label).
+    middle: rows matched on their middles (False: on their tops)"""
+    b = button
+    y = (lambda t: t[1] + t[3] / 2) if middle else (lambda t: t[1])
+    x = b[0] + b[2] if past else b[0]
+    return sorted((t for t in texts if abs(y(t) - y(b)) < tol and (t[0] > x if past else t[0] >= x)),
+                  key=lambda t: t[0])
+
+
 def costs(texts):
     """-> (stardust owned, candy owned, purify dust cost, purify candy cost) off the detail page"""
     pur = exact(texts, "PURIFY")[0]
-    row = sorted((t for t in texts if abs(t[1] - pur[1]) < 0.02 and t[0] > pur[0] + pur[2]), key=lambda t: t[0])
+    row = row_of(texts, pur, tol=0.02, middle=False)
     if len(row) < 2:
         raise Pass(f"can't read the purify cost row: {[t[4] for t in row]}")
     have_dust, have_candy = owned(texts)

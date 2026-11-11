@@ -30,7 +30,7 @@ import ui
 import base
 from base import Stop, log, keep_capture, look
 import search, session, home, account
-from taps import exact, press, settled_tiles
+from taps import exact, press, settled_tiles, row_of
 from tagsheet import search_exact
 from rules import EVO, EVO_FOR, TRADE_EVOS
 
@@ -45,24 +45,29 @@ def evolve_row(texts):
     btn = [t for t in texts if ui.norm(t[4]).startswith("EVOLVE") and t[1] > 0.4]
     if not btn:
         return None
-    b = btn[0]
-    row = [t for t in texts if abs((t[1] + t[3] / 2) - (b[1] + b[3] / 2)) < 0.015 and t[0] >= b[0]]
-    nums = [int(n) for t in row for n in re.findall(r"\d+", t[4])]
-    return b, max(nums, default=0)
+    nums = [int(n) for t in row_of(texts, btn[0], past=False) for n in re.findall(r"\d+", t[4])]
+    return btn[0], max(nums, default=0)
+
+
+def box_key(texts):
+    """the "want to evolve" box: where YES and NO are. None while it isn't there yet. A Power Up box has YES / NO too:
+    never that one"""
+    yes, no = exact(texts, "YES"), exact(texts, "NO")
+    if len(yes) != 1 or len(no) != 1 or "WANT TO EVOLVE" not in ui.joined(texts):
+        return None
+    return round(yes[0][1], 2), round(no[0][1], 2)
 
 
 def wait_box():
     """after the EVOLVE tap: the "want to evolve" box -> (texts, bounds). Its height changes (Karrablast's has a league
-    warning), so YES is read, once it has grown in. A Power Up box has YES / NO too: never that one.
+    warning), so YES is read once two looks agree on where it is, as mega.py does: a tap while the box grows can miss.
     Never wait_for here: it says NO to this box"""
     time.sleep(SETTLE)
-    for _ in range(30):
-        _, texts, _, bounds = look()
-        if len(exact(texts, "YES")) == 1 and len(exact(texts, "NO")) == 1 and "WANT TO EVOLVE" in ui.joined(texts):
-            return texts, bounds
-        time.sleep(0.05)
-    keep_capture("nobox")
-    raise Stop("no 'want to evolve' box after EVOLVE")
+    got, texts, bounds = base.steady(box_key, tries=30, gap=0.05)
+    if got is None:
+        keep_capture("nobox")
+        raise Stop("no 'want to evolve' box after EVOLVE")
+    return texts, bounds
 
 
 def evolve_one(dry, candy):

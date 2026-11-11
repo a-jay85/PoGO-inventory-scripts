@@ -631,6 +631,20 @@ def settle(read, ok, timeout=3):
         time.sleep(0.1)
 
 
+def steady(read, tries=30, gap=0.15):
+    """look until read(texts) gives the same answer (not None) twice in a row: a page that slides up or a box that
+    grows in reads wrong mid-way, and a tap then misses. -> (answer or None, texts, bounds)"""
+    last = None
+    for _ in range(tries):
+        time.sleep(gap)
+        _, texts, _, bounds = look()
+        r = read(texts)
+        if r is not None and r == last:
+            return r, texts, bounds
+        last = r
+    return None, texts, bounds
+
+
 # ---------- which Pokémon is open ----------
 # Tags, the star and the name may only change the Pokémon that was opened. A stray swipe on the detail screen
 # slides to its neighbour, and the tag sheet doesn't show which one it's on: on 10-07 a Nope meant for

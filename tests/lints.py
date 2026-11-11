@@ -25,8 +25,9 @@ skills/**/*.py and the root scripts. Today's offenders are pinned in tests/lints
           (straight, or by the name it was put in), with no if/while/and/or/assert/IfExp/walrus test on that
           name between the lookup and the use, in the same function. Approximate: a guard elsewhere is missed.
 3. waits  for/while loops that sleep (time.sleep) and look at the screen (LOOKS below) in their own body: use
-          base.settle(read, ok, timeout) or base.wait_for. Counted per function. Not counted: loops over
-          base.tries() (it is the shared wait), and settle/wait_for/tries themselves.
+          base.settle(read, ok, timeout), base.steady(read) (two reads that agree) or base.wait_for. Counted per
+          function. Not counted: loops over base.tries() (it is the shared wait), and settle/steady/wait_for/tries
+          themselves.
 LINT_DEBUG=1 lists the searches whose end it couldn't work out.
 Pins: file, function and the expression, never a line number (any edit above would move it). New ones print
 file:line and what to do instead.
@@ -46,10 +47,10 @@ LONG = ("savedsearch", "long_search")  # reorders the terms it's given (see long
 FINDERS = {("gift", "label"), ("gift", "menu_label"), ("gift", "send_gift_label"), ("popups", "label"),
            ("pages", "label"), ("trade", "label")}
 LOOKS = {"look", "capture", "ocr", "sharp", "panel_text", "wait_for", "wait", "now", "screenshot", "search_line"}
-SHARED_WAITS = {("base", "settle"), ("base", "wait_for"), ("base", "tries")}
+SHARED_WAITS = {("base", "settle"), ("base", "steady"), ("base", "wait_for"), ("base", "tries")}
 SAY = {"thin": "put a term that doesn't end in a thin letter last (xxl&#IVC, not #IVC&xxl)",
        "none": "check it first (t = label(...); if t: ...), or use a walrus: if (t := label(...)):",
-       "waits": "use base.settle(read, ok, timeout) or base.wait_for; if it really can't, --record and say why in the "
+       "waits": "use base.settle(read, ok, timeout), base.steady(read) or base.wait_for; if it really can't, --record and say why in the "
                 "PR body"}
 
 

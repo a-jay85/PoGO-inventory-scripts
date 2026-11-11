@@ -141,7 +141,9 @@ def pokeball(path):
 
 
 def off_map():
-    """a pull-down past the top of the list closes the Pokémon screen. From the map: Poké Ball, then POKÉMON."""
+    """a pull-down past the top of the list closes the Pokémon screen. From the map: Poké Ball, then POKÉMON.
+    -> True if it tapped (it was on the map or the main menu)"""
+    tapped = False
     for _ in range(2):
         path, bounds = ui.capture()
         texts = ui.ocr(path)
@@ -152,10 +154,12 @@ def off_map():
         elif len(texts) <= 16 and pokeball(path):  # the map (an event's raid and Rocket timers add to its text: 11 seen)
             fx, fy = 0.5, 0.928
         else:
-            return
+            return tapped
         log("on the map / main menu: opening the Pokémon list")
         click(fx + random.uniform(-0.01, 0.01), fy + random.uniform(-0.005, 0.005), bounds)
         time.sleep(random.uniform(1.5, 2.0))
+        tapped = True
+    return tapped
 
 
 click = base.click  # a tap at a spot (not a named button): moved to run.py, every skill's taps share it
@@ -392,6 +396,11 @@ def clear_search():
             if screen not in want:  # the first look is enough when it's already one of them
                 screen, texts, _, bounds = wait_for(*want, timeout=6)
         except Stop:
+            # a box (a friend card) came up as the bottom X closed the list, so off_map saw no map; wait_for closed
+            # the box and was left on the map (Pixel, 2026-11-11)
+            if off_map():
+                scrolled = False  # opened from the map: at the top
+                continue
             if not ui.ANDROID:
                 raise
             for _ in range(4):  # a panel that took its time to open

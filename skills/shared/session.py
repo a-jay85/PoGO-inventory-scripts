@@ -27,7 +27,9 @@ CONNECT_TIMEOUT = 30  # seconds for iPhone Mirroring to show the iPhone
 TROUBLE = ("IPHONE IN USE", "IPHONE IS LOCKED", "UNLOCK YOUR IPHONE",  # Mirroring can't reach the iPhone
            "CONNECTION INTERRUPTED",  # (the iPhone went out of reach mid-run, 2026-11-01)
            "IPHONE NOT FOUND",  # (reopened right after that: the iPhone not back yet, 2026-11-02)
-           "IPHONE MIRRORING TIMED OUT")  # (used while connecting: read as "up", and its Connect button waits, 2026-11-04)
+           "IPHONE MIRRORING TIMED OUT",  # (used while connecting: read as "up", and its Connect button waits, 2026-11-04)
+           "AN ERROR OCCURRED. PLEASE TRY AGAIN")  # Mirroring's own grey "Error" page with a phone icon and Try Again:
+#            it lost the iPhone. Opening Mirroring again reconnects (2026-11-11: /trade stopped on it as an unknown screen)
 
 opened = False  # this run opened the phone: main() closes it at the end
 pin_failed = False  # the PIN didn't work once: never typed again this run

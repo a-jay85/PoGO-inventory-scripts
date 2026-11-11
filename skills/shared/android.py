@@ -73,9 +73,14 @@ def shape(im, scale=1):
 def raw_shot():
     """the phone's own screenshot (~0.3 s). adb can fail now and then (exit 255): once when looks came back to back
     (2026-10-25), twice on the first look after unlocking the phone (2026-11-01, 2026-11-03), where a second try
-    after 0.5 s failed too. So a few tries over about 10 s before giving up, and the last error says what adb said"""
+    after 0.5 s failed too. So a few tries over about 10 s before giving up, and the last error says what adb said.
+    It can also hang with the phone fine (2026-10-27, 2026-11-10, 2026-11-11: no answer in 30 s, the next one took
+    under 1 s), so a try that takes over 10 s is a failed try too (a shot takes 0.3-0.8 s)"""
     for wait in (1, 2, 3, 4, None):  # seconds before the next try
-        r = subprocess.run(["adb", "exec-out", "screencap | gzip -1"], capture_output=True, timeout=30)
+        try:
+            r = subprocess.run(["adb", "exec-out", "screencap | gzip -1"], capture_output=True, timeout=10)
+        except subprocess.TimeoutExpired:  # (run has already killed the hung adb)
+            r = subprocess.CompletedProcess([], 124, b"", b"no answer in 10 s")
         if not r.returncode:
             break
         said = r.stderr.decode(errors="replace").strip() or "nothing"

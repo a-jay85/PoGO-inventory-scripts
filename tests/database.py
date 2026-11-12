@@ -177,6 +177,16 @@ check("sweep cut-short tile", len(fits(recs, "Pvp G18U118", 1499)), 1)
 check("sweep spaces and O", len(fits(recs, "84 AO*", 900)), 1)
 check("sweep unread name", len(fits(recs, "", 900)), 0)
 
+# a bulk Transfer tag marks the sweep due, per account, until a whole walk clears it
+reset()
+check("sweep not due at first", pokedb.sweep_due("Alice"), False)
+check("sweep marked due", pokedb.sweep_due(due=True), True)  # (this run's account: Alice)
+check("sweep due for Alice", pokedb.sweep_due("Alice"), True)
+check("sweep not due for Bob", pokedb.sweep_due("Bob"), False)
+check("sweep cleared", pokedb.sweep_due("Alice", due=False), False)
+pokedb.set_account(None)
+check("sweep no account", pokedb.sweep_due(due=True), False)
+
 # two processes writing at once: no "database is locked"
 reset()
 child = """

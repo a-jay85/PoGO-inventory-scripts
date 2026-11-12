@@ -11,7 +11,8 @@ from base import Stop, log, keep_capture, go, look, wait_for
 import search
 from taps import press, select_all, settled_tiles
 from tagsheet import still_sheet, search_exact
-from rules import CLEAN
+from rules import CLEAN, TRANSFER
+import pokedb
 
 UNTAGGED_ONLY = {"PvpC1", "PvpC2", CLEAN}  # their own search already has !# (and on the Pixel PvpC1 fills the bar)
 
@@ -284,6 +285,8 @@ def tag_pile(name, tag, suffix=None, off=(), query=None):
             keep_capture("tick")
             give_up(f"tapped {t} but its tick didn't change: nothing tagged")
     texts, _, bounds = still_sheet()
+    if tag == TRANSFER:  # never opened, so their records stay: dbsweep.py deletes them (cleantrades.py runs it next)
+        pokedb.sweep_due(due=True)
     press(next(t for t in texts if ui.norm(t[4]) == "DONE"), bounds)
     wait_for("list", timeout=8)
     rest = results() and find()  # the list may drop them on its own: then no need to type the search again

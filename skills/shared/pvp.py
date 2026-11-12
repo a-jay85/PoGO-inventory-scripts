@@ -266,8 +266,15 @@ def make_name(species, ivs, level=None):
 
 REGIONS = {"alolan": "alola", "galarian": "galar", "hisuian": "hisui", "paldean": "paldea"}
 POOL_TERMS = {"shadow": "&shadow", "plain": "&!shadow", "lucky": "&lucky&", "dmax": "&dynamax,gigantamax", "gym": ""}
+# the game data's family errors, fixed once for /ivc, /dex, roster and tradeable
 PARENT_FIX = {"raticate": "rattata", "darmanitan_galarian_standard": "darumaka_galarian",  # game data points
-              "darmanitan_galarian_zen": "darumaka_galarian"}  # these at the wrong region's pre-evolution
+              "darmanitan_galarian_zen": "darumaka_galarian",  # these at the wrong region's pre-evolution
+              "cursola": "corsola_galarian",  # ...and Cursola at Johto Corsola
+              "sinistcha": "poltchageist", "poltchageist": None}  # it has this one backwards
+KIDS_FIX = {"espurr": ["meowstic", "meowstic_female"],  # game data lists the male form twice
+            "lechonk": ["oinkologne", "oinkologne_female"],
+            "corsola_galarian": ["cursola"],  # the game data has no family for it
+            "poltchageist": ["sinistcha"], "sinistcha": []}
 
 
 def plain(sid):
@@ -287,12 +294,13 @@ def region(sid):
 
 
 def parent(sid):
-    par = PARENT_FIX.get(sid) or (PLAIN[sid].get("family") or {}).get("parent")
+    par = PARENT_FIX[sid] if sid in PARENT_FIX else (PLAIN[sid].get("family") or {}).get("parent")
     return par if par in PLAIN else None
 
 
 def children(sid):
-    return [e for e in (PLAIN[sid].get("family") or {}).get("evolutions") or [] if e in PLAIN]
+    ks = KIDS_FIX[sid] if sid in KIDS_FIX else (PLAIN[sid].get("family") or {}).get("evolutions") or []
+    return [e for e in ks if e in PLAIN]
 
 
 def search(sid, pool):

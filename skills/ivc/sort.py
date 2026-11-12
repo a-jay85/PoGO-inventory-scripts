@@ -103,13 +103,11 @@ GENDER = {"gallade": "male", "froslass": "female", "vespiquen": "female", "salaz
           "meowstic": "male", "meowstic_female": "female", "oinkologne": "male", "oinkologne_female": "female",
           "basculegion_male": "male", "basculegion_female": "female",
           "indeedee_male": "male", "indeedee_female": "female"}
-CHILD_FIX = {"espurr": ["meowstic", "meowstic_female"],  # game data lists the male form twice
-             "lechonk": ["oinkologne", "oinkologne_female"]}
 POOLS = ("plain", "shadow", "lucky", "dmax")
 
 
 def kids(sid):
-    return list(dict.fromkeys(k for k in CHILD_FIX.get(sid) or children(sid) if k in SPECIES))
+    return list(dict.fromkeys(k for k in children(sid) if k in SPECIES))
 
 
 def lines_of(sid):

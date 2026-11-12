@@ -187,8 +187,9 @@ class Model:
 
     def parent_of(self, sid):
         """what it evolves from, in GO or (gamemaster 'parent', for one GO can't evolve into yet) in the main games"""
-        p = self.parent.get(sid) or (self.by[sid].get("family") or {}).get("parent")
-        return p if p in self.by and (p, sid) not in dex.BAD_EDGES else None
+        p = self.parent.get(sid) or (dex.PARENT_FIX[sid] if sid in dex.PARENT_FIX
+                                     else (self.by[sid].get("family") or {}).get("parent"))
+        return p if p in self.by else None
 
     def stage(self, sid):
         """0 for a family's first, 1 after one evolution, 2 after two, counting evolutions GO doesn't have yet. A baby

@@ -23,7 +23,7 @@ import os, random, re, sys, time
 import ui
 import base
 from base import Stop, log, keep_capture
-import search, session, popups, pages
+import search, session, popups, pages, pokedb
 
 STORAGE = ("list", "tag-tab", "detail", "menu", "appraisal", "appraise-intro", "gym")
 OPEN = ("detail", "menu", "appraisal", "appraise-intro", "gym")  # a Pokémon open: back_to_list() closes it
@@ -107,6 +107,8 @@ def note_storage(texts):
     limit = storage_limit(texts)
     if limit is not None:
         SEEN_LIMIT.update(n=limit, twice=limit == SEEN_LIMIT["n"])
+        if SEEN_LIMIT["twice"] and by_storage(limit):
+            pokedb.set_account(by_storage(limit), sure=False)
 
 
 def press_text(texts, bounds, word):
@@ -439,6 +441,7 @@ def by_storage(limit):
 def forget_storage():
     """the account is changing"""
     SEEN_LIMIT.update(n=None, twice=False)
+    pokedb.set_account(None)
 
 
 def storage_limit(texts):
@@ -502,6 +505,7 @@ def trainer(fast=True):
                 who = by_storage(SEEN_LIMIT["n"])
                 if who:
                     log(f"signed in: {who} (its {SEEN_LIMIT['n']} storage)")
+                    pokedb.set_account(who)
                     return who
                 break
             screen, texts, path, bounds = look()
@@ -528,6 +532,7 @@ def trainer(fast=True):
                 keep_capture("trainer")
                 raise Stop(f"can't read the trainer name on the profile: {[t[4] for t in texts if t[1] < 0.3]}")
             log(f"signed in: {got[0]}")
+            pokedb.set_account(got[0])
             base.tap_x(bounds)
             time.sleep(1.5)
             return got[0]

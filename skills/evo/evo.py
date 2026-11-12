@@ -29,7 +29,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import ui
 import base
 from base import Stop, log, keep_capture, look
-import search, session, home, account
+import search, session, home, account, pokedb
 from taps import exact, press, settled_tiles, row_of
 from tagsheet import search_exact
 from rules import EVO, EVO_FOR, TRADE_EVOS
@@ -82,7 +82,8 @@ def evolve_one(dry, candy):
         time.sleep(0.05)
     else:
         return None
-    name = ui.detail_info(texts)["name"]
+    info = ui.detail_info(texts)
+    name = info["name"]
     box, cost = got
     if cost and not candy:
         keep_capture("cost")
@@ -95,6 +96,9 @@ def evolve_one(dry, candy):
         press(exact(texts, "NO")[0], bounds)
         return bounds
     press(exact(texts, "YES")[0], bounds)
+    # its weight, height and CP all change, and no look follows (speed): the old record goes, and the evolved one
+    # is added the next time any script opens it
+    pokedb.gone(base.who(info), "evolved")
     time.sleep(ANIMATION)
     return bounds
 

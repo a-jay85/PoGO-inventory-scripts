@@ -67,7 +67,7 @@ sys.path.append(os.path.join(HERE, "..", "ivc"))  # for ivc.py
 import ui
 import base
 from base import Stop, Skip, log, go, look, wait_for
-import search
+import search, pokedb
 import pvp
 import home, session, tagsheet
 import dex
@@ -657,6 +657,7 @@ def walk(suffix, xlx, power, limit, skip_dex=(), unsure=None):
                         break
                     time.sleep(0.2)
                 seen.add((info2["name"], info2["cp"], info2["hp"]))
+                pokedb.changed(base.who(info), base.who(info2))  # the database's record follows the new CP
                 log(f"powered up {info['name']} CP{info['cp']} -> CP{info2['cp']}, {n} power-up(s)")
         except (Pass, Skip) as e:
             log(f"pass {info['name']} CP{info['cp']}: {e}")

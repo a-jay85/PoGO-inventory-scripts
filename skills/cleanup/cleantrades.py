@@ -20,7 +20,8 @@ Start with Pokémon GO on the Pokémon screen. Four steps, always in this order:
     (~/claude-plans/_reports/personal/pogo/xl-transfer-roi.md). Anything else: CANCEL. Never below 1,000,000 Stardust.
  3. CyrillJan only (HashTagAJay doesn't need the XP): Clean Trades + a trade evolution (free once traded: Kadabra, Machoke, Graveler, Haunter, Boldore, Gurdurr,
     Karrablast, Shelmet, Phantump, Pumpkaboo) -> tag Evo. Not the base forms (Abra...).
- 4. Clean Trades -> tag Transfer.
+ 4. Clean Trades -> tag Transfer. Then dbsweep.py's sweep deletes the Pokémon database's records of them (they were
+    never opened, so no tag read deleted them). It searches #Transfer and opens a tile only when two records fit.
 Before step 2, the ones that must not get Transfer leave the pile: Clean Trades &xxl, traded or not -> favorite, and no
 step here touches an XXL one (&!xxl). The ones with rules of their own in verdict.py (shiny, lucky, legendary, costume,
 gym defender...: rules.DOOR_PICK) each get their final tag at the door or stay on its not-sure list, and steps 2-4 leave
@@ -49,6 +50,7 @@ from taps import Pass, details
 from savedsearch import run_shortcut, tag_pile, long_search
 from powerup import Unsure, power_up
 from rules import CLEAN, TRANSFER, EVO, TRADE_EVOS, EVO_FOR, UNDER_360_XL, BULK_GUARD, DOOR_PICK
+import dbsweep
 
 
 TAGGING = [("PvpC1", "PvpC"), ("PvpC2", "PvpC"), ("IV Check", "IVC")]
@@ -175,6 +177,7 @@ def script(a):
     if who == EVO_FOR:
         tag_pile(CLEAN, EVO, f"{BULK_GUARD}&{TRADE_EVOS}")  # first: these drop out of Clean Trades (!#)
     tag_pile(CLEAN, TRANSFER, BULK_GUARD)
+    dbsweep.sweep(who, only_due=True)  # (due from this tag, or one a stopped run left)
 
 
 if __name__ == "__main__":

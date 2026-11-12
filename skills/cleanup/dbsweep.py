@@ -11,6 +11,9 @@ record, with no tap. Only when two records fit does it open the tile: the page's
 them apart, and its Transfer chip deletes the right one. It never drags down a page. --limit N opens at most N.
 A tile that fits no record is passed over: it was never opened, so it was never in the database.
 
+cleantrades.py runs it on its own, right after it tags Clean Trades Transfer (sweep(who, only_due=True)): only when a
+bulk Transfer tag marked it due (pokedb.sweep_due), so a healed rerun still sweeps. A whole walk clears the mark.
+
 A record is one the scripts opened before, so a tile with the same name and CP is almost always it. If it isn't (a
 never-opened twin got the tag), the record goes anyway: the database is rebuilt from the next look at that one.
 Log in runs/<time>-dbsweep/.
@@ -34,15 +37,23 @@ def fits(rows, name, cp):
 
 
 def script(limit):
-    who = home.trainer()
+    sweep(home.trainer(), limit)
+
+
+def sweep(who, limit=10 ** 9, only_due=False):
+    """delete the records of who's #Transfer tiles. only_due: only if a bulk Transfer tag marked it due"""
+    if only_due and not pokedb.sweep_due(who):
+        return
     rows = pokedb.find(who)
     if not rows:
         log(f"no {who} Pokémon in the database: nothing to sweep")
+        pokedb.sweep_due(who, due=False)
         return
     search.to_search_list()  # (trainer() can end on the map)
     search_exact(f"#{TRANSFER}")
     if not settled_tiles():
         log(f"nothing tagged {TRANSFER}")
+        pokedb.sweep_due(who, due=False)
         return
     counts = {"deleted": 0, "opened": 0}
     done = set()  # (name, CP) acted on: walk_list asks again on each screen
@@ -77,7 +88,9 @@ def script(limit):
         return False
 
     search.walk_list(visit, want=want)
-    log(f"done: {counts['deleted']} deleted from tiles, {counts['opened']} opened to tell twins apart, "
+    if counts["opened"] < limit:  # (--limit may have left twins: still due)
+        pokedb.sweep_due(who, due=False)
+    log(f"sweep done: {counts['deleted']} deleted from tiles, {counts['opened']} opened to tell twins apart, "
         f"{len(rows)} {who} Pokémon left in the database")
 
 

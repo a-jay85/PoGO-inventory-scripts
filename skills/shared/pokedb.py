@@ -7,7 +7,8 @@ home.py tells it the account, and a Pokémon tagged Transfer is deleted.
   python3 skills/shared/pokedb.py show [account]   every record, newest first
   python3 skills/shared/pokedb.py stale [days]     records no script has seen in that many days (default 30)
 
-Pokémon tagged Transfer in bulk, never opened: ../cleanup/dbsweep.py deletes their records.
+Pokémon tagged Transfer in bulk, never opened: ../cleanup/dbsweep.py deletes their records. savedsearch.tag_pile marks
+the sweep due (sweep_due), and cleantrades.py runs it right after its Transfer tag.
 
 The file: ~/.config/pogo/pokemon.db (SQLite), one for both accounts, never in the repo. POGO_DB=off turns it off,
 POGO_DB=/path/x.db uses another file (tests). A copy goes to ~/claude-plans/_backups/pokemon-db/ once a day (7 kept).
@@ -321,6 +322,22 @@ def _delete(c, acct, who, why):
         c.execute("DELETE FROM pokemon WHERE id=?", (got[0]["id"],))
         _log(f"{why}: deleted CP{who[0]} {who[2]}kg {who[3]}m")
     return None
+
+
+@_guard
+def sweep_due(acct=None, due=None):
+    """a bulk tag gave Transfer to ones never opened (savedsearch.tag_pile): ../cleanup/dbsweep.py is due for this
+    account. due True/False sets it (dbsweep clears it after a whole walk). -> is it due"""
+    c = connect()
+    acct = acct or account()
+    if c is None or not acct:
+        return False
+    k = f"sweep_due:{acct}"
+    if due is True:
+        c.execute("INSERT OR REPLACE INTO meta VALUES (?, ?)", (k, _now()))
+    elif due is False:
+        c.execute("DELETE FROM meta WHERE key=?", (k,))
+    return c.execute("SELECT 1 FROM meta WHERE key=?", (k,)).fetchone() is not None
 
 
 @_guard

@@ -85,7 +85,8 @@
    "log",
    "script",
    "search_exact",
-   "settled_tiles"
+   "settled_tiles",
+   "sweep"
   ],
   "runs": [
    "skills/cleanup/runs"
@@ -1585,6 +1586,7 @@
    "seen",
    "set_account",
    "stats",
+   "sweep_due",
    "tagged"
   ],
   "runs": []
@@ -1807,6 +1809,7 @@
    "HERE",
    "PIECE_MAX",
    "Stop",
+   "TRANSFER",
    "UNTAGGED_ONLY",
    "append",
    "bar_end",

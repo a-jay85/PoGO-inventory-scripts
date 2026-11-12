@@ -502,10 +502,9 @@ def commit_search():
     else:
         base.key("return")
     time.sleep(0.8)  # (then the result count is polled)
-    for _ in range(8):
-        if look() == "friends" and count() is not None:
-            return count()
-        time.sleep(0.5)
+    n = base.settle(lambda: count() if look() == "friends" else None, lambda n: n is not None, 6)  # (8 looks 0.5 s apart)
+    if n is not None:
+        return n
     box = search_line()
     if box and len(ui.norm(box[4])) > 12 and ui.norm(box[4]) != "TRAINER NICKNAME" \
             and not any(0.26 < t[1] < 0.85 for t in texts):
@@ -525,7 +524,7 @@ def list_loaded():
             if time.time() - t0 > 1:
                 log(f"  waited {time.time() - t0:.1f}s for the friend list to load")
             return True
-        time.sleep(0.4)
+        time.sleep(base.poll_gap(0.4))
     return False
 
 

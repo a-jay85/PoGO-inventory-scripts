@@ -240,11 +240,9 @@ def close_sheet(done=("detail",)):
                 keep_capture("notsheet")
                 raise Stop(f"not on the Mega level page: {' | '.join(t[4] for t in texts)[:200]}")
             base.tap_x(bounds)
-        for _ in range(15):
-            time.sleep(0.15)
-            screen, texts, _, _ = look()
-            if screen in done:
-                return screen
+        screen = base.settle(lambda: look()[0], lambda s: s in done, 5)  # (15 looks 0.15 s apart)
+        if screen in done:
+            return screen
     keep_capture("closesheet")
     raise Stop("couldn't get from the Mega level page back to the Pokémon")
 

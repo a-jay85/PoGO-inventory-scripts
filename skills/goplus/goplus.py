@@ -100,27 +100,6 @@ def map_trainer(texts):
     return got[0] if len(got) == 1 else None
 
 
-def to_map():
-    """from anywhere to the map -> its texts"""
-    home.start(storage=False)
-    for _ in range(10):
-        screen, texts, path, bounds = home.look()
-        if screen == "map":
-            return texts
-        if screen in home.STORAGE:
-            home.start()  # the known way to the Pokémon list, then its X
-            base.tap_x(base.look()[3])
-        elif screen == "mainmenu":
-            ui.android.key("back")
-        elif screen == "exit":  # Back on the map asks this
-            home.press_text(texts, bounds, "CANCEL")
-        else:
-            home.unstick(texts)
-        time.sleep(1.5)
-    keep_capture("nomap")
-    raise Stop("couldn't get to the map")
-
-
 def connect():
     """on the map: the ball off -> tapped, and on. -> seconds it took"""
     got = base.settle(lambda: read()[0], lambda b: b is not None, timeout=4)  # the map's top right may still be loading
@@ -149,11 +128,11 @@ def connect():
 def script(only_look):
     if not ui.ANDROID:
         raise Stop("goplus.py is Pixel only: a tap through iPhone Mirroring never connects (POGO_PHONE=android)")
-    texts = to_map()
+    texts = home.to_map()
     who = map_trainer(texts)
     if not who:
         who = home.trainer(fast=False)  # off the profile, back on the map
-        texts = to_map()
+        texts = home.to_map()
     log(f"signed in: {who}")
     if only_look:
         b = base.settle(lambda: read()[0], lambda b: b is not None, timeout=4)

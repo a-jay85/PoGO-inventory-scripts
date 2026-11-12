@@ -469,6 +469,27 @@ def clipped_names(texts, below):
                                        for t in texts if t[1] < below)]
 
 
+def to_map():
+    """from anywhere to the map -> its texts"""
+    start(storage=False)
+    for _ in range(10):
+        screen, texts, path, bounds = look()
+        if screen == "map":
+            return texts
+        if screen in STORAGE:
+            start()  # the known way to the Pokémon list, then its X
+            base.tap_x(base.look()[3])
+        elif screen == "mainmenu":
+            base.back_or_x(bounds)
+        elif screen == "exit":  # Back on the map asks this
+            press_text(texts, bounds, "CANCEL")
+        else:
+            unstick(texts)
+        time.sleep(1.5)
+    keep_capture("nomap")
+    raise Stop("couldn't get to the map")
+
+
 def trainer(fast=True):
     """the signed-in trainer's name. fast: the storage limit tells it, read twice the same. The header only shows it
     over an empty search ('Q (33)' over any other), so a look on the way in counts, and otherwise the bar gets cleared

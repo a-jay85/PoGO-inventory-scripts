@@ -52,6 +52,7 @@ TITLE_GAP = 0.137  # a region's title sits this far above the caught height of t
 FIT = 0.015  # a number this close to a row height sits at it
 SCROLL = 0.25  # of the screen per swipe, ~1.7 rows: the clear band shows ~4.5, so each screen repeats ~2 rows
 MAX_SCREENS = 400
+REGION_NAMES = {"KANTO", "JOHTO", "HOENN", "SINNOH", "UNOVA", "KALOS", "ALOLA", "GALAR", "HISUI", "PALDEA"}
 # not on the Lucky or the 100% page at all: the species that can't be traded (Mew, Celebi, Jirachi, Deoxys,
 # Phione to Arceus, the Unova and Kalos mythicals, Zygarde, Magearna, Marshadow, Zeraora, Meltan, Melmetal, Zarude)
 NEVER_TRADED = {999, 1000}  # Gimmighoul, Gholdengo: shown on the Lucky page, but can't be traded, so never lucky
@@ -96,8 +97,9 @@ def read_grid(path, texts):
     any row with numbers at two heights (the lower ones caught), and a region's title. The spread backs it up."""
     im = Image.open(path).convert("RGB")
     top, bottom = band(texts)
-    # a title half under the header counts: ALOLA at 0.126-0.146 with the header ending at 0.13 (2026-11-11)
-    title_boxes = [t for t in texts if top < t[1] + t[3] and t[1] < bottom and re.fullmatch(r"[A-Z]{4,}", t[4].strip())]
+    # a title half under the header counts: ALOLA at 0.126-0.146 with the header ending at 0.13. Only a region's
+    # name: the header's own count can read as CLIO there (2026-11-11)
+    title_boxes = [t for t in texts if top < t[1] + t[3] and t[1] < bottom and t[4].strip() in REGION_NAMES]
     tiles = []
     for n, t in numbers(texts):
         if t[1] - ABOVE[1] - MIN_BOX < top or t[1] + t[3] > bottom:

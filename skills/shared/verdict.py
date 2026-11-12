@@ -28,7 +28,9 @@ form evolves and it can't (no Evolve button: dead_end), only as its own species:
 its own place in DialgaDex's tops (raid_self), and no trade-evolution GIV.
 Before everything: an XXL one, traded or not, is a favorite and its trade, Transfer and IVC tags come off (xxl(), the user
 2026-11-04: it has value in showcases). Every Transfer for an untraded one goes through transfer() last: an xxs one gets IVC instead, a trade evolution
-(free to evolve once traded) GIV, signed in as HashTagAJay only (only CyrillJan wants the XP, the user 2026-11-02). The user's own tags first: untraded with Old, Evo or GuaranteedLucky,
+(free to evolve once traded) GIV, signed in as HashTagAJay only (only CyrillJan wants the XP, the user 2026-11-02).
+Then one whose family has an evolution over 100 candy (Magikarp, Snom, Noibat: rules.COSTLY_LINES) GIV, either account
+(the user 2026-11-12; not a shadow, and CyrillJan's untraded trade evolutions still get Transfer). The user's own tags first: untraded with Old, Evo or GuaranteedLucky,
 those stay and only IVC / PvpC comes off; traded, the "trade it" tags (TRADE_TAGS) come off. The species lists come
 from tradeable.py's taker_species() and giver_species(), the same ones its tag searches use. Neither account's have an age
 limit: the newest saved copy is used, however old (the user, 2026-11-04 and 2026-11-06).
@@ -47,7 +49,7 @@ from rules import GIVER, TAKER, XL_CAP, XLX_FOR
 from ivc import GYM_DEFENDERS, make_name as ivc_name
 from rules import NAMES as SIZE_NAMES  # a never-traded XXS one gets this name and IVC
 from rules import xxl_off
-from rules import EVO, EVO_FOR, TRADE_EVOS  # traded + a free trade evolution: Evo, on EVO_FOR's account
+from rules import EVO, EVO_FOR, TRADE_EVOS, COSTLY_LINES  # traded + a free trade evolution: Evo, on EVO_FOR's account
 
 TO = {GIVER: TAKER, TAKER: GIVER}
 OLD_DAYS = int(re.search(r"\d+", rules.OLD_AGE).group())
@@ -62,6 +64,7 @@ TRADE_TAGS = ("GIV", "XLX", "2XL", "Reroll", "Old", "Special", "GuaranteedLucky"
 IGNORED_TAGS = ("CPD",)  # as if these tags weren't there: no rule reads them, none takes them off (the user, 2026-11-05)
 OVER_93 = 42  # a costume one at 93%+ (42 of 45) is named and a favorite (the user, 2026-11-02)
 TRADE_EVO_DEX = {int(d) for d in TRADE_EVOS.split(",")}  # evolve free once traded
+COSTLY_DEX = {int(d) for d in COSTLY_LINES.split(",")}  # a family with an evolution over 100 candy
 
 
 @dataclass
@@ -333,6 +336,9 @@ def transfer(f, sid, why, off=(), purify=False, clear=False):
       an xxs one -> IVC, named xxs (/ivc counts that name as done)
       one that evolves free once traded (TRADE_EVOS) -> GIV, signed in as HashTagAJay only (it goes to EVO_FOR,
       who wants the XP; HashTagAJay doesn't, the user 2026-11-02). A shadow can't be traded: it never is
+      one whose family has an evolution over 100 candy (COSTLY_LINES: Magikarp, Snom, Noibat, ...) -> GIV, either
+      account (the user, 2026-11-12). Not a shadow, and not a trade evolution on EVO_FOR (that rule stays). XLX and
+      every other rule come before this, as before
     The size comes first, as in final_tag's order. A size that didn't read gives unsure, never Transfer"""
     if not f.traded:
         if f.size is None:
@@ -342,6 +348,10 @@ def transfer(f, sid, why, off=(), purify=False, clear=False):
                        off=off)
         if f.account != EVO_FOR and not f.shadow and pvp.SPECIES[sid]["dex"] in TRADE_EVO_DEX and not dead_end(f, sid):
             return tag("GIV", why=f"untraded, evolves free once traded (else Transfer: {why})", off=off, clear=clear)
+        dexn = pvp.SPECIES[sid]["dex"]
+        if not f.shadow and dexn in COSTLY_DEX and not (f.account == EVO_FOR and dexn in TRADE_EVO_DEX):
+            return tag("GIV", why=f"untraded, its line has an evolution over 100 candy (else Transfer: {why})", off=off,
+                       clear=clear)
     return tag("Transfer", why=why, off=off, purify=purify, clear=clear)
 
 

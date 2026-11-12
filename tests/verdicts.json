@@ -1125,5 +1125,117 @@
   ],
   null,
   "caught 100 km+ away"
+ ],
+ "Snom: GIV": [
+  "tag",
+  [
+   "GIV"
+  ],
+  null,
+  "untraded, its line has an evolution over 100 candy (else Transfer: no rule wants it)"
+ ],
+ "H Snom: GIV": [
+  "tag",
+  [
+   "GIV"
+  ],
+  null,
+  "untraded, its line has an evolution over 100 candy (else Transfer: no rule wants it)"
+ ],
+ "Noivern: GIV": [
+  "tag",
+  [
+   "GIV"
+  ],
+  null,
+  "untraded, its line has an evolution over 100 candy (else Transfer: no rule wants it)"
+ ],
+ "H Magikarp, no medal: GIV": [
+  "tag",
+  [
+   "GIV"
+  ],
+  null,
+  "untraded, its line has an evolution over 100 candy (else Transfer: no rule wants it)"
+ ],
+ "Snom xxs: IVC": [
+  "tag",
+  [
+   "IVC"
+  ],
+  "xxs",
+  "never traded XXS"
+ ],
+ "Snom at 30: XLX first": [
+  "tag",
+  [
+   "XLX"
+  ],
+  null,
+  "level 30+"
+ ],
+ "H Snom at 29: XLX first": [
+  "tag",
+  [
+   "XLX"
+  ],
+  null,
+  "level 29+"
+ ],
+ "traded Snom: Transfer": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "traded: can't trade again"
+ ],
+ "shadow Snom: Transfer": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "shadow, 360+ Candy XL: transfer, no purify"
+ ],
+ "Charmander, 100 candy: Transfer": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "no rule wants it"
+ ],
+ "Karrablast, trade evolution: Transfer": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "no rule wants it"
+ ],
+ "H Karrablast, trade evolution: GIV": [
+  "tag",
+  [
+   "GIV"
+  ],
+  null,
+  "untraded: evolves free once traded"
+ ],
+ "Roggenrola: GIV": [
+  "tag",
+  [
+   "GIV"
+  ],
+  null,
+  "untraded, its line has an evolution over 100 candy (else Transfer: no rule wants it)"
+ ],
+ "Boldore, trade evolution: Transfer": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "no rule wants it"
  ]
 }

@@ -1698,6 +1698,7 @@
    "BABIES",
    "BULK_GUARD",
    "CLEAN",
+   "COSTLY_LINES",
    "DOOR_PICK",
    "DYNAMAX",
    "EVO",
@@ -2090,6 +2091,8 @@
   "copies": {},
   "names": [
    "ALWAYS_KEEP",
+   "COSTLY_DEX",
+   "COSTLY_LINES",
    "EVO",
    "EVO_FOR",
    "FUSED",

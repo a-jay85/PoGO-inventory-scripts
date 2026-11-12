@@ -9,6 +9,11 @@ CLEAN, TRANSFER, EVO = "Clean Trades", "Transfer", "Evo"
 # the names make a search too long for the bar to read back
 TRADE_EVOS = "64,67,75,93,525,533,588,616,708,710"
 EVO_FOR = "CyrillJan"  # the account that wants the XP: HashTagAJay transfers them like the rest
+# every family with an evolution that costs over 100 candy (Magikarp 400, Snom 400, Roggenrola 200, ...), from
+# tradeable.py refresh's giv-evolved file (2026-10-29) and the family tree. Special trades left out (never Transfer).
+# An untraded one gets GIV where it would get Transfer (the user, 2026-11-12), except a trade evolution on EVO_FOR
+COSTLY_LINES = ("129,130,320,321,333,334,524,525,526,532,533,534,588,589,616,617,636,637,708,709,710,711,714,715,"
+                "759,760,767,768,840,841,842,848,849,854,855,872,873,1011,1012,1013,1019")
 NAMES = {"xxs": "xxs"}  # search term -> nickname, as ivc.make_name spells them. An XXL one is kept instead: XXL_OFF
 # an XXL one, traded or not, isn't traded (it has value in showcases, the user 2026-11-04): a favorite, these come off
 XXL_OFF = ("GuaranteedLucky", "Old", "GIV", "XLX", "2XL", "Reroll", "Special", "Luckydex", TRANSFER, "IVC")

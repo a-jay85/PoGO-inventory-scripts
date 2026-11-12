@@ -290,6 +290,7 @@
    "pick_page",
    "ranges",
    "read_grid",
+   "read_numbers",
    "regions_button",
    "route",
    "run_page",

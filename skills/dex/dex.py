@@ -616,7 +616,12 @@ def latest(page, trainer):
         return None, None
     run = os.path.join(runs, ok[0])
     f = "page-100.txt" if page == "100" and os.path.exists(os.path.join(run, "page-100.txt")) else f"missing-{page}.txt"
-    return parse(open(os.path.join(run, f)).read()), run  # ★100%: the page as read (callers use hundred_useful)
+    return read_numbers(os.path.join(run, f), page), run  # ★100%: the page as read (callers use hundred_useful)
+
+
+def read_numbers(path, page):
+    """a saved page or search file -> its dex numbers (an XXS search starts with xxs&: taken off first)"""
+    return parse(open(path).read().replace(PREFIX.get(page, ""), ""))
 
 
 def cmd_look():
@@ -639,7 +644,7 @@ def cmd_evolve(page, run):
             sys.exit(f"no {EVOLVE[page][1]} run yet: dex.py {page}")
     run = os.path.join(runs, run) if not os.path.isabs(run) else run
     path = next(os.path.join(run, f) for f in files if os.path.exists(os.path.join(run, f)))
-    missing = sorted(parse(open(path).read().replace(PREFIX.get(page, ""), "")))
+    missing = sorted(read_numbers(path, page))
     base.new_run_dir(runs, suffix=f"evolve-{page}")
     who = trainer_of(run)
     if who:

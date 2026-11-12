@@ -1143,6 +1143,22 @@ def slider_to_top(bounds):
     return path, texts, bounds
 
 
+def sort_recent(bounds):
+    """sorted Recent, newest first -> (path, texts, bounds). Picking RECENT when it's the sort already flips the
+    order (arrow up, oldest first): read the arrow and pick it once more if it points up"""
+    for attempt in range(3):
+        got = sort_by("RECENT", bounds)
+        bounds = got[2]
+        way = ui.sort_arrow(got[0], right_most=True)  # sort_by's own last shot
+        if way is None:  # no arrow read: the menu can still be fading out
+            way = base.settle(lambda: ui.sort_arrow(ui.capture()[0], right_most=True), lambda w: w, 2)
+        if way == "down":
+            return got
+        log(f"  sort arrow reads {way}: RECENT again")
+    keep_capture("sort")
+    raise Stop("couldn't get the list sorted Recent, newest first")
+
+
 def sort_by_name(bounds):
     """sorted by Name, at the top of the list (sorting by what it's sorted by already wouldn't move it: so HP first)"""
     global scrolled

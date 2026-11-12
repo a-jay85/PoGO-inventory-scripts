@@ -117,7 +117,7 @@ def script(limit, dry, here, candy):
             return
         _, texts, _, bounds = look()
         log(f"{SEARCH}: {search.result_count(texts)} to evolve")
-        search.sort_by("RECENT", bounds)
+        search.sort_recent(bounds)
     screen, texts, _, bounds = look()
     if not ui.tiles(texts):
         keep_capture("nolist")

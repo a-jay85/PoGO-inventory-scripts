@@ -52,6 +52,7 @@ TITLE_GAP = 0.137  # a region's title sits this far above the caught height of t
 FIT = 0.015  # a number this close to a row height sits at it
 SCROLL = 0.25  # of the screen per swipe, ~1.7 rows: the clear band shows ~4.5, so each screen repeats ~2 rows
 MAX_SCREENS = 400
+LAST_DEX = 1025  # Pecharunt, the highest number in gamemaster.json: any higher read is an OCR slip
 REGION_NAMES = {"KANTO", "JOHTO", "HOENN", "SINNOH", "UNOVA", "KALOS", "ALOLA", "GALAR", "HISUI", "PALDEA"}
 # not on the Lucky or the 100% page at all: the species that can't be traded (Mew, Celebi, Jirachi, Deoxys,
 # Phione to Arceus, the Unova and Kalos mythicals, Zygarde, Magearna, Marshadow, Zeraora, Meltan, Melmetal, Zarude)
@@ -66,7 +67,7 @@ def numbers(texts):
     out = []
     for t in texts:
         s = t[4].replace("O", "0").replace("o", "0").strip()
-        if re.fullmatch(r"\d{4}", s) and int(s) > 0:
+        if re.fullmatch(r"\d{4}", s) and 0 < int(s) <= LAST_DEX:  # a tile near #210 once read as 6810 (2026-11-11)
             out.append((int(s), t))
     return out
 

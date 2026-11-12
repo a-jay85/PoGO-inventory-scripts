@@ -249,11 +249,13 @@ def close_sheet(done=("detail",)):
     raise Stop("couldn't get from the Mega level page back to the Pokémon")
 
 
-def to_list():
+def to_list(seen=None):
     """from a Pokémon's page to the list. Just after a Mega Evolve the 'increase the Mega Level' popup can still come
-    up, and the X tap can end on the level page, where there's no X to find: close those and tap again"""
+    up, and the X tap can end on the level page, where there's no X to find: close those and tap again.
+    seen: a look the caller just took (screen, texts, path, bounds), used for the first try"""
     for attempt in range(3):
-        _, texts, _, bounds = look()
+        _, texts, _, bounds = seen or look()
+        seen = None
         if show_me(texts, bounds):
             _, texts, _, bounds = look()
         if any(t[4].strip().endswith("Mega Level") for t in texts):
@@ -309,9 +311,10 @@ def can(s, mewtwo, free_only=False):
     return cost, need_free, why
 
 
-def mega(info, dry, free_only=False):
-    """on a Pokémon's page: decide, and Mega Evolve it from its level page. -> what happened (a log line)"""
-    _, texts, _, bounds = look()
+def mega(info, dry, free_only=False, seen=None):
+    """on a Pokémon's page: decide, and Mega Evolve it from its level page. -> what happened (a log line).
+    seen: the page's look the caller just took (screen, texts, path, bounds)"""
+    _, texts, _, bounds = seen or look()
     mewtwo, forms = check(info, texts, free_only)
     s, texts, bounds = open_sheet(texts, bounds)
     try:
@@ -418,7 +421,8 @@ def walk(q, limit, dry, free_only=False):
     seen, counts, t_start = set(), {"done": 0, "skip": 0}, time.time()
     pos = 1  # its tile number: the swipe order is the list order
     while True:
-        _, texts, _, _ = base.wait_for("detail")
+        page = base.wait_for("detail")
+        texts = page[1]
         info = ui.detail_info(texts)
         me = key(texts)
         if me in seen:
@@ -430,7 +434,7 @@ def walk(q, limit, dry, free_only=False):
             if counts["done"] >= limit:
                 log(f"--limit {limit} reached")
                 break
-            did = mega(info, dry, free_only)
+            did = mega(info, dry, free_only, page)
             log(f"{label}: {did}")
             counts["done"] += 1
             if free_only:  # one is enough to end the last Mega Evolution (the user, 2026-11-05)
@@ -462,8 +466,9 @@ def walk(q, limit, dry, free_only=False):
                 break
         pos += 1
     log(f"done: {counts['done']} {'would Mega Evolve (dry run)' if dry else 'Mega Evolved'}, {counts['skip']} skipped, {time.time() - t_start:.0f}s")
-    if look()[0] != "list":
-        to_list()
+    last = look()
+    if last[0] != "list":
+        to_list(last)
 
 
 def reopen(pos):

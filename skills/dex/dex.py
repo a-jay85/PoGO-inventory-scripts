@@ -288,7 +288,8 @@ def walk_grid():
         if clash:
             keep_capture("clash")
             raise Stop(f"read these both ways on two screens: {clash}")
-        if seen and not set(got) & set(seen):
+        # no number shared is fine when only numbers the page never shows sit between: 646 then 650 (2026-11-11)
+        if seen and not set(got) & set(seen) and set(range(max(seen) + 1, min(got))) - NOT_LISTED:
             keep_capture("gap")
             raise Stop(f"this screen shares no number with the last one: rows may be skipped ({min(got)}-{max(got)})")
         new = sorted(n for n in got if n not in seen)

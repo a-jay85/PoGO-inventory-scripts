@@ -202,14 +202,8 @@ def save_recent(q, n):
 
 def bar_ends(want):
     """run nothing: tap the filled bar, jump to its end, read it sharp. True if it ends with want"""
-    for _ in range(3):  # a tap while the list still loads does nothing
-        _, bounds = read()
-        search.click(0.45, 0.183, bounds, gap=search.BAR_GAP)
-        if any(ui.search_panel(read()[0]) for _ in range(8)):
-            break
-    else:
+    if not savedsearch.bar_end(read()[1], taps=3):
         return False
-    ui.android.shell("input keyevent KEYCODE_MOVE_END")
     end = savedsearch.same_l(want.rstrip("&"))[-20:]  # the game drops a trailing & when it saves a search
     for _ in range(4):
         time.sleep(0.5)

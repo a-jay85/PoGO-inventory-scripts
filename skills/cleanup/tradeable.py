@@ -825,11 +825,8 @@ def door_walk(suffix, limit, who, shortcut=SHORTCUT, gone=None):
         if (n, c) in judged:  # the list hasn't dropped it yet (or a twin: the next run gets that one). Never judged twice
             log(f"  {n!r} CP{c}: done, still on the list: passed over")
             return False
-        base.open_tile(i)
         counts["opened"] += 1
-        info, texts, _ = base.steady_detail()
-        if not base.opened_right(info, n, c):
-            raise Skip(f"opened {info['name']!r} but tile said {n!r}")
+        info, texts, _ = base.open_checked(i, n, c)
         _, ivs, raws, iv = base.high_iv()
         sp = ui.species_for(info["name"], info["texts"]) or base.species_from_candy(texts, info["cp"] or c, info["hp"])
         info, texts, _ = base.steady_detail()

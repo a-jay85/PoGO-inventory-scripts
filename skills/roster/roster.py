@@ -37,7 +37,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 sys.path.insert(0, os.path.join(HERE, "..", "dex"))
 import dex
 from base import Stop, log, newest
-import search, session
+import search, session, tagsheet
 
 TRAINER = "HashTagAJay"  # the default; CyrillJan can be counted too (tradeable.py plan --to CyrillJan)
 TRAINERS = (TRAINER, "CyrillJan")
@@ -324,7 +324,7 @@ def cmd_count(model, resume):
         raise Stop(f"{resume} is {was}'s count, but {who} is signed in")
     home.start()
     cache = {}
-    n = dex.counter(cache, lambda q, c: log(f"  {q}: {c}"), edit=True, live=True)  # 'q' then 'q&shadow': edit the end
+    n = tagsheet.counter(cache, lambda q, c: log(f"  {q}: {c}"), edit=True, live=True)  # 'q' then 'q&shadow': edit the end
 
     for rnd in range(1, 200):
         need = set()

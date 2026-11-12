@@ -443,47 +443,8 @@ def covered(targets, counts, parent, by):
     return any(want <= set().union(*pick) for pick in itertools.product(*[[set()] + w for w in copies]))
 
 
-def search_exact(q, edit=False, live=False):
-    """type q and make sure the bar holds exactly q: a lost '!' would turn '!galar' into 'galar'. -> result count.
-    edit: when the bar holds the last search, edit its end instead of typing q whole. live: read the count with the
-    keyboard up when every result shows above it (search.count_live)"""
-    for attempt in range(3):
-        texts = tagsheet.search_exact(q, gap_ok=True, edit=edit and not attempt, live=live and not attempt)
-        for look_ in (lambda: texts, lambda: ui.ocr(ui.android.sharp() if ui.ANDROID else ui.capture()[0]),
-                      lambda: ui.ocr(ui.capture()[0])):
-            n = search.result_count(look_())
-            if n is not None:
-                return n
-        log(f"  {q}: can't read the result count: typing it again")
-    keep_capture("search")
-    raise Stop(f"couldn't search exactly {q!r}")
-
-
-def counter(cache, done=None, edit=False, live=False):
-    """-> n(q): one search's count, kept in cache. A search that loses its way (a tap that lands on the map) goes
-    back to the Pokémon list and tries again: twice per search, 20 times in all. done(q, count) runs after each new
-    count. edit: each search edits the end of the last one where they share most of it ('...' -> '...&shadow').
-    live: each count is read with the keyboard up when every result shows above it, and the next search is typed
-    over it (search.count_live)"""
-    lost = [0]
-
-    def n(q):
-        for attempt in range(3):
-            if q in cache:
-                break
-            try:
-                cache[q] = search_exact(q, edit=edit and not attempt, live=live and not attempt)
-            except Stop as e:
-                lost[0] += 1
-                if attempt == 2 or lost[0] > 20:
-                    raise
-                log(f"  {q}: {e}: back to the Pokémon list, again")
-                home.start()
-                continue
-            if done:
-                done(q, cache[q])
-        return cache[q]
-    return n
+search_exact = tagsheet.count_exact  # q -> its result count, typed exactly (shared)
+counter = tagsheet.counter  # -> n(q): counts kept in a cache, lost searches tried again (shared)
 
 
 def to_storage():

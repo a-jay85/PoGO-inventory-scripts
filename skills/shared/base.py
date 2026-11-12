@@ -81,6 +81,20 @@ def new_run_dir(runs, d=None, suffix=""):
             time.sleep(1)
 
 
+def trainer_of(run):
+    """the account a run folder was: its trainer.txt (dex writes one), else the first "signed in: X" in its log.txt
+    (home.trainer logs it), else None"""
+    try:
+        return open(os.path.join(run, "trainer.txt")).read().strip() or None
+    except OSError:
+        pass
+    try:
+        with open(os.path.join(run, "log.txt")) as f:
+            return next((m[1] for m in re.finditer(r"signed in: (\S+)", f.read())), None)
+    except OSError:
+        return None
+
+
 def newest(folder, pattern):
     """the newest file matching folder/pattern (dated names sort by date), or None"""
     import glob

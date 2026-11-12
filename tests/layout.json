@@ -258,6 +258,7 @@
    "PLAIN_MAX",
    "PREFIX",
    "REGIONS",
+   "REGION_NAMES",
    "SCROLL",
    "SURE_PIC",
    "SURE_PLAIN",

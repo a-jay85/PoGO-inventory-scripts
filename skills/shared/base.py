@@ -854,8 +854,10 @@ def tap_tag_row(T, name, first=None):
         _, texts, _, bounds = wait_for("tags")
         seen.append((texts, bounds))
         return seen
+    # the sheet only scrolls up and down, so only the row's top counts. Its left edge isn't steady: the tick box by
+    # it can join the word's box or not ('Transfer' at x 0.143 then 0.157, same right edge, 2026-11-12)
     still = lambda s: len(s) > 1 and all(len(r) == 1 for r in map(rows, s[-2:])) and \
-        abs(rows(s[-2])[0][0] - rows(s[-1])[0][0]) <= 0.01 and abs(rows(s[-2])[0][1] - rows(s[-1])[0][1]) <= 0.01
+        abs(rows(s[-2])[0][1] - rows(s[-1])[0][1]) <= 0.01
     rows = lambda look: [t for t in look[0] if row_name(t[4]) == T]
     settle(read, lambda s: len(s) > 1 and (still(s) or len(rows(s[-1])) != 1), timeout=2)  # (a glide stops in ~1 s)
     if len(rows(seen[-1])) != 1:

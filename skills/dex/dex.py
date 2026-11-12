@@ -6,8 +6,8 @@ to paste. Android only for now.
   POGO_PHONE=android caffeinate -dimsu python3 dex.py 100       the ★100% page
   POGO_PHONE=android caffeinate -dimsu python3 dex.py xxs       the XXS page: each search starts with xxs&
   POGO_PHONE=android python3 dex.py look                        what it reads on a grid screen now; taps nothing
-  POGO_PHONE=android python3 dex.py evolve [run]                the Lucky step again on a page already read (default:
-                                                                the newest Lucky run); doesn't read the page again
+  POGO_PHONE=android python3 dex.py evolve [lucky|xxs] [run]    the evolve step again on a page already read (default:
+                                                                Lucky, its newest run); doesn't read the page again
 
 Gets there from anywhere: main menu, POKÉDEX, the page's chip at the bottom, then KANTO. The page is one long grid,
 four to a row, Kanto to Paldea (0001-1024). A caught entry has a picture with its number at the bottom of the tile.
@@ -22,7 +22,8 @@ A run takes about 5 minutes and only taps to move around: it never changes anyth
 The whole-search limit (MAX_CHARS): the Pixel's bar took 1,397 characters and failed at 1,497 (2026-10-21).
 Each run saves the signed-in trainer to trainer.txt. Other scripts pick a run with dex.latest(page, trainer). Be on the
 same account for evolve. Any check that fails stops the run with no search printed.
-The Lucky run also lists the lucky ones that could evolve into a hole (evolve-lucky.txt), and leaves them out of the search.
+The Lucky and XXS runs also list the lucky or XXS ones in storage that could evolve into a hole (evolve-<page>.txt), and
+leave those holes out of the search. Both keep their mark when they evolve, so one step (evolvable) does both.
 """
 import argparse, difflib, os, random, re, statistics, sys, time
 from PIL import Image
@@ -332,12 +333,15 @@ def searches(ns, prefix=""):
 parse = search.dex_numbers  # '14,22,29-33' -> {14, 22, 29, ..., 33}
 
 
-# ---------- Lucky: what a lucky Pokémon in storage could evolve into ----------
+# ---------- Lucky and XXS: what a lucky or XXS Pokémon in storage could evolve into ----------
+# Both keep their mark when they evolve, so the step is the same for both pages: only the search word differs.
+
+EVOLVE = {"lucky": ("lucky", "Lucky"), "xxs": ("xxs", "XXS")}  # page -> (its storage search word, its name in reports)
 
 REGIONS = {"_alolan": "alola", "_galarian": "galar", "_hisuian": "hisui", "_paldean": "paldea"}
 KIDS_FIX, PARENT_FIX = pvp.KIDS_FIX, pvp.PARENT_FIX  # the gamemaster's family errors (one copy, in pvp.py)
 GENDER = {413: "female", 414: "male", 416: "female", 475: "male", 478: "female", 758: "female"}  # only this gender evolves into it
-NO_EVOLVE = {589, 617}  # Escavalier, Accelgor: need a trade, and a lucky Pokémon can't be traded again
+NO_EVOLVE = {589, 617}  # Escavalier, Accelgor: need a trade. A lucky one can't be traded again; an XXS one would leave
 UNSURE = {"wurmple": "Wurmple turns into Silcoon or Cascoon at random",
           "basculin": "only White-Striped Basculin evolves, and a search can't pick it out"}
 
@@ -365,10 +369,11 @@ def form_terms(sid, by):
     return "".join(f"&!{r}" for x, r in REGIONS.items() if any(p["dex"] == dex and x in o for o, p in by.items()))
 
 
-def source_query(sids, by, gender=None):
-    """the storage search for lucky copies of these species forms (same form terms) that can still evolve"""
+def source_query(sids, by, gender=None, word="lucky"):
+    """the storage search for lucky (or xxs: word) copies of these species forms (same form terms) that can still
+    evolve"""
     dexes = ",".join(str(by[x]["dex"]) for x in sids)
-    return f"lucky&{dexes}&!costume{form_terms(sids[0], by)}" + (f"&{gender}" if gender else "")
+    return f"{word}&{dexes}&!costume{form_terms(sids[0], by)}" + (f"&{gender}" if gender else "")
 
 
 def ancestors(sid, parent):
@@ -473,12 +478,13 @@ def to_storage():
     home.start()
 
 
-def evolvable(missing):
-    """the missing numbers a lucky Pokémon in storage could evolve to fill, a whole line at a time.
-    -> (numbers to drop from the search, report lines)"""
+def evolvable(missing, page="lucky"):
+    """the missing numbers a lucky (or XXS: page) Pokémon in storage could evolve to fill, a whole line at a time.
+    -> (numbers to drop from the search, report lines, dex numbers of the ones to keep)"""
+    word, Name = EVOLVE[page]
     by, parent, groups = lines(missing)
     name = lambda sid: re.sub(r" \((Male|Female)\)$", "", by[sid]["speciesName"])
-    log(f"Lucky: {len(groups)} lines a lucky Pokémon could evolve into a missing number")
+    log(f"{Name}: {len(groups)} lines a {word} Pokémon could evolve into a missing number")
     to_storage()
     # counts only, small ones: edit the end of the last search and read the count with the keyboard up (as roster)
     count = counter({}, edit=True, live=True)
@@ -494,32 +500,32 @@ def evolvable(missing):
                    and any(targets <= {e, *ancestors(e, parent)} for e in targets))
         counts = {}
         if one_way:  # every copy of every source runs through all the holes: one search for all of them
-            n = count(source_query(srcs, by))
+            n = count(source_query(srcs, by, word=word))
             if n:
                 counts[(srcs[0], None)] = n  # (any copy fills them all)
         else:
             for x in srcs:
                 for gender in (genders if sexed else (None,)):
-                    n = count(source_query([x], by, gender))
+                    n = count(source_query([x], by, gender, word))
                     if n:
                         counts[(x, gender)] = n
-        log(f"  {','.join(ranges({by[t]['dex'] for t in targets}))}: lucky {counts}")
+        log(f"  {','.join(ranges({by[t]['dex'] for t in targets}))}: {word} {counts}")
         have = ", ".join(f"{n} {'/'.join(name(x) for x in srcs) if one_way else name(x)}" + (f" {g}" if g else "")
                          for (x, g), n in counts.items())
         what = f"{','.join(ranges({by[t]['dex'] for t in targets}))} " \
                f"({', '.join(sorted({name(t) for t in targets}))})"
         unsure = [x for x, g in counts if x in UNSURE]
         sure = {k: n for k, n in counts.items() if k[0] not in UNSURE}
-        # every lucky that could help, even a maybe (Wurmple) or too few (2 Applin for 3 branches): keep them
+        # every one that could help, even a maybe (Wurmple) or too few (2 Applin for 3 branches): keep them
         # all until the hole is filled
         keep |= {by[x]["dex"] for x in srcs if one_way and counts or any(k[0] == x for k in counts)}
         if sure and covered(targets, sure, parent, by):
             drop |= {by[t]["dex"] for t in targets}
-            report.append(f"evolve: {what} from lucky {have}")
+            report.append(f"evolve: {what} from {word} {have}")
         elif unsure:
-            report.append(f"kept, check by hand: {what}. You have lucky {have}, but {UNSURE[unsure[0]]}")
+            report.append(f"kept, check by hand: {what}. You have {word} {have}, but {UNSURE[unsure[0]]}")
         elif counts:
-            report.append(f"kept: {what}. Lucky {have} can't fill all of them")
+            report.append(f"kept: {what}. {Name} {have} can't fill all of them")
     return drop, report, keep
 
 
@@ -550,17 +556,21 @@ def run_page(page):
 
 
 def write_searches(page, missing):
-    """the searches to paste, saved in the run folder. Lucky: first take out what a lucky Pokémon could evolve into"""
+    """the searches to paste, saved in the run folder. Lucky and XXS: first take out what a lucky or XXS Pokémon here
+    could evolve into"""
     label, report = PAGES[page], []
-    if page == "lucky":
+    if page in EVOLVE:
+        word = EVOLVE[page][0]
         never = set(missing) & NEVER_TRADED
-        drop, report, keep = evolvable(set(missing) - never)
+        # Gimmighoul is never lucky, so the Lucky step skips it; an XXS Gimmighoul here can fill Gholdengo
+        drop, report, keep = evolvable(set(missing) - never if page == "lucky" else set(missing), page)
+        never -= drop
         missing = sorted(set(missing) - drop - never)
         if never:
             report.append(f"left out, can't be traded: {','.join(ranges(never))}")
         if keep:  # (it also finds the wrong form or gender of a few of them: those are fine to tag too)
-            report.append(f"tag these before you clean up, so they get evolved: lucky&!costume&{','.join(ranges(keep))}")
-        with open(os.path.join(base.RUN_DIR, "evolve-lucky.txt"), "w") as f:
+            report.append(f"tag these before you clean up, so they get evolved: {word}&!costume&{','.join(ranges(keep))}")
+        with open(os.path.join(base.RUN_DIR, f"evolve-{page}.txt"), "w") as f:
             f.write("\n".join(report) + "\n")
     if page == "100":
         by, parent = evo_tree()
@@ -573,18 +583,12 @@ def write_searches(page, missing):
             report.append(f"left out, a later stage is on the page: {','.join(ranges(filled))}")
         if extra:
             report.append(f"added, on the page but a missing branch wants another copy: {','.join(ranges(extra))}")
-    if page == "xxs":  # the search goes to another account to trade over: leave out what can't be traded
-        never = set(missing) & NEVER_TRADED
-        missing = sorted(set(missing) - never)
-        if never:
-            report.append(f"left out, can't be traded: {','.join(ranges(never))}")
     out = searches(missing, PREFIX.get(page, ""))
     with open(os.path.join(base.RUN_DIR, f"missing-{page}.txt"), "w") as f:
         f.write("\n\n".join(out) + "\n")
     if report:
-        print("\nLucky Pokémon you have that could evolve into a missing one:" if page == "lucky" else
-              "\nThe page, with later stages counted for earlier ones:" if page == "100" else
-              "\nThe page:")
+        print(f"\n{EVOLVE[page][1]} Pokémon you have that could evolve into a missing one:" if page in EVOLVE else
+              "\nThe page, with later stages counted for earlier ones:")
         print("\n".join(f"  {r}" for r in report))
     print(f"\nWanted for the {label} page: {len(missing)} Pokémon, {len(out)} search(es)\n")
     for i, s in enumerate(out, 1):
@@ -624,24 +628,24 @@ def cmd_look():
             print(f"  #{n:4}  y {y:.3f}  spread {s:5.1f}  {'MISSING' if m else 'caught'}")
 
 
-def cmd_evolve(run):
-    """the Lucky step again on a page already read: storage changed, or the rules did"""
+def cmd_evolve(page, run):
+    """the Lucky (or XXS) step again on a page already read: storage changed, or the rules did"""
     runs = os.path.join(HERE, "runs")
+    files = (f"page-{page}.txt", f"missing-{page}.txt")
     if not run:
-        run = max((d for d in os.listdir(runs) if d.endswith("-lucky") and not d.endswith("-evolve-lucky")
-                   and any(os.path.exists(os.path.join(runs, d, f)) for f in ("page-lucky.txt", "missing-lucky.txt"))),
-                  default=None)
+        run = max((d for d in os.listdir(runs) if d.endswith(f"-{page}") and not d.endswith(f"-evolve-{page}")
+                   and any(os.path.exists(os.path.join(runs, d, f)) for f in files)), default=None)
         if not run:
-            sys.exit("no Lucky run yet: dex.py lucky")
+            sys.exit(f"no {EVOLVE[page][1]} run yet: dex.py {page}")
     run = os.path.join(runs, run) if not os.path.isabs(run) else run
-    page = next(os.path.join(run, f) for f in ("page-lucky.txt", "missing-lucky.txt") if os.path.exists(os.path.join(run, f)))
-    missing = sorted(parse(open(page).read()))
-    base.new_run_dir(runs, suffix="evolve-lucky")
+    path = next(os.path.join(run, f) for f in files if os.path.exists(os.path.join(run, f)))
+    missing = sorted(parse(open(path).read().replace(PREFIX.get(page, ""), "")))
+    base.new_run_dir(runs, suffix=f"evolve-{page}")
     who = trainer_of(run)
     if who:
         save_trainer(who)
-    log(f"page from {page}: {len(missing)} missing" + (f" ({who})" if who else ""))
-    write_searches("lucky", missing)
+    log(f"page from {path}: {len(missing)} missing" + (f" ({who})" if who else ""))
+    write_searches(page, missing)
 
 
 def script(page):
@@ -652,14 +656,18 @@ def script(page):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("page", choices=(*PAGES, "look", "evolve"))
-    ap.add_argument("run", nargs="?", help="evolve: a Lucky run's folder (default: the newest)")
+    ap.add_argument("rest", nargs="*", metavar="[lucky|xxs] [run]",
+                    help="evolve: which page (default lucky), and a run's folder (default: the newest)")
     a = ap.parse_args()
     if not ui.ANDROID:
         sys.exit("Android only for now: POGO_PHONE=android")
     if a.page == "look":
         return cmd_look()
     if a.page == "evolve":
-        return session.main(cmd_evolve, a.run)
+        page = a.rest.pop(0) if a.rest and a.rest[0] in EVOLVE else "lucky"
+        if len(a.rest) > 1:
+            ap.error("evolve takes a page and one run folder at most")
+        return session.main(cmd_evolve, page, a.rest[0] if a.rest else None)
     base.new_run_dir(os.path.join(HERE, "runs"), suffix=a.page)
     session.main(script, a.page)
 

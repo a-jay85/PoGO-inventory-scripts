@@ -145,6 +145,12 @@ def party_pick(texts):
     return center(hit) if hit else None
 
 
+def party_wait(texts):
+    """the same picker seen by a party member, not its leader: 'HashTagAJay is selecting a Party Challenge...' over
+    a countdown, no START, Back does nothing (Pixel, 2026-11-11). Its round X closes it"""
+    return base.X_BUTTON if "IS SELECTING A PARTY CHALLENGE" in ui.joined(texts) else None
+
+
 def party_ended(texts):
     """'The party has ended' (a party lasts 3 hours): OK"""
     hit = label(texts, "OK")
@@ -174,6 +180,7 @@ BOXES = (
     ("challenge", challenge, "a Weekly Challenge box is up: {}", 1.5),
     ("party done", party_done, "a finished Party Challenge is up: tapping CLAIM REWARD", 2.5),
     ("party pick", party_pick, "the party's challenge picker is up: tapping START", 2.5),
+    ("party wait", party_wait, "a party member's challenge picker is up: closing it", 1.5),
     ("party ended", party_ended, "the party has ended: tapping OK", 1.5),
     ("party summary", party_summary, "the party's summary is up: closing it", 1.5),
     ("rocket radar", rocket_radar, "a new Rocket Radar is up: tapping EQUIP, its only button", 2.5),

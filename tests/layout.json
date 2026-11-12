@@ -1553,6 +1553,7 @@
    "party_ended",
    "party_pick",
    "party_summary",
+   "party_wait",
    "passenger",
    "rocket_radar",
    "trade_box",

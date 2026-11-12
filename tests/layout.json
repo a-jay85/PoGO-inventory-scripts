@@ -23,6 +23,7 @@
   "steps": {
    "account": "shared/account.py",
    "cleantrades": "cleanup/cleantrades.py",
+   "dbsweep": "cleanup/dbsweep.py",
    "dex": "dex/dex.py",
    "evo": "evo/evo.py",
    "gift": "gift/gift.py",
@@ -70,6 +71,21 @@
    "tag_pile",
    "untraded",
    "wait_for"
+  ],
+  "runs": [
+   "skills/cleanup/runs"
+  ]
+ },
+ "skills/cleanup/dbsweep.py": {
+  "copies": {},
+  "names": [
+   "HERE",
+   "TRANSFER",
+   "fits",
+   "log",
+   "script",
+   "search_exact",
+   "settled_tiles"
   ],
   "runs": [
    "skills/cleanup/runs"

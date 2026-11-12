@@ -5,6 +5,9 @@ home.py tells it the account, and a Pokémon tagged Transfer is deleted.
 
   python3 skills/shared/pokedb.py stats            counts per account
   python3 skills/shared/pokedb.py show [account]   every record, newest first
+  python3 skills/shared/pokedb.py stale [days]     records no script has seen in that many days (default 30)
+
+Pokémon tagged Transfer in bulk, never opened: ../cleanup/dbsweep.py deletes their records.
 
 The file: ~/.config/pogo/pokemon.db (SQLite), one for both accounts, never in the repo. POGO_DB=off turns it off,
 POGO_DB=/path/x.db uses another file (tests). A copy goes to ~/claude-plans/_backups/pokemon-db/ once a day (7 kept).
@@ -354,5 +357,11 @@ if __name__ == "__main__":
             ivs = f"{r['atk']}/{r['def']}/{r['sta']}" if r["atk"] is not None else "-"
             print(f"{r['account']:12} {r['species'] or '?':16} {r['nickname'] or '':14} CP{r['cp']} {r['hp']}HP "
                   f"{r['kg']}kg {r['m']}m {ivs} {r['tags'] or ''} {r['caught'] or ''} {r['last_seen']}")
+    elif args[0] == "stale":
+        days = int(args[1]) if len(args) > 1 else 30
+        old = c.execute("""SELECT account, COUNT(*) n, MIN(last_seen) oldest FROM pokemon
+                           WHERE last_seen < datetime('now', 'localtime', ?) GROUP BY account""", (f"-{days} days",))
+        print("\n".join(f"{r['account']}: {r['n']} not seen in {days} days (oldest {r['oldest']})" for r in old)
+              or f"every record seen in the last {days} days")
     else:
         sys.exit(__doc__)

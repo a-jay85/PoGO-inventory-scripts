@@ -166,6 +166,17 @@ check("7 kept", kept, [f"pokemon-202601{d:02d}.db" for d in range(3, 10)])
 check("backup opens", sqlite3.connect(os.path.join(folder, kept[-1])).execute(
     "SELECT value FROM meta WHERE key='schema_version'").fetchone()[0], str(pokedb.SCHEMA))
 
+# dbsweep: which records a #Transfer tile could be
+sys.path.insert(0, os.path.join(ROOT, "skills", "cleanup"))
+from dbsweep import fits  # noqa: E402
+recs = [{"nickname": "Magikarp", "cp": 42}, {"nickname": "Magikarp", "cp": 42}, {"nickname": "Magikarp", "cp": 40},
+        {"nickname": "Pvp G18U118 L3", "cp": 1499}, {"nickname": "84 A 0*", "cp": 900}, {"nickname": None, "cp": 900}]
+check("sweep twins", len(fits(recs, "Magikarp", 42)), 2)
+check("sweep other CP", len(fits(recs, "Magikarp", 41)), 0)
+check("sweep cut-short tile", len(fits(recs, "Pvp G18U118", 1499)), 1)
+check("sweep spaces and O", len(fits(recs, "84 AO*", 900)), 1)
+check("sweep unread name", len(fits(recs, "", 900)), 0)
+
 # two processes writing at once: no "database is locked"
 reset()
 child = """

@@ -96,7 +96,8 @@ def read_grid(path, texts):
     any row with numbers at two heights (the lower ones caught), and a region's title. The spread backs it up."""
     im = Image.open(path).convert("RGB")
     top, bottom = band(texts)
-    title_boxes = [t for t in texts if top < t[1] < bottom and re.fullmatch(r"[A-Z]{4,}", t[4].strip())]
+    # a title half under the header counts: ALOLA at 0.126-0.146 with the header ending at 0.13 (2026-11-11)
+    title_boxes = [t for t in texts if top < t[1] + t[3] and t[1] < bottom and re.fullmatch(r"[A-Z]{4,}", t[4].strip())]
     tiles = []
     for n, t in numbers(texts):
         if t[1] - ABOVE[1] - MIN_BOX < top or t[1] + t[3] > bottom:

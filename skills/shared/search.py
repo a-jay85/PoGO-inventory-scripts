@@ -32,6 +32,34 @@ LAST = {"q": None}  # the search start_search last left in the bar (None: unknow
 SORT_BUTTON = (0.838, 0.937)  # the round sort button, bottom right
 
 
+# ---------- dex numbers in a search ----------
+
+def dex_ranges(ns):
+    """{1, 2, 3, 7} -> ['1-3', '7']: the game's dex numbers and ranges, in order"""
+    out = []
+    for d in sorted(set(ns)):
+        if out and d == out[-1][1] + 1:
+            out[-1][1] = d
+        else:
+            out.append([d, d])
+    return [str(a) if a == b else f"{a}-{b}" for a, b in out]
+
+
+def dex_list(ns):
+    """{1, 2, 3, 7} -> '1-3,7': the game's OR of dex numbers and ranges"""
+    return ",".join(dex_ranges(ns))
+
+
+def dex_numbers(s):
+    """'14,22,29-33' (commas or new lines) -> {14, 22, 29, ..., 33}"""
+    out = set()
+    for part in s.replace("\n", ",").split(","):
+        if part.strip():
+            a, _, b = part.strip().partition("-")
+            out |= set(range(int(a), int(b or a) + 1))
+    return out
+
+
 # ---------- walking a list ----------
 
 def zoom_name(im, t):

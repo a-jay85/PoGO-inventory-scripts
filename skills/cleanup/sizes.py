@@ -28,7 +28,7 @@ import base
 from base import Stop, Skip, log, go, wait_for
 import search, session, home
 import cleantrades as ct
-from taps import Pass, next_one, press
+from taps import Pass, press, details
 from tagsheet import search_exact, tag_chips
 from savedsearch import results, tag_pile
 from rules import EVO_FOR, TRADE_EVOS, NAMES, TRANSFER, xxl_off
@@ -70,15 +70,14 @@ def walk(find, size, limit):
     one gets renamed and tagged IVC. -> how many were changed"""
     if not find():
         return 0
-    go("tile 1", "detail")
-    seen, done = set(), 0
-    while True:
-        _, texts, _, bounds = wait_for("detail")
+    done = 0
+
+    def read():
+        bounds = wait_for("detail")[3]
         info, texts, _ = base.steady_detail()  # (right after the swipe the page is still sliding in)
-        me = (info["cp"], info["hp"])  # (not the name: it changes)
-        if me in seen:
-            break
-        seen.add(me)
+        return info, texts, bounds
+
+    for info, texts, bounds, seen in details(key=lambda i: (i["cp"], i["hp"]), read=read):  # (not the name: it changes)
         base.OPENED["who"] = base.who(info)  # the swipe moved here on purpose: rename and tags check against this one
         try:
             if done >= limit:
@@ -94,8 +93,6 @@ def walk(find, size, limit):
             done += 1
         except (Pass, Skip) as e:
             log(f"pass {info['name']} CP{info['cp']}: {e}")
-        if not next_one(bounds, lambda t: (lambda i: (i["cp"], i["hp"]))(ui.detail_info(t)) not in seen):
-            break
     go("close", "list")
     return done
 

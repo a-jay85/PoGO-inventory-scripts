@@ -74,7 +74,7 @@ import dex
 import powerup
 import savedsearch
 import sizes
-from taps import Pass, next_one, owned
+from taps import Pass, owned, details
 from ivc import GYM_DEFENDERS
 from rules import (GIVER, TAKER, TAGS, XLX, TRANSFER, LUCKY_CANDY, XL_CAP, XLX_LEVEL, GIV_FOR_TAKER, XLX_FOR,
     PVE_TOP, GIVER_MARGIN, PVP_FLOOR, HARD_CANDY, BABIES, SPECIAL, NO_SPECIAL, DYNAMAX, UNDER_360_XL, TAG_SKIP, GUARANTEED,
@@ -624,15 +624,8 @@ def walk(suffix, xlx, power, limit, skip_dex=(), unsure=None):
     power -> cleantrades' power-up, not for a family in skip_dex. -> power-ups made, or None if --limit stopped it"""
     if not run_pile(suffix):
         return 0
-    go("tile 1", "detail")
-    seen, done = set(), 0
-    while True:
-        _, texts, _, bounds = wait_for("detail")
-        info = ui.detail_info(texts)
-        me = (info["name"], info["cp"], info["hp"])
-        if me in seen:
-            break
-        seen.add(me)
+    done = 0
+    for info, texts, bounds, seen in details():
         base.OPENED["who"] = base.who(info)  # the swipe moved here on purpose: set_tags checks against this one
         checked = not xlx  # its level is known to be under 26, or it's tagged XLX
         try:
@@ -669,9 +662,6 @@ def walk(suffix, xlx, power, limit, skip_dex=(), unsure=None):
             log(f"pass {info['name']} CP{info['cp']}: {e}")
             if (not checked or isinstance(e, powerup.Unsure)) and unsure is not None:
                 unsure.append(f"{info['name']} CP{info['cp']} HP{info['hp']}: {e}")
-        # (the bounds don't change on the detail page)
-        if not next_one(bounds, lambda t: (lambda i: (i["name"], i["cp"], i["hp"]))(ui.detail_info(t)) not in seen):
-            break
     go("close", "list")
     return done
 
@@ -693,23 +683,14 @@ def survey():
     n = run_pile("")
     if not n or n > SMALL_PILE:
         return set() if n == 0 else None
-    go("tile 1", "detail")
     seen, out = set(), set()
-    while True:
-        _, texts, _, bounds = wait_for("detail")
-        info = ui.detail_info(texts)
-        me = (info["name"], info["cp"], info["hp"])
-        if me in seen:
-            break
-        seen.add(me)
+    for info, texts, bounds, seen in details():
         sids = ui.species_for(info["name"], info["texts"])
         if not sids:
             log(f"survey: can't tell the species of {info['name']} CP{info['cp']}: every search runs")
             go("close", "list")
             return None
         out |= {pvp.SPECIES[x]["dex"] for x in sids}
-        if not next_one(bounds, lambda t: (lambda i: (i["name"], i["cp"], i["hp"]))(ui.detail_info(t)) not in seen):
-            break
     go("close", "list")
     log(f"survey: {len(seen)} of {n} seen, dex {sorted(out)}: " + ", ".join(f"{a} CP{b}" for a, b, _ in seen))
     if len(seen) < n:  # the walk stopped short: one not seen could need a skipped search

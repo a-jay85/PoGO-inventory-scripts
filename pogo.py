@@ -35,7 +35,7 @@ STEPS = {
     "cleantrades": ("cleanup/cleantrades.py", {"evo", "fix", "transfer"}, set()),
     "sizes":       ("cleanup/sizes.py", set(), set()),
     "tradeable":   ("cleanup/tradeable.py", {"refresh", "dynamax", "read", "plan", "tag", "door"}, {"refresh", "plan"}),  # door: the default
-    "dex":         ("dex/dex.py", {"lucky", "100", "look", "evolve"}, set()),
+    "dex":         ("dex/dex.py", {"lucky", "100", "xxs", "look", "evolve"}, set()),
     "luckydex":    ("dex/luckydex.py", {"check"}, set()),
     "gift":        ("gift/gift.py", {"run", "look"}, set()),
     "trade":       ("trade/trade.py", {"run", "look", "restart"}, set()),

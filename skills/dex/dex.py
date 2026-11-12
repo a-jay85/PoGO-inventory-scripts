@@ -4,6 +4,7 @@ to paste. Android only for now.
 
   POGO_PHONE=android caffeinate -dimsu python3 dex.py lucky     the Lucky page
   POGO_PHONE=android caffeinate -dimsu python3 dex.py 100       the ★100% page
+  POGO_PHONE=android caffeinate -dimsu python3 dex.py xxs       the XXS page: each search starts with xxs&
   POGO_PHONE=android python3 dex.py look                        what it reads on a grid screen now; taps nothing
   POGO_PHONE=android python3 dex.py evolve [run]                the Lucky step again on a page already read (default:
                                                                 the newest Lucky run); doesn't read the page again
@@ -33,7 +34,8 @@ import base
 from base import Stop, log, keep_capture
 import home, pvp, search, session, tagsheet
 
-PAGES = {"lucky": "LUCKY", "100": "100%"}  # page -> its chip's label
+PAGES = {"lucky": "LUCKY", "100": "100%", "xxs": "XXS"}  # page -> its chip's label
+PREFIX = {"xxs": "xxs&"}  # once in front of each search: OR binds tighter, so xxs&1-3,7 is xxs AND (1-3 OR 7)
 MAX_CHARS = 1000  # per search. The Pixel's search bar took 1,397 characters and failed at 1,497 (2026-10-21)
 CHIP_Y = 0.845  # the chip row's labels (POKÉMON, SHINY, LUCKY ... ★100%)
 HEADER_SMALL = 0.13  # bottom of the region header while the grid is scrolled (KANTO 120)
@@ -50,6 +52,8 @@ TITLE_GAP = 0.137  # a region's title sits this far above the caught height of t
 FIT = 0.015  # a number this close to a row height sits at it
 SCROLL = 0.25  # of the screen per swipe, ~1.7 rows: the clear band shows ~4.5, so each screen repeats ~2 rows
 MAX_SCREENS = 400
+LAST_DEX = 1025  # Pecharunt, the highest number in gamemaster.json: any higher read is an OCR slip
+REGION_NAMES = {"KANTO", "JOHTO", "HOENN", "SINNOH", "UNOVA", "KALOS", "ALOLA", "GALAR", "HISUI", "PALDEA"}
 # not on the Lucky or the 100% page at all: the species that can't be traded (Mew, Celebi, Jirachi, Deoxys,
 # Phione to Arceus, the Unova and Kalos mythicals, Zygarde, Magearna, Marshadow, Zeraora, Meltan, Melmetal, Zarude)
 NEVER_TRADED = {999, 1000}  # Gimmighoul, Gholdengo: shown on the Lucky page, but can't be traded, so never lucky
@@ -63,7 +67,7 @@ def numbers(texts):
     out = []
     for t in texts:
         s = t[4].replace("O", "0").replace("o", "0").strip()
-        if re.fullmatch(r"\d{4}", s) and int(s) > 0:
+        if re.fullmatch(r"\d{4}", s) and 0 < int(s) <= LAST_DEX:  # a tile near #210 once read as 6810 (2026-11-11)
             out.append((int(s), t))
     return out
 
@@ -94,14 +98,19 @@ def read_grid(path, texts):
     any row with numbers at two heights (the lower ones caught), and a region's title. The spread backs it up."""
     im = Image.open(path).convert("RGB")
     top, bottom = band(texts)
+    # a title half under the header counts: ALOLA at 0.126-0.146 with the header ending at 0.13. Only a region's
+    # name: the header's own count can read as CLIO there (2026-11-11)
+    title_boxes = [t for t in texts if top < t[1] + t[3] and t[1] < bottom and t[4].strip() in REGION_NAMES]
     tiles = []
     for n, t in numbers(texts):
         if t[1] - ABOVE[1] - MIN_BOX < top or t[1] + t[3] > bottom:
             continue  # under the header or the chips: the next screen has it whole
-        tiles.append((n, t[1], spread(im, t, top)))
+        # the box stops at a region's title too: ALOLA's letters sit in the box over a missing #722 (2026-11-11)
+        cut = max([top] + [b[1] + b[3] for b in title_boxes if b[1] < t[1]])
+        tiles.append((n, t[1], spread(im, t, cut)))
     tiles.sort(key=lambda r: r[1])
     # a region's title (SINNOH) between two regions starts a new grid: heights only carry within one part
-    titles = sorted(t[1] for t in texts if top < t[1] < bottom and re.fullmatch(r"[A-Z]{4,}", t[4].strip()))
+    titles = sorted(b[1] for b in title_boxes)
     part = lambda y: sum(ty < y for ty in titles)
     refs = [(part(ty + 0.01), ty + TITLE_GAP) for ty in titles]  # (part, height a caught number would sit at)
     for n, y, s in tiles:
@@ -283,7 +292,8 @@ def walk_grid():
         if clash:
             keep_capture("clash")
             raise Stop(f"read these both ways on two screens: {clash}")
-        if seen and not set(got) & set(seen):
+        # no number shared is fine when only numbers the page never shows sit between: 646 then 650 (2026-11-11)
+        if seen and not set(got) & set(seen) and set(range(max(seen) + 1, min(got))) - NOT_LISTED:
             keep_capture("gap")
             raise Stop(f"this screen shares no number with the last one: rows may be skipped ({min(got)}-{max(got)})")
         new = sorted(n for n in got if n not in seen)
@@ -308,15 +318,15 @@ def walk_grid():
 ranges = search.dex_ranges  # {1, 2, 3, 7} -> ['1-3', '7'] (tradeable.py uses it too)
 
 
-def searches(ns):
-    """comma lists of at most MAX_CHARS characters"""
+def searches(ns, prefix=""):
+    """comma lists of at most MAX_CHARS characters, each with prefix in front"""
     out, cur = [], ""
     for r in ranges(ns):
-        if cur and len(cur) + 1 + len(r) > MAX_CHARS:
-            out.append(cur)
+        if cur and len(prefix) + len(cur) + 1 + len(r) > MAX_CHARS:
+            out.append(prefix + cur)
             cur = ""
         cur = f"{cur},{r}" if cur else r
-    return out + [cur] if cur else out
+    return out + [prefix + cur] if cur else out
 
 
 parse = search.dex_numbers  # '14,22,29-33' -> {14, 22, 29, ..., 33}
@@ -563,12 +573,18 @@ def write_searches(page, missing):
             report.append(f"left out, a later stage is on the page: {','.join(ranges(filled))}")
         if extra:
             report.append(f"added, on the page but a missing branch wants another copy: {','.join(ranges(extra))}")
-    out = searches(missing)
+    if page == "xxs":  # the search goes to another account to trade over: leave out what can't be traded
+        never = set(missing) & NEVER_TRADED
+        missing = sorted(set(missing) - never)
+        if never:
+            report.append(f"left out, can't be traded: {','.join(ranges(never))}")
+    out = searches(missing, PREFIX.get(page, ""))
     with open(os.path.join(base.RUN_DIR, f"missing-{page}.txt"), "w") as f:
         f.write("\n\n".join(out) + "\n")
     if report:
         print("\nLucky Pokémon you have that could evolve into a missing one:" if page == "lucky" else
-              "\nThe page, with later stages counted for earlier ones:")
+              "\nThe page, with later stages counted for earlier ones:" if page == "100" else
+              "\nThe page:")
         print("\n".join(f"  {r}" for r in report))
     print(f"\nWanted for the {label} page: {len(missing)} Pokémon, {len(out)} search(es)\n")
     for i, s in enumerate(out, 1):

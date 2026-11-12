@@ -634,9 +634,7 @@ def save_trainer(name):
         f.write(name + "\n")
 
 
-def trainer_of(run):
-    p = os.path.join(run, "trainer.txt")
-    return open(p).read().strip() if os.path.exists(p) else None
+trainer_of = base.trainer_of  # a run folder -> its account
 
 
 def latest(page, trainer):

@@ -384,13 +384,7 @@ CARRY_HOURS = 12  # one sitting of stops and restarts. Older stopped runs are le
 RUN_NAME = re.compile(r"\d{8}-\d{6}")
 
 
-def signed_in(path):
-    """the account a run's log says it ran on, or None"""
-    try:
-        with open(os.path.join(path, "log.txt")) as f:
-            return next((m[1] for m in re.finditer(r"signed in: (\S+)", f.read())), None)
-    except OSError:
-        return None
+signed_in = base.trainer_of  # a run folder -> its account
 
 
 def carry_over():

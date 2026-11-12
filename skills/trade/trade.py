@@ -43,7 +43,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import ui
 import base
 from base import Stop, log
-from search import pokeball, amp_as_8
+from search import pokeball, amp_as_8, result_count
 from home import main_menu
 from session import TROUBLE
 import popups, pages
@@ -630,11 +630,8 @@ def bar(p):
 
 
 def results(p):
-    for t in p.texts:
-        m = re.search(r"\((\d[\d,]*)\)", t[4])
-        if m and t[1] < 0.14:
-            return int(m.group(1).replace(",", ""))
-    return None
+    """the picker's 'Q (7)' count, or None (the shared reader: Q read as 9, (0) as (O))"""
+    return result_count(p.texts)
 
 
 def same_l(s):
@@ -868,6 +865,8 @@ def sort_recent(p):
 
 def tile(p, i=0):
     """the results' i-th tile in reading order (0: top left): its CP line"""
+    # a plain 'CP 123' only: ui.tile_cps's shiny guesses read a saved search's count ('81' over 'Recommended') as a
+    # tile when the panel is still open, and a wrong tap here trades the wrong Pokémon
     cps = p.find(lambda t: t[1] > 0.22 and re.fullmatch(r"CP\s*\d+", t[4].strip().upper().replace("С", "C")))
     rows = []
     for t in sorted(cps, key=lambda t: t[1]):

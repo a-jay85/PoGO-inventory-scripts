@@ -378,10 +378,7 @@ def finish():
         if show_me(texts, bounds):
             continue
         if "Mega Level" in j and "increased" in j:  # a level up (High -> Max): Back, or its round X at the bottom
-            if ui.ANDROID:
-                ui.android.key("back")
-            else:
-                base.tap_x(bounds)
+            base.back_or_x(bounds)
             time.sleep(1.0)
             continue
         s = sheet(texts)

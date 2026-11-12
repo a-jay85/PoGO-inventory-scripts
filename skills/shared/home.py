@@ -532,10 +532,7 @@ def trainer(fast=True):
             base.tap_x(bounds)
             time.sleep(1.5)
         elif screen == "mainmenu":
-            if ui.ANDROID:
-                ui.android.key("back")
-            else:  # no Back key: the menu's own X at the bottom middle
-                base.tap_x(bounds)
+            base.back_or_x(bounds)
             time.sleep(1.5)
         elif screen == "exit":
             press_text(texts, bounds, "CANCEL")

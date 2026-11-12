@@ -715,7 +715,7 @@ def tagged_before(plan):
     at = old["at"] if fresh else time.time()
 
     def save():
-        json.dump({"key": key, "at": at, "done": sorted(done)}, open(DONE_F, "w"))
+        base.write_json(DONE_F, {"key": key, "at": at, "done": sorted(done)})
     return done, save
 
 

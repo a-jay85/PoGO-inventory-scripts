@@ -1049,8 +1049,7 @@ def made_today():
 
 
 def set_made(n):
-    with open(STATE, "w") as f:
-        json.dump({"date": today(), "count": n}, f)
+    base.write_json(STATE, {"date": today(), "count": n})
 
 
 # ---------- a run ----------

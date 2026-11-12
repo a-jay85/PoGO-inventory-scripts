@@ -396,10 +396,9 @@ def load_list():
 
 
 def add_to_list(e):
-    os.makedirs(os.path.dirname(NOT_SURE), exist_ok=True)
     got = [x for x in load_list() if not (x["tile"] == e["tile"] and x["cp"] == e["cp"] and x["hp"] == e["hp"]
                                           and x["account"] == e["account"] and x["tag"] == e["tag"])] + [e]
-    json.dump(got, open(NOT_SURE, "w"), indent=1, ensure_ascii=False)
+    base.write_json(NOT_SURE, got, indent=1, ensure_ascii=False)
 
 
 def lucky_key(account, sp, ivs):
@@ -413,8 +412,7 @@ def ranked_out(account, sp, ivs):
         return
     k, today = lucky_key(account, sp, ivs), time.strftime("%Y-%m-%d")
     got = [e for e in load_lucky_out() if e["key"] != k] + [{"key": k, "day": today}]
-    os.makedirs(os.path.dirname(LUCKY_OUT), exist_ok=True)
-    json.dump(got, open(LUCKY_OUT, "w"), indent=1, ensure_ascii=False)
+    base.write_json(LUCKY_OUT, got, indent=1, ensure_ascii=False)
 
 
 def was_ranked_out(account, sp, ivs):

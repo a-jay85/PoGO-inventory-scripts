@@ -1296,6 +1296,7 @@
    "user_active",
    "wait_for",
    "who",
+   "write_json",
    "yield_to_user",
    "zoomed_badge"
   ],

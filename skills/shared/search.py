@@ -489,14 +489,14 @@ def panel_text(quick=False):
 
 
 def bar_shows(got, q):
-    """same_query, and on Android a second look: the normal-size picture loses small symbols ('!', '&'), so read the
-    bar off the phone's own screenshot at 3x"""
+    """same_query, and a second look: the normal-size picture loses small symbols ('!', '&'), so read the bar off a
+    3x look (ui.sharp)"""
     if same_query(got, q):
         return True
-    if ui.ANDROID:
-        box = ui.search_box(ui.ocr(ui.android.sharp()))
-        return bool(box) and same_query(ui.search_text(box), q)
-    return False
+    if not ui.near_len(got, q):
+        return False
+    box = ui.search_box(ui.ocr(ui.sharp()))
+    return bool(box) and same_query(ui.search_text(box), q)
 
 
 BAR_TRIES = 3  # A's sent to the bar before tapping it again: when it takes keys at all, it takes the 1st or 2nd

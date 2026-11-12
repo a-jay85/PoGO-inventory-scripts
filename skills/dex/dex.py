@@ -31,7 +31,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import ui
 import base
 from base import Stop, log, keep_capture
-import home, search, session, tagsheet
+import home, pvp, search, session, tagsheet
 
 PAGES = {"lucky": "LUCKY", "100": "100%"}  # page -> its chip's label
 MAX_CHARS = 1000  # per search. The Pixel's search bar took 1,397 characters and failed at 1,497 (2026-10-21)
@@ -336,9 +336,7 @@ def parse(s):
 # ---------- Lucky: what a lucky Pokémon in storage could evolve into ----------
 
 REGIONS = {"_alolan": "alola", "_galarian": "galar", "_hisuian": "hisui", "_paldean": "paldea"}
-EXTRA_EDGES = {"corsola_galarian": ["cursola"],  # the gamemaster has no family for it
-               "poltchageist": ["sinistcha"]}  # ...and has this one backwards
-BAD_EDGES = {("sinistcha", "poltchageist")}
+KIDS_FIX, PARENT_FIX = pvp.KIDS_FIX, pvp.PARENT_FIX  # the gamemaster's family errors (one copy, in pvp.py)
 GENDER = {413: "female", 414: "male", 416: "female", 475: "male", 478: "female", 758: "female"}  # only this gender evolves into it
 NO_EVOLVE = {589, 617}  # Escavalier, Accelgor: need a trade, and a lucky Pokémon can't be traded again
 UNSURE = {"wurmple": "Wurmple turns into Silcoon or Cascoon at random",
@@ -353,8 +351,8 @@ def evo_tree():
     by = {p["speciesId"]: p for p in gm if not re.search(r"_shadow|_mega|_xl$", p["speciesId"])}
     parent = {}
     for sid, p in by.items():
-        for c in (p.get("family") or {}).get("evolutions") or EXTRA_EDGES.get(sid, []):
-            if c in by and (sid, c) not in BAD_EDGES:
+        for c in KIDS_FIX[sid] if sid in KIDS_FIX else (p.get("family") or {}).get("evolutions") or []:
+            if c in by:
                 parent.setdefault(c, sid)
     return by, parent
 

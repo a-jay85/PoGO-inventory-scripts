@@ -24,7 +24,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import ui
 import base
 from base import Stop, log, keep_capture
-import home, search, session
+import home, search, session, tagsheet
 import dex
 import savedsearch
 
@@ -234,7 +234,7 @@ def script(only_check=False):
     home.start()
     path, bounds = ui.capture()
     search.leave_multiselect(ui.ocr(path), bounds)
-    n0 = dex.search_exact(lists[0])  # the list, checked whole on the bar
+    n0 = tagsheet.count_exact(lists[0])  # the list, checked whole on the bar
     if not savedsearch.append(SAFE):  # SAFE, checked on the bar's end (the list scrolls out of it)
         raise Stop("couldn't add the safe terms to the search")
     n = savedsearch.results()

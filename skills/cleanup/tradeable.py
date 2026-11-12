@@ -69,7 +69,7 @@ import base
 from base import Stop, Skip, log, go, look, wait_for
 import search
 import pvp
-import home, session
+import home, session, tagsheet
 import dex
 import powerup
 import savedsearch
@@ -271,7 +271,8 @@ def cmd_read(resume=None):
     home.start()
     cache = json.load(open(resume)) if resume else {}
     saved = os.path.join(base.RUN_DIR, "searches.json")
-    n = dex.counter(cache, lambda q, c: json.dump(cache, open(saved, "w"), indent=0))  # saved as it goes
+    n = tagsheet.counter(cache, lambda q, c: json.dump(cache, open(saved, "w"), indent=0),  # saved as it goes
+                         edit=True, live=True)  # (like roster: edit the last search's end, count with the keyboard up)
     m = Model()
     fams = families_by_dex(m)
     chunks = [fams[i:i + 20] for i in range(0, len(fams), 20)]  # 20 families: a short search, and fewer splits
@@ -516,7 +517,7 @@ def cmd_dynamax():
         raise Stop(f"signed in as {who!r}: dynamax counts {GIVER}'s")
     m, can = Model(), can_dynamax()
     home.start()
-    n = dex.counter({}, lambda q, c: log(f"  {q}: {c}"))
+    n = tagsheet.counter({}, lambda q, c: log(f"  {q}: {c}"), edit=True, live=True)
     out = {}
     for lo, ds in families_by_dex(m):
         if can & set(ds):

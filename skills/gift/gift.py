@@ -1348,11 +1348,7 @@ def iii_remember(zone, day):
     """day: when this zone's search started. A search that ran past midnight proves nothing about the new day"""
     if DRY or not trainer or day != today():
         return
-    os.makedirs(os.path.dirname(iii_file()), exist_ok=True)
-    tmp = iii_file() + ".tmp"
-    with open(tmp, "w") as f:
-        json.dump({"day": day, "zones": iii_finished() + [zone]}, f)
-    os.replace(tmp, iii_file())
+    base.write_json(iii_file(), {"day": day, "zones": iii_finished() + [zone]})
     log(f"  iii + {zone}: finished, skipped for the rest of {day}")
 
 

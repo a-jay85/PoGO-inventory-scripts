@@ -102,6 +102,16 @@ def newest(folder, pattern):
     return got[-1] if got else None
 
 
+def write_json(path, data, **kw):
+    """write a file other runs read (a day's count, a skip list): a temp file first, then swapped in, so a run
+    stopped mid-write never leaves half a file. kw goes to json.dump"""
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+    tmp = path + ".tmp"
+    with open(tmp, "w") as f:
+        json.dump(data, f, **kw)
+    os.replace(tmp, path)
+
+
 def save(name, data):
     with open(os.path.join(RUN_DIR, name), "w") as f:
         json.dump(data, f, indent=1, ensure_ascii=False)

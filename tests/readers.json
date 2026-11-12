@@ -5420,14 +5420,14 @@
  "trade.results": {
   "(0)": 0,
   "(12)": 12,
-  "(O)": null,
+  "(O)": 0,
   "9 (1,234)": 1234,
   "Q (7)": 7,
-  "between": null,
+  "between": 7,
   "none": null,
   "too low": null,
   "two": 3,
-  "words": 7
+  "words": null
  },
  "trade.same_l": {
   "": "",

@@ -22,7 +22,7 @@ from collections import Counter
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, HERE)
-import ui, base, search, home, pagefacts
+import ui, base, search, home, pagefacts, pokedb
 from rules import GYM_DEX, XL_CAP, UNDER_360_XL
 from base import Stop, log
 
@@ -175,6 +175,7 @@ class Door:
         if (got := base.narrow(sp, ivs, tile[1] or info["cp"], info["hp"])) != sp:  # (the walk checked the tile's CP)
             log(f"  {'/'.join(sp)}: only {'/'.join(got)} has these IVs at this CP and HP")
             sp = got
+        base.learn_ivs(sp, info["cp"], info["hp"], ivs, raws)
         f, why = self.facts(info, texts, sp, ivs, key(*tile), size, gym_top20, iv_top, tile[1], pure_top)
         v = vd.final_tag(f, self.tables) if not why else vd.unsure(why)
         if f.lucky and iv_top is False:
@@ -274,6 +275,8 @@ class Door:
             xl = next((n for t, p in shots if (n := pagefacts.candy_xl_close(p, t)) is not None), None)
         days = {tagsheet.caught(catch_date(r)) for r in reads}
         base.OPENED["page"] = {"caught": days.pop() if len(days) == 1 else None, "xl": xl, **pagefacts.bottom(reads)}
+        page = base.OPENED["page"]
+        pokedb.learn(base.OPENED.get("who"), caught=page["caught"], traded=page["traded"], california=page["california"])
         if base.OPENED["page"]["california"] is False:  # read wrong once and never again (2026-11-06): leave the words to check
             base.log(f"  not California: {[[t[4] for t in r if t[1] > 0.5] for r in reads]}")
         return base.OPENED["page"]
@@ -290,7 +293,7 @@ class Door:
             return vd.unsure(f"purify: {e}")
         log(f"  purified: CP{info['cp']} -> CP{cp}")
         info["cp"] = cp
-        base.OPENED["who"] = base.who(base.detail_now())  # its CP and HP moved: still the same one
+        base.moved(base.detail_now(), shadow=False, purified=True)  # its CP and HP moved: still the same one
         return v
 
     def levels(self, texts, info, sp, ivs, tile_cp):
@@ -329,7 +332,7 @@ class Door:
                 if len(texts) > 5 and not any(re.match(r"[cC]\s*[pP].*\+\s*\d+\s*$", t[4].strip()) for t in texts):
                     break
                 time.sleep(0.5)
-            base.OPENED["who"] = base.who(base.detail_now())  # its CP and HP moved: still the same one
+            base.moved(base.detail_now())  # its CP and HP moved: still the same one
         except powerup.Unsure as e:
             return vd.unsure(f"Transfer, but the power-up check: {e}")
         except taps.Pass as e:

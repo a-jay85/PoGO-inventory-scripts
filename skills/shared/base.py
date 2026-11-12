@@ -7,7 +7,7 @@ import contextlib, json, math, os, random, re, shutil, subprocess, sys, time, un
 from collections import Counter
 
 from PIL import Image, ImageOps
-import ui, pvp
+import ui, pvp, pokedb
 from ui import Refused, Moving
 
 HERE = os.path.dirname(os.path.realpath(__file__))
@@ -733,6 +733,13 @@ def still_opened(what, info=None):
                    f"It slid to another Pokémon: check that one's tags, star and name by hand")
 
 
+def moved(info, **facts):
+    """the opened Pokémon's CP and HP moved (a power-up, purify): still the same one. The database's record follows"""
+    now = who(info)
+    pokedb.changed(OPENED.get("who"), now, **facts)
+    OPENED["who"] = now
+
+
 def detail_tags():
     info = detail_now()
     still_opened("after the tags", info)
@@ -1029,6 +1036,7 @@ def set_tags(on=(), off=(), only=False):
         if not good(tags):
             keep_capture("tags")
             raise Stop(f"after DONE tags are {tags}, wanted {sorted(ON)} on{' only' if only else ''}, {sorted(OFF)} off")
+        pokedb.tagged(OPENED.get("who"), tags)
 
 
 def set_star(on):
@@ -1059,6 +1067,7 @@ def set_star(on):
             if settle(read, lambda f: f is on, timeout=8 if ui.ANDROID else 3) is not on:  # a sharp() look takes ~2s
                 keep_capture("star")
                 raise Stop(f"tapped the star but it still looks {'empty' if on else 'filled'}")
+    pokedb.learn(OPENED.get("who"), star=on)
 
 
 def same_name(got, want):
@@ -1141,6 +1150,7 @@ def do_rename(name, same=same_name):
         if not same(got, name):
             keep_capture("rename")
             raise Stop(f"after OK the name reads {got!r}, wanted {name!r}")
+    pokedb.learn(OPENED.get("who"), nickname=name)
 
 
 # ---------- the detail screen (shared with /ivc) ----------
@@ -1162,7 +1172,18 @@ def steady_detail():
         prev = now
         time.sleep(0.15)
     OPENED.setdefault("who", who(info))
+    remember(info, texts)
     return info, texts, path
+
+
+def remember(info, texts):
+    """this steady read of the page's top goes into the database (pokedb): no tap, no look"""
+    try:
+        shadow, lucky, size = extras(texts)
+        flags = {"shadow": shadow, "lucky": lucky, "size": size, "dynamax": dynamax(texts)}
+    except (Skip, StopIteration):
+        flags = {}
+    pokedb.seen(who(info), info["name"], info["tags"], **flags)
 
 
 def short(s):
@@ -1404,7 +1425,32 @@ def appraisal_species(detail_texts):
 
 
 def exact_ivs(sp, cp, hp, ivs, raws):
-    """bar reading checked against CP and HP: the names depend on exact IVs"""
+    """bar reading checked against CP and HP: the names depend on exact IVs. The database learns them (and the
+    species, when only one fits)"""
+    got = _exact_ivs(sp, cp, hp, ivs, raws)
+    learn_ivs(sp, cp, hp, got)
+    return got
+
+
+def learn_ivs(sp, cp, hp, ivs, raws=None):
+    """the database learns the opened one's IVs, and its species when only one fits. raws: bar reads still to check
+    against CP and HP first (an unsure read teaches nothing)"""
+    sp = [s for s in sp or () if s in pvp.SPECIES]
+    if not ivs or not sp or cp is None or hp is None:
+        return
+    kg, m = (OPENED.get("who") or (None,) * 4)[2:]
+    if raws is not None:
+        try:
+            ivs = _exact_ivs(sp, cp, hp, ivs, raws)
+        except Skip:  # IVs unsure: a sure species still counts
+            if len(sp) == 1:
+                pokedb.learn((cp, hp, kg, m), species=sp[0])
+            return
+    one = narrow(sp, ivs, cp, hp)
+    pokedb.learn((cp, hp, kg, m), ivs=tuple(ivs), species=one[0] if len(one) == 1 else None)
+
+
+def _exact_ivs(sp, cp, hp, ivs, raws):
     crisp = all(abs(r - round(r)) <= 0.3 for r in raws)
     cands = set()
     for s in sp:

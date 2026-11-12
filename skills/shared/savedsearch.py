@@ -158,28 +158,33 @@ def run_shortcut(name, suffix=""):
     raise Stop(f"couldn't run the {name!r} shortcut{' + ' + suffix if suffix else ''}")
 
 
+def bar_end(bounds=None, taps=2):
+    """tap the filled bar until the panel opens (the iPhone drops a bar tap now and then, and a tap while the list
+    still loads does nothing), then put the cursor at its end. -> False if the panel never opened"""
+    bounds = bounds or look()[3]
+    for tap in range(taps):
+        search.click(0.45, 0.183, bounds, gap=search.BAR_GAP)
+        if base.settle(lambda: ui.search_panel(ui.ocr(ui.capture()[0])), bool, timeout=3):
+            break
+        if tap < taps - 1:
+            log("  the tap on the search bar didn't open it: tapping it again")
+    else:
+        return False
+    if ui.ANDROID:
+        ui.android.shell("input keyevent KEYCODE_MOVE_END")
+    else:
+        base.key("right", cmd=True)
+    return True
+
+
 def append(suffix, bounds=None, before=None):
     """tap the filled bar, type suffix at the end, Return. False if the bar doesn't end with it (cleared after).
     before: the search already in the bar. When the bar still ends with it, nothing landed (the iPhone has lost a
     whole typed piece now and then): it types the piece once more"""
     search.LAST["q"] = None  # (the bar won't hold start_search's last one)
     bounds = bounds or look()[3]
-    for tap in range(2):  # the iPhone drops a bar tap now and then: the list stays up, no panel
-        search.click(0.45, 0.183, bounds, gap=search.BAR_GAP)
-        for _ in range(10):
-            time.sleep(search.POLL)
-            if ui.search_panel(ui.ocr(ui.capture()[0])):
-                break
-        else:
-            if tap:
-                return False
-            log("  the tap on the search bar didn't open it: tapping it again")
-            continue
-        break
-    if ui.ANDROID:
-        ui.android.shell("input keyevent KEYCODE_MOVE_END")
-    else:
-        base.key("right", cmd=True)
+    if not bar_end(bounds):
+        return False
     want = same_l(suffix)
     if len(want) > 24:  # a long one doesn't fit in the bar: only its end shows
         want = want[-24:]

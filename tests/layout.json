@@ -1741,6 +1741,7 @@
    "Stop",
    "UNTAGGED_ONLY",
    "append",
+   "bar_end",
    "close_sheet",
    "find_label",
    "go",

@@ -48,7 +48,7 @@
   "skills/shared/powerup.py cancel": 1,
   "skills/shared/powerup.py power_up": 1,
   "skills/shared/powerup.py read_dialog": 1,
-  "skills/shared/savedsearch.py append": 2,
+  "skills/shared/savedsearch.py append": 1,
   "skills/shared/savedsearch.py panel": 1,
   "skills/shared/savedsearch.py results": 1,
   "skills/shared/savedsearch.py run_shortcut": 1,

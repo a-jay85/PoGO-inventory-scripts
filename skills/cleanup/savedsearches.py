@@ -36,9 +36,8 @@ def bar():
 
 def pieces():
     """the search just run, end to start -> what the bar showed at each stop"""
-    search.click(0.45, 0.183, look()[3], gap=search.BAR_GAP)
-    time.sleep(1.5)
-    ui.android.shell("input keyevent KEYCODE_MOVE_END")
+    if not savedsearch.bar_end():
+        raise Stop("the tap on the search bar didn't open it")
     time.sleep(0.5)
     out = [bar()]
     while len(out) < 40:

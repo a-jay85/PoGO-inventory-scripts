@@ -2,7 +2,8 @@
  "none": [],
  "thin": [],
  "waits": {
-  "skills/cleanup/cleantrades.py power_walk": 2,
+  "skills/cleanup/cleantrades.py power_walk": 1,
+  "skills/cleanup/cleantrades.py power_walk.read": 1,
   "skills/cleanup/tradeable.py walk": 1,
   "skills/dex/dex.py to_regions": 1,
   "skills/dex/dex.py to_storage": 1,

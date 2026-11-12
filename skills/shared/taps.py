@@ -70,6 +70,39 @@ def next_one(bounds, moved, poll=0.12):
     return False
 
 
+def by_name_cp_hp(info):
+    return info["name"], info["cp"], info["hp"]
+
+
+def details(key=by_name_cp_hp, read=None, poll=0.12, reswipe=False):
+    """open the list's tile 1, then yield (info, texts, bounds, seen) for each Pokémon, swiping on, until a swipe goes
+    nowhere or comes back to one already seen. key(info): what makes one "seen" (a renaming walk leaves out the name).
+    read() -> (info, texts, bounds): how a page is read (default: one wait_for; bounds None: next_one reads them).
+    The caller adds a changed one's new key to seen (a power-up changes its CP). reswipe: a read mid-swipe can look
+    like one already seen while the page hasn't moved, so one more swipe first. Closing the page stays the caller's"""
+    go("tile 1", "detail")
+    seen, again = set(), False
+    moved = lambda t: key(ui.detail_info(t)) not in seen
+    while True:
+        if read:
+            info, texts, bounds = read()
+        else:
+            _, texts, _, bounds = wait_for("detail")
+            info = ui.detail_info(texts)
+        if key(info) in seen:
+            if reswipe and not again and next_one(bounds, moved, poll=poll):
+                again = True
+                continue
+            if reswipe:
+                log("swiped back onto one already seen: end of the list")
+            return
+        again = False
+        seen.add(key(info))
+        yield info, texts, bounds, seen
+        if not next_one(bounds, moved, poll=poll):
+            return
+
+
 def reopen_top():
     """one that was changed drops out of the search, and the swipe stops working: back to the list, open the top one
     again. False when the list is empty now"""

@@ -45,7 +45,7 @@ from base import Stop, Skip, log, keep_capture, go, look, wait_for
 import search, session, home
 import pvp
 import powerup
-from taps import Pass, next_one
+from taps import Pass, details
 from savedsearch import run_shortcut, tag_pile, long_search
 from powerup import Unsure, power_up
 from rules import CLEAN, TRANSFER, EVO, TRADE_EVOS, EVO_FOR, UNDER_360_XL, BULK_GUARD, DOOR_PICK
@@ -62,26 +62,19 @@ def power_walk(limit, query=None):
     if not (long_search(query + under) if query else run_shortcut(CLEAN, under)):
         log(f"no {query or CLEAN} ones under 360 XL")
         return 0
-    go("tile 1", "detail")
-    seen, done, passed, t_start, again = set(), 0, 0, time.time(), False
-    unseen = lambda t: (lambda n: (n["name"], n["cp"], n["hp"]))(ui.detail_info(t)) not in seen
-    while True:
-        t0 = time.time()
+    done, passed, t_start = 0, 0, time.time()
+
+    def read():
         for _ in range(10):  # right after a swipe the CP sparkles in and can read blank
             _, texts, _, _ = wait_for("detail")
             info = ui.detail_info(texts)
             if info["cp"] is not None:
                 break
             time.sleep(0.2)
-        me = (info["name"], info["cp"], info["hp"])
-        if me in seen:  # a read mid-swipe can look like another one while the page hasn't moved: one more swipe
-            if again or not next_one(None, unseen, poll=search.POLL):
-                log("swiped back onto one already seen: end of the list")
-                break
-            again = True
-            continue
-        again = False
-        seen.add(me)
+        return info, texts, None  # (None: next_one reads the bounds before each swipe)
+
+    for info, texts, _, seen in details(read=read, poll=search.POLL, reswipe=True):
+        t0 = time.time()
         if done >= limit:
             log(f"--limit {limit} reached")
             return None  # (the rest weren't checked)
@@ -102,8 +95,6 @@ def power_walk(limit, query=None):
             info2 = ui.detail_info(wait_for("detail")[1])
             seen.add((info2["name"], info2["cp"], info2["hp"]))
             log(f"powered up {info['name']} CP{info['cp']} -> CP{info2['cp']}, {taps} power-up(s)  ({time.time() - t0:.1f}s)")
-        if not next_one(None, unseen, poll=search.POLL):
-            break
     log(f"powered up {done}, passed {passed}, {time.time() - t_start:.0f}s")
     go("close", "list")
     return done

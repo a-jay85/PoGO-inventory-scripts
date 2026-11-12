@@ -476,10 +476,7 @@ def to_badge_list():
             base.click(0.13, 0.91, bounds)  # the profile picture
             off_screen(screen)
         elif screen == "mainmenu":
-            if ui.ANDROID:
-                ui.android.key("back")
-            else:
-                base.tap_x(bounds)
+            base.back_or_x(bounds)
             time.sleep(1.5)
         elif screen in ("list", "tag-tab") or screen in home.OPEN:
             home.start(storage=True)  # the Pokémon screens: out to the map the known way

@@ -479,6 +479,15 @@ def tap_x(bounds, **how):
     click(*X_BUTTON, bounds, **how)
 
 
+def back_or_x(bounds):
+    """close a box or menu that has its round X at the bottom middle: Back on Android, that X on the iPhone
+    (no Back key there)"""
+    if ui.ANDROID:
+        ui.android.key("back")
+    else:
+        tap_x(bounds)
+
+
 def click(fx, fy, bounds, gap=0.0, ms=None, fuzz=0.0, rest=0.0, bring_front=True, spaced=True, counted=True):
     """a tap at a spot (window fractions), not a named button: every skill's taps go through here.
     gap: at least this long since the last tap (two quick taps on the search bar would make a double-tap).

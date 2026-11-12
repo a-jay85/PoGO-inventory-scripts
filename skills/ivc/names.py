@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import ui, pvp
 import base
 from base import Stop, Skip, log, keep_capture, go, wait_for, appraise, think, back_to_list, front, settle, \
-    extras, drag, open_tile, exact_ivs, do_rename
+    extras, drag, open_tile, exact_ivs, do_rename  # (open_tile: run.py uses it as ivcrun.open_tile)
 import ivc, door, search
 
 TAG = "IVC"
@@ -249,11 +249,8 @@ def keep_read(r):
 def read_one(i, tile_name, tile_cp):
     """open an IVC one, read its detail screen, appraise it and make its name. Leaves the detail screen open.
     -> {info, texts, cp, sp, ivs, bars, raws, shadow, lucky, size, moves, name (None: nothing to show, '->PvpC'), what}"""
-    open_tile(i)
-    info, texts, _ = base.steady_detail()
     # a tile name OCR cut short ('L+', 'He') needn't start the full one: there only the CP has to match
-    if not base.opened_right(info, tile_name, tile_cp) and untouched(tile_name):
-        raise Skip(f"opened {info['name']!r} but tile said {tile_name!r}")
+    info, texts, _ = base.open_checked(i, tile_name, tile_cp, name_ok=not untouched(tile_name))
     cp = info["cp"] or tile_cp  # (after that check: it can read a covered digit again)
     if not untouched(tile_name) and not_mine(info["name"]):
         raise Skip(NOT_MINE)

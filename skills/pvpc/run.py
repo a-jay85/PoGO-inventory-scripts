@@ -48,7 +48,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.realpath(__file__)), "..
 import ui, pvp, base, search, fallen, session, door
 from base import GYM, Lost, Skip, Stop, appraisal_species, appraise, back_to_list, candy, detail_name, \
     do_rename, exact_ivs, front, go, high_iv, is_shadow, is_tag, keep_capture, load, log, new_run_dir, \
-    open_appraisal, open_tile, opened_right, recover, same_name, save, set_star, set_tags, slots_of, \
+    open_appraisal, open_checked, open_tile, opened_right, recover, same_name, save, set_star, set_tags, slots_of, \
     start, steady_detail, tap, think, to_top, type_line, wait_for
 
 DOOR = None  # door.Door for this run
@@ -125,11 +125,7 @@ def finish_keepers(limit):
     def visit(i, n, c):
         if not (n.lower().startswith("pvp") or re.match(r"P\S{0,2}p(?=[ LGU+]|$)", n)):
             return False  # still to do: /pvpc's main walk names it
-        open_tile(i)
-        info, _, _ = steady_detail()
-        # OCR can run a row's names together ('Pvp Gm38 Um9 •Pvp Gn50U26+ •...'): one of them, same CP, is fine
-        if not any(opened_right(info, part.strip(), c) for part in n.split("•")):
-            raise Skip(f"opened {info['name']!r} but tile said {n!r}")
+        info, _, _ = open_checked(i, n, c)  # (a row's names run together '... •...': one of them is fine)
         if not re.match(r"P\S?p ?[LGU]", info["name"] or ""):
             raise Skip(f"not a Pvp name on detail: {info['name']!r}")
         if not any(is_tag(t, "PvpC") for t in info["tags"]):
@@ -146,10 +142,7 @@ def finish_keepers(limit):
 
 
 def process(i, tile_name, tile_cp):
-    open_tile(i)
-    info, texts, _ = steady_detail()
-    if not opened_right(info, tile_name, tile_cp):
-        raise Skip(f"opened {info['name']!r} but tile said {tile_name!r}")
+    info, texts, _ = open_checked(i, tile_name, tile_cp)
     cp = info["cp"] or tile_cp  # (after that check: it can read a covered digit again)
     if not any(is_tag(t, "PvpC") for t in info["tags"]):
         raise Skip(f"no PvpC tag on detail: {info['tags']}")

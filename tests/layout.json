@@ -1234,6 +1234,7 @@
    "keep_capture",
    "key",
    "last_tap",
+   "learn_ivs",
    "learn_rows",
    "leave_rename",
    "letters",

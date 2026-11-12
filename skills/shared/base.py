@@ -1428,10 +1428,26 @@ def exact_ivs(sp, cp, hp, ivs, raws):
     """bar reading checked against CP and HP: the names depend on exact IVs. The database learns them (and the
     species, when only one fits)"""
     got = _exact_ivs(sp, cp, hp, ivs, raws)
-    kg, m = (OPENED.get("who") or (None,) * 4)[2:]
-    one = narrow(sp, got, cp, hp)
-    pokedb.learn((cp, hp, kg, m), ivs=got, species=one[0] if len(one) == 1 else None)
+    learn_ivs(sp, cp, hp, got)
     return got
+
+
+def learn_ivs(sp, cp, hp, ivs, raws=None):
+    """the database learns the opened one's IVs, and its species when only one fits. raws: bar reads still to check
+    against CP and HP first (an unsure read teaches nothing)"""
+    sp = [s for s in sp or () if s in pvp.SPECIES]
+    if not ivs or not sp or cp is None or hp is None:
+        return
+    kg, m = (OPENED.get("who") or (None,) * 4)[2:]
+    if raws is not None:
+        try:
+            ivs = _exact_ivs(sp, cp, hp, ivs, raws)
+        except Skip:  # IVs unsure: a sure species still counts
+            if len(sp) == 1:
+                pokedb.learn((cp, hp, kg, m), species=sp[0])
+            return
+    one = narrow(sp, ivs, cp, hp)
+    pokedb.learn((cp, hp, kg, m), ivs=tuple(ivs), species=one[0] if len(one) == 1 else None)
 
 
 def _exact_ivs(sp, cp, hp, ivs, raws):

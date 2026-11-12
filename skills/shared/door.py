@@ -175,6 +175,7 @@ class Door:
         if (got := base.narrow(sp, ivs, tile[1] or info["cp"], info["hp"])) != sp:  # (the walk checked the tile's CP)
             log(f"  {'/'.join(sp)}: only {'/'.join(got)} has these IVs at this CP and HP")
             sp = got
+        base.learn_ivs(sp, info["cp"], info["hp"], ivs, raws)
         f, why = self.facts(info, texts, sp, ivs, key(*tile), size, gym_top20, iv_top, tile[1], pure_top)
         v = vd.final_tag(f, self.tables) if not why else vd.unsure(why)
         if f.lucky and iv_top is False:

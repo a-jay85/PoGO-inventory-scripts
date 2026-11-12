@@ -21,13 +21,13 @@ _for = [None]  # the search search_exact() is typing: only its views count
 
 
 def strict(got, q):
-    """the bar text vs q, symbol for symbol, off the phone's own screenshot on Android. A long search shows only its
+    """the bar text vs q, symbol for symbol, and once more off a 3x look (ui.sharp). A long search shows only its
     end while typing and only its start after Return: note which part matched, search_exact() adds them up.
     The sharp read can drop a thin last letter ('...,!xx' for '...,!xxl') that the caller's read has: either read
     showing all of it counts."""
     reads = [got]
-    if ui.ANDROID and ("!" in q or (bar_view(got, q) or ("",))[0] != "all"):  # the sharp read keeps the '!'s
-        box = ui.search_box(ui.ocr(ui.android.sharp()))
+    if ("!" in q or (bar_view(got, q) or ("",))[0] != "all") and ui.near_len(got, q):  # the sharp read keeps the '!'s
+        box = ui.search_box(ui.ocr(ui.sharp()))
         if box:  # (the search panel's bar isn't found that way: keep the caller's read)
             reads.insert(0, ui.search_text(box))
     views = [v for v in (bar_view(g, q) for g in reads) if v]

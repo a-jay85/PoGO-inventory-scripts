@@ -33,6 +33,9 @@ def by_path(name, rel):
 ivc_names = by_path("ivcnames", "ivc/names.py")
 ivc_run = by_path("ivc_run", "ivc/run.py")
 assert not ui.ANDROID
+ui.sharp = lambda: None  # the 3x look takes a real screenshot: here it reads nothing (ui.ocr(None) -> no texts)
+_ocr = ui.ocr
+ui.ocr = lambda path: [] if path is None else _ocr(path)
 
 # ---------- cases ----------
 

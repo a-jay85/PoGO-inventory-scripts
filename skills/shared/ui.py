@@ -101,6 +101,26 @@ def window():
 CANT_CAPTURE = "can't capture the iPhone Mirroring window"
 
 
+SHARP = "/tmp/pvpc_sharp.png"
+
+
+def near_len(got, q):
+    """the iPhone's 3x look costs a capture and a big OCR: only worth it when the read is q less a symbol or two
+    (a much shorter read is keys still landing, or a long search showing only its end: the 1x read handles those)"""
+    return ANDROID or abs(len(re.sub(r"\s", "", got or "")) - len(re.sub(r"\s", "", q))) <= 2
+
+
+def sharp():
+    """a new look 3x bigger, for small symbols ('!', '&') -> its path. Android: the phone's own screenshot. iPhone:
+    the Mirroring capture blown up 3x: at 1x OCR lost the '!' in '#TODO&mega&!#TODO4' 3 times running, at 3x it
+    reads (2026-11-11)"""
+    if ANDROID:
+        return android.sharp(SHARP)
+    im = Image.open(capture()[0])
+    im.resize((im.width * 3, im.height * 3), Image.LANCZOS).save(SHARP, compress_level=1)
+    return SHARP
+
+
 def capture():
     if ANDROID:
         ensure_helper()

@@ -581,7 +581,9 @@ def key(name, cmd=False):
     time.sleep(random.uniform(0.08, 0.18) if ui.ANDROID else 0.03)
 
 
-TYPE_SPEED = ("2", "1", "1")  # iPhone, ms: after Shift, key held, between keys. 1-1-0 still lands, 0-0-0 loses keys (2026-11-05)
+# iPhone, ms: after Shift, key held, between keys. 1-1-0 still landed, 0-0-0 lost keys (2026-11-05). The game now shows
+# search chips as you type: at a 1 ms gap 'mega1' stayed 'me' 5 times in 6, at 10/20/40 ms it read back 6 of 6 (2026-11-11)
+TYPE_SPEED = ("2", "1", "20")
 
 
 def type_text(text):

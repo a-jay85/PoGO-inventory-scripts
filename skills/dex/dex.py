@@ -96,14 +96,17 @@ def read_grid(path, texts):
     any row with numbers at two heights (the lower ones caught), and a region's title. The spread backs it up."""
     im = Image.open(path).convert("RGB")
     top, bottom = band(texts)
+    title_boxes = [t for t in texts if top < t[1] < bottom and re.fullmatch(r"[A-Z]{4,}", t[4].strip())]
     tiles = []
     for n, t in numbers(texts):
         if t[1] - ABOVE[1] - MIN_BOX < top or t[1] + t[3] > bottom:
             continue  # under the header or the chips: the next screen has it whole
-        tiles.append((n, t[1], spread(im, t, top)))
+        # the box stops at a region's title too: ALOLA's letters sit in the box over a missing #722 (2026-11-11)
+        cut = max([top] + [b[1] + b[3] for b in title_boxes if b[1] < t[1]])
+        tiles.append((n, t[1], spread(im, t, cut)))
     tiles.sort(key=lambda r: r[1])
     # a region's title (SINNOH) between two regions starts a new grid: heights only carry within one part
-    titles = sorted(t[1] for t in texts if top < t[1] < bottom and re.fullmatch(r"[A-Z]{4,}", t[4].strip()))
+    titles = sorted(b[1] for b in title_boxes)
     part = lambda y: sum(ty < y for ty in titles)
     refs = [(part(ty + 0.01), ty + TITLE_GAP) for ty in titles]  # (part, height a caught number would sit at)
     for n, y, s in tiles:

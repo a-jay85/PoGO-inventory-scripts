@@ -201,6 +201,21 @@ CASES = {
     "H Dynamax, has none": plain(account=TAKER, sids=["wooloo"], dynamax=True),
     "H Tandemaus": plain(account=TAKER, sids=["tandemaus"]),
     "H far": plain(account=TAKER, far=True),
+    # a family with an evolution over 100 candy: GIV where it would get Transfer, untraded (the user, 2026-11-12)
+    "Snom: GIV": plain(sids=["snom"]),
+    "H Snom: GIV": plain(account=TAKER, sids=["snom"]),
+    "Noivern: GIV": plain(sids=["noivern"]),
+    "H Magikarp, no medal: GIV": plain(account=TAKER, sids=["magikarp"], kg=5.0),
+    "Snom xxs: IVC": plain(sids=["snom"], size="xxs"),
+    "Snom at 30: XLX first": plain(sids=["snom"], levels=[30]),
+    "H Snom at 29: XLX first": plain(account=TAKER, sids=["snom"], levels=[29]),
+    "traded Snom: Transfer": plain(sids=["snom"], traded=True),
+    "shadow Snom: Transfer": plain(sids=["snom"], shadow=True, ivs=(10, 10, 10)),
+    "Charmander, 100 candy: Transfer": plain(sids=["charmander"]),
+    "Karrablast, trade evolution: Transfer": plain(sids=["karrablast"]),
+    "H Karrablast, trade evolution: GIV": plain(account=TAKER, sids=["karrablast"]),
+    "Roggenrola: GIV": plain(sids=["roggenrola"]),
+    "Boldore, trade evolution: Transfer": plain(sids=["boldore"]),
 }
 
 

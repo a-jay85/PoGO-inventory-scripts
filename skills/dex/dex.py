@@ -23,7 +23,7 @@ Each run saves the signed-in trainer to trainer.txt. Other scripts pick a run wi
 same account for evolve. Any check that fails stops the run with no search printed.
 The Lucky run also lists the lucky ones that could evolve into a hole (evolve-lucky.txt), and leaves them out of the search.
 """
-import argparse, os, random, re, statistics, sys, time
+import argparse, difflib, os, random, re, statistics, sys, time
 from PIL import Image
 
 HERE = os.path.dirname(os.path.realpath(__file__))
@@ -139,9 +139,14 @@ def read_grid(path, texts):
 
 # ---------- getting there ----------
 
+def regions_button(texts):
+    """the grid's REGIONS button label, also when OCR drops a letter ("REIONS", 2026-11-11)"""
+    return any(difflib.SequenceMatcher(None, t[4].upper().strip(), "REGIONS").ratio() >= 0.8 for t in texts)
+
+
 def where(path, texts):
     j = ui.joined(texts)
-    if numbers(texts) and "REGIONS" in j:
+    if numbers(texts) and ("REGIONS" in j or regions_button(texts)):
         return "grid"
     if "FILTER BY" in j:
         return "dex-search"
@@ -244,7 +249,7 @@ def walk_grid():
     seen, last_max, still = {}, None, 0
     edge = [0.0, 999.0]  # busiest missing tile, plainest caught one: how close the spread alone came to a wrong call
     for i in range(MAX_SCREENS):
-        screen, texts, path, bounds = look()
+        screen, texts, path, bounds = base.settle(look, lambda r: r[0] == "grid", 3)  # one odd read: look again
         if screen != "grid":
             keep_capture("grid")
             raise Stop(f"not on the Pokédex grid any more ({screen})")

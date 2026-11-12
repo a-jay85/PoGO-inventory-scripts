@@ -239,6 +239,7 @@
    "BUSY_MIN",
    "CHIP_Y",
    "DROP",
+   "EVOLVE",
    "FIT",
    "GENDER",
    "HALF_W",
@@ -310,7 +311,6 @@
   ],
   "runs": [
    "skills/dex/runs",
-   "skills/pvpc/runs/<time>/evolve-lucky.txt",
    "skills/pvpc/runs/<time>/trainer.txt"
   ]
  },

@@ -329,7 +329,7 @@ def name_box(texts, hp_line):
 def detail_info(texts):
     hp_line = next(t for t in texts if re.search(r"\d+\s*/\s*\d+\s*HP", t[4]))
     hp = int(re.search(r"/\s*(\d+)\s*HP", hp_line[4]).group(1))
-    cpt = next((t for t in texts if re.fullmatch(r"CP\s*\d+", t[4].replace(" ", ""))), None)
+    cpt = next((t for t in texts if re.fullmatch(r"CP\s*\d+", t[4].upper().replace(" ", ""))), None)  # "cP1426" (2026-11-13)
     cp = int(re.sub(r"\D", "", cpt[4])) if cpt else None
     box = name_box(texts, hp_line)
     name = clean_name(box[4]) if box else None

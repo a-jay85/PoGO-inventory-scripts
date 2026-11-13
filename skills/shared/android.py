@@ -52,6 +52,34 @@ def shell(cmd, timeout=60):
     return adb("shell", cmd, timeout=timeout)
 
 
+BRIGHT_FILE = os.path.expanduser("~/.config/pogo/android-brightness")  # "mode level" from before a Wi-Fi run
+
+
+def dim():
+    """over Wi-Fi (the phone is unplugged, no one is looking at it): screen brightness to 0 for the run. The old
+    brightness goes in BRIGHT_FILE first, and a file already there is kept: a run that ended before restore()
+    left 0 on the phone, and the file still holds the real one"""
+    if ":" not in os.environ.get("ANDROID_SERIAL", ""):
+        return
+    if not os.path.exists(BRIGHT_FILE):
+        mode, level = shell("settings get system screen_brightness_mode; settings get system screen_brightness").split()
+        os.makedirs(os.path.dirname(BRIGHT_FILE), exist_ok=True)
+        with open(BRIGHT_FILE, "w") as f:
+            f.write(f"{mode} {level}\n")
+    shell("settings put system screen_brightness_mode 0; settings put system screen_brightness 0")
+
+
+def restore():
+    """the brightness dim() saved back on the phone. -> True if there was one"""
+    try:
+        mode, level = open(BRIGHT_FILE).read().split()
+    except (OSError, ValueError):
+        return False
+    shell(f"settings put system screen_brightness {int(level)}; settings put system screen_brightness_mode {int(mode)}")
+    os.remove(BRIGHT_FILE)
+    return True
+
+
 _size = None
 
 

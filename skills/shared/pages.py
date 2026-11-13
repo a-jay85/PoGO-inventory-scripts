@@ -63,7 +63,8 @@ def confirm_label(texts):
 
 
 def trade_confirm(texts):
-    return bool(confirm_label(texts)) and any(re.search(r"\d\s*KM$", ui.up(t)) for t in texts)
+    # one stray letter after KM is OCR's: the Pixel read '4,083.8 kml' (2026-11-13: /trade stopped, 'screen is lobby')
+    return bool(confirm_label(texts)) and any(re.search(r"\d\s*KM[A-Z|]?$", ui.up(t)) for t in texts)
 
 
 def trade_sortmenu(texts):

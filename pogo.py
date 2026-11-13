@@ -38,6 +38,7 @@ STEPS = {
     "tradeable":   ("cleanup/tradeable.py", {"refresh", "dynamax", "read", "plan", "tag", "door"}, {"refresh", "plan"}),  # door: the default
     "dex":         ("dex/dex.py", {"lucky", "100", "xxs", "look", "evolve"}, set()),
     "luckydex":    ("dex/luckydex.py", {"check"}, set()),
+    "sizerecords": ("dex/sizerecords.py", {"read", "compare"}, {"compare"}),
     "gift":        ("gift/gift.py", {"run", "look"}, set()),
     "trade":       ("trade/trade.py", {"run", "look", "restart"}, set()),
     "mega":        ("mega/mega.py", set(), set()),
@@ -47,7 +48,7 @@ STEPS = {
     "goplus":      ("goplus/goplus.py", set(), set()),
     "account":     ("shared/account.py", {"HashTagAJay", "CyrillJan"}, set()),
 }
-NEEDS_WORD = {"dex", "roster"}  # these have no default: the first word is a must
+NEEDS_WORD = {"dex", "roster", "sizerecords"}  # these have no default: the first word is a must
 BOTH = {"trade"}  # drives the iPhone and the Pixel, whatever POGO_PHONE says
 
 

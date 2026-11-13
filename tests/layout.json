@@ -34,6 +34,7 @@
    "mega": "mega/mega.py",
    "pvpc": "pvpc/run.py",
    "roster": "roster/roster.py",
+   "sizerecords": "dex/sizerecords.py",
    "sizes": "cleanup/sizes.py",
    "trade": "trade/trade.py",
    "tradeable": "cleanup/tradeable.py"
@@ -369,6 +370,36 @@
   ],
   "runs": [
    "skills/dex/runs"
+  ]
+ },
+ "skills/dex/sizerecords.py": {
+  "copies": {},
+  "names": [
+   "ACCOUNTS",
+   "BOX_ROWS",
+   "FRESH_HOURS",
+   "HERE",
+   "KINDS",
+   "SWIPE_NEXT",
+   "Stop",
+   "TITLE",
+   "VALUE",
+   "box",
+   "cmd_compare",
+   "cmd_read",
+   "leave_dex",
+   "log",
+   "main",
+   "read_box",
+   "tabs",
+   "title",
+   "to_first",
+   "trades",
+   "walk"
+  ],
+  "runs": [
+   "skills/dex/runs",
+   "skills/pvpc/runs/<time>/trades.txt"
   ]
  },
  "skills/evo/evo.py": {
@@ -1583,6 +1614,8 @@
    "learn",
    "matches",
    "path",
+   "records",
+   "save_record",
    "seen",
    "set_account",
    "stats",

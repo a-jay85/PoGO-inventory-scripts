@@ -213,7 +213,8 @@ def leave_dex():
     """a species page or the Pokédex's own screens: back out (home.start doesn't know them)"""
     for _ in range(6):
         screen, texts, path, bounds = dex.look()
-        if not (title(texts) or screen in ("grid", "regions", "dex-search")):
+        # (a page scrolled down has no title, only its tab row, 2026-11-12)
+        if not (title(texts) or tabs(texts) or dex.numbers(texts) or screen in ("grid", "regions", "dex-search")):
             return
         ui.android.key("back")
         time.sleep(1.5)

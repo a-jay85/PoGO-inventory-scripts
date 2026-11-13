@@ -1175,6 +1175,29 @@
   ],
   "runs": []
  },
+ "skills/shared/adbwifi.py": {
+  "copies": {},
+  "names": [
+   "ADDR_FILE",
+   "LABEL",
+   "LOCK",
+   "LOG",
+   "MAIN",
+   "PLIST",
+   "PORT",
+   "Path",
+   "adb",
+   "busy",
+   "connect",
+   "devices",
+   "install",
+   "saved",
+   "say",
+   "tick",
+   "uninstall"
+  ],
+  "runs": []
+ },
  "skills/shared/android.py": {
   "copies": {},
   "names": [
@@ -1191,6 +1214,7 @@
    "_last_adb",
    "_motion",
    "_next",
+   "_picked",
    "_raw",
    "_size",
    "act",
@@ -1203,6 +1227,7 @@
    "key",
    "phone",
    "phone_shot",
+   "pick",
    "raw_shot",
    "ready",
    "shape",

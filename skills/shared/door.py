@@ -255,6 +255,12 @@ class Door:
         else:
             _, texts, path, bounds = base.look()
         me = tagsheet.who(texts)[1]
+        if not (me[3] and me[4]):  # a read as the page fades in can miss the height, or half the weight ('3kg' for
+            # 41.18kg): back_to_top would never find that one again (2026-11-13). Look again, keep the last read
+            again = base.settle(lambda: base.look()[1], lambda t: ui.classify(t) == "detail" and all(tagsheet.who(t)[1][3:]),
+                                timeout=2)
+            if ui.classify(again) == "detail":
+                me = tagsheet.who(again)[1]
         shots = [(texts, path)]  # the Candy XL row: at the top, or (a Dynamax one's Max Moves box) one drag down
         try:
             base.drag(0.08, 0.75, 0.08, 0.2, bounds, settle=tagsheet.IOS_PAGE_SETTLE, android_settle=tagsheet.PAGE_SETTLE)  # down the left edge: no buttons there

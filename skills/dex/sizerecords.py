@@ -74,10 +74,15 @@ def tabs(texts):
     return next(t for t in texts if ui.up(t) == "INFO")
 
 
+def has_label(texts):
+    """the MY RECORDS label's text box, or None"""
+    return next((t for t in texts if ui.up(t).replace(" ", "") == "MYRECORDS"), None)
+
+
 def box(texts):
     """the MY RECORDS box -> 'none' (the page ends with no box), 'low' (the label's on screen, its values aren't),
     None (nothing to tell yet), or (kg_min, kg_max, m_min, m_max)"""
-    label = next((t for t in texts if ui.up(t).replace(" ", "") == "MYRECORDS"), None)
+    label = has_label(texts)
     if not label:
         if caught_tab(texts):  # not on INFO
             return None
@@ -103,11 +108,15 @@ def caught_tab(texts):
 def read_box(bounds):
     """drag the page up and read its box -> ('none' or the 4 values), or None: can't read it"""
     base.drag(0.5, 0.85, 0.5, 0.45, bounds, ms=500, settle=(0.6, 0.8), bring_front=False)
-    for _ in range(3):
+    for _ in range(6):
         screen, texts, path, bounds = base.settle(dex.look, lambda r: box(r[1]) not in (None, "low"), 2)
         got = box(texts)
         if got == "low":  # a long story above it
             base.drag(0.5, 0.8, 0.5, 0.5, bounds, ms=500, settle=(0.6, 0.8), bring_front=False)
+            continue
+        if got is None and not caught_tab(texts) and not has_label(texts):
+            # a BATTLE-ONLY FORM note or a VIVILLON HABITAT box pushes the box further down (2026-11-12)
+            base.drag(0.5, 0.8, 0.5, 0.4, bounds, ms=500, settle=(0.6, 0.8), bring_front=False)
             continue
         if got is None and caught_tab(texts) and tabs(texts):  # the page opened on CAUGHT: back to INFO
             log("  on the CAUGHT tab: tapping INFO")

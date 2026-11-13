@@ -130,12 +130,16 @@ def run_shortcut(name, suffix=""):
             search.close_panel(bounds)
             return 0
         search.click(x, y - 0.055, bounds)  # the round button above the label
-        _, texts, _, bounds = look()
-        if any("MANAGE FAVORITE" in ui.norm(u[4]) for u in texts):  # the tap landed as a long press
+        long_press = lambda texts: any("MANAGE FAVORITE" in ui.norm(u[4]) for u in texts)
+        _, texts, _, bounds = base.settle(look, lambda v: long_press(v[1]) or not ui.search_panel(v[1]), timeout=3)
+        if long_press(texts):  # the tap landed as a long press
             log(f"{name}: the shortcut tap was a long press: again")
             base.tap_x(bounds)  # the box's X
             time.sleep(1.0)
             continue
+        if ui.search_panel(texts):  # 3 s on, the panel is still up: the tap never landed (Pixel, the first search after
+            log(f"{name}: the shortcut tap didn't take: again")  # the sign-in check, 2026-11-06 and 2026-11-12)
+            continue  # panel() looks again before the next tap: a late tap that ran the search gets cleared first
         got = results(texts)
         if got == 0 and n is None:  # no count on its label. A tap types nothing, so this is a real 0. A nudge here could
             log(f"{name}: 0")  # change it: a bar the search fills loses its last character (PvpC1 0 -> 1182, 2026-11-06)

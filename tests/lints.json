@@ -50,7 +50,6 @@
   "skills/shared/savedsearch.py append": 1,
   "skills/shared/savedsearch.py panel": 1,
   "skills/shared/savedsearch.py results": 1,
-  "skills/shared/savedsearch.py run_shortcut": 1,
   "skills/shared/search.py bar_seen": 1,
   "skills/shared/search.py clear_search": 2,
   "skills/shared/search.py edit_tail": 2,

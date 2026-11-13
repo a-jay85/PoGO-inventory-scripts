@@ -140,6 +140,8 @@ def main():
             elif op == "close":
                 if session.opened:
                     session.close()
+                elif ui.ANDROID and ui.android.restore():  # left up, but a Wi-Fi run dimmed it: brightness back
+                    base.log("put the phone's brightness back")
             else:
                 out = {"error": f"unknown op {op}"}
         except (ui.Refused, base.Stop) as e:

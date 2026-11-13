@@ -3,11 +3,11 @@
 Sees the phone with its own screenshots (adb screencap) and taps and types with adb, so the Mac's mouse and
 keyboard stay free. ui.py sends its helper calls (click, drag, scroll, key, type, front) here.
 
-  POGO_PHONE=android python3 android.py check   phone plugged in, Pokémon GO in front
+  POGO_PHONE=android python3 android.py check   phone plugged in (or on Wi-Fi, see adbwifi.py), Pokémon GO in front
   POGO_PHONE=android python3 android.py type <text>
   POGO_PHONE=android python3 android.py key <delete|return|back|clear|one character>
 """
-import gzip, random, re, shlex, struct, subprocess, sys, threading, time
+import gzip, os, random, re, shlex, struct, subprocess, sys, threading, time
 from PIL import Image
 
 PKG = "com.nianticlabs.pokemongo"
@@ -21,10 +21,13 @@ class NotReady(Exception):
     """phone or game not in a state the scripts can work with"""
 
 
+_picked = []  # pick() has run in this process
 _last_adb = [0.0]  # when the last adb command (a tap, key, swipe...) finished: an older screenshot is stale
 
 
 def adb(*a, timeout=30):
+    if not _picked:
+        pick()
     try:
         r = subprocess.run(["adb", *a], capture_output=True, text=True, timeout=timeout)
     finally:
@@ -32,8 +35,49 @@ def adb(*a, timeout=30):
     return r.stdout
 
 
+def pick():
+    """which link to the phone adb uses: USB first, then Wi-Fi (adbwifi.py keeps that one up). It goes in
+    ANDROID_SERIAL, so every adb call goes to it: with both links up, a plain adb says "more than one device".
+    Nothing up: connects the saved Wi-Fi address once. -> the serial, or None"""
+    import adbwifi
+    _picked.append(1)
+    usb, wifi = adbwifi.devices()
+    s = (usb or wifi or [adbwifi.connect()])[0]
+    if s:
+        os.environ["ANDROID_SERIAL"] = s
+    return s
+
+
 def shell(cmd, timeout=60):
     return adb("shell", cmd, timeout=timeout)
+
+
+BRIGHT_FILE = os.path.expanduser("~/.config/pogo/android-brightness")  # "mode level" from before a Wi-Fi run
+
+
+def dim():
+    """over Wi-Fi (the phone is unplugged, no one is looking at it): screen brightness to 0 for the run. The old
+    brightness goes in BRIGHT_FILE first, and a file already there is kept: a run that ended before restore()
+    left 0 on the phone, and the file still holds the real one"""
+    if ":" not in os.environ.get("ANDROID_SERIAL", ""):
+        return
+    if not os.path.exists(BRIGHT_FILE):
+        mode, level = shell("settings get system screen_brightness_mode; settings get system screen_brightness").split()
+        os.makedirs(os.path.dirname(BRIGHT_FILE), exist_ok=True)
+        with open(BRIGHT_FILE, "w") as f:
+            f.write(f"{mode} {level}\n")
+    shell("settings put system screen_brightness_mode 0; settings put system screen_brightness 0")
+
+
+def restore():
+    """the brightness dim() saved back on the phone. -> True if there was one"""
+    try:
+        mode, level = open(BRIGHT_FILE).read().split()
+    except (OSError, ValueError):
+        return False
+    shell(f"settings put system screen_brightness {int(level)}; settings put system screen_brightness_mode {int(mode)}")
+    os.remove(BRIGHT_FILE)
+    return True
 
 
 _size = None
@@ -78,6 +122,8 @@ def raw_shot():
     under 1 s), so a try that takes over 10 s is a failed try too (a shot takes 0.3-0.8 s)"""
     for wait in (1, 2, 3, 4, None):  # seconds before the next try
         try:
+            if not _picked:
+                pick()
             r = subprocess.run(["adb", "exec-out", "screencap | gzip -1"], capture_output=True, timeout=10)
         except subprocess.TimeoutExpired:  # (run has already killed the hung adb)
             r = subprocess.CompletedProcess([], 124, b"", b"no answer in 10 s")
@@ -90,6 +136,7 @@ def raw_shot():
         print(f"android: screenshot failed (exit {r.returncode}, said: {said}), trying again in {wait} s",
               file=sys.stderr)
         time.sleep(wait)
+        pick()  # the link may have changed: unplugged (Wi-Fi now), or Wi-Fi dropped
     raw = gzip.decompress(r.stdout)
     w, h = struct.unpack("<2I", raw[:8])
     return Image.frombuffer("RGBA", (w, h), raw[len(raw) - w * h * 4:], "raw", "RGBA", 0, 1).convert("RGB")
@@ -163,8 +210,9 @@ def ready(force=False):
     global _checked
     if not force and time.time() - _checked < CHECK_EVERY:
         return
-    if adb("get-state").strip() != "device":
-        raise NotReady("phone not connected: plug it in, turn on USB debugging, and tap Allow on the phone")
+    if not pick():
+        raise NotReady("phone not connected: plug it in, turn on USB debugging, and tap Allow on the phone "
+                       "(unplugged: same Wi-Fi as the Mac, and plugged in once since it restarted, see adbwifi.py)")
     for attempt in range(2):
         out = shell("dumpsys power | grep -m1 mWakefulness=; dumpsys activity activities | grep -E 'ResumedActivity'")
         awake = "mWakefulness=Awake" in out

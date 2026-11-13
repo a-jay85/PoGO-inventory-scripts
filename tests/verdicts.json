@@ -176,6 +176,32 @@
   null,
   "has your tag Mine"
  ],
+ "untraded, Remote Trade and RT": [
+  "tag",
+  [],
+  null,
+  "keeps your tag Remote Trade, RT"
+ ],
+ "untraded, RT only (hidden from a partner)": [
+  "tag",
+  [],
+  null,
+  "keeps your tag RT"
+ ],
+ "traded, Remote Trade and RT come off": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "traded: can't trade again",
+  {
+   "off": [
+    "Remote Trade",
+    "RT"
+   ]
+  }
+ ],
  "shadow": [
   "unsure",
   [],

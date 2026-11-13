@@ -25,6 +25,7 @@ closed = {}  # box name -> the times it was closed lately
 
 MANAGE_X = (0.5, 0.906)  # the round X that closes the Manage Favorite Search box
 FRIEND_CARD_X = (0.5, 0.918)  # its round X, in the same spot on both phones: higher than X_BUTTON, which grazes its edge
+SAFETY_TO_OK = 0.08  # the safety warning: its OK this far under 'playing Pokémon GO.' (iPhone 0.645 -> 0.723)
 EGG_TO_X = 0.082  # a friend card with USE LUCKY EGG: its X sits this far under the button's middle (Pixel 0.849 -> 0.931)
 
 
@@ -162,6 +163,25 @@ def rocket_radar(texts):
     return center(hit) if hit and "ROCKET RADAR" in ui.joined(texts) else None
 
 
+def safety(texts):
+    """the game's 'Stay Aware of Your Surroundings' warning as it loads (iPhone, 2026-11-13: /trade stopped on it):
+    OK, its only button. OCR can miss its white-on-green OK: it sits SAFETY_TO_OK under the message's last line"""
+    if "STAY AWARE OF YOUR SURROUNDINGS" not in ui.joined(texts):
+        return None
+    hit = label(texts, "OK")
+    if hit:
+        return center(hit)
+    last = next((t for t in texts if "PLAYING POK" in ui.norm(t[4])), None)
+    return (0.5, last[1] + last[3] / 2 + SAFETY_TO_OK) if last else None
+
+
+def news(texts):
+    """an event's news card as the game loads ('Dynamax Trails', SEE DETAILS and DISMISS; iPhone, 2026-11-13: /trade's
+    restart stopped on it): DISMISS"""
+    hit = label(texts, "DISMISS")
+    return center(hit) if hit and label(texts, "SEE DETAILS") else None
+
+
 # name, where its tap goes, what the log says, seconds the box takes to go
 BOXES = (
     ("trade box", trade_ok, "a trade's box is up ({}): tapping OK", 1.5),
@@ -176,6 +196,8 @@ BOXES = (
     ("party pick", party_pick, "the party's challenge picker is up: tapping START", 2.5),
     ("party ended", party_ended, "the party has ended: tapping OK", 1.5),
     ("party summary", party_summary, "the party's summary is up: closing it", 1.5),
+    ("news", news, "an event's news card is up: tapping DISMISS", 1.5),
+    ("safety", safety, "the 'Stay Aware of Your Surroundings' warning is up: tapping OK", 1.5),
     ("rocket radar", rocket_radar, "a new Rocket Radar is up: tapping EQUIP, its only button", 2.5),
 )
 

@@ -183,6 +183,7 @@ def iphone_open():
 backs, reopened = 0, False  # this run's steps out of screens nobody knows
 banner_seen = 0  # when unstick started waiting on the gift banner that's up now
 BANNER_WAIT = 15  # seconds a gift banner gets to go away before its screen counts as unknown
+hatched_at = [0.0]  # when unstick last saw an egg's 'Oh?' (start() keeps its own)
 HATCH_SCREENS = 40  # seconds after an egg's "Oh?" when an unknown screen is its rewards, its Pokémon or the eggs
 
 
@@ -214,7 +215,8 @@ def leave_scopely(texts):
 
 
 def unstick(texts):
-    """one step out of a screen the scripts don't know. A box popups.py knows gets its button first, then a
+    """one step out of a screen the scripts don't know. An egg hatch gets tapped through (through_hatch), a box
+    popups.py knows gets its button, then a
     screen pages.py knows (another script's) its way out. Then Android:
     Back. iPhone: the home screen and the game's icon, once. Raises Stop when out of steps. -> True if the game was
     (re)opened"""
@@ -229,6 +231,9 @@ def unstick(texts):
             time.sleep(2.0)
             return False
     bounds = ui.capture()[1]
+    if (step := through_hatch(texts, bounds, hatched_at[0])) is not None:  # an egg hatch mid-run: Back does
+        hatched_at[0] = step  # nothing on its 'Oh?' (2026-11-13: /trade pressed Back on '2 Eggs ready to hatch!')
+        return False
     if popups.clear(texts, bounds):  # a box another script knows (a trade's late 'expired'...): its button
         return False
     if pages.step_out(texts, bounds):  # a whole screen another script knows (a trade's lobby, a gym...): its way out

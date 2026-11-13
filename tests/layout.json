@@ -583,7 +583,9 @@
    "Stop",
    "ball",
    "blue",
+   "clumps",
    "connect",
+   "find",
    "green",
    "keep_capture",
    "log",
@@ -594,7 +596,8 @@
    "read",
    "red",
    "script",
-   "white"
+   "white",
+   "whole"
   ],
   "runs": [
    "skills/goplus/runs"

@@ -44,7 +44,7 @@ import ui
 import base
 from base import Stop, log
 from search import pokeball, amp_as_8, result_count
-from home import main_menu
+from home import main_menu, profile as me_tab
 from session import TROUBLE
 import popups, pages
 
@@ -322,8 +322,9 @@ def classify(texts, path):
         return "gift"
     if "ADD FRIEND" in words or "INVITE" in words and "FRIENDS" in words:
         return "friends"
-    if "ME" in words and "FRIENDS" in words:
-        return "profile"
+    if "ME" in words and "FRIENDS" in words or me_tab(texts):
+        return "profile"  # (iPhone, right after Mirroring opens: 'GPS signal not found' can hide the tabs for a while.
+        # The trainer name with LEVEL and BUDDY tells it then; FRIENDS gets its tap once the banner goes, 2026-11-12)
     if {"TAGS", "EGGS"} <= words:
         return "storage"  # the storage's list or tags tab, left open by another skill: its X closes it (the iPhone has no Back)
     if main_menu(texts):

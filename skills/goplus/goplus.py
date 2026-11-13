@@ -32,7 +32,8 @@ from base import Stop, log, keep_capture
 import home, session
 
 FOR = "CyrillJan"  # the one account the GO Plus+ is paired with
-AREA = (0.70, 0.05, 1.0, 0.40)  # where the ball can be: the map's top right, under the weather and a raid timer
+AREA = (0.84, 0.05, 1.0, 0.40)  # where the ball can be: the map's right-hand icon column (middle x 0.914), under the
+# weather and a raid timer. Wider took in a pink gym ring over the night map's blues (2026-11-12)
 CONNECT_TIMEOUT = 15  # seconds from a tap to "on": about 6 s seen (Pixel, 2026-11-10)
 
 
@@ -78,12 +79,51 @@ def ball(path):
                 if mid(p) and any(top(px[x, y - k]) for k in reach if y - k >= 0) \
                         and any(bottom(px[x, y + k]) for k in reach if y + k < H):
                     found[state].append((x, y))
-    state = max(found, key=lambda s: len(found[s]))
-    pts = found[state]
-    if len(pts) < 6:  # a few stray pixels aren't a ball: its middle is 10+ at the Pixel's capture size
+    best = None
+    for state, mid, top, bottom in (("on", green, red, white), ("off", navy, mauve, blue)):
+        for pts in clumps(found[state], max(3, int(0.02 * W))):
+            if len(pts) < 6 or (best and len(pts) <= len(best[1])):  # a few stray pixels aren't a ball
+                continue
+            xs, ys = sorted(p[0] for p in pts), sorted(p[1] for p in pts)
+            cx, cy = xs[len(xs) // 2], ys[len(ys) // 2]
+            if whole(px, W, H, cx, cy, top, bottom):
+                best = (state, pts, cx, cy)
+    if not best:
         return None
-    cx, cy = sum(p[0] for p in pts) / len(pts), sum(p[1] for p in pts) / len(pts)
-    return state, cx / W, cy / H
+    return best[0], best[2] / W, best[3] / H
+
+
+def whole(px, W, H, cx, cy, top, bottom):
+    """a whole ball round (cx, cy): its top colour fills the band just above the middle, its bottom colour the band
+    just below. A real ball fills 0.66+ of both (on or off, Pixel); the night map's look-alikes (the moon weather icon,
+    a gym behind the icon column) fill 0.2 or less (2026-11-12)"""
+    r = max(4, int(0.025 * W))
+    def share(ok, y0, y1):
+        got = [ok(px[x, y]) for x in range(max(0, cx - r), min(W, cx + r + 1)) for y in range(max(0, y0), min(H, y1))]
+        return sum(got) / len(got) if got else 0
+    return share(top, cy - int(1.4 * r), cy - r // 2) >= 0.5 and share(bottom, cy + r // 2, cy + int(1.4 * r)) >= 0.5
+
+
+def clumps(pts, cell):
+    """pts in clumps, biggest first: points in touching cells of size cell are one clump"""
+    cells = {}
+    for p in pts:
+        cells.setdefault((p[0] // cell, p[1] // cell), []).append(p)
+    out, seen = [], set()
+    for c in cells:
+        if c in seen:
+            continue
+        seen.add(c)
+        todo, clump = [c], []
+        while todo:
+            cx, cy = todo.pop()
+            clump += cells[(cx, cy)]
+            for n in ((cx + dx, cy + dy) for dx in (-1, 0, 1) for dy in (-1, 0, 1)):
+                if n in cells and n not in seen:
+                    seen.add(n)
+                    todo.append(n)
+        out.append(clump)
+    return sorted(out, key=len, reverse=True)
 
 
 def read():
@@ -100,9 +140,14 @@ def map_trainer(texts):
     return got[0] if len(got) == 1 else None
 
 
+def find():
+    """the ball on the map, or None. Waits out the map's top right still loading, and a banner over it (a gift opened)"""
+    return base.settle(lambda: read()[0], lambda b: b is not None, timeout=10)
+
+
 def connect():
     """on the map: the ball off -> tapped, and on. -> seconds it took"""
-    got = base.settle(lambda: read()[0], lambda b: b is not None, timeout=4)  # the map's top right may still be loading
+    got = find()
     if not got:
         keep_capture("noball")
         raise Stop("no GO Plus+ ball at the top right of the map")
@@ -119,7 +164,15 @@ def connect():
             took = time.time() - t0
             log(f"connected in {took:.1f}s")
             return took
-        got = now or got
+        if not now:  # the tap opened something (a PokéStop, a Pokémon): back to the map, and look again
+            home.to_map()
+            now = find()
+            if not now:
+                break
+            if now[0] == "on":
+                log("connected (seen back on the map)")
+                return time.time() - t0
+        got = now
     keep_capture("noconnect")
     raise Stop(f"the GO Plus+ didn't connect (2 taps, {CONNECT_TIMEOUT}s each). Its battery may be flat, or it's paired with "
                f"another phone")
@@ -135,7 +188,7 @@ def script(only_look):
         texts = home.to_map()
     log(f"signed in: {who}")
     if only_look:
-        b = base.settle(lambda: read()[0], lambda b: b is not None, timeout=4)
+        b = find()
         log(f"the ball: {b[0] if b else 'not seen'}" + (f" at ({b[1]:.3f}, {b[2]:.3f})" if b else ""))
         return
     if who != FOR:

@@ -22,7 +22,9 @@ for another day. At most 99 trades a day (one is left for a special trade by han
 --done N says N were already made today. --limit N: at most N trades this run (default 48).
 Fridays are Friendship Fridays: every trade gives 2 Candy XL and double the lucky odds, so a Friday run trades only
 the ones tagged 2XL, on both phones. The rules above stay, with #2xl in place of giv,xlx. No GIV or XLX on a Friday,
-and no 2XL any other day. A regular trade costs 80 Stardust on a Friday (20% off). A run stops at midnight if that
+and no 2XL any other day. A regular trade costs 80 Stardust on a Friday (20% off). A Friday whose confirm screen shows
+100 has no Friendship Friday (Niantic skips one now and then): nothing is traded, and the run (and the rest of the
+day's runs) goes on with the other days' rules. A run stops at midnight if that
 changes what it may trade.
 Log and captures go in runs/<time>/.
 
@@ -81,14 +83,16 @@ set_piles("giv,xlx", saved=True)  # main() switches a Friday run to #2xl, typed
 
 
 def friendship_friday():
-    return datetime.date.today().weekday() == 4
+    """a Friday, and no confirm screen read today's regular cost: Niantic skips one now and then (2026-11-13, GO Wild
+    Area week: 100 Stardust on a Friday). The trade screen says, the calendar doesn't"""
+    return datetime.date.today().weekday() == 4 and state().get("no_friday") != today()
 
 
 MIN_KM = 100
 EARTH_KM = 20040  # the farthest two spots on Earth can be apart
 SKIPS = 3  # pairs caught under MIN_KM apart: how many of the Android's next ones to try before stopping
-COST = 100  # Stardust for a regular trade between these two accounts
-COST_READS = {"100"}  # all digits, and still this cost
+REGULAR_COST, REGULAR_READS = 100, {"100"}  # Stardust for a regular trade between these two accounts
+COST, COST_READS = REGULAR_COST, REGULAR_READS  # this run's (main() switches them on a Friday). READS: all digits, still it
 FRIDAY_COST, FRIDAY_READS = 80, {"80", "180"}  # 20% off on Fridays. (The iPhone reads the Stardust icon as a 1: 180)
 OK_WARNINGS = ("MAX MOVE LEVELS WILL BE RESET", "MEGA LEVEL WILL BE RESET")  # (mega level: user OK, 2026-11-07); trade warnings tapped YES; any other one stops the run
 X_BUTTON = (0.5, 0.935)  # the round X at the bottom middle (gift, result, friend page, picker)
@@ -108,6 +112,11 @@ class ServiceDown(Expired):
 class OutOfRange(Expired):
     """"... is out of range for trading" after LOCAL TRADE, with the phones side by side: nothing traded. The next
     round taps its OK and LOCAL TRADE again. main() stops the run if it keeps coming"""
+
+
+class NoFriday(Stop):
+    """a Friday run's confirm screen shows the regular cost: no Friendship Friday this week. Nothing traded. main()
+    goes on with the other days' rules"""
 
 
 class DailyLimit(Stop):
@@ -948,14 +957,15 @@ def warning(p):
 
 # ---------- the confirm screen ----------
 
-def cost_ok(p):
-    """-> (ok, what was read). Regular: '100' (the Stardust icon may read as one stray letter), white digits on a
-    blue box. A special trade: a bigger number, purple digits on a pale pink box"""
+def cost_ok(p, cost=None, reads=None):
+    """-> (ok, what was read). cost, reads: the run's COST and COST_READS unless given. Regular: '100' (the
+    Stardust icon may read as one stray letter), white digits on a blue box. A special trade: a bigger number, purple digits on a pale pink box"""
     box = next((t for t in p.texts if 0.3 < t[0] < 0.55 and 0.47 < t[1] < 0.56 and re.search(r"\d", t[4])), None)
     if not box:
         return False, "no cost read"
     text = box[4].strip()
-    if not re.fullmatch(r"(?:\S\s*)?%d" % COST, text) or re.fullmatch(r"\d{2,}", text) and text not in COST_READS:
+    cost, reads = cost or COST, reads or COST_READS
+    if not re.fullmatch(r"(?:\S\s*)?%d" % cost, text) or re.fullmatch(r"\d{2,}", text) and text not in reads:
         return False, f"cost {text!r}"
     im = Image.open(p.path).convert("RGB")
     W, H = im.size
@@ -993,6 +1003,9 @@ def check_confirm(p):
             if ok and d is not None:
                 candy = next((ui.up(t) for t in p.texts if re.fullmatch(r"\+\d", ui.up(t))), "?")
                 return d, candy
+            if COST != REGULAR_COST and cost_ok(p, REGULAR_COST, REGULAR_READS)[0]:
+                p.keep("confirm")
+                raise NoFriday(f"{p.name}: a regular {REGULAR_COST} Stardust on a Friday")
             why += f", {d} km"
         time.sleep(0.3)
     p.keep("confirm")
@@ -1041,16 +1054,20 @@ def today():
     return datetime.date.today().isoformat()
 
 
-def made_today():
+def state():
     try:
-        s = json.load(open(STATE))
+        return json.load(open(STATE))
     except (OSError, ValueError):
-        return 0
+        return {}
+
+
+def made_today():
+    s = state()
     return s.get("count", 0) if s.get("date") == today() else 0
 
 
 def set_made(n):
-    base.write_json(STATE, {"date": today(), "count": n})
+    base.write_json(STATE, {**state(), "date": today(), "count": n})
 
 
 # ---------- a run ----------
@@ -1295,6 +1312,13 @@ def main():
                 break
             try:
                 got = trade_once(ios, android, specials, fresh, rehearse=bool(a.rehearse))
+            except NoFriday as e:
+                friday, fresh = False, True  # the next round backs both out of this confirm screen first
+                base.write_json(STATE, {**state(), "no_friday": today()})
+                set_piles("giv,xlx", saved=True)
+                COST, COST_READS = REGULAR_COST, REGULAR_READS
+                log(f"{e}: no Friendship Friday this week. Trading GIV and XLX like any other day")
+                continue
             except DailyLimit as e:
                 log(f"{e}: done for the day")
                 set_made(max(made_today(), PER_DAY))  # a later run today stops at once

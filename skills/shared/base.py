@@ -866,11 +866,14 @@ def tap_tag_row(T, name, first=None):
     still = lambda s: len(s) > 1 and all(len(r) == 1 for r in map(rows, s[-2:])) and \
         abs(rows(s[-2])[0][1] - rows(s[-1])[0][1]) <= 0.01
     rows = lambda look: [t for t in look[0] if row_name(t[4]) == T]
-    settle(read, lambda s: len(s) > 1 and (still(s) or len(rows(s[-1])) != 1), timeout=2)  # (a glide stops in ~1 s)
+    # a glide stops in ~1 s. The time is for slow looks: over Wi-Fi a look took 1.5-2.5 s, so 2 s held only two looks
+    # and a glide caught by the first stopped the run (2026-11-13). A still sheet ends it at the first two that agree
+    settle(read, lambda s: len(s) > 1 and (still(s) or len(rows(s[-1])) != 1), timeout=6)
     if len(rows(seen[-1])) != 1:
         raise Stop(f"tag sheet: {len(rows(seen[-1]))} rows read {name!r}, wanted 1")
     if not still(seen):
-        raise Stop(f"tag sheet: the {name} row moved between two looks")
+        tops = [round(r[0][1], 3) for r in map(rows, seen) if r]
+        raise Stop(f"tag sheet: the {name} row moved between two looks (its top in {len(seen)} looks: {tops})")
     tap_box(rows(seen[-1])[0], seen[-1][1])
 
 

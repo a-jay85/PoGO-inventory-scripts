@@ -390,6 +390,7 @@
    "cmd_compare",
    "cmd_read",
    "fresh",
+   "has_label",
    "leave_dex",
    "log",
    "main",

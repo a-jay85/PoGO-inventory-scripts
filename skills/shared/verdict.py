@@ -30,7 +30,7 @@ Before everything: an XXL one, traded or not, is a favorite and its trade, Trans
 2026-11-04: it has value in showcases). Every Transfer for an untraded one goes through transfer() last: an xxs one gets IVC instead, a trade evolution
 (free to evolve once traded) GIV, signed in as HashTagAJay only (only CyrillJan wants the XP, the user 2026-11-02).
 Then one whose family has an evolution over 100 candy (Magikarp, Snom, Noibat: rules.COSTLY_LINES) GIV, either account
-(the user 2026-11-12; not a shadow, and CyrillJan's untraded trade evolutions still get Transfer). The user's own tags first: untraded with Old, Evo or GuaranteedLucky,
+(the user 2026-11-12; not a shadow, and CyrillJan's untraded trade evolutions still get Transfer). The user's own tags first: untraded with Old, Evo, GuaranteedLucky, Remote Trade or RT,
 those stay and only IVC / PvpC comes off; traded, the "trade it" tags (TRADE_TAGS) come off. The species lists come
 from tradeable.py's taker_species() and giver_species(), the same ones its tag searches use. Neither account's have an age
 limit: the newest saved copy is used, however old (the user, 2026-11-04 and 2026-11-06).
@@ -61,6 +61,12 @@ FUSED = ("kyurem_black", "kyurem_white", "necrozma_dusk_mane", "necrozma_dawn_wi
 TRADE_BY_HAND = {"meltan", "melmetal"}  # mythical, but trades.py retags them like a legendary
 OWN_TAGS = ("Old", EVO, "GuaranteedLucky")  # untraded with one of these: it stays, only IVC / PvpC comes off
 TRADE_TAGS = ("GIV", "XLX", "2XL", "Reroll", "Old", "Special", "GuaranteedLucky")  # "trade it": off a traded one
+# the user's remote-trade stock (2026-11-13): RT is the whole group they'd part with, the game's own Remote Trade tag the
+# ones a partner can see now (some RT ones go without it, hidden from a partner with nothing worth having). Untraded:
+# it stays, like Old. Traded: it can't trade again, so both come off
+REMOTE_TAGS = ("Remote Trade", "RT")
+OWN_TAGS += REMOTE_TAGS
+TRADE_TAGS += REMOTE_TAGS
 IGNORED_TAGS = ("CPD",)  # as if these tags weren't there: no rule reads them, none takes them off (the user, 2026-11-05)
 OVER_93 = 42  # a costume one at 93%+ (42 of 45) is named and a favorite (the user, 2026-11-02)
 TRADE_EVO_DEX = {int(d) for d in TRADE_EVOS.split(",")}  # evolve free once traded
@@ -159,7 +165,7 @@ def final_tag(f, t, today=None):
     if not f.shiny:
         return usual(f, t, today)
     # a traded one's tags all come off. An untraded one that already has Remote Trade or RT has what the rule gives it
-    tags = [] if f.traded else [x for x in f.other_tags if re.sub(r"[^A-Z]", "", x.upper()) not in ("REMOTETRADE", "RT")]
+    tags = [] if f.traded else [x for x in f.other_tags if canon(x) not in REMOTE_TAGS]
     return shiny(f, usual(replace(f, other_tags=tags), t, today))
 
 

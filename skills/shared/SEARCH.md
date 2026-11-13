@@ -2,7 +2,7 @@
 
 Read this before typing or building a search for a skill. A good search lets the game do the filtering, so a script reads fewer tiles.
 
-Sources, fetched 2026-10-08:
+Sources, fetched 2026-10-08 (checked again 2026-11-13: no new storage terms):
 
 - Leidwesen's SearchPhrases (v0.429.1, updated 2026-09-19). It is the newest and the only one that lists bugs: https://leidwesen.github.io/SearchPhrases/ (the data lives in `js/code.js`)
 - Niantic's help page: https://niantic.helpshift.com/hc/en/6-pokemon-go/faq/1486-searching-filtering-your-pokemon-inventory/
@@ -142,6 +142,20 @@ Works for `cp`, `hp`, dex number, `year`, `age`, `distance`, `buddy`, `mega`, `c
 | `#` / `!#` | any tag / no tag |
 
 - BUG: a tag named like a search term breaks that term. Always search tags with `#`.
+
+## Friend list terms
+
+The friend list has its own search box. `&` `,` `!` work as in storage. Nicknames autocomplete.
+
+| Term | Finds | Notes |
+|---|---|---|
+| `{name}` | friend name or nickname starting with it | `/gift` puts tags (WAIT, SENT) and zones in nicknames for this |
+| `interactable` | friends you haven't played with today | No blue aura on their picture. `/gift` uses it. |
+| `giftable` | friends you can send a gift to now | Gift opening day is the opener's local time. |
+| `friendlevel{N}` | friendship level N | Range. 0 none, 1-5 good to forever. |
+| `remotetrade` | friends you can trade with remotely now | Not an active remote trade request. |
+
+Tried on the Pixel (HashTagAJay, 2026-11-13, about 603 friends): `giftable` (47), `interactable&giftable` (29), `giftable&!interactable` (18). `/gift`'s iii search (`!?&!$&!WAIT&!OPEN&interactable&!EGG&`) gave 491, and with `giftable&` added, 2. `/gift` doesn't use `giftable` yet. Its "Can receive a gift" sort already puts those friends on top, and a search that shows 0 is typed again to be sure, so empty searches would get slower. Only about 1 friend per run is opened and found with a grey SEND GIFT.
 
 ## Shortcut terms that eat text
 

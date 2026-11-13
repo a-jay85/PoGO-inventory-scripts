@@ -13,6 +13,7 @@ Reads one JSON request a line on stdin, answers one JSON line on stdout:
   {"op": "search", "q"}             type q into the open search panel's bar -> {"ok"}: the bar reads q
   {"op": "restart"}                 force-close Pokémon GO and open it again (doesn't wait for it to load)
   {"op": "start", "run_dir"}        open Pokémon GO if it isn't, and wait until it's loaded -> {"screen"}
+  {"op": "popup", "texts"}          close the box up on this screen if popups.py knows it -> {"closed": name or None}
   {"op": "unstick", "texts", "backs"}  one step out of a screen nobody knows (Android: Back; iPhone: reopen the game)
   {"op": "ready"}                   wake and unlock the Pixel, or open iPhone Mirroring (trade.py look: a run's end
                                     closed them). "close" undoes it only if the phone wasn't up before
@@ -133,6 +134,8 @@ def main():
             elif op == "start":
                 base.new_run_dir(None, req["run_dir"])  # its log lines and captures go with trade.py's
                 out = {"screen": home.start(storage=False)}
+            elif op == "popup":
+                out = {"closed": popups.clear(req["texts"], last or ui.capture()[1])}
             elif op == "unstick":
                 home.backs = req["backs"]  # each trip to the friend page gets its own allowance
                 home.reopened = req["backs"] > 0  # iPhone: one reopen a trip too

@@ -175,6 +175,13 @@ def safety(texts):
     return (0.5, last[1] + last[3] / 2 + SAFETY_TO_OK) if last else None
 
 
+def news(texts):
+    """an event's news card as the game loads ('Dynamax Trails', SEE DETAILS and DISMISS; iPhone, 2026-11-13: /trade's
+    restart stopped on it): DISMISS"""
+    hit = label(texts, "DISMISS")
+    return center(hit) if hit and label(texts, "SEE DETAILS") else None
+
+
 # name, where its tap goes, what the log says, seconds the box takes to go
 BOXES = (
     ("trade box", trade_ok, "a trade's box is up ({}): tapping OK", 1.5),
@@ -189,6 +196,7 @@ BOXES = (
     ("party pick", party_pick, "the party's challenge picker is up: tapping START", 2.5),
     ("party ended", party_ended, "the party has ended: tapping OK", 1.5),
     ("party summary", party_summary, "the party's summary is up: closing it", 1.5),
+    ("news", news, "an event's news card is up: tapping DISMISS", 1.5),
     ("safety", safety, "the 'Stay Aware of Your Surroundings' warning is up: tapping OK", 1.5),
     ("rocket radar", rocket_radar, "a new Rocket Radar is up: tapping EQUIP, its only button", 2.5),
 )

@@ -1255,6 +1255,8 @@ def loaded(p):
     end = time.time() + 120
     time.sleep(3)  # (the old game can still be on screen for a moment)
     while p.look() in ("unknown", "blank"):  # loading screens and their tips
+        if p.call(op="popup", texts=[list(t) for t in p.texts])["closed"]:  # a box as it loads (event news: DISMISS)
+            continue
         if time.time() > end:
             p.keep("restart")
             raise Stop(f"{p.name}: the game didn't load after the restart: {p.summary()}")

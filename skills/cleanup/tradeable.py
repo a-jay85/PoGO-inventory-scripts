@@ -6,7 +6,8 @@
   POGO_PHONE=android caffeinate -dimsu python3 tradeable.py dynamax   CyrillJan signed in: only searches, for verdict.py
   POGO_PHONE=android caffeinate -dimsu python3 tradeable.py read [searches.json]   HashTagAJay signed in: only searches
   POGO_PHONE=android caffeinate -dimsu python3 tradeable.py [door] [--limit N]  CyrillJan signed in: the default.
-                                          Each untagged one opened once and given its final tag at the door
+                                          The tag searches that need no page read first (2XL, GIV ...), then
+                                          each untagged one left opened once and given its final tag at the door
   POGO_PHONE=android caffeinate -dimsu python3 tradeable.py tag [--limit N]   CyrillJan signed in: the fast way,
                                           bulk tag searches first, then power-ups, then the door for the rest
   python3 tradeable.py plan               the Mac, optional: a look at the searches tag would run (runs/<time>-plan/)
@@ -720,6 +721,21 @@ def tagged_before(plan):
     return done, save
 
 
+def bulk_tag(plan, wanted=lambda q: True):
+    """bulk_searches' tag searches, each one SELECT ALL + tag (Tradeable's !# drops the tagged ones from the rest)
+    -> (set of searches done, save()), for more tag searches after"""
+    done, save_done = tagged_before(plan)
+    for t, q, tail in bulk_searches(plan):  # rerun skips them (14 s each, even at 0)
+        if q + tail in done or not wanted(q):
+            continue
+        tag_pile(t, q + tail)
+        done.add(q + tail)
+        save_done()
+    if done:
+        log(f"{len(done)} tag search(es) done for these searches (new data or {DONE_HOURS} h starts over)")
+    return done, save_done
+
+
 def cmd_tag(limit):
     global XLX_LEVEL
     base.new_run_dir(os.path.join(HERE, "runs"), suffix="tag")
@@ -738,15 +754,7 @@ def cmd_tag(limit):
     search.to_search_list()
     have = survey()  # a small pile: only the searches for species in it run
     wanted = lambda q: have is None or (d := dexes_of(q)) is None or bool(d & have)
-    done, save_done = tagged_before(plan)
-    for t, q, tail in bulk_searches(plan):  # rerun skips them (14 s each, even at 0)
-        if q + tail in done or not wanted(q):
-            continue
-        tag_pile(t, q + tail)
-        done.add(q + tail)
-        save_done()
-    if done:
-        log(f"{len(done)} tag search(es) done for these searches (new data or {DONE_HOURS} h starts over)")
+    done, save_done = bulk_tag(plan, wanted)
     # (the taker's 360+ XL families are passed on the detail page: as '&!<dex>' terms they'd overflow the bar)
     traded = NO_SPECIAL + "&" + ",".join(f"#{t}" for t in TAGS)  # (one tagged before special trades were left out)
     keep_xxl_ones(limit)
@@ -789,14 +797,41 @@ def cmd_tag(limit):
 
 
 def cmd_door(limit):
-    """only the door walk, on the whole untagged pile (no plan): the door's rules are the plan's, one by one"""
+    """the tag searches that need no page read first (bulk_first), then the door walk on the rest: the door's rules
+    are the plan's, one by one"""
     base.new_run_dir(os.path.join(HERE, "runs"), suffix="door")
     who = home.trainer()
     if who != GIVER:
         raise Stop(f"signed in as {who!r}: door needs {GIVER}")
     home.start()
+    bulk_first()
     keep_xxl_ones(limit)
     log(f"the rest, through the door: {dict(door_walk(EVOLVED_REST, limit, who))}")
+
+
+DOOR_OPEN_S, TAG_SEARCH_S = 30, 14  # what the door takes for each one it opens, and a tag search, even at 0 (2026-11)
+BULK_HIT = 0.4  # the share of the door's opens a tag search would have tagged (104 of 263, 2026-11-10 to 11-13)
+
+
+def bulk_first():
+    """before the door: the tag searches that need no page read (bulk_searches: GuaranteedLucky, Luckydex, Old,
+    2XL, Reroll, GIV), so the door opens only the rest. The same tags the door gives (tests/taggers.py): 104 of 263
+    door opens in 2026-11-10 to 11-13 were 2XL or a ★100% hole GIV, 30 s each. No power-up walk for them: the door
+    doesn't power up a 2XL or GIV one either. Skipped when the pile is too small to pay for the searches, or a data
+    file is missing (then the door judges them all, as before)"""
+    try:
+        plan, _ = build_plan(Model())
+    except NoData as e:
+        log(f"no tag searches first ({e}): the door judges every one")
+        return
+    n = run_pile("")
+    todo = [x for x in bulk_searches(plan) if x[1] + x[2] not in tagged_before(plan)[0]]
+    if not n or n * BULK_HIT * DOOR_OPEN_S < len(todo) * TAG_SEARCH_S:
+        log(f"no tag searches first: {n} in the pile, {len(todo)} searches cost more than the door's opens")
+        return
+    json.dump(plan, open(os.path.join(base.RUN_DIR, "plan.json"), "w"), indent=1)  # what this run tagged by
+    log(f"{n} in the pile: {len(todo)} tag searches first, then the door for the rest")
+    bulk_tag(plan)
 
 
 def pile_tiles(suffix, shortcut=SHORTCUT):

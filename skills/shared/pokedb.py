@@ -7,6 +7,9 @@ home.py tells it the account, and a Pokémon tagged Transfer is deleted.
   python3 skills/shared/pokedb.py show [account]   every record, newest first
   python3 skills/shared/pokedb.py stale [days]     records no script has seen in that many days (default 30)
 
+dex_records holds each species' MY RECORDS box from its Pokédex page (lightest, heaviest, shortest, tallest), written by
+../dex/sizerecords.py.
+
 Pokémon tagged Transfer in bulk, never opened: ../cleanup/dbsweep.py deletes their records. savedsearch.tag_pile marks
 the sweep due (sweep_due), and cleantrades.py runs it right after its Transfer tag.
 
@@ -83,6 +86,10 @@ def connect():
             tags TEXT, star INTEGER, caught TEXT, flags TEXT,
             first_seen TEXT NOT NULL, last_seen TEXT NOT NULL, seen_by TEXT);
         CREATE INDEX IF NOT EXISTS by_size ON pokemon (account, kg, m);
+        CREATE TABLE IF NOT EXISTS dex_records (
+            account TEXT NOT NULL, dex INTEGER NOT NULL, name TEXT,
+            kg_min REAL, kg_max REAL, m_min REAL, m_max REAL,
+            read_at TEXT NOT NULL, PRIMARY KEY (account, dex));
     """)
     c.execute("INSERT OR IGNORE INTO meta VALUES ('schema_version', ?)", (str(SCHEMA),))
     _conn[0] = c
@@ -350,6 +357,28 @@ def find(acct=None, **where):
     cols = [k for k in where if k.isidentifier()]
     q = "SELECT * FROM pokemon WHERE account=?" + "".join(f" AND {k}=?" for k in cols)
     return [dict(r) for r in c.execute(q, (acct, *(where[k] for k in cols)))]
+
+
+# ---------- the Pokédex's MY RECORDS (../dex/sizerecords.py) ----------
+
+@_guard
+def save_record(acct, dex, name, kg_min=None, kg_max=None, m_min=None, m_max=None):
+    """one species' MY RECORDS box as its Pokédex page shows it. All None: the page has no box (none caught)"""
+    c = connect()
+    if c is None or not acct:
+        return None
+    c.execute("INSERT OR REPLACE INTO dex_records VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+              (acct, dex, name, _r2(kg_min), _r2(kg_max), _r2(m_min), _r2(m_max), _now()))
+    return True
+
+
+@_guard
+def records(acct):
+    """{dex: row} of an account's MY RECORDS reads"""
+    c = connect()
+    if c is None:
+        return {}
+    return {r["dex"]: dict(r) for r in c.execute("SELECT * FROM dex_records WHERE account=?", (acct,))}
 
 
 def stats(c):

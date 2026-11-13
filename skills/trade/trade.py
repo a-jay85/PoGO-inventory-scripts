@@ -995,7 +995,11 @@ def km(p):
 def check_confirm(p):
     """three tries at a clean read: a regular cost and the catch spots far enough apart"""
     why = ""
-    p.wait("confirm", timeout=20)  # the first to pick waits in the lobby for the other
+    if p.wait("confirm", "detail", timeout=20) == "detail":  # the first to pick waits in the lobby for the other
+        # a late NEXT tap landed on our picked card in the lobby (iPhone, 2026-11-13: the first NEXT took 5 s to show)
+        log(f"{p.name}: a tap opened the picked Pokémon's info: closing it")
+        p.tap(*X_BUTTON)
+        p.wait("confirm", timeout=20)
     for k in range(5):
         if (p.screen if k == 0 else p.look()) == "confirm":
             ok, why = cost_ok(p)

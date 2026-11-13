@@ -697,7 +697,8 @@ def script(cmd, limit, dry):
             one_walk(limit)  # (its own --limit: the end of a run writes too now)
         except (Stop, Skip) as e:
             keep_capture("fallen")
-            log(f"fallen out step STOPPED: {e} (run `run.py fallen {base.RUN_DIR}` to go on)")
+            # exit 1, not 0: pogo.py heals only a step that ends STOPPED or CRASHED
+            raise Stop(f"fallen out step: {e} (run `run.py fallen {base.RUN_DIR}` to go on)") from e
 
 
 if __name__ == "__main__":

@@ -49,6 +49,7 @@ REAL = [  # (bar read, search typed): straight from the run logs
     ("483*,", "4&3*,4*&shadow"),
     ("530&3**,4*&shadowx", "530&3*,4*&shadow"),
     ("giv,xl&distanceo-1i0&conntcandy", "giv,xlx&distance0-100&countcandy0-2499"),
+    ("050,51,56,57,209,210,303,731,732,7", "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume"),
 ]
 
 QUERIES = [q for _, q in REAL] + [

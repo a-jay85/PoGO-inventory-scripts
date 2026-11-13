@@ -1165,7 +1165,8 @@ def script(a, cmd, limit):
                 fallen_out(limit)  # (its own --limit, like /pvpc's)
             except (Stop, Skip) as e:
                 base.keep_capture("fallen")
-                log(f"fallen out step STOPPED: {e} (run `run.py fallen {base.RUN_DIR}` to go on)")
+                # exit 1, not 0: pogo.py heals only a step that ends STOPPED or CRASHED
+                raise Stop(f"fallen out step: {e} (run `run.py fallen {base.RUN_DIR}` to go on)") from e
     elif cmd == "names":
         names(limit, "--dry-run" in a)
     elif cmd in ("fallen", "act-fallen"):  # one step now (act-fallen: the old name of the second half)

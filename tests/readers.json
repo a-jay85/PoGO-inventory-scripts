@@ -136,7 +136,10 @@
   ",144&3*,4*&!galar": "l4434galar",
   ",150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt": "l5034flamethrowerfocusblasthyperbeamlcebeampsychocutshadowballthunderbolt",
   ",4&3*,4*&shadow": "434shadow",
+  ",50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "505l56572092l030373l732733777926927979pvpcostume",
   ",530&3*,4*&shadow": "53034shadow",
+  ",777,926,927,979&pvp&costume": "777926927979pvpcostume",
+  ",927,979&pvp&costume": "927979pvpcostume",
   ",PvpC": "pvpc",
   ",giv,xlx&distance0-100&countcandy0-2499": "glvxlxdlstance0l00countcandy02499",
   ",giv,xlx&distance0-100&countcandy2500-": "glvxlxdlstance0l00countcandy2500",
@@ -145,7 +148,9 @@
   "-100&countcandy2500-": "l00countcandy2500",
   "-151&countcandyxl0-359": "l5lcountcandyxl0359",
   "-26,172&countcandyxl360-": "26l72countcandyxl360",
+  "0,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "05l56572092l030373l732733777926927979pvpcostume",
   "00-&countcandy0-2499": "00countcandy02499",
+  "050,51,56,57,209,210,303,731,732,7": "0505l56572092l030373l7327",
   "1-151&COUNTCANDYXL0-359": "ll5lcountcandyxl0359",
   "1-151&countcandyx10-359": "ll5lcountcandyxl0359",
   "1-151&countcandyxl0-": "ll5lcountcandyxl0",
@@ -206,6 +211,14 @@
   "483*,4*&shadow": "4834shadow",
   "483*,4*8shadow": "48348shadow",
   "50&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt": "5034flamethrowerfocusblasthyperbeamlcebeampsychocutshadowballthunderbolt",
+  "50,51,56,57,209,210,": "505l56572092l0",
+  "50,51,56,57,209,210,303,731,": "505l56572092l030373l",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&PVP&COSTUME": "505l56572092l030373l732733777926927979pvpcostume",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costum": "505l56572092l030373l732733777926927979pvpcostum",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "505l56572092l030373l732733777926927979pvpcostume",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costumex": "505l56572092l030373l732733777926927979pvpcostumex",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,9798pvp&costume": "505l56572092l030373l7327337779269279798pvpcostume",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,9798pvp8costume": "505l56572092l030373l7327337779269279798pvp8costume",
   "51&countcandyxl0-359": "5lcountcandyxl0359",
   "530&3\",4\"&shadow": "53034shadow",
   "530&3**,4*&shadowx": "53034shadowx",
@@ -216,6 +229,7 @@
   "53083*,4*&shadow": "530834shadow",
   "53083*,4*8shadow": "5308348shadow",
   "53o&3*,4*&shadow": "53o34shadow",
+  "5o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,979&pvp&costume": "5o5l56572o92lo3o373l732733777926927979pvpcostume",
   "8!#8!favorite8!traded8!shadow8!shiny8!XXL8!4*8!3*8": "88favorlte8traded8shadow8shlny8xxl84838",
   "9#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "9nopeshadow4attack4defense4attack4hp4defense4hp",
   "9#Nope&!traded&!shiny&!costume&793-806,808,809": "9nopetradedshlnycostume793806808809",
@@ -230,6 +244,7 @@
   "9144&3*,4*&!galar": "9l4434galar",
   "9150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt": "9l5034flamethrowerfocusblasthyperbeamlcebeampsychocutshadowballthunderbolt",
   "94&3*,4*&shadow": "9434shadow",
+  "950,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "9505l56572092l030373l732733777926927979pvpcostume",
   "9530&3*,4*&shadow": "953034shadow",
   "9PvpC": "9pvpc",
   "9giv,xlx&distance0-100&countcandy0-2499": "9glvxlxdlstance0l00countcandy02499",
@@ -249,6 +264,7 @@
   "<144&3*,4*&!galar": "l4434galar",
   "<150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt": "l5034flamethrowerfocusblasthyperbeamlcebeampsychocutshadowballthunderbolt",
   "<4&3*,4*&shadow": "434shadow",
+  "<50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "505l56572092l030373l732733777926927979pvpcostume",
   "<530&3*,4*&shadow": "53034shadow",
   "<PvpC": "pvpc",
   "<giv,xlx&distance0-100&countcandy0-2499": "glvxlxdlstance0l00countcandy02499",
@@ -292,6 +308,8 @@
   "Q150&3*,4*&@flamethrower,@foc": "ql5034flamethrowerfoc",
   "Q150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt": "ql5034flamethrowerfocusblasthyperbeamlcebeampsychocutshadowballthunderbolt",
   "Q4&3*,4*&shadow": "q434shadow",
+  "Q50,51,56,57,209,210,303,731,": "q505l56572092l030373l",
+  "Q50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "q505l56572092l030373l732733777926927979pvpcostume",
   "Q530&3*,4*&shadow": "q53034shadow",
   "QPvpC": "qpvpc",
   "Qgiv,xlx&distance0-100&countc": "qglvxlxdlstance0l00countc",
@@ -474,7 +492,10 @@
   ",144&3*,4*&!galar": ",l44&3*,4*&lgalar",
   ",150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt": ",l50&3*,4*&@flamethrower,@focusblast,@hyperbeam,@lcebeam,@psychocut,@shadowball,@thunderbolt",
   ",4&3*,4*&shadow": ",4&3*,4*&shadow",
+  ",50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": ",50,5l,56,57,209,2l0,303,73l,732,733,777,926,927,979&pvp&costume",
   ",530&3*,4*&shadow": ",530&3*,4*&shadow",
+  ",777,926,927,979&pvp&costume": ",777,926,927,979&pvp&costume",
+  ",927,979&pvp&costume": ",927,979&pvp&costume",
   ",PvpC": ",pvpc",
   ",giv,xlx&distance0-100&countcandy0-2499": ",glv,xlx&dlstance0-l00&countcandy0-2499",
   ",giv,xlx&distance0-100&countcandy2500-": ",glv,xlx&dlstance0-l00&countcandy2500-",
@@ -483,7 +504,9 @@
   "-100&countcandy2500-": "-l00&countcandy2500-",
   "-151&countcandyxl0-359": "-l5l&countcandyxl0-359",
   "-26,172&countcandyxl360-": "-26,l72&countcandyxl360-",
+  "0,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "0,5l,56,57,209,2l0,303,73l,732,733,777,926,927,979&pvp&costume",
   "00-&countcandy0-2499": "00-&countcandy0-2499",
+  "050,51,56,57,209,210,303,731,732,7": "050,5l,56,57,209,2l0,303,73l,732,7",
   "1-151&COUNTCANDYXL0-359": "l-l5l&countcandyxl0-359",
   "1-151&countcandyx10-359": "l-l5l&countcandyxl0-359",
   "1-151&countcandyxl0-": "l-l5l&countcandyxl0-",
@@ -544,6 +567,14 @@
   "483*,4*&shadow": "483*,4*&shadow",
   "483*,4*8shadow": "483*,4*8shadow",
   "50&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt": "50&3*,4*&@flamethrower,@focusblast,@hyperbeam,@lcebeam,@psychocut,@shadowball,@thunderbolt",
+  "50,51,56,57,209,210,": "50,5l,56,57,209,2l0,",
+  "50,51,56,57,209,210,303,731,": "50,5l,56,57,209,2l0,303,73l,",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&PVP&COSTUME": "50,5l,56,57,209,2l0,303,73l,732,733,777,926,927,979&pvp&costume",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costum": "50,5l,56,57,209,2l0,303,73l,732,733,777,926,927,979&pvp&costum",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "50,5l,56,57,209,2l0,303,73l,732,733,777,926,927,979&pvp&costume",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costumex": "50,5l,56,57,209,2l0,303,73l,732,733,777,926,927,979&pvp&costumex",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,9798pvp&costume": "50,5l,56,57,209,2l0,303,73l,732,733,777,926,927,9798pvp&costume",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,9798pvp8costume": "50,5l,56,57,209,2l0,303,73l,732,733,777,926,927,9798pvp8costume",
   "51&countcandyxl0-359": "5l&countcandyxl0-359",
   "530&3\",4\"&shadow": "530&3\",4\"&shadow",
   "530&3**,4*&shadowx": "530&3**,4*&shadowx",
@@ -554,6 +585,7 @@
   "53083*,4*&shadow": "53083*,4*&shadow",
   "53083*,4*8shadow": "53083*,4*8shadow",
   "53o&3*,4*&shadow": "53o&3*,4*&shadow",
+  "5o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,979&pvp&costume": "5o,5l,56,57,2o9,2lo,3o3,73l,732,733,777,926,927,979&pvp&costume",
   "8!#8!favorite8!traded8!shadow8!shiny8!XXL8!4*8!3*8": "8l#8lfavorlte8ltraded8lshadow8lshlny8lxxl8l4*8l3*8",
   "9#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "9#nope&lshadow&4attack,4defense&4attack,4hp&4defense,4hp",
   "9#Nope&!traded&!shiny&!costume&793-806,808,809": "9#nope&ltraded&lshlny&lcostume&793-806,808,809",
@@ -568,6 +600,7 @@
   "9144&3*,4*&!galar": "9l44&3*,4*&lgalar",
   "9150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt": "9l50&3*,4*&@flamethrower,@focusblast,@hyperbeam,@lcebeam,@psychocut,@shadowball,@thunderbolt",
   "94&3*,4*&shadow": "94&3*,4*&shadow",
+  "950,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "950,5l,56,57,209,2l0,303,73l,732,733,777,926,927,979&pvp&costume",
   "9530&3*,4*&shadow": "9530&3*,4*&shadow",
   "9PvpC": "9pvpc",
   "9giv,xlx&distance0-100&countcandy0-2499": "9glv,xlx&dlstance0-l00&countcandy0-2499",
@@ -587,6 +620,7 @@
   "<144&3*,4*&!galar": "<l44&3*,4*&lgalar",
   "<150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt": "<l50&3*,4*&@flamethrower,@focusblast,@hyperbeam,@lcebeam,@psychocut,@shadowball,@thunderbolt",
   "<4&3*,4*&shadow": "<4&3*,4*&shadow",
+  "<50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "<50,5l,56,57,209,2l0,303,73l,732,733,777,926,927,979&pvp&costume",
   "<530&3*,4*&shadow": "<530&3*,4*&shadow",
   "<PvpC": "<pvpc",
   "<giv,xlx&distance0-100&countcandy0-2499": "<glv,xlx&dlstance0-l00&countcandy0-2499",
@@ -630,6 +664,8 @@
   "Q150&3*,4*&@flamethrower,@foc": "ql50&3*,4*&@flamethrower,@foc",
   "Q150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt": "ql50&3*,4*&@flamethrower,@focusblast,@hyperbeam,@lcebeam,@psychocut,@shadowball,@thunderbolt",
   "Q4&3*,4*&shadow": "q4&3*,4*&shadow",
+  "Q50,51,56,57,209,210,303,731,": "q50,5l,56,57,209,2l0,303,73l,",
+  "Q50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "q50,5l,56,57,209,2l0,303,73l,732,733,777,926,927,979&pvp&costume",
   "Q530&3*,4*&shadow": "q530&3*,4*&shadow",
   "QPvpC": "qpvpc",
   "Qgiv,xlx&distance0-100&countc": "qglv,xlx&dlstance0-l00&countc",
@@ -924,7 +960,10 @@
   ",144&3*,4*&!galar": ",144&3*,4*&!galar",
   ",150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt": ",15o&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt",
   ",4&3*,4*&shadow": ",4&3*,4*&shadow",
+  ",50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": ",5o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,979&pvp&costume",
   ",530&3*,4*&shadow": ",53o&3*,4*&shadow",
+  ",777,926,927,979&pvp&costume": ",777,926,927,979&pvp&costume",
+  ",927,979&pvp&costume": ",927,979&pvp&costume",
   ",PvpC": ",pvpc",
   ",giv,xlx&distance0-100&countcandy0-2499": ",giv,xlx&distanceo-1oo&countcandyo-2499",
   ",giv,xlx&distance0-100&countcandy2500-": ",giv,xlx&distanceo-1oo&countcandy25oo-",
@@ -933,7 +972,9 @@
   "-100&countcandy2500-": "-1oo&countcandy25oo-",
   "-151&countcandyxl0-359": "-151&countcandyxlo-359",
   "-26,172&countcandyxl360-": "-26,172&countcandyxl36o-",
+  "0,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,979&pvp&costume",
   "00-&countcandy0-2499": "oo-&countcandyo-2499",
+  "050,51,56,57,209,210,303,731,732,7": "o5o,51,56,57,2o9,21o,3o3,731,732,7",
   "1-151&COUNTCANDYXL0-359": "1-151&countcandyxlo-359",
   "1-151&countcandyx10-359": "1-151&countcandyx1o-359",
   "1-151&countcandyxl0-": "1-151&countcandyxlo-",
@@ -994,6 +1035,14 @@
   "483*,4*&shadow": "483*,4*&shadow",
   "483*,4*8shadow": "483*,4*8shadow",
   "50&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt": "5o&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt",
+  "50,51,56,57,209,210,": "5o,51,56,57,2o9,21o,",
+  "50,51,56,57,209,210,303,731,": "5o,51,56,57,2o9,21o,3o3,731,",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&PVP&COSTUME": "5o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,979&pvp&costume",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costum": "5o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,979&pvp&costum",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "5o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,979&pvp&costume",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costumex": "5o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,979&pvp&costumex",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,9798pvp&costume": "5o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,9798pvp&costume",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,9798pvp8costume": "5o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,9798pvp8costume",
   "51&countcandyxl0-359": "51&countcandyxlo-359",
   "530&3\",4\"&shadow": "53o&3*,4*&shadow",
   "530&3**,4*&shadowx": "53o&3**,4*&shadowx",
@@ -1004,6 +1053,7 @@
   "53083*,4*&shadow": "53o83*,4*&shadow",
   "53083*,4*8shadow": "53o83*,4*8shadow",
   "53o&3*,4*&shadow": "53o&3*,4*&shadow",
+  "5o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,979&pvp&costume": "5o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,979&pvp&costume",
   "8!#8!favorite8!traded8!shadow8!shiny8!XXL8!4*8!3*8": "8!#8!favorite8!traded8!shadow8!shiny8!xxl8!4*8!3*8",
   "9#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "9#nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp",
   "9#Nope&!traded&!shiny&!costume&793-806,808,809": "9#nope&!traded&!shiny&!costume&793-8o6,8o8,8o9",
@@ -1018,6 +1068,7 @@
   "9144&3*,4*&!galar": "9144&3*,4*&!galar",
   "9150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt": "915o&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt",
   "94&3*,4*&shadow": "94&3*,4*&shadow",
+  "950,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "95o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,979&pvp&costume",
   "9530&3*,4*&shadow": "953o&3*,4*&shadow",
   "9PvpC": "9pvpc",
   "9giv,xlx&distance0-100&countcandy0-2499": "9giv,xlx&distanceo-1oo&countcandyo-2499",
@@ -1037,6 +1088,7 @@
   "<144&3*,4*&!galar": "<144&3*,4*&!galar",
   "<150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt": "<15o&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt",
   "<4&3*,4*&shadow": "<4&3*,4*&shadow",
+  "<50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "<5o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,979&pvp&costume",
   "<530&3*,4*&shadow": "<53o&3*,4*&shadow",
   "<PvpC": "<pvpc",
   "<giv,xlx&distance0-100&countcandy0-2499": "<giv,xlx&distanceo-1oo&countcandyo-2499",
@@ -1080,6 +1132,8 @@
   "Q150&3*,4*&@flamethrower,@foc": "q15o&3*,4*&@flamethrower,@foc",
   "Q150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt": "q15o&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt",
   "Q4&3*,4*&shadow": "q4&3*,4*&shadow",
+  "Q50,51,56,57,209,210,303,731,": "q5o,51,56,57,2o9,21o,3o3,731,",
+  "Q50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "q5o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,979&pvp&costume",
   "Q530&3*,4*&shadow": "q53o&3*,4*&shadow",
   "QPvpC": "qpvpc",
   "Qgiv,xlx&distance0-100&countc": "qgiv,xlx&distanceo-1oo&countc",
@@ -1665,7 +1719,10 @@
   ",144&3*,4*&!galar": ",144&3*,4*&!galar",
   ",150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt": ",15o&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt",
   ",4&3*,4*&shadow": ",4&3*,4*&shadow",
+  ",50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": ",5o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,979&pvp&costume",
   ",530&3*,4*&shadow": ",53o&3*,4*&shadow",
+  ",777,926,927,979&pvp&costume": ",777,926,927,979&pvp&costume",
+  ",927,979&pvp&costume": ",927,979&pvp&costume",
   ",PvpC": ",pvpc",
   ",giv,xlx&distance0-100&countcandy0-2499": ",giv,xlx&distanceo-1oo&countcandyo-2499",
   ",giv,xlx&distance0-100&countcandy2500-": ",giv,xlx&distanceo-1oo&countcandy25oo-",
@@ -1674,7 +1731,9 @@
   "-100&countcandy2500-": "-1oo&countcandy25oo-",
   "-151&countcandyxl0-359": "-151&countcandyxlo-359",
   "-26,172&countcandyxl360-": "-26,172&countcandyxl36o-",
+  "0,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,979&pvp&costume",
   "00-&countcandy0-2499": "oo-&countcandyo-2499",
+  "050,51,56,57,209,210,303,731,732,7": "o5o,51,56,57,2o9,21o,3o3,731,732,7",
   "1-151&COUNTCANDYXL0-359": "1-151&countcandyxlo-359",
   "1-151&countcandyx10-359": "1-151&countcandyx1o-359",
   "1-151&countcandyxl0-": "1-151&countcandyxlo-",
@@ -1735,6 +1794,14 @@
   "483*,4*&shadow": "483*,4*&shadow",
   "483*,4*8shadow": "483*,4*8shadow",
   "50&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt": "5o&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt",
+  "50,51,56,57,209,210,": "5o,51,56,57,2o9,21o,",
+  "50,51,56,57,209,210,303,731,": "5o,51,56,57,2o9,21o,3o3,731,",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&PVP&COSTUME": "5o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,979&pvp&costume",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costum": "5o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,979&pvp&costum",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "5o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,979&pvp&costume",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costumex": "5o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,979&pvp&costumex",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,9798pvp&costume": "5o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,9798pvp&costume",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,9798pvp8costume": "5o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,9798pvp8costume",
   "51&countcandyxl0-359": "51&countcandyxlo-359",
   "530&3\",4\"&shadow": "53o&3\",4\"&shadow",
   "530&3**,4*&shadowx": "53o&3**,4*&shadowx",
@@ -1745,6 +1812,7 @@
   "53083*,4*&shadow": "53o83*,4*&shadow",
   "53083*,4*8shadow": "53o83*,4*8shadow",
   "53o&3*,4*&shadow": "53o&3*,4*&shadow",
+  "5o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,979&pvp&costume": "5o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,979&pvp&costume",
   "8!#8!favorite8!traded8!shadow8!shiny8!XXL8!4*8!3*8": "8!#8!favorite8!traded8!shadow8!shiny8!xxl8!4*8!3*8",
   "9#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "9#nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp",
   "9#Nope&!traded&!shiny&!costume&793-806,808,809": "9#nope&!traded&!shiny&!costume&793-8o6,8o8,8o9",
@@ -1759,6 +1827,7 @@
   "9144&3*,4*&!galar": "9144&3*,4*&!galar",
   "9150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt": "915o&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt",
   "94&3*,4*&shadow": "94&3*,4*&shadow",
+  "950,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "95o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,979&pvp&costume",
   "9530&3*,4*&shadow": "953o&3*,4*&shadow",
   "9PvpC": "9pvpc",
   "9giv,xlx&distance0-100&countcandy0-2499": "9giv,xlx&distanceo-1oo&countcandyo-2499",
@@ -1778,6 +1847,7 @@
   "<144&3*,4*&!galar": "<144&3*,4*&!galar",
   "<150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt": "<15o&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt",
   "<4&3*,4*&shadow": "<4&3*,4*&shadow",
+  "<50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "<5o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,979&pvp&costume",
   "<530&3*,4*&shadow": "<53o&3*,4*&shadow",
   "<PvpC": "<pvpc",
   "<giv,xlx&distance0-100&countcandy0-2499": "<giv,xlx&distanceo-1oo&countcandyo-2499",
@@ -1821,6 +1891,8 @@
   "Q150&3*,4*&@flamethrower,@foc": "q15o&3*,4*&@flamethrower,@foc",
   "Q150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt": "q15o&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt",
   "Q4&3*,4*&shadow": "q4&3*,4*&shadow",
+  "Q50,51,56,57,209,210,303,731,": "q5o,51,56,57,2o9,21o,3o3,731,",
+  "Q50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "q5o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,979&pvp&costume",
   "Q530&3*,4*&shadow": "q53o&3*,4*&shadow",
   "QPvpC": "qpvpc",
   "Qgiv,xlx&distance0-100&countc": "qgiv,xlx&distanceo-1oo&countc",
@@ -1909,6 +1981,7 @@
   "\t144&3*,4*&!galar": "",
   "\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
   "\t4&3*,4*&shadow": "",
+  "\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
   "\t530&3*,4*&shadow": "",
   "\tPvpC": "",
   "\tgiv,xlx&distance0-100&countcandy0-2499": "",
@@ -2031,7 +2104,10 @@
   ",144&3*,4*&!galar\t144&3*,4*&!galar": ",144&3*,4*&!galar",
   ",150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": ",150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt",
   ",4&3*,4*&shadow\t4&3*,4*&shadow": ",4&3*,4*&shadow",
+  ",50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": ",50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume",
   ",530&3*,4*&shadow\t530&3*,4*&shadow": ",530&3*,4*&shadow",
+  ",777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": ",777,926,927,979&pvp&costume",
+  ",927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": ",927,979&pvp&costume",
   ",PvpC\tPvpC": ",PvpC",
   ",giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": ",giv,xlx&distance0-100&countcandy0-2499",
   ",giv,xlx&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": ",giv,xlx&distance0-100&countcandy2500-",
@@ -2040,7 +2116,9 @@
   "-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": "-100&countcandy2500-",
   "-151&countcandyxl0-359\t1-151&countcandyxl0-359": "-151&countcandyxl0-359",
   "-26,172&countcandyxl360-\t1-26,172&countcandyxl360-": "-26,172&countcandyxl360-",
+  "0,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "0,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume",
   "00-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": "00-&countcandy0-2499",
+  "050,51,56,57,209,210,303,731,732,7\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "050,51,56,57,209,210,303,731,732,7",
   "1-151&COUNTCANDYXL0-359\t1-151&countcandyxl0-359": "1-151&COUNTCANDYXL0-359",
   "1-151&countcandyx10-359\t1-151&countcandyxl0-359": "1-151&countcandyxl0-359",
   "1-151&countcandyxl0-\t1-151&countcandyxl0-359": "1-151&countcandyxl0-",
@@ -2106,6 +2184,15 @@
   "483*,4*&shadow\t4&3*,4*&shadow": "4&3*,4*&shadow",
   "483*,4*8shadow\t4&3*,4*&shadow": "4&3*,4*&shadow",
   "50&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "50&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt",
+  "50,51,56,57,209,210,\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "50,51,56,57,209,210,",
+  "50,51,56,57,209,210,303,731,\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "50,51,56,57,209,210,303,731,",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&PVP&COSTUME\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "50,51,56,57,209,210,303,731,732,733,777,926,927,979&PVP&COSTUME",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costum\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costum",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costumex\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costumex",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,9798pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,9798pvp8costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume",
   "51&countcandyxl0-359\t1-151&countcandyxl0-359": "51&countcandyxl0-359",
   "530&3\",4\"&shadow\t530&3*,4*&shadow": "530&3\",4\"&shadow",
   "530&3**,4*&shadowx\t530&3*,4*&shadow": "530&3**,4*&shadowx",
@@ -2117,6 +2204,7 @@
   "53083*,4*&shadow\t530&3*,4*&shadow": "530&3*,4*&shadow",
   "53083*,4*8shadow\t530&3*,4*&shadow": "530&3*,4*&shadow",
   "53o&3*,4*&shadow\t530&3*,4*&shadow": "530&3*,4*&shadow",
+  "5o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume",
   "8!#8!favorite8!traded8!shadow8!shiny8!XXL8!4*8!3*8\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&",
   "9#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "9#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp",
   "9#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "9#Nope&!traded&!shiny&!costume&793-806,808,809",
@@ -2131,6 +2219,7 @@
   "9144&3*,4*&!galar\t144&3*,4*&!galar": "9144&3*,4*&!galar",
   "9150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "9150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt",
   "94&3*,4*&shadow\t4&3*,4*&shadow": "94&3*,4*&shadow",
+  "950,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "950,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume",
   "9530&3*,4*&shadow\t530&3*,4*&shadow": "9530&3*,4*&shadow",
   "9PvpC\tPvpC": "9PvpC",
   "9giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "9giv,xlx&distance0-100&countcandy0-2499",
@@ -2150,6 +2239,7 @@
   "<144&3*,4*&!galar\t144&3*,4*&!galar": "<144&3*,4*&!galar",
   "<150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "<150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt",
   "<4&3*,4*&shadow\t4&3*,4*&shadow": "<4&3*,4*&shadow",
+  "<50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "<50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume",
   "<530&3*,4*&shadow\t530&3*,4*&shadow": "<530&3*,4*&shadow",
   "<PvpC\tPvpC": "<PvpC",
   "<giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "<giv,xlx&distance0-100&countcandy0-2499",
@@ -2190,6 +2280,8 @@
   "Q150&3*,4*&@flamethrower,@foc\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "Q150&3*,4*&@flamethrower,@foc",
   "Q150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "Q150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt",
   "Q4&3*,4*&shadow\t4&3*,4*&shadow": "Q4&3*,4*&shadow",
+  "Q50,51,56,57,209,210,303,731,\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "Q50,51,56,57,209,210,303,731,",
+  "Q50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "Q50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume",
   "Q530&3*,4*&shadow\t530&3*,4*&shadow": "Q530&3*,4*&shadow",
   "QPvpC\tPvpC": "QPvpC",
   "Qgiv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": "Qgiv,xlx&distance0-100&countc",
@@ -2215,7 +2307,7 @@
   "giv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": "giv,xlx&distance0-100&countc",
   "giv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy2500-": "giv,xlx&distance0-100&countc",
   "giv,xlx&distance0-100&countcandy0-249\tgiv,xlx&distance0-100&countcandy0-2499": "giv,xlx&distance0-100&countcandy0-249",
-  "giv,xlx&distance0-100&countcandy0-2499\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "giv,xlx&distance0-100&countcandy0-2499",
+  "giv,xlx&distance0-100&countcandy0-2499\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "giv,xlx&distance0-100&countcandy0-2499",
   "giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "giv,xlx&distance0-100&countcandy0-2499",
   "giv,xlx&distance0-100&countcandy0-2499x\tgiv,xlx&distance0-100&countcandy0-2499": "giv,xlx&distance0-100&countcandy0-2499x",
   "giv,xlx&distance0-100&countcandy2500\tgiv,xlx&distance0-100&countcandy2500-": "giv,xlx&distance0-100&countcandy2500",
@@ -2282,6 +2374,7 @@
   "\t144&3*,4*&!galar": "",
   "\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
   "\t4&3*,4*&shadow": "",
+  "\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
   "\t530&3*,4*&shadow": "",
   "\tPvpC": "",
   "\tgiv,xlx&distance0-100&countcandy0-2499": "",
@@ -2404,7 +2497,10 @@
   ",144&3*,4*&!galar\t144&3*,4*&!galar": "",
   ",150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
   ",4&3*,4*&shadow\t4&3*,4*&shadow": "",
+  ",50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
   ",530&3*,4*&shadow\t530&3*,4*&shadow": "",
+  ",777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
+  ",927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
   ",PvpC\tPvpC": "",
   ",giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
   ",giv,xlx&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": "",
@@ -2413,7 +2509,9 @@
   "-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": "",
   "-151&countcandyxl0-359\t1-151&countcandyxl0-359": "",
   "-26,172&countcandyxl360-\t1-26,172&countcandyxl360-": "",
+  "0,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
   "00-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": "",
+  "050,51,56,57,209,210,303,731,732,7\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
   "1-151&COUNTCANDYXL0-359\t1-151&countcandyxl0-359": "",
   "1-151&countcandyx10-359\t1-151&countcandyxl0-359": "",
   "1-151&countcandyxl0-\t1-151&countcandyxl0-359": "",
@@ -2479,6 +2577,15 @@
   "483*,4*&shadow\t4&3*,4*&shadow": "",
   "483*,4*8shadow\t4&3*,4*&shadow": "",
   "50&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
+  "50,51,56,57,209,210,\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
+  "50,51,56,57,209,210,303,731,\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&PVP&COSTUME\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costum\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costumex\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,9798pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,9798pvp8costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
   "51&countcandyxl0-359\t1-151&countcandyxl0-359": "",
   "530&3\",4\"&shadow\t530&3*,4*&shadow": "",
   "530&3**,4*&shadowx\t530&3*,4*&shadow": "",
@@ -2490,6 +2597,7 @@
   "53083*,4*&shadow\t530&3*,4*&shadow": "",
   "53083*,4*8shadow\t530&3*,4*&shadow": "",
   "53o&3*,4*&shadow\t530&3*,4*&shadow": "",
+  "5o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
   "8!#8!favorite8!traded8!shadow8!shiny8!XXL8!4*8!3*8\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
   "9#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
   "9#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
@@ -2504,6 +2612,7 @@
   "9144&3*,4*&!galar\t144&3*,4*&!galar": "",
   "9150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
   "94&3*,4*&shadow\t4&3*,4*&shadow": "",
+  "950,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
   "9530&3*,4*&shadow\t530&3*,4*&shadow": "",
   "9PvpC\tPvpC": "",
   "9giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
@@ -2523,6 +2632,7 @@
   "<144&3*,4*&!galar\t144&3*,4*&!galar": "",
   "<150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
   "<4&3*,4*&shadow\t4&3*,4*&shadow": "",
+  "<50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
   "<530&3*,4*&shadow\t530&3*,4*&shadow": "",
   "<PvpC\tPvpC": "",
   "<giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
@@ -2563,6 +2673,8 @@
   "Q150&3*,4*&@flamethrower,@foc\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
   "Q150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
   "Q4&3*,4*&shadow\t4&3*,4*&shadow": "",
+  "Q50,51,56,57,209,210,303,731,\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
+  "Q50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
   "Q530&3*,4*&shadow\t530&3*,4*&shadow": "",
   "QPvpC\tPvpC": "",
   "Qgiv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": "",
@@ -2588,7 +2700,7 @@
   "giv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": "",
   "giv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy2500-": "",
   "giv,xlx&distance0-100&countcandy0-249\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "giv,xlx&distance0-100&countcandy0-2499\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
+  "giv,xlx&distance0-100&countcandy0-2499\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
   "giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
   "giv,xlx&distance0-100&countcandy0-2499x\tgiv,xlx&distance0-100&countcandy0-2499": "",
   "giv,xlx&distance0-100&countcandy2500\tgiv,xlx&distance0-100&countcandy2500-": "",
@@ -2655,6 +2767,7 @@
   "\t144&3*,4*&!galar": false,
   "\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
   "\t4&3*,4*&shadow": false,
+  "\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   "\t530&3*,4*&shadow": false,
   "\tPvpC": false,
   "\tgiv,xlx&distance0-100&countcandy0-2499": false,
@@ -2777,7 +2890,10 @@
   ",144&3*,4*&!galar\t144&3*,4*&!galar": true,
   ",150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": true,
   ",4&3*,4*&shadow\t4&3*,4*&shadow": true,
+  ",50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
   ",530&3*,4*&shadow\t530&3*,4*&shadow": true,
+  ",777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
+  ",927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
   ",PvpC\tPvpC": true,
   ",giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
   ",giv,xlx&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": true,
@@ -2786,7 +2902,9 @@
   "-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": true,
   "-151&countcandyxl0-359\t1-151&countcandyxl0-359": true,
   "-26,172&countcandyxl360-\t1-26,172&countcandyxl360-": true,
+  "0,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
   "00-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": true,
+  "050,51,56,57,209,210,303,731,732,7\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
   "1-151&COUNTCANDYXL0-359\t1-151&countcandyxl0-359": true,
   "1-151&countcandyx10-359\t1-151&countcandyxl0-359": true,
   "1-151&countcandyxl0-\t1-151&countcandyxl0-359": true,
@@ -2852,6 +2970,15 @@
   "483*,4*&shadow\t4&3*,4*&shadow": true,
   "483*,4*8shadow\t4&3*,4*&shadow": true,
   "50&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": true,
+  "50,51,56,57,209,210,\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
+  "50,51,56,57,209,210,303,731,\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&PVP&COSTUME\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costum\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costumex\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,9798pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,9798pvp8costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
   "51&countcandyxl0-359\t1-151&countcandyxl0-359": true,
   "530&3\",4\"&shadow\t530&3*,4*&shadow": true,
   "530&3**,4*&shadowx\t530&3*,4*&shadow": true,
@@ -2863,6 +2990,7 @@
   "53083*,4*&shadow\t530&3*,4*&shadow": true,
   "53083*,4*8shadow\t530&3*,4*&shadow": true,
   "53o&3*,4*&shadow\t530&3*,4*&shadow": true,
+  "5o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
   "8!#8!favorite8!traded8!shadow8!shiny8!XXL8!4*8!3*8\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": true,
   "9#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": true,
   "9#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": true,
@@ -2877,6 +3005,7 @@
   "9144&3*,4*&!galar\t144&3*,4*&!galar": true,
   "9150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": true,
   "94&3*,4*&shadow\t4&3*,4*&shadow": true,
+  "950,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
   "9530&3*,4*&shadow\t530&3*,4*&shadow": true,
   "9PvpC\tPvpC": true,
   "9giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
@@ -2896,6 +3025,7 @@
   "<144&3*,4*&!galar\t144&3*,4*&!galar": true,
   "<150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": true,
   "<4&3*,4*&shadow\t4&3*,4*&shadow": true,
+  "<50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
   "<530&3*,4*&shadow\t530&3*,4*&shadow": true,
   "<PvpC\tPvpC": true,
   "<giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
@@ -2936,6 +3066,8 @@
   "Q150&3*,4*&@flamethrower,@foc\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": true,
   "Q150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": true,
   "Q4&3*,4*&shadow\t4&3*,4*&shadow": true,
+  "Q50,51,56,57,209,210,303,731,\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
+  "Q50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
   "Q530&3*,4*&shadow\t530&3*,4*&shadow": true,
   "QPvpC\tPvpC": true,
   "Qgiv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": true,
@@ -2961,7 +3093,7 @@
   "giv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": true,
   "giv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy2500-": true,
   "giv,xlx&distance0-100&countcandy0-249\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distance0-100&countcandy0-2499\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
+  "giv,xlx&distance0-100&countcandy0-2499\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   "giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
   "giv,xlx&distance0-100&countcandy0-2499x\tgiv,xlx&distance0-100&countcandy0-2499": true,
   "giv,xlx&distance0-100&countcandy2500\tgiv,xlx&distance0-100&countcandy2500-": true,
@@ -3196,6 +3328,7 @@
   "\t144&3*,4*&!galar": "",
   "\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
   "\t4&3*,4*&shadow": "",
+  "\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
   "\t530&3*,4*&shadow": "",
   "\tPvpC": "",
   "\tgiv,xlx&distance0-100&countcandy0-2499": "",
@@ -3318,7 +3451,10 @@
   ",144&3*,4*&!galar\t144&3*,4*&!galar": "",
   ",150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
   ",4&3*,4*&shadow\t4&3*,4*&shadow": "",
+  ",50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
   ",530&3*,4*&shadow\t530&3*,4*&shadow": "",
+  ",777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
+  ",927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
   ",PvpC\tPvpC": "",
   ",giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
   ",giv,xlx&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": "",
@@ -3327,7 +3463,9 @@
   "-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": "",
   "-151&countcandyxl0-359\t1-151&countcandyxl0-359": "",
   "-26,172&countcandyxl360-\t1-26,172&countcandyxl360-": "",
+  "0,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
   "00-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": "",
+  "050,51,56,57,209,210,303,731,732,7\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
   "1-151&COUNTCANDYXL0-359\t1-151&countcandyxl0-359": "",
   "1-151&countcandyx10-359\t1-151&countcandyxl0-359": "",
   "1-151&countcandyxl0-\t1-151&countcandyxl0-359": "",
@@ -3393,6 +3531,15 @@
   "483*,4*&shadow\t4&3*,4*&shadow": "",
   "483*,4*8shadow\t4&3*,4*&shadow": "",
   "50&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
+  "50,51,56,57,209,210,\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
+  "50,51,56,57,209,210,303,731,\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&PVP&COSTUME\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costum\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costumex\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,9798pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,9798pvp8costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
   "51&countcandyxl0-359\t1-151&countcandyxl0-359": "",
   "530&3\",4\"&shadow\t530&3*,4*&shadow": "",
   "530&3**,4*&shadowx\t530&3*,4*&shadow": "",
@@ -3404,6 +3551,7 @@
   "53083*,4*&shadow\t530&3*,4*&shadow": "",
   "53083*,4*8shadow\t530&3*,4*&shadow": "",
   "53o&3*,4*&shadow\t530&3*,4*&shadow": "",
+  "5o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
   "8!#8!favorite8!traded8!shadow8!shiny8!XXL8!4*8!3*8\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
   "9#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
   "9#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
@@ -3418,6 +3566,7 @@
   "9144&3*,4*&!galar\t144&3*,4*&!galar": "",
   "9150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
   "94&3*,4*&shadow\t4&3*,4*&shadow": "",
+  "950,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
   "9530&3*,4*&shadow\t530&3*,4*&shadow": "",
   "9PvpC\tPvpC": "",
   "9giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
@@ -3437,6 +3586,7 @@
   "<144&3*,4*&!galar\t144&3*,4*&!galar": "",
   "<150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
   "<4&3*,4*&shadow\t4&3*,4*&shadow": "",
+  "<50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
   "<530&3*,4*&shadow\t530&3*,4*&shadow": "",
   "<PvpC\tPvpC": "",
   "<giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
@@ -3477,6 +3627,8 @@
   "Q150&3*,4*&@flamethrower,@foc\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
   "Q150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": "",
   "Q4&3*,4*&shadow\t4&3*,4*&shadow": "",
+  "Q50,51,56,57,209,210,303,731,\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
+  "Q50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
   "Q530&3*,4*&shadow\t530&3*,4*&shadow": "",
   "QPvpC\tPvpC": "",
   "Qgiv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": "",
@@ -3502,7 +3654,7 @@
   "giv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": "",
   "giv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy2500-": "",
   "giv,xlx&distance0-100&countcandy0-249\tgiv,xlx&distance0-100&countcandy0-2499": "9",
-  "giv,xlx&distance0-100&countcandy0-2499\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
+  "giv,xlx&distance0-100&countcandy0-2499\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
   "giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
   "giv,xlx&distance0-100&countcandy0-2499x\tgiv,xlx&distance0-100&countcandy0-2499": "",
   "giv,xlx&distance0-100&countcandy2500\tgiv,xlx&distance0-100&countcandy2500-": "",
@@ -3581,6 +3733,7 @@
   "\t144&3*,4*&!galar": false,
   "\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
   "\t4&3*,4*&shadow": false,
+  "\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   "\t530&3*,4*&shadow": false,
   "\tPvpC": false,
   "\tgiv,xlx&distance0-100&countcandy0-2499": false,
@@ -3703,7 +3856,10 @@
   ",144&3*,4*&!galar\t144&3*,4*&!galar": true,
   ",150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": true,
   ",4&3*,4*&shadow\t4&3*,4*&shadow": true,
+  ",50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
   ",530&3*,4*&shadow\t530&3*,4*&shadow": true,
+  ",777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
+  ",927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
   ",PvpC\tPvpC": true,
   ",giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
   ",giv,xlx&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": true,
@@ -3712,7 +3868,9 @@
   "-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": true,
   "-151&countcandyxl0-359\t1-151&countcandyxl0-359": true,
   "-26,172&countcandyxl360-\t1-26,172&countcandyxl360-": true,
+  "0,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
   "00-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": true,
+  "050,51,56,57,209,210,303,731,732,7\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
   "1-151&COUNTCANDYXL0-359\t1-151&countcandyxl0-359": true,
   "1-151&countcandyx10-359\t1-151&countcandyxl0-359": true,
   "1-151&countcandyxl0-\t1-151&countcandyxl0-359": true,
@@ -3778,6 +3936,15 @@
   "483*,4*&shadow\t4&3*,4*&shadow": true,
   "483*,4*8shadow\t4&3*,4*&shadow": true,
   "50&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": true,
+  "50,51,56,57,209,210,\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
+  "50,51,56,57,209,210,303,731,\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&PVP&COSTUME\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costum\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costumex\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,9798pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,9798pvp8costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
   "51&countcandyxl0-359\t1-151&countcandyxl0-359": true,
   "530&3\",4\"&shadow\t530&3*,4*&shadow": true,
   "530&3**,4*&shadowx\t530&3*,4*&shadow": true,
@@ -3789,6 +3956,7 @@
   "53083*,4*&shadow\t530&3*,4*&shadow": true,
   "53083*,4*8shadow\t530&3*,4*&shadow": true,
   "53o&3*,4*&shadow\t530&3*,4*&shadow": true,
+  "5o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
   "8!#8!favorite8!traded8!shadow8!shiny8!XXL8!4*8!3*8\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": true,
   "9#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": true,
   "9#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": true,
@@ -3803,6 +3971,7 @@
   "9144&3*,4*&!galar\t144&3*,4*&!galar": true,
   "9150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": true,
   "94&3*,4*&shadow\t4&3*,4*&shadow": true,
+  "950,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
   "9530&3*,4*&shadow\t530&3*,4*&shadow": true,
   "9PvpC\tPvpC": true,
   "9giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
@@ -3822,6 +3991,7 @@
   "<144&3*,4*&!galar\t144&3*,4*&!galar": true,
   "<150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": true,
   "<4&3*,4*&shadow\t4&3*,4*&shadow": true,
+  "<50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
   "<530&3*,4*&shadow\t530&3*,4*&shadow": true,
   "<PvpC\tPvpC": true,
   "<giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
@@ -3862,6 +4032,8 @@
   "Q150&3*,4*&@flamethrower,@foc\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": true,
   "Q150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": true,
   "Q4&3*,4*&shadow\t4&3*,4*&shadow": true,
+  "Q50,51,56,57,209,210,303,731,\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
+  "Q50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
   "Q530&3*,4*&shadow\t530&3*,4*&shadow": true,
   "QPvpC\tPvpC": true,
   "Qgiv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": true,
@@ -3887,7 +4059,7 @@
   "giv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": true,
   "giv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy2500-": true,
   "giv,xlx&distance0-100&countcandy0-249\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distance0-100&countcandy0-2499\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
+  "giv,xlx&distance0-100&countcandy0-2499\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   "giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
   "giv,xlx&distance0-100&countcandy0-2499x\tgiv,xlx&distance0-100&countcandy0-2499": true,
   "giv,xlx&distance0-100&countcandy2500\tgiv,xlx&distance0-100&countcandy2500-": true,
@@ -3954,6 +4126,7 @@
   "\t144&3*,4*&!galar": false,
   "\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
   "\t4&3*,4*&shadow": false,
+  "\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   "\t530&3*,4*&shadow": false,
   "\tPvpC": false,
   "\tgiv,xlx&distance0-100&countcandy0-2499": false,
@@ -4076,7 +4249,10 @@
   ",144&3*,4*&!galar\t144&3*,4*&!galar": true,
   ",150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
   ",4&3*,4*&shadow\t4&3*,4*&shadow": true,
+  ",50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
   ",530&3*,4*&shadow\t530&3*,4*&shadow": true,
+  ",777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
+  ",927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   ",PvpC\tPvpC": true,
   ",giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
   ",giv,xlx&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": true,
@@ -4085,7 +4261,9 @@
   "-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": false,
   "-151&countcandyxl0-359\t1-151&countcandyxl0-359": false,
   "-26,172&countcandyxl360-\t1-26,172&countcandyxl360-": false,
+  "0,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   "00-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": false,
+  "050,51,56,57,209,210,303,731,732,7\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   "1-151&COUNTCANDYXL0-359\t1-151&countcandyxl0-359": true,
   "1-151&countcandyx10-359\t1-151&countcandyxl0-359": true,
   "1-151&countcandyxl0-\t1-151&countcandyxl0-359": false,
@@ -4151,6 +4329,15 @@
   "483*,4*&shadow\t4&3*,4*&shadow": true,
   "483*,4*8shadow\t4&3*,4*&shadow": true,
   "50&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
+  "50,51,56,57,209,210,\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
+  "50,51,56,57,209,210,303,731,\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&PVP&COSTUME\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costum\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costumex\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,9798pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,9798pvp8costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
   "51&countcandyxl0-359\t1-151&countcandyxl0-359": false,
   "530&3\",4\"&shadow\t530&3*,4*&shadow": true,
   "530&3**,4*&shadowx\t530&3*,4*&shadow": true,
@@ -4162,6 +4349,7 @@
   "53083*,4*&shadow\t530&3*,4*&shadow": true,
   "53083*,4*8shadow\t530&3*,4*&shadow": true,
   "53o&3*,4*&shadow\t530&3*,4*&shadow": true,
+  "5o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
   "8!#8!favorite8!traded8!shadow8!shiny8!XXL8!4*8!3*8\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": true,
   "9#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": true,
   "9#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": true,
@@ -4176,6 +4364,7 @@
   "9144&3*,4*&!galar\t144&3*,4*&!galar": true,
   "9150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
   "94&3*,4*&shadow\t4&3*,4*&shadow": true,
+  "950,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
   "9530&3*,4*&shadow\t530&3*,4*&shadow": true,
   "9PvpC\tPvpC": true,
   "9giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
@@ -4195,6 +4384,7 @@
   "<144&3*,4*&!galar\t144&3*,4*&!galar": true,
   "<150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
   "<4&3*,4*&shadow\t4&3*,4*&shadow": true,
+  "<50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
   "<530&3*,4*&shadow\t530&3*,4*&shadow": true,
   "<PvpC\tPvpC": true,
   "<giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
@@ -4235,6 +4425,8 @@
   "Q150&3*,4*&@flamethrower,@foc\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
   "Q150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
   "Q4&3*,4*&shadow\t4&3*,4*&shadow": true,
+  "Q50,51,56,57,209,210,303,731,\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
+  "Q50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
   "Q530&3*,4*&shadow\t530&3*,4*&shadow": true,
   "QPvpC\tPvpC": true,
   "Qgiv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": false,
@@ -4260,7 +4452,7 @@
   "giv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": false,
   "giv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy2500-": false,
   "giv,xlx&distance0-100&countcandy0-249\tgiv,xlx&distance0-100&countcandy0-2499": false,
-  "giv,xlx&distance0-100&countcandy0-2499\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
+  "giv,xlx&distance0-100&countcandy0-2499\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   "giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
   "giv,xlx&distance0-100&countcandy0-2499x\tgiv,xlx&distance0-100&countcandy0-2499": true,
   "giv,xlx&distance0-100&countcandy2500\tgiv,xlx&distance0-100&countcandy2500-": false,
@@ -4336,6 +4528,7 @@
   "\t144&3*,4*&!galar": false,
   "\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
   "\t4&3*,4*&shadow": false,
+  "\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   "\t530&3*,4*&shadow": false,
   "\tPvpC": false,
   "\tgiv,xlx&distance0-100&countcandy0-2499": false,
@@ -4458,7 +4651,10 @@
   ",144&3*,4*&!galar\t144&3*,4*&!galar": false,
   ",150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
   ",4&3*,4*&shadow\t4&3*,4*&shadow": false,
+  ",50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   ",530&3*,4*&shadow\t530&3*,4*&shadow": false,
+  ",777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
+  ",927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   ",PvpC\tPvpC": false,
   ",giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
   ",giv,xlx&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": true,
@@ -4467,7 +4663,9 @@
   "-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": false,
   "-151&countcandyxl0-359\t1-151&countcandyxl0-359": false,
   "-26,172&countcandyxl360-\t1-26,172&countcandyxl360-": true,
+  "0,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   "00-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": false,
+  "050,51,56,57,209,210,303,731,732,7\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   "1-151&COUNTCANDYXL0-359\t1-151&countcandyxl0-359": true,
   "1-151&countcandyx10-359\t1-151&countcandyxl0-359": true,
   "1-151&countcandyxl0-\t1-151&countcandyxl0-359": false,
@@ -4533,6 +4731,15 @@
   "483*,4*&shadow\t4&3*,4*&shadow": false,
   "483*,4*8shadow\t4&3*,4*&shadow": false,
   "50&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
+  "50,51,56,57,209,210,\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
+  "50,51,56,57,209,210,303,731,\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&PVP&COSTUME\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costum\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costumex\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,9798pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,9798pvp8costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   "51&countcandyxl0-359\t1-151&countcandyxl0-359": false,
   "530&3\",4\"&shadow\t530&3*,4*&shadow": false,
   "530&3**,4*&shadowx\t530&3*,4*&shadow": false,
@@ -4544,6 +4751,7 @@
   "53083*,4*&shadow\t530&3*,4*&shadow": false,
   "53083*,4*8shadow\t530&3*,4*&shadow": false,
   "53o&3*,4*&shadow\t530&3*,4*&shadow": false,
+  "5o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   "8!#8!favorite8!traded8!shadow8!shiny8!XXL8!4*8!3*8\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": false,
   "9#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
   "9#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": false,
@@ -4558,6 +4766,7 @@
   "9144&3*,4*&!galar\t144&3*,4*&!galar": false,
   "9150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
   "94&3*,4*&shadow\t4&3*,4*&shadow": false,
+  "950,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   "9530&3*,4*&shadow\t530&3*,4*&shadow": false,
   "9PvpC\tPvpC": false,
   "9giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
@@ -4577,6 +4786,7 @@
   "<144&3*,4*&!galar\t144&3*,4*&!galar": false,
   "<150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
   "<4&3*,4*&shadow\t4&3*,4*&shadow": false,
+  "<50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   "<530&3*,4*&shadow\t530&3*,4*&shadow": false,
   "<PvpC\tPvpC": false,
   "<giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
@@ -4617,6 +4827,8 @@
   "Q150&3*,4*&@flamethrower,@foc\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
   "Q150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
   "Q4&3*,4*&shadow\t4&3*,4*&shadow": false,
+  "Q50,51,56,57,209,210,303,731,\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
+  "Q50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   "Q530&3*,4*&shadow\t530&3*,4*&shadow": false,
   "QPvpC\tPvpC": false,
   "Qgiv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": true,
@@ -4642,7 +4854,7 @@
   "giv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": true,
   "giv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy2500-": true,
   "giv,xlx&distance0-100&countcandy0-249\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distance0-100&countcandy0-2499\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
+  "giv,xlx&distance0-100&countcandy0-2499\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   "giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
   "giv,xlx&distance0-100&countcandy0-2499x\tgiv,xlx&distance0-100&countcandy0-2499": true,
   "giv,xlx&distance0-100&countcandy2500\tgiv,xlx&distance0-100&countcandy2500-": true,
@@ -4709,6 +4921,7 @@
   "\t144&3*,4*&!galar": false,
   "\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
   "\t4&3*,4*&shadow": false,
+  "\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   "\t530&3*,4*&shadow": false,
   "\tPvpC": false,
   "\tgiv,xlx&distance0-100&countcandy0-2499": false,
@@ -4831,7 +5044,10 @@
   ",144&3*,4*&!galar\t144&3*,4*&!galar": false,
   ",150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
   ",4&3*,4*&shadow\t4&3*,4*&shadow": false,
+  ",50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   ",530&3*,4*&shadow\t530&3*,4*&shadow": false,
+  ",777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
+  ",927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   ",PvpC\tPvpC": false,
   ",giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
   ",giv,xlx&distance0-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": true,
@@ -4840,7 +5056,9 @@
   "-100&countcandy2500-\tgiv,xlx&distance0-100&countcandy2500-": false,
   "-151&countcandyxl0-359\t1-151&countcandyxl0-359": false,
   "-26,172&countcandyxl360-\t1-26,172&countcandyxl360-": true,
+  "0,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   "00-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": false,
+  "050,51,56,57,209,210,303,731,732,7\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   "1-151&COUNTCANDYXL0-359\t1-151&countcandyxl0-359": true,
   "1-151&countcandyx10-359\t1-151&countcandyxl0-359": true,
   "1-151&countcandyxl0-\t1-151&countcandyxl0-359": false,
@@ -4906,6 +5124,15 @@
   "483*,4*&shadow\t4&3*,4*&shadow": false,
   "483*,4*8shadow\t4&3*,4*&shadow": false,
   "50&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
+  "50,51,56,57,209,210,\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
+  "50,51,56,57,209,210,303,731,\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&PVP&COSTUME\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costum\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costumex\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,9798pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,9798pvp8costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   "51&countcandyxl0-359\t1-151&countcandyxl0-359": false,
   "530&3\",4\"&shadow\t530&3*,4*&shadow": false,
   "530&3**,4*&shadowx\t530&3*,4*&shadow": false,
@@ -4917,6 +5144,7 @@
   "53083*,4*&shadow\t530&3*,4*&shadow": false,
   "53083*,4*8shadow\t530&3*,4*&shadow": false,
   "53o&3*,4*&shadow\t530&3*,4*&shadow": false,
+  "5o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   "8!#8!favorite8!traded8!shadow8!shiny8!XXL8!4*8!3*8\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": false,
   "9#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
   "9#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": false,
@@ -4931,6 +5159,7 @@
   "9144&3*,4*&!galar\t144&3*,4*&!galar": false,
   "9150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
   "94&3*,4*&shadow\t4&3*,4*&shadow": false,
+  "950,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   "9530&3*,4*&shadow\t530&3*,4*&shadow": false,
   "9PvpC\tPvpC": false,
   "9giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
@@ -4950,6 +5179,7 @@
   "<144&3*,4*&!galar\t144&3*,4*&!galar": false,
   "<150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
   "<4&3*,4*&shadow\t4&3*,4*&shadow": false,
+  "<50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   "<530&3*,4*&shadow\t530&3*,4*&shadow": false,
   "<PvpC\tPvpC": false,
   "<giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
@@ -4990,6 +5220,8 @@
   "Q150&3*,4*&@flamethrower,@foc\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
   "Q150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt\t150&3*,4*&@flamethrower,@focus blast,@hyper beam,@ice beam,@psycho cut,@shadow ball,@thunderbolt": false,
   "Q4&3*,4*&shadow\t4&3*,4*&shadow": false,
+  "Q50,51,56,57,209,210,303,731,\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
+  "Q50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   "Q530&3*,4*&shadow\t530&3*,4*&shadow": false,
   "QPvpC\tPvpC": false,
   "Qgiv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": true,
@@ -5015,7 +5247,7 @@
   "giv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": true,
   "giv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy2500-": true,
   "giv,xlx&distance0-100&countcandy0-249\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distance0-100&countcandy0-2499\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
+  "giv,xlx&distance0-100&countcandy0-2499\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   "giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
   "giv,xlx&distance0-100&countcandy0-2499x\tgiv,xlx&distance0-100&countcandy0-2499": true,
   "giv,xlx&distance0-100&countcandy2500\tgiv,xlx&distance0-100&countcandy2500-": true,
@@ -5187,7 +5419,10 @@
   ",144&3*,4*&!galar": null,
   ",150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt": null,
   ",4&3*,4*&shadow": null,
+  ",50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": null,
   ",530&3*,4*&shadow": null,
+  ",777,926,927,979&pvp&costume": null,
+  ",927,979&pvp&costume": null,
   ",PvpC": null,
   ",giv,xlx&distance0-100&countcandy0-2499": "giv,xlx&distance0-100",
   ",giv,xlx&distance0-100&countcandy2500-": "giv,xlx&distance0-100",
@@ -5196,7 +5431,9 @@
   "-100&countcandy2500-": null,
   "-151&countcandyxl0-359": null,
   "-26,172&countcandyxl360-": null,
+  "0,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": null,
   "00-&countcandy0-2499": null,
+  "050,51,56,57,209,210,303,731,732,7": null,
   "1-151&COUNTCANDYXL0-359": null,
   "1-151&countcandyx10-359": null,
   "1-151&countcandyxl0-": null,
@@ -5257,6 +5494,14 @@
   "483*,4*&shadow": null,
   "483*,4*8shadow": null,
   "50&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt": null,
+  "50,51,56,57,209,210,": null,
+  "50,51,56,57,209,210,303,731,": null,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&PVP&COSTUME": null,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costum": null,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": null,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costumex": null,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,9798pvp&costume": null,
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,9798pvp8costume": null,
   "51&countcandyxl0-359": null,
   "530&3\",4\"&shadow": null,
   "530&3**,4*&shadowx": null,
@@ -5267,6 +5512,7 @@
   "53083*,4*&shadow": null,
   "53083*,4*8shadow": null,
   "53o&3*,4*&shadow": null,
+  "5o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,979&pvp&costume": null,
   "8!#8!favorite8!traded8!shadow8!shiny8!XXL8!4*8!3*8": null,
   "9#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": null,
   "9#Nope&!traded&!shiny&!costume&793-806,808,809": null,
@@ -5281,6 +5527,7 @@
   "9144&3*,4*&!galar": null,
   "9150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt": null,
   "94&3*,4*&shadow": null,
+  "950,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": null,
   "9530&3*,4*&shadow": null,
   "9PvpC": null,
   "9giv,xlx&distance0-100&countcandy0-2499": "giv,xlx&distance0-100",
@@ -5300,6 +5547,7 @@
   "<144&3*,4*&!galar": null,
   "<150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt": null,
   "<4&3*,4*&shadow": null,
+  "<50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": null,
   "<530&3*,4*&shadow": null,
   "<PvpC": null,
   "<giv,xlx&distance0-100&countcandy0-2499": "giv,xlx&distance0-100",
@@ -5343,6 +5591,8 @@
   "Q150&3*,4*&@flamethrower,@foc": null,
   "Q150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt": null,
   "Q4&3*,4*&shadow": null,
+  "Q50,51,56,57,209,210,303,731,": null,
+  "Q50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": null,
   "Q530&3*,4*&shadow": null,
   "QPvpC": null,
   "Qgiv,xlx&distance0-100&countc": "giv,xlx&distance0-100",
@@ -5537,7 +5787,10 @@
   ",144&3*,4*&!galar": ",l44&3*,4*&!galar",
   ",150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt": ",l50&3*,4*&@flamethrower,@focusblast,@hyperbeam,@lcebeam,@psychocut,@shadowball,@thunderbolt",
   ",4&3*,4*&shadow": ",4&3*,4*&shadow",
+  ",50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": ",50,5l,56,57,209,2l0,303,73l,732,733,777,926,927,979&pvp&costume",
   ",530&3*,4*&shadow": ",530&3*,4*&shadow",
+  ",777,926,927,979&pvp&costume": ",777,926,927,979&pvp&costume",
+  ",927,979&pvp&costume": ",927,979&pvp&costume",
   ",PvpC": ",pvpc",
   ",giv,xlx&distance0-100&countcandy0-2499": ",glv,xlx&dlstance0-l00&countcandy0-2499",
   ",giv,xlx&distance0-100&countcandy2500-": ",glv,xlx&dlstance0-l00&countcandy2500-",
@@ -5546,7 +5799,9 @@
   "-100&countcandy2500-": "-l00&countcandy2500-",
   "-151&countcandyxl0-359": "-l5l&countcandyxl0-359",
   "-26,172&countcandyxl360-": "-26,l72&countcandyxl360-",
+  "0,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "0,5l,56,57,209,2l0,303,73l,732,733,777,926,927,979&pvp&costume",
   "00-&countcandy0-2499": "00-&countcandy0-2499",
+  "050,51,56,57,209,210,303,731,732,7": "050,5l,56,57,209,2l0,303,73l,732,7",
   "1-151&COUNTCANDYXL0-359": "l-l5l&countcandyxl0-359",
   "1-151&countcandyx10-359": "l-l5l&countcandyxl0-359",
   "1-151&countcandyxl0-": "l-l5l&countcandyxl0-",
@@ -5607,6 +5862,14 @@
   "483*,4*&shadow": "483*,4*&shadow",
   "483*,4*8shadow": "483*,4*8shadow",
   "50&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt": "50&3*,4*&@flamethrower,@focusblast,@hyperbeam,@lcebeam,@psychocut,@shadowball,@thunderbolt",
+  "50,51,56,57,209,210,": "50,5l,56,57,209,2l0,",
+  "50,51,56,57,209,210,303,731,": "50,5l,56,57,209,2l0,303,73l,",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&PVP&COSTUME": "50,5l,56,57,209,2l0,303,73l,732,733,777,926,927,979&pvp&costume",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costum": "50,5l,56,57,209,2l0,303,73l,732,733,777,926,927,979&pvp&costum",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "50,5l,56,57,209,2l0,303,73l,732,733,777,926,927,979&pvp&costume",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costumex": "50,5l,56,57,209,2l0,303,73l,732,733,777,926,927,979&pvp&costumex",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,9798pvp&costume": "50,5l,56,57,209,2l0,303,73l,732,733,777,926,927,9798pvp&costume",
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,9798pvp8costume": "50,5l,56,57,209,2l0,303,73l,732,733,777,926,927,9798pvp8costume",
   "51&countcandyxl0-359": "5l&countcandyxl0-359",
   "530&3\",4\"&shadow": "530&3\",4\"&shadow",
   "530&3**,4*&shadowx": "530&3**,4*&shadowx",
@@ -5617,6 +5880,7 @@
   "53083*,4*&shadow": "53083*,4*&shadow",
   "53083*,4*8shadow": "53083*,4*8shadow",
   "53o&3*,4*&shadow": "53o&3*,4*&shadow",
+  "5o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,979&pvp&costume": "5o,5l,56,57,2o9,2lo,3o3,73l,732,733,777,926,927,979&pvp&costume",
   "8!#8!favorite8!traded8!shadow8!shiny8!XXL8!4*8!3*8": "8!#8!favorlte8!traded8!shadow8!shlny8!xxl8!4*8!3*8",
   "9#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "9#nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp",
   "9#Nope&!traded&!shiny&!costume&793-806,808,809": "9#nope&!traded&!shlny&!costume&793-806,808,809",
@@ -5631,6 +5895,7 @@
   "9144&3*,4*&!galar": "9l44&3*,4*&!galar",
   "9150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt": "9l50&3*,4*&@flamethrower,@focusblast,@hyperbeam,@lcebeam,@psychocut,@shadowball,@thunderbolt",
   "94&3*,4*&shadow": "94&3*,4*&shadow",
+  "950,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "950,5l,56,57,209,2l0,303,73l,732,733,777,926,927,979&pvp&costume",
   "9530&3*,4*&shadow": "9530&3*,4*&shadow",
   "9PvpC": "9pvpc",
   "9giv,xlx&distance0-100&countcandy0-2499": "9glv,xlx&dlstance0-l00&countcandy0-2499",
@@ -5650,6 +5915,7 @@
   "<144&3*,4*&!galar": "<l44&3*,4*&!galar",
   "<150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt": "<l50&3*,4*&@flamethrower,@focusblast,@hyperbeam,@lcebeam,@psychocut,@shadowball,@thunderbolt",
   "<4&3*,4*&shadow": "<4&3*,4*&shadow",
+  "<50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "<50,5l,56,57,209,2l0,303,73l,732,733,777,926,927,979&pvp&costume",
   "<530&3*,4*&shadow": "<530&3*,4*&shadow",
   "<PvpC": "<pvpc",
   "<giv,xlx&distance0-100&countcandy0-2499": "<glv,xlx&dlstance0-l00&countcandy0-2499",
@@ -5693,6 +5959,8 @@
   "Q150&3*,4*&@flamethrower,@foc": "ql50&3*,4*&@flamethrower,@foc",
   "Q150&3*,4*&@flamethrower,@focusblast,@hyperbeam,@icebeam,@psychocut,@shadowball,@thunderbolt": "ql50&3*,4*&@flamethrower,@focusblast,@hyperbeam,@lcebeam,@psychocut,@shadowball,@thunderbolt",
   "Q4&3*,4*&shadow": "q4&3*,4*&shadow",
+  "Q50,51,56,57,209,210,303,731,": "q50,5l,56,57,209,2l0,303,73l,",
+  "Q50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "q50,5l,56,57,209,2l0,303,73l,732,733,777,926,927,979&pvp&costume",
   "Q530&3*,4*&shadow": "q530&3*,4*&shadow",
   "QPvpC": "qpvpc",
   "Qgiv,xlx&distance0-100&countc": "qglv,xlx&dlstance0-l00&countc",
@@ -5817,6 +6085,10 @@
    []
   ],
   "\t4&3*,4*&shadow": [
+   false,
+   []
+  ],
+  "\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": [
    false,
    []
   ],
@@ -6758,12 +7030,39 @@
     ]
    ]
   ],
+  ",50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": [
+   true,
+   [
+    [
+     "all",
+     64
+    ]
+   ]
+  ],
   ",530&3*,4*&shadow\t530&3*,4*&shadow": [
    true,
    [
     [
      "all",
      17
+    ]
+   ]
+  ],
+  ",777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": [
+   true,
+   [
+    [
+     "end",
+     27
+    ]
+   ]
+  ],
+  ",927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": [
+   true,
+   [
+    [
+     "end",
+     19
     ]
    ]
   ],
@@ -6839,6 +7138,15 @@
     ]
    ]
   ],
+  "0,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": [
+   true,
+   [
+    [
+     "end",
+     62
+    ]
+   ]
+  ],
   "00-&countcandy0-2499\tgiv,xlx&distance100-&countcandy0-2499": [
    true,
    [
@@ -6847,6 +7155,10 @@
      20
     ]
    ]
+  ],
+  "050,51,56,57,209,210,303,731,732,7\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": [
+   false,
+   []
   ],
   "1-151&COUNTCANDYXL0-359\t1-151&countcandyxl0-359": [
    true,
@@ -7383,6 +7695,82 @@
     ]
    ]
   ],
+  "50,51,56,57,209,210,\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": [
+   true,
+   [
+    [
+     "start",
+     20
+    ]
+   ]
+  ],
+  "50,51,56,57,209,210,303,731,\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": [
+   true,
+   [
+    [
+     "start",
+     28
+    ]
+   ]
+  ],
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&PVP&COSTUME\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": [
+   true,
+   [
+    [
+     "all",
+     63
+    ]
+   ]
+  ],
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costum\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": [
+   true,
+   [
+    [
+     "start",
+     62
+    ]
+   ]
+  ],
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": [
+   false,
+   []
+  ],
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": [
+   true,
+   [
+    [
+     "all",
+     63
+    ]
+   ]
+  ],
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costumex\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": [
+   true,
+   [
+    [
+     "all",
+     64
+    ]
+   ]
+  ],
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,9798pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": [
+   true,
+   [
+    [
+     "all",
+     63
+    ]
+   ]
+  ],
+  "50,51,56,57,209,210,303,731,732,733,777,926,927,9798pvp8costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": [
+   true,
+   [
+    [
+     "all",
+     63
+    ]
+   ]
+  ],
   "51&countcandyxl0-359\t1-151&countcandyxl0-359": [
    true,
    [
@@ -7474,6 +7862,15 @@
     [
      "all",
      16
+    ]
+   ]
+  ],
+  "5o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": [
+   true,
+   [
+    [
+     "all",
+     63
     ]
    ]
   ],
@@ -7600,6 +7997,15 @@
     [
      "all",
      15
+    ]
+   ]
+  ],
+  "950,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": [
+   true,
+   [
+    [
+     "all",
+     64
     ]
    ]
   ],
@@ -7771,6 +8177,15 @@
     [
      "all",
      15
+    ]
+   ]
+  ],
+  "<50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": [
+   true,
+   [
+    [
+     "all",
+     64
     ]
    ]
   ],
@@ -8124,6 +8539,24 @@
     ]
    ]
   ],
+  "Q50,51,56,57,209,210,303,731,\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": [
+   true,
+   [
+    [
+     "start",
+     28
+    ]
+   ]
+  ],
+  "Q50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": [
+   true,
+   [
+    [
+     "all",
+     64
+    ]
+   ]
+  ],
   "Q530&3*,4*&shadow\t530&3*,4*&shadow": [
    true,
    [
@@ -8344,7 +8777,7 @@
     ]
    ]
   ],
-  "giv,xlx&distance0-100&countcandy0-2499\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": [
+  "giv,xlx&distance0-100&countcandy0-2499\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": [
    false,
    []
   ],

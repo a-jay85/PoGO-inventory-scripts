@@ -202,7 +202,9 @@ def tag_chips(texts):
     """the tags under the name: between the HP line and the weight row (they can wrap onto two lines)"""
     hp = next(t for t in texts if re.search(r"\d+\s*/\s*\d+\s*HP", t[4]))
     kg = [t[1] for t in texts if re.fullmatch(r"[\d.,]+\s*kg", t[4].strip()) and t[1] > hp[1]]
-    low = min(kg) if kg else hp[1] + 0.06
+    # the type icon sits in the weight row's middle, a little higher than the weight: a round one (Fighting) reads as
+    # "O" (Mankey, Zamazenta, 2026-11-13: 0.007 above). A tag row sits ~0.07 above the weight, even wrapped onto two
+    low = min(kg) - 0.02 if kg else hp[1] + 0.06
     return sorted(n for t in texts if hp[1] + 0.005 < t[1] < low - 0.005
                   and (n := re.sub(r"^[A-Z] (?=[A-Z]{2})", "", ui.norm(t[4])))  # Remote Trade's icon: "c Remote Trade"
                   and n not in ("DYNAMAX", "GIGANTAMAX") and not n.startswith("LUCKY POK"))

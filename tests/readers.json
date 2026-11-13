@@ -4514,6 +4514,23 @@
   "weight and height covered": false,
   "weight covered": true
  },
+ "tagsheet.tag_chips": {
+  "Fighting icon read as O": [
+   "IVC"
+  ],
+  "Remote Trade's icon as a letter": [
+   "REMOTE TRADE"
+  ],
+  "no tags": [],
+  "one tag": [
+   "IVC"
+  ],
+  "two tag rows": [
+   "GIV",
+   "REMOTE TRADE",
+   "RT"
+  ]
+ },
  "trade.in_bar android": {
   "\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
   "\t#Nope&!traded&!shiny&!costume&793-806,808,809": false,

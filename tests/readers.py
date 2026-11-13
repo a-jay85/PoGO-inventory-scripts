@@ -425,6 +425,20 @@ def row_name(s):
         base.ASKED.clear()
 
 
+def chips_page(*extra):
+    """a detail page's middle (Mankey CP518, 2026-11-13): HP line, tags, weight row"""
+    return [box(.43, .488, "72 / 72 HP"), box(.14, .598, "17.47kg"), box(.73, .598, "0.41m"), *extra]
+
+
+CHIPS = {
+    "one tag": chips_page(box(.46, .524, "IVC")),
+    "Fighting icon read as O": chips_page(box(.46, .524, "IVC"), box(.49, .591, "O")),
+    "two tag rows": chips_page(box(.4, .524, "Remote Trade"), box(.6, .524, "RT"), box(.46, .56, "GIV")),
+    "Remote Trade's icon as a letter": chips_page(box(.46, .524, "c Remote Trade")),
+    "no tags": chips_page(),
+}
+
+
 DISTANCES = ["4.125.4 km", "4,125.4 km", "2,981.5 km", "2,981,5 km", "125.4 km", "87.3 km", "38533 km", "1,234 km", "no number"]
 
 
@@ -456,6 +470,7 @@ def answers():
     out["base.row_name"] = {s: answer(row_name, s) for s in ROWS}
     out["popups.which"] = {k: answer(popup, ts) for k, ts in POPUPS.items()}
     out["pages.which"] = {k: answer(page, ts) for k, ts in PAGES.items()}
+    out["tagsheet.tag_chips"] = {k: answer(tagsheet.tag_chips, ts) for k, ts in CHIPS.items()}
     out["mega.form_of"] = {n: answer(mega.form_of, n) for n in NICKS}
     out["trade.km"] = {s: answer(lambda s: trade.km(SimpleNamespace(texts=[box(.4, .56, s)])), s) for s in DISTANCES}
     out["mega.badge"] = {k: answer(lambda ts: (lambda b: b and b[4])(mega.badge(ts)), ts) for k, ts in BADGES.items()}

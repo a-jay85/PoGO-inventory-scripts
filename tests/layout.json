@@ -1179,6 +1179,7 @@
   "copies": {},
   "names": [
    "ADDR_FILE",
+   "BRIGHT_FILE",
    "LABEL",
    "LOCK",
    "LOG",
@@ -1203,6 +1204,7 @@
   "names": [
    "ACTIONS",
    "BOTTOM_PAD",
+   "BRIGHT_FILE",
    "CHECK_EVERY",
    "IPHONE_H",
    "KEYCODES",
@@ -1221,6 +1223,7 @@
    "adb",
    "bounds",
    "capture",
+   "dim",
    "drag",
    "has_motionevent",
    "hold_drag",
@@ -1230,6 +1233,7 @@
    "pick",
    "raw_shot",
    "ready",
+   "restore",
    "shape",
    "sharp",
    "sharp_last",

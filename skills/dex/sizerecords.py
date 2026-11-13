@@ -3,17 +3,23 @@
 which account's record would beat the other's, so a spare xxs or XXL can be traded over to set a new record.
 Android only for now.
 
-  POGO_PHONE=android caffeinate -dimsu python3 sizerecords.py read [--limit N] [--again]   read this account's Pokédex
-  python3 sizerecords.py compare                                                           the trades (no phone)
+  POGO_PHONE=android caffeinate -dimsu python3 sizerecords.py read [--from N] [--limit N] [--again]
+                                                   read this account's Pokédex
+  python3 sizerecords.py compare                   the trades (no phone)
 
-read: gets to the Pokédex from anywhere (main menu, POKÉDEX, the POKÉMON chip, KANTO), opens #1 and taps INFO. Each
-page's title says its number and name. One drag up brings the MY RECORDS box on screen. A sideways swipe goes to the
-next species and keeps the INFO tab. About 4.5 s a species, so the whole Pokédex is over an hour. Each species is saved
-to the database (pokedb.save_record) as soon as it's read, so a stopped run loses nothing. A species already read in
-the last FRESH_HOURS is swiped past without a read (--again reads it anyway), so a rerun only reads what's left.
---limit N reads at most N species. It only taps to move around: it never changes anything in the game.
+read: gets to the Pokédex from anywhere (main menu, POKÉDEX, the POKÉMON chip, the start's region), opens the nearest
+tile, walks to the start page by its title and taps INFO. Each page's title says its number and name. One drag up
+brings the MY RECORDS box on screen. A sideways swipe goes to the next species and keeps the INFO tab (a page that
+opens on CAUGHT gets INFO tapped again). About 4 s a species, so the whole Pokédex is over an hour. Each species is
+saved to the database (pokedb.save_record) as soon as it's read, so a stopped run loses nothing. The start: --from N,
+or else the first species not read in the last FRESH_HOURS, so a rerun picks up where a stop left off. Species read
+in that time are swiped past (--again reads them anyway). --limit N reads at most N species. It only taps to move
+around: it never changes anything in the game.
 
-A page with no MY RECORDS box (never caught, or a form like Alolan Rattata, 2026-11-12) is saved with no values. Forms:
+A page with no MY RECORDS box, or no tabs at all (never caught; a form like Alolan Rattata, 2026-11-12) is saved with
+no values. The box looks like it counts only Pokémon caught as that species: CyrillJan's Milotic (CAUGHT 1, evolved),
+Huntail, Gorebyss, Ludicolo and Beautifly have none (2026-11-12). So whether a traded one sets a record is not known
+yet: read the receiver's page before and after a trade. Forms:
 the swipe shows one page per number, and this reads the form the page opens on (the first one). Another form's own
 box isn't read.
 
@@ -39,6 +45,8 @@ VALUE = re.compile(r"^(\d+(?:[.,]\d+)?)\s*(kg|m)l?$")  # '0.14 ml': OCR adds an 
 BOX_ROWS = 0.14  # the values sit within this far below the MY RECORDS label
 SWIPE_NEXT = (0.85, 0.5, 0.15, 0.5)
 ACCOUNTS = ("HashTagAJay", "CyrillJan")
+REGIONS = (("KANTO", 1), ("JOHTO", 152), ("HOENN", 252), ("SINNOH", 387), ("UNOVA", 494), ("KALOS", 650),
+           ("ALOLA", 722), ("GALAR", 810), ("HISUI", 899), ("PALDEA", 906))  # the region list, and each one's first number
 # the records, the side of the box they're on, which way beats, and the storage search for candidates
 KINDS = (("kg_min", "lightest", "kg", -1, "xxs,xs"), ("kg_max", "heaviest", "kg", 1, "xxl,xl"),
          ("m_min", "shortest", "m", -1, "xxs,xs"), ("m_max", "tallest", "m", 1, "xxl,xl"))
@@ -71,7 +79,7 @@ def box(texts):
     None (nothing to tell yet), or (kg_min, kg_max, m_min, m_max)"""
     label = next((t for t in texts if ui.up(t).replace(" ", "") == "MYRECORDS"), None)
     if not label:
-        if {"SHINY", "LUCKY"} <= {ui.up(t) for t in texts}:  # the CAUGHT tab's tiles: not INFO
+        if caught_tab(texts):  # not on INFO
             return None
         return "none" if any(ui.up(t) == "EVOLUTION" or ui.up(t).startswith("SEE ALL ") for t in texts) else None
     vals = {"kg": [], "m": []}
@@ -87,14 +95,24 @@ def box(texts):
     return kg_min, kg_max, m_min, m_max
 
 
+def caught_tab(texts):
+    """the CAUGHT tab's tiles are showing (SHINY, LUCKY): the page isn't on INFO"""
+    return {"SHINY", "LUCKY"} <= {ui.up(t) for t in texts}
+
+
 def read_box(bounds):
     """drag the page up and read its box -> ('none' or the 4 values), or None: can't read it"""
     base.drag(0.5, 0.85, 0.5, 0.45, bounds, ms=500, settle=(0.6, 0.8), bring_front=False)
-    for _ in range(2):
+    for _ in range(3):
         screen, texts, path, bounds = base.settle(dex.look, lambda r: box(r[1]) not in (None, "low"), 2)
         got = box(texts)
         if got == "low":  # a long story above it
             base.drag(0.5, 0.8, 0.5, 0.5, bounds, ms=500, settle=(0.6, 0.8), bring_front=False)
+            continue
+        if got is None and caught_tab(texts) and tabs(texts):  # the page opened on CAUGHT: back to INFO
+            log("  on the CAUGHT tab: tapping INFO")
+            base.tap_box(tabs(texts), bounds, fuzz=0.006, rest=(1.2, 1.5))
+            base.drag(0.5, 0.85, 0.5, 0.45, bounds, ms=500, settle=(0.6, 0.8), bring_front=False)
             continue
         return got
     return None
@@ -102,44 +120,56 @@ def read_box(bounds):
 
 # ---------- the walk ----------
 
-def to_first(acct):
-    """from anywhere to #1's page, INFO tab"""
+def region_of(n):
+    """the region on the region list whose grid holds #n"""
+    return next(name for name, first in reversed(REGIONS) if n >= first)
+
+
+def to_start(start):
+    """from anywhere to #start's page, INFO tab: its region on the region list, the nearest tile, then by title"""
+    region = region_of(start)
     texts, bounds = dex.to_regions()
     dex.pick_page("POKÉMON")
-    screen, texts, path, bounds = dex.look()
-    if not dex.tap_text(texts, bounds, lambda t: ui.up(t) == "KANTO"):
-        base.keep_capture("kanto")
-        raise Stop("can't find KANTO on the region list")
-    screen, texts, path, bounds = base.settle(dex.look, lambda r: r[0] == "grid", 3)
-    one = next((t for n, t in dex.numbers(texts) if n == 1), None)
-    if screen != "grid" or not one:
+    for i in range(5):  # the later regions are below the fold
+        screen, texts, path, bounds = dex.look()
+        if dex.tap_text(texts, bounds, lambda t: ui.up(t) == region):
+            break
+        if i == 4:
+            base.keep_capture("region")
+            raise Stop(f"can't find {region} on the region list")
+        dex.swipe(0.5, 0.7, 0.5, 0.35, bounds)
+    screen, texts, path, bounds = base.settle(dex.look, lambda r: r[0] == "grid" and dex.numbers(r[1]), 3)
+    # (not the bottom row: the chip bar covers its tiles, and a tap there opens nothing, 2026-11-12)
+    tiles = [(n, t) for n, t in dex.numbers(texts) if 0.2 < t[1] < dex.CHIP_Y - 0.1] if screen == "grid" else []
+    if not tiles:
         base.keep_capture("grid")
-        raise Stop("didn't get to the top of the Pokédex grid")
-    dex.tap_at(one[0] + one[2] / 2, one[1] - 0.04, bounds, wait=(2.0, 2.5))
-    for _ in range(3):  # the tap can land a tile off: walk back to #1 by the title
+        raise Stop(f"didn't get to {region}'s grid")
+    n, tile = min(tiles, key=lambda nt: abs(nt[0] - start))
+    dex.tap_at(tile[0] + tile[2] / 2, tile[1] - 0.04, bounds, wait=(2.0, 2.5))
+    prev = None
+    for _ in range(abs(n - start) + 6):  # the tap can land a tile off: walk to #start by the title
         screen, texts, path, bounds = base.settle(dex.look, lambda r: title(r[1]), 3)
         at = title(texts)
         if not at:
             base.keep_capture("page")
-            raise Stop("tapped #1 on the grid, but no species page opened")
-        if at[0] == 1:
+            raise Stop(f"tapped #{n} on the grid, but no species page opened")
+        if at[0] == start or at[0] > start and prev is not None and prev < start:  # (no page for #start: the next)
             break
-        base.drag(*SWIPE_NEXT[2:], *SWIPE_NEXT[:2], bounds, ms=300, settle=(0.8, 1.0), bring_front=False)
+        prev = at[0]
+        a, b = (SWIPE_NEXT[:2], SWIPE_NEXT[2:]) if at[0] < start else (SWIPE_NEXT[2:], SWIPE_NEXT[:2])
+        base.drag(*a, *b, bounds, ms=300, settle=(0.8, 1.0), bring_front=False)
     else:
-        raise Stop(f"can't get to #1's page (at #{at[0]})")
+        raise Stop(f"can't get to #{start}'s page (at #{at[0]})")
+    if at[0] != start:
+        log(f"#{start} has no page here: starting at #{at[0]}")
     info = tabs(texts)
-    if not info:
-        base.keep_capture("tabs")
-        raise Stop("no INFO tab on #1's page")
-    base.tap_box(info, bounds, fuzz=0.006, rest=(1.2, 1.5))
+    if info:
+        base.tap_box(info, bounds, fuzz=0.006, rest=(1.2, 1.5))
     return texts, bounds
 
 
-def walk(acct, limit, again):
-    texts, bounds = to_first(acct)
-    done = {} if again else {n: r for n, r in pokedb.records(acct).items()
-                             if time.time() - time.mktime(time.strptime(r["read_at"], "%Y-%m-%d %H:%M:%S"))
-                             < FRESH_HOURS * 3600}
+def walk(acct, limit, done, start=1):
+    texts, bounds = to_start(start)
     read, skipped, missed, last, stuck = 0, 0, [], None, 0
     while read < limit:
         screen, texts, path, bounds = base.settle(dex.look, lambda r: title(r[1]), 3)
@@ -160,20 +190,18 @@ def walk(acct, limit, again):
             if n in done:
                 skipped += 1
             else:
-                if not tabs(texts):
-                    base.keep_capture("tabs")
-                    raise Stop(f"#{n} {name}: no INFO tab")
-                got = read_box(bounds)
+                if not tabs(texts):  # a tab row still drawing: look again before calling it no tabs
+                    texts = base.settle(dex.look, lambda r: tabs(r[1]), 1.5)[1]
+                got = read_box(bounds) if tabs(texts) else "none"  # no tabs: a page for one never caught
                 if got is None:
                     base.keep_capture(f"box-{n}")
                     log(f"  #{n} {name}: can't read MY RECORDS, passed over")
                     missed.append(n)
-                elif got == "none":
-                    pokedb.save_record(acct, n, name)
-                    log(f"  #{n} {name}: no records")
                 else:
-                    pokedb.save_record(acct, n, name, *got)
-                    log(f"  #{n} {name}: {got[0]}-{got[1]} kg, {got[2]}-{got[3]} m")
+                    if not pokedb.save_record(acct, n, name, *(() if got == "none" else got)):
+                        raise Stop("can't save to the database (POGO_DB off, or an error above)")
+                    log(f"  #{n} {name}: " + ("no records" if got == "none" else
+                                               f"{got[0]}-{got[1]} kg, {got[2]}-{got[3]} m"))
                 read += 1
             last = n
         base.drag(*SWIPE_NEXT, bounds, ms=300, settle=(0.8, 1.0), bring_front=False)
@@ -191,13 +219,25 @@ def leave_dex():
         time.sleep(1.5)
 
 
-def cmd_read(limit, again):
+def fresh(acct):
+    """{dex: row} read in the last FRESH_HOURS"""
+    now = time.time()
+    return {n: r for n, r in pokedb.records(acct).items()
+            if now - time.mktime(time.strptime(r["read_at"], "%Y-%m-%d %H:%M:%S")) < FRESH_HOURS * 3600}
+
+
+def cmd_read(limit, again, start):
     session.ready()
     leave_dex()
     acct = home.trainer()
     dex.save_trainer(acct)
     pokedb.set_account(acct)
-    walk(acct, limit, again)
+    done = {} if again else fresh(acct)
+    if start is None:  # a rerun starts at the first species not read yet
+        start = next((n for n in range(1, dex.LAST_DEX + 1) if n not in done), dex.LAST_DEX)
+        if start > 1:
+            log(f"#1-#{start - 1} read in the last {FRESH_HOURS} h: starting at #{start}")
+    walk(acct, limit, done, start)
 
 
 # ---------- the trades ----------
@@ -233,13 +273,16 @@ def main():
     ap.add_argument("cmd", choices=("read", "compare"))
     ap.add_argument("--limit", type=int, default=10 ** 9)
     ap.add_argument("--again", action="store_true", help="read species read in the last hours too")
+    ap.add_argument("--from", dest="start", type=int, help="start at this Pokédex number")
     a = ap.parse_args()
     if a.cmd == "compare":
         return cmd_compare()
     if not ui.ANDROID:
         sys.exit("Android only for now: POGO_PHONE=android")
+    if a.start is not None and not 0 < a.start <= dex.LAST_DEX:
+        ap.error(f"--from takes 1-{dex.LAST_DEX}")
     base.new_run_dir(os.path.join(HERE, "runs"), suffix="sizerecords")
-    session.main(cmd_read, a.limit, a.again)
+    session.main(cmd_read, a.limit, a.again, a.start)
 
 
 if __name__ == "__main__":

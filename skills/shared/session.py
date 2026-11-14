@@ -2,11 +2,11 @@
 """A run's phone from start to end. Every script's run goes through main(), and home.start() calls ready().
 
 - iPhone: ready() opens iPhone Mirroring if it isn't open, and waits until it has connected to the iPhone. If it can't
-  reach the iPhone, it quits and opens iPhone Mirroring once more. close() quits iPhone Mirroring.
+  reach the iPhone, it quits and opens iPhone Mirroring once more. close() goes to its home screen (cmd+1), then quits iPhone Mirroring.
 - Android: ready() wakes the phone and unlocks it, and turns its brightness to the lowest (0) for the run (close() puts it back). With a PIN on the phone, the PIN comes from PIN_FILE (one line,
   digits only, outside the repo so it's never committed). A PIN that fails is never typed again that run: wrong PINs
   lock the phone out for longer each time. It's typed again only if the phone locks itself mid-run after it worked.
-  close() locks the phone.
+  close() goes to the home screen (the game to the back), then locks the phone.
 - main(body) runs a script's body: STOPPED / interrupted / CRASHED lines and exit codes 1 / 130 / 2, the run folder
   at the end, and close() if the run opened the phone. A run that never touched the phone (a usage error, a plan step)
   leaves it alone. POGO_KEEP_OPEN=1 leaves the phone as it is at the end.
@@ -106,8 +106,12 @@ def unlock():
 
 
 def lock():
-    """screen off and locked (the Pixel 4 XL shows its lock screen at once: checked 2026-10-23)"""
+    """the home screen, then screen off and locked (the Pixel 4 XL shows its lock screen at once: checked
+    2026-10-23). The game goes to the back first, so the next unlock opens on the home screen: a game that comes back
+    from there checks its eggs and hatches a ready one (the user, 2026-11-14)"""
     if awake():
+        ui.android.shell("input keyevent KEYCODE_HOME")
+        time.sleep(0.8)
         ui.android.shell("input keyevent KEYCODE_SLEEP")
 
 
@@ -225,6 +229,11 @@ def close():
             lock()
             log("locked the phone")
     elif mirroring_running():
+        try:  # the iPhone's home screen first (Mirroring's cmd+1), so the game goes to the back, as on the Pixel
+            base.key("1", cmd=True)
+            time.sleep(0.8)
+        except Exception as e:
+            log(f"couldn't go to the iPhone's home screen: {e}")
         log("quit iPhone Mirroring" if quit_mirroring() else "couldn't quit iPhone Mirroring")
 
 

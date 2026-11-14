@@ -22,6 +22,7 @@
   "runs": [],
   "steps": {
    "account": "shared/account.py",
+   "advsync": "shared/advsync.py",
    "cleantrades": "cleanup/cleantrades.py",
    "dbsweep": "cleanup/dbsweep.py",
    "dex": "dex/dex.py",
@@ -1173,6 +1174,7 @@
    "sign_out",
    "swipe_up",
    "switch",
+   "synced",
    "tap",
    "tap_box",
    "tap_text",
@@ -1201,6 +1203,30 @@
    "say",
    "tick",
    "uninstall"
+  ],
+  "runs": []
+ },
+ "skills/shared/advsync.py": {
+  "copies": {},
+  "names": [
+   "ENOUGH",
+   "HERE",
+   "SWITCH_DY",
+   "SWITCH_X",
+   "Stop",
+   "TAP_X",
+   "green",
+   "grey",
+   "keep_capture",
+   "leave",
+   "log",
+   "look",
+   "read_general",
+   "row",
+   "screen_of",
+   "switch",
+   "to_general",
+   "turn_on"
   ],
   "runs": []
  },

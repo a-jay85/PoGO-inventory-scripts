@@ -47,6 +47,7 @@ STEPS = {
     "gymfeed":     ("gymfeed/gymfeed.py", set(), set()),
     "goplus":      ("goplus/goplus.py", set(), set()),
     "account":     ("shared/account.py", {"HashTagAJay", "CyrillJan"}, set()),
+    "advsync":     ("shared/advsync.py", set(), set()),
 }
 NEEDS_WORD = {"dex", "roster", "sizerecords"}  # these have no default: the first word is a must
 BOTH = {"trade"}  # drives the iPhone and the Pixel, whatever POGO_PHONE says

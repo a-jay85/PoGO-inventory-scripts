@@ -294,7 +294,7 @@ def hold_drag(fx1, fy1, fx2, fy2):
     shell("; ".join(steps))
 
 
-KEYCODES = {"delete": 67, "return": 66, " ": 62, "back": 4}
+KEYCODES = {"delete": 67, "return": 66, " ": 62, "back": 4, "home": 3}
 
 
 def type_text(text, lo=35, hi=80):

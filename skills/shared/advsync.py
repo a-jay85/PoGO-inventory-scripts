@@ -108,6 +108,9 @@ def to_general():
             account.tap(*account.GEAR, wait=2.5)
         elif screen == "map":
             account.tap(*account.POKEBALL, wait=2.0)
+        elif screen in home.STORAGE:  # (account.py's trainer read ends on the Pokémon list) its X goes to the map
+            log("  Pokémon list: X")
+            base.tap_x(bounds, rest=2.0)
         else:
             home.start(storage=False)
     keep_capture("advsync")

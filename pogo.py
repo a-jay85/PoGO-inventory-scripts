@@ -46,6 +46,7 @@ STEPS = {
     "roster":      ("roster/roster.py", {"count", "report"}, {"report"}),
     "gymfeed":     ("gymfeed/gymfeed.py", set(), set()),
     "goplus":      ("goplus/goplus.py", set(), set()),
+    "hatch":       ("hatch/hatch.py", set(), set()),
     "account":     ("shared/account.py", {"HashTagAJay", "CyrillJan"}, set()),
     "advsync":     ("shared/advsync.py", set(), set()),
 }

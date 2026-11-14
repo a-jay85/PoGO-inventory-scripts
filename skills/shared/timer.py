@@ -8,9 +8,9 @@ a launchd job runs `timer.py tick` every minute, and tick runs a script whose ti
 - tick skips, and tries again next minute, while any other phone script is running or the Pixel isn't on adb.
   One script per tick. Its STOPPED / CRASHED / done lines go to ~/.config/pogo/timer.log.
 - gymfeed's phone: ~/.config/pogo/gymfeed_phone ("iphone" or "android"; no file: android). hatch, goplus: the Pixel.
-- goplus runs again 60 min after it connects (or finds it already on). A goplus run that stopped (HashTagAJay
-  signed in, no ball, didn't connect) tries again 60 min after it ended.
   An iPhone run goes through iPhone Mirroring, so the Mac must stay awake and unlocked for it.
+- goplus runs again 60 min after it connects (or finds it already on). HashTagAJay signed in: its timer goes off,
+  till a CyrillJan run connects again. Any other stop (no ball, didn't connect) tries again 60 min after it ended.
 
 Replaces the gymfeed-only timer (gymfeed_cron.sh and gymfeed_timer.sh with their own launchd job, 2026-10-28 to
 2026-11-13). Its rule stays: a gymfeed run is due 30-32 min (random) after the last one ended.

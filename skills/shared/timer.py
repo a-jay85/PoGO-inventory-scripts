@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""One local timer for the scripts that run by themselves (gymfeed, hatch). Each one says when it should run next;
+"""One local timer for the scripts that run by themselves (gymfeed, hatch, goplus). Each one says when it should run next;
 a launchd job runs `timer.py tick` every minute, and tick runs a script whose time has come.
 
 - ~/.config/pogo/timers.json holds {script: when it's due (epoch seconds)}. A script not in it is off.
@@ -7,7 +7,9 @@ a launchd job runs `timer.py tick` every minute, and tick runs a script whose ti
   One that didn't (it stopped, or had nothing to say) gets its job's AFTER minutes from when it ended.
 - tick skips, and tries again next minute, while any other phone script is running or the Pixel isn't on adb.
   One script per tick. Its STOPPED / CRASHED / done lines go to ~/.config/pogo/timer.log.
-- gymfeed's phone: ~/.config/pogo/gymfeed_phone ("iphone" or "android"; no file: android). hatch: the Pixel.
+- gymfeed's phone: ~/.config/pogo/gymfeed_phone ("iphone" or "android"; no file: android). hatch, goplus: the Pixel.
+- goplus runs again 60 min after it connects (or finds it already on). A goplus run that stopped (HashTagAJay
+  signed in, no ball, didn't connect) tries again 60 min after it ended.
   An iPhone run goes through iPhone Mirroring, so the Mac must stay awake and unlocked for it.
 
 Replaces the gymfeed-only timer (gymfeed_cron.sh and gymfeed_timer.sh with their own launchd job, 2026-10-28 to
@@ -44,9 +46,10 @@ def gymfeed_phone():
 JOBS = {
     "gymfeed": ("gymfeed/gymfeed.py", gymfeed_phone, (30, 32)),
     "hatch": ("hatch/hatch.py", lambda: "android", (15, 15)),
+    "goplus": ("goplus/goplus.py", lambda: "android", (60, 60)),
 }
 LOG_LINES = re.compile(r"STOPPED|CRASHED|Traceback|NotReady|Refused|done:|fed |taps in|gyms to feed|raid:|hatch|"
-                       r"incubat|next run")
+                       r"incubat|next run|connect|GO Plus")
 
 
 def stamp():

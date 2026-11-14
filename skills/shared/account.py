@@ -7,7 +7,8 @@
 
 The way (the user, 2026-10-28): main menu (the map's Poké Ball) -> the Settings gear, upper right -> scroll to the
 bottom -> Sign Out -> YES -> RETURNING PLAYER -> Sign in with Google -> the account's row in Google's account picker.
-Then it reads the trainer name off the profile to be sure.
+Then it reads the trainer name off the profile to be sure. Last, every run (a switch or not) turns Adventure Sync on
+for whoever is signed in (advsync.py), so a signed-in account always has it on.
 
 Which Google account is which trainer lives in ~/.config/pogo/accounts.json (out of the repo, which is public):
   {"HashTagAJay": "...@gmail.com", "CyrillJan": "...@gmail.com"}
@@ -192,16 +193,23 @@ def switch(to=None):
             raise Stop("nobody is signed in: say which account (account.py HashTagAJay or CyrillJan)")
         log(f"signed out already: signing in as {to}")
         sign_in(accounts[to])
-        return check(to)
+        return synced(check(to))
     who = home.trainer(fast=False)  # (sign_out starts from the map)
     to = to or next(n for n in home.TRAINERS if n != who)
     if who == to:
         log(f"{to} is signed in already")
-        return who
+        return synced(who)
     log(f"switching {who} -> {to}")
     sign_out()
     sign_in(accounts[to])
-    return check(to)
+    return synced(check(to))
+
+
+def synced(who):
+    """the last step of every switch: Adventure Sync on for whoever is signed in now (advsync.py). -> who"""
+    import advsync  # (here: advsync imports this file)
+    advsync.turn_on()
+    return who
 
 
 def check(to):

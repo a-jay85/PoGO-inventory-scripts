@@ -168,6 +168,14 @@ def pokeball(path):
     return all(r > 200 and g < 110 and b < 120 for r, g, b in red) and all(min(p) > 225 for p in white)
 
 
+MAP_TEXTS = 20  # the map's text: raid/Rocket timers and the friends bar (HashT.../CPD/Me, 2/3) add up (15 seen, 2026-11-14)
+
+
+def on_map(path, texts):
+    """the map: few words and the Poké Ball at the bottom middle"""
+    return bool(path) and len(texts) <= MAP_TEXTS and pokeball(path)
+
+
 def off_map():
     """a pull-down past the top of the list closes the Pokémon screen. From the map: Poké Ball, then POKÉMON.
     -> True if it tapped (it was on the map or the main menu)"""
@@ -179,7 +187,7 @@ def off_map():
         if {"POKDEX", "POKMON", "ITEMS", "SHOP"} <= {w.replace("É", "") for w in words}:  # main menu
             t = next(t for t in texts if ui.norm(t[4]).replace("É", "") == "POKMON")
             fx, fy = t[0] + t[2] / 2, t[1] + 0.055  # the round button under the label
-        elif len(texts) <= 16 and pokeball(path):  # the map (an event's raid and Rocket timers add to its text: 11 seen)
+        elif on_map(path, texts):
             fx, fy = 0.5, 0.928
         else:
             return tapped

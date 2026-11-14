@@ -90,7 +90,7 @@ def where(path, texts):
         return "mirroring"  # iPhone Mirroring can't reach the phone
     if main_menu(texts):
         return "mainmenu"
-    if len(texts) <= 12 and search.pokeball(path):
+    if search.on_map(path, texts):
         return "map"
     if all(t[1] < 0.08 for t in texts):
         return "blank"  # only the status bar (or nothing): the game is loading

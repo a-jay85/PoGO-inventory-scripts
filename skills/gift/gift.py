@@ -170,11 +170,11 @@ def classify():
         if w & {"ADD FRIEND", "INVITE", "TRAINER NICKNAME"} or search_line() or count() is not None:
             return "friends"
         return "profile"
-    from search import pokeball
+    from search import on_map
     from home import splash
     if splash(texts):
         return "blank"  # the game still loading: wait, no Back
-    if len(texts) <= 12 and path and pokeball(path):
+    if on_map(path, texts):
         return "map"
     if all(t[1] < 0.08 for t in texts):
         return "blank"

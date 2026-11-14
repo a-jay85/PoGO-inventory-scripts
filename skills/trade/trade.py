@@ -45,7 +45,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import ui
 import base
 from base import Stop, log
-from search import pokeball, amp_as_8, result_count
+from search import on_map, amp_as_8, result_count
 from home import main_menu, profile as me_tab
 from session import TROUBLE
 import popups, pages
@@ -338,7 +338,7 @@ def classify(texts, path):
         return "storage"  # the storage's list or tags tab, left open by another skill: its X closes it (the iPhone has no Back)
     if main_menu(texts):
         return "mainmenu"  # the Poké Ball's menu: POKÉDEX, POKÉMON, SHOP, ITEMS
-    if len(texts) <= 12 and pokeball(path):
+    if on_map(path, texts):
         return "map"
     if all(t[1] < 0.08 for t in texts):
         return "blank"  # only the status bar: the game is loading

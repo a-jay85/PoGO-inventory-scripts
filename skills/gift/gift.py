@@ -1137,14 +1137,14 @@ def rename(tag, old, listed):
     if not TYPEABLE.fullmatch(new):
         log(f"  can't type nickname {new!r}: rename it to {tag} by hand")
         return False
-    for _ in range(4):
+    for i in range(5):  # the read after the last drag counts too (2026-11-14 Pixel: the 4th drag showed it, unread)
         t = label("SET NICKNAME", 0.3, 0.95)
         if t:
             break
+        if i == 4:
+            raise Stop(f"no SET NICKNAME on the friend page: {summary()}")
         drag(0.75, 0.3)
         look()
-    else:
-        raise Stop(f"no SET NICKNAME on the friend page: {summary()}")
     tap_text(t)  # (REMOVE FRIEND is right under it: the label itself, never below)
     wait("nickname", timeout=6)
     tap(0.5, 0.455, fuzz=0.004)

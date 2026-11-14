@@ -5,8 +5,9 @@ run. The Pixel only, on whichever trainer is signed in.
   POGO_PHONE=android python3 skills/hatch/hatch.py
   pogo.py hatch
 
-1. The game is started fresh (closed, then opened). An already open game held a ready egg on the map for 1.5 min
-   and never hatched it; a fresh start showed the egg's "Oh?" 17 s in (2026-11-13).
+1. The game goes to the back (the Home key), then opens again. An egg hatches when the game comes back from the
+   home screen, once it has synced with the server and Adventure Sync's distance (the user, 2026-11-14). A game
+   left in front held a ready egg on the map for 1.5 min and never hatched it (2026-11-13). The game isn't closed.
 2. Each "Oh?" gets a tap. Its rewards (Stardust, Candy) go by themselves. The hatched Pokémon's page gets its X,
    which opens the Eggs tab. No "Oh?" within WAIT_HATCH s on the map: the Eggs tab is opened by hand.
 3. The Eggs tab: the best egg into the free ∞ incubator, and the next run's time (skills/shared/eggs.py says how:
@@ -33,12 +34,12 @@ OH = (0.5, 0.6)  # a tap anywhere on the "Oh?" screen goes on
 # ---------- the steps ----------
 
 def open_fresh():
-    """the game closed and opened again, so it checks the eggs (see 1.)"""
+    """the game sent to the home screen and opened again, so it checks the eggs (see 1.)"""
     a = ui.android
     if a.PKG in a.shell("dumpsys activity activities | grep -E 'ResumedActivity'"):
-        log("closing the game, so it opens fresh and checks the eggs")
-        a.shell(f"am force-stop {a.PKG}")
-        time.sleep(1.0)
+        log("to the home screen and back, so the game checks the eggs")
+        a.key("home")
+        time.sleep(1.5)
     home.android_launch()
     try:
         a.ready(force=True)

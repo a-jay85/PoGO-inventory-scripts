@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
-"""/hatch: hatch the eggs that are ready, put the best egg in the free ∞ incubator, and set the timer for the next
+"""/hatch: hatch the eggs that are ready, put the mode's egg in the free ∞ incubator, and set the timer for the next
 run. The Pixel only, on whichever trainer is signed in.
 
-  POGO_PHONE=android python3 skills/hatch/hatch.py
-  pogo.py hatch
+  POGO_PHONE=android python3 skills/hatch/hatch.py [shortest|longest]
+  pogo.py hatch [shortest|longest]
+
+shortest (the default): the free egg with the fewest km goes in. longest: the one with the most km. The word is
+saved (~/.config/pogo/hatch_mode), so the timer's runs and account.py's egg check keep it. No word: the saved mode.
 
 1. The game goes to the back (the Home key), then opens again. An egg hatches when the game comes back from the
    home screen, once it has synced with the server and Adventure Sync's distance (the user, 2026-11-14). A game
    left in front held a ready egg on the map for 1.5 min and never hatched it (2026-11-13). The game isn't closed.
 2. Each "Oh?" gets a tap. Its rewards (Stardust, Candy) go by themselves. The hatched Pokémon's page gets its X,
    which opens the Eggs tab. No "Oh?" within WAIT_HATCH s on the map: the Eggs tab is opened by hand.
-3. The Eggs tab: the best egg into the free ∞ incubator, and the next run's time (skills/shared/eggs.py says how:
+3. The Eggs tab: the mode's egg into the free ∞ incubator, and the next run's time (skills/shared/eggs.py says how:
    7 min a km left, 8 min at least).
 4. Its X back to the map. The game stays open; the phone is locked.
 
@@ -91,6 +94,7 @@ def script():
     session.ready()
     if not ui.ANDROID:
         raise Stop("hatch runs on the Pixel only: POGO_PHONE=android")
+    log(f"mode: the {eggs.mode()} free egg goes in")
     open_fresh()
     where, hatched = through_hatches()
     log(f"hatched {hatched} egg{'s' * (hatched != 1)}" if hatched else "no egg hatched")
@@ -102,6 +106,11 @@ def script():
 
 
 def main():
+    words = [a for a in sys.argv[1:] if not a.startswith("-")]
+    if words:
+        if len(words) > 1 or words[0] not in eggs.MODES:
+            sys.exit(f"hatch.py: one word, {' or '.join(eggs.MODES)} (got {' '.join(words)})")
+        eggs.set_mode(words[0])
     base.new_run_dir(os.path.join(HERE, "runs"), suffix="android" if ui.ANDROID else "iphone")
     session.main(script)
 

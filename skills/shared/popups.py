@@ -182,6 +182,13 @@ def news(texts):
     return center(hit) if hit and label(texts, "SEE DETAILS") else None
 
 
+def battery_saver(texts):
+    """Android's own 'Turn on Extreme Battery Saver?' box at 10% battery, over any screen (Pixel, 2026-11-13: over a
+    hatched egg's rewards): No thanks"""
+    hit = next((t for t in texts if ui.norm(t[4]) == "NO THANKS"), None)
+    return center(hit) if hit and "BATTERY SAVER" in ui.joined(texts) else None
+
+
 # name, where its tap goes, what the log says, seconds the box takes to go
 BOXES = (
     ("trade box", trade_ok, "a trade's box is up ({}): tapping OK", 1.5),
@@ -199,6 +206,7 @@ BOXES = (
     ("news", news, "an event's news card is up: tapping DISMISS", 1.5),
     ("safety", safety, "the 'Stay Aware of Your Surroundings' warning is up: tapping OK", 1.5),
     ("rocket radar", rocket_radar, "a new Rocket Radar is up: tapping EQUIP, its only button", 2.5),
+    ("battery saver", battery_saver, "Android asks to turn on Extreme Battery Saver: tapping No thanks", 1.0),
 )
 
 

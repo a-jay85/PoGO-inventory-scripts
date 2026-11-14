@@ -27,14 +27,14 @@ A berry counts when it's tapped while floating. Whether one floats is read from 
 beside it: that number is how many berries the Pokémon got since it went into the gym (the user, 2026-11-08). The
 bag counts come from the berry menu. Log in runs/<time>-<phone>/log.txt.
 
-At the end of a run that wasn't stopped, it tells a local timer whether any gym is left to feed: it runs
-~/.config/pogo/gymfeed_timer with "on" (a gym of yours that isn't gold: fed, full, or a raid on) or "off" (every
-badge gold, or none of yours in a gym). A gym that didn't open leaves the timer as it is. No such file: nothing.
+At the end of a run that wasn't stopped, it tells the shared timer (skills/shared/timer.py) whether any gym is left
+to feed: "on" (a gym of yours that isn't gold: fed, full, or a raid on: next run in 30-32 min) or "off" (every
+badge gold, or none of yours in a gym). A gym that didn't open leaves the timer as it is.
 
 A run that hit --limit or ran out of spare berries also says "on". The timer only turns back on through a run that
 finds a gym: switching accounts doesn't. The berry menu was measured on the Pixel only.
 """
-import argparse, os, re, subprocess, sys, time
+import argparse, os, re, sys, time
 from collections import Counter, deque
 from difflib import SequenceMatcher
 
@@ -43,7 +43,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import ui
 import base
 from base import Stop, log, keep_capture
-import home, session, pages
+import home, session, pages, timer
 
 PHONE = "android" if ui.ANDROID else "iphone"
 SORT_BUTTON = (0.85, 0.93)  # the badge list's sort button, bottom right; its menu's X sits in the same spot
@@ -59,7 +59,6 @@ TAP_DROPS = (0.08, 0.125, 0.165)
 BERRY_WAIT = 1.1  # seconds from a berry tap to the look before the next. The screenshot must come about 2 s after the
 # tap: at 1.3 s the number still showed on a full Pokémon, then the next tap hit no berry and jumped (2026-11-06)
 LIMIT = 100
-TIMER = os.path.expanduser("~/.config/pogo/gymfeed_timer")  # the local timer's on/off switch, out of the repo
 MAX_SWIPES = 40  # per gym. Each swipe is about 3 s
 SWIPE_STAYS = 4  # a swipe that stayed on the page this often isn't tried from there again. Most stays end with a retry:
 # Chansey's left to right stayed twice in a row, then a run gave up on it and never found Scizor (2026-11-06)
@@ -865,9 +864,9 @@ def main():
     base.new_run_dir(os.path.join(HERE, "runs"), suffix=PHONE)
     try:
         session.main(script, a.limit)
-    finally:  # after the phone is closed: turning the timer off can end the timer's own run
-        if feedable is not None and os.access(TIMER, os.X_OK):
-            subprocess.Popen([TIMER, "on" if feedable else "off"], start_new_session=True)
+    finally:  # after the phone is closed
+        if feedable is not None:
+            timer.gymfeed(feedable)
 
 
 if __name__ == "__main__":

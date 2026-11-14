@@ -30,6 +30,7 @@
    "gift": "gift/gift.py",
    "goplus": "goplus/goplus.py",
    "gymfeed": "gymfeed/gymfeed.py",
+   "hatch": "hatch/hatch.py",
    "ivc": "ivc/run.py",
    "luckydex": "dex/luckydex.py",
    "mega": "mega/mega.py",
@@ -639,7 +640,6 @@
    "SequenceMatcher",
    "Stop",
    "TAP_DROPS",
-   "TIMER",
    "all_labels",
    "arrow",
    "berry_back",
@@ -695,6 +695,44 @@
   ],
   "runs": [
    "skills/gymfeed/runs"
+  ]
+ },
+ "skills/hatch/hatch.py": {
+  "copies": {},
+  "names": [
+   "EGG_ABOVE",
+   "FREE_SLOT_X",
+   "HERE",
+   "INFINITE",
+   "KM_RE",
+   "LOAD_TIMEOUT",
+   "MIN_MINUTES",
+   "MIN_PER_KM",
+   "OH",
+   "Stop",
+   "TEAL_MIN",
+   "USE_RE",
+   "WAIT_HATCH",
+   "eggs",
+   "eggs_tab",
+   "incubate",
+   "keep_capture",
+   "label",
+   "leave_to_eggs",
+   "log",
+   "look",
+   "main",
+   "oh",
+   "open_fresh",
+   "read_eggs",
+   "script",
+   "teal",
+   "through_hatches",
+   "to_eggs",
+   "to_map"
+  ],
+  "runs": [
+   "skills/hatch/runs"
   ]
  },
  "skills/ivc/ivc.py": {
@@ -1706,6 +1744,7 @@
    "MANAGE_X",
    "MAX_AGAIN",
    "SAFETY_TO_OK",
+   "battery_saver",
    "center",
    "challenge",
    "clear",
@@ -2146,6 +2185,38 @@
    "swipe_next",
    "tile_names",
    "wait_for"
+  ],
+  "runs": []
+ },
+ "skills/shared/timer.py": {
+  "copies": {},
+  "names": [
+   "CONF",
+   "HERE",
+   "JOBS",
+   "KEEP",
+   "LABEL",
+   "LOG",
+   "LOG_LINES",
+   "PATH",
+   "PLIST",
+   "SKILLS",
+   "STATE",
+   "_edit",
+   "at",
+   "busy",
+   "due",
+   "gymfeed",
+   "gymfeed_phone",
+   "install",
+   "later",
+   "main",
+   "note",
+   "off",
+   "skip",
+   "stamp",
+   "tick",
+   "uninstall"
   ],
   "runs": []
  },

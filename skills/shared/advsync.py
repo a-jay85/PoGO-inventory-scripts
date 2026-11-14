@@ -4,7 +4,9 @@
   POGO_PHONE=android python3 advsync.py           on, if it's off
   POGO_PHONE=android python3 advsync.py --look    only say whether it's on
 
-account.py runs it at the end of every run, so whoever is signed in has Adventure Sync on.
+account.py runs it at the end of every run, so whoever is signed in has Adventure Sync on. After it (and after a
+run of this file, but not --look) comes the egg check (eggs.py): back on the map, the Pokémon screens' Eggs tab,
+the best egg into the free ∞ incubator if it's empty, and the hatch timer set to 7 min a km left (8 min at least).
 
 The way (the user, 2026-11-13): main menu (the map's Poké Ball) -> the Settings gear -> General -> Adventure Sync.
 Learnt on the Pixel (2026-11-13):
@@ -173,6 +175,12 @@ def turn_on():
     raise Stop("Adventure Sync didn't turn on")
 
 
+def eggs():
+    """the egg check after Adventure Sync (eggs.check): the free ∞ incubator filled, the hatch timer set"""
+    import eggs as e
+    e.check()
+
+
 def look():
     if not ui.ANDROID:
         raise Stop("advsync.py works on the Pixel only (POGO_PHONE=android)")
@@ -189,5 +197,6 @@ if __name__ == "__main__":
             print(f"Adventure Sync: {look() or 'unread'}")
         else:
             print("Adventure Sync: turned on" if turn_on() else "Adventure Sync: on already")
+            eggs()
     except Stop as e:
         sys.exit(f"STOPPED: {e}")

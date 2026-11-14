@@ -700,36 +700,20 @@
  "skills/hatch/hatch.py": {
   "copies": {},
   "names": [
-   "EGG_ABOVE",
-   "FREE_SLOT_X",
    "HERE",
-   "INFINITE",
-   "KM_RE",
    "LOAD_TIMEOUT",
-   "MIN_MINUTES",
-   "MIN_PER_KM",
    "OH",
    "Stop",
-   "TEAL_MIN",
-   "USE_RE",
    "WAIT_HATCH",
-   "eggs",
    "eggs_tab",
-   "incubate",
    "keep_capture",
-   "label",
-   "leave_to_eggs",
    "log",
    "look",
    "main",
    "oh",
    "open_fresh",
-   "read_eggs",
    "script",
-   "teal",
-   "through_hatches",
-   "to_eggs",
-   "to_map"
+   "through_hatches"
   ],
   "runs": [
    "skills/hatch/runs"
@@ -1253,6 +1237,7 @@
    "SWITCH_X",
    "Stop",
    "TAP_X",
+   "eggs",
    "green",
    "grey",
    "keep_capture",
@@ -1512,6 +1497,38 @@
    "skills/shared/runs/lucky-out.json",
    "skills/shared/runs/not-sure.json"
   ]
+ },
+ "skills/shared/eggs.py": {
+  "copies": {},
+  "names": [
+   "EGG_ABOVE",
+   "FREE_SLOT_X",
+   "INFINITE",
+   "KM_RE",
+   "MIN_MINUTES",
+   "MIN_PER_KM",
+   "RETRY_MINUTES",
+   "Stop",
+   "TEAL_MIN",
+   "USE_RE",
+   "check",
+   "eggs",
+   "eggs_tab",
+   "fill_and_time",
+   "incubate",
+   "keep_capture",
+   "label",
+   "leave_to_eggs",
+   "log",
+   "look",
+   "oh",
+   "read_eggs",
+   "said",
+   "teal",
+   "to_eggs",
+   "to_map"
+  ],
+  "runs": []
  },
  "skills/shared/fallen.py": {
   "copies": {

@@ -60,7 +60,8 @@ def teal(path, t):
     im = Image.open(path).convert("RGB")
     w, h = im.size
     box = (int(t[0] * w), int(t[1] * h), int((t[0] + t[2]) * w), int((t[1] + t[3]) * h))
-    return sum(1 for r, g, b in im.crop(box).getdata() if g - r > 60 and b - r > 60)
+    px = im.crop(box).tobytes()
+    return sum(1 for i in range(0, len(px), 3) if px[i + 1] - px[i] > 60 and px[i + 2] - px[i] > 60)
 
 
 def eggs(path, texts):

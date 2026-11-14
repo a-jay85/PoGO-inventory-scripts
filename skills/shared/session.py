@@ -3,7 +3,7 @@
 
 - iPhone: ready() opens iPhone Mirroring if it isn't open, and waits until it has connected to the iPhone. If it can't
   reach the iPhone, it quits and opens iPhone Mirroring once more. close() quits iPhone Mirroring.
-- Android: ready() wakes the phone and unlocks it, and over Wi-Fi turns its brightness to 0 (close() puts it back). With a PIN on the phone, the PIN comes from PIN_FILE (one line,
+- Android: ready() wakes the phone and unlocks it, and turns its brightness to the lowest (0) for the run (close() puts it back). With a PIN on the phone, the PIN comes from PIN_FILE (one line,
   digits only, outside the repo so it's never committed). A PIN that fails is never typed again that run: wrong PINs
   lock the phone out for longer each time. It's typed again only if the phone locks itself mid-run after it worked.
   close() locks the phone.
@@ -205,14 +205,14 @@ def ready():
     if ui.ANDROID:
         adb_ok()
         unlock()
-        ui.android.dim()  # over Wi-Fi only
+        ui.android.dim()  # USB or Wi-Fi
     elif not opened or not mirroring_running():
         connect()
     opened = True
 
 
 def close():
-    """the end of a run: the Pixel's brightness back (a Wi-Fi run dims it), then lock it; or quit iPhone Mirroring"""
+    """the end of a run: the Pixel's brightness back (every run dims it), then lock it; or quit iPhone Mirroring"""
     if ui.ANDROID and held and ui.android.restore():
         log("put the phone's brightness back")
     if flag("POGO_KEEP_OPEN"):

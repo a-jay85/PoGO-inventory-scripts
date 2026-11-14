@@ -37,6 +37,7 @@ def fits(rows, name, cp):
 
 
 def script(limit):
+    home.start()  # opens the phone (iPhone Mirroring or the Pixel) and takes its lock, as every script does
     sweep(home.trainer(), limit)
 
 

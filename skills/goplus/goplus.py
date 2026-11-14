@@ -20,6 +20,10 @@ It starts from any screen and goes to the map. Then: off -> one tap, and it wait
 one more tap and wait (a lost tap, or a try that gave up). Still not on: it stops. The ring is too faint over the light
 map to read, so it isn't used.
 --look reads the ball and says what it is. No taps beyond getting to the map.
+
+The timer (skills/shared/timer.py): once the ball is on (connected, or already on), the next goplus run is set for
+AGAIN min later, so it connects again by itself. --look and a stop don't set it (a timed run that stopped tries again
+60 min after it ended). No more timed runs: python3 skills/shared/timer.py off goplus.
 Log in runs/<time>-android/log.txt.
 """
 import argparse, os, sys, time
@@ -29,12 +33,13 @@ sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import ui
 import base
 from base import Stop, log, keep_capture
-import home, session
+import home, session, timer
 
 FOR = "CyrillJan"  # the one account the GO Plus+ is paired with
 AREA = (0.84, 0.05, 1.0, 0.40)  # where the ball can be: the map's right-hand icon column (middle x 0.914), under the
 # weather and a raid timer. Wider took in a pink gym ring over the night map's blues (2026-11-12)
-CONNECT_TIMEOUT = 15  # seconds from a tap to "on": about 6 s seen (Pixel, 2026-11-10)
+AGAIN = 60  # minutes from a connect to the next timed run (the user, 2026-11-14)
+CONNECT_TIMEOUT = 15 # seconds from a tap to "on": about 6 s seen (Pixel, 2026-11-10)
 
 
 def green(p):
@@ -194,6 +199,7 @@ def script(only_look):
     if who != FOR:
         raise Stop(f"the GO Plus+ only connects on {FOR} ({who} is signed in): pogo.py account {FOR}, then this")
     connect()
+    log(f"next goplus run in {AGAIN} min, at {timer.later('goplus', AGAIN)}")
 
 
 def main():

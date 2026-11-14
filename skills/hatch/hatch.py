@@ -35,6 +35,8 @@ OH = (0.5, 0.6)  # a tap anywhere on the "Oh?" screen goes on
 EGG_ABOVE = 0.06  # an egg sits this far above its "walked / km" label
 INFINITE = (0.145, 0.77)  # the incubator picker's first slot: the ∞ one when it's free
 FREE_SLOT_X = 0.25  # a "N USE" label left of this is under the first slot: the ∞ is busy, that slot is a paid one
+BUSY_TRIES, BUSY_WAIT = 3, 5.0  # right after a hatch the picker still showed the ∞ busy, with no egg in it; 30 s later
+# it was free (2026-11-13). So with no egg incubating, a busy ∞ is tried again this often, this many seconds apart
 TEAL_MIN = 15  # teal pixels in a label that make it an incubating egg's (2026-11-13: 46 and 85 teal, the rest 0)
 MIN_PER_KM, MIN_MINUTES = 7, 15  # the user's rule: 7 min a km, 15 at least (a 2 km egg)
 KM_RE = re.compile(r"(\d+(?:\.\d+)?)\s*/\s*(\d+(?:\.\d+)?)\s*km", re.I)
@@ -182,6 +184,7 @@ def incubate(egg, bounds):
     first = min((x[0] for x in uses(texts)), default=1.0)
     if first < FREE_SLOT_X:
         log("  the ∞ incubator is busy (only paid ones in the picker): leaving it")
+        keep_capture("busy")
         leave_to_eggs()
         return False
     log("  into the ∞ incubator")
@@ -226,17 +229,29 @@ def script():
     have, bounds = read_eggs()
     log("eggs: " + ", ".join(f"{w:g}/{k:g}{' (incubating)' if i else ''}" for w, k, i, _ in have))
     free = [e for e in have if not e[2]]
-    if free:
+    for attempt in range(BUSY_TRIES if free else 0):
         best = max(free, key=lambda e: (e[1], -have.index(e)))
-        if incubate(best, bounds):
-            have = base.settle(lambda: read_eggs()[0], lambda h: sum(e[2] for e in h) > sum(e[2] for e in have),
-                               timeout=4)
-            log("eggs now: " + ", ".join(f"{w:g}/{k:g}{' (incubating)' if i else ''}" for w, k, i, _ in have))
+        if not incubate(best, bounds):
+            if any(e[2] for e in have) or attempt + 1 == BUSY_TRIES:
+                break  # an egg is in: the ∞ really is busy
+            log(f"  no egg is incubating, so the ∞ was just freed: trying again in {BUSY_WAIT:.0f}s")
+            time.sleep(BUSY_WAIT)
+            have, bounds = read_eggs()
+            free = [e for e in have if not e[2]]
+            if not free:
+                break
+            continue
+        have = base.settle(lambda: read_eggs()[0], lambda h: sum(e[2] for e in h) > sum(e[2] for e in have),
+                           timeout=4)
+        log("eggs now: " + ", ".join(f"{w:g}/{k:g}{' (incubating)' if i else ''}" for w, k, i, _ in have))
+        break
     left = [k - w for w, k, i, _ in have if i]
     if left:
         km = max(0.0, min(left))
         minutes = max(MIN_MINUTES, MIN_PER_KM * km)
         log(f"next run in {minutes:.0f} min ({km:g} km left), at {timer.later('hatch', minutes)}")
+    elif free:  # eggs, but none went in (the ∞ never showed free): look again later
+        log(f"next run in {MIN_MINUTES} min (no egg went in), at {timer.later('hatch', MIN_MINUTES)}")
     else:
         timer.off("hatch")
         log("next run: none, no egg is incubating (timer off)")

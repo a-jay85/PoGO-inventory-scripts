@@ -700,6 +700,8 @@
  "skills/hatch/hatch.py": {
   "copies": {},
   "names": [
+   "BUSY_TRIES",
+   "BUSY_WAIT",
    "EGG_ABOVE",
    "FREE_SLOT_X",
    "HERE",

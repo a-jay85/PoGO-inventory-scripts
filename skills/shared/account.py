@@ -8,7 +8,7 @@
 The way (the user, 2026-10-28): main menu (the map's Poké Ball) -> the Settings gear, upper right -> scroll to the
 bottom -> Sign Out -> YES -> RETURNING PLAYER -> Sign in with Google -> the account's row in Google's account picker.
 Then it reads the trainer name off the profile to be sure. Last, every run (a switch or not) turns Adventure Sync on
-for whoever is signed in (advsync.py), so a signed-in account always has it on. Then the Eggs tab: the best egg goes
+for whoever is signed in (advsync.py), so a signed-in account always has it on. Then the Eggs tab: the mode's egg (eggs.py: shortest unless set) goes
 in the free ∞ incubator and the hatch timer is set by its km (eggs.py; the user, 2026-11-14).
 
 Which Google account is which trainer lives in ~/.config/pogo/accounts.json (out of the repo, which is public):
@@ -208,7 +208,7 @@ def switch(to=None):
 
 def synced(who):
     """the last step of every switch: Adventure Sync on for whoever is signed in now (advsync.py), then the egg check
-    (advsync.eggs: the best egg into the free ∞ incubator, the hatch timer set from its km). -> who"""
+    (advsync.eggs: the mode's egg into the free ∞ incubator, the hatch timer set from its km). -> who"""
     import advsync  # (here: advsync imports this file)
     advsync.turn_on()
     advsync.eggs()

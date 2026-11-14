@@ -1,18 +1,21 @@
 #!/usr/bin/env python3
-"""The Eggs tab: read the eggs, put the best one in the free ∞ incubator, and set the hatch timer. The Pixel only.
+"""The Eggs tab: read the eggs, put the mode's one in the free ∞ incubator, and set the hatch timer. The Pixel only.
 
 hatch.py (after its fresh start and hatches) and account.py (after every run's advsync, 2026-11-14) both use it:
 fill_and_time() does the work on the Eggs tab, check() goes there from the map and back.
 
-1. On the Eggs tab each egg reads "walked / km". A teal label is an egg in an incubator. The egg with the most km
-   that isn't in one is opened, INCUBATE, and the ∞ incubator is taken only if it's free: the picker's first slot
+1. On the Eggs tab each egg reads "walked / km". A teal label is an egg in an incubator. The mode picks which egg
+   that isn't in one goes in: shortest (the default) takes the one with the fewest km, longest the one with the
+   most (the user, 2026-11-14). Same km: the top one. `hatch.py shortest|longest` sets the mode, and it stays in
+   ~/.config/pogo/hatch_mode for every later run (the timer's, and account.py's egg check). That egg is opened,
+   INCUBATE, and the ∞ incubator is taken only if it's free: the picker's first slot
    with no "N USE" under it. A paid incubator (1, 2 or 3 uses) is never tapped (the user, 2026-11-13).
 2. The next hatch run: max(8, 7 x the km left) minutes from now, read off the incubated egg that has the least left.
    The km shown is what's left to walk, bonus and all (a 10 km egg showed "0 / 5 km" during a half-distance bonus:
    35 min, the user, 2026-11-13). 8 min at least: 1 km is the smallest egg (the daily 1 km one, or a 2 km one with
    a half-distance bonus; the user, 2026-11-14). Nothing incubating: the timer goes off.
 """
-import re
+import os, re
 from PIL import Image
 
 import ui
@@ -28,6 +31,33 @@ MIN_PER_KM, MIN_MINUTES = 7, 8  # the user's rule: 7 min a km, 8 at least (a 1 k
 RETRY_MINUTES = 15  # eggs, but none went in (the ∞ never showed free): look again this much later
 USE_RE = re.compile(r"\d+\s*USES?", re.I)  # a paid incubator's '1 USE' under its slot
 KM_RE = re.compile(r"(\d+(?:\.\d+)?)\s*/\s*(\d+(?:\.\d+)?)\s*km", re.I)
+MODES = ("shortest", "longest")  # the first is the default
+MODE_FILE = os.path.expanduser("~/.config/pogo/hatch_mode")
+
+
+# ---------- the mode ----------
+
+def mode():
+    """shortest or longest: the saved mode (no file, or anything else in it: shortest)"""
+    try:
+        m = open(MODE_FILE).read().strip()
+    except OSError:
+        return MODES[0]
+    return m if m in MODES else MODES[0]
+
+
+def set_mode(m):
+    if m not in MODES:
+        raise Stop(f"no hatch mode {m!r}: {' or '.join(MODES)}")
+    os.makedirs(os.path.dirname(MODE_FILE), exist_ok=True)
+    with open(MODE_FILE, "w") as f:
+        f.write(m + "\n")
+
+
+def pick(free, have, m):
+    """the free egg the mode takes: the fewest km (shortest) or the most (longest); same km, the top one"""
+    sign = -1 if m == "longest" else 1
+    return min(free, key=lambda e: (sign * e[1], have.index(e)))
 
 
 # ---------- reading ----------
@@ -156,12 +186,13 @@ def to_map():
 
 
 def fill_and_time():
-    """on the Eggs tab: the best free egg into the ∞ incubator (if it's free), then the hatch timer (see 1. and 2.)"""
+    """on the Eggs tab: the mode's free egg into the ∞ incubator (if it's free), then the hatch timer (see 1. and 2.)"""
     have, bounds = read_eggs()
-    log("eggs: " + said(have))
+    m = mode()
+    log(f"eggs ({m} first): " + said(have))
     free = [e for e in have if not e[2]]
     if free:
-        best = max(free, key=lambda e: (e[1], -have.index(e)))
+        best = pick(free, have, m)
         if incubate(best, bounds):
             have = base.settle(lambda: read_eggs()[0], lambda h: sum(e[2] for e in h) > sum(e[2] for e in have),
                                timeout=4)

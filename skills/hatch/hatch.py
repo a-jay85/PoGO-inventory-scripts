@@ -35,10 +35,9 @@ OH = (0.5, 0.6)  # a tap anywhere on the "Oh?" screen goes on
 EGG_ABOVE = 0.06  # an egg sits this far above its "walked / km" label
 INFINITE = (0.145, 0.77)  # the incubator picker's first slot: the ∞ one when it's free
 FREE_SLOT_X = 0.25  # a "N USE" label left of this is under the first slot: the ∞ is busy, that slot is a paid one
-BUSY_TRIES, BUSY_WAIT = 3, 5.0  # right after a hatch the picker still showed the ∞ busy, with no egg in it; 30 s later
-# it was free (2026-11-13). So with no egg incubating, a busy ∞ is tried again this often, this many seconds apart
 TEAL_MIN = 15  # teal pixels in a label that make it an incubating egg's (2026-11-13: 46 and 85 teal, the rest 0)
 MIN_PER_KM, MIN_MINUTES = 7, 15  # the user's rule: 7 min a km, 15 at least (a 2 km egg)
+USE_RE = re.compile(r"\d+\s*USES?", re.I)  # a paid incubator's '1 USE' under its slot
 KM_RE = re.compile(r"(\d+(?:\.\d+)?)\s*/\s*(\d+(?:\.\d+)?)\s*km", re.I)
 
 
@@ -174,7 +173,7 @@ def incubate(egg, bounds):
         leave_to_eggs()
         return False
     base.tap_box(button, bounds, rest=1.0)
-    uses = lambda ts: [x for x in ts if re.search(r"\bUSE\b", ui.norm(x[4]))]
+    uses = lambda ts: [x for x in ts if USE_RE.fullmatch(x[4].strip())]  # not 'Use an Incubator to hatch...'
     _, texts, _, bounds = base.settle(look, lambda g: label(g[1], "INCUBATORS") and uses(g[1]), timeout=6)
     if not label(texts, "INCUBATORS"):
         keep_capture("picker")
@@ -229,22 +228,12 @@ def script():
     have, bounds = read_eggs()
     log("eggs: " + ", ".join(f"{w:g}/{k:g}{' (incubating)' if i else ''}" for w, k, i, _ in have))
     free = [e for e in have if not e[2]]
-    for attempt in range(BUSY_TRIES if free else 0):
+    if free:
         best = max(free, key=lambda e: (e[1], -have.index(e)))
-        if not incubate(best, bounds):
-            if any(e[2] for e in have) or attempt + 1 == BUSY_TRIES:
-                break  # an egg is in: the ∞ really is busy
-            log(f"  no egg is incubating, so the ∞ was just freed: trying again in {BUSY_WAIT:.0f}s")
-            time.sleep(BUSY_WAIT)
-            have, bounds = read_eggs()
-            free = [e for e in have if not e[2]]
-            if not free:
-                break
-            continue
-        have = base.settle(lambda: read_eggs()[0], lambda h: sum(e[2] for e in h) > sum(e[2] for e in have),
-                           timeout=4)
-        log("eggs now: " + ", ".join(f"{w:g}/{k:g}{' (incubating)' if i else ''}" for w, k, i, _ in have))
-        break
+        if incubate(best, bounds):
+            have = base.settle(lambda: read_eggs()[0], lambda h: sum(e[2] for e in h) > sum(e[2] for e in have),
+                               timeout=4)
+            log("eggs now: " + ", ".join(f"{w:g}/{k:g}{' (incubating)' if i else ''}" for w, k, i, _ in have))
     left = [k - w for w, k, i, _ in have if i]
     if left:
         km = max(0.0, min(left))

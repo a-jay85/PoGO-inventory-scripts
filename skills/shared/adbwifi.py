@@ -4,7 +4,7 @@
     restart turns that off, so plug in once after each restart. The Wi-Fi link is dropped while USB is there:
     two links to one phone make every plain `adb` command fail with "more than one device".
   - Pixel unplugged: `adb connect <saved address>:5555` when the link is down.
-  Over Wi-Fi a run turns the screen's brightness to 0 and back at the end (android.dim and restore). If a run
+  Every Pixel run (USB or Wi-Fi) turns the screen's brightness to 0 and back at the end (android.dim and restore). If a run
   ended before that, the next USB check here puts it back.
   Both wait while a script holds the phone lock: `adb tcpip` restarts adb on the phone, and dropping the link
   a script is using stops it. android.py picks USB first, then Wi-Fi, and reconnects itself too.
@@ -93,11 +93,11 @@ def tick():
                 say(f"saved the Pixel's Wi-Fi address {addr}")
         if busy():
             return
-        if os.path.exists(BRIGHT_FILE):  # a Wi-Fi run ended before it put the brightness back
+        if os.path.exists(BRIGHT_FILE):  # a run ended before it put the brightness back
             import android
             os.environ["ANDROID_SERIAL"] = s
             if android.restore():
-                say("put back the brightness a Wi-Fi run left at 0")
+                say("put back the brightness a run left at 0")
         if adb("-s", s, "shell", "getprop service.adb.tcp.port").strip() != str(PORT):
             adb("-s", s, "tcpip", str(PORT))
             say(f"turned on adb over Wi-Fi (port {PORT})")

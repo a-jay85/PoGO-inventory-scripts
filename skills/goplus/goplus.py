@@ -22,8 +22,10 @@ map to read, so it isn't used.
 --look reads the ball and says what it is. No taps beyond getting to the map.
 
 The timer (skills/shared/timer.py): once the ball is on (connected, or already on), the next goplus run is set for
-AGAIN min later, so it connects again by itself. --look and a stop don't set it (a timed run that stopped tries again
-60 min after it ended). No more timed runs: python3 skills/shared/timer.py off goplus.
+AGAIN min later, so it connects again by itself. The wrong account signed in turns the timer off, so it doesn't try
+every hour for nothing; the next CyrillJan run that connects (by hand, or after a switch) turns it on again (the user,
+2026-11-14). --look and any other stop don't set it (a timed run that stopped tries again 60 min after it ended).
+No more timed runs: python3 skills/shared/timer.py off goplus.
 Log in runs/<time>-android/log.txt.
 """
 import argparse, os, sys, time
@@ -197,6 +199,9 @@ def script(only_look):
         log(f"the ball: {b[0] if b else 'not seen'}" + (f" at ({b[1]:.3f}, {b[2]:.3f})" if b else ""))
         return
     if who != FOR:
+        if who:  # another trainer read for sure; an unread name is a stop like any other (it tries again)
+            timer.off("goplus")
+            log(f"goplus timer off till a {FOR} run connects")
         raise Stop(f"the GO Plus+ only connects on {FOR} ({who} is signed in): pogo.py account {FOR}, then this")
     connect()
     log(f"next goplus run in {AGAIN} min, at {timer.later('goplus', AGAIN)}")

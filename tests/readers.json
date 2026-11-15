@@ -1331,6 +1331,13 @@
   "two labels": false,
   "your buddy's page: no button": true
  },
+ "pages.trade_request": {
+  "local request": "TrainerOne",
+  "local request, name line missed": "TrainerOne",
+  "plain list": null,
+  "remote countdown on top, local under it": "TrainerOne",
+  "remote request only": null
+ },
  "pages.which": {
   "friend page": [
    "gift: friend page",

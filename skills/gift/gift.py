@@ -653,7 +653,7 @@ def rows():
     row whose name sits just above 0.26 keeps its nickname: else the nickname reads as a name, with that row's
     badge under it, and the search ends there"""
     col = sorted((t for t in texts if 0.26 < t[0] < 0.32 and 0.15 < t[1] < 0.85 and t[4].strip()
-                  and not re.search(r"SENT YOU|TRADE REQUEST|REMOTE TRADE|^REQUEST\.$", ui.up(t).strip())), key=lambda t: t[1])  # ('<name> sent you a Lucky Remote Trade request.', three lines)
+                  and not re.search(r"SENT YOU|TRADE REQUEST|REMOTE TRADE|^REQUEST\.$|WANTS TO|^WITH YOU\.$", ui.up(t).strip())), key=lambda t: t[1])  # ('<name> sent you a Lucky Remote Trade request.', three lines; a local one: '<name> wants to Trade' / 'with you.')
     out, last = [], None
     for t in col:
         if last is not None and t[1] - last[1] < 0.035:

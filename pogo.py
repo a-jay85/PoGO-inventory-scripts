@@ -51,7 +51,7 @@ STEPS = {
     "advsync":     ("shared/advsync.py", set(), set()),
 }
 NEEDS_WORD = {"dex", "roster", "sizerecords"}  # these have no default: the first word is a must
-BOTH = {"trade"}  # drives the iPhone and the Pixel, whatever POGO_PHONE says
+BOTH = {"trade"}  # drives the iPhone and the Pixel, unless POGO_PHONE names one (android, ios): then that one alone
 
 
 def usage(msg=None):
@@ -105,7 +105,7 @@ def phones(steps):
     """the phones the chain uses: POGO_PHONE's, and both for a two-phone step"""
     env = os.environ.get("POGO_PHONE", "").lower()
     out = {"android"} if env == "android" else {"ios", "android"} if env == "both" else {"ios"}
-    if any(s[0] in BOTH for s in steps):
+    if any(s[0] in BOTH for s in steps) and env not in ("android", "ios", "iphone"):  # (one named: /trade on it alone)
         out = {"ios", "android"}
     return out
 

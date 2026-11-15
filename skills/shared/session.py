@@ -3,7 +3,7 @@
 
 - iPhone: ready() opens iPhone Mirroring if it isn't open, and waits until it has connected to the iPhone. If it can't
   reach the iPhone, it quits and opens iPhone Mirroring once more. close() goes to its home screen (cmd+1), then quits iPhone Mirroring.
-- Android: ready() wakes the phone and unlocks it, and turns its brightness to the lowest (0) for the run (close() puts it back). With a PIN on the phone, the PIN comes from PIN_FILE (one line,
+- Android: ready() wakes the phone and unlocks it, and turns its brightness to the lowest (1, which the screen shows as 0) for the run (close() puts it back). With a PIN on the phone, the PIN comes from PIN_FILE (one line,
   digits only, outside the repo so it's never committed). A PIN that fails is never typed again that run: wrong PINs
   lock the phone out for longer each time. It's typed again only if the phone locks itself mid-run after it worked.
   close() goes to the home screen (the game to the back), then locks the phone.

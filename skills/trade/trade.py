@@ -1517,7 +1517,7 @@ def main():
             COST, COST_READS = FRIDAY_COST, FRIDAY_READS
             log("Friendship Friday: only the ones tagged 2XL")
         made, n, specials, expired, fresh = made_today(), 0, {}, 0, False
-        rehearsed = 0
+        rehearsed, in_picker = 0, False
         log(f"{made} trades made today so far, {PER_DAY} a day; this run: at most {a.limit}")
         while n < a.limit and (not a.rehearse or rehearsed < a.rehearse):
             if friendship_friday() != friday:
@@ -1554,6 +1554,7 @@ def main():
                 continue
             if not got:
                 log(f"no {'2XL ' if friday else ''}pairs left (the 100+km ones are kept for another day): done")
+                in_picker = True  # trade_once leaves both in the open trade's picker
                 break
             set_made(made_today() + 1)  # counted once both have confirmed: a missed result screen never undercounts
             n += 1
@@ -1569,7 +1570,10 @@ def main():
                 log(f"{e}: the trade went through")
                 reconnect(phones)
                 fresh = True
-        if rehearsed:  # the last rehearsal is still on the confirm screen: leave it, nothing confirmed
+        if rehearsed or in_picker:
+            # the last rehearsal is still on the confirm screen, or no pairs left with both in the trade's picker: leave
+            # it, nothing confirmed. (2026-11-15: left open, its late 'expired' box stopped /cleantrades on the iPhone,
+            # which read the picker as its own Pokémon list)
             both(lambda p: to_friend(p, ours=True), *[(p,) for p in phones])
         log(f"{n} trades this run, {made_today()} today")
     except Stop as e:

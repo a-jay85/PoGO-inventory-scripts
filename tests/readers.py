@@ -356,6 +356,13 @@ POPUPS = {
         box(.3, .11, "PARTY CHALLENGE"), box(.1, .19, "Choose a Party Challenge and complete it with"),
         box(.2, .21, "your party to earn a reward!"), box(.2, .31, "Make 25 Nice Throws"), box(.3, .90, "58  START")],
     "party pick, countdown done": texts((0.19, "Choose a Party Challenge and complete it with"), (0.90, "START")),
+    "party rejoin, Pixel after an account switch (2026-11-14)": texts(
+        (0.04, "6:41"), (0.40, "Continue Party Play?"), (0.45, "You can rejoin your party and continue your"),
+        (0.48, "Party Challenge."), (0.60, "REJOIN PARTY"), (0.68, "LEAVE PARTY")),
+    "party leave, Pixel (2026-11-14)": texts(
+        (0.04, "6:42"), (0.42, "Are you sure you want to leave"), (0.45, "your party?"),
+        (0.50, "If you leave, your party will disband."), (0.53, "You will lose challenge progress and"),
+        (0.56, "unclaimed rewards."), (0.63, "YES"), (0.70, "NO")),
     "party ended": texts((0.4, "The party has ended"), (0.6, "OK")),
     "party summary": texts((0.4, "Total km explored"), (0.5, "12.3")),
     "rocket radar": texts((0.4, "Rocket Radar"), (0.8, "EQUIP")),

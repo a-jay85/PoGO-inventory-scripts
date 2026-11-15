@@ -146,6 +146,21 @@ def party_pick(texts):
     return center(hit) if hit else None
 
 
+def party_rejoin(texts):
+    """'Continue Party Play?' after signing in (Pixel, 2026-11-14: CyrillJan, after the switch from HashTagAJay):
+    REJOIN PARTY or LEAVE PARTY, and Back opens 'leave your party?'. REJOIN PARTY, so nothing the user set up is
+    lost; leaving disbands the party and loses its rewards"""
+    hit = label(texts, "REJOIN PARTY")
+    return center(hit) if hit and "CONTINUE PARTY PLAY" in ui.joined(texts) else None
+
+
+def party_leave(texts):
+    """'Are you sure you want to leave your party? If you leave, your party will disband.' (what Back on 'Continue
+    Party Play?' opens): NO, which goes back to that box"""
+    hit = label(texts, "NO")
+    return center(hit) if hit and "PARTY WILL DISBAND" in ui.joined(texts) else None
+
+
 def party_ended(texts):
     """'The party has ended' (a party lasts 3 hours): OK"""
     hit = label(texts, "OK")
@@ -201,6 +216,8 @@ BOXES = (
     ("challenge", challenge, "a Weekly Challenge box is up: {}", 1.5),
     ("party done", party_done, "a finished Party Challenge is up: tapping CLAIM REWARD", 2.5),
     ("party pick", party_pick, "the party's challenge picker is up: tapping START", 2.5),
+    ("party rejoin", party_rejoin, "'Continue Party Play?' is up: tapping REJOIN PARTY", 2.5),
+    ("party leave", party_leave, "'leave your party?' is up: tapping NO", 1.5),
     ("party ended", party_ended, "the party has ended: tapping OK", 1.5),
     ("party summary", party_summary, "the party's summary is up: closing it", 1.5),
     ("news", news, "an event's news card is up: tapping DISMISS", 1.5),

@@ -1522,6 +1522,11 @@
    0.5,
    0.615
   ],
+  "party leave, Pixel (2026-11-14)": [
+   "party leave",
+   0.5,
+   0.715
+  ],
   "party pick, countdown done": [
    "party pick",
    0.5,
@@ -1531,6 +1536,11 @@
    "party pick",
    0.35,
    0.91
+  ],
+  "party rejoin, Pixel after an account switch (2026-11-14)": [
+   "party rejoin",
+   0.5,
+   0.615
   ],
   "party summary": [
    "party summary",

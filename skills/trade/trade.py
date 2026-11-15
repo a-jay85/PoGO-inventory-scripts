@@ -1561,6 +1561,10 @@ def main():
             log(f"trade {made_today()} today: {names[0]} (iPhone) <-> {names[1]} (Android), {d:,.1f} km, {candy} candy")
             try:
                 finish(phones, n < a.limit and made_today() < PER_DAY and friendship_friday() == friday)
+            except DailyLimit as e:  # the box came up on the next round's LOCAL TRADE: this trade is counted
+                log(f"{e}: done for the day")
+                set_made(max(made_today(), PER_DAY))  # a later run today stops at once
+                break
             except Lost as e:  # both confirmed: the trade went through, only its result screens are left
                 log(f"{e}: the trade went through")
                 reconnect(phones)

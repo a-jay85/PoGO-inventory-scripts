@@ -56,15 +56,17 @@ BRIGHT_FILE = os.path.expanduser("~/.config/pogo/android-brightness")  # "mode l
 
 
 def dim():
-    """every run, on USB or Wi-Fi: screen brightness to the lowest the phone goes for the run (0; a Pixel that
-    can't go that low keeps its own lowest, 1). The old brightness goes in BRIGHT_FILE first, and a file already
-    there is kept: a run that ended before restore() left 0 on the phone, and the file still holds the real one"""
+    """every run, on USB or Wi-Fi: screen brightness to the lowest the phone goes for the run. That is 1 on the
+    0-255 setting: Android turns 1 into the lowest the screen goes (0.0), and quietly drops a 0, so a run that
+    wrote 0 kept the old brightness (the Pixel, 2026-11-15: setting 0, screen still at 10). The old brightness goes
+    in BRIGHT_FILE first, and a file already there is kept: a run that ended before restore() left the phone dim,
+    and the file still holds the real one"""
     if not os.path.exists(BRIGHT_FILE):
         mode, level = shell("settings get system screen_brightness_mode; settings get system screen_brightness").split()
         os.makedirs(os.path.dirname(BRIGHT_FILE), exist_ok=True)
         with open(BRIGHT_FILE, "w") as f:
             f.write(f"{mode} {level}\n")
-    shell("settings put system screen_brightness_mode 0; settings put system screen_brightness 0")
+    shell("settings put system screen_brightness_mode 0; settings put system screen_brightness 1")
 
 
 def restore():

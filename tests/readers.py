@@ -403,6 +403,26 @@ PAGES = {
 }
 
 
+# the friend list's top (Pixel, 2026-11-14; names made up): a local trade request, and Remote Trade ones never taken
+def friend_rows(*rows):
+    head = [box(.09, .227, "OFFLINE"), box(.29, .227, "ADD FRIEND"), box(.55, .227, "SEARCH"), box(.79, .227, "INVITE")]
+    return head + [b for r in rows for b in r]
+
+
+LOCAL_REQ = [box(.286, .314, "TrainerOne"), box(.286, .355, "Trainer One wants to Trade"), box(.285, .375, "with you.")]
+REQUESTS = {
+    "local request": friend_rows(LOCAL_REQ, [box(.281, .461, "TrainerTwo")]),
+    "local request, name line missed": friend_rows(LOCAL_REQ[1:]),
+    "remote request only": friend_rows([box(.286, .314, "TrainerTwo"), box(.286, .355, "TrainerTwo sent you a Lucky"),
+                                        box(.286, .375, "Remote Trade request.")]),
+    "remote countdown on top, local under it": friend_rows(
+        [box(.286, .314, "TrainerTwo"), box(.286, .345, "Remote Trade"), box(.75, .316, "46:04:14")],
+        [(x, y + .15, w, h, s) for x, y, w, h, s in LOCAL_REQ]),
+    "plain list": friend_rows([box(.286, .314, "TrainerTwo"), box(.73, .316, "2+ days ago"),
+                               box(.44, .36, "TrainerTwo sent you a Gift!")]),
+}
+
+
 def page(ts):
     got = pages.which(ts)
     return got and [got[0], got[1] and [round(got[1][0], 3), round(got[1][1], 3)]]
@@ -477,6 +497,7 @@ def answers():
     out["base.row_name"] = {s: answer(row_name, s) for s in ROWS}
     out["popups.which"] = {k: answer(popup, ts) for k, ts in POPUPS.items()}
     out["pages.which"] = {k: answer(page, ts) for k, ts in PAGES.items()}
+    out["pages.trade_request"] = {k: answer(pages.trade_request, ts) for k, ts in REQUESTS.items()}
     out["tagsheet.tag_chips"] = {k: answer(tagsheet.tag_chips, ts) for k, ts in CHIPS.items()}
     out["mega.form_of"] = {n: answer(mega.form_of, n) for n in NICKS}
     out["trade.km"] = {s: answer(lambda s: trade.km(SimpleNamespace(texts=[box(.4, .56, s)])), s) for s in DISTANCES}

@@ -6,6 +6,13 @@
   caffeinate -dimsu python3 trade.py restart       (force-close and reopen Pokémon GO on both phones; trades nothing)
   caffeinate -dimsu python3 trade.py --rehearse N  (N rounds up to the confirm screen, never confirmed: for timing)
 
+One phone: POGO_PHONE=android (or ios) trades on that phone alone, with whoever sends it a local trade request by
+hand from another phone. It opens the Friends tab until the request shows at its top (a request only shows on a list
+opened after it came: up to 5 looks, out to the map and back in between; a Remote Trade request is never taken), taps
+it, joins with LOCAL TRADE, offers the newest of the same piles (the species it needs candy of first), waits for the
+other side's pick, and confirms only a regular cost. Anything else: it backs out and looks for the next request. It
+stops when 5 looks find none. With no POGO_PHONE (or both): the two phones, as below.
+
 HashTagAJay plays on the iPhone (iPhone Mirroring on the Mac), CyrillJan on the Android phone (adb). Each phone is
 driven by its own phone.py process. A touch on the Mac pauses the iPhone's side until the Mac has been idle 5 s (base.yield_to_user).
 
@@ -354,6 +361,11 @@ def friend_name(p):
     return top[0][4].strip() if top else None
 
 
+def same_name(a, b):
+    """two reads of a trainer name: OCR can put a space in one ('Hash TagAJay')"""
+    return re.sub(r"\s+", "", a).lower() == re.sub(r"\s+", "", b).lower()
+
+
 def label(p, name):
     hits = p.find(lambda t: ui.norm(t[4]) == name)
     return hits[0] if hits else None
@@ -365,13 +377,14 @@ def own_leftover(p):
     """a half-made trade with the other account, at a regular cost: one a stopped run of this script left (2026-11-09:
     a stop with the iPhone on a detail page left the Pixel on the confirm screen, and the next run stopped on it).
     Backing out never confirms. A special trade (made by hand) or a trade with anyone else is left alone"""
-    if not p.find(lambda t: p.friend.lower() in t[4].lower() and t[1] < 0.2):
+    if not p.friend or not p.find(lambda t: p.friend.lower() in t[4].lower() and t[1] < 0.2):
         return False
     return p.screen == "warning" or cost_ok(p)[0]
 
 
 def to_friend(p, ours=False):
-    """ours: this run's own round failed, so a half-made trade is left too (nothing is ever confirmed on the way out)"""
+    """ours: this run's own round failed, so a half-made trade is left too (nothing is ever confirmed on the way out).
+    p.friend None (a one-phone run between requests): it ends on the Friends tab instead"""
     p.live = False
     unknown, backs, empty = 0, 0, 0
     for i in range(40):  # room for a few Backs out of popups
@@ -380,11 +393,16 @@ def to_friend(p, ours=False):
             log(f"{p.name}: a trade with {p.friend} left half-made ({s}): backing out of it")
             ours = True
         unknown = unknown + 1 if s == "unknown" else 0
-        if s == "friend":
+        if s == "friends" and not p.friend:
+            return
+        if s == "profile" and not p.friend:
+            if friends := label(p, "FRIENDS"):  # (not read yet: the next look tries again)
+                p.tap_text(friends)
+        elif s == "friend":
             name = friend_name(p)
-            if name and name.lower() == p.friend.lower():
+            if name and p.friend and same_name(name, p.friend):
                 return
-            log(f"{p.name}: on {name}'s page, not {p.friend}'s: closing it")
+            log(f"{p.name}: on {name}'s page, not {p.friend or 'the friend list'}: closing it")
             p.tap(*X_BUTTON)
         elif s in ("exit", "expired", "range"):
             button = label(p, "CANCEL" if s == "exit" else "OK")
@@ -475,7 +493,7 @@ def to_friend(p, ours=False):
                 unknown, backs = 0, backs + 1
         time.sleep(1.5)
     p.keep("lost")
-    raise Stop(f"{p.name}: couldn't get to {p.friend}'s friend page")
+    raise Stop(f"{p.name}: couldn't get to " + (f"{p.friend}'s friend page" if p.friend else "the friend list"))
 
 
 def tap_local(p):
@@ -1279,6 +1297,193 @@ def cmd_look(phones):
         print("   ", p.summary())
 
 
+# ---------- one phone: a person trades from another phone by hand ----------
+
+TRIES = 5  # looks at the friend list for a trade request, out to the map and back in between
+HUMAN = 300  # seconds a person may take to pick, or to confirm
+
+
+def solo_piles():
+    """what the script's phone offers, best first: the same piles, the species it needs candy of (under 2,500) first.
+    The other side's pick can't be seen beforehand, so no far-apart planning: the distance is only logged"""
+    return [NEAR + NEED, FAR + NEED, NEAR, FAR]
+
+
+def find_request(p):
+    """the Friends tab, until a local trade request is on it -> the friend's name, or None after TRIES looks. A
+    request only shows on a list opened after it came: between looks the list is left for the map and opened again"""
+    for i in range(TRIES):
+        p.friend = None
+        to_friend(p)  # (ends on the Friends tab)
+        name = base.settle(lambda: (p.look(), pages.trade_request(p.texts))[1], bool, timeout=3)
+        if name:
+            p.keep("request")
+            log(f"{p.name}: {name} wants to trade (look {i + 1})")
+            return name
+        log(f"{p.name}: no local trade request on the friend list (look {i + 1} of {TRIES})")
+        if i < TRIES - 1:
+            p.tap(*X_BUTTON)  # out to the map; the next to_friend opens the list again
+            p.wait("map", timeout=8)
+    return None
+
+
+def solo_join(p, name):
+    """the request's row -> the friend's page (a gift of theirs can open first: its X shows the page) -> LOCAL
+    TRADE, which joins the trade they're waiting in. -> True once in the trade; False when they stopped waiting"""
+    row = p.find(lambda t: t[4].strip() == name and 0.2 < t[0] < 0.45 and t[1] > 0.25)
+    if row:
+        p.tap_text(row[0])
+        time.sleep(1.5)
+    p.friend = name
+    to_friend(p)  # (a missed row tap: it searches the list for them)
+    tap_local(p)
+    s = p.wait("picker", "lobby", "sortmenu", "waiting", timeout=20)
+    if s == "waiting":  # we asked them, so they gave up before we joined: wait a while for them to tap too
+        log(f"{p.name}: waiting for {name} to join")
+        try:
+            p.wait("picker", "lobby", "sortmenu", timeout=60)
+        except Stop:
+            log(f"{p.name}: {name} didn't join: leaving the trade")
+            to_friend(p, ours=True)
+            return False
+    to_picker(p)
+    return True
+
+
+def solo_confirm(p):
+    """our pick made: wait (a person's time) for theirs, then read the cost. -> (km or None, candy) when it's a
+    regular trade; None when it isn't (a special trade, or a cost over this run's): backed out, nothing traded"""
+    if p.wait("confirm", "detail", timeout=HUMAN) == "detail":
+        p.tap(*X_BUTTON)
+        p.wait("confirm", timeout=20)
+    read = lambda: cost_ok(p) if p.look() == "confirm" else (False, f"on {p.screen}")
+    ok, why = base.settle(read, lambda r: r[0], timeout=2)  # (a cost can misread on one capture)
+    if ok:
+        candy = next((ui.up(t) for t in p.texts if re.fullmatch(r"\+\d", ui.up(t))), "?")
+        return km(p), candy
+    if COST != REGULAR_COST and p.screen == "confirm" and cost_ok(p, REGULAR_COST, REGULAR_READS)[0]:
+        p.keep("confirm")
+        raise NoFriday(f"{p.name}: a regular {REGULAR_COST} Stardust on a Friday")
+    p.keep("confirm")
+    log(f"{p.name}: not a regular trade ({why}): backing out, nothing traded")
+    to_friend(p, ours=True)
+    return None
+
+
+def solo_once(p, specials, rehearse=False):
+    """one trade with whoever asks. -> (friend, ours, km, candy); "none" (no request), "skip" (nothing traded, look
+    for the next request), "rehearsed"; None when this phone has nothing left to offer"""
+    name = find_request(p)
+    if not name:
+        return "none"
+    if not solo_join(p, name):
+        return "skip"
+    p.live = True
+    n = specials_left(p)
+    if n is not None and "specials" in specials and n < specials["specials"]:
+        raise Stop(f"{p.name}: special trades left went from {specials['specials']} to {n}")
+    if n is not None:
+        specials.setdefault("specials", n)
+    got = None
+    for q in solo_piles():
+        n, got = pick(p, q, specials)
+        if got:
+            break
+    if not got:
+        log(f"{p.name}: nothing left to offer: leaving the trade")
+        to_friend(p, ours=True)
+        return None
+    log(f"{p.name}: offered {got}, waiting for {name} to pick")
+    read = solo_confirm(p)
+    if not read:
+        return "skip"
+    d, candy = read
+    if rehearse:
+        log(f"rehearsal: {got} for {name}'s, {d} km, {candy} candy, read OK: no CONFIRM, backing out")
+        to_friend(p, ours=True)
+        return "rehearsed"
+    confirm(p)
+    log(f"{p.name}: CONFIRM tapped, waiting for {name} to confirm")
+    p.wait("result", timeout=HUMAN)  # (they back out: the game's box raises Expired, nothing traded)
+    p.live = False
+    for _ in range(3):
+        p.tap(*X_BUTTON)
+        if base.settle(p.look, lambda s: s != "result", timeout=2) != "result":
+            break
+    return name, got, d, candy
+
+
+def solo_main(a, name, android):
+    """one phone (POGO_PHONE=android, or ios): it trades with whoever sends it a local trade request, until no
+    request comes for TRIES looks, --limit, or the day's count"""
+    global COST, COST_READS
+    p = Phone(name, android, "this phone's account", None)
+    try:
+        base.new_run_dir(os.path.join(HERE, "runs"))
+        log(f"{p.name}: Pokémon GO up, on {p.start()}")
+        if a.done is not None:
+            set_made(a.done)
+        friday = friendship_friday()
+        if friday:
+            set_piles("#2xl", saved=False)
+            COST, COST_READS = FRIDAY_COST, FRIDAY_READS
+            log("Friendship Friday: only the ones tagged 2XL")
+        n, rehearsed, specials, expired = 0, 0, {}, 0
+        log(f"one phone ({p.name}): trades with whoever sends a local trade request; "
+            f"{made_today()} trades made today so far, this run at most {a.limit}")
+        while n < a.limit and (not a.rehearse or rehearsed < a.rehearse):
+            if made_today() >= PER_DAY:
+                log(f"{PER_DAY} trades today: done for the day")
+                break
+            try:
+                got = solo_once(p, specials, rehearse=bool(a.rehearse))
+            except NoFriday as e:
+                friday = False
+                base.write_json(STATE, {**state(), "no_friday": today()})
+                set_piles("giv,xlx", saved=True)
+                COST, COST_READS = REGULAR_COST, REGULAR_READS
+                log(f"{e}: no Friendship Friday this week. Trading GIV and XLX like any other day")
+                to_friend(p, ours=True)
+                continue
+            except DailyLimit as e:
+                log(f"{e}: done for the day")
+                set_made(max(made_today(), PER_DAY))
+                break
+            except Expired as e:
+                expired += 1
+                if expired > 3:
+                    raise Stop(f"{e}, {expired} times in a row")
+                log(f"{e}: nothing traded. Looking for the next request")
+                to_friend(p, ours=True)
+                continue
+            expired = 0
+            if got == "none":
+                log(f"no trade request in {TRIES} looks: done")
+                break
+            if got == "skip":
+                continue
+            if got == "rehearsed":
+                rehearsed += 1
+                continue
+            if not got:
+                log(f"no {'2XL ' if friday else ''}Pokémon left to offer: done")
+                break
+            set_made(made_today() + 1)  # (the day's count is kept for both accounts together: a trade with anyone counts)
+            n += 1
+            friend, ours, d, candy = got
+            log(f"trade {made_today()} today: {ours} to {friend}, {d if d is not None else '?'} km, {candy} candy")
+        log(f"{n} trades this run, {made_today()} today")
+    except Stop as e:
+        log(f"STOPPED: {e}")
+        p.keep("stop")
+        sys.exit(1)
+    except KeyboardInterrupt:
+        log("interrupted")
+        sys.exit(1)
+    finally:
+        p.close()
+
+
 def main():
     global COST, COST_READS
     ap = argparse.ArgumentParser()
@@ -1288,6 +1493,11 @@ def main():
                     help="N rounds up to the confirm screen, never confirmed (for timing): trades nothing")
     ap.add_argument("--done", type=int, help="trades already made today (sets the day's count)")
     a = ap.parse_args()
+    one = os.environ.get("POGO_PHONE", "").lower()
+    if one in ("android", "ios", "iphone"):  # one phone: whoever sends it a request. (unset or both: the two phones)
+        if a.cmd != "run":
+            sys.exit(f"trade.py {a.cmd} is for the two phones: run it without POGO_PHONE={one}")
+        return solo_main(a, "android" if one == "android" else "ios", one == "android")
     ios = Phone("ios", False, "HashTagAJay", "CyrillJan")
     android = Phone("android", True, "CyrillJan", "HashTagAJay")
     phones = (ios, android)

@@ -180,6 +180,34 @@ def friend_page(texts):
     return "SEND GIFT" in ui.joined(texts)
 
 
+COUNTDOWN = r"\d{1,3}:\d{2}:\d{2}"  # a Remote Trade friend's row: its time left, where the others say '2+ days ago'
+
+
+def trade_request(texts):
+    """the friend list's local trade request -> the friend's name, or None. It sits at the top of the list, the
+    friend's name with 'NAME wants to Trade with you.' under it (Pixel, 2026-11-14: the name line read 'HashTagAJay',
+    the request 'Hash TagAJay wants to Trade' / 'with you.'). It only shows if it came before the list was opened.
+    A Remote Trade friend is pinned on top too ('sent you a Lucky Remote Trade request.', or a countdown at the
+    row's right): never one of those, so the top few rows are all looked at"""
+    col = sorted((t for t in texts if 0.2 < t[0] < 0.45 and 0.25 < t[1] < 0.75 and t[4].strip()), key=lambda t: t[1])
+    for i, t in enumerate(col):
+        if "WANTS TO" not in ui.up(t):
+            continue
+        row = [o for o in texts if -0.06 < o[1] - t[1] < 0.06]
+        said = " ".join(ui.up(o) for o in col if -0.01 < o[1] - t[1] < 0.05)
+        if "TRADE" not in said or "REMOTE" in said or "LUCKY" in said:
+            continue
+        if any(o[0] > 0.6 and re.fullmatch(COUNTDOWN, o[4].strip()) for o in row):
+            continue
+        above = [o for o in col[:i] if 0 < t[1] - o[1] < 0.06 and re.fullmatch(r"[A-Za-z0-9]{3,}", o[4].strip())]
+        if above:
+            return above[-1][4].strip()
+        name = re.sub(r"\s+", "", re.split(r"(?i)\s*wants to", t[4])[0])  # (OCR can put a space in it)
+        if len(name) >= 3:
+            return name
+    return None
+
+
 def friend_meter(texts):
     """a friend's friendship meter (a tap on their hearts)"""
     return "BONUS" in words(texts) or "MORE FRIENDSHIP POINT" in ui.joined(texts) or bool(ribbon(texts))

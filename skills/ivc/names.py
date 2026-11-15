@@ -196,6 +196,8 @@ def same_name(got, want):
     """OCR drops or swaps * ^ and spaces, and mixes case (xXS): compare letters, digits and / only"""
     k = lambda s: re.sub(r"[^a-z0-9/]", "", (s or "").lower())
     g, w = k(got), k(want)
+    # OCR can read a size word backwards, as it does the size badges (base.BADGES): an 'xxs' name read 'SXX' (2026-11-15)
+    g = {"sxx": "xxs", "lxx": "xxl"}.get(g, g)
     # the text cursor or pencil icon after the name sometimes reads as a trailing l or I ('40 al')
     return g == w or (g[:-1] == w and g[-1:] in ("l", "i"))
 

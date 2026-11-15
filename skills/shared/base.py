@@ -260,7 +260,9 @@ def size_record(path):
 
 
 def size_title(texts):
-    return next((t for t in texts if ui.norm(t[4]).startswith("NEW SIZE RECORD")), None)
+    """the card's title: 'New Size Record', or 'New Height Record' / 'New Weight Record' (2026-11-14, an XXS got in a
+    trade)"""
+    return next((t for t in texts if re.match(r"NEW (SIZE|HEIGHT|WEIGHT) RECORD", ui.norm(t[4]))), None)
 
 
 def close_size_record(texts, path, bounds):

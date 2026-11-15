@@ -230,7 +230,11 @@ def unstick(texts):
         if now < banner_seen + BANNER_WAIT:
             time.sleep(2.0)
             return False
-    bounds = ui.capture()[1]
+    path, bounds = ui.capture()
+    if base.size_title(texts):  # a New Size/Height/Weight Record card over a Pokémon (a trade's result: no Back on
+        base.close_size_record(texts, path, bounds)  # the iPhone, 2026-11-14): its own X
+        time.sleep(1.0)
+        return False
     if (step := through_hatch(texts, bounds, hatched_at[0])) is not None:  # an egg hatch mid-run: Back does
         hatched_at[0] = step  # nothing on its 'Oh?' (2026-11-13: /trade pressed Back on '2 Eggs ready to hatch!')
         return False

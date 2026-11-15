@@ -102,7 +102,7 @@ NAMES = [  # (read, wanted)
     ("PvpL Medi ", "PvpL Medi"), ("PvpL Medl", "PvpL Medi"), ("PvpGU 1Eaf", "PvpGU lEaf"), ("PvpGU IEaf", "PvpGU lEaf"),
     ("PvpL Med", "PvpL Medi"), ("Pvp Medi", "PvpL Medi"), ("XvpL Medi", "PvpL Medi"),
     ("40 a", "40 a"), ("40 al", "40 a"), ("40 aI", "40 a"), ("40 ax", "40 a"), ("84/9", "84/9"), ("849", "84/9"),
-    ("xXS 96", "XXS 96"), ("96^", "96"), ("96*", "96"), ('96"', "96*"), ("96|", "96"), ("96…", "96"), ("9", "96"),
+    ("xXS 96", "XXS 96"), ("SXX", "xxs"), ("LXX", "xxl"), ("96^", "96"), ("96*", "96"), ('96"', "96*"), ("96|", "96"), ("96…", "96"), ("9", "96"),
     ("", ""), ("", "96"), ("lyc60", "lycбo"), ("lycбo", "lycbo"), ("Fr1endly", "Friendly"), ("Frlendly", "Friendly"),
     ("Frien", "Friendly"), ("Ab&c", "Ab8c"), ("Abcd", "Abxy"), (None, "PvpL Medi"),
 ]

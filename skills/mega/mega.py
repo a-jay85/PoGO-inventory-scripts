@@ -10,7 +10,8 @@ On each page it opens the Mega level page (the round Mega badge under the types)
 
 - Only a tag that is exactly TODO (TODO4 is left alone).
 - "Daily level limit met" on the level page: done today, skipped. Mega right now ("07:59 left"): skipped.
-- "REST PERIOD" on the level page (MEGA EVOLVE greyed out): skipped.
+- "REST PERIOD" on the level page is no skip: it only means MEGA EVOLVE costs energy now (the number by it).
+- MEGA EVOLVE tapped and no box comes up (a faded button: less energy than it costs): skipped.
 - Mewtwo: only when it's free.
 - High Level with "Mega Evolve <name> 1 more time" to Max Level: only when it's free.
 - X/Y species (Mewtwo, Charizard, Raichu): the form is the nickname's last letter (' X' / ' Y'). None: a Mewtwo
@@ -124,8 +125,6 @@ def sheet(texts):
     return {
         "done_today": "Daily level limit met" in j,
         "mega_now": "REMAINING MEGA EVOLUTION PERIOD" in ui.norm(j),
-        # '4 Days 0 Hour / REST PERIOD' under the icon: MEGA EVOLVE is faded and does nothing (2026-11-14)
-        "resting": "REST PERIOD" in ui.norm(j),
         "level": level.group(1) if level else None,
         "more": int(more.group(1)) if more else None,
         "button": btn[0] if btn else None,
@@ -299,8 +298,6 @@ def can(s, mewtwo, free_only=False):
         raise Pass("daily level limit met: done today")
     if s["mega_now"]:
         raise Pass("Mega Evolved right now")
-    if s["resting"]:
-        raise Pass("rest period: MEGA EVOLVE is greyed out")
     if not s["button"]:
         raise Pass(f"{s['level']} Level: no MEGA EVOLVE on the level page")
     cost = page_cost(s)
@@ -341,6 +338,9 @@ def mega(info, dry, free_only=False, seen=None):
         asked, texts, bounds = base.steady(box_key)
         if asked is None:
             keep_capture("noask")
+            if cost:  # a faded MEGA EVOLVE does nothing: less energy than it costs. The energy read can miss that: the
+                # gem in front of '7' reads as '97' (Latias, 2026-11-14). "REST PERIOD" above it is no sign of this
+                raise Pass(f"no box after MEGA EVOLVE: costs {cost}, energy read {s['have']} (likely too little)")
             raise Stop("no 'Do you want to Mega Evolve' box after MEGA EVOLVE")
         asked = asked[0]
         if ui.ANDROID:  # and off the phone's own screenshot: the bigger one

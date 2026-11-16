@@ -4,7 +4,10 @@ a launchd job runs `timer.py tick` every minute, and tick runs a script whose ti
 
 - ~/.config/pogo/timers.json holds {script: when it's due (epoch seconds)}. A script not in it is off.
 - A script sets its own next run while it runs: at(name, epoch), later(name, minutes) or off(name).
-  One that didn't (it stopped, or had nothing to say) gets its job's AFTER minutes from when it ended.
+  One that ended fine and didn't gets its job's AFTER minutes from when it ended.
+- A run that stops or crashes (any exit but 0) turns its own timer off, with a log line and a macOS notice, so a
+  broken run doesn't come back every 15 min (hatch, 4 times on 2026-11-15). Not when it only found another script
+  on the phone: that one tries again. Back on: run the script once by hand, or `timer.py in <name> 0`.
 - tick skips, and tries again next minute, while any other phone script is running.
 - A phone out of reach turns its timers off, so a run never starts by itself the moment the phone is back in range
   (coming home with it, 2026-11-15). The Pixel: off once it has been off adb for 5 min in a row while a job is due
@@ -16,7 +19,7 @@ a launchd job runs `timer.py tick` every minute, and tick runs a script whose ti
 - gymfeed's phone: ~/.config/pogo/gymfeed_phone ("iphone" or "android"; no file: android). hatch, goplus: the Pixel.
   An iPhone run goes through iPhone Mirroring, so the Mac must stay awake and unlocked for it.
 - goplus runs again 60 min after it connects (or finds it already on). HashTagAJay signed in: its timer goes off,
-  till a CyrillJan run connects again. Any other stop (no ball, didn't connect) tries again 60 min after it ended.
+  till a CyrillJan run connects again. Any other stop (no ball, didn't connect) turns it off, like every stop.
 
 Replaces the gymfeed-only timer (gymfeed_cron.sh and gymfeed_timer.sh with their own launchd job, 2026-10-28 to
 2026-11-13). Its rule stays: a gymfeed run is due 30-32 min (random) after the last one ended.
@@ -37,6 +40,7 @@ STATE = os.path.join(CONF, "timers.json")
 AWAY = os.path.join(CONF, "timer_away.json")  # {phone: when it was first missed}. Not in timers.json: status lists that
 GRACE = 5  # minutes off adb in a row before the Pixel's timers go off
 UNREACHED = re.compile(r"can't reach the iPhone|phone not connected")  # a run's stop that means the phone is away
+BUSY = re.compile(r"is using the (Pixel|iPhone): run this after it ends")  # a stop that only means: try again later
 LOG = os.path.join(CONF, "timer.log")
 LABEL = "pogo.timer"
 PLIST = os.path.expanduser(f"~/Library/LaunchAgents/{LABEL}.plist")
@@ -230,6 +234,14 @@ def tick():
     if any(UNREACHED.search(line) for line in run.stdout.splitlines()):
         note(f"{name}: end (exit {run.returncode})")
         return away_off(phone, f"a {name} run couldn't reach the {'Pixel' if phone == 'android' else 'iPhone'}")
+    if run.returncode != 0 and not BUSY.search(run.stdout):
+        off(name)
+        stop = next((line.strip() for line in run.stdout.splitlines() if re.search(r"STOPPED|CRASHED", line)), "")
+        text = f"{name} off: its run ended with exit {run.returncode}. Back on: run it once, or timer.py in {name} 0"
+        note(f"{name}: end (exit {run.returncode}), timer off")
+        note(text)
+        notify(f"{text}\n{stop[:120]}" if stop else text)
+        return
     left = due()
     if name in left and left[name] <= started:  # it set no next run itself
         when = later(name, random.uniform(*after))

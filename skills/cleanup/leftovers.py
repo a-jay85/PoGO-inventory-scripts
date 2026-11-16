@@ -2,7 +2,9 @@
 """Tag HashTagAJay's Leftovers saved search by what a trade to another account is worth (CyrillJan, or the user's
 wife's account, which is further behind: good for any account, the user 2026-11-16).
 
-  POGO_PHONE=android caffeinate -dimsu python3 leftovers.py [--limit N]   HashTagAJay signed in
+  POGO_PHONE=android caffeinate -dimsu python3 leftovers.py [--limit N]   from either account
+
+Signed in as someone else on the Pixel, it switches to HashTagAJay first (../shared/account.py) and goes on.
 
 HashTagAJay has 360+ Candy XL of most families, so only a trade worth something to the other side goes. Each one is
 opened once and gets its final tag at the door (../shared/door.py, ../shared/verdict.py's rules for HashTagAJay):
@@ -23,7 +25,8 @@ HERE = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import base
 from base import Stop, log
-import home, session
+import ui
+import home, session, account
 import tradeable
 from rules import GIVER, TAKER
 
@@ -40,7 +43,10 @@ def cmd_door(limit):
     base.new_run_dir(os.path.join(HERE, "runs"), suffix="leftovers")
     who = home.trainer()
     if who != TAKER:
-        raise Stop(f"signed in as {who!r}: Leftovers is {TAKER}'s ({GIVER}'s pile is tradeable.py)")
+        if not ui.ANDROID:  # account.py signs in on the Pixel only
+            raise Stop(f"signed in as {who!r}: Leftovers is {TAKER}'s ({GIVER}'s pile is tradeable.py)")
+        log(f"signed in as {who!r}: Leftovers is {TAKER}'s, switching")
+        who = account.switch(TAKER)
     home.start()
     got = tradeable.door_walk(SUFFIX, limit, who, shortcut=SHORTCUT, gone=gone)
     log(f"Leftovers, through the door: {dict(got)}")

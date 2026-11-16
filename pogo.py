@@ -32,7 +32,7 @@ SEP = "+"
 STEPS = {
     "pvpc":        ("pvpc/run.py", {"fallen", "act-fallen", "keepers"}, set()),
     "ivc":         ("ivc/run.py", {"sort", "names", "fallen", "act-fallen", "search"}, set()),
-    "cleantrades": ("cleanup/cleantrades.py", {"evo", "fix", "transfer"}, set()),
+    "cleantrades": ("cleanup/cleantrades.py", {"evo", "transfer"}, set()),
     "sizes":       ("cleanup/sizes.py", set(), set()),
     "dbsweep":     ("cleanup/dbsweep.py", set(), set()),
     "tradeable":   ("cleanup/tradeable.py", {"refresh", "dynamax", "read", "plan", "tag", "door"}, {"refresh", "plan"}),  # door: the default

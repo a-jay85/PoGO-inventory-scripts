@@ -1037,7 +1037,8 @@ def set_tags(on=(), off=(), only=False):
         TAGS_BACKED_OUT[0] = 0
         ON, OFF = {ui.norm(t) for t in on}, {ui.norm(t) for t in off}
         good = lambda t: (sorted(t) == sorted(ON)) if only else (ON <= set(t) and not OFF & set(t))
-        tags = settle(detail_tags, good)
+        # the chips can draw late: an XLX chip showed after the 3 s look gave up (Pixel /leftovers, 2026-11-16)
+        tags = settle(detail_tags, good, timeout=6)
         if not good(tags):
             keep_capture("tags")
             raise Stop(f"after DONE tags are {tags}, wanted {sorted(ON)} on{' only' if only else ''}, {sorted(OFF)} off")

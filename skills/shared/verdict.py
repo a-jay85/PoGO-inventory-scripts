@@ -14,13 +14,13 @@ that's missing, gives unsure, never Transfer.
 
 The order is tradeable.py's (its docstring has the reasons), judged for the other account, the one it would be traded
 to. Signed in as CyrillJan (the pile goes to HashTagAJay):
-  GuaranteedLucky > Luckydex > Old > 2XL (a raid attacker's line only) > Reroll > GIV > xxs > XLX > GIV
+  GuaranteedLucky > Luckydex > Old > 2XL (a raid attacker's line or a Dynamax one) > Reroll > GIV > xxs > XLX > GIV
   (evolved, Dynamax, Tandemaus) > GIV (far) > Transfer
 Signed in as HashTagAJay (the pile goes to CyrillJan or the user's wife's account, judged for any account):
   regional or Spinda: unsure (by hand) > GuaranteedLucky > Old > GIV (medal) > 2XL > Reroll > GIV > xxs > XLX >
-  GIV (evolved, 10/12 km egg family, Smeargle, gym defender line) > GIV (trade evolution) > GIV (far) > Transfer
-  (Reroll: the best mega of a type, DialgaDex #1 vs some boss, Master League top 20. GIV: DialgaDex top 6 vs some boss, or it can
-  Dynamax. A gym defender's line is a GIV (evolved) one: after 2XL and XLX. XLX at level 26+ both ways: giver_species())
+  GIV (evolved, 10/12 km egg family, Smeargle, gym defender line, can Dynamax) > GIV (trade evolution) > GIV (far) > Transfer
+  (Reroll: the best mega of a type, DialgaDex #1 vs some boss, Master League top 20. GIV: DialgaDex top 6 vs some boss. A gym
+  defender's line, and one that can Dynamax, are GIV (evolved) ones: after 2XL and XLX. XLX at level 26+ both ways: giver_species())
 Before all of them: a special trade (trades.py's legendary rules, else unsure), a traded one (Transfer), an untraded
 shadow, costume or background one (odd_one: the user's rules for each; a shadow's Transfer becomes GuaranteedLucky or
 Old when its catch date fits, no purify: shadow_transfer), and a lucky one, traded or not (lucky()).
@@ -314,7 +314,7 @@ def usual(f, t, today=None):
         return tag("GIV", why=t["evolved"][sid])
     if sid in t["hard"]:  # (HashTagAJay's side only: a 10 or 12 km egg's family, Smeargle, a gym defender's line)
         return tag("GIV", why=t["hard"][sid])
-    if f.dynamax and to == TAKER:  # (HashTagAJay's side: every species that can Dynamax is in its GIV list)
+    if f.dynamax and to == TAKER:  # (HashTagAJay's side: every species that can Dynamax is in its hard list)
         return tag("GIV", why="untraded Dynamax")
     if to == TAKER and sid in t["giv_for_taker"]:
         return tag("GIV", why=f"{sid}: wanted by {TAKER}")
@@ -331,9 +331,10 @@ def usual(f, t, today=None):
 def two_xl(f, t, sid):
     """2XL (a Friendship Friday trade: a sure 2 Candy XL) when this account has under XL_CAP Candy XL of the family.
     The same rule costume or not (the user, 2026-11-02). On CyrillJan only a raid attacker's line gets it: those need
-    XL for their top levels. Never an xxs one (an XXL one never gets here). -> Verdict, or None for the next rule"""
+    XL for their top levels, and a Dynamax one (Max Moves cost Candy XL: 2XL, then XLX, then GIV, the user 2026-11-16).
+    Never an xxs one (an XXL one never gets here). -> Verdict, or None for the next rule"""
     raid = t["raid_self"] if dead_end(f, sid) else t["raid"]
-    if f.size in ("xxl", "xxs") or (f.account == GIVER and sid not in raid):
+    if f.size in ("xxl", "xxs") or (f.account == GIVER and sid not in raid and not f.dynamax):
         return None
     if f.candy_xl is None:
         return unsure("Candy XL not read")

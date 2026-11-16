@@ -28,7 +28,8 @@ beside it: that number is how many berries the Pokémon got since it went into t
 bag counts come from the berry menu. Log in runs/<time>-<phone>/log.txt.
 
 At the end of a run that wasn't stopped, it tells the shared timer (skills/shared/timer.py) whether any gym is left
-to feed: "on" (a gym of yours that isn't gold: fed, full, or a raid on: next run in 30-32 min) or "off" (every
+to feed, on the timer of the phone it ran on (gymfeed-pixel or gymfeed-iphone): "on" (a gym of yours that isn't
+gold: fed, full, or a raid on: next run in 30-32 min) or "off" (every
 badge gold, or none of yours in a gym). A gym that didn't open leaves the timer as it is.
 
 A run that hit --limit or ran out of spare berries also says "on". The timer only turns back on through a run that
@@ -866,7 +867,7 @@ def main():
         session.main(script, a.limit)
     finally:  # after the phone is closed
         if feedable is not None:
-            timer.gymfeed(feedable)
+            timer.gymfeed(feedable, PHONE)
 
 
 if __name__ == "__main__":

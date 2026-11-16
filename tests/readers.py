@@ -486,6 +486,11 @@ CANDY_ROWS = {  # the detail page's candy rows, at the Pixel's heights (a Dratin
     "energy number missing": _DUST + [
         (0.645, 0.649, 0.123, 0.02, "2,814"), (0.596, 0.674, 0.232, 0.013, "DRATINI CANDY"),
         (0.576, 0.751, 0.266, 0.013, "DRAGONITE MEGA"), (0.65, 0.766, 0.118, 0.012, "ENERGY")],
+    "primal": _DUST + [
+        (0.645, 0.649, 0.123, 0.02, "300"), (0.596, 0.674, 0.232, 0.013, "KYOGRE CANDY"),
+        (0.246, 0.724, 0.084, 0.02, "20"), (0.158, 0.751, 0.271, 0.013, "KYOGRE CANDY XL"),
+        (0.665, 0.724, 0.084, 0.02, "400"), (0.576, 0.751, 0.266, 0.013, "KYOGRE PRIMAL"),
+        (0.65, 0.766, 0.118, 0.012, "ENERGY")],
 }
 
 

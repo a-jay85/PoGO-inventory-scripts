@@ -171,7 +171,7 @@ def mega_energy(texts):
     -> {"DRAGONITE": 359, "CHARIZARD X": 120}. A label whose number doesn't read is left out"""
     out = {}
     for lab in texts:
-        m = re.fullmatch(r"(.+?)\s+MEGA(?:\s+ENERGY)?(?:\s+([XY]))?", ui.norm(lab[4]))
+        m = re.fullmatch(r"(.+?)\s+(?:MEGA|PRIMAL)(?:\s+ENERGY)?(?:\s+([XY]))?", ui.norm(lab[4]))
         if not m or re.search(r"\d", m.group(1)):
             continue
         name, form = m.group(1).strip(), m.group(2)

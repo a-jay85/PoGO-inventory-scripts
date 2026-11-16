@@ -3,7 +3,8 @@
   "energy number missing": "DRATINI",
   "mega one line, X form": "CHARMANDER",
   "mega wrapped": "DRATINI",
-  "no mega": "WEEDLE"
+  "no mega": "WEEDLE",
+  "primal": "KYOGRE"
  },
  "base.row_name": {
   "Evo": "EVO",
@@ -1335,7 +1336,8 @@
   "energy number missing": null,
   "mega one line, X form": 12,
   "mega wrapped": 539,
-  "no mega": 3
+  "no mega": 3,
+  "primal": 20
  },
  "pagefacts.caught_read": {
   "a drag short, date on screen": true,
@@ -1357,7 +1359,10 @@
   "mega wrapped": {
    "DRAGONITE": 359
   },
-  "no mega": {}
+  "no mega": {},
+  "primal": {
+   "KYOGRE": 400
+  }
  },
  "pages.trade_request": {
   "local request": "TrainerOne",
@@ -4594,6 +4599,10 @@
   "no mega": [
    123456,
    47
+  ],
+  "primal": [
+   123456,
+   300
   ]
  },
  "trade.in_bar android": {

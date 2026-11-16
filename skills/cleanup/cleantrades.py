@@ -5,7 +5,6 @@
   caffeinate -dimsu python3 cleantrades.py [--limit N]    the iPhone, through iPhone Mirroring
   POGO_PHONE=android caffeinate -dimsu python3 cleantrades.py --look    only step 2, and it only reads: CANCEL every time
   POGO_PHONE=android caffeinate -dimsu python3 cleantrades.py evo       steps 1 and 3
-  POGO_PHONE=android caffeinate -dimsu python3 cleantrades.py fix       #Transfer&traded + a trade evolution: Transfer -> Evo
   POGO_PHONE=android caffeinate -dimsu python3 cleantrades.py transfer [--limit N]   step 2 for all of #Transfer
                                           (catches up the ones tagged before every tagger powered them up first)
 
@@ -31,8 +30,8 @@ afterwards the same search must come back empty.
 --limit N powers up at most N Pokémon (the tagging still runs). Log in runs/<time>/.
 Every script that tags Transfer runs step 2 on that pile first (power_pile): tradeable.py too.
 
-Which account: the storage max over the empty search, over 10,000 is HashTagAJay. evo and fix end on HashTagAJay
-(exit 0, a line that says why, nothing tagged): they are for CyrillJan only.
+Which account: the storage max over the empty search, over 10,000 is HashTagAJay. evo ends on HashTagAJay
+(exit 0, a line that says why, nothing tagged): it is for CyrillJan only.
 --limit reached: the rest weren't checked, so Clean Trades isn't tagged Transfer that run. A "count..." term eats any
 text after it, so the XL part always goes last. On the Pixel, HashTagAJay's PvpC1 search fills the bar.
 iPhone: tagging ran 2026-10-19, the power-up walk and swipe haven't yet. The first time, run --look, then --limit 1.
@@ -145,8 +144,8 @@ def script(a):
     search.to_search_list()
     who = None if LOOK else home.trainer()
     search.to_search_list()  # (trainer() can end on the map)
-    if who != EVO_FOR and ("evo" in a or "fix" in a):  # an end, not a stop: there is nothing to heal
-        log(f"cleantrades.py {'evo' if 'evo' in a else 'fix'} is not for {who}'s account: only {EVO_FOR} wants the "
+    if who != EVO_FOR and "evo" in a:  # an end, not a stop: there is nothing to heal
+        log(f"cleantrades.py evo is not for {who}'s account: only {EVO_FOR} wants the "
             f"free evolutions' XP. On {who}, plain cleantrades.py tags them Transfer with the rest. Nothing done")
         return
     if LOOK:
@@ -159,9 +158,6 @@ def script(a):
         return
     if "transfer" in a:  # every Transfer one: the cheap jump to an XL tier before it's transferred
         power_pile(f"#{TRANSFER}", limit)
-        return
-    if "fix" in a:  # Transfer tags given before the Evo step: traded trade evolutions go Transfer -> Evo
-        tag_pile(TRANSFER, EVO, off=[TRANSFER], query=f"#{TRANSFER}&traded&!xxl&{TRADE_EVOS}")
         return
     for name, tag in TAGGING:  # first: Clean Trades (!#) must only see what's left untagged after these
         tag_pile(name, tag)
@@ -185,7 +181,7 @@ def script(a):
 
 if __name__ == "__main__":
     a = sys.argv[1:]
-    if any(x not in ("--limit", "--look", "evo", "fix", "transfer") and not x.isdigit() for x in a):
+    if any(x not in ("--limit", "--look", "evo", "transfer") and not x.isdigit() for x in a):
         sys.exit(__doc__)
     LOOK = "--look" in a
     powerup.LOOK = LOOK  # power_up reads it there

@@ -25,9 +25,12 @@ TABLES = {  # made up
                                  "rhyhorn": ("Reroll", "#1 raid attacker"), "geodude": ("GIV", "PvP"),
                                  "magikarp": ("GIV", "★100% hole")},
             "lucky": {"nidoran_female": "female"}, "evolved": {"golem": "stage 2"}, "no_dmax": set(),
-            "xl_full": set(), "giv_for_taker": {"tandemaus"}, "raid": {"rhyhorn", "rhydon"}, "raid_self": {"rhydon"}},
-    GIVER: {"to": GIVER, "why": {"rhyhorn": ("GIV", "top 6 vs a boss")}, "lucky": {}, "evolved": {"golem": "stage 2"},
-            "no_dmax": {"wooloo"}, "xl_full": set(), "giv_for_taker": {"tandemaus"}, "raid": {"rhyhorn", "rhydon"}, "raid_self": {"rhydon"}},
+            "xl_full": set(), "giv_for_taker": {"tandemaus"}, "raid": {"rhyhorn", "rhydon"}, "raid_self": {"rhydon"},
+            "hard": {}, "by_hand": set()},
+    GIVER: {"to": GIVER, "why": {"rhyhorn": ("GIV", "top 6 vs a boss"), "wooloo": ("GIV", "can Dynamax"),
+                                 "bulbasaur": ("Reroll", "Venusaur can mega")}, "lucky": {}, "evolved": {"golem": "stage 2"},
+            "no_dmax": set(), "xl_full": set(), "giv_for_taker": {"tandemaus"}, "raid": {"rhyhorn", "rhydon"}, "raid_self": {"rhydon"},
+            "hard": {"gible": "10 km egg (Gible)", "smeargle": "hard to farm"}, "by_hand": {"spinda", "tauros"}},
 }
 
 
@@ -219,6 +222,22 @@ CASES = {
     "H Karrablast, trade evolution: GIV": plain(account=TAKER, sids=["karrablast"]),
     "Roggenrola: GIV": plain(sids=["roggenrola"]),
     "Boldore, trade evolution: Transfer": plain(sids=["boldore"]),
+    # HashTagAJay's Leftovers, judged for any account (the user, 2026-11-16)
+    "H XLX at 26": plain(account=TAKER, levels=[26]),
+    "H level 25 or 26": plain(account=TAKER, levels=[25.5, 26]),
+    "H Reroll, a mega line": plain(account=TAKER, sids=["bulbasaur"]),
+    "H 2XL beats Reroll": plain(account=TAKER, sids=["bulbasaur"], candy_xl=120),
+    "H Old beats Reroll": plain(account=TAKER, sids=["bulbasaur"], caught=OLD),
+    "H Reroll beats XLX": plain(account=TAKER, sids=["bulbasaur"], levels=[30]),
+    "H can Dynamax: GIV": plain(account=TAKER, sids=["wooloo"]),
+    "H 10 km egg family: GIV": plain(account=TAKER, sids=["gible"]),
+    "H XLX beats the egg GIV": plain(account=TAKER, sids=["gible"], levels=[26]),
+    "H Smeargle: GIV": plain(account=TAKER, sids=["smeargle"]),
+    "H Spinda: by hand": plain(account=TAKER, sids=["spinda"]),
+    "H old regional: by hand": plain(account=TAKER, sids=["tauros"], caught=OLD),
+    "H 2016 regional: by hand": plain(account=TAKER, sids=["tauros"], caught=LUCKY),
+    "H traded regional: Transfer": plain(account=TAKER, sids=["tauros"], traded=True),
+    "regional to HashTagAJay: as before": plain(sids=["tauros"]),
 }
 
 

@@ -36,6 +36,7 @@ STEPS = {
     "sizes":       ("cleanup/sizes.py", set(), set()),
     "dbsweep":     ("cleanup/dbsweep.py", set(), set()),
     "tradeable":   ("cleanup/tradeable.py", {"refresh", "dynamax", "read", "plan", "tag", "door"}, {"refresh", "plan"}),  # door: the default
+    "leftovers":   ("cleanup/leftovers.py", set(), set()),
     "dex":         ("dex/dex.py", {"lucky", "100", "xxs", "look", "evolve"}, set()),
     "luckydex":    ("dex/luckydex.py", {"check"}, set()),
     "sizerecords": ("dex/sizerecords.py", {"read", "compare"}, {"compare"}),

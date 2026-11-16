@@ -2,8 +2,10 @@
 """Tag CyrillJan's Tradeable saved search by what a trade to HashTagAJay is worth, and power them up for Candy XL.
 
   python3 tradeable.py refresh            the Mac: PvPoke's rankings -> pvp-giv-<date>.json, PokeMiners' game master
-                                          -> giv-evolved-<date>.json and dynamax-<date>.json
-  POGO_PHONE=android caffeinate -dimsu python3 tradeable.py dynamax   CyrillJan signed in: only searches, for verdict.py
+                                          -> giv-evolved-<date>.json and dynamax-<date>.json, LeekDuck's egg pools
+                                          -> eggs-<date>.json (adds to the last one: a species stays once seen)
+  POGO_PHONE=android caffeinate -dimsu python3 tradeable.py dynamax   CyrillJan signed in: only searches (no rule
+                                          reads its count since 2026-11-16)
   POGO_PHONE=android caffeinate -dimsu python3 tradeable.py read [searches.json]   HashTagAJay signed in: only searches
   POGO_PHONE=android caffeinate -dimsu python3 tradeable.py [door] [--limit N]  CyrillJan signed in: the default.
                                           The tag searches that need no page read first (2XL, GIV ...), then
@@ -13,10 +15,9 @@
   python3 tradeable.py plan               the Mac, optional: a look at the searches tag would run (runs/<time>-plan/)
 
 The species lists and the order here are also ../shared/verdict.py's: /ivc and /pvpc judge a Pokémon that
-isn't a keeper with them (the door, no Nope). giver_species() is CyrillJan's side: only good raid attackers (GIV: gets
-into one of CyrillJan's /roster teams, or within GIVER_MARGIN of its #6, until CyrillJan has 6 good copies, 1 for a mega-only one, and a Dynamax one if it can; and an
-untraded Dynamax one of a family CyrillJan has none of), XLX (5,000 Stardust+, level 29+) and GIV (evolved). It reads
-CyrillJan's /roster count and dynamax. MEDALS (a tiny Rattata, a big Magikarp: GIV for any account's medals) are the
+isn't a keeper with them (the door, no Nope). giver_species() is the other side, HashTagAJay's pile (leftovers.py),
+judged for any account: Reroll, GIV, XLX (level 26+), GIV (evolved, 10/12 km eggs, Smeargle); regionals and Spinda
+by hand (its docstring has the rules). MEDALS (a tiny Rattata, a big Magikarp: GIV for any account's medals) are the
 door's too, on HashTagAJay.
 
 One tag each, the first that fits:
@@ -78,7 +79,7 @@ import sizes
 from taps import Pass, owned, details
 from ivc import GYM_DEFENDERS
 from rules import (GIVER, TAKER, TAGS, XLX, TRANSFER, LUCKY_CANDY, XL_CAP, XLX_LEVEL, GIV_FOR_TAKER, XLX_FOR,
-    PVE_TOP, GIVER_MARGIN, PVP_FLOOR, HARD_CANDY, BABIES, SPECIAL, NO_SPECIAL, DYNAMAX, UNDER_360_XL, TAG_SKIP, GUARANTEED,
+    PVE_TOP, REROLL_PVE, REROLL_ML, HARD_EGGS, HARD_TO_FARM, BY_HAND, PVP_FLOOR, HARD_CANDY, BABIES, SPECIAL, NO_SPECIAL, DYNAMAX, UNDER_360_XL, TAG_SKIP, GUARANTEED,
     LUCKY_YEAR, OLD, OLD_AGE)
 
 if ui.ANDROID:  # a look's shrink, save and OCR take 0.3-0.6 s, so at 0.3 most head-start shots were thrown away. The
@@ -88,6 +89,7 @@ SHORTCUT = "Tradeable"
 MAX_SUFFIX = 300  # characters added to the saved search: it's already in the bar
 PVP_URL = "https://raw.githubusercontent.com/pvpoke/pvpoke/master/src/data/rankings/all/overall/rankings-%d.json"
 PM_URL = "https://raw.githubusercontent.com/PokeMiners/game_masters/master/latest/latest.json"
+EGGS_URL = "https://raw.githubusercontent.com/bigfoott/ScrapedDuck/data/eggs.min.json"
 
 
 # ---------- refresh: PvPoke ----------
@@ -117,6 +119,28 @@ def cmd_refresh():
     out = os.path.join(HERE, f"dynamax-{time.strftime('%Y%m%d')}.json")
     json.dump(can, open(out, "w"))
     print(f"{len(can)} dex numbers can Dynamax -> {out}")
+    refresh_eggs()
+
+
+def refresh_eggs():
+    """LeekDuck's egg pools (ScrapedDuck) -> eggs-<date>.json, {"10 km": [sid], ...}: HARD_EGGS' species, added to
+    the newest copy's, so one that leaves the pool stays hard to get"""
+    import urllib.request
+    old_f = base.newest(HERE, "eggs-[0-9]*[0-9].json")
+    out = json.load(open(old_f)) if old_f else {}
+    by_name = {v["speciesName"].lower(): s for s, v in pvp.SPECIES.items()}
+    for e in json.load(urllib.request.urlopen(EGGS_URL)):
+        if e["eggType"] not in HARD_EGGS:
+            continue
+        sid = by_name.get(e["name"].lower())
+        if not sid:
+            print(f"eggs: no {e['name']} in the gamemaster")
+            continue
+        if sid not in out.setdefault(e["eggType"], []):
+            out[e["eggType"]].append(sid)
+    f = os.path.join(HERE, f"eggs-{time.strftime('%Y%m%d')}.json")
+    json.dump({k: sorted(v) for k, v in sorted(out.items())}, open(f, "w"), indent=0)
+    print(f"{sum(map(len, out.values()))} hard egg species -> {f}")
 
 
 def dynamax_species(gm):
@@ -299,9 +323,9 @@ def newest_for(pattern, who, key="trainer", default=None):
     return None
 
 
-def raid_tops(m):
+def raid_tops(m, n=PVE_TOP):
     """-> ({sid: [bosses]}, {sid in some top as itself}, roster.Model): each tradeable non-special species in DialgaDex's
-    top PVE_TOP against some raid boss, as itself (not through what it evolves into). A mega counts as its species"""
+    top n against some raid boss, as itself (not through what it evolves into). A mega counts as its species"""
     sys.path.append(os.path.join(HERE, "..", "roster"))
     import roster
     data_f = base.newest(HERE, os.path.join("..", "roster", "dialgadex-counters-[0-9]*[0-9].json"))
@@ -319,7 +343,7 @@ def raid_tops(m):
                 top.append(s)
                 if not roster.is_mega(a):
                     plain.add(s)  # in some top as itself: a mega-only one is only ever in as its mega
-            if len(top) >= PVE_TOP:
+            if len(top) >= n:
                 break
         boss = b["name"] + ("" if b["form"] == "Normal" else f" ({b['form']})")
         for s in top:
@@ -327,11 +351,11 @@ def raid_tops(m):
     return tops, plain, rm
 
 
-def pve(m, enough=lambda s, mega_only: False):
-    """-> ({sid: why}, {sid: why dropped}): a traded copy (never shadow) would be in DialgaDex's top PVE_TOP against
+def pve(m, enough=lambda s, mega_only: False, n=PVE_TOP):
+    """-> ({sid: why}, {sid: why dropped}): a traded copy (never shadow) would be in DialgaDex's top n against
     some raid boss, or evolve into one that is. Special trades left out of the top: they're never tagged. A mega counts
     as its species. enough(sid, only in as a mega) -> why the taker needs no more of it, or None"""
-    tops, plain, rm = raid_tops(m)
+    tops, plain, rm = raid_tops(m, n)
     out, dropped = {}, {}
     for s, bs in tops.items():
         if s not in m.by:
@@ -341,36 +365,9 @@ def pve(m, enough=lambda s, mega_only: False):
             continue
         for x in [s, *rm.ancestors(s)]:
             out.setdefault(x, []).extend(bs)
-    why = {s: "top %d vs %s" % (PVE_TOP, ", ".join(bs[:3]) + (f" +{len(bs) - 3}" if len(bs) > 3 else ""))
+    why = {s: "top %d vs %s" % (n, ", ".join(bs[:3]) + (f" +{len(bs) - 3}" if len(bs) > 3 else ""))
            for s, bs in out.items() if s in m.by}
     return why, dropped
-
-
-def giver_pve(m, counts, enough):
-    """-> ({sid: why}, {sid: why dropped}) for CyrillJan's side: a traded copy (never shadow) would get into one of
-    CyrillJan's /roster teams, or come within GIVER_MARGIN of the #6 (roster.Model.worth), or evolves into one that
-    would; and pve() picks it too. Outclassed further on every boss: not a raid GIV. enough() as in pve()"""
-    sys.path.append(os.path.join(HERE, "..", "roster"))
-    import roster
-    data_f = base.newest(HERE, os.path.join("..", "roster", "dialgadex-counters-[0-9]*[0-9].json"))
-    if not data_f:
-        sys.exit("no DialgaDex counters yet: node ../roster/pull.mjs")
-    rm = roster.Model(json.load(open(data_f)))
-    plain = {rm.sid[i] for b in rm.bosses for i, *_ in b["list"] if rm.sid[i] and not roster.is_mega(rm.A[i])}
-    out, dropped = {}, {}
-    for s, hits in rm.worth(counts, GIVER_MARGIN).items():
-        if s not in m.by or rm.special(s) or not m.tradeable(s):
-            continue
-        if why := enough(s, s not in plain):
-            dropped[s] = why
-            continue
-        for x in [s, *rm.ancestors(s)]:
-            out.setdefault(x, []).extend(hits)
-    fmt = lambda hs: ", ".join(f"{b} ({w})" for b, w in hs[:3]) + (f" +{len(hs) - 3}" if len(hs) > 3 else "")
-    top, top_dropped = pve(m, enough)  # and DialgaDex's top PVE_TOP still: a weak #6 of CyrillJan's (an easy boss)
-    # isn't a reason on its own, a better attacker would fill it
-    why = {s: f"{GIVER}'s raid teams: {fmt(hs)}" for s, hs in out.items() if s in m.by and s in top}
-    return why, {s: w for s, w in dropped.items() if s in top_dropped}
 
 
 def queries(m, sids, gender=None, room=40):
@@ -529,44 +526,54 @@ def cmd_dynamax():
 
 
 def giver_species(m):
-    """HashTagAJay's pile, judged for CyrillJan -> {"why": {sid: why}, "dropped": {sid: why}, "evolved": {sid: why},
-    "no_dmax": [sid], "xl_full": {dex}, "from": {what: file}}. Read by ../shared/verdict.py"""
-    sys.path.append(os.path.join(HERE, "..", "roster"))
-    import roster
-    can = can_dynamax()
+    """HashTagAJay's pile (Leftovers), judged for CyrillJan or the user's wife's account: what's good for any account
+    (the user, 2026-11-16) -> {"why": {sid: (tag, why)}, "evolved": {sid: why}, "hard": {sid: why}, "by_hand": {sid},
+    "xl_full": {dex}, "from": {what: file}}. Read by ../shared/verdict.py
+      Reroll: a new 100 is worth having: a line with a mega, DialgaDex's top REROLL_PVE against some raid boss, or
+        PvPoke's Master League top REROLL_ML (each with the earlier stages that evolve into it)
+      GIV: more Candy XL is worth having: DialgaDex's top PVE_TOP against some raid boss (more than one spot in a
+        team), or it can Dynamax (Max Moves cost Candy and Candy XL)
+      hard (GIV, after XLX): the family of a 10 or 12 km egg hatch (refresh's eggs-<date>.json), and Smeargle
+      by_hand: likely special trades the user tags by hand: regionals (PvPoke's tag + rules.BY_HAND) and Spinda
+    (An Adventure Effect move would be a Reroll, but only legendaries and Ultra Beasts have one: special trades)"""
     read_f = newest_for(os.path.join("*-read", "read.json"), GIVER)  # (only its 360+ XL families: none without)
     xl_full = json.load(open(read_f))["xl_full"] if read_f else []
-    counts_f = newest_for(os.path.join("..", "..", "roster", "runs", "*-count", "counts.json"), GIVER, default=TAKER)
-    dmax_f = newest_for(os.path.join("*-dynamax", "dynamax.json"), GIVER)
-    good = {}
-    for (s, _, shadow), v in (roster.load_counts(counts_f)[0] if counts_f else {}).items():
-        if not shadow:
-            good[s] = good.get(s, 0) + v
-    fam_of = {d: lo for lo, ds in families_by_dex(m) for d in ds}
-    dmax = {int(lo): v for lo, v in json.load(open(dmax_f))["families"].items()} if dmax_f else {}
-    has_dmax = lambda s: dmax.get(fam_of.get(m.dex(s)), 0) > 0
-
-    def enough(s, mega_only):
-        """CyrillJan has PVE_TOP good copies (1 for one that's only in as a mega: one mega per team), and a Dynamax
-        one of the family if it can Dynamax. (Not counted is 0: /roster stops counting once a team is full)"""
-        need = 1 if mega_only else PVE_TOP
-        if good.get(s, 0) >= need and (m.dex(s) not in can or has_dmax(s)):
-            return f"{GIVER} has {good[s]} good" + (", and a Dynamax one" if m.dex(s) in can else "")
-        return None
-
+    pvp_f = base.newest(HERE, "pvp-giv-*.json")
     hard_f = base.newest(HERE, "giv-evolved-*.json")
-    if not hard_f:
-        raise NoData("no giv-evolved yet: python3 tradeable.py refresh")
-    if not counts_f:
-        raise NoData(f"no {GIVER} /roster count yet: /roster step 2 with {GIVER} signed in")
-    picked, dropped = giver_pve(m, roster.load_counts(counts_f)[0], enough)
-    ok =[s for s in m.by if m.tradeable(s) and not m.special(s)]
-    why = {s: r for s, r in picked.items() if s in ok}
-    evolved = evolved_giv(m, ok, why, json.load(open(hard_f)))
-    no_dmax = [s for s in ok if m.dex(s) in can and not has_dmax(s)]
-    return {"why": why, "dropped": dropped, "evolved": evolved, "no_dmax": no_dmax,
+    eggs_f = base.newest(HERE, "eggs-[0-9]*[0-9].json")
+    if lacking := [n for n, f in [("pvp-giv", pvp_f), ("giv-evolved", hard_f), ("eggs", eggs_f)] if not f]:
+        raise NoData(f"no {', '.join(lacking)} yet: python3 tradeable.py refresh")
+    ok = {s for s in m.by if m.tradeable(s) and not m.special(s)}
+    why = {}
+
+    def add(tag, picked):
+        """picked: {sid: why} -> each one and the earlier stages that evolve into it, unless an earlier rule has it"""
+        for s, r in picked.items():
+            for x in [s, *dex.ancestors(s, m.parent)]:
+                if x in ok:
+                    why.setdefault(x, (tag, r))
+    add("Reroll", {s: f"{m.by[s]['speciesName']} can mega" for s in m.by if any(
+        re.fullmatch(rf"{re.escape(s)}_mega(_[xy])?", x) for x in pvp.SPECIES)})
+    add("Reroll", pve(m, n=REROLL_PVE)[0])  # (pve's list already has the earlier stages)
+    ml = {s: int(r.split("#")[1]) for s, rs in json.load(open(pvp_f)).items() for r in rs if r.startswith("10000:")}
+    add("Reroll", {s: f"Master League #{r}" for s, r in ml.items() if r <= REROLL_ML and s in m.by})
+    add("GIV", pve(m)[0])
+    can = can_dynamax()
+    add("GIV", {s: "can Dynamax: Max Moves cost Candy XL" for s in ok if m.dex(s) in can})
+    eggs = json.load(open(eggs_f))
+    hard = {}
+    for km in HARD_EGGS:
+        for s in eggs.get(km, []):
+            hard.update({x: f"{km} egg ({m.by[s]['speciesName']})" for x in m.family(s) if x in ok and x not in hard})
+    for s in HARD_TO_FARM:
+        hard.update({x: "hard to farm" for x in m.family(s) if x in ok and x not in hard})
+    by_hand = set()
+    for s in m.by:
+        if "regional" in (m.by[s].get("tags") or []) or s in BY_HAND:
+            by_hand |= {s, *(x for x in dex.ancestors(s, m.parent) if m.dex(x) not in BABIES)}
+    return {"why": why, "evolved": evolved_giv(m, ok, why, json.load(open(hard_f))), "hard": hard, "by_hand": by_hand,
             "xl_full": {m.dex(x) for s in m.by if m.dex(s) in xl_full for x in m.family(s)},
-            "from": {"read": read_f, "counts": counts_f, "dynamax": dmax_f, "evolved": hard_f}}
+            "from": {"read": read_f, "pvp": pvp_f, "evolved": hard_f, "eggs": eggs_f}}
 
 
 # ---------- tag (CyrillJan's Tradeable) ----------

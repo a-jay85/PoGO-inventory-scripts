@@ -7,6 +7,12 @@ home.py tells it the account, and a Pokémon tagged Transfer is deleted.
   python3 skills/shared/pokedb.py show [account]   every record, newest first
   python3 skills/shared/pokedb.py stale [days]     records no script has seen in that many days (default 30)
 
+candy holds each family's Candy and Candy XL count, and mega_energy each species' Mega Energy, per account. Any
+steady detail-page read fills them (base.remember), from the same capture: no extra look. They are kept apart from
+the Pokémon: a family's count stays after its last Pokémon is transferred. Each count keeps when it was read.
+
+  python3 skills/shared/pokedb.py candy [account]   every family's Candy, Candy XL and Mega Energy
+
 dex_records holds each species' MY RECORDS box from its Pokédex page (lightest, heaviest, shortest, tallest), written by
 ../dex/sizerecords.py.
 
@@ -90,6 +96,13 @@ def connect():
             account TEXT NOT NULL, dex INTEGER NOT NULL, name TEXT,
             kg_min REAL, kg_max REAL, m_min REAL, m_max REAL,
             read_at TEXT NOT NULL, PRIMARY KEY (account, dex));
+        CREATE TABLE IF NOT EXISTS candy (
+            account TEXT NOT NULL, family TEXT NOT NULL,
+            candy INTEGER, candy_at TEXT, xl INTEGER, xl_at TEXT,
+            PRIMARY KEY (account, family));
+        CREATE TABLE IF NOT EXISTS mega_energy (
+            account TEXT NOT NULL, species TEXT NOT NULL, energy INTEGER, read_at TEXT NOT NULL,
+            PRIMARY KEY (account, species));
     """)
     c.execute("INSERT OR IGNORE INTO meta VALUES ('schema_version', ?)", (str(SCHEMA),))
     _conn[0] = c
@@ -359,6 +372,48 @@ def find(acct=None, **where):
     return [dict(r) for r in c.execute(q, (acct, *(where[k] for k in cols)))]
 
 
+# ---------- Candy, Candy XL and Mega Energy (kept after the Pokémon go) ----------
+
+@_guard
+def counts_seen(family, candy=None, xl=None, energy=None, acct=None):
+    """a page's counts: family as its candy label says it ('DRATINI'), energy {species: n}. A None count leaves
+    the one saved alone (unread is no news); a read count replaces it, the newest read wins"""
+    acct = acct or account()
+    c = connect()
+    if c is None or not acct:
+        return None
+    now = _now()
+    if family and (candy is not None or xl is not None):
+        c.execute("INSERT OR IGNORE INTO candy (account, family) VALUES (?, ?)", (acct, family))
+        if candy is not None:
+            c.execute("UPDATE candy SET candy=?, candy_at=? WHERE account=? AND family=?", (candy, now, acct, family))
+        if xl is not None:
+            c.execute("UPDATE candy SET xl=?, xl_at=? WHERE account=? AND family=?", (xl, now, acct, family))
+    for sp, n in (energy or {}).items():
+        c.execute("INSERT OR REPLACE INTO mega_energy VALUES (?, ?, ?, ?)", (acct, sp, n, now))
+    return True
+
+
+@_guard
+def candies(acct=None):
+    """{family: row} of an account's Candy and Candy XL counts"""
+    c = connect()
+    acct = acct or account()
+    if c is None or not acct:
+        return {}
+    return {r["family"]: dict(r) for r in c.execute("SELECT * FROM candy WHERE account=?", (acct,))}
+
+
+@_guard
+def energies(acct=None):
+    """{species: row} of an account's Mega Energy counts"""
+    c = connect()
+    acct = acct or account()
+    if c is None or not acct:
+        return {}
+    return {r["species"]: dict(r) for r in c.execute("SELECT * FROM mega_energy WHERE account=?", (acct,))}
+
+
 # ---------- the Pokédex's MY RECORDS (../dex/sizerecords.py) ----------
 
 @_guard
@@ -387,6 +442,10 @@ def stats(c):
                           MAX(last_seen) last FROM pokemon GROUP BY account ORDER BY account"""):
         out.append(f"{r['account']}: {r['n']} Pokémon, {r['species']} with species, {r['ivs']} with IVs, "
                    f"{r['caught']} with a caught date, last seen {r['last']}")
+    for r in c.execute("SELECT account, COUNT(*) n FROM candy GROUP BY account ORDER BY account"):
+        out.append(f"{r['account']}: Candy counts for {r['n']} families")
+    for r in c.execute("SELECT account, COUNT(*) n FROM mega_energy GROUP BY account ORDER BY account"):
+        out.append(f"{r['account']}: Mega Energy for {r['n']} species")
     return out or ["no Pokémon yet"]
 
 
@@ -403,6 +462,14 @@ if __name__ == "__main__":
             ivs = f"{r['atk']}/{r['def']}/{r['sta']}" if r["atk"] is not None else "-"
             print(f"{r['account']:12} {r['species'] or '?':16} {r['nickname'] or '':14} CP{r['cp']} {r['hp']}HP "
                   f"{r['kg']}kg {r['m']}m {ivs} {r['tags'] or ''} {r['caught'] or ''} {r['last_seen']}")
+    elif args[0] == "candy":
+        where, arg = (" WHERE account=?", tuple(args[1:2])) if len(args) > 1 else ("", ())
+        q = lambda v: "?" if v is None else v
+        for r in c.execute("SELECT * FROM candy" + where + " ORDER BY account, family", arg):
+            print(f"{r['account']:12} {r['family']:16} Candy {q(r['candy']):>6} ({r['candy_at'] or '-'})  "
+                  f"XL {q(r['xl']):>5} ({r['xl_at'] or '-'})")
+        for r in c.execute("SELECT * FROM mega_energy" + where + " ORDER BY account, species", arg):
+            print(f"{r['account']:12} {r['species']:16} Mega Energy {r['energy']:>6} ({r['read_at']})")
     elif args[0] == "stale":
         days = int(args[1]) if len(args) > 1 else 30
         old = c.execute("""SELECT account, COUNT(*) n, MIN(last_seen) oldest FROM pokemon

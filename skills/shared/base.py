@@ -1189,6 +1189,20 @@ def remember(info, texts):
     except (Skip, StopIteration):
         flags = {}
     pokedb.seen(who(info), info["name"], info["tags"], **flags)
+    remember_counts(texts)
+
+
+def remember_counts(texts, xl=None):
+    """the page's Candy, Candy XL and Mega Energy into the database, kept per family (pokedb.counts_seen). Whatever
+    doesn't read is left as it was. xl: a count already read sharper (the door's close look)"""
+    import taps, pagefacts  # here: taps imports base
+    family = candy(texts)
+    try:
+        have = taps.owned(texts)[1]
+    except Exception:  # (taps.Pass: the row didn't read)
+        have = None
+    xl = pagefacts.candy_xl(texts) if xl is None else xl
+    pokedb.counts_seen(family, candy=have, xl=xl, energy=pagefacts.mega_energy(texts))
 
 
 def short(s):

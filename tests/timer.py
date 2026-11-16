@@ -1,0 +1,110 @@
+#!/usr/bin/env python3
+"""Checks skills/shared/timer.py's tick with no phone: a phone out of reach turns its timers off. A stand-in `adb`
+(says the Pixel is there or not) and `osascript` (no real notice) go first on PATH; the jobs are made-up scripts that
+print a line. Its own timers.json (POGO_TIMER_CONF), so the real one is never touched.
+
+  python3 tests/timer.py
+"""
+import json, os, stat, sys, tempfile, time
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+T = tempfile.mkdtemp(prefix="timer-test-")
+os.environ["POGO_TIMER_CONF"] = T
+BIN = os.path.join(T, "bin")
+os.makedirs(BIN)
+os.environ["PATH"] = BIN + os.pathsep + os.environ["PATH"]
+sys.path.insert(0, os.path.join(ROOT, "skills", "shared"))
+import timer
+
+timer.busy = lambda: None  # (a real script on a real phone mustn't hold up the test)
+
+
+def stub(name, body):
+    path = os.path.join(BIN, name)
+    with open(path, "w") as f:
+        f.write("#!/bin/sh\n" + body + "\n")
+    os.chmod(path, os.stat(path).st_mode | stat.S_IEXEC)
+
+
+stub("osascript", "exit 0")
+
+
+def pixel(there):
+    stub("adb", 'echo device' if there else 'echo "error: no devices/emulators found" >&2; exit 1')
+
+
+def job(name, phone, line):
+    """a made-up job on phone whose run prints line"""
+    path = os.path.join(T, f"{name}.py")
+    with open(path, "w") as f:
+        f.write(f"print({line!r})\n")
+    timer.JOBS[name] = (path, lambda: phone, (15, 15))
+
+
+def fresh(**due):
+    for f in (timer.STATE, timer.AWAY, timer.LOG):
+        if os.path.exists(f):
+            os.remove(f)
+    for name, when in due.items():
+        timer.at(name, when)
+
+
+def log():
+    return open(timer.LOG).read() if os.path.exists(timer.LOG) else ""
+
+
+now = time.time()
+bad = []
+
+
+def check(what, ok):
+    print(("  ok   " if ok else "  WRONG ") + what)
+    if not ok:
+        bad.append(what)
+
+
+timer.JOBS.clear()
+job("pix", "android", "done: 1 thing")
+job("pix2", "android", "done: 1 thing")
+job("ios", "iphone", "16:21:11 STOPPED: iPhone Mirroring can't reach the iPhone: lock the iPhone, leave it near the Mac")
+
+print("Pixel off adb for a minute: skip, timer stays on")
+pixel(False)
+fresh(pix=now - 60)
+timer.tick()
+check("pix still due", "pix" in timer.due())
+check("the skip is in the log", "skipped: Pixel not connected over adb" in log())
+
+print("Pixel off adb for 5 min in a row: every Pixel timer off")
+fresh(pix=now - 600, pix2=now + 600, ios=now + 600)
+json.dump({"android": int(now - 6 * 60)}, open(timer.AWAY, "w"))
+timer.tick()
+check("pix off", "pix" not in timer.due())
+check("pix2 off (same phone, not due yet)", "pix2" not in timer.due())
+check("ios still on (other phone)", "ios" in timer.due())
+check("the off line says how to turn it back on", "off: the Pixel was off adb" in log() and "timer.py in" in log())
+check("the miss count starts again", "android" not in json.load(open(timer.AWAY)))
+
+print("Pixel back on adb after a short miss: runs, miss count cleared")
+pixel(True)
+fresh(pix=now - 60)
+json.dump({"android": int(now - 2 * 60)}, open(timer.AWAY, "w"))
+timer.tick()
+check("pix ran", "pix: start" in log())
+check("pix due again", "pix" in timer.due())
+check("miss count cleared", "android" not in json.load(open(timer.AWAY)))
+
+print("iPhone run stops on can't reach the iPhone: iPhone timers off")
+fresh(ios=now - 60, pix=now + 600)
+timer.tick()
+check("ios off", "ios" not in timer.due())
+check("pix still on (other phone)", "pix" in timer.due())
+check("the off line", "ios off: a ios run couldn't reach the iPhone" in log())
+
+print("a Pixel run that ends fine: next run as before")
+fresh(pix=now - 60)
+timer.tick()
+check("pix due in 15 min", abs(timer.due().get("pix", 0) - (time.time() + 15 * 60)) < 30)
+
+print(f"\n{'all timer cases right' if not bad else f'{len(bad)} WRONG'} ({T})")
+sys.exit(1 if bad else 0)

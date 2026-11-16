@@ -5,7 +5,13 @@ a launchd job runs `timer.py tick` every minute, and tick runs a script whose ti
 - ~/.config/pogo/timers.json holds {script: when it's due (epoch seconds)}. A script not in it is off.
 - A script sets its own next run while it runs: at(name, epoch), later(name, minutes) or off(name).
   One that didn't (it stopped, or had nothing to say) gets its job's AFTER minutes from when it ended.
-- tick skips, and tries again next minute, while any other phone script is running or the Pixel isn't on adb.
+- tick skips, and tries again next minute, while any other phone script is running.
+- A phone out of reach turns its timers off, so a run never starts by itself the moment the phone is back in range
+  (coming home with it, 2026-11-15). The Pixel: off once it has been off adb for 5 min in a row while a job is due
+  (a shorter miss is a Wi-Fi blip: adbwifi.py reconnects within a minute). The iPhone: off when a run stops on
+  "can't reach the iPhone" (no cheap look first: that takes opening iPhone Mirroring). A Pixel run that stops on
+  "phone not connected" goes off too. Back on: run the script once by hand, or `timer.py in <name> 0`.
+  Each off goes to the log and a macOS notice.
   One script per tick. Its STOPPED / CRASHED / done lines go to ~/.config/pogo/timer.log.
 - gymfeed's phone: ~/.config/pogo/gymfeed_phone ("iphone" or "android"; no file: android). hatch, goplus: the Pixel.
   An iPhone run goes through iPhone Mirroring, so the Mac must stay awake and unlocked for it.
@@ -26,8 +32,11 @@ import fcntl, json, os, random, re, subprocess, sys, time
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 SKILLS = os.path.dirname(HERE)
-CONF = os.path.expanduser("~/.config/pogo")
+CONF = os.path.expanduser(os.environ.get("POGO_TIMER_CONF", "~/.config/pogo"))  # (the env: a test's own folder)
 STATE = os.path.join(CONF, "timers.json")
+AWAY = os.path.join(CONF, "timer_away.json")  # {phone: when it was first missed}. Not in timers.json: status lists that
+GRACE = 5  # minutes off adb in a row before the Pixel's timers go off
+UNREACHED = re.compile(r"can't reach the iPhone|phone not connected")  # a run's stop that means the phone is away
 LOG = os.path.join(CONF, "timer.log")
 LABEL = "pogo.timer"
 PLIST = os.path.expanduser(f"~/Library/LaunchAgents/{LABEL}.plist")
@@ -156,6 +165,41 @@ def skip(why):
         note(f"skipped: {why}")
 
 
+# ---------- a phone out of reach ----------
+
+def missed(phone, gone):
+    """gone: this tick didn't reach the phone. -> minutes it has been out of reach in a row (0 when reached)"""
+    try:
+        away = json.load(open(AWAY))
+    except (OSError, ValueError):
+        away = {}
+    if not gone:
+        if away.pop(phone, None) is not None:
+            json.dump(away, open(AWAY, "w"))
+        return 0
+    if phone not in away:
+        away[phone] = int(time.time())
+        json.dump(away, open(AWAY, "w"))
+    return (time.time() - away[phone]) / 60
+
+
+def notify(text):
+    subprocess.run(["osascript", "-e", f'display notification {json.dumps(text)} with title "pogo timer"'],
+                   capture_output=True)
+
+
+def away_off(phone, why):
+    """every timer on this phone off, with one log line and a notice that say how to turn them back on"""
+    names = [n for n in due() if n in JOBS and JOBS[n][1]() == phone]
+    for n in names:
+        off(n)
+    missed(phone, False)  # the next miss counts from 0 again
+    if names:
+        text = f"{', '.join(names)} off: {why}. Back on: run it once, or timer.py in <name> 0"
+        note(text)
+        notify(text)
+
+
 def tick():
     now = time.time()
     ready = sorted((t, n) for n, t in due().items() if n in JOBS and t <= now)
@@ -168,6 +212,8 @@ def tick():
         return skip(f"another phone script is running ({who[:80]})")
     if phone == "android":
         state = subprocess.run(["adb", "get-state"], capture_output=True, text=True).stdout.strip()
+        if (gone := missed(phone, state != "device")) >= GRACE:
+            return away_off(phone, f"the Pixel was off adb for {gone:.0f} min")
         if state != "device":
             return skip("Pixel not connected over adb")
     env = dict(os.environ, PATH=PATH)
@@ -181,6 +227,9 @@ def tick():
     for line in run.stdout.splitlines():
         if LOG_LINES.search(line):
             note(f"  {line.strip()[:200]}")
+    if any(UNREACHED.search(line) for line in run.stdout.splitlines()):
+        note(f"{name}: end (exit {run.returncode})")
+        return away_off(phone, f"a {name} run couldn't reach the {'Pixel' if phone == 'android' else 'iPhone'}")
     left = due()
     if name in left and left[name] <= started:  # it set no next run itself
         when = later(name, random.uniform(*after))

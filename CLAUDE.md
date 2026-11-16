@@ -90,6 +90,8 @@ The repo is public. These stay local and are in `.gitignore`:
 
 `python3 tests/heal.py` checks `pogo.py`'s healing with a made-up failing step and a stand-in Claude. Run it after any change to `heal.py` or `pogo.py`.
 
+`python3 tests/timer.py` checks `skills/shared/timer.py`'s tick with a stand-in `adb` and made-up jobs: a phone out of reach turns its timers off. Run it after any change to `timer.py`. It must say "all timer cases right".
+
 `python3 tests/gate.py` checks `merge_gate.py` with a made-up repo and PR, a stand-in `gh` and made-up phone runs. Run it after any change to `merge_gate.py`, `watch.py` or `linetrace/sitecustomize.py`. It must say "all gate cases right".
 
 `python3 tests/verdicts.py` pins the final tag `verdict.py` gives made-up Pokémon. `python3 tests/taggers.py` runs the bulk taggers' searches (`tradeable.py tag`, `cleantrades.py`) over made-up Pokémon and checks they tag what `verdict.py` says. Run both after any change to a rule or a tag search.

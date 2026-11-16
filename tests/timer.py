@@ -29,8 +29,12 @@ def stub(name, body):
 stub("osascript", "exit 0")
 
 
-def pixel(there):
-    stub("adb", 'echo device' if there else 'echo "error: no devices/emulators found" >&2; exit 1')
+def pixel(there, idle=60, locked=True):
+    """the Pixel on adb or not; idle: minutes since its last touch"""
+    if not there:
+        return stub("adb", 'echo "error: no devices/emulators found" >&2; exit 1')
+    stub("adb", f'if [ "$1" = shell ]; then echo "  lastUserActivityTime=5 ({int(idle * 60000)} ms ago)"; '
+                f'echo "  isKeyguardShowing={str(locked).lower()}"; else echo device; fi')
 
 
 def job(name, phone, line, code=0):
@@ -69,6 +73,8 @@ job("pix2", "android", "done: 1 thing")
 job("ios", "iphone", "16:21:11 STOPPED: iPhone Mirroring can't reach the iPhone: lock the iPhone, leave it near the Mac",
     1)
 job("stops", "android", "15:49:39 STOPPED: no Eggs tab or map in 150s", 1)
+job("inuse", "iphone", "12:40:01 STOPPED: you're using the iPhone (iPhone Mirroring says iPhone in Use): run this "
+    "after you lock it", 1)
 job("crowded", "android", "STOPPED: pid 12 (gift.py) is using the Pixel: run this after it ends", 1)
 
 print("Pixel off adb for a minute: skip, timer stays on")
@@ -116,6 +122,40 @@ check("stops off", "stops" not in timer.due())
 check("pix still on", "pix" in timer.due())
 check("the off line says how to turn it back on", "stops off: its run ended with exit 1" in log()
       and "timer.py in stops 0" in log())
+
+print("Pixel touched a minute ago: skip, timer stays on, no away count")
+pixel(True, idle=1)
+fresh(pix=now - 60)
+timer.tick()
+check("pix didn't run", "pix: start" not in log())
+check("pix still due now", timer.due().get("pix", 0) <= time.time())
+check("the skip is in the log", "skipped: you're using the Pixel" in log())
+check("no away count", not os.path.exists(timer.AWAY) or "android" not in json.load(open(timer.AWAY)))
+
+print("Pixel unlocked, touched 5 min ago: skip")
+pixel(True, idle=5, locked=False)
+fresh(pix=now - 60)
+timer.tick()
+check("pix didn't run", "pix: start" not in log())
+
+print("Pixel locked, touched 5 min ago: runs")
+pixel(True, idle=5)
+fresh(pix=now - 60)
+timer.tick()
+check("pix ran", "pix: start" in log())
+
+print("Pixel unlocked, untouched 20 min (a run left it so): runs")
+pixel(True, idle=20, locked=False)
+fresh(pix=now - 60)
+timer.tick()
+check("pix ran", "pix: start" in log())
+
+print("an iPhone run that found you using it: tries again in 5 min, other iPhone timers stay")
+fresh(inuse=now - 60, ios=now + 600)
+timer.tick()
+check("inuse due in 5 min", abs(timer.due().get("inuse", 0) - (time.time() + 5 * 60)) < 30)
+check("ios still on", "ios" in timer.due())
+check("no off notice", " off:" not in log())
 
 print("a run that only found another script on the phone: tries again")
 fresh(crowded=now - 60)

@@ -26,6 +26,7 @@ closed = {}  # box name -> the times it was closed lately
 MANAGE_X = (0.5, 0.906)  # the round X that closes the Manage Favorite Search box
 FRIEND_CARD_X = (0.5, 0.918)  # its round X, in the same spot on both phones: higher than X_BUTTON, which grazes its edge
 SAFETY_TO_OK = 0.08  # the safety warning: its OK this far under 'playing Pokémon GO.' (iPhone 0.645 -> 0.723)
+WALK_X = (0.5, 0.86)  # the weekly walk reward's round X after CLAIM REWARD (Pixel 2026-11-16: where the button was)
 EGG_TO_X = 0.082  # a friend card with USE LUCKY EGG: its X sits this far under the button's middle (Pixel 0.849 -> 0.931)
 
 
@@ -137,6 +138,16 @@ def party_done(texts):
     return center(hit) if hit and "PARTY CHALLENGE" in ui.joined(texts) else None
 
 
+def walk_reward(texts):
+    """Adventure Sync's weekly reward on Monday ('You walked 390.9 km last week!', Pixel HashTagAJay, 2026-11-16:
+    the account switch's egg check and /leftovers stopped on it): CLAIM REWARD, its only button. Then the same card
+    stays up with a round X where the button was (WALK_X, higher than base.X_BUTTON, which misses it)"""
+    if "LAST WEEK" not in ui.joined(texts) or not label(texts, "REWARDS"):
+        return None
+    hit = label(texts, "CLAIM REWARD")
+    return center(hit) if hit else WALK_X
+
+
 def party_pick(texts):
     """'Choose a Party Challenge' (the party's leader picks one): Back does nothing, and its countdown on START ran
     out without closing it (Pixel, 2026-11-07). The user's rule: START. OCR glues the countdown on: '58  START'"""
@@ -215,6 +226,7 @@ BOXES = (
     ("passenger", passenger, "'going too fast' popup: tapping I'M A PASSENGER", 1.5),
     ("challenge", challenge, "a Weekly Challenge box is up: {}", 1.5),
     ("party done", party_done, "a finished Party Challenge is up: tapping CLAIM REWARD", 2.5),
+    ("walk reward", walk_reward, "Adventure Sync's weekly reward is up: CLAIM REWARD, then its X", 2.5),
     ("party pick", party_pick, "the party's challenge picker is up: tapping START", 2.5),
     ("party rejoin", party_rejoin, "'Continue Party Play?' is up: tapping REJOIN PARTY", 2.5),
     ("party leave", party_leave, "'leave your party?' is up: tapping NO", 1.5),

@@ -33,11 +33,11 @@ def pixel(there):
     stub("adb", 'echo device' if there else 'echo "error: no devices/emulators found" >&2; exit 1')
 
 
-def job(name, phone, line):
-    """a made-up job on phone whose run prints line"""
+def job(name, phone, line, code=0):
+    """a made-up job on phone whose run prints line and ends with code"""
     path = os.path.join(T, f"{name}.py")
     with open(path, "w") as f:
-        f.write(f"print({line!r})\n")
+        f.write(f"print({line!r})\nraise SystemExit({code})\n")
     timer.JOBS[name] = (path, lambda: phone, (15, 15))
 
 
@@ -66,7 +66,10 @@ def check(what, ok):
 timer.JOBS.clear()
 job("pix", "android", "done: 1 thing")
 job("pix2", "android", "done: 1 thing")
-job("ios", "iphone", "16:21:11 STOPPED: iPhone Mirroring can't reach the iPhone: lock the iPhone, leave it near the Mac")
+job("ios", "iphone", "16:21:11 STOPPED: iPhone Mirroring can't reach the iPhone: lock the iPhone, leave it near the Mac",
+    1)
+job("stops", "android", "15:49:39 STOPPED: no Eggs tab or map in 150s", 1)
+job("crowded", "android", "STOPPED: pid 12 (gift.py) is using the Pixel: run this after it ends", 1)
 
 print("Pixel off adb for a minute: skip, timer stays on")
 pixel(False)
@@ -105,6 +108,19 @@ print("a Pixel run that ends fine: next run as before")
 fresh(pix=now - 60)
 timer.tick()
 check("pix due in 15 min", abs(timer.due().get("pix", 0) - (time.time() + 15 * 60)) < 30)
+
+print("a run that stops: its timer off, the others stay")
+fresh(stops=now - 60, pix=now + 600)
+timer.tick()
+check("stops off", "stops" not in timer.due())
+check("pix still on", "pix" in timer.due())
+check("the off line says how to turn it back on", "stops off: its run ended with exit 1" in log()
+      and "timer.py in stops 0" in log())
+
+print("a run that only found another script on the phone: tries again")
+fresh(crowded=now - 60)
+timer.tick()
+check("crowded due again", "crowded" in timer.due())
 
 print(f"\n{'all timer cases right' if not bad else f'{len(bad)} WRONG'} ({T})")
 sys.exit(1 if bad else 0)

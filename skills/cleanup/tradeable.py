@@ -323,39 +323,86 @@ def newest_for(pattern, who, key="trainer", default=None):
     return None
 
 
-def raid_tops(m, n=PVE_TOP):
+COUNTERS = ("dialgadex-counters-[0-9]*[0-9].json", "dialgadex-counters-pp2-[0-9]*[0-9].json")  # Party Power off, 2
+
+
+def real_boss(rm, b):
+    """a boss like a tier 3+ raid's (the user, 2026-11-16, for Reroll): legendary, mythical, Ultra Beast, mega or
+    primal, or fully evolved (no Exeggcute)"""
+    import roster  # (raid_tops put its folder on the path)
+    return bool(b["class"]) or roster.is_mega(b) or (s := rm.sid_of(b)) is None or s not in set(rm.parent.values())
+
+
+def raid_tops(m, n=PVE_TOP, real=False, megas=True):
     """-> ({sid: [bosses]}, {sid in some top as itself}, roster.Model): each tradeable non-special species in DialgaDex's
-    top n against some raid boss, as itself (not through what it evolves into). A mega counts as its species"""
+    top n against some raid boss, as itself (not through what it evolves into), with Party Power off or with a party
+    of 2 (the user, 2026-11-16: either counts). A mega counts as its species. real: only bosses like a tier 3+ raid's
+    (real_boss). megas=False: a mega takes its spot but counts for no one (for Reroll, a mega counts only as the best of its
+    type)"""
     sys.path.append(os.path.join(HERE, "..", "roster"))
     import roster
-    data_f = base.newest(HERE, os.path.join("..", "roster", "dialgadex-counters-[0-9]*[0-9].json"))
-    if not data_f:
-        sys.exit("no DialgaDex counters yet: node ../roster/pull.mjs")
-    rm = roster.Model(json.load(open(data_f)))
-    tops, plain = {}, set()
-    for b in rm.bosses:
-        top = []
-        for i, *_ in b["list"]:
-            s, a = rm.sid[i], rm.A[i]
-            if not s or (a["shadow"] and not roster.is_mega(a)) or rm.special(s) or not m.tradeable(s):
+    files = [base.newest(HERE, os.path.join("..", "roster", c)) for c in COUNTERS]
+    if not all(files):
+        sys.exit("no DialgaDex counters yet (both Party Power pulls): node ../roster/pull.mjs")
+    tops, plain, first = {}, set(), None
+    for data_f in files:
+        rm = roster.Model(json.load(open(data_f)))
+        first = first or rm
+        for b in rm.bosses:
+            if real and not real_boss(rm, b):
                 continue
-            if s not in top:
-                top.append(s)
-                if not roster.is_mega(a):
-                    plain.add(s)  # in some top as itself: a mega-only one is only ever in as its mega
-            if len(top) >= n:
-                break
-        boss = b["name"] + ("" if b["form"] == "Normal" else f" ({b['form']})")
-        for s in top:
-            tops.setdefault(s, []).append(boss)
-    return tops, plain, rm
+            top = []
+            for i, *_ in b["list"]:
+                s, a = rm.sid[i], rm.A[i]
+                if not s or (a["shadow"] and not roster.is_mega(a)) or rm.special(s) or not m.tradeable(s):
+                    continue
+                if not megas and roster.is_mega(a):
+                    s = ("mega", s)  # its spot stays taken: the next one down doesn't move up into the top
+                if s not in top:
+                    top.append(s)
+                    if not roster.is_mega(a):
+                        plain.add(s)  # in some top as itself: a mega-only one is only ever in as its mega
+                if len(top) >= n:
+                    break
+            boss = b["name"] + ("" if b["form"] == "Normal" else f" ({b['form']})")
+            for s in top:
+                if isinstance(s, tuple):
+                    continue
+                if boss not in tops.setdefault(s, []):
+                    tops[s].append(boss)
+    return tops, plain, first
 
 
-def pve(m, enough=lambda s, mega_only: False, n=PVE_TOP):
+def mega_tops(m, ok):
+    """-> {sid: why}: the best mega of each type in DialgaDex's type rankings (?strongest&t=<type>), Party Power off
+    or with a party of 2, as its base species. The best one of the ok species (legendary ones are traded by hand), and
+    only a mega whose best moves have one of that type (the rankings put off-type megas like Gardevoir under Ice).
+    The user's rule (2026-11-16): only the top mega of a type is worth a Reroll (Mega Sceptile beats Venusaur)"""
+    sys.path.append(os.path.join(HERE, "..", "roster"))
+    import roster
+    f = base.newest(HERE, os.path.join("..", "roster", "dialgadex-types-[0-9]*[0-9].json"))
+    if not f:
+        raise NoData("no DialgaDex type rankings yet: node ../roster/pull.mjs")
+    sid_of = roster.Model.__new__(roster.Model)
+    sid_of.by = m.by
+    out = {}
+    for party, by_type in sorted(json.load(open(f)).items()):
+        for t, ranked in by_type.items():
+            for a in ranked:
+                if not roster.is_mega(a) or t not in (a.get("fm_type"), a.get("cm_type")):
+                    continue
+                s = sid_of.sid_of(a)
+                if s in ok:
+                    out.setdefault(s, []).append(f"{a['name']}: best {t} mega" + ("" if party == "1" else " (party of 2)"))
+                    break
+    return {s: "; ".join(dict.fromkeys(ws)) for s, ws in out.items()}
+
+
+def pve(m, enough=lambda s, mega_only: False, n=PVE_TOP, **kw):
     """-> ({sid: why}, {sid: why dropped}): a traded copy (never shadow) would be in DialgaDex's top n against
     some raid boss, or evolve into one that is. Special trades left out of the top: they're never tagged. A mega counts
     as its species. enough(sid, only in as a mega) -> why the taker needs no more of it, or None"""
-    tops, plain, rm = raid_tops(m, n)
+    tops, plain, rm = raid_tops(m, n, **kw)
     out, dropped = {}, {}
     for s, bs in tops.items():
         if s not in m.by:
@@ -529,8 +576,8 @@ def giver_species(m):
     """HashTagAJay's pile (Leftovers), judged for CyrillJan or the user's wife's account: what's good for any account
     (the user, 2026-11-16) -> {"why": {sid: (tag, why)}, "evolved": {sid: why}, "hard": {sid: why}, "by_hand": {sid},
     "xl_full": {dex}, "from": {what: file}}. Read by ../shared/verdict.py
-      Reroll: a new 100 is worth having: a line with a mega, DialgaDex's top REROLL_PVE against some raid boss, or
-        PvPoke's Master League top REROLL_ML (each with the earlier stages that evolve into it)
+      Reroll: a new 100 is worth having: the best mega of a type (mega_tops), DialgaDex's top REROLL_PVE against a boss
+        like a tier 3+ raid's (real_boss; a mega in that spot counts for no one), or PvPoke's Master League top REROLL_ML (each with the earlier stages that evolve into it)
       GIV: more Candy XL is worth having: DialgaDex's top PVE_TOP against some raid boss (more than one spot in a
         team), or it can Dynamax (Max Moves cost Candy and Candy XL)
       hard (GIV, after XLX): the family of a 10 or 12 km egg hatch (refresh's eggs-<date>.json), and Smeargle
@@ -552,9 +599,8 @@ def giver_species(m):
             for x in [s, *dex.ancestors(s, m.parent)]:
                 if x in ok:
                     why.setdefault(x, (tag, r))
-    add("Reroll", {s: f"{m.by[s]['speciesName']} can mega" for s in m.by if any(
-        re.fullmatch(rf"{re.escape(s)}_mega(_[xy])?", x) for x in pvp.SPECIES)})
-    add("Reroll", pve(m, n=REROLL_PVE)[0])  # (pve's list already has the earlier stages)
+    add("Reroll", mega_tops(m, ok))
+    add("Reroll", pve(m, n=REROLL_PVE, real=True, megas=False)[0])  # (pve's list already has the earlier stages)
     ml = {s: int(r.split("#")[1]) for s, rs in json.load(open(pvp_f)).items() for r in rs if r.startswith("10000:")}
     add("Reroll", {s: f"Master League #{r}" for s, r in ml.items() if r <= REROLL_ML and s in m.by})
     add("GIV", pve(m)[0])

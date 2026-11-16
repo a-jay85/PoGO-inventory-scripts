@@ -22,7 +22,8 @@ door's too, on HashTagAJay.
 
 One tag each, the first that fits:
  1. Luckydex: HashTagAJay's newest lucky /dex run misses it, or an evolution of it (dex's gender and form rules).
- 2. Reroll: a new copy would be #1 against some raid boss (/roster's roster.json).
+ 2. Reroll: the best mega of a type, legendaries left out (mega_tops, the same rule as HashTagAJay's pile), or a new
+    copy would be #1 against some raid boss (/roster's roster.json).
  3. GIV: any of
     - a new 100 would fill a hole on HashTagAJay's ★100% page, itself or by evolving (dex.hundred_useful: a later
       stage on the page counts for the earlier ones, and each missing branch wants its own copy)
@@ -456,7 +457,9 @@ class NoData(Exception):
 
 
 def taker_species(m):
-    """CyrillJan's pile, judged for HashTagAJay -> {"why": {sid: (tag, why)}, "lucky": {sid: gender term},
+    """CyrillJan's pile, judged for HashTagAJay. Reroll: the best mega of a type (mega_tops, the same rule as
+    HashTagAJay's pile), or a new copy would be #1 against some raid boss in HashTagAJay's own team (roster.json)
+    -> {"why": {sid: (tag, why)}, "lucky": {sid: gender term},
     "evolved": {sid: why}, "xl_full": {dex}, "from": {what: file}}. Shared by plan and ../shared/verdict.py"""
     lucky_missing, lucky_run = dex.latest("lucky", TAKER)  # (an evolve-lucky run counts too)
     hund_missing, hund_run = dex.latest("100", TAKER)
@@ -480,6 +483,10 @@ def taker_species(m):
     for s in ok:
         if s in lucky:
             why.setdefault(s, ("Luckydex", "lucky dex hole"))
+    for s, r in mega_tops(m, set(ok)).items():  # the same mega rule as HashTagAJay's pile (the user, 2026-11-16)
+        for x in [s, *dex.ancestors(s, m.parent)]:
+            if x in ok:
+                why.setdefault(x, ("Reroll", r))
     for s in ok:
         if s in reroll:
             why.setdefault(s, ("Reroll", "#1 raid attacker: " + ", ".join(roster["species"][s]["bosses"][:3])))

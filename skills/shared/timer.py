@@ -20,7 +20,8 @@ a launchd job runs `timer.py tick` every minute, and tick runs a script whose ti
   "phone not connected" goes off too. Back on: run the script once by hand, or `timer.py in <name> 0`.
   Each off goes to the log and a macOS notice.
   One script per tick. Its STOPPED / CRASHED / done lines go to ~/.config/pogo/timer.log.
-- gymfeed's phone: ~/.config/pogo/gymfeed_phone ("iphone" or "android"; no file: android). hatch, goplus: the Pixel.
+- gymfeed has one timer per phone: gymfeed-pixel and gymfeed-iphone, each with its own 30-32 min and its own off
+  (the user, 2026-11-16: both phones feed). A gymfeed run sets the one of the phone it ran on. hatch, goplus: the Pixel.
   An iPhone run goes through iPhone Mirroring, so the Mac must stay awake and unlocked for it.
 - goplus runs again 60 min after it connects (or finds it already on). HashTagAJay signed in: its timer goes off,
   till a CyrillJan run connects again. Any other stop (no ball, didn't connect) turns it off, like every stop.
@@ -53,19 +54,13 @@ LOG = os.path.join(CONF, "timer.log")
 LABEL = "pogo.timer"
 PLIST = os.path.expanduser(f"~/Library/LaunchAgents/{LABEL}.plist")
 PATH = "/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin"
-KEEP = os.path.join(CONF, "gymfeed_keep_on_until")  # (epoch seconds) till then gymfeed's "off" keeps it on
-
-
-def gymfeed_phone():
-    try:
-        return "iphone" if open(os.path.join(CONF, "gymfeed_phone")).read().strip() == "iphone" else "android"
-    except OSError:
-        return "android"
+KEEP = os.path.join(CONF, "gymfeed_keep_on_until")  # (epoch seconds) till then gymfeed's "off" keeps it on (both phones)
 
 
 # name -> (script under skills/, its phone, minutes after a run that set no next run: (lo, hi))
 JOBS = {
-    "gymfeed": ("gymfeed/gymfeed.py", gymfeed_phone, (30, 32)),
+    "gymfeed-pixel": ("gymfeed/gymfeed.py", lambda: "android", (30, 32)),
+    "gymfeed-iphone": ("gymfeed/gymfeed.py", lambda: "iphone", (30, 32)),
     "hatch": ("hatch/hatch.py", lambda: "android", (15, 15)),
     "goplus": ("goplus/goplus.py", lambda: "android", (60, 60)),
 }
@@ -119,20 +114,22 @@ def off(name):
     _edit(lambda s: s.pop(name, None))
 
 
-def gymfeed(feedable):
-    """a gymfeed run's last word: True, a gym is left to feed (next one in 30-32 min); False, none (off, unless
-    gymfeed_keep_on_until is still ahead: then it keeps looking every 30-32 min)"""
-    lo, hi = JOBS["gymfeed"][2]
+def gymfeed(feedable, phone):
+    """a gymfeed run's last word, on its phone's timer (phone: "android" or "iphone"). feedable True: a gym is left
+    to feed (next one in 30-32 min); False, none (off, unless gymfeed_keep_on_until is still ahead: then it keeps
+    looking every 30-32 min)"""
+    name = "gymfeed-pixel" if phone == "android" else "gymfeed-iphone"
+    lo, hi = JOBS[name][2]
     try:
         keep = int(open(KEEP).read().strip())
     except (OSError, ValueError):
         keep = 0
     if feedable or keep > time.time():
-        when = later("gymfeed", random.uniform(lo, hi))
-        note(f"gymfeed: {'gyms to feed' if feedable else 'no gym to feed, kept on'}, next after {when}")
+        when = later(name, random.uniform(lo, hi))
+        note(f"{name}: {'gyms to feed' if feedable else 'no gym to feed, kept on'}, next after {when}")
     else:
-        off("gymfeed")
-        note("gymfeed: no gym to feed, timer off")
+        off(name)
+        note(f"{name}: no gym to feed, timer off")
 
 
 # ---------- the minute tick ----------

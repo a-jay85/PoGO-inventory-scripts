@@ -67,6 +67,7 @@ def check(what, ok):
         bad.append(what)
 
 
+REAL = dict(timer.JOBS)
 timer.JOBS.clear()
 job("pix", "android", "done: 1 thing")
 job("pix2", "android", "done: 1 thing")
@@ -161,6 +162,18 @@ print("a run that only found another script on the phone: tries again")
 fresh(crowded=now - 60)
 timer.tick()
 check("crowded due again", "crowded" in timer.due())
+
+print("gymfeed on each phone: each sets its own timer, the other one stays")
+timer.JOBS.update(REAL)
+fresh(**{"gymfeed-iphone": now + 600})
+timer.gymfeed(True, "android")
+check("gymfeed-pixel due in 30-32 min", 29 * 60 < timer.due().get("gymfeed-pixel", 0) - time.time() < 33 * 60)
+check("gymfeed-iphone as it was", timer.due().get("gymfeed-iphone") == int(now + 600))
+timer.gymfeed(False, "iphone")
+check("gymfeed-iphone off", "gymfeed-iphone" not in timer.due())
+check("gymfeed-pixel still on", "gymfeed-pixel" in timer.due())
+check("both jobs known, one per phone", {n: p() for n, (_, p, _) in REAL.items() if n.startswith("gymfeed")}
+      == {"gymfeed-pixel": "android", "gymfeed-iphone": "iphone"})
 
 print(f"\n{'all timer cases right' if not bad else f'{len(bad)} WRONG'} ({T})")
 sys.exit(1 if bad else 0)

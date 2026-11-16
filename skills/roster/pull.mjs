@@ -5,6 +5,9 @@
 // (cosmetic forms) are pulled once, the others listed in `alias`. Per boss: the best moveset of each attacker
 // (species, form, shadow; megas are their own form), best first, DEPTH deep. Per attacker: its whole move pool, to
 // tell forms apart by a move search.
+// All of it twice: Party Power off (dialgadex-counters-<date>.json, what roster.py reads) and with a party of 2
+// (dialgadex-counters-pp2-<date>.json). Plus each type's best 40 attackers both ways (dialgadex-types-<date>.json,
+// DialgaDex's ?strongest&t=<type>): tradeable.py's best mega of each type.
 // Needs Playwright: it's loaded from the IBL5 checkout (PW below), its browsers from ~/Library/Caches/ms-playwright.
 import fs from 'fs';
 import path from 'path';
@@ -21,6 +24,25 @@ log('opening dialgadex.com');
 await p.goto('https://www.dialgadex.com/?strongest&t=Normal', { waitUntil: 'networkidle' });
 await p.waitForFunction(() => typeof jb_pkm !== 'undefined' && jb_pkm.length > 100 && typeof str_pokemons !== 'undefined' && str_pokemons.length > 20, null, { timeout: 120000 });
 log(`page ready, ${await p.evaluate(() => jb_pkm.length)} entries to check${limit ? `, stopping after ${limit} bosses` : ''}`);
+// Party Power: 1 = none (DialgaDex's default), 2 = a party of 2. The user's rule (2026-11-16): a top attacker is one
+// in either. The no-Party-Power pull keeps its old name (roster.py reads it); the other is dialgadex-counters-pp2-.
+const pulled = new Date().toLocaleDateString('sv').replaceAll('-', '');  // the local date, YYYYMMDD
+const types = {};
+for (const party of [1, 2]) {
+await p.evaluate(n => SetPartySize(n), party);
+log(`Party Power ${party == 1 ? 'off' : `with a party of ${party}`}`);
+// the best of each type (DialgaDex's ?strongest&t=<type> list): tradeable.py's top mega of each type
+types[party] = await p.evaluate(async () => {
+  const out = {};
+  for (const t of POKEMON_TYPES) {
+    const sp = { versus: false, type: t, unreleased: false, mega: true, shadow: true, legendary: true, elite: true,
+      suboptimal: false, mixed: true, offtype: false, real_damage: false };
+    out[t] = (await GetStrongestOfOneType(sp)).slice(0, 40).map(e =>
+      ({ id: e.id, name: e.name, form: e.form, shadow: !!e.shadow, fm_type: e.fm_type, cm_type: e.cm_type, rat: +e.rat.toFixed(2) }));
+  }
+  return out;
+});
+log(`the best of each type: ${Object.keys(types[party]).length} types`);
 const r = await p.evaluate(async ({ limit, DEPTH }) => {
   // GetSearchParms() reads the page's checkboxes: set every filter here instead
   const sp = { versus: false, type: 'Any', unreleased: false, mega: true, shadow: true,
@@ -60,9 +82,14 @@ const r = await p.evaluate(async ({ limit, DEPTH }) => {
 }, { limit, DEPTH });
 log(`pulled ${r.bosses.length} bosses, writing the file`);
 r.pulled = new Date().toLocaleDateString('sv');  // the local date, YYYY-MM-DD
+r.party = party;
 // (a cut-down test pull gets its own name: roster.py takes the newest dialgadex-counters-<date>.json)
-const out = path.join(HERE, `dialgadex-counters-${r.pulled.replaceAll('-', '')}${limit ? `-test${limit}` : ''}.json`);
+const out = path.join(HERE, `dialgadex-counters-${party == 1 ? '' : `pp${party}-`}${pulled}${limit ? `-test${limit}` : ''}.json`);
 fs.writeFileSync(out, JSON.stringify(r));
 console.log(`${r.bosses.length} bosses, ${r.attackers.length} attackers -> ${out}`);
+}
+const tout = path.join(HERE, `dialgadex-types-${pulled}${limit ? `-test${limit}` : ''}.json`);
+fs.writeFileSync(tout, JSON.stringify(types));
+console.log(`the best of each type, both Party Power settings -> ${tout}`);
 await b.close();
 log('done');

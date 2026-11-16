@@ -1353,7 +1353,7 @@ def iii_remember(zone, day):
 
 def run_searches(limit):
     sent, done, greys = 0, set(), 0
-    lost, retried = 0, set()  # lost: one_friend's lost screens in a row; retried: friends already given a 2nd try
+    lost, retried = 0, set()  # lost: one_friend's lost screens in a row; retried: name_keys of friends already given a 2nd try
     to_list()
     whose()
     set_sort()
@@ -1473,8 +1473,8 @@ def run_searches(limit):
                     log(f"  lost on {row['name']!r} ({e}): back to the list")
                     time.sleep(2 * LAG)  # (a tap still on its way lands before the next look)
                     to_list()
-                    if row["name"] not in retried:
-                        retried.add(row["name"])
+                    if name_key(row["name"]) not in retried:  # (the key: the 2nd look read 'Gabinatoro' as 'Gabinator0', 2026-11-16)
+                        retried.add(name_key(row["name"]))
                         done.discard(name_key(row["name"]))  # (gifted after all: their SEND GIFT reads grey next time)
                     n = search(base_q, zq)
                     if not n:
@@ -1488,8 +1488,8 @@ def run_searches(limit):
                 if got == "misread":
                     got = None
                 if got == "raid":  # (a raid invite popped up under the tap: not this friend's fault)
-                    if row["name"] not in retried:
-                        retried.add(row["name"])
+                    if name_key(row["name"]) not in retried:
+                        retried.add(name_key(row["name"]))
                         done.discard(name_key(row["name"]))
                         tapped.pop()  # (its spot too: the second try taps it again)
                     got = None

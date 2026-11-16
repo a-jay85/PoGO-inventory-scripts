@@ -9,6 +9,10 @@ a launchd job runs `timer.py tick` every minute, and tick runs a script whose ti
   broken run doesn't come back every 15 min (hatch, 4 times on 2026-11-15). Not when it only found another script
   on the phone: that one tries again. Back on: run the script once by hand, or `timer.py in <name> 0`.
 - tick skips, and tries again next minute, while any other phone script is running.
+- tick skips, and tries again next minute, while you're using the phone (the user, 2026-11-16). The Pixel: touched
+  in the last 3 min, or unlocked and touched in the last 10 min (pixel_in_use). Its screen being on says nothing:
+  it stays on while plugged in. The iPhone: iPhone Mirroring says "iPhone in Use" (session.connect stops on it at
+  once); that run tries again in 5 min, since each try opens Mirroring and takes the Mac's keyboard.
 - A phone out of reach turns its timers off, so a run never starts by itself the moment the phone is back in range
   (coming home with it, 2026-11-15). The Pixel: off once it has been off adb for 5 min in a row while a job is due
   (a shorter miss is a Wi-Fi blip: adbwifi.py reconnects within a minute). The iPhone: off when a run stops on
@@ -40,6 +44,10 @@ STATE = os.path.join(CONF, "timers.json")
 AWAY = os.path.join(CONF, "timer_away.json")  # {phone: when it was first missed}. Not in timers.json: status lists that
 GRACE = 5  # minutes off adb in a row before the Pixel's timers go off
 UNREACHED = re.compile(r"can't reach the iPhone|phone not connected")  # a run's stop that means the phone is away
+IN_USE = re.compile(r"you're using the iPhone")  # a stop that means: you have the iPhone in your hand, later
+IN_USE_WAIT = 5  # minutes till an iPhone run that found you using it tries again
+TOUCHED = 3  # minutes since the last touch on the Pixel that count as you using it
+TOUCHED_UNLOCKED = 10  # the same, while it's unlocked (a page you read without touching)
 BUSY = re.compile(r"is using the (Pixel|iPhone): run this after it ends")  # a stop that only means: try again later
 LOG = os.path.join(CONF, "timer.log")
 LABEL = "pogo.timer"
@@ -159,6 +167,20 @@ def busy():
     return None
 
 
+def pixel_in_use():
+    """-> True while you look to be using the Pixel. Its last touch from PowerManager's own "(N ms ago)": its clock
+    leaves out deep sleep, so /proc/uptime can't be set against it. adb taps count as touches too, so the minutes
+    right after a run count as in use: that only puts the next run off a little. A read it can't make: not in use"""
+    out = subprocess.run(["adb", "shell", "dumpsys power | grep -m1 ' lastUserActivityTime='; "
+                          "dumpsys window displays | grep isKeyguardShowing=; dumpsys window policy | grep mIsShowing="],
+                         capture_output=True, text=True).stdout
+    m = re.search(r"lastUserActivityTime=\d+ \((\d+) ms ago\)", out)
+    if not m:
+        return False
+    idle = int(m.group(1)) / 60000
+    return idle < TOUCHED or ("=true" not in out and idle < TOUCHED_UNLOCKED)
+
+
 def skip(why):
     """a skip line once, not every minute while it waits"""
     try:
@@ -220,6 +242,8 @@ def tick():
             return away_off(phone, f"the Pixel was off adb for {gone:.0f} min")
         if state != "device":
             return skip("Pixel not connected over adb")
+        if pixel_in_use():
+            return skip("you're using the Pixel")
     env = dict(os.environ, PATH=PATH)
     env.pop("POGO_PHONE", None)
     if phone == "android":
@@ -231,6 +255,9 @@ def tick():
     for line in run.stdout.splitlines():
         if LOG_LINES.search(line):
             note(f"  {line.strip()[:200]}")
+    if run.returncode != 0 and IN_USE.search(run.stdout):
+        when = later(name, IN_USE_WAIT)
+        return note(f"{name}: end (exit {run.returncode}), you're using the iPhone: next after {when}")
     if any(UNREACHED.search(line) for line in run.stdout.splitlines()):
         note(f"{name}: end (exit {run.returncode})")
         return away_off(phone, f"a {name} run couldn't reach the {'Pixel' if phone == 'android' else 'iPhone'}")

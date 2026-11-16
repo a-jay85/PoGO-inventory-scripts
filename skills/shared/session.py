@@ -158,6 +158,10 @@ def connect():
             if state == "up":
                 return
             if state == "trouble":
+                if "IPHONE IN USE" in j:  # opening it again won't help while it's in your hand. The words must not
+                    quit_mirroring()  # say "can't reach": timer.py turns the iPhone's timers off on those
+                    raise Stop("you're using the iPhone (iPhone Mirroring says iPhone in Use): run this after you "
+                               "lock it")
                 break
             time.sleep(1.0)
         if ui.CANT_CAPTURE in j:  # 30 s of this isn't a window still opening. Opening it again won't help (2026-11-04)

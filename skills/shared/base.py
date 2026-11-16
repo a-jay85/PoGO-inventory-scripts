@@ -1398,16 +1398,19 @@ def skip_intro(texts, path, bounds):
     """the gym leader's first box ('...check out your Mareep?'): nothing on it the appraisal doesn't show. Its box is
     tapped the moment it shows, its words still typing out (no two looks that agree first, as tap() wants: ~1 s).
     A tap mid-typing may only finish the words: then the box is still up a moment later, and gets one more tap.
-    Never two taps without a look between: a tap on the appraisal closes it"""
+    Never two taps without a look between: a tap on the appraisal closes it.
+    The appraisal can come up just after the quick wait gives up, or the box can still be fading (an unknown look):
+    the second wait takes either screen, so a late appraisal is used, never lost (16 lost in one door run, 2026-11-15)"""
     for _ in range(INTRO_TAPS):
         low = [t[1] for t in texts if t[1] > 0.88]  # the box's last line ('dialog' in ui.locate)
         click(random.uniform(0.3, 0.7), (min(low) if low else 0.9) + random.uniform(0, 0.02), bounds, bring_front=False)
         try:
             return wait_for("appraisal", timeout=0.8, capture=False)
         except Lost:
-            screen, texts, path, bounds = look()
-            if screen != "appraise-intro":
-                raise
+            got = wait_for("appraisal", "appraise-intro", timeout=3, capture=False)
+            if got[0] == "appraisal":
+                return got
+            texts, path, bounds = got[1:]
     raise Stop(f"the appraisal's first box was still up after {INTRO_TAPS} taps")
 
 

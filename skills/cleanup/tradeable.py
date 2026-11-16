@@ -586,9 +586,10 @@ def giver_species(m):
       Reroll: a new 100 is worth having: the best mega of a type (mega_tops), DialgaDex's top REROLL_PVE against a boss
         like a 4-star raid's or higher (real_boss; a mega in that spot counts for no one), or PvPoke's Master League top REROLL_ML (each with the earlier stages that evolve into it)
       GIV: more Candy XL is worth having: DialgaDex's top PVE_TOP against some raid boss (more than one spot in a
-        team), or it can Dynamax (Max Moves cost Candy and Candy XL), or a gym defender's line (/ivc's GYM_DEFENDERS and
-        what evolves into them: a potential top gym defender for an account with fewer, the user 2026-11-16)
-      hard (GIV, after XLX): the family of a 10 or 12 km egg hatch (refresh's eggs-<date>.json), and Smeargle
+        team), or it can Dynamax (Max Moves cost Candy and Candy XL)
+      hard (GIV, after 2XL and XLX): the family of a 10 or 12 km egg hatch (refresh's eggs-<date>.json), Smeargle, and
+        a gym defender's line (/ivc's GYM_DEFENDERS and what evolves into them: a potential top gym defender for an
+        account with fewer, the user 2026-11-16)
       by_hand: likely special trades the user tags by hand: regionals (PvPoke's tag + rules.BY_HAND) and Spinda
     (An Adventure Effect move would be a Reroll, but only legendaries and Ultra Beasts have one: special trades)"""
     read_f = newest_for(os.path.join("*-read", "read.json"), GIVER)  # (only its 360+ XL families: none without)
@@ -614,7 +615,6 @@ def giver_species(m):
     add("GIV", pve(m)[0])
     can = can_dynamax()
     add("GIV", {s: "can Dynamax: Max Moves cost Candy XL" for s in ok if m.dex(s) in can})
-    add("GIV", {s: "a gym defender's line: a top one for an account with fewer" for s in GYM_DEFENDERS if s in m.by})
     eggs = json.load(open(eggs_f))
     hard = {}
     for km in HARD_EGGS:
@@ -622,6 +622,9 @@ def giver_species(m):
             hard.update({x: f"{km} egg ({m.by[s]['speciesName']})" for x in m.family(s) if x in ok and x not in hard})
     for s in HARD_TO_FARM:
         hard.update({x: "hard to farm" for x in m.family(s) if x in ok and x not in hard})
+    for s in sorted(GYM_DEFENDERS):  # (after 2XL and XLX, the user 2026-11-16)
+        hard.update({x: "a gym defender's line: a top one for an account with fewer" for x in m.family(s)
+                     if x in ok and x not in hard})
     by_hand = set()
     for s in m.by:
         if "regional" in (m.by[s].get("tags") or []) or s in BY_HAND:

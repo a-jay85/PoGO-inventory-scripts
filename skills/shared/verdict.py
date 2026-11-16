@@ -18,9 +18,9 @@ to. Signed in as CyrillJan (the pile goes to HashTagAJay):
   (evolved, Dynamax, Tandemaus) > GIV (far) > Transfer
 Signed in as HashTagAJay (the pile goes to CyrillJan or the user's wife's account, judged for any account):
   regional or Spinda: unsure (by hand) > GuaranteedLucky > Old > GIV (medal) > 2XL > Reroll > GIV > xxs > XLX >
-  GIV (evolved, 10/12 km egg family, Smeargle) > GIV (trade evolution) > GIV (far) > Transfer
-  (Reroll: the best mega of a type, DialgaDex #1 vs some boss, Master League top 20. GIV: DialgaDex top 6 vs some boss, it can
-  Dynamax, or a gym defender's line. XLX at level 26+ both ways: giver_species())
+  GIV (evolved, 10/12 km egg family, Smeargle, gym defender line) > GIV (trade evolution) > GIV (far) > Transfer
+  (Reroll: the best mega of a type, DialgaDex #1 vs some boss, Master League top 20. GIV: DialgaDex top 6 vs some boss, or it can
+  Dynamax. A gym defender's line is a GIV (evolved) one: after 2XL and XLX. XLX at level 26+ both ways: giver_species())
 Before all of them: a special trade (trades.py's legendary rules, else unsure), a traded one (Transfer), an untraded
 shadow, costume or background one (odd_one: the user's rules for each; a shadow's Transfer becomes GuaranteedLucky or
 Old when its catch date fits, no purify: shadow_transfer), and a lucky one, traded or not (lucky()).
@@ -312,7 +312,7 @@ def usual(f, t, today=None):
 
     if sid in t["evolved"]:
         return tag("GIV", why=t["evolved"][sid])
-    if sid in t["hard"]:  # (HashTagAJay's side only: a 10 or 12 km egg's family, Smeargle)
+    if sid in t["hard"]:  # (HashTagAJay's side only: a 10 or 12 km egg's family, Smeargle, a gym defender's line)
         return tag("GIV", why=t["hard"][sid])
     if f.dynamax and to == TAKER:  # (HashTagAJay's side: every species that can Dynamax is in its GIV list)
         return tag("GIV", why="untraded Dynamax")

@@ -1,4 +1,10 @@
 {
+ "base.candy": {
+  "energy number missing": "DRATINI",
+  "mega one line, X form": "CHARMANDER",
+  "mega wrapped": "DRATINI",
+  "no mega": "WEEDLE"
+ },
  "base.row_name": {
   "Evo": "EVO",
   "GIV": "GIV",
@@ -1325,6 +1331,12 @@
   "lycбo\tlycbo": false,
   "xXS 96\tXXS 96": true
  },
+ "pagefacts.candy_xl": {
+  "energy number missing": null,
+  "mega one line, X form": 12,
+  "mega wrapped": 539,
+  "no mega": 3
+ },
  "pagefacts.caught_read": {
   "a drag short, date on screen": true,
   "at the bottom": true,
@@ -1336,6 +1348,16 @@
   "only the trade box's date, above the label": false,
   "two labels": false,
   "your buddy's page: no button": true
+ },
+ "pagefacts.mega_energy": {
+  "energy number missing": {},
+  "mega one line, X form": {
+   "CHARIZARD X": 1200
+  },
+  "mega wrapped": {
+   "DRAGONITE": 359
+  },
+  "no mega": {}
  },
  "pages.trade_request": {
   "local request": "TrainerOne",
@@ -4554,6 +4576,24 @@
    "GIV",
    "REMOTE TRADE",
    "RT"
+  ]
+ },
+ "taps.owned": {
+  "energy number missing": [
+   123456,
+   2814
+  ],
+  "mega one line, X form": [
+   123456,
+   88
+  ],
+  "mega wrapped": [
+   123456,
+   2814
+  ],
+  "no mega": [
+   123456,
+   47
   ]
  },
  "trade.in_bar android": {

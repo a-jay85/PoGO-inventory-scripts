@@ -4,6 +4,7 @@
                            beside the sprite) and lucky (the gold bubbles behind the sprite), from the list capture
                            the tile was tapped on
   candy_xl(texts)          the Candy XL count on the page's top half (the number over "CANDY XL")
+  mega_energy(texts)       {species: Mega Energy} off the same row ("DRAGONITE MEGA" / "ENERGY" with the number over it)
   bottom(reads)            the page's bottom: traded ("OBTAINED IN A TRADE"), the catch or hatch place, in
                            California or not (not: 100 km+ away, like the distance100- search)
   caught_read(texts)       the caught or hatched box shows whole, date and all: no more drags needed
@@ -162,6 +163,29 @@ def candy_xl(texts):
     got = [int(re.sub(r"\D", "", t[4])) for t in texts if 0.01 < lab[1] - t[1] < 0.06
            and abs((t[0] + t[2] / 2) - (lab[0] + lab[2] / 2)) < 0.12 and re.fullmatch(r"\d[\d,.]*", t[4].strip())]
     return got[0] if len(got) == 1 else None
+
+
+def mega_energy(texts):
+    """each Mega Energy count on the page: the number over a "<SPECIES> MEGA ENERGY" label. OCR wraps the label
+    ("DRAGONITE MEGA", then "ENERGY" under it), and an X/Y species ends it in the form ("ENERGY X").
+    -> {"DRAGONITE": 359, "CHARIZARD X": 120}. A label whose number doesn't read is left out"""
+    out = {}
+    for lab in texts:
+        m = re.fullmatch(r"(.+?)\s+MEGA(?:\s+ENERGY)?(?:\s+([XY]))?", ui.norm(lab[4]))
+        if not m or re.search(r"\d", m.group(1)):
+            continue
+        name, form = m.group(1).strip(), m.group(2)
+        if "ENERGY" not in ui.norm(lab[4]):  # the wrapped half under it: "ENERGY" or "ENERGY X"
+            under = [u for u in texts if 0 < u[1] - lab[1] < 0.03 and u[0] < lab[0] + lab[2] and lab[0] < u[0] + u[2]
+                     and re.fullmatch(r"ENERGY(\s+[XY])?", ui.norm(u[4]))]
+            if len(under) != 1:
+                continue
+            form = form or (ui.norm(under[0][4]).split() + [None])[1]
+        got = [int(re.sub(r"\D", "", t[4])) for t in texts if 0.01 < lab[1] - t[1] < 0.06
+               and abs((t[0] + t[2] / 2) - (lab[0] + lab[2] / 2)) < 0.12 and re.fullmatch(r"\d[\d,.]*", t[4].strip())]
+        if len(got) == 1:
+            out[f"{name} {form}" if form else name] = got[0]
+    return out
 
 
 def candy_xl_close(path, texts=None):

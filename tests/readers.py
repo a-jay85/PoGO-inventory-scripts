@@ -20,7 +20,7 @@ for d in ("shared", "cleanup", "dex", "trade", "gift", "mega", "ivc"):
     sys.path.append(os.path.join(SKILLS, d))
 
 import base, search, ui  # noqa: E402
-import pagefacts, tagsheet, savedsearch, dex, trade, gift, mega, popups, pages  # noqa: E402
+import pagefacts, tagsheet, savedsearch, dex, trade, gift, mega, popups, pages, taps  # noqa: E402
 
 
 def by_path(name, rel):
@@ -469,8 +469,32 @@ CHIPS = {
 DISTANCES = ["4.125.4 km", "4,125.4 km", "2,981.5 km", "2,981,5 km", "125.4 km", "87.3 km", "38533 km", "1,234 km", "no number"]
 
 
+_DUST = [(0.143, 0.642, 0.267, 0.03, "123,456"), (0.212, 0.674, 0.158, 0.014, "STARDUST")]
+CANDY_ROWS = {  # the detail page's candy rows, at the Pixel's heights (a Dratini page, 2026-11-15; numbers made up)
+    "mega wrapped": _DUST + [
+        (0.645, 0.649, 0.123, 0.02, "2,814"), (0.596, 0.674, 0.232, 0.013, "DRATINI CANDY"),
+        (0.246, 0.724, 0.084, 0.02, "539"), (0.158, 0.751, 0.271, 0.013, "DRATINI CANDY XL"),
+        (0.665, 0.724, 0.084, 0.02, "359"), (0.576, 0.751, 0.266, 0.013, "DRAGONITE MEGA"),
+        (0.65, 0.766, 0.118, 0.012, "ENERGY")],
+    "mega one line, X form": _DUST + [
+        (0.645, 0.649, 0.123, 0.02, "88"), (0.596, 0.674, 0.232, 0.013, "CHARMANDER CANDY"),
+        (0.246, 0.724, 0.084, 0.02, "12"), (0.158, 0.751, 0.271, 0.013, "CHARMANDER CANDY XL"),
+        (0.665, 0.724, 0.084, 0.02, "1,200"), (0.576, 0.751, 0.266, 0.013, "CHARIZARD MEGA ENERGY X")],
+    "no mega": _DUST + [
+        (0.645, 0.649, 0.123, 0.02, "47"), (0.596, 0.674, 0.232, 0.013, "WEEDLE CANDY"),
+        (0.246, 0.724, 0.084, 0.02, "3"), (0.158, 0.751, 0.271, 0.013, "WEEDLE CANDY XL")],
+    "energy number missing": _DUST + [
+        (0.645, 0.649, 0.123, 0.02, "2,814"), (0.596, 0.674, 0.232, 0.013, "DRATINI CANDY"),
+        (0.576, 0.751, 0.266, 0.013, "DRAGONITE MEGA"), (0.65, 0.766, 0.118, 0.012, "ENERGY")],
+}
+
+
 def answers():
     out = {}
+    out["pagefacts.mega_energy"] = {k: answer(pagefacts.mega_energy, ts) for k, ts in CANDY_ROWS.items()}
+    out["pagefacts.candy_xl"] = {k: answer(pagefacts.candy_xl, ts) for k, ts in CANDY_ROWS.items()}
+    out["taps.owned"] = {k: answer(taps.owned, ts) for k, ts in CANDY_ROWS.items()}
+    out["base.candy"] = {k: answer(base.candy, ts) for k, ts in CANDY_ROWS.items()}
     for name, fn in PAIRED.items():
         out[name] = {f"{g}\t{q}": answer(fn, g, q) for g, q in PAIRS}
     for name, fn in SINGLE.items():

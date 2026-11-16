@@ -279,6 +279,8 @@ class Door:
         xl = next((n for t, p in shots if (n := pagefacts.candy_xl(t)) is not None), None)
         if xl is None:
             xl = next((n for t, p in shots if (n := pagefacts.candy_xl_close(p, t)) is not None), None)
+        for t, _ in shots:  # the counts, with the close look's XL (a Dynamax page's candy row is in the second shot)
+            base.remember_counts(t, xl=xl)
         days = {tagsheet.caught(catch_date(r)) for r in reads}
         base.OPENED["page"] = {"caught": days.pop() if len(days) == 1 else None, "xl": xl, **pagefacts.bottom(reads)}
         page = base.OPENED["page"]

@@ -187,6 +187,27 @@ check("sweep cleared", pokedb.sweep_due("Alice", due=False), False)
 pokedb.set_account(None)
 check("sweep no account", pokedb.sweep_due(due=True), False)
 
+# Candy, Candy XL, Mega Energy: per family, kept after the family's last Pokémon is transferred
+reset()
+W = (100, 40, 3.2, 0.3)
+pokedb.seen(W, "Weedle", [])
+pokedb.counts_seen("WEEDLE", candy=47, xl=3)
+pokedb.tagged(W, ["Transfer"])
+check("weedle record gone", rows(), [])
+check("weedle candy kept", {k: (r["candy"], r["xl"]) for k, r in pokedb.candies().items()}, {"WEEDLE": (47, 3)})
+pokedb.counts_seen("WEEDLE", candy=50, xl=None)  # the XL didn't read: the old one stays
+check("unread xl kept", (pokedb.candies()["WEEDLE"]["candy"], pokedb.candies()["WEEDLE"]["xl"]), (50, 3))
+pokedb.counts_seen("DRATINI", candy=2814, energy={"DRAGONITE": 359})
+pokedb.counts_seen("DRATINI", energy={"DRAGONITE": 400})
+check("energy newest", pokedb.energies()["DRAGONITE"]["energy"], 400)
+check("candy untouched by energy", pokedb.candies()["DRATINI"]["candy"], 2814)
+check("other account apart", (pokedb.candies("Bob"), pokedb.energies("Bob")), ({}, {}))
+pokedb.counts_seen(None, candy=5)
+check("no family no row", sorted(pokedb.candies()), ["DRATINI", "WEEDLE"])
+pokedb.set_account(None)
+check("no account no write", pokedb.counts_seen("ABRA", candy=5), None)
+pokedb.set_account("Alice")
+
 # two processes writing at once: no "database is locked"
 reset()
 child = """

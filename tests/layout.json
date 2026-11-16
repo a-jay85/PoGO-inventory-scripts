@@ -1792,6 +1792,7 @@
    "MANAGE_X",
    "MAX_AGAIN",
    "SAFETY_TO_OK",
+   "WALK_X",
    "battery_saver",
    "center",
    "challenge",
@@ -1816,6 +1817,7 @@
    "trade_limit",
    "trade_limit_ok",
    "trade_ok",
+   "walk_reward",
    "which"
   ],
   "runs": []

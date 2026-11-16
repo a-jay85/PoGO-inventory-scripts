@@ -586,7 +586,8 @@ def giver_species(m):
       Reroll: a new 100 is worth having: the best mega of a type (mega_tops), DialgaDex's top REROLL_PVE against a boss
         like a 4-star raid's or higher (real_boss; a mega in that spot counts for no one), or PvPoke's Master League top REROLL_ML (each with the earlier stages that evolve into it)
       GIV: more Candy XL is worth having: DialgaDex's top PVE_TOP against some raid boss (more than one spot in a
-        team), or it can Dynamax (Max Moves cost Candy and Candy XL)
+        team), or it can Dynamax (Max Moves cost Candy and Candy XL), or a gym defender's line (/ivc's GYM_DEFENDERS and
+        what evolves into them: a potential top gym defender for an account with fewer, the user 2026-11-16)
       hard (GIV, after XLX): the family of a 10 or 12 km egg hatch (refresh's eggs-<date>.json), and Smeargle
       by_hand: likely special trades the user tags by hand: regionals (PvPoke's tag + rules.BY_HAND) and Spinda
     (An Adventure Effect move would be a Reroll, but only legendaries and Ultra Beasts have one: special trades)"""
@@ -613,6 +614,7 @@ def giver_species(m):
     add("GIV", pve(m)[0])
     can = can_dynamax()
     add("GIV", {s: "can Dynamax: Max Moves cost Candy XL" for s in ok if m.dex(s) in can})
+    add("GIV", {s: "a gym defender's line: a top one for an account with fewer" for s in GYM_DEFENDERS if s in m.by})
     eggs = json.load(open(eggs_f))
     hard = {}
     for km in HARD_EGGS:

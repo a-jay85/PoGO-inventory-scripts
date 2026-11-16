@@ -11,7 +11,7 @@ opened once and gets its final tag at the door (../shared/door.py, ../shared/ver
   regional or Spinda: left as it is, on the not-sure list (a likely special trade: the user tags it by hand)
   GuaranteedLucky > Old > GIV (medal) > 2XL (HashTagAJay has under 360 Candy XL) > Reroll (a new 100 is worth having:
   the best mega of a type, DialgaDex #1 against some raid boss, Master League top 20) > GIV (DialgaDex top 6 against some raid
-  boss, or it can Dynamax) > IVC (xxs) > XLX (level 26+: a power-up costs 4 Candy+) > GIV (stage 2 or a hard
+  boss, it can Dynamax, or a gym defender's line: Slakoth, Wynaut, Happiny, Munchlax...) > IVC (xxs) > XLX (level 26+: a power-up costs 4 Candy+) > GIV (stage 2 or a hard
   evolution, a 10 or 12 km egg's family, Smeargle, a trade evolution, caught 100 km+ away, a costly line) > Transfer
 The species lists are tradeable.py's giver_species() (data: tradeable.py refresh).
 

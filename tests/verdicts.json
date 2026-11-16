@@ -1115,10 +1115,10 @@
  "H not XLX at 27": [
   "tag",
   [
-   "Transfer"
+   "XLX"
   ],
   null,
-  "no rule wants it"
+  "level 27+"
  ],
  "H Dynamax, has one": [
   "tag",
@@ -1134,7 +1134,7 @@
    "GIV"
   ],
   null,
-  "untraded Dynamax"
+  "can Dynamax"
  ],
  "H Tandemaus": [
   "tag",
@@ -1257,6 +1257,118 @@
   "untraded, its line has an evolution over 100 candy (else Transfer: no rule wants it)"
  ],
  "Boldore, trade evolution: Transfer": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "no rule wants it"
+ ],
+ "H XLX at 26": [
+  "tag",
+  [
+   "XLX"
+  ],
+  null,
+  "level 26+"
+ ],
+ "H level 25 or 26": [
+  "unsure",
+  [],
+  null,
+  "level [25.5, 26]: can't tell if it's 26+"
+ ],
+ "H Reroll, a mega line": [
+  "tag",
+  [
+   "Reroll"
+  ],
+  null,
+  "Venusaur can mega"
+ ],
+ "H 2XL beats Reroll": [
+  "tag",
+  [
+   "2XL"
+  ],
+  null,
+  "under 360 Candy XL: a Friendship Friday trade"
+ ],
+ "H Old beats Reroll": [
+  "tag",
+  [
+   "Old"
+  ],
+  null,
+  "untraded, caught 515 days ago"
+ ],
+ "H Reroll beats XLX": [
+  "tag",
+  [
+   "Reroll"
+  ],
+  null,
+  "Venusaur can mega"
+ ],
+ "H can Dynamax: GIV": [
+  "tag",
+  [
+   "GIV"
+  ],
+  null,
+  "can Dynamax"
+ ],
+ "H 10 km egg family: GIV": [
+  "tag",
+  [
+   "GIV"
+  ],
+  null,
+  "10 km egg (Gible)"
+ ],
+ "H XLX beats the egg GIV": [
+  "tag",
+  [
+   "XLX"
+  ],
+  null,
+  "level 26+"
+ ],
+ "H Smeargle: GIV": [
+  "tag",
+  [
+   "GIV"
+  ],
+  null,
+  "hard to farm"
+ ],
+ "H Spinda: by hand": [
+  "unsure",
+  [],
+  null,
+  "regional or Spinda: likely a special trade, by hand"
+ ],
+ "H old regional: by hand": [
+  "unsure",
+  [],
+  null,
+  "regional or Spinda: likely a special trade, by hand"
+ ],
+ "H 2016 regional: by hand": [
+  "unsure",
+  [],
+  null,
+  "regional or Spinda: likely a special trade, by hand"
+ ],
+ "H traded regional: Transfer": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "traded: can't trade again"
+ ],
+ "regional to HashTagAJay: as before": [
   "tag",
   [
    "Transfer"

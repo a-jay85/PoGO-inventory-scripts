@@ -29,10 +29,10 @@ TABLES = {  # made up
     TAKER: {"to": TAKER, "why": {"machop": ("Luckydex", "hole"), "nidoran_female": ("Luckydex", "hole"),
                                  "rhyhorn": ("Reroll", "#1"), "geodude": ("GIV", "PvP"), "magikarp": ("GIV", "hole")},
             "lucky": {"nidoran_female": "female"}, "evolved": {"golem": "stage 2"}, "no_dmax": set(), "xl_full": set(),
-            "giv_for_taker": {"tandemaus"}, "raid": {"rhyhorn", "rhydon"}, "raid_self": {"rhydon"}},
+            "giv_for_taker": {"tandemaus"}, "raid": {"rhyhorn", "rhydon"}, "raid_self": {"rhydon"}, "hard": {}, "by_hand": set()},
     GIVER: {"to": GIVER, "why": {"rhyhorn": ("GIV", "top 6")}, "lucky": {}, "evolved": {"golem": "stage 2"},
             "no_dmax": {"wooloo"}, "xl_full": set(), "giv_for_taker": {"tandemaus"}, "raid": {"rhyhorn", "rhydon"},
-            "raid_self": {"rhydon"}},
+            "raid_self": {"rhydon"}, "hard": {}, "by_hand": set()},
 }
 PLAN = {"tags": {"Luckydex": ["&66", "&29&female"], "Reroll": ["&111"], "GIV": ["&74,129"]}, "2xl": ["&111-112"],
         "giv_evolved": ["&76,924", rules.DYNAMAX]}  # tradeable.build_plan's answer for TABLES[TAKER]

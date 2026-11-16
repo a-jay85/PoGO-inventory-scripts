@@ -28,7 +28,7 @@ from PIL import Image
 import ui
 import base
 from base import Stop, log, keep_capture
-import home, account
+import home, account, popups
 
 SWITCH_X = (0.76, 0.97)  # where the switch can be across (window fractions)
 SWITCH_DY = 0.02  # how far above and below the label's middle it's read
@@ -96,6 +96,8 @@ def to_general():
         mine = screen_of(texts)
         if mine in ("general", "enable", "enabled"):
             return
+        if popups.clear(texts, bounds):  # (the Monday walk reward over the list read as the list, 2026-11-16)
+            continue
         now = mine or screen
         same = same + 1 if now == last else 0
         last = now

@@ -319,6 +319,11 @@ def start(storage=True):
                 time.sleep(1.0)
                 continue
             return screen
+        if screen == "detail" and time.time() < hatched + HATCH_SCREENS:
+            log("  the hatched Pokémon's page: its X, to the map")  # (its X goes to the map, never the list:
+            base.tap_x(bounds)  # back_to_list waited for a list that never came, Pixel 2026-11-16)
+            time.sleep(2.0)
+            continue
         if screen in OPEN:
             try:
                 if screen == "appraise-intro":

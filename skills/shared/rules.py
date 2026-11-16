@@ -30,10 +30,18 @@ XLX_LEVEL = 26  # from here a power-up costs 4 Candy or more (4,000 Stardust at 
 # CyrillJan's pile only: GIV where it would get Transfer (tagged after XLX, like the evolved GIV ones)
 GIV_FOR_TAKER = {"tandemaus": "HashTagAJay still wants the family of 3 Maushold (and CyrillJan gets candy from the "
                               "trade if it ever wants one)"}
-XLX_FOR = {TAKER: XLX_LEVEL, GIVER: 29}  # by who'd get it. CyrillJan: 5,000 Stardust+, likely to drop a Candy XL
+XLX_FOR = {TAKER: XLX_LEVEL, GIVER: XLX_LEVEL}  # by who'd get it: 4 Candy+ a power-up, both (the user, 2026-11-16)
 PVE_TOP = 6  # verdict.py's "raid" list: a traded copy would be this high against some raid boss in DialgaDex
-GIVER_MARGIN = 0.15  # CyrillJan's side (giver_species): GIV if a traded copy gets into one of CyrillJan's teams, or
-# comes within this much of the #6's rating (a move or stat buff away). Further behind on every boss: outclassed
+# HashTagAJay's pile (Leftovers), judged for CyrillJan or the user's wife's account, which is behind CyrillJan: "good
+# for any account" (the user, 2026-11-16). giver_species() in tradeable.py
+REROLL_PVE = 1  # Reroll: a new 100 would be this high against some raid boss in DialgaDex (or evolves into one)
+REROLL_ML = 20  # Reroll: PvPoke's Master League top this many (or evolves into one). Also any line with a mega
+HARD_EGGS = ("10 km", "12 km")  # GIV: a family that hatches from these eggs (refresh keeps every one it has seen)
+HARD_TO_FARM = ("smeargle",)  # GIV: hard to farm too
+# Leftovers: a likely special trade the user tags by hand (the user, 2026-11-16). PvPoke's "regional" tag, plus these
+# it misses, and their earlier stages. Spinda: each pattern is a new dex entry
+BY_HAND = ("spinda", "throh", "sawk", "scatterbug", "spewpa", "vivillon", "flabebe", "floette", "florges",
+           "oricorio_baile", "oricorio_pau", "oricorio_pom_pom", "oricorio_sensu", "shellos", "gastrodon", "furfrou")
 PVP_FLOOR = 5  # every rank 1 IV at least this
 HARD_CANDY = 100  # a stage 1 that costs this much candy to evolve into counts for the evolved GIV rule
 BABIES = {172, 173, 174, 175, 236, 238, 239, 240, 298, 360, 406, 433, 438, 439, 440, 446, 447, 458, 848}  # not a stage
@@ -67,7 +75,8 @@ SAVED = {GIVER: {CLEAN: ("traded", "!3*", "!4*", "!favorite", "!#"),
                  "IV Check": ("4*,3*", "!favorite", "!#")},
          TAKER: {CLEAN: ("traded", "!3*", "!4*", "!favorite", "!#"),
                  "IV Check": ("4*,3*", "!favorite", "!#"),
-                 "PvpC1": (), "PvpC2": ()}}
+                 "PvpC1": (), "PvpC2": (),
+                 "Leftovers": ("!favorite", "!#")}}  # (leftovers.py: any tag or star takes one out of it)
 
 
 

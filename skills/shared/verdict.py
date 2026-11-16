@@ -16,10 +16,11 @@ The order is tradeable.py's (its docstring has the reasons), judged for the othe
 to. Signed in as CyrillJan (the pile goes to HashTagAJay):
   GuaranteedLucky > Luckydex > Old > 2XL (a raid attacker's line only) > Reroll > GIV > xxs > XLX > GIV
   (evolved, Dynamax, Tandemaus) > GIV (far) > Transfer
-Signed in as HashTagAJay (the pile goes to CyrillJan):
-  GuaranteedLucky > Old > GIV (medal) > 2XL > GIV > xxs > XLX > GIV (evolved, Dynamax) > GIV (trade evolution) >
-  GIV (far) > Transfer
-  (its raid GIV: a new copy gets into one of CyrillJan's /roster teams, or within 15% of the #6: giver_species())
+Signed in as HashTagAJay (the pile goes to CyrillJan or the user's wife's account, judged for any account):
+  regional or Spinda: unsure (by hand) > GuaranteedLucky > Old > GIV (medal) > 2XL > Reroll > GIV > xxs > XLX >
+  GIV (evolved, 10/12 km egg family, Smeargle) > GIV (trade evolution) > GIV (far) > Transfer
+  (Reroll: a mega line, DialgaDex #1 vs some boss, Master League top 20. GIV: DialgaDex top 6 vs some boss, or it can
+  Dynamax. XLX at level 26+ both ways: giver_species())
 Before all of them: a special trade (trades.py's legendary rules, else unsure), a traded one (Transfer), an untraded
 shadow, costume or background one (odd_one: the user's rules for each; a shadow's Transfer becomes GuaranteedLucky or
 Old when its catch date fits, no purify: shadow_transfer), and a lucky one, traded or not (lucky()).
@@ -139,8 +140,8 @@ def tables(to):
         except (tr.NoData, SystemExit, OSError) as e:  # (pve() exits with no DialgaDex counters; no runs folder)
             _TABLES[to] = {"to": to, "missing": str(e)}
             return _TABLES[to]
-        why = sp["why"] if to == TAKER else {s: ("GIV", r) for s, r in sp["why"].items()}
-        _TABLES[to] = {"to": to, "why": why, "lucky": sp.get("lucky", {}), "evolved": sp["evolved"],
+        _TABLES[to] = {"to": to, "why": sp["why"], "lucky": sp.get("lucky", {}), "evolved": sp["evolved"],
+                       "hard": sp.get("hard", {}), "by_hand": set(sp.get("by_hand", ())),
                        "no_dmax": set(sp.get("no_dmax", ())), "xl_full": sp["xl_full"],
                        "giv_for_taker": set(rules.GIV_FOR_TAKER), "from": sp["from"],
                        "raid": set(tr.pve(m)[0]),  # in DialgaDex's top PVE_TOP vs some boss, or evolves into one
@@ -267,6 +268,8 @@ def usual(f, t, today=None):
         if f.account == EVO_FOR and dexn in TRADE_EVO_DEX and not dead_end(f, sid):
             return tag(EVO, why="traded: evolves for free", off=strip)
         return tag("Transfer", why="traded: can't trade again", off=strip)
+    if to == GIVER and sid in t.get("by_hand", ()):  # (before Old: an old regional is still the user's to tag)
+        return unsure("regional or Spinda: likely a special trade, by hand")
     if LUCKY_YEARS[0] <= f.caught.year <= LUCKY_YEARS[1]:
         return tag("GuaranteedLucky", why=f"untraded, caught {f.caught.year}: lucky once traded")
 
@@ -309,7 +312,9 @@ def usual(f, t, today=None):
 
     if sid in t["evolved"]:
         return tag("GIV", why=t["evolved"][sid])
-    if f.dynamax and (to == TAKER or sid in t["no_dmax"]):
+    if sid in t["hard"]:  # (HashTagAJay's side only: a 10 or 12 km egg's family, Smeargle)
+        return tag("GIV", why=t["hard"][sid])
+    if f.dynamax and to == TAKER:  # (HashTagAJay's side: every species that can Dynamax is in its GIV list)
         return tag("GIV", why="untraded Dynamax")
     if to == TAKER and sid in t["giv_for_taker"]:
         return tag("GIV", why=f"{sid}: wanted by {TAKER}")

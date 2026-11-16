@@ -4,8 +4,8 @@
   python3 tradeable.py refresh            the Mac: PvPoke's rankings -> pvp-giv-<date>.json, PokeMiners' game master
                                           -> giv-evolved-<date>.json and dynamax-<date>.json, LeekDuck's egg pools
                                           -> eggs-<date>.json (adds to the last one: a species stays once seen)
-  POGO_PHONE=android caffeinate -dimsu python3 tradeable.py dynamax   CyrillJan signed in: only searches (no rule
-                                          reads its count since 2026-11-16)
+  POGO_PHONE=android caffeinate -dimsu python3 tradeable.py dynamax   either account: only searches, counts the
+                                          signed-in one's (no rule reads its count since 2026-11-16)
   POGO_PHONE=android caffeinate -dimsu python3 tradeable.py read [searches.json]   HashTagAJay signed in: only searches
   POGO_PHONE=android caffeinate -dimsu python3 tradeable.py [door] [--limit N]  CyrillJan signed in: the default.
                                           The tag searches that need no page read first (2XL, GIV ...), then
@@ -563,11 +563,11 @@ def can_dynamax():
 
 
 def cmd_dynamax():
-    """CyrillJan signed in: how many Dynamax ones of each family that can Dynamax (only searches)"""
+    """either account signed in: how many Dynamax ones it has of each family that can Dynamax (only searches).
+    dynamax.json says whose count it is"""
     base.new_run_dir(os.path.join(HERE, "runs"), suffix="dynamax")
     who = home.trainer()
-    if who != GIVER:
-        raise Stop(f"signed in as {who!r}: dynamax counts {GIVER}'s")
+    log(f"counting {who}'s Dynamax ones")
     m, can = Model(), can_dynamax()
     home.start()
     n = tagsheet.counter({}, lambda q, c: log(f"  {q}: {c}"), edit=True, live=True)

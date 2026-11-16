@@ -31,7 +31,8 @@ afterwards the same search must come back empty.
 --limit N powers up at most N Pokémon (the tagging still runs). Log in runs/<time>/.
 Every script that tags Transfer runs step 2 on that pile first (power_pile): tradeable.py too.
 
-Which account: the storage max over the empty search, over 10,000 is HashTagAJay. evo and fix stop on HashTagAJay.
+Which account: the storage max over the empty search, over 10,000 is HashTagAJay. evo and fix end on HashTagAJay
+(exit 0, a line that says why, nothing tagged): they are for CyrillJan only.
 --limit reached: the rest weren't checked, so Clean Trades isn't tagged Transfer that run. A "count..." term eats any
 text after it, so the XL part always goes last. On the Pixel, HashTagAJay's PvpC1 search fills the bar.
 iPhone: tagging ran 2026-10-19, the power-up walk and swipe haven't yet. The first time, run --look, then --limit 1.
@@ -144,8 +145,10 @@ def script(a):
     search.to_search_list()
     who = None if LOOK else home.trainer()
     search.to_search_list()  # (trainer() can end on the map)
-    if who != EVO_FOR and ("evo" in a or "fix" in a):
-        raise Stop(f"signed in as {who!r}: only {EVO_FOR} tags free evolutions Evo")
+    if who != EVO_FOR and ("evo" in a or "fix" in a):  # an end, not a stop: there is nothing to heal
+        log(f"cleantrades.py {'evo' if 'evo' in a else 'fix'} is not for {who}'s account: only {EVO_FOR} wants the "
+            f"free evolutions' XP. On {who}, plain cleantrades.py tags them Transfer with the rest. Nothing done")
+        return
     if LOOK:
         power_walk(limit)
         return

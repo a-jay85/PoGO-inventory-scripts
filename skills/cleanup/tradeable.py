@@ -327,16 +327,16 @@ COUNTERS = ("dialgadex-counters-[0-9]*[0-9].json", "dialgadex-counters-pp2-[0-9]
 
 
 def real_boss(rm, b):
-    """a boss like a tier 3+ raid's (the user, 2026-11-16, for Reroll): legendary, mythical, Ultra Beast, mega or
-    primal, or fully evolved (no Exeggcute)"""
+    """a boss like a 4-star raid's or higher (the user, 2026-11-16, for Reroll): legendary, mythical, Ultra Beast,
+    mega or primal (no Tropius)"""
     import roster  # (raid_tops put its folder on the path)
-    return bool(b["class"]) or roster.is_mega(b) or (s := rm.sid_of(b)) is None or s not in set(rm.parent.values())
+    return bool(b["class"]) or roster.is_mega(b)
 
 
 def raid_tops(m, n=PVE_TOP, real=False, megas=True):
     """-> ({sid: [bosses]}, {sid in some top as itself}, roster.Model): each tradeable non-special species in DialgaDex's
     top n against some raid boss, as itself (not through what it evolves into), with Party Power off or with a party
-    of 2 (the user, 2026-11-16: either counts). A mega counts as its species. real: only bosses like a tier 3+ raid's
+    of 2 (the user, 2026-11-16: either counts). A mega counts as its species. real: only bosses like a 4-star raid's or higher
     (real_boss). megas=False: a mega takes its spot but counts for no one (for Reroll, a mega counts only as the best of its
     type)"""
     sys.path.append(os.path.join(HERE, "..", "roster"))
@@ -577,7 +577,7 @@ def giver_species(m):
     (the user, 2026-11-16) -> {"why": {sid: (tag, why)}, "evolved": {sid: why}, "hard": {sid: why}, "by_hand": {sid},
     "xl_full": {dex}, "from": {what: file}}. Read by ../shared/verdict.py
       Reroll: a new 100 is worth having: the best mega of a type (mega_tops), DialgaDex's top REROLL_PVE against a boss
-        like a tier 3+ raid's (real_boss; a mega in that spot counts for no one), or PvPoke's Master League top REROLL_ML (each with the earlier stages that evolve into it)
+        like a 4-star raid's or higher (real_boss; a mega in that spot counts for no one), or PvPoke's Master League top REROLL_ML (each with the earlier stages that evolve into it)
       GIV: more Candy XL is worth having: DialgaDex's top PVE_TOP against some raid boss (more than one spot in a
         team), or it can Dynamax (Max Moves cost Candy and Candy XL)
       hard (GIV, after XLX): the family of a 10 or 12 km egg hatch (refresh's eggs-<date>.json), and Smeargle

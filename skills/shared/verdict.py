@@ -104,7 +104,7 @@ class Facts:
     evolves: bool = None  # an Evolve button under Power Up (None: that part of the page didn't show)
     far: bool = None  # caught 100 km+ away (the run's one 'distance100-' search)
     gym_top20: bool = None  # a gym defender: top 20 CP or IV of its species (its search)
-    iv_top: bool = None  # a lucky one: top 5 IV of its line's non-shadow ones, 6 if it can mega (/ivc's sort)
+    iv_top: bool = None  # a lucky one: in /ivc's spots for its line (strong: top 5/6 IV or the best lucky; weak: top IV)
     pure_top: bool = None  # a shadow: a non-shadow spot of its line once purified (/ivc's sort; None: nobody checked)
     pvp_judged: bool = False  # /pvpc already found it's no PvP keeper
     ivc_judged: bool = False  # /ivc or /ivc is judging it: IVC is the tag coming off
@@ -391,10 +391,11 @@ def transfer(f, sid, why, off=(), purify=False, clear=False):
 
 
 def lucky(f, sid, dexn, strip):
-    """a lucky one, traded or not (the user's rule, 2026-10-30): in the top 5 IV of its line's non-shadow ones (6 if
-    the line can mega evolve, ties keep) it stays. Out of that, one with a PvP top-100 IV goes to /pvpc, which compares
-    it with the ones you own. The rest: name cleared, Transfer (door.py checks the power-up first). A traded one that
-    evolves for free gets Evo instead. Only /ivc ranks it: from anywhere else it goes to IVC, name cleared, and
+    """a lucky one, traded or not (the user's rule, 2026-10-30): in /ivc's spots for its line it stays: on a strong
+    line the top 5 IV of its non-shadow ones (6 if the line can mega evolve) or its best lucky, on a weak line only its
+    top IV (the user, 2026-11-17: strong = a #1 raid attacker, sort.strong), ties keep. Out of that, one with a PvP
+    top-100 IV goes to /pvpc, which compares it with the ones you own. The rest: name cleared, Transfer (door.py checks
+    the power-up first). A traded one that evolves for free gets Evo instead. Only /ivc ranks it: from anywhere else it goes to IVC, name cleared, and
     /ivc ranks it next"""
     if f.iv_top is None:
         if f.ivc_judged:

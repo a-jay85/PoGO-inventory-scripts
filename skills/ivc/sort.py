@@ -22,15 +22,17 @@ Keep if ANY of these passes (ties with the last place keep):
               IV ties: more of HP and Defense at 15 wins
 N = 6 if any species in that final's line can mega evolve (released in GO or not), else 5.
 Always keep: 98% or 100% (a shadow's own IV, or its purified IV). Armored Mewtwo (no search can split it out).
-Weak lines (no species, mega or shadow form of the line reaches STRONG_AT% on DialgaDex for any type):
-  1 spot per final (ties keep); lucky/Dynamax extras still apply; an Elite TM name (*) keeps. A lucky one gets the
-  full top N non-shadow spots anyway (the lucky rule, 2026-10-30: verdict.lucky).
-  Never weak: gym defenders, COLLECT, legendary/mythical/Ultra Beast, unrated megas, species not on DialgaDex.
+Strong lines (the user, 2026-11-17): some species in the line (or its mega) is DialgaDex's #1 non-special, tradeable,
+non-shadow attacker against a boss like a 4-star raid's or higher, today or once unreleased megas come out
+(raid_firsts). Also strong: gym defenders, COLLECT, legendary/mythical/Ultra Beast.
+Weak lines: 1 spot per final (ties keep), lucky or not, and no lucky spot; the top 3 Dynamax still keep; an Elite TM
+name (*) keeps.
   meta-overrides.txt can mark a species strong or weak by hand.
 COLLECT lines (Vivillon patterns): a DOOR becomes LEAVE so the user picks.
 Fails: XXL/xxs in the name -> leave for the user. Otherwise -> DOOR. No IV and no size (FP*, *) -> DOOR.
 
-DialgaDex data (dialgadex-<date>.json) is pulled with ~/claude-plans/_scripts/dialgadex-scrape.mjs.
+DialgaDex counters (../roster/dialgadex-counters-[future-][pp2-]<date>.json) come from ../roster/pull.mjs.
+The old type lists (dialgadex-20261007.json) only give the legendary dex numbers now.
 """
 import difflib, json, os, re, sys
 from collections import Counter, namedtuple
@@ -38,7 +40,9 @@ from functools import lru_cache
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "shared"))
+sys.path.insert(0, os.path.join(HERE, "..", "dex"))
 sys.path.insert(0, HERE)
+import dex
 import pvp
 from pvp import REGIONS, is_gym, base_name, region, parent, children, search
 from ui import tile_name as clean_name
@@ -47,8 +51,7 @@ from rules import ALWAYS_KEEP
 
 TOP, TOP_MEGA, TOP_LUCKY, TOP_DMAX, TOP_GYM_CP, TOP_GYM_IV = 5, 6, 1, 3, 20, 20
 ALWAYS = ALWAYS_KEEP  # 98% and 100% always keep
-STRONG_AT = 90  # DialgaDex % (vs its budget pick for the type) a line needs somewhere to keep top 5/6
-WEAK_EXTRAS = True  # weak lines: also keep the best lucky / top 3 Dynamax (user: yes, as before)
+WEAK_DMAX = True  # weak lines: also keep the top 3 Dynamax (the user, 2026-11-17: yes; the best-lucky spot is gone)
 COLLECT = {"scatterbug", "spewpa", "vivillon"}  # pattern collections: the user picks by hand
 OWN_FORM = {"mewtwo_armored"}  # a form the searches can't split from the rest of its dex number
 
@@ -220,23 +223,15 @@ def top_n(line):
 
 # ---------- strong lines (DialgaDex) ----------
 
-DGX_FORMS = {"Alola": "alola", "Galarian": "galar", "Hisuian": "hisui", "Paldea": "paldea"}
+SPECIAL = ("legendary", "mythical", "ultrabeast")
 
 
 def load_meta():
-    """(dex, region) -> (best %, what) over every type list, megas and shadows included; and the hand overrides"""
-    best = {}
+    """the legendary/mythical/Ultra Beast dex numbers (the old DialgaDex type lists' class, plus the game data's tags:
+    Cosmog's line is only in the first); and the hand overrides"""
     with open(os.path.join(HERE, "dialgadex-20261007.json")) as f:
-        for t, rows in json.load(f).items():
-            for e in rows:
-                reg = next((v for k, v in DGX_FORMS.items() if e["form"].startswith(k)), None)
-                k = (e["id"], reg)
-                if e["cls"]:  # legendary, mythical, Ultra Beast
-                    best.setdefault(("legend", e["id"]), True)
-                if e["form"].startswith("Mega"):
-                    best.setdefault(("mega", e["id"]), True)
-                if e["pct"] > best.get(k, (0,))[0]:
-                    best[k] = (e["pct"], f"{'Shadow ' if e['shadow'] else ''}{e['name']} {t} {e['pct']}%")
+        legend = {e["id"] for rows in json.load(f).values() for e in rows if e["cls"]}
+    legend |= {p["dex"] for p in SPECIES.values() if any(t in (p.get("tags") or []) for t in SPECIAL)}
     over = {}
     path = os.path.join(HERE, "meta-overrides.txt")
     if os.path.exists(path):
@@ -244,19 +239,30 @@ def load_meta():
             w = row.split("#")[0].split()
             if len(w) == 2 and w[0] in ("strong", "weak"):
                 over[w[1]] = w[0] == "strong"
-    return best, over
+    return legend, over
 
 
-META, META_OVER = load_meta()
+LEGEND, META_OVER = load_meta()
 
 
-def meta_score(sid):
-    """DialgaDex best for one species, or None if it isn't there"""
-    return META.get((SPECIES[sid]["dex"], region(sid)))
+@lru_cache(None)
+def raid_firsts():
+    """{sid: [bosses]}: the species that are DialgaDex's #1 non-special, tradeable, non-shadow attacker against some
+    boss like a 4-star raid's or higher, with Party Power off or a party of 2, released Pokémon only or unreleased too
+    (the user, 2026-11-17: #1 today or once future megas come out). A mega counts as its species"""
+    sys.path.append(os.path.join(HERE, "..", "roster"))
+    import roster
+    ok = lambda s: s in SPECIES and SPECIES[s]["dex"] not in dex.NEVER_TRADED
+    out = {}
+    for pulls in (roster.COUNTERS, roster.FUTURE):
+        for s, bosses in roster.raid_tops(ok, 1, real=True, pulls=pulls)[0].items():
+            out.setdefault(s, []).extend(b for b in bosses if b not in out.get(s, []))
+    return out
 
 
 def strong(line):
-    """-> (strong?, why). Not found on DialgaDex counts as strong: a missing match must never Nope things."""
+    """-> (strong?, why). Strong: some species in the line is a raid_firsts #1 (the user, 2026-11-17). Also strong:
+    gym defenders, pattern collections, legendary/mythical/Ultra Beast lines, and meta-overrides.txt's strong ones"""
     for s in line:
         if s in META_OVER:
             return META_OVER[s], f"{s} marked {'strong' if META_OVER[s] else 'weak'} by hand"
@@ -265,14 +271,13 @@ def strong(line):
             return True, f"{s} is a gym defender"
         if any(s.startswith(c) for c in COLLECT):
             return True, "pattern collection"
-        if ("legend", SPECIES[s]["dex"]) in META:
+        if SPECIES[s]["dex"] in LEGEND:
             return True, f"{s} is legendary/mythical/Ultra Beast"
-        if meta_score(s) is None:
-            return True, f"{s} not on DialgaDex"
-        if can_mega(s) and not any(("mega", SPECIES[x]["dex"]) in META for x in line):
-            return True, f"Mega {base_name(s).title()} not rated on DialgaDex yet"
-    best = max(meta_score(s) for s in line)
-    return best[0] >= STRONG_AT, best[1]
+    for s in line:
+        if s in raid_firsts():
+            bs = raid_firsts()[s]
+            return True, f"{s} #1 vs {', '.join(bs[:3])}" + (f" +{len(bs) - 3}" if len(bs) > 3 else "")
+    return False, "no one in the line is the #1 attacker against a 4-star raid boss or higher"
 
 
 # ---------- which species it is ----------
@@ -349,16 +354,14 @@ def pct(v):
     return f"{round(v * 100 / 45)}%"
 
 
-def spots(sid, pool, full=False):
-    """final -> (how many of them to keep, its name, weak-line note) for this species' family. full: a weak line
-    gets its full spots too (/cleanup's lucky rule)"""
+def spots(sid, pool):
+    """final -> (how many of them to keep, its name, weak-line note) for this species' family"""
     out = {}
     for line in family(sid):
         f = line[-1]
         big, meta = strong(line)
-        big = big or full
         n = {"plain": top_n(line) if big else 1, "shadow": TOP if big else 1,  # shadows can't mega: top 5
-             "lucky": TOP_LUCKY if big or WEAK_EXTRAS else 0, "dmax": TOP_DMAX if big or WEAK_EXTRAS else 0}[pool]
+             "lucky": TOP_LUCKY if big else 0, "dmax": TOP_DMAX if big or WEAK_DMAX else 0}[pool]
         name = base_name(f).title() + (f" ({region(f)})" if region(f) else "") + \
             (f" {GENDER[f]}" if gender_term(f) else "")
         old = out.get(slot(f))
@@ -437,10 +440,10 @@ def my_reach(m, mine, results, pool):
     return frozenset().union(*(r for _, r in gs))
 
 
-def judge_pool(m, results, pool, what, mine, r, me_in_pool=True, extra=(), full=False):
-    """-> (keep?, reason, notes). full: see spots"""
+def judge_pool(m, results, pool, what, mine, r, me_in_pool=True, extra=()):
+    """-> (keep?, reason, notes)"""
     sid = m["species"]
-    caps = spots(sid, pool, full)
+    caps = spots(sid, pool)
     shadow = m["shadow"] and pool == "shadow"
     items, found = pool_items(sid, pool, results, shadow, (mine, m["cp"]) if me_in_pool else None)
     items += extra
@@ -556,11 +559,6 @@ def decide(m, results):
     for pool, what in checks if r else []:
         ok, reason, more = judge_pool(m, results, pool, what, mine, mr)
         notes += more
-        if ok:
-            return "KEEP", [reason] + notes
-        why.append(reason)
-    if r and m["lucky"] and not all(strong(line)[0] for line in lines_of(sid)):  # the lucky rule: a weak line's top 5/6
-        ok, reason, _ = judge_pool(m, results, "plain", "lucky, a weak line's top IV", mine, mr, full=True)
         if ok:
             return "KEEP", [reason] + notes
         why.append(reason)
@@ -765,8 +763,8 @@ def test():
           gallade__plain=[("93", 2500)], gardevoir__plain=six_better))[0], "DOOR")
     ev = dict(kl, species="eevee", cp=500)
     full = {f"{x}__plain": six_better for x in ("flareon", "espeon", "umbreon", "leafeon", "glaceon", "sylveon")}
-    check("eevee: vaporeon and jolteon are weak, top 1 each", [spots("eevee", "plain")[slot(x)][0]
-          for x in ("vaporeon", "jolteon", "espeon")], [1, 1, 5])
+    check("eevee: no eeveelution is a #1 raid attacker, top 1 each", [spots("eevee", "plain")[slot(x)][0]
+          for x in ("vaporeon", "jolteon", "espeon")], [1, 1, 1])
     check("one eevee can't fill two spots", decide(ev, resf("eevee", eevee__plain=[("96", 1), ("93", 500)], **full))[0],
           "KEEP")
     check("eevee: every spot taken", decide(ev, resf("eevee", jolteon__plain=[("100", 1)],
@@ -797,17 +795,20 @@ def test():
     check("armored mewtwo keeps", decide(dict(me, species="mewtwo_armored", name="80 a"), {})[0], "KEEP")
     rat = ("bidoof", "bibarel")
     check("bidoof line is weak", strong(rat)[0], False)
-    check("not on DialgaDex counts strong", strong(("dunsparce", "dudunsparce"))[0], True)
+    check("no #1 vs a 4-star raid boss: weak", strong(("rhyhorn", "rhydon", "rhyperior"))[0], False)
+    check("#1 only once its future mega is out: strong", strong(("drilbur", "excadrill"))[0], True)
+    check("#1 today, beaten by a future mega: strong", strong(("dratini", "dragonair", "dragonite"))[0], True)
     rt = dict(me, species="bibarel", name="91")
     rr = lambda tiles, pool="plain": by_fam({search("bibarel", pool): tiles}, "bibarel")
     check("weak line, tie for top keeps", decide(rt, rr([("91", 1), ("91", 2000)]))[0], "KEEP")
     check("weak line, 2nd nopes", decide(rt, rr([("93", 1), ("91", 2000)]))[0], "DOOR")
     check("weak line, 96 under a 98 nopes", decide(dict(rt, name="96"), rr([("98", 1), ("96", 2000)]))[0], "DOOR")
-    check("weak line, best lucky still keeps", decide(dict(rt, lucky=True), rr([("93", 1)]))[0], "KEEP")
+    check("weak line, a lucky 2nd nopes (no lucky spot)", decide(dict(rt, lucky=True), rr([("93", 1)]))[0], "DOOR")
+    check("weak line, a lucky top IV keeps", decide(dict(rt, lucky=True, name="93"), rr([("91", 1)]))[0], "KEEP")
     wl = lambda plain, lucky: by_fam({search("bibarel", "plain"): plain, search("bibarel", "lucky"): lucky}, "bibarel")
     better_lucky = [("96", 5), ("91", 2000)]
-    check("weak line, lucky 4th of its line keeps", decide(dict(rt, lucky=True), wl(
-        [("98", 1), ("96", 2), ("93", 3), ("91", 2000)], better_lucky))[0], "KEEP")
+    check("weak line, lucky 4th of its line nopes", decide(dict(rt, lucky=True), wl(
+        [("98", 1), ("96", 2), ("93", 3), ("91", 2000)], better_lucky))[0], "DOOR")
     check("weak line, lucky 6th of its line nopes", decide(dict(rt, lucky=True), wl(
         [("98", 1), ("96", 2), ("96", 3), ("93", 4), ("93", 6), ("91", 2000)], better_lucky))[0], "DOOR")
     check("weak line, 4th not lucky nopes", decide(rt, wl([("98", 1), ("96", 2), ("93", 3), ("91", 2000)], []))[0],

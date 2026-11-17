@@ -410,9 +410,11 @@ def to_friend(p, ours=False):
                 p.tap(*at)
                 time.sleep(1)
                 continue
-            if not button and s == "expired" and p.find(lambda t: "TRY AGAIN LATER" in ui.up(t)):
+            if not button and s == "expired" and p.find(lambda t: "TRY AGAIN LATER" in ui.up(t)
+                                                           or "ERROR FETCHING" in ui.up(t)):
                 # 2026-11-08 iPhone: "Trading service temporarily unavailable. Try again later." can be a pink toast
-                # with no OK over the trade screen. It fades by itself: look again, then back out of what's under it
+                # with no OK over the trade screen. 2026-11-17 iPhone: so can "Error fetching trade status", over the
+                # confirm screen. Each fades by itself: look again, then back out of what's under it
                 time.sleep(1)
                 continue
             if not button:

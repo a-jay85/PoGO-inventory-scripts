@@ -61,6 +61,15 @@ def key(tile_name, cp):
     return ui.tile_name(tile_name), cp
 
 
+
+def candy_owned(texts):
+    """the family's Candy count on this page, or None (taps.owned's read)"""
+    import taps  # here: taps imports base
+    try:
+        return taps.owned(texts)[1]
+    except Exception:  # (taps.Pass: the row didn't read)
+        return None
+
 class Door:
     def __init__(self, tag, scope=None, account=None, find=None, rank_gym=False):
         """scope: the search the Pokémon to judge are in (default #tag). account: who's signed in, when known.
@@ -229,7 +238,7 @@ class Door:
                      traded=True if lucky else said("traded", page["traded"]), caught=page["caught"], shadow=base.is_shadow(texts),
                      lucky=lucky,
                      gigantamax="GIGANTAMAX" in near, dynamax="DYNAMAX" in near, size=size, kg=base.who(info)[2],
-                     candy_xl=None if xl is None else 0 if xl else XL_CAP,
+                     candy_xl=None if xl is None else 0 if xl else XL_CAP, candy=page.get("candy"), xl=page.get("xl"),
                      levels=self.levels(texts, info, sp, ivs, tile_cp), far=said("far", None if page["california"] is None else not page["california"]), gym_top20=gym_top20,
                      iv_top=iv_top, pure_top=pure_top, pvp_judged=self.tag.upper() == "PVPC", ivc_judged=self.tag.upper() == "IVC",
                      other_tags=[t for t in tagsheet.tag_chips(texts)
@@ -281,8 +290,14 @@ class Door:
             xl = next((n for t, p in shots if (n := pagefacts.candy_xl_close(p, t)) is not None), None)
         for t, _ in shots:  # the counts, with the close look's XL (a Dynamax page's candy row is in the second shot)
             base.remember_counts(t, xl=xl)
+        candy = next((n for t, _ in shots if (n := candy_owned(t)) is not None), None)
+        if candy is None or xl is None:  # (the database's last read of the family, from this account)
+            saved = next((r for t, _ in shots if (fam := base.candy(t)) and (r := pokedb.candies().get(fam))), {})
+            candy = saved.get("candy") if candy is None else candy
+            xl = saved.get("xl") if xl is None else xl
         days = {tagsheet.caught(catch_date(r)) for r in reads}
-        base.OPENED["page"] = {"caught": days.pop() if len(days) == 1 else None, "xl": xl, **pagefacts.bottom(reads)}
+        base.OPENED["page"] = {"caught": days.pop() if len(days) == 1 else None, "xl": xl, "candy": candy,
+                               **pagefacts.bottom(reads)}
         page = base.OPENED["page"]
         pokedb.learn(base.OPENED.get("who"), caught=page["caught"], traded=page["traded"], california=page["california"])
         if base.OPENED["page"]["california"] is False:  # read wrong once and never again (2026-11-06): leave the words to check

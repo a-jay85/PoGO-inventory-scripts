@@ -15,12 +15,16 @@ that's missing, gives unsure, never Transfer.
 The order is tradeable.py's (its docstring has the reasons), judged for the other account, the one it would be traded
 to. Signed in as CyrillJan (the pile goes to HashTagAJay):
   GuaranteedLucky > Luckydex > Old > 2XL (a raid attacker's line or a Dynamax one) > Reroll > GIV > xxs > XLX > GIV
-  (evolved, Dynamax, Tandemaus) > GIV (far) > Transfer
+  (evolved, Dynamax, Tandemaus) > GIV (far) > GIV (can Dynamax, account short of candy) > Transfer
 Signed in as HashTagAJay (the pile goes to CyrillJan or the user's wife's account, judged for any account):
   regional or Spinda: unsure (by hand) > GuaranteedLucky > Old > GIV (medal) > 2XL > Reroll > GIV > xxs > XLX >
-  GIV (evolved, 10/12 km egg family, Smeargle, gym defender line, can Dynamax) > GIV (trade evolution) > GIV (far) > Transfer
+  GIV (evolved, 10/12 km egg family, Smeargle, gym defender line, Dynamax) > GIV (trade evolution) > GIV (far) >
+  GIV (can Dynamax, account short of candy) > Transfer
   (Reroll: the best mega of a type, DialgaDex #1 vs some boss, Master League top 20. GIV: DialgaDex top 6 vs some boss. A gym
-  defender's line, and one that can Dynamax, are GIV (evolved) ones: after 2XL and XLX. XLX at level 26+ both ways: giver_species())
+  defender's line is a GIV (evolved) one: after 2XL and XLX. XLX at level 26+ both ways: giver_species())
+A Dynamax one (both accounts): 2XL, XLX, then GIV. One that only can Dynamax (or evolves into one that can) gets GIV
+while the account holding it has rules.DMAX_CANDY Candy or less, or XL_CAP + all three Max Moves' Candy XL or less, of
+the family (dmax_short, the user 2026-11-16). With more of both and no other rule, Transfer
 Before all of them: a special trade (trades.py's legendary rules, else unsure), a traded one (Transfer), an untraded
 shadow, costume or background one (odd_one: the user's rules for each; a shadow's Transfer becomes GuaranteedLucky or
 Old when its catch date fits, no purify: shadow_transfer), and a lucky one, traded or not (lucky()).
@@ -94,6 +98,8 @@ class Facts:
     size: str = None  # 'xxs', 'xs', 'xl', 'xxl', or '' for none
     kg: float = None
     candy_xl: int = None  # this account's Candy XL of the family
+    candy: int = None  # this account's Candy of the family, read on the page (the Dynamax rule asks)
+    xl: int = None  # the same account's Candy XL, the count itself (candy_xl is only under XL_CAP or not)
     levels: list = None  # the levels it can be at, from the power-up cost
     evolves: bool = None  # an Evolve button under Power Up (None: that part of the page didn't show)
     far: bool = None  # caught 100 km+ away (the run's one 'distance100-' search)
@@ -142,7 +148,7 @@ def tables(to):
             return _TABLES[to]
         _TABLES[to] = {"to": to, "why": sp["why"], "lucky": sp.get("lucky", {}), "evolved": sp["evolved"],
                        "hard": sp.get("hard", {}), "by_hand": set(sp.get("by_hand", ())),
-                       "no_dmax": set(sp.get("no_dmax", ())), "xl_full": sp["xl_full"],
+                       "no_dmax": set(sp.get("no_dmax", ())), "xl_full": sp["xl_full"], "dmax": sp.get("dmax", {}),
                        "giv_for_taker": set(rules.GIV_FOR_TAKER), "from": sp["from"],
                        "raid": set(tr.pve(m)[0]),  # in DialgaDex's top PVE_TOP vs some boss, or evolves into one
                        "raid_self": {s for s in tr.raid_tops(m)[0] if s in m.by}}  # in some top as itself
@@ -314,7 +320,7 @@ def usual(f, t, today=None):
         return tag("GIV", why=t["evolved"][sid])
     if sid in t["hard"]:  # (HashTagAJay's side only: a 10 or 12 km egg's family, Smeargle, a gym defender's line)
         return tag("GIV", why=t["hard"][sid])
-    if f.dynamax and to == TAKER:  # (HashTagAJay's side: every species that can Dynamax is in its hard list)
+    if f.dynamax:  # a real Dynamax one, either account (the user, 2026-11-16)
         return tag("GIV", why="untraded Dynamax")
     if to == TAKER and sid in t["giv_for_taker"]:
         return tag("GIV", why=f"{sid}: wanted by {TAKER}")
@@ -325,7 +331,24 @@ def usual(f, t, today=None):
         return unsure("distance not checked")
     if f.far:
         return tag("GIV", why="caught 100 km+ away")
+    if v := dmax_short(f, t, sid):  # (last of the GIVs: the others need no count read)
+        return v
     return transfer(f, sid, "no rule wants it")
+
+
+def dmax_short(f, t, sid):
+    """one that can Dynamax (or evolves into one that can), but isn't a Dynamax one: GIV while the account holding it
+    is short of that family's Candy (DMAX_CANDY or less) or Candy XL (XL_CAP + all three Max Moves' XL, or less). With
+    both over, no rule wants it for this and it goes on to the rest (the user, 2026-11-16). None: not one of these"""
+    need = t.get("dmax", {}).get(sid)
+    if need is None:
+        return None
+    if f.candy is None or f.xl is None:
+        return unsure("can Dynamax: Candy or Candy XL not read")
+    if f.candy <= rules.DMAX_CANDY or f.xl <= need:
+        return tag("GIV", why=f"can Dynamax: {f.candy} Candy, {f.xl} Candy XL "
+                              f"(wants over {rules.DMAX_CANDY} and {need})")
+    return None
 
 
 def two_xl(f, t, sid):

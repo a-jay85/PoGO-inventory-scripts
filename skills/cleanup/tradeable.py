@@ -2,7 +2,8 @@
 """Tag CyrillJan's Tradeable saved search by what a trade to HashTagAJay is worth, and power them up for Candy XL.
 
   python3 tradeable.py refresh            the Mac: PvPoke's rankings -> pvp-giv-<date>.json, PokeMiners' game master
-                                          -> giv-evolved-<date>.json and dynamax-<date>.json, LeekDuck's egg pools
+                                          -> giv-evolved-<date>.json, dynamax-<date>.json and maxmove-xl-<date>.json
+                                          (all three Max Moves' Candy XL per dex number), LeekDuck's egg pools
                                           -> eggs-<date>.json (adds to the last one: a species stays once seen)
   POGO_PHONE=android caffeinate -dimsu python3 tradeable.py dynamax   either account: only searches, counts the
                                           signed-in one's (no rule reads its count since 2026-11-16)
@@ -120,6 +121,10 @@ def cmd_refresh():
     out = os.path.join(HERE, f"dynamax-{time.strftime('%Y%m%d')}.json")
     json.dump(can, open(out, "w"))
     print(f"{len(can)} dex numbers can Dynamax -> {out}")
+    xl = max_move_xl(gm)
+    out = os.path.join(HERE, f"maxmove-xl-{time.strftime('%Y%m%d')}.json")
+    json.dump(xl, open(out, "w"), indent=0)
+    print(f"{len(xl)} dex numbers' Max Move Candy XL -> {out}")
     refresh_eggs()
 
 
@@ -149,6 +154,41 @@ def dynamax_species(gm):
     return sorted({int(re.search(r"V(\d{4})_", x["templateId"]).group(1)) for x in gm
                    if any(o.get("breadMode") == "BREAD_MODE"
                           for o in (x["data"].get("pokemonExtendedSettings") or {}).get("breadOverrides") or [])})
+
+
+def max_move_xl(gm):
+    """PokeMiners' game master -> {dex: the Candy XL that takes all three Max Moves to level 3}, the most of its
+    forms. Each species has a cost group (breadTierGroup); a group's three moves each cost XL on their last level"""
+    cost = {}
+    for x in gm:
+        g = x["data"].get("breadMoveLevelSettings")
+        if g and x["templateId"].startswith("BREAD_MOVE_LEVEL_SETTINGS_"):
+            cost[x["templateId"].removeprefix("BREAD_MOVE_LEVEL_SETTINGS_")] = sum(
+                lv.get("xlCandyCost", 0) for k in ("aSettings", "bSettings", "cSettings") for lv in g[k])
+    out = {}
+    for x in gm:
+        grp = (x["data"].get("pokemonSettings") or {}).get("breadTierGroup")
+        if grp and (m := re.match(r"V(\d{4})_POKEMON_", x["templateId"])) and grp in cost:
+            d = str(int(m.group(1)))
+            out[d] = max(out.get(d, 0), cost[grp])
+    return dict(sorted(out.items(), key=lambda kv: int(kv[0])))
+
+
+def dmax_need(m, ok):
+    """{sid: Candy XL the account wants for it} for each ok one that can Dynamax, or evolves into one that can: XL_CAP
+    plus what all three Max Moves cost (the most of the ones it can become). Read by verdict.py's Dynamax rule"""
+    can = set(can_dynamax())
+    f = base.newest(HERE, "maxmove-xl-[0-9]*[0-9].json")
+    if not f:
+        raise NoData("no maxmove-xl yet: python3 tradeable.py refresh")
+    xl = {int(d): n for d, n in json.load(open(f)).items()}
+    most = max(n for d, n in xl.items() if d != 890)  # (one not in the file: the costliest group, Eternatus left out)
+    out = {}
+    for s in ok:
+        costs = [xl.get(m.dex(x), most) for x in m.down(s) if m.dex(x) in can]
+        if costs:
+            out[s] = XL_CAP + max(costs)
+    return out
 
 
 def hard_evolutions(gm):
@@ -503,7 +543,7 @@ def taker_species(m):
             why.setdefault(s, ("GIV", f"lucky family under {LUCKY_CANDY} candy"))
     evolved = evolved_giv(m, ok, why, json.load(open(hard_f)))
     evolved.update({s: r for s, r in GIV_FOR_TAKER.items() if s in ok and s not in why})
-    return {"why": why, "lucky": lucky, "evolved": evolved,
+    return {"why": why, "lucky": lucky, "evolved": evolved, "dmax": dmax_need(m, ok),
             "xl_full": {m.dex(x) for s in m.by if m.dex(s) in read["xl_full"] for x in m.family(s)},
             "from": {"lucky": lucky_run, "100": hund_run, "roster": roster_f, "read": read_f, "pvp": pvp_f,
                      "evolved": hard_f}}
@@ -589,7 +629,8 @@ def giver_species(m):
         team)
       hard (GIV, after 2XL and XLX): the family of a 10 or 12 km egg hatch (refresh's eggs-<date>.json), Smeargle, and
         a gym defender's line (/ivc's GYM_DEFENDERS and what evolves into them: a potential top gym defender for an
-        account with fewer, the user 2026-11-16), and one that can Dynamax (Max Moves cost Candy and Candy XL)
+        account with fewer, the user 2026-11-16)
+      dmax: what dmax_need says (a Dynamax one, or one that can Dynamax while this account is short: verdict.py)
       by_hand: likely special trades the user tags by hand: regionals (PvPoke's tag + rules.BY_HAND) and Spinda
     (An Adventure Effect move would be a Reroll, but only legendaries and Ultra Beasts have one: special trades)"""
     read_f = newest_for(os.path.join("*-read", "read.json"), GIVER)  # (only its 360+ XL families: none without)
@@ -613,7 +654,6 @@ def giver_species(m):
     ml = {s: int(r.split("#")[1]) for s, rs in json.load(open(pvp_f)).items() for r in rs if r.startswith("10000:")}
     add("Reroll", {s: f"Master League #{r}" for s, r in ml.items() if r <= REROLL_ML and s in m.by})
     add("GIV", pve(m)[0])
-    can = can_dynamax()
     eggs = json.load(open(eggs_f))
     hard = {}
     for km in HARD_EGGS:
@@ -624,14 +664,12 @@ def giver_species(m):
     for s in sorted(GYM_DEFENDERS):  # (after 2XL and XLX, the user 2026-11-16)
         hard.update({x: "a gym defender's line: a top one for an account with fewer" for x in m.family(s)
                      if x in ok and x not in hard})
-    for s in sorted(s for s in ok if m.dex(s) in can):  # (after 2XL and XLX too, the user 2026-11-16)
-        hard.update({x: "can Dynamax: Max Moves cost Candy XL" for x in [s, *dex.ancestors(s, m.parent)]
-                     if x in ok and x not in hard and x not in why})
     by_hand = set()
     for s in m.by:
         if "regional" in (m.by[s].get("tags") or []) or s in BY_HAND:
             by_hand |= {s, *(x for x in dex.ancestors(s, m.parent) if m.dex(x) not in BABIES)}
     return {"why": why, "evolved": evolved_giv(m, ok, why, json.load(open(hard_f))), "hard": hard, "by_hand": by_hand,
+            "dmax": dmax_need(m, ok),
             "xl_full": {m.dex(x) for s in m.by if m.dex(s) in xl_full for x in m.family(s)},
             "from": {"read": read_f, "pvp": pvp_f, "evolved": hard_f, "eggs": eggs_f}}
 

@@ -11,6 +11,10 @@
         what the sort can't, the xxs IVC ones (the sort leaves them out) and ones whose nickname is no species (the detail screen tells the species)
   caffeinate -dimsu python3 run.py fallen <run dir> [--limit N]  the fallen-out step on its own (a sort that gets to
         the end does it itself): group the fallen-out ones, then tag or door each one. act-fallen: the same
+  caffeinate -dimsu python3 run.py resort [<run dir>] [--dex A-B] [--look] [--limit N]
+        judge the starred /ivc-named ones again after a rule change: type every search of each family with a weak
+        line (--dex: only those dex numbers), then the fallen-out step sends what fell out to the door. --look:
+        fallen.txt only, change nothing. Give the run dir to carry on after a stop
   python3 run.py search "<query>" [...]                     type searches and print the tiles (testing; later ones edit the bar's end)
   POGO_PHONE=android caffeinate -dimsu python3 run.py ...   (Android phone over USB, see ../pvpc/android.py)
 
@@ -372,9 +376,10 @@ def home(m, read=None):
     return first if holds(first) else next((q for q in qs if holds(q)), first)
 
 
-def pools(members=None):
+def pools(members=None, rereads=True):
     """type the searches these members need (default: every scanned one) that the run hasn't typed yet.
-    The search most of them show in goes last: its list is still on screen for act"""
+    The search most of them show in goes last: its list is still on screen for act. rereads: read again a
+    miscounted search that could flip a member's verdict (off for resort's stand-ins: they are no real Pokémon)"""
     members = [m for m in members or load("scan.json") if m.get("species")]
     homes = Counter(home(m) for m in members)
     queries = list(dict.fromkeys(q for m in members for q in sort.searches_for(m)))
@@ -407,7 +412,8 @@ def pools(members=None):
         save("pools.json", done)
         save("counts.json", wants)
         log(f"  {q}: {len(done[q])} tiles, {sum(sort.parse_name(n).iv is not None for n, _ in done[q])} with an IV")
-    reread(members, done, wants)
+    if rereads:
+        reread(members, done, wants)
     save("bubbles.json", sorted(search.BUBBLES | {tuple(b) for b in (
         load("bubbles.json") if os.path.exists(os.path.join(base.RUN_DIR, "bubbles.json")) else [])}))
 
@@ -1152,6 +1158,57 @@ def fallen_out(limit):
     act_fallen(limit)
 
 
+# ---------- re-sort ----------
+# The rules changed (PR 440, 2026-11-17: a strong line needs the top raid attacker against a 4-star boss or higher):
+# starred ones sorted under the old rules may be out of their family's spots now. resort types the searches of every
+# family with a weak line, and sends what fell out to the door, the same way the end of a sort does.
+
+def resort_members(dexes=None):
+    """stand-in members for every species in a family with a weak line (dexes: only families with a dex number in
+    it). Their searches are the family's plain, lucky, Dynamax, shadow and gym lists"""
+    out = []
+    for sid in sort.SPECIES:
+        fam = sort.family(sid)
+        if dexes and not dexes & {sort.SPECIES[s]["dex"] for line in fam for s in line}:
+            continue
+        if all(sort.strong(line)[0] for line in fam):  # a strong line's rules didn't change
+            continue
+        out.append({"species": sid, "cp": 0, "name": "96", "tile": "96", "shadow": False, "lucky": True, "dynamax": True})
+        if f"{sid}_shadow" in sort.BY_ID:  # (a &shadow search of a line with no shadow finds nothing)
+            out.append({"species": sid, "cp": 0, "name": "91/96", "tile": "91/96", "shadow": True, "lucky": False,
+                        "dynamax": False})
+    return out
+
+
+def resort(limit, look, dexes=None):
+    """judge the /ivc-named ones (no IVC tag: the starred keepers) again under today's rules: per family with a
+    weak line, type its searches, then the fallen-out step. look: write fallen.txt, change nothing.
+    A rerun on the same folder carries on: searches typed already aren't typed again"""
+    members = resort_members(dexes)
+    queries = list(dict.fromkeys(q for m in members for q in sort.searches_for(m)))
+    log(f"re-sort: {len({m['species'] for m in members})} species in families with a weak line, {len(queries)} searches")
+    if os.path.exists(os.path.join(base.RUN_DIR, "ivc-tiles.json")):
+        ivc = load("ivc-tiles.json")
+    else:  # the #IVC ones aren't sorted yet: the sort judges them, and the fall-out searches leave them out anyway
+        front()
+        to_search_list()
+        q = (dex_terms(sorted(dexes)) + "&" if dexes else "") + "#" + TAG
+        got, _ = read_search(q, True)
+        ivc = [{"tile": sort.clean_name(n), "cp": c} for n, c in got]
+        save("ivc-tiles.json", ivc)
+        log(f"  {q}: {len(ivc)} with an IV name, left out")
+    pools(members, rereads=False)
+    results = {k: [tuple(x) for x in v] for k, v in load("pools.json").items()}
+    wants = load("counts.json") if os.path.exists(os.path.join(base.RUN_DIR, "counts.json")) else {}
+    out = fallen_candidates(ivc, results, wants)
+    save("fallen.json", out)
+    with open(os.path.join(base.RUN_DIR, "fallen.txt"), "w") as f:
+        f.write("\n".join(fallen.summary(out, None)) + "\n")
+    log(f"re-sort: {len(out)} fell out. Table: {os.path.join(base.RUN_DIR, 'fallen.txt')}")
+    if not look:
+        fallen_out(limit)
+
+
 def script(a, cmd, limit):
     if cmd in ("fallen", "act-fallen") and not os.path.exists(os.path.join(base.RUN_DIR, "pools.json")):
         sys.exit(f"{cmd} needs a sort run's folder")
@@ -1170,6 +1227,8 @@ def script(a, cmd, limit):
         names(limit, "--dry-run" in a)
     elif cmd in ("fallen", "act-fallen"):  # one step now (act-fallen: the old name of the second half)
         fallen_out(limit)
+    elif cmd == "resort":
+        resort(limit, "--look" in a, search.dex_numbers(a[a.index("--dex") + 1]) if "--dex" in a else None)
     elif cmd == "search":
         front()
         for q in a[1:]:  # (more than one: each after the first edits the bar's end, like a family's searches)
@@ -1183,7 +1242,7 @@ if __name__ == "__main__":
     a = sys.argv[1:]
     if not a or a[0].startswith("--"):
         a = ["sort"] + a
-    if a[0] not in ("sort", "names", "fallen", "act-fallen", "search"):
+    if a[0] not in ("sort", "names", "fallen", "act-fallen", "resort", "search"):
         sys.exit(__doc__)
     limit = session.limit(a)
     cmd = a[0]

@@ -172,11 +172,12 @@ class Door:
                        if e["rules"] == RULES and e["account"] == self.account and e["tag"] == self.tag)
 
     def judge(self, info, texts, sp, ivs, tile, size=None, raws=None, gym_top20=None, clear=False, unstar=False,
-              iv_top=None, pure_top=None):
+              iv_top=None, pure_top=None, hold=None):
         """the open detail page of a Pokémon that isn't a keeper. tile: (name, CP) as the walk read the tile.
         gym_top20: what the caller already knows of the gym rule. iv_top: of a lucky one's top IV, pure_top: of a shadow's once purified (verdict.Facts). clear: a plain tag clears the name too (an old /ivc
         name would bring it back as a rival or a fallen-out one). unstar: a plain tag takes the star off too (a fallen-out
-        keeper). -> 'left for IVC/PvpC', UNSURE or the verdict's kind"""
+        keeper). hold: a tag a Transfer verdict gets instead, before any purify or power-up; star and name stay.
+        -> 'left for IVC/PvpC', UNSURE, 'held' or the verdict's kind"""
         if self.source and any(base.is_tag(t, self.other) for t in info["tags"]):  # the other skill judges it next
             base.set_tags(off=[self.tag])
             log(f"  has {self.other} too: unticked {self.tag} only, {self.other} decides")
@@ -189,6 +190,10 @@ class Door:
         v = vd.final_tag(f, self.tables) if not why else vd.unsure(why)
         if f.lucky and iv_top is False:
             ranked_out(self.account, sp, ivs)
+        if hold and v.kind == "tag" and "Transfer" in v.tags:
+            log(f"  door: would be {'+'.join(v.tags)} ({v.why}): {hold} instead")
+            base.set_tags(on=[hold])
+            return "held"
         if v.purify:
             v = self.purify(info, v)
         if v.kind == "tag" and "Transfer" in v.tags:

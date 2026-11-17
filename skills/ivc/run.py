@@ -14,7 +14,9 @@
   caffeinate -dimsu python3 run.py resort [<run dir>] [--dex A-B] [--look] [--limit N]
         judge the starred /ivc-named ones again after a rule change: type every search of each family with a weak
         line (--dex: only those dex numbers), then the fallen-out step sends what fell out to the door. --look:
-        fallen.txt only, change nothing. Give the run dir to carry on after a stop
+        fallen.txt only, change nothing. One the door would tag Transfer gets the Fallen tag instead (star and name
+        stay). One search per family, and three wide ones that tell shadow, lucky and Dynamax apart. Give the run dir
+        to carry on after a stop
   python3 run.py search "<query>" [...]                     type searches and print the tiles (testing; later ones edit the bar's end)
   POGO_PHONE=android caffeinate -dimsu python3 run.py ...   (Android phone over USB, see ../pvpc/android.py)
 
@@ -676,11 +678,11 @@ FALLEN_SPECIES = {}  # (tile name, CP) -> [species id], as recheck_fallen read i
 FALLEN_RANK = {}  # (tile name, CP) -> a lucky one's rank (lucky_rank), as recheck_fallen judged it
 
 
-def act_fallen(limit):
+def act_fallen(limit, hold=None):
     fallen.act(limit, recheck_fallen, TAG, lambda n, c: FALLEN_SPECIES[(n, c)], gym_top20=False,
                iv_top=lambda n, c: FALLEN_RANK[(n, c)], odd=odd_name,
                pure_top=False,  # (sort.decide asked it: a fall-out is a DOOR)
-               who=getattr(next(iter(DOORS.values()), None) or ivcrun.DOOR, "account", None))
+               who=getattr(next(iter(DOORS.values()), None) or ivcrun.DOOR, "account", None), hold=hold)
 
 
 # ---------- 4. act ----------
@@ -1147,7 +1149,7 @@ def names(limit, dry=False):
     log(f"names pass: {dict(counts)}")
 
 
-def fallen_out(limit):
+def fallen_out(limit, hold=None):
     """the fallen-out ones of this sort run: grouped (searches only), then each one opened and sent to the door. A
     rerun on the same folder groups again: what's tagged by now drops out. It goes by
     the fallen.json the sort's plan wrote (no new plan here: newer code can't read an older folder's searches)"""
@@ -1155,7 +1157,7 @@ def fallen_out(limit):
         log("fallen out: none (no plan in this run)")
         return
     fallen.groups(iv_only=True)
-    act_fallen(limit)
+    act_fallen(limit, hold)
 
 
 # ---------- re-sort ----------
@@ -1180,9 +1182,72 @@ def resort_members(dexes=None):
     return out
 
 
+POOL_ENDS = (("&!shadow", "plain"), ("&shadow", "shadow"), ("&lucky&", "lucky"), ("&dynamax,gigantamax", "dmax"))
+WIDE = {"shadow": "shadow", "lucky": "lucky&", "dmax": "dynamax,gigantamax"}  # (lucky&: no #Luckydex chip)
+HOLD = "Fallen"  # resort's fall-outs the door would tag Transfer get this tag instead, and keep their star and name
+
+
+def pool_of(q):
+    """'111,112,464&lucky&' -> ('111,112,464', 'lucky'). A gym search: (None, None)"""
+    for end, pool in POOL_ENDS:
+        if q.endswith(end):
+            return q[:-len(end)], pool
+    return None, None
+
+
+def resort_pools(queries, dexes):
+    """the family searches, one typed per family (its tiles, shadow or not, lucky or not), and three wide ones:
+    every shadow, lucky and Dynamax one with an IV name. A family tile on a wide list by name and CP is in that pool.
+    -> pools.json as the family's own pool searches would read (no counts). A rerun types only what's not read yet"""
+    heads = list(dict.fromkeys(h for h, _ in map(pool_of, queries) if h))
+    gyms = [q for q in queries if pool_of(q)[0] is None]  # gym searches need every CP: typed as they are
+    where = dex_terms(sorted(dexes)) + "&" if dexes else ""
+    todo = [("wide " + p, where + q, True) for p, q in WIDE.items()] + [(h, h, True) for h in heads] + \
+        [(q, q, False) for q in gyms]
+    path = os.path.join(base.RUN_DIR, "resort-reads.json")
+    read = load("resort-reads.json") if os.path.exists(path) else {}
+    log(f"re-sort: {len(todo)} searches ({len(heads)} families), {len(read)} done already")
+    if SHOWN["q"] is None:
+        front()
+        to_search_list()
+    for key, q, iv_only in todo:
+        if key in read:
+            continue
+        got, want = read_search(q, iv_only)
+        if not got:  # an empty read may be a search that didn't run: once more
+            got, want = read_search(q, iv_only)
+        if not got and key.startswith("wide "):  # every shadow would be judged as a plain one
+            raise Stop(f"{q}: no tiles twice, so no {key[5:]} one could be told apart")
+        read[key] = got
+        save("resort-reads.json", read)
+        log(f"  {q}: {len(got)} tiles")
+    k = lambda t: (sort.clean_name(t[0]), t[1])
+    wide = {p: Counter(map(k, read["wide " + p])) for p in WIDE}
+    done = {}
+    for q in queries:
+        h, pool = pool_of(q)
+        if h is None:
+            done[q] = read[q]
+            continue
+        out, left = [], Counter()
+        for n, c in read[h]:  # (twins: as many in the pool as the wide list has)
+            shadow = left[("shadow", k((n, c)))] < wide["shadow"][k((n, c))]
+            left[("shadow", k((n, c)))] += shadow
+            if pool in ("plain", "shadow"):
+                if shadow == (pool == "shadow"):
+                    out.append((n, c))
+            elif not shadow and left[(pool, k((n, c)))] < wide[pool][k((n, c))]:
+                left[(pool, k((n, c)))] += 1
+                out.append((n, c))
+        done[q] = out
+    save("pools.json", done)
+    save("counts.json", {})
+
+
 def resort(limit, look, dexes=None):
     """judge the /ivc-named ones (no IVC tag: the starred keepers) again under today's rules: per family with a
-    weak line, type its searches, then the fallen-out step. look: write fallen.txt, change nothing.
+    weak line, type its searches, then the fallen-out step: one the door would tag Transfer gets HOLD instead, and
+    keeps its star and name (the user looks at #Fallen first). look: write fallen.txt, change nothing.
     A rerun on the same folder carries on: searches typed already aren't typed again"""
     members = resort_members(dexes)
     queries = list(dict.fromkeys(q for m in members for q in sort.searches_for(m)))
@@ -1197,7 +1262,7 @@ def resort(limit, look, dexes=None):
         ivc = [{"tile": sort.clean_name(n), "cp": c} for n, c in got]
         save("ivc-tiles.json", ivc)
         log(f"  {q}: {len(ivc)} with an IV name, left out")
-    pools(members, rereads=False)
+    resort_pools(queries, dexes)
     results = {k: [tuple(x) for x in v] for k, v in load("pools.json").items()}
     wants = load("counts.json") if os.path.exists(os.path.join(base.RUN_DIR, "counts.json")) else {}
     out = fallen_candidates(ivc, results, wants)
@@ -1206,7 +1271,8 @@ def resort(limit, look, dexes=None):
         f.write("\n".join(fallen.summary(out, None)) + "\n")
     log(f"re-sort: {len(out)} fell out. Table: {os.path.join(base.RUN_DIR, 'fallen.txt')}")
     if not look:
-        fallen_out(limit)
+        fallen.BASE += f"&!#{HOLD}"  # (a rerun: the ones held last time are done)
+        fallen_out(limit, hold=HOLD)
 
 
 def script(a, cmd, limit):

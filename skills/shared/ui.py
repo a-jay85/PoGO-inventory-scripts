@@ -648,6 +648,8 @@ def search_box(texts):
     """the search bar at the top of the list: 'Search' (Q = the magnifier) or a typed search like '#IVC' / '4&shadow'"""
     # Q = the magnifier. '#Luckydex +' chips don't have it; 'Q (5)' under the POKÉMON tab is the result count
     hits = [t for t in texts if t[1] < 0.3 and re.match(r"(?:[<‹]\s*[Q9]|Q)[\s,.]+\S", t[4]) and not re.match(r"Q\s*\([\dO]+\)", t[4])]  # (0) can read as (O)
+    if not hits:  # the magnifier glued to an empty bar's word, mid-screen ('QSearch', Pixel 2026-11-17)
+        hits = [t for t in texts if t[1] < 0.3 and re.fullmatch(r"[<‹]?\s*[Q9]Search", t[4].strip())]
     if not hits:  # the magnifier read as a bare 9 ('9 Search'): only where the bar's text starts, as tile names under it
         # read the tag icon as a 9 too ('9 96 HD'), and a result count is '9 (5)'
         hits = [t for t in texts if 0.155 < t[1] < 0.2 and 0.35 < t[0] < 0.5 and re.match(r"9\s+[^\s(]", t[4])]
@@ -668,7 +670,7 @@ def search_panel(texts):
 
 def search_text(box):
     """what's typed in the search bar, as OCR reads it ('' if it just says Search)"""
-    t = re.sub(r"^(?:[<‹]\s*[Q9]|Q)[\s,.]+|^[<‹]\s*Q?|^Q(?=\d)|^9\s+", "", box[4]).strip()  # 9: the magnifier misread
+    t = re.sub(r"^(?:[<‹]\s*[Q9]|Q)[\s,.]+|^[<‹]\s*Q?|^Q(?=\d)|^[Q9](?=Search$)|^9\s+", "", box[4]).strip()  # 9: the magnifier misread
     t = re.sub(r"\s*\|$", "", t)  # the blinking text cursor, read as a last | ('#Nope&4hp|', iPhone 2026-10-28)
     return "" if t.lower() in ("search", "9", "q") else t
 

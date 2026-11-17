@@ -197,6 +197,56 @@ def boss_name(b):
     return b["name"] + ("" if b["form"] in ("Normal", "Mega") else f" ({b['form']})")
 
 
+COUNTERS = ("dialgadex-counters-[0-9]*[0-9].json", "dialgadex-counters-pp2-[0-9]*[0-9].json")  # Party Power off, 2
+# the same pulls with DialgaDex's "unreleased" box ticked: future megas and forms count (/ivc's strong lines)
+FUTURE = ("dialgadex-counters-future-[0-9]*[0-9].json", "dialgadex-counters-future-pp2-[0-9]*[0-9].json")
+
+
+def real_boss(b):
+    """a boss like a 4-star raid's or higher (the user, 2026-11-16, for Reroll): legendary, mythical, Ultra Beast,
+    mega or primal (no Tropius)"""
+    return bool(b["class"]) or is_mega(b)
+
+
+def raid_tops(ok, n, real=False, megas=True, pulls=COUNTERS):
+    """-> ({sid: [bosses]}, {sid in some top as itself}, Model): each non-special species ok(sid) lets in (tradeable.py:
+    tradeable ones) in DialgaDex's top n against some raid boss, as itself (not through what it evolves into), with
+    Party Power off or with a party of 2 (the user, 2026-11-16: either counts). A mega counts as its species. Shadows
+    and legendary attackers (DialgaDex's class, for forms like Eternamax with no tags) take no spot. real: only bosses
+    like a 4-star raid's or higher (real_boss). megas=False: a mega takes its spot but counts for no one (for Reroll, a
+    mega counts only as the best of its type). pulls: which counter files (COUNTERS, or FUTURE)"""
+    files = [newest(HERE, c) for c in pulls]
+    if not all(files):
+        sys.exit(f"no DialgaDex counters yet ({' and '.join(pulls)}): node {os.path.join(HERE, 'pull.mjs')}")
+    tops, plain, first = {}, set(), None
+    for data_f in files:
+        rm = Model(json.load(open(data_f)))
+        first = first or rm
+        for b in rm.bosses:
+            if real and not real_boss(b):
+                continue
+            top = []
+            for i, *_ in b["list"]:
+                s, a = rm.sid[i], rm.A[i]
+                if not s or (a["shadow"] and not is_mega(a)) or a.get("class") or rm.special(s) or not ok(s):
+                    continue
+                if not megas and is_mega(a):
+                    s = ("mega", s)  # its spot stays taken: the next one down doesn't move up into the top
+                if s not in top:
+                    top.append(s)
+                    if not is_mega(a):
+                        plain.add(s)  # in some top as itself: a mega-only one is only ever in as its mega
+                if len(top) >= n:
+                    break
+            boss = b["name"] + ("" if b["form"] == "Normal" else f" ({b['form']})")
+            for s in top:
+                if isinstance(s, tuple):
+                    continue
+                if boss not in tops.setdefault(s, []):
+                    tops[s].append(boss)
+    return tops, plain, first
+
+
 def attacker_name(a):
     return ("Shadow " if a["shadow"] else "") + a["name"] + \
         ("" if is_mega(a) or a["form"] in ("Normal",) else f" ({a['form'].replace('_', ' ')})")

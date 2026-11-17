@@ -1,4 +1,4 @@
-// /roster: pull DialgaDex's raid counters for every boss into dialgadex-counters-<date>.json (about 2 minutes).
+// /roster: pull DialgaDex's raid counters for every boss into dialgadex-counters-<date>.json (about 4 minutes).
 //   node pull.mjs [limit]
 // Same numbers as a Pokédex page's counters on dialgadex.com, with its default filters (Off Types off), Elite moves
 // on, and only released attackers. Bosses: every entry, unreleased too. Bosses with the same types, stats and moves
@@ -7,7 +7,9 @@
 // tell forms apart by a move search.
 // All of it twice: Party Power off (dialgadex-counters-<date>.json, what roster.py reads) and with a party of 2
 // (dialgadex-counters-pp2-<date>.json). Plus each type's best 40 attackers both ways (dialgadex-types-<date>.json,
-// DialgaDex's ?strongest&t=<type>): tradeable.py's best mega of each type.
+// DialgaDex's ?strongest&t=<type>): tradeable.py's best mega of each type. Then the counters both ways again with
+// DialgaDex's "unreleased" box ticked (dialgadex-counters-future-[pp2-]<date>.json): future megas and forms count,
+// for /ivc's strong lines (sort.py).
 // Needs Playwright: it's loaded from the IBL5 checkout (PW below), its browsers from ~/Library/Caches/ms-playwright.
 import fs from 'fs';
 import path from 'path';
@@ -28,11 +30,12 @@ log(`page ready, ${await p.evaluate(() => jb_pkm.length)} entries to check${limi
 // in either. The no-Party-Power pull keeps its old name (roster.py reads it); the other is dialgadex-counters-pp2-.
 const pulled = new Date().toLocaleDateString('sv').replaceAll('-', '');  // the local date, YYYYMMDD
 const types = {};
+for (const future of [false, true]) {
 for (const party of [1, 2]) {
 await p.evaluate(n => SetPartySize(n), party);
-log(`Party Power ${party == 1 ? 'off' : `with a party of ${party}`}`);
+log(`Party Power ${party == 1 ? 'off' : `with a party of ${party}`}${future ? ', unreleased too' : ''}`);
 // the best of each type (DialgaDex's ?strongest&t=<type> list): tradeable.py's top mega of each type
-types[party] = await p.evaluate(async () => {
+if (!future) types[party] = await p.evaluate(async () => {
   const out = {};
   for (const t of POKEMON_TYPES) {
     const sp = { versus: false, type: t, unreleased: false, mega: true, shadow: true, legendary: true, elite: true,
@@ -42,10 +45,10 @@ types[party] = await p.evaluate(async () => {
   }
   return out;
 });
-log(`the best of each type: ${Object.keys(types[party]).length} types`);
-const r = await p.evaluate(async ({ limit, DEPTH }) => {
+if (!future) log(`the best of each type: ${Object.keys(types[party]).length} types`);
+const r = await p.evaluate(async ({ limit, DEPTH, future }) => {
   // GetSearchParms() reads the page's checkboxes: set every filter here instead
-  const sp = { versus: false, type: 'Any', unreleased: false, mega: true, shadow: true,
+  const sp = { versus: false, type: 'Any', unreleased: future, mega: true, shadow: true,
     legendary: true, elite: true, suboptimal: false, mixed: true, offtype: false, real_damage: true };
   const seen = new Map(), bosses = [], atk = [], atkIx = new Map();
   let n = 0;
@@ -79,14 +82,16 @@ const r = await p.evaluate(async ({ limit, DEPTH }) => {
       released: !!pk.released, alias: [], list });
   }
   return { params: sp, depth: DEPTH, attackers: atk, bosses };
-}, { limit, DEPTH });
+}, { limit, DEPTH, future });
 log(`pulled ${r.bosses.length} bosses, writing the file`);
 r.pulled = new Date().toLocaleDateString('sv');  // the local date, YYYY-MM-DD
 r.party = party;
+r.future = future;
 // (a cut-down test pull gets its own name: roster.py takes the newest dialgadex-counters-<date>.json)
-const out = path.join(HERE, `dialgadex-counters-${party == 1 ? '' : `pp${party}-`}${pulled}${limit ? `-test${limit}` : ''}.json`);
+const out = path.join(HERE, `dialgadex-counters-${future ? 'future-' : ''}${party == 1 ? '' : `pp${party}-`}${pulled}${limit ? `-test${limit}` : ''}.json`);
 fs.writeFileSync(out, JSON.stringify(r));
 console.log(`${r.bosses.length} bosses, ${r.attackers.length} attackers -> ${out}`);
+}
 }
 const tout = path.join(HERE, `dialgadex-types-${pulled}${limit ? `-test${limit}` : ''}.json`);
 fs.writeFileSync(tout, JSON.stringify(types));

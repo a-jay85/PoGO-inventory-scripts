@@ -364,54 +364,12 @@ def newest_for(pattern, who, key="trainer", default=None):
     return None
 
 
-COUNTERS = ("dialgadex-counters-[0-9]*[0-9].json", "dialgadex-counters-pp2-[0-9]*[0-9].json")  # Party Power off, 2
-
-
-def real_boss(rm, b):
-    """a boss like a 4-star raid's or higher (the user, 2026-11-16, for Reroll): legendary, mythical, Ultra Beast,
-    mega or primal (no Tropius)"""
-    import roster  # (raid_tops put its folder on the path)
-    return bool(b["class"]) or roster.is_mega(b)
-
-
 def raid_tops(m, n=PVE_TOP, real=False, megas=True):
-    """-> ({sid: [bosses]}, {sid in some top as itself}, roster.Model): each tradeable non-special species in DialgaDex's
-    top n against some raid boss, as itself (not through what it evolves into), with Party Power off or with a party
-    of 2 (the user, 2026-11-16: either counts). A mega counts as its species. real: only bosses like a 4-star raid's or higher
-    (real_boss). megas=False: a mega takes its spot but counts for no one (for Reroll, a mega counts only as the best of its
-    type)"""
+    """-> ({sid: [bosses]}, {sid in some top as itself}, roster.Model): roster.raid_tops over the tradeable species
+    (real: 4-star raid bosses or higher; megas=False: a mega takes its spot but counts for no one)"""
     sys.path.append(os.path.join(HERE, "..", "roster"))
     import roster
-    files = [base.newest(HERE, os.path.join("..", "roster", c)) for c in COUNTERS]
-    if not all(files):
-        sys.exit("no DialgaDex counters yet (both Party Power pulls): node ../roster/pull.mjs")
-    tops, plain, first = {}, set(), None
-    for data_f in files:
-        rm = roster.Model(json.load(open(data_f)))
-        first = first or rm
-        for b in rm.bosses:
-            if real and not real_boss(rm, b):
-                continue
-            top = []
-            for i, *_ in b["list"]:
-                s, a = rm.sid[i], rm.A[i]
-                if not s or (a["shadow"] and not roster.is_mega(a)) or rm.special(s) or not m.tradeable(s):
-                    continue
-                if not megas and roster.is_mega(a):
-                    s = ("mega", s)  # its spot stays taken: the next one down doesn't move up into the top
-                if s not in top:
-                    top.append(s)
-                    if not roster.is_mega(a):
-                        plain.add(s)  # in some top as itself: a mega-only one is only ever in as its mega
-                if len(top) >= n:
-                    break
-            boss = b["name"] + ("" if b["form"] == "Normal" else f" ({b['form']})")
-            for s in top:
-                if isinstance(s, tuple):
-                    continue
-                if boss not in tops.setdefault(s, []):
-                    tops[s].append(boss)
-    return tops, plain, first
+    return roster.raid_tops(m.tradeable, n, real=real, megas=megas)
 
 
 def mega_tops(m, ok):

@@ -1123,10 +1123,10 @@
  "H Dynamax, has one": [
   "tag",
   [
-   "Transfer"
+   "GIV"
   ],
   null,
-  "no rule wants it"
+  "untraded Dynamax"
  ],
  "H Dynamax, has none": [
   "tag",
@@ -1134,7 +1134,7 @@
    "GIV"
   ],
   null,
-  "can Dynamax"
+  "untraded Dynamax"
  ],
  "H Tandemaus": [
   "tag",
@@ -1310,13 +1310,97 @@
   null,
   "Venusaur can mega"
  ],
- "H can Dynamax: GIV": [
+ "H can Dynamax, counts not read": [
+  "unsure",
+  [],
+  null,
+  "can Dynamax: Candy or Candy XL not read"
+ ],
+ "H can Dynamax, few candy: GIV": [
   "tag",
   [
    "GIV"
   ],
   null,
-  "can Dynamax"
+  "can Dynamax: 2500 Candy, 900 Candy XL (wants over 2500 and 480)"
+ ],
+ "H can Dynamax, few XL: GIV": [
+  "tag",
+  [
+   "GIV"
+  ],
+  null,
+  "can Dynamax: 3000 Candy, 480 Candy XL (wants over 2500 and 480)"
+ ],
+ "H can Dynamax, enough: Transfer": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "no rule wants it"
+ ],
+ "H can Dynamax, enough but far: GIV": [
+  "tag",
+  [
+   "GIV"
+  ],
+  null,
+  "caught 100 km+ away"
+ ],
+ "H can Dynamax, enough but 26: XLX": [
+  "tag",
+  [
+   "XLX"
+  ],
+  null,
+  "level 26+"
+ ],
+ "H can Dynamax, short but 2XL first": [
+  "tag",
+  [
+   "2XL"
+  ],
+  null,
+  "under 360 Candy XL: a Friendship Friday trade"
+ ],
+ "H Dynamax, enough candy: GIV": [
+  "tag",
+  [
+   "GIV"
+  ],
+  null,
+  "untraded Dynamax"
+ ],
+ "C can Dynamax, few candy: GIV": [
+  "tag",
+  [
+   "GIV"
+  ],
+  null,
+  "can Dynamax: 40 Candy, 0 Candy XL (wants over 2500 and 480)"
+ ],
+ "C can Dynamax, enough: Transfer": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "no rule wants it"
+ ],
+ "C can Dynamax, counts not read": [
+  "unsure",
+  [],
+  null,
+  "can Dynamax: Candy or Candy XL not read"
+ ],
+ "C Dynamax, enough candy: GIV": [
+  "tag",
+  [
+   "GIV"
+  ],
+  null,
+  "untraded Dynamax"
  ],
  "H 10 km egg family: GIV": [
   "tag",

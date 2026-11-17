@@ -308,6 +308,11 @@ def start(storage=True):
             log(f"  can't see the phone yet: {e}")
         if screen != "unknown":
             unknowns = 0
+        if screen == "detail" and time.time() < hatched + HATCH_SCREENS:
+            log("  the hatched Pokémon's page: its X, to the map")  # (its X goes to the map, never the list:
+            base.tap_x(bounds)  # back_to_list waited for a list that never came, Pixel 2026-11-16). Before the
+            time.sleep(2.0)  # storage=False return: trainer() took it for a storage page, the same stop, 2026-11-16 23:03)
+            continue
         if not storage and screen in STORAGE:
             return screen  # trade.py closes a trade's result screen itself
         if screen in ("list", "tag-tab"):
@@ -319,11 +324,6 @@ def start(storage=True):
                 time.sleep(1.0)
                 continue
             return screen
-        if screen == "detail" and time.time() < hatched + HATCH_SCREENS:
-            log("  the hatched Pokémon's page: its X, to the map")  # (its X goes to the map, never the list:
-            base.tap_x(bounds)  # back_to_list waited for a list that never came, Pixel 2026-11-16)
-            time.sleep(2.0)
-            continue
         if screen in OPEN:
             try:
                 if screen == "appraise-intro":

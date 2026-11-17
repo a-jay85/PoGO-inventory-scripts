@@ -426,7 +426,7 @@ def read_copy(c, q, p, info, texts, name, tile_cp):
         try:
             base.open_appraisal()
             ivs, raws = base.appraise()
-            ivs = base.exact_ivs([s for s, *_ in got], cp, hp, ivs, raws)
+            ivs = base.exact_ivs(sorted({s for s, *_ in got}), cp, hp, ivs, raws)
             got = [f for f in got if f[2] == tuple(ivs)] or got
         except Skip as e:
             log(f"  appraisal: {e}: its best fit counts")
@@ -459,6 +459,9 @@ def cmd_count(c, resume, out_dir):
             log(f"{q}: {len(asked)} bosses could use one")
             walk_pile(c, q, asked)
             json.dump(c.state(who), open(path, "w"), indent=0)
+    if c.sorted:  # other scripts walk the list as it's sorted: back to Recent, newest first, the game's own
+        import base
+        search.sort_recent(base.look()[3])
     return who
 
 

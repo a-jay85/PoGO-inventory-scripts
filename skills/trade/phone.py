@@ -133,7 +133,13 @@ def main():
                 session.connect()
             elif op == "start":
                 base.new_run_dir(None, req["run_dir"])  # its log lines and captures go with trade.py's
-                out = {"screen": home.start(storage=False)}
+                # no trade is live yet: a trade box up now is left from an earlier run (a stopped one's lobby that
+                # expired, 2026-11-16) and gets its OK like in any script
+                popups.HANDS_OFF.discard("trade box")
+                try:
+                    out = {"screen": home.start(storage=False)}
+                finally:
+                    popups.HANDS_OFF.add("trade box")
             elif op == "popup":
                 out = {"closed": popups.clear(req["texts"], last or ui.capture()[1])}
             elif op == "unstick":

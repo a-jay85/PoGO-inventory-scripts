@@ -105,6 +105,7 @@ NAMES = [  # (read, wanted)
     ("xXS 96", "XXS 96"), ("SXX", "xxs"), ("LXX", "xxl"), ("96^", "96"), ("96*", "96"), ('96"', "96*"), ("96|", "96"), ("96…", "96"), ("9", "96"),
     ("", ""), ("", "96"), ("lyc60", "lycбo"), ("lycбo", "lycbo"), ("Fr1endly", "Friendly"), ("Frlendly", "Friendly"),
     ("Frien", "Friendly"), ("Ab&c", "Ab8c"), ("Abcd", "Abxy"), (None, "PvpL Medi"),
+    ("0-100kml", "0-100km"), ("0-100km", "100+km"), ("100+km", "0-100km"), ("100+kml", "100+km"), ("0-100k", "0-100km"),
 ]
 
 ONE = sorted({g for g, _ in PAIRS} | {q for _, q in PAIRS} | {"PvpC1", "PvpCl", "Clean Trades", "CleanTrades",
@@ -222,6 +223,7 @@ NAMED = {
     "names.same_name": ivc_names.same_name,
     "ivc.same_name": ivc_run.same_name,
     "gift.same_name": gift.same_name,
+    "trade.shortcut_name": trade.shortcut_name,
 }
 COUNTERS = {
     "search.result_count": search.result_count,

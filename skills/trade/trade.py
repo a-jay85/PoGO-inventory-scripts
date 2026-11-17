@@ -630,8 +630,15 @@ def open_panel(p):
 
 
 def shortcut(p, name):
-    hits = p.find(lambda t: t[4].strip().lower() == name.lower())
+    hits = p.find(lambda t: t[4].strip().lower() == name.lower()) or p.find(lambda t: shortcut_name(t[4], name))
     return hits[0] if hits else None
+
+
+def shortcut_name(read, name):
+    """a shortcut's label as OCR read it is this name: exactly, or with one stray letter after it (the Pixel read
+    0-100km as '0-100kml' on every look, 2026-11-16). The two piles' labels still differ ('0-100km', '100+km')"""
+    r, n = (read or "").strip().lower(), name.lower()
+    return r == n or (r.startswith(n) and len(r) == len(n) + 1)
 
 
 def long_pressed(p, name):

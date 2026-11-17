@@ -46,13 +46,14 @@ STEPS = {
     "mega":        ("mega/mega.py", set(), set()),
     "evo":         ("evo/evo.py", set(), set()),
     "roster":      ("roster/roster.py", {"count", "report"}, {"report"}),
+    "raidteam":    ("roster/raidteam.py", {"count", "report"}, {"report"}),
     "gymfeed":     ("gymfeed/gymfeed.py", set(), set()),
     "goplus":      ("goplus/goplus.py", set(), set()),
     "hatch":       ("hatch/hatch.py", {"shortest", "longest"}, set()),
     "account":     ("shared/account.py", {"HashTagAJay", "CyrillJan"}, set()),
     "advsync":     ("shared/advsync.py", set(), set()),
 }
-NEEDS_WORD = {"dex", "roster", "sizerecords", "specieswise"}  # these have no default: the first word is a must
+NEEDS_WORD = {"dex", "raidteam", "roster", "sizerecords", "specieswise"}  # these have no default: the first word is a must
 BOTH = {"trade"}  # drives the iPhone and the Pixel, unless POGO_PHONE names one (android, ios): then that one alone
 
 

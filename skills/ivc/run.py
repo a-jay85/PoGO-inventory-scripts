@@ -1195,6 +1195,38 @@ def pool_of(q):
     return None, None
 
 
+def loose_same(a, b):
+    """two reads of one nickname, one with digits dropped ('4/9 def' for '84/96 def', Pixel, 2026-11-17): the same
+    letters, and the shorter one's digits in order inside the other's"""
+    letters = lambda n: re.sub(r"[^a-z*]", "", n.lower())
+    digits = lambda n: re.sub(r"\D", "", n)
+    if letters(a) != letters(b):
+        return False
+    da, db = sorted((digits(a), digits(b)), key=len)
+    it = iter(db)
+    return all(ch in it for ch in da)
+
+
+def split(read, heads):
+    """head -> per tile {shadow, lucky, dmax}: is it on that wide list? First by name and CP, then a wide tile no
+    family took goes to a family tile of its CP with the same name read with digits dropped (loose_same)"""
+    k = lambda t: (sort.clean_name(t[0]), t[1])
+    flags = {h: [{p: False for p in WIDE} for _ in read[h]] for h in heads}
+    for p in WIDE:
+        left = Counter(map(k, read["wide " + p]))
+        for exact in (True, False):
+            for h in heads:
+                for (n, c), f in zip(read[h], flags[h]):
+                    if f[p] or (p != "shadow" and f["shadow"]):  # (lucky and Dynamax ones are never shadow)
+                        continue
+                    hit = k((n, c)) if exact else next((w for w in left if left[w] and w[1] == c and
+                                                        loose_same(w[0], k((n, c))[0])), None)
+                    if hit and left[hit]:
+                        left[hit] -= 1
+                        f[p] = True
+    return flags
+
+
 def resort_pools(queries, dexes):
     """the family searches, one typed per family (its tiles, shadow or not, lucky or not), and three wide ones:
     every shadow, lucky and Dynamax one with an IV name. A family tile on a wide list by name and CP is in that pool.
@@ -1223,25 +1255,13 @@ def resort_pools(queries, dexes):
         read[key] = got
         save("resort-reads.json", read)
         log(f"  {q}: {len(got)} tiles")
-    k = lambda t: (sort.clean_name(t[0]), t[1])
-    wide = {p: Counter(map(k, read["wide " + p])) for p in WIDE}
+    flags = split(read, heads)
     done = {}
     for q in queries:
         h, pool = pool_of(q)
-        if h is None:
-            done[q] = read[q]
-            continue
-        out, left = [], Counter()
-        for n, c in read[h]:  # (twins: as many in the pool as the wide list has)
-            shadow = left[("shadow", k((n, c)))] < wide["shadow"][k((n, c))]
-            left[("shadow", k((n, c)))] += shadow
-            if pool in ("plain", "shadow"):
-                if shadow == (pool == "shadow"):
-                    out.append((n, c))
-            elif not shadow and left[(pool, k((n, c)))] < wide[pool][k((n, c))]:
-                left[(pool, k((n, c)))] += 1
-                out.append((n, c))
-        done[q] = out
+        done[q] = read[q] if h is None else \
+            [t for t, f in zip(read[h], flags[h]) if (f["shadow"] == (pool == "shadow") if pool in ("plain", "shadow")
+                                                       else f[pool])]
     save("pools.json", done)
     save("counts.json", {})
 

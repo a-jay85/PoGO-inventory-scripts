@@ -112,6 +112,7 @@
    "again_done",
    "cmd_again",
    "cmd_door",
+   "go",
    "gone",
    "log"
   ],

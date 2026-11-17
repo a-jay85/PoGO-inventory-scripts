@@ -1216,8 +1216,10 @@ def resort_pools(queries, dexes):
         got, want = read_search(q, iv_only)
         if not got:  # an empty read may be a search that didn't run: once more
             got, want = read_search(q, iv_only)
-        if not got and key.startswith("wide "):  # every shadow would be judged as a plain one
-            raise Stop(f"{q}: no tiles twice, so no {key[5:]} one could be told apart")
+        if not got and key.startswith("wide "):  # a real 0 (no lucky Butterfree) or a search that didn't run? The count says
+            got, want = read_search(q, False)
+            if want is None:  # every shadow would be judged as a plain one
+                raise Stop(f"{q}: no tiles and no count, so no {key[5:]} one could be told apart")
         read[key] = got
         save("resort-reads.json", read)
         log(f"  {q}: {len(got)} tiles")

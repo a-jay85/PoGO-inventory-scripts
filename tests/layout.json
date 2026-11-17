@@ -39,6 +39,7 @@
    "roster": "roster/roster.py",
    "sizerecords": "dex/sizerecords.py",
    "sizes": "cleanup/sizes.py",
+   "specieswise": "cleanup/specieswise.py",
    "trade": "trade/trade.py",
    "tradeable": "cleanup/tradeable.py"
   }
@@ -176,6 +177,28 @@
    "wait_for",
    "walk",
    "xxl_off"
+  ],
+  "runs": [
+   "skills/cleanup/runs"
+  ]
+ },
+ "skills/cleanup/specieswise.py": {
+  "copies": {},
+  "names": [
+   "CHUNK",
+   "HERE",
+   "LEFT_OUT",
+   "PILES",
+   "Stop",
+   "WHO",
+   "cmd_plan",
+   "cmd_tag",
+   "defaultdict",
+   "family",
+   "groups",
+   "log",
+   "query",
+   "species_tag"
   ],
   "runs": [
    "skills/cleanup/runs"

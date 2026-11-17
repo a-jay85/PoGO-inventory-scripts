@@ -37,6 +37,7 @@ STEPS = {
     "dbsweep":     ("cleanup/dbsweep.py", set(), set()),
     "tradeable":   ("cleanup/tradeable.py", {"refresh", "dynamax", "read", "plan", "tag", "door"}, {"refresh", "plan"}),  # door: the default
     "leftovers":   ("cleanup/leftovers.py", {"again"}, set()),
+    "specieswise": ("cleanup/specieswise.py", {"plan", "GIV", "Transfer"}, {"plan"}),
     "dex":         ("dex/dex.py", {"lucky", "100", "xxs", "look", "evolve"}, set()),
     "luckydex":    ("dex/luckydex.py", {"check"}, set()),
     "sizerecords": ("dex/sizerecords.py", {"read", "compare"}, {"compare"}),
@@ -51,7 +52,7 @@ STEPS = {
     "account":     ("shared/account.py", {"HashTagAJay", "CyrillJan"}, set()),
     "advsync":     ("shared/advsync.py", set(), set()),
 }
-NEEDS_WORD = {"dex", "roster", "sizerecords"}  # these have no default: the first word is a must
+NEEDS_WORD = {"dex", "roster", "sizerecords", "specieswise"}  # these have no default: the first word is a must
 BOTH = {"trade"}  # drives the iPhone and the Pixel, unless POGO_PHONE names one (android, ios): then that one alone
 
 

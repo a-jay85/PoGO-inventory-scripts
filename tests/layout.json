@@ -2598,6 +2598,7 @@
    "set_made",
    "set_piles",
    "shortcut",
+   "shortcut_name",
    "shown",
    "solo_confirm",
    "solo_join",

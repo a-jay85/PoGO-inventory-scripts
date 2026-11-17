@@ -207,8 +207,12 @@ class Door:
             base.set_star(True)
         elif unstar and v.kind == "tag":
             base.set_star(False)
-        off = [*([self.tag] if self.source else ()), *v.off]
-        if v.tags or off:
+        on = {ui.norm(t) for t in v.tags}
+        off = [t for t in (*([self.tag] if self.source else ()), *v.off) if ui.norm(t) not in on]  # (GIV judged GIV again)
+        has = lambda t: any(ui.norm(x) == ui.norm(t) for x in info["tags"])
+        if v.tags and not off and all(has(t) for t in v.tags):  # it has them all already: no trip to the tag sheet
+            log(f"  door: has {'+'.join(v.tags)} already")
+        elif v.tags or off:
             base.set_tags(on=list(v.tags), off=off)
         if (clear or v.clear) and v.kind == "tag" and not v.name:
             base.clear_name()

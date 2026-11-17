@@ -99,18 +99,25 @@
  "skills/cleanup/leftovers.py": {
   "copies": {},
   "names": [
+   "AGAIN_DONE",
+   "AGAIN_SKIP",
+   "Counter",
    "GIVER",
    "HERE",
+   "PILES",
    "SHORTCUT",
    "SUFFIX",
    "Stop",
    "TAKER",
+   "again_done",
+   "cmd_again",
    "cmd_door",
    "gone",
    "log"
   ],
   "runs": [
-   "skills/cleanup/runs"
+   "skills/cleanup/runs",
+   "skills/cleanup/runs/again-done.json"
   ]
  },
  "skills/cleanup/savedsearches.py": {

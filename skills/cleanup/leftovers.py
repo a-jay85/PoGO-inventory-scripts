@@ -3,6 +3,7 @@
 wife's account, which is further behind: good for any account, the user 2026-11-16).
 
   POGO_PHONE=android caffeinate -dimsu python3 leftovers.py [--limit N]   from either account
+  POGO_PHONE=android caffeinate -dimsu python3 leftovers.py again GIV|Transfer [--limit N]   re-judge a tag pile
 
 Signed in as someone else on the Pixel, it switches to HashTagAJay first (../shared/account.py) and goes on.
 
@@ -19,13 +20,20 @@ The species lists are tradeable.py's giver_species() (data: tradeable.py refresh
 Leftovers is the user's: '!4*&!3*&!#&!favorite&!shiny&!lucky&!shadow&!legendary&!mythical&!ultrabeasts&!pvp&!age0-7
 &!xxl' (read off the iPhone 2026-11-16). Its !# and !favorite drop each one judged (a tag or a star) out of it. The
 walk adds &!gigantamax (a special trade it doesn't leave out). --limit N stops after N opened.
+
+again GIV|Transfer: HashTagAJay's #GIV or #Transfer pile, each one judged again under today's rules (the user,
+2026-11-16). The door takes the pile's tag off and gives the verdict's (GIV again: it stays). Not sure: left as it is.
+Left out: legendary, mythical, Ultra Beast, Gigantamax (special trades: by hand) and ones with IVC or PvpC too (/ivc
+or /pvpc judge those). Each one judged is written to runs/again-done.json under the rules' hash, so a rerun, or the
+other pile's walk, passes over it (new rules: judged again).
 """
-import os, sys
+import json, os, sys
+from collections import Counter
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import base
-from base import Stop, log
+from base import Stop, log, go
 import ui
 import home, session, account
 import tradeable
@@ -53,5 +61,74 @@ def cmd_door(limit):
     log(f"Leftovers, through the door: {dict(got)}")
 
 
+PILES = ("GIV", "Transfer")
+AGAIN_SKIP = "&!legendary&!mythical&!ultrabeasts&!gigantamax&!#IVC&!#PvpC"  # ends in C: no thin last letter
+AGAIN_DONE = os.path.join(HERE, "runs", "again-done.json")
+
+
+def again_done():
+    try:
+        return json.load(open(AGAIN_DONE))
+    except (OSError, ValueError):
+        return {}
+
+
+def cmd_again(tag, limit):
+    """each one in #tag judged again at the door: the pile's tag off, the verdict's on -> Counter of what happened"""
+    import door, search
+    from ivc import GYM_DEFENDERS  # noqa: F401 (verdict, loaded by Door, needs /ivc on the path)
+    base.new_run_dir(os.path.join(HERE, "runs"), suffix=f"again-{tag.lower()}")
+    who = home.trainer()
+    if who != TAKER:
+        if not ui.ANDROID:  # account.py signs in on the Pixel only
+            raise Stop(f"signed in as {who!r}: again is for {TAKER}'s piles")
+        log(f"signed in as {who!r}: switching to {TAKER}")
+        who = account.switch(TAKER)
+    home.start()
+    scope = f"#{tag}{AGAIN_SKIP}"
+    gate = door.Door(tag, scope=scope, account=who, rank_gym=True)  # no find: the pile's own tag comes off
+    key = f"{who}|{door.RULES}"  # both piles: one GIV just moved to Transfer isn't opened again in the Transfer walk
+    memo = again_done()
+    done = Counter(map(tuple, memo.get(key, [])))
+    passed = gate.listed()
+    log(f"again {tag}: {sum(done.values())} judged under these rules already, {sum(passed.values())} not sure: "
+        "passed over")
+    counts = Counter()
+
+    def visit(i, n, c):
+        for skip in (passed, done):
+            if skip[(n, c)]:
+                skip[(n, c)] -= 1
+                return False
+        counts["opened"] += 1
+        info, texts, _ = base.open_checked(i, n, c)
+        _, ivs, raws, iv = base.high_iv()
+        sp = ui.species_for(info["name"], info["texts"]) or base.species_from_candy(texts, info["cp"] or c, info["hp"])
+        info, texts, _ = base.steady_detail()
+        got = gate.judge(info, texts, sp, ivs, (n, c), size=base.extras(texts)[2], raws=raws)
+        counts[got] += 1
+        v = getattr(gate, "last", None)
+        stays = got == door.UNSURE or (got == "tag" and v is not None and tag in v.tags)
+        log(f"DONE again {got} {'+'.join(v.tags) if v else ''} {n!r} CP{c} {iv}: {'stays in' if stays else 'left'} #{tag}")
+        go("close", "list")
+        if got != door.UNSURE:  # judged: a rerun (or the other pile's walk) under these rules passes over it
+            memo.setdefault(key, []).append([n, c])
+            with open(AGAIN_DONE, "w") as fh:
+                json.dump(memo, fh)
+        return not stays
+
+    _, texts, _ = search.start_search(scope)
+    log(f"again {tag}: the game counts {search.result_count(texts)} in {scope}")
+    search.walk_list(visit, stop=lambda n: counts["opened"] >= limit)
+    log(f"again {tag}, through the door: {dict(counts)}")
+    return counts
+
+
 if __name__ == "__main__":
-    session.main(cmd_door, session.limit(sys.argv[1:]))
+    a = sys.argv[1:]
+    if a and a[0] == "again":
+        if len(a) < 2 or a[1] not in PILES:
+            sys.exit(__doc__)
+        session.main(cmd_again, a[1], session.limit(a))
+    else:
+        session.main(cmd_door, session.limit(a))

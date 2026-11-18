@@ -455,6 +455,13 @@ def to_friend(p, ours=False):
                         p.tap(0.87, bar[0][1] + bar[0][3] / 2)
                     log(f"{p.name}: the search for {p.friend} came up empty: cleared it")
                     empty = 0
+            elif s == "profile" and (box := p.find(lambda t: ui.norm(t[4]) == "TRAINER NICKNAME")):
+                # the friend search open and empty, its list hidden: on the FRIENDS tab already, so a FRIENDS tap
+                # does nothing (iPhone, after a trade left half-made: 45 taps in 90 s, 2026-11-18). Type in it
+                p.tap_text(box[0])
+                time.sleep(1.2)
+                p.type(p.friend)
+                p.key("return")
             elif s == "profile":
                 if friends := label(p, "FRIENDS"):  # (not read yet: the next look tries again)
                     p.tap_text(friends)

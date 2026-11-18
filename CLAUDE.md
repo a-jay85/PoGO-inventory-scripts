@@ -70,7 +70,7 @@ When Claude needs to see the screen (a live look or a run's saved png), use `ski
 
 1. Read the text first: `POGO_PHONE=android python3 ~/PoGO-inventory-scripts/skills/shared/peek.py --text` (or `peek.py <png> --text`). That's often enough.
 2. If the text isn't enough, crop to the part you need: `peek.py [png] --crop top|mid|bottom|x0,y0,x1,y1`. Then Read `/tmp/peek.png`. A crop of a live Android capture comes from the full-size screenshot, so small text stays sharp.
-3. Don't Read the same picture twice. Don't Read the 3× `/tmp/pvpc_sharp.png` whole: the model shrinks anything over 1568 px anyway.
+3. Don't Read the same picture twice. Don't Read the 3× `/tmp/pvpc_android_sharp.png` or `/tmp/pvpc_iphone_sharp.png` whole: the model shrinks anything over 1568 px anyway.
 
 ## Never commit
 

@@ -280,20 +280,24 @@ class Door:
             if ui.classify(again) == "detail":
                 me = tagsheet.who(again)[1]
         shots = [(texts, path)]  # the Candy XL row: at the top, or (a Dynamax one's Max Moves box) one drag down
+        last = None  # the last look down there: back_to_top's first look (~0.7 s less, Pixel)
         try:
             base.drag(0.08, 0.75, 0.08, 0.2, bounds, settle=tagsheet.IOS_PAGE_SETTLE, android_settle=tagsheet.PAGE_SETTLE)  # down the left edge: no buttons there
             _, t, p, _ = base.look()
             shots.append((t, p))
+            last = t
             if ui.ANDROID and pagefacts.caught_read(t):  # on most pages it shows by now: a second drag adds nothing
                 reads = [t, base.sharp_again()]  # (the same screenshot, read 3x bigger: the date's two reads)
             else:
                 reads = tagsheet.scrolled_bottom(bounds, drags=1)
+                last = reads[0] if ui.ANDROID else reads[-1]  # (Android's second one is the sharp read)
                 for _ in range(2):  # a tall page (Mewtwo's two Mega rows): the date is a drag or two further
                     if any(pagefacts.caught_read(r) for r in reads):
                         break
                     reads = tagsheet.scrolled_bottom(bounds, drags=1)
+                    last = reads[0] if ui.ANDROID else reads[-1]
         finally:
-            tagsheet.back_to_top(me, bounds)
+            tagsheet.back_to_top(me, bounds, last)
         xl = next((n for t, p in shots if (n := pagefacts.candy_xl(t)) is not None), None)
         if xl is None:
             xl = next((n for t, p in shots if (n := pagefacts.candy_xl_close(p, t)) is not None), None)

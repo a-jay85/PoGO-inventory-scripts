@@ -243,13 +243,14 @@ def same_at_top(me, now):
 WEIGHT_AT_TOP = 0.55  # the weight row sits at ~0.6 at the top of the page, higher once the page has moved
 
 
-def back_to_top(me, bounds):
+def back_to_top(me, bounds, seen=None):
     """drag down until the CP shows. Only drag from labels that are never buttons (weight, candy, the caught box,
     form text), never from the top strip: a drag there pulls down the phone's notification shade.
-    A drag at the top closes the page, so check a fresh read before each drag and size it from the weight row."""
+    A drag at the top closes the page, so check a fresh read before each drag and size it from the weight row.
+    seen: the texts of a look taken where the page is now, with nothing since (the page bottom's): the first read"""
     no_hold = False
     for _ in range(12):
-        texts = look()[1]  # the phone's own screenshot
+        texts, seen = seen or look()[1], None  # the phone's own screenshot
         now = who(texts)[1] if ui.classify(texts) == "detail" else None
         kg = [t for t in texts if re.search(r"\d\s*kg$", t[4].strip())]
         # the top, shown by the CP label, or by the weight row where only the top has it (a Mewtwo's CP read as a bare

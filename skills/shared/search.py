@@ -713,18 +713,19 @@ def top_row(path, texts):
 
 
 def small_scroll(bounds):
-    """down the list: on the Pixel about 2 rows (2.6 at most), on the iPhone about a row and a half. A row is 0.164
-    of the screen, and only 3 to 4 rows read whole (the bottom one's names hide under the buttons): a longer swipe
-    skips rows"""
+    """down the list about a row and a half (a row is 0.164 of the screen), so every tile is read on two screens:
+    only 3 to 4 rows read whole (the bottom one's names hide under the buttons), and twins (same name and CP) count
+    as two only when one screen shows both"""
     global scrolled
     scrolled = True
     front()
-    # The Pixel moves ~7.7 rows per screen of drag, give or take half a row: 0.38-0.42 moved 2.8-3.7 rows and lost 10
-    # of 178 tiles. It was 0.17-0.19 and a 0.7-0.9 s wait, 3.6 s a screen, 45 screens for those 178. The list barely
-    # drifts after the drag (0.1 row in 1.2 s). Pixel, 2026-11-17. The iPhone's swipe flings on, so it stays short
+    # The Pixel moves ~7.7 rows per screen of drag, give or take half a row. 4* (178 tiles), 2026-11-17: 0.17-0.19
+    # and a 0.7-0.9 s wait took 164 s, 45 swipes; 0.2-0.22 and LIST_SETTLE 54-59 s and 178 every time. 0.27-0.29 (2
+    # rows) lost twins (176, 178), 0.38-0.42 skipped rows (168). The list barely drifts after the drag (0.1 row in
+    # 1.2 s). The iPhone's swipe flings on, so it keeps its pace
     fx, fy = random.uniform(0.3, 0.7), random.uniform(0.75, 0.8) if ui.ANDROID else random.uniform(0.6, 0.7)
     x, y = base.to_points(fx, fy, bounds)
-    dist = bounds[3] * (random.uniform(0.27, 0.29) if ui.ANDROID else random.uniform(0.2, 0.25))
+    dist = bounds[3] * (random.uniform(0.2, 0.22) if ui.ANDROID else random.uniform(0.2, 0.25))
     ms = 500 if ui.ANDROID else random.randint(450, 650)  # (the Pixel's motionevent drag has its own pace)
     ui.sh(ui.HELPER, "drag", f"{x:.1f}", f"{y:.1f}", f"{x + random.uniform(-6, 6):.1f}", f"{y - dist:.1f}", str(ms))
     time.sleep(random.uniform(*base.LIST_SETTLE) if ui.ANDROID else random.uniform(0.7, 0.9))

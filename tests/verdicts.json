@@ -616,6 +616,27 @@
   null,
   "lucky: out of the top IV and PvP"
  ],
+ "lucky costume out, /pvpc said no": [
+  "tag",
+  [],
+  null,
+  "lucky costume, out of the top IV and PvP: a favorite, name cleared",
+  "star"
+ ],
+ "lucky background out, /pvpc said no": [
+  "tag",
+  [],
+  null,
+  "lucky background, out of the top IV and PvP: a favorite, name cleared",
+  "star"
+ ],
+ "lucky costume traded out, /pvpc said no": [
+  "tag",
+  [],
+  null,
+  "lucky costume, out of the top IV and PvP: a favorite, name cleared",
+  "star"
+ ],
  "H shadow, under 360 XL": [
   "tag",
   [

@@ -27,7 +27,8 @@ while the account holding it has rules.DMAX_CANDY Candy or less, or XL_CAP + all
 the family (dmax_short, the user 2026-11-16). With more of both and no other rule, Transfer
 Before all of them: a special trade (trades.py's legendary rules, else unsure), a traded one (Transfer), an untraded
 shadow, costume or background one (odd_one: the user's rules for each; a shadow's Transfer becomes GuaranteedLucky or
-Old when its catch date fits, no purify: shadow_transfer), and a lucky one, traded or not (lucky()).
+Old when its catch date fits, no purify: shadow_transfer), and a lucky one, traded or not (lucky(); a lucky costume or
+background one that would be Transfer gets its name cleared and a favorite instead).
 A costume one (the user, 2026-11-02): 93%+ is named and a favorite, traded or not. Else the usual rules, but if its plain
 form evolves and it can't (no Evolve button: dead_end), only as its own species: CyrillJan's raid list and 2XL go by
 its own place in DialgaDex's tops (raid_self), and no trade-evolution GIV.
@@ -395,7 +396,8 @@ def lucky(f, sid, dexn, strip):
     line the top 5 IV of its non-shadow ones (6 if the line can mega evolve) or its best lucky, on a weak line only its
     top IV (the user, 2026-11-17: strong = a #1 raid attacker, sort.strong), ties keep. Out of that, one with a PvP
     top-100 IV goes to /pvpc, which compares it with the ones you own. The rest: name cleared, Transfer (door.py checks
-    the power-up first). A traded one that evolves for free gets Evo instead. Only /ivc ranks it: from anywhere else it goes to IVC, name cleared, and
+    the power-up first). A costume or background one never gets that Transfer: name cleared and a favorite (the user,
+    2026-11-18). A traded one that evolves for free gets Evo instead. Only /ivc ranks it: from anywhere else it goes to IVC, name cleared, and
     /ivc ranks it next"""
     if f.iv_top is None:
         if f.ivc_judged:
@@ -411,7 +413,12 @@ def lucky(f, sid, dexn, strip):
             return tag("PvpC", why=f"lucky, out of the top IV, but PvP {name}: /pvpc judges it", off=strip)
     if f.traded and f.account == EVO_FOR and dexn in TRADE_EVO_DEX:
         return tag(EVO, why="traded lucky, out of the top IV and PvP: evolves for free", off=strip)
-    return transfer(f, sid, "lucky: out of the top IV and PvP", off=strip, clear=True)
+    v = transfer(f, sid, "lucky: out of the top IV and PvP", off=strip, clear=True)
+    odd = [k for k in ("costume", "background") if getattr(f, k)]
+    if v.tags == ("Transfer",) and odd:  # (the user, 2026-11-18): never Transfer, a favorite with its name cleared
+        return Verdict("tag", (), f"lucky {' '.join(odd)}, out of the top IV and PvP: a favorite, name cleared",
+                       off=strip, clear=True, star=True)
+    return v
 
 
 def plain_evolves(sid):

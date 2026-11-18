@@ -655,6 +655,11 @@ def search_box(texts):
         hits = [t for t in texts if 0.155 < t[1] < 0.2 and 0.35 < t[0] < 0.5 and re.match(r"9\s+[^\s(]", t[4])]
     if not hits:  # the magnifier glued to the text ('Q4&shadow', '< 9113&!#Nope'): go by where the bar sits
         hits = [t for t in texts if 0.155 < t[1] < 0.2 and t[0] < 0.35 and t[4].strip() not in ("<", "‹", "Q", "9", "< 9", "‹ 9")]
+        # the magnifier as its own box, read as 'a', in front of the text ('a' + '6&!shadow', Pixel 2026-11-18). Only
+        # with text to its right: the iPhone's bar_ready types an A alone
+        hits.sort(key=lambda t: t[0])
+        if len(hits) == 2 and hits[0][4].strip() in ("a", "< a", "‹ a"):
+            hits = hits[1:]
         # a lone number there with no TAGS / EGGS tabs: the map's friend row ('Me' over '10', 2026-11-03), not a bar
         if not {"TAGS", "EGGS"} & {norm(t[4]) for t in texts}:
             hits = [t for t in hits if not t[4].strip().isdigit()]

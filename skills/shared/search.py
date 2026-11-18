@@ -713,18 +713,22 @@ def top_row(path, texts):
 
 
 def small_scroll(bounds):
-    """about a row and a half, so every tile is read on two or three screens"""
+    """down the list about a row and a half (a row is 0.164 of the screen), so every tile is read on two screens:
+    only 3 to 4 rows read whole (the bottom one's names hide under the buttons), and twins (same name and CP) count
+    as two only when one screen shows both"""
     global scrolled
     scrolled = True
     front()
-    fx, fy = random.uniform(0.3, 0.7), random.uniform(0.6, 0.7)
+    # The Pixel moves ~7.7 rows per screen of drag, give or take half a row. 4* (178 tiles), 2026-11-17: 0.17-0.19
+    # and a 0.7-0.9 s wait took 164 s, 45 swipes; 0.2-0.22 and LIST_SETTLE 54-59 s and 178 every time. 0.27-0.29 (2
+    # rows) lost twins (176, 178), 0.38-0.42 skipped rows (168). The list barely drifts after the drag (0.1 row in
+    # 1.2 s). The iPhone's swipe flings on, so it keeps its pace
+    fx, fy = random.uniform(0.3, 0.7), random.uniform(0.75, 0.8) if ui.ANDROID else random.uniform(0.6, 0.7)
     x, y = base.to_points(fx, fy, bounds)
-    # an adb swipe flings on: 0.22 in 550ms moved 0.25-0.30, and rows slipped past between two looks.
-    # Slower and shorter lands near 0.22 (measured on the Pixel, 2026-10-09)
-    dist = bounds[3] * (random.uniform(0.17, 0.19) if ui.ANDROID else random.uniform(0.2, 0.25))
-    ms = random.randint(900, 1100) if ui.ANDROID else random.randint(450, 650)
+    dist = bounds[3] * (random.uniform(0.2, 0.22) if ui.ANDROID else random.uniform(0.2, 0.25))
+    ms = 500 if ui.ANDROID else random.randint(450, 650)  # (the Pixel's motionevent drag has its own pace)
     ui.sh(ui.HELPER, "drag", f"{x:.1f}", f"{y:.1f}", f"{x + random.uniform(-6, 6):.1f}", f"{y - dist:.1f}", str(ms))
-    time.sleep(random.uniform(0.7, 0.9))
+    time.sleep(random.uniform(*base.LIST_SETTLE) if ui.ANDROID else random.uniform(0.7, 0.9))
 
 
 def nameless(texts):
@@ -1205,13 +1209,13 @@ def read_results(q, path, texts, bounds, iv_only=False, resorted=False):
     if want == 0:
         return [], 0
     most, sightings, seen, stale, last, together = Counter(), Counter(), set(), 0, None, set()
-    held = False
+    held = again = False
     grid = []
     for turn in range(300):
         add_to_grid(grid, screen_rows([(c[0] + c[2] / 2, c[1], int(re.sub(r"\D", "", c[4]))) for c in ui.tile_cps(texts)],
                                       ui.tiles(texts)))
         now = Counter((ui.tile_name(t[0]), t[1]) for t in ui.tiles(texts))
-        BUBBLES.update((ui.tile_name(t[0]), t[1]) for t in ui.tiles(texts) if pagefacts.tile_icons(path, t).get("lucky"))
+        BUBBLES.update((ui.tile_name(t[0]), t[1]) for t in ui.tiles(texts) if pagefacts.tile_icons(path, t, only=("lucky",)).get("lucky"))
         now.update(nameless(texts))
         if turn == 0:
             now.update(top_row(path, texts))
@@ -1237,6 +1241,13 @@ def read_results(q, path, texts, bounds, iv_only=False, resorted=False):
         if want is None and len(now) < 9:  # under three rows: everything is on screen
             break
         if now == last:  # the list didn't move: the end, once it still hasn't a moment later (a long list can lag: 30 of 105)
+            if held and not again and want is not None and sum(most.values()) < want:  # tiles still to come: one more
+                again = True  # swipe before calling it the end (145 of 178 and 24 of 64 ended there, 2026-11)
+                log(f"  {q}: the list didn't move with {sum(most.values())} of {want} read: swiping again")
+                small_scroll(bounds)
+                path, bounds = ui.capture()
+                texts = ui.ocr(path)
+                continue
             if held:
                 break
             held = True

@@ -28,6 +28,7 @@ MAX_SKIPS_IN_A_ROW = 5
 # and then by Name again. Both keep the search. A run can start on a list an earlier run left scrolled, so the first
 # search does it too
 scrolled = True
+at_end = False  # read_results read the list to its end (the iPhone shows no slider there)
 LAST = {"q": None}  # the search start_search last left in the bar (None: unknown, or cleared since)
 SORT_BUTTON = (0.838, 0.937)  # the round sort button, bottom right
 
@@ -1140,7 +1141,13 @@ def slider_to_top(bounds):
     if fy is None:
         log("  no slider on the right edge")
         return None
-    ui.android.hold_drag(random.uniform(0.945, 0.955), fy, random.uniform(0.945, 0.955), random.uniform(0.14, 0.16))
+    if ui.ANDROID:
+        ui.android.hold_drag(random.uniform(0.945, 0.955), fy, random.uniform(0.945, 0.955), random.uniform(0.14, 0.16))
+    else:  # the helper's 8th arg: hold still that long first (the slider only follows a finger that held still)
+        x1, y1 = base.to_points(random.uniform(0.945, 0.955), fy, bounds)
+        x2, y2 = base.to_points(random.uniform(0.945, 0.955), random.uniform(0.14, 0.16), bounds)
+        ui.sh(ui.HELPER, "drag", f"{x1:.1f}", f"{y1:.1f}", f"{x2:.1f}", f"{y2:.1f}", f"{random.uniform(150, 250):.0f}",
+              f"{random.uniform(350, 450):.0f}")
     time.sleep(random.uniform(0.3, 0.4))
     path, bounds = ui.capture()
     texts = ui.ocr(path)
@@ -1176,17 +1183,19 @@ def sort_by_name(bounds):
 
 
 def to_top(bounds):
-    """back to the top of the list, the search still in the bar: the slider (Android), else sort by HP then Name"""
-    global scrolled
+    """back to the top of the list, the search still in the bar: the slider, else sort by HP then Name"""
+    global scrolled, at_end
     t0 = time.time()
-    got = slider_to_top(bounds) if ui.ANDROID else None
+    # the iPhone shows no slider at the list's end, not even after a drag back down (4 of 4, 2026-11-18): a try there
+    # wastes 0.6 s. Up the list it gets there in 2.2-2.5 s, where sorting HP then Name takes 4.5-7.7 s
+    got = slider_to_top(bounds) if ui.ANDROID or not at_end else None
     how = "slider"
     if not got:
         path, bounds = ui.capture()
         if leave_multiselect(ui.ocr(path), bounds):  # the hold on the slider landed on a tile after it faded: a long press
             bounds = ui.capture()[1]
         got, how = sort_by_name(bounds), "sort HP, then Name"
-    scrolled = False
+    scrolled = at_end = False
     log(f"  back to the top ({how}): {time.time() - t0:.1f}s")
     return got
 
@@ -1208,6 +1217,8 @@ def read_results(q, path, texts, bounds, iv_only=False, resorted=False):
     if leave_multiselect(texts, bounds):
         path, bounds = ui.capture()
         texts = ui.ocr(path)
+    global at_end
+    at_end = False
     want = result_count(texts)
     if want == 0:
         return [], 0
@@ -1252,6 +1263,7 @@ def read_results(q, path, texts, bounds, iv_only=False, resorted=False):
                 texts = ui.ocr(path)
                 continue
             if held:
+                at_end = True
                 break
             held = True
             time.sleep(1.5)
@@ -1264,6 +1276,7 @@ def read_results(q, path, texts, bounds, iv_only=False, resorted=False):
         seen |= set(now)
         stale = 0 if fresh else stale + 1
         if stale >= END_AFTER_STALE:
+            at_end = True
             break
         small_scroll(bounds)
         path, bounds = ui.capture()  # the search bar may have scrolled away: just read the tiles

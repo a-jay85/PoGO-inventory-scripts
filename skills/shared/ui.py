@@ -380,7 +380,18 @@ def tiles(texts):
                 name = parts[over.index(c)]
             x = cx if len(over) > 1 else n[0] + n[2] / 2  # a box over several tiles: its middle is another tile's
             out.append((name.lstrip("•· ").strip(), int(re.sub(r"\D", "", c[4])), x, (c[1] + c[3] + n[1]) / 2))
-    return sorted(out, key=lambda t: (round(t[3] / 0.05), t[2]))
+    # rows by the gap between them: rounding y to steps of 0.05 split a row at 0.8202 / 0.8256 (16.4 / 16.5 steps),
+    # and the 3rd tile came before the 2nd (Pixel 2026-11-18). Rows sit 0.13+ apart, a row's tiles within 0.01
+    rows = []
+    for t in sorted(out, key=lambda t: t[3]):
+        if rows and t[3] - rows[-1][0][3] < ROW_GAP:
+            rows[-1].append(t)
+        else:
+            rows.append([t])
+    return [t for r in rows for t in sorted(r, key=lambda t: t[2])]
+
+
+ROW_GAP = 0.05  # tiles closer than this in y (from the row's top-most) are one row
 
 
 OK_ABOVE_CANCEL = 0.07  # the dialog's OK sits this far above CANCEL (0.069-0.070 in every rename capture)

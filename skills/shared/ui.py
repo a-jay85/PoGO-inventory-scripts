@@ -919,13 +919,29 @@ def locate(T, path, texts, screen, aspect):
     return box[0] + box[2] / 2, box[1], lambda: fuzz_box(*box, texts)
 
 
-def plan(target):
-    """-> (fx, fy, bounds, screen): a fuzzed spot in window fractions. Raises Refused / Moving."""
+RESTED = {}  # (target, screen, bounds) -> (x, y): where a button stood when two looks agreed it was still
+
+
+def plan(target, rested=False):
+    """-> (fx, fy, bounds, screen): a fuzzed spot in window fractions. Raises Refused / Moving.
+    rested: one look that finds the button just where it stood still before this run counts as still (the menu's TAG
+    after the menu opens: 0.5 s less on the iPhone, 2026-11-18). Only for go(), which taps again if a tap is lost,
+    and never for tiles (a list still loading shows old tiles in the same spots)"""
     T = target.upper()
     if any(T.startswith(z) for z in HAZARDS):
         raise Refused(f"REFUSED: {target} is on the never-tap list")
     spots = []
     prev = _seen if _seen and time.time() - _seen[0] < 1.5 else None  # a look from just now counts as the first
+    if rested and prev and not T.startswith("TILE "):
+        key = (T, prev[4], tuple(prev[3]))
+        if key in RESTED:
+            try:
+                x, y, fuzz = locate(T, prev[1], prev[2], prev[4], prev[3][2] / prev[3][3])
+            except Refused:
+                x = y = None
+            if x is not None and abs(x - RESTED[key][0]) <= 0.01 and abs(y - RESTED[key][1]) <= 0.01:
+                fx, fy = fuzz()
+                return fx, fy, prev[3], prev[4]
     if prev and _older and 0.3 < prev[0] - _older[0] < 1.5:  # and the one before it as well, if they agree
         try:
             pair = [(o[4], locate(T, o[1], o[2], o[4], o[3][2] / o[3][3])) for o in (_older, prev)]
@@ -934,6 +950,7 @@ def plan(target):
         if pair:
             (s1, (x1, y1, _)), (s2, (x2, y2, fuzz)) = pair
             if s1 == s2 and abs(x1 - x2) <= 0.01 and abs(y1 - y2) <= 0.01 and _older[3] == prev[3]:
+                RESTED[(T, s2, tuple(prev[3]))] = (x2, y2)
                 fx, fy = fuzz()
                 return fx, fy, prev[3], s2
     for i in range(2):  # two looks 0.4s apart: refuse if the screen is still animating
@@ -951,6 +968,7 @@ def plan(target):
     (s1, (x1, y1, _)), (s2, (x2, y2, fuzz)) = spots
     if s1 != s2 or abs(x1 - x2) > 0.01 or abs(y1 - y2) > 0.01:
         raise Moving("REFUSED: screen still moving, wait and try again")
+    RESTED[(T, s2, tuple(bounds))] = (x2, y2)
     fx, fy = fuzz()
     return fx, fy, bounds, s2
 

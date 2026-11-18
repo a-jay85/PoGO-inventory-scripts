@@ -531,11 +531,12 @@ def tap_box(t, bounds, dy=0.0, spread=0.0, **kw):
     click(fx, fy, bounds, **kw)
 
 
-def tap(target, dry=False):
+def tap(target, dry=False, rested=False):
+    """rested: ui.plan's rested (go() only: it taps again if a tap is lost)"""
     for _ in range(8):
         front()
         try:
-            fx, fy, bounds, screen = ui.plan(target)
+            fx, fy, bounds, screen = ui.plan(target, rested)
         except Moving:
             time.sleep(0.15)
             continue
@@ -565,7 +566,7 @@ def go(target, *screens):
     """a tap that moves to another screen: if it doesn't land, tap again (never used for tick boxes)"""
     for attempt in range(3):
         try:
-            tap(target)
+            tap(target, rested=True)
         except Stop:
             if not attempt:
                 raise

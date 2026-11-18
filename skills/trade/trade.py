@@ -971,7 +971,9 @@ def warning(p):
     if not yes:
         raise Stop(f"{p.name}: trade warning without YES: {p.summary()}")
     lines = [re.sub(r"^[^A-Z]+", "", ui.up(t)) for t in p.texts if top < t[1] < yes[1] - 0.01]
-    reasons = [l for l in lines if l and "ARE YOU SURE" not in l and not l.startswith("THIS POK")]
+    # (the other player's 'CYRILLJAN HAS CONNECTED!' banner can show over the box: no reason, 2026-11-18)
+    reasons = [l for l in lines if l and "ARE YOU SURE" not in l and not l.startswith("THIS POK")
+               and not re.search(r"HAS CONNECTED!?$", l)]
     # (the bullet in front can read as a stray letter: "X MAX MOVE ...")
     unknown = [r for r in reasons if not any(r.startswith(k) or re.sub(r"^\S\s+", "", r).startswith(k)
                                              for k in OK_WARNINGS)]

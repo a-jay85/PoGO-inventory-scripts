@@ -1925,6 +1925,7 @@
  "skills/shared/powerup.py": {
   "copies": {},
   "names": [
+   "CP_UNREAD_KEPT",
    "DUST",
    "DUST_FLOOR",
    "DUST_RATE",

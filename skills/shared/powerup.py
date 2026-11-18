@@ -133,13 +133,17 @@ def candy_at(lv):
                 if lv >= first)
 
 
+CP_UNREAD_KEPT = None  # cost_levels' one saved capture of a page whose CP didn't read
+
+
 def cost_levels(texts, cp):
     """-> (cost, every level the detail page's power-up cost fits). Lucky shows on the page. A purified one is always
     level 25 (3,600, or 1,800 lucky): purifying puts it there and it's transferred from there. No levels = a cost no
     table has, or no two looks in a row agreed on it"""
     cost = page_cost(texts)
     seen = [cost]
-    steady = cost is not None and base.OPENED.get("steady_cost") == (cp, cost)  # steady_detail's two reads agreed on it
+    sc = base.OPENED.get("steady_cost")  # steady_detail's two reads agreed on it (their CP may not have read)
+    steady = cost is not None and sc is not None and sc[1] == cost and sc[0] in (cp, None)
     for _ in range(6):
         if steady:
             break
@@ -147,12 +151,15 @@ def cost_levels(texts, cp):
         _, texts, _, _ = look()  # level 40+, 2026-10-23). Two looks in a row on this CP must agree
         again, now = page_cost(texts), ui.detail_info(texts)["cp"]
         seen.append((again, now))
-        if again == cost and now == cp:
-            break
+        if again == cost and (now == cp or None in (now, cp)):  # a CP that doesn't read can't say no: some pages'
+            break  # CP never reads, and 7 looks went on each (5-6 a raidteam run, 2026-11-18)
         cost = again
     else:
-        log(f"  power-up cost: no two looks agreed on CP{cp}: {seen}")  # (why is not known yet, 2026-11-09)
+        log(f"  power-up cost: no two looks agreed on CP{cp}: {seen}")
         cost = None
+    global CP_UNREAD_KEPT
+    if not CP_UNREAD_KEPT and ui.detail_info(texts)["cp"] is None:
+        CP_UNREAD_KEPT = base.keep_capture("cost-cp-unread")  # one a run: why that page's CP doesn't read
     if cost is None:
         return None, []
     rate, purified = DUST_RATE[1::2] if is_lucky(texts) else DUST_RATE[0::2]

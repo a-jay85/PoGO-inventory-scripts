@@ -9362,6 +9362,14 @@
   "typed number, tabs showing": "list",
   "weekly challenge progress box": "unknown"
  },
+ "ui.detail_info cp": {
+  "P at the side is no CP": null,
+  "P low on the page is no CP": null,
+  "lucky sparkles hide the C": 2709,
+  "no CP": null,
+  "plain": 2709,
+  "small c": 1426
+ },
  "ui.dialog_ok": {
   "OK not read": 0.541,
   "OK read": 0.5416,

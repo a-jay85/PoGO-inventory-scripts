@@ -337,6 +337,9 @@ def detail_info(texts):
     hp_line = next(t for t in texts if re.search(r"\d+\s*/\s*\d+\s*HP", t[4]))
     hp = int(re.search(r"/\s*(\d+)\s*HP", hp_line[4]).group(1))
     cpt = next((t for t in texts if re.fullmatch(r"CP\s*\d+", t[4].upper().replace(" ", ""))), None)  # "cP1426" (2026-11-13)
+    if cpt is None:  # a lucky one's sparkles hide the C: 'P2709' (2026-11-18). Only the CP sits up there, mid-screen
+        cpt = next((t for t in texts if t[1] < 0.2 and 0.3 < t[0] + t[2] / 2 < 0.7
+                    and re.fullmatch(r"P\d{2,4}", t[4].upper().replace(" ", ""))), None)
     cp = int(re.sub(r"\D", "", cpt[4])) if cpt else None
     box = name_box(texts, hp_line)
     name = clean_name(box[4]) if box else None

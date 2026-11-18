@@ -459,6 +459,16 @@ def chips_page(*extra):
     return [box(.43, .488, "72 / 72 HP"), box(.14, .598, "17.47kg"), box(.73, .598, "0.41m"), *extra]
 
 
+DETAILS = {  # ui.detail_info's CP: the top of a detail page (made-up numbers)
+    "plain": [box(.4, .08, "CP2709"), box(.4, .51, "151 / 151 HP")],
+    "small c": [box(.4, .08, "cP1426"), box(.4, .51, "151 / 151 HP")],
+    "lucky sparkles hide the C": [box(.4, .08, "P2709"), box(.4, .51, "151 / 151 HP")],
+    "P low on the page is no CP": [box(.4, .6, "P2709"), box(.4, .51, "151 / 151 HP")],
+    "P at the side is no CP": [box(.05, .08, "P2709"), box(.4, .51, "151 / 151 HP")],
+    "no CP": [box(.4, .51, "151 / 151 HP")],
+}
+
+
 CHIPS = {
     "one tag": chips_page(box(.46, .524, "IVC")),
     "Fighting icon read as O": chips_page(box(.46, .524, "IVC"), box(.49, .591, "O")),
@@ -529,6 +539,7 @@ def answers():
     out["popups.which"] = {k: answer(popup, ts) for k, ts in POPUPS.items()}
     out["pages.which"] = {k: answer(page, ts) for k, ts in PAGES.items()}
     out["pages.trade_request"] = {k: answer(pages.trade_request, ts) for k, ts in REQUESTS.items()}
+    out["ui.detail_info cp"] = {k: answer(lambda ts: ui.detail_info(ts)["cp"], ts) for k, ts in DETAILS.items()}
     out["tagsheet.tag_chips"] = {k: answer(tagsheet.tag_chips, ts) for k, ts in CHIPS.items()}
     out["mega.form_of"] = {n: answer(mega.form_of, n) for n in NICKS}
     out["trade.km"] = {s: answer(lambda s: trade.km(SimpleNamespace(texts=[box(.4, .56, s)])), s) for s in DISTANCES}

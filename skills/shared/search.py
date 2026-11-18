@@ -834,9 +834,12 @@ def drop_misreads(most, sightings, extra):
 def edit_tail(prev, q, check):
     """the bar holds prev and its list isn't scrolled: tap the bar, delete back to where q starts to differ, type the
     rest, Return. Skips the clear and most of the typing ('...&!shadow' -> '...&lucky'). -> the results' texts, or
-    None (the panel is closed again: start over the usual way)"""
+    None (the panel is closed again: start over the usual way).
+    Android: also with nothing in common ('45' -> '186'): one adb call deletes it all, and that skips the X, the list
+    reloading and the second tap on the bar (family searches 4.0-5.4 s -> 2.5-3.2 s, 2026-11-18). iPhone: only with
+    half in common: an edit there took as long as a clear and type (3.3-3.5 s against 3.5 s), and one lost its keys"""
     k = len(os.path.commonprefix([prev, q]))
-    if k < len(q) / 2:  # little in common: typing it whole is as quick
+    if k < len(q) / 2 and not ui.ANDROID:  # little in common: typing it whole is as quick
         return None
     screen, texts, _, bounds = base.look()  # the full list, its bar holding prev, before any tap
     box = ui.search_box(texts)
@@ -864,7 +867,7 @@ def edit_tail(prev, q, check):
             key("delete")
     type_text(q[k:])
     for i in range(16):
-        time.sleep(0.25)
+        time.sleep(base.poll_gap(0.25))  # (Android: a look itself takes ~0.35 s)
         got, texts = panel_text()
         if got and check(got, q):
             break

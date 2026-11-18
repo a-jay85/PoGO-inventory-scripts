@@ -46,7 +46,7 @@ STEPS = {
     "mega":        ("mega/mega.py", set(), set()),
     "evo":         ("evo/evo.py", set(), set()),
     "roster":      ("roster/roster.py", {"count", "report"}, {"report"}),
-    "raidteam":    ("roster/raidteam.py", {"count", "report"}, {"report"}),
+    "raidteam":    ("roster/raidteam.py", {"count", "report", "keep"}, {"report"}),
     "gymfeed":     ("gymfeed/gymfeed.py", set(), set()),
     "goplus":      ("goplus/goplus.py", set(), set()),
     "hatch":       ("hatch/hatch.py", {"shortest", "longest"}, set()),

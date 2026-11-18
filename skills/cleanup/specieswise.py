@@ -33,7 +33,7 @@ import pvp, rules, search
 PILES = ("GIV", "Transfer")
 WHO = rules.TAKER  # HashTagAJay
 # a rule before the species ones decides these (or the user does): never in a search
-LEFT_OUT = ("&!traded&!lucky&!shadow&!shiny&!costume&!background&!xxl&!xxs&!dynamax&!gigantamax"
+LEFT_OUT = ("&!favorite&!traded&!lucky&!shadow&!shiny&!costume&!background&!xxl&!xxs&!dynamax&!gigantamax"
             "&!legendary&!mythical&!ultrabeast&!age300-&!year2016-2020"
             "&!#IVC&!#PvpC&!#Old&!#2XL&!#XLX&!#Reroll&!#GuaranteedLucky&!#RT")
 CHUNK = 700  # characters of dex numbers per search: with LEFT_OUT, well under the 1,000 a search keeps to

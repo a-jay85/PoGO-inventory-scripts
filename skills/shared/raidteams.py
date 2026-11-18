@@ -13,6 +13,7 @@ from base import log
 
 RUNS = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "roster", "runs")
 _TEAMS = {}  # account -> (teams dict or None, days old)
+_PATHS = {}  # account -> its teams.json
 
 
 def newest(who):
@@ -29,6 +30,7 @@ def newest(who):
         if t.get("trainer") == who and not t.get("limit"):
             when = time.mktime(time.strptime(t["counted"], "%Y-%m-%d %H:%M"))
             got = t, (time.time() - when) / 86400
+            _PATHS[who] = p
             break
     _TEAMS[who] = got
     if got[0] is None:
@@ -37,6 +39,12 @@ def newest(who):
         log(f"raid teams: {who}'s count is {got[1]:.1f} days old ({got[0]['counted']}, "
             f"{sum(bool(c['on']) for c in got[0]['copies'])} on a team)")
     return got
+
+
+def path_of(who):
+    """the teams.json newest(who) read, or None"""
+    newest(who)
+    return _PATHS.get(who)
 
 
 def close(a, b, by):

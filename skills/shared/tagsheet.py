@@ -13,6 +13,7 @@ import ui
 import base
 from base import Stop, log, keep_capture, go, look, wait_for
 import search
+from rules import held
 
 # ---------- search: start and end of the bar both read back ----------
 
@@ -210,6 +211,17 @@ def tag_chips(texts):
                   and n not in ("DYNAMAX", "GIGANTAMAX") and not n.startswith("LUCKY POK"))
 
 
+def favorite(info, texts, among):
+    """the open detail page: favorite on, and the tags in among that it has off (sizes.py's XXL ones, raidteam.py's
+    team members). -> the tags taken off"""
+    off = held(tag_chips(texts), among)
+    base.set_star(True)
+    if off:
+        base.set_tags(off=off)
+    log(f"{info['name']} CP{info['cp']}: a favorite{', ' + '/'.join(off) + ' off' if off else ''}")
+    return off
+
+
 PAGE_SETTLE = (0.25, 0.35)  # Android, seconds after a drag of the detail page (0.7-0.9 by default): adb's drag pauses
 # before it lifts, so the page hardly glides, and each caller reads until it sees the date or the top (2026-11-09)
 IOS_PAGE_SETTLE = (0.4, 0.5)  # iPhone, the same (was 0.7-0.9): helper.swift's drag also holds still before it lifts,
@@ -304,3 +316,4 @@ def still_sheet():
         last = ys
         time.sleep(0.25)
     return texts, path, bounds
+

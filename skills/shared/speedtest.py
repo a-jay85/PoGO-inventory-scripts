@@ -82,6 +82,13 @@ def listread(q, n, dist=None, settle=None):
             finally:
                 spent[name] = spent.get(name, 0) + time.time() - t
         setattr(mod, name, g)
+    if os.environ.get("SCREENS"):  # each screen's tile CPs into the log: why a read ended where it did
+        reader = ui.ocr
+        def ocr(path):
+            texts = reader(path)
+            log(f"    screen: {ui.classify(texts)}, CPs {[c[4] for c in ui.tile_cps(texts)]}")
+            return texts
+        ui.ocr = ocr
     for mod, name in ((ui, "capture"), (ui, "ocr"), (pagefacts, "tile_icons"), (search, "top_row"),
                       (search, "small_scroll"), (search, "add_to_grid"), (search, "screen_rows")):
         timed(mod, name)

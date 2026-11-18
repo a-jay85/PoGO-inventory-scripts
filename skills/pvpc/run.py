@@ -49,7 +49,7 @@ import ui, pvp, base, search, fallen, session, door
 from base import GYM, Lost, Skip, Stop, appraisal_species, appraise, back_to_list, candy, detail_name, \
     do_rename, exact_ivs, front, go, high_iv, is_shadow, is_tag, keep_capture, load, log, new_run_dir, \
     open_appraisal, open_checked, open_tile, opened_right, recover, same_name, save, set_star, set_tags, slots_of, \
-    start, steady_detail, tap, think, to_top, type_line, wait_for
+    start, steady_detail, tap, to_top, type_line, wait_for
 
 DOOR = None  # door.Door for this run
 
@@ -165,7 +165,6 @@ def process(i, tile_name, tile_cp):
         pvp.OWN_ONLY = set()
     if dead:
         log(f"  costume, can't evolve: ranked as {'/'.join(sp)} only")
-    think()
     go("dialog", "detail")
     if name == "NOPE" and high_iv(ivs, raws)[0]:  # bad for PvP but 98%+: /ivc names it instead
         set_tags(on=["IVC"], off=["PvpC"])

@@ -16,7 +16,7 @@ HERE = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import ui, pvp
 import base
-from base import Stop, Skip, log, keep_capture, go, wait_for, appraise, think, back_to_list, front, settle, \
+from base import Stop, Skip, log, keep_capture, go, wait_for, appraise, back_to_list, front, settle, \
     extras, drag, open_tile, exact_ivs, do_rename  # (open_tile: run.py uses it as ivcrun.open_tile)
 import ivc, door, search
 
@@ -285,7 +285,6 @@ def read_one(i, tile_name, tile_cp):
     flags = [f for f, on in (("shadow", shadow), ("lucky", lucky), ("legendary", legendary), ("gym", gym)) if on]
     what = (f"{tile_name} CP{cp} {'/'.join(map(str, ivs))}{''.join(' ' + f for f in flags)}"
             f"{' ' + size if size else ''}{' ' + ','.join(moves) if moves else ''} -> {name or '->door'}")
-    think()
     go("dialog", "detail")
     return {"info": info, "texts": texts, "cp": cp, "sp": sp, "ivs": ivs, "bars": bars, "raws": raws, "shadow": shadow,
             "lucky": lucky, "size": size, "moves": moves, "name": name, "what": what}

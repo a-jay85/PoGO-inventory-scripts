@@ -128,7 +128,7 @@ def load(name, default=None):
 # ---------- human-ish timing ----------
 
 # quick taps, as /ivc had them: 0.1-0.25s since the last one (screen reading counts toward it).
-# The pause that looks like a person working something out is think(), on the appraisal only.
+# (think(), a 0.7-1.3 s pause on the appraisal, is gone: the user's own pace there is ~0.3 s, 2026-11-18)
 last_tap = 0.0
 USER_IDLE = 5  # a pause ends this long after the user's last key, click or mouse move
 STARTED = time.time()  # input from before the script started (the keys that started it) never makes front() wait
@@ -137,11 +137,6 @@ STARTED = time.time()  # input from before the script started (the keys that sta
 def tap_gap():
     """wait until a short random gap has passed since the last tap"""
     time.sleep(max(0.0, last_tap + random.uniform(0.1, 0.25) - time.time()))
-
-
-def think():
-    """on the appraisal: a short pause, like a glance at the bars (it was 2.5-5.5s, ~4.4s a Pokémon)"""
-    time.sleep(random.uniform(0.7, 1.3))
 
 
 # ---------- screen ----------
@@ -193,7 +188,21 @@ def look(where=None, remember=True):
         ui.remember(path, texts, bounds)
     screen = where(path, texts) if where else ui.classify(texts)
     step(t0, t1, screen)
+    global LAST_LOOK
+    LAST_LOOK = (t0, time.time(), screen, texts, path, bounds)
     return screen, texts, path, bounds
+
+
+LAST_LOOK = None  # the latest look(): (capture began, ended, screen, texts, path, bounds)
+
+
+def just_seen(screen):
+    """the look that just found this screen (a wait_for's), as a steady read's first one -> (texts, path) or None.
+    Only if its capture began after the last tap and it ended a moment ago: a two-reads-agree check then needs
+    one new look, not two (~0.5 s a check on the Pixel: the appraisal's bars, the detail page after a tap)"""
+    if LAST_LOOK and LAST_LOOK[2] == screen and LAST_LOOK[0] > last_tap and time.time() - LAST_LOOK[1] < 0.3:
+        return LAST_LOOK[3], LAST_LOOK[4]
+    return None
 
 
 def sharp_again():
@@ -617,13 +626,15 @@ def is_tag(t, name):
 def appraise():
     """-> (verdict name or NOPE). Raises Skip if unsure. Leaves the appraisal open."""
     reads = []
+    seen = just_seen("appraisal")  # (the look open_appraisal found it with counts as the first read)
     for _ in range(6):  # bars fill in with an animation: wait for two identical reads
-        screen, texts, path, _ = wait_for("appraisal")
+        texts, path = seen or wait_for("appraisal")[1:3]
+        seen = None
         ivs, raws = ui.bars(path, texts)
         reads.append((ivs, raws))
         if len(reads) >= 2 and reads[-1] == reads[-2] and ivs is not None:
             return ivs, raws
-        time.sleep(0.25)
+        time.sleep(poll_gap(0.25))  # (Android: a look takes ~0.5 s, the bars fill in ~0.3 s)
     keep_capture("bars")
     raise Skip(f"bars unreadable or unsteady: {reads[-1][1]}")
 
@@ -1183,8 +1194,10 @@ def steady_detail():
     tags, star and name may change (OPENED)"""
     import powerup  # here: powerup imports base
     prev = None
+    seen = just_seen("detail")  # (the look that found the page, after open_tile or a close, counts as the first)
     for _ in range(6):
-        _, texts, path, _ = wait_for("detail")
+        texts, path = seen or wait_for("detail")[1:3]
+        seen = None
         info = ui.detail_info(texts)
         now = (info["name"], info["cp"], info["hp"], tuple(info["tags"]), powerup.page_cost(texts))
         if now == prev:
@@ -1192,7 +1205,7 @@ def steady_detail():
                 OPENED["steady_cost"] = (info["cp"], now[4])  # looks for it (they were after the page bottom, ~1 s)
             break
         prev = now
-        time.sleep(0.15)
+        time.sleep(poll_gap(0.15))
     OPENED.setdefault("who", who(info))
     remember(info, texts)
     return info, texts, path

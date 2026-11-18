@@ -6,7 +6,8 @@
 A script that decides "not a keeper" (pvpc, ivc, fallen) reads what it can on the detail page into Facts and
 calls final_tag(facts, tables). The answer is one of:
   tag     put these tags on (and the source tag IVC / PvpC off); `name` too when it's set
-  keep    it belongs after all: star on (98%+, or a gym defender in its species' top 20)
+  keep    it belongs after all: star on (98%+, a gym defender in its species' top 20, or on its holder's own
+          raid team: raidteams.py, right after the user's own tags, traded or not)
           (a shiny one that doesn't belong is a `tag` with star on: shiny())
   unsure  leave it exactly as it is (tags, name). It goes on the not-sure list with why, for a rule offline
 Transfer only comes out when every rule above it was checked and none fits: a fact that didn't read, or a species list
@@ -110,6 +111,7 @@ class Facts:
     pvp_judged: bool = False  # /pvpc already found it's no PvP keeper
     ivc_judged: bool = False  # /ivc or /ivc is judging it: IVC is the tag coming off
     other_tags: list = field(default_factory=list)  # the user's tags besides the one this script works on
+    raid_team: object = ()  # raidteams.on_team: the bosses whose team it's on ([] none, () no count), None not sure
 
 
 @dataclass
@@ -225,6 +227,12 @@ def usual(f, t, today=None):
         if not f.traded:
             return tag(why=f"keeps your tag {', '.join(names)}")
         strip = tuple(names)
+    # on the holder's own raid team (raidteams.py): a favorite, traded or not, before every Transfer and GIV
+    if f.raid_team is None:
+        return unsure("raid team: not in the count, and its CP could make a team")
+    if f.raid_team:
+        return Verdict("keep", (), f"on a raid team: {', '.join(f.raid_team[:3])}"
+                                   f"{f' and {len(f.raid_team) - 3} more' if len(f.raid_team) > 3 else ''}")
     # shadow, lucky, costume, background: their own rules (odd_one) when untraded. Traded, the usual traded rules
     for k in ("shiny", "costume", "background"):
         if getattr(f, k) is None:

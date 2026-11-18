@@ -27,7 +27,7 @@ An opened copy: CP, HP and the power-up cost on the page's top (no drag) give th
 some boss's 6th: the appraisal gives them.
 
 Output in runs/<time>-raidteam/: copies.json (every copy opened, saved after each pile: a stopped count carries on
-from it), teams.json (verdict.py reads it) and report.md. teams.json: per boss its 6; every copy opened, with the
+from it), teams.json (../shared/raidteams.py reads it, for the door and /ivc) and report.md. teams.json: per boss its 6; every copy opened, with the
 bosses it's on; per pile, the lowest CP a copy could make some team at (bar). A copy under its pile's bar can't be on
 any team. One over it that isn't among the opened ones came or grew after the count.
 """
@@ -314,7 +314,7 @@ class Count:
                 self.walk[q] = w
 
     def teams(self, who):
-        """teams.json: what verdict.py reads"""
+        """teams.json: what ../shared/raidteams.py reads"""
         out = {"trainer": who, "counted": self.counted, "limit": self.limit, "bosses": {}, "copies": [], "bars": {}}
         on = {}
         self.warm_sixths()
@@ -482,21 +482,6 @@ def report(c, who, out_dir):
     p = os.path.join(out_dir, "report.md")
     open(p, "w").write("\n".join(lines) + "\n")
     return p, lines
-
-
-def newest_teams(who):
-    """-> (teams dict, days since its count) for this account, or (None, None): the newest whole count (no --limit),
-    however old"""
-    import glob
-    for p in sorted(glob.glob(os.path.join(RUNS, "*-raidteam", "teams.json")), reverse=True):
-        try:
-            t = json.load(open(p))
-        except (OSError, ValueError):
-            continue
-        if t.get("trainer") == who and not t.get("limit"):
-            when = time.mktime(time.strptime(t["counted"], "%Y-%m-%d %H:%M"))
-            return t, (time.time() - when) / 86400
-    return None, None
 
 
 def script(a):

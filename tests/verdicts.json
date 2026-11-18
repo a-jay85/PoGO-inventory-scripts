@@ -735,6 +735,66 @@
   null,
   "gym defender: top 20 CP or IV"
  ],
+ "raid team": [
+  "keep",
+  [],
+  null,
+  "on a raid team: Mega Venusaur (party 1)"
+ ],
+ "raid team, many bosses": [
+  "keep",
+  [],
+  null,
+  "on a raid team: Boss 0 (party 1), Boss 1 (party 1), Boss 2 (party 1) and 2 more"
+ ],
+ "raid team traded": [
+  "keep",
+  [],
+  null,
+  "on a raid team: Mega Venusaur (party 1)"
+ ],
+ "raid team shadow": [
+  "keep",
+  [],
+  null,
+  "on a raid team: Mega Venusaur (party 1)"
+ ],
+ "raid team, your tag stays": [
+  "tag",
+  [],
+  null,
+  "keeps your tag Old"
+ ],
+ "raid team: on none": [
+  "tag",
+  [
+   "Reroll"
+  ],
+  null,
+  "#1 raid attacker"
+ ],
+ "raid team: on none, Transfer": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "no rule wants it"
+ ],
+ "raid team: not sure": [
+  "unsure",
+  [],
+  null,
+  "raid team: not in the count, and its CP could make a team"
+ ],
+ "raid team: no count": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "no rule wants it"
+ ],
  "traded": [
   "tag",
   [
@@ -1480,5 +1540,21 @@
   ],
   null,
   "no rule wants it"
- ]
+ ],
+ "on_team: on, by kg and m": "['Boss A (party 1)']",
+ "on_team: on, powered up since (kg and m)": "['Boss A (party 1)']",
+ "on_team: off, by kg and m": "[]",
+ "on_team: shadow, on": "['Boss B (party 2)']",
+ "on_team: no kg: by CP and HP": "['Boss A (party 1)']",
+ "on_team: a list read: CP only": "[]",
+ "on_team: twins, one on, one off": "None",
+ "on_team: not in the count, over the bar": "None",
+ "on_team: not in the count, under the bar": "[]",
+ "on_team: shadow under its bar": "[]",
+ "on_team: no copy can make a team": "[]",
+ "on_team: on no boss list": "[]",
+ "on_team: species not sure, one on a list": "None",
+ "on_team: species not sure, none on a list": "[]",
+ "on_team: CP not read, not in the count": "None",
+ "on_team: no count": "()"
 }

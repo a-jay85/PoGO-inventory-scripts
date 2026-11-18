@@ -200,7 +200,7 @@ def sharp_again():
     """Android, right after look(): that look's own screenshot read again 3x bigger (small text, like a date: two
     reads that should agree), with no new screenshot. Its seconds go to steps.txt too, as 'sharp'. -> texts"""
     t0 = time.time()
-    path = ui.android.sharp_last()
+    path = ui.android.sharp_last(ui.SHARP)
     t1 = time.time()
     texts = ui.ocr(path)
     step(t0, t1, "sharp")

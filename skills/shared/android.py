@@ -172,7 +172,7 @@ def phone_shot():
     return im
 
 
-def sharp(path="/tmp/pvpc_sharp.png"):
+def sharp(path="/tmp/pvpc_android_sharp.png"):
     """the phone's own screenshot in the capture layout, 3x bigger, for small symbols ('!', '&')"""
     shape(phone_shot(), 3)[0].save(path, compress_level=1)
     return path
@@ -181,7 +181,7 @@ def sharp(path="/tmp/pvpc_sharp.png"):
 _raw = [None]  # the phone's own screenshot the last capture() was made from
 
 
-def sharp_last(path="/tmp/pvpc_sharp.png"):
+def sharp_last(path="/tmp/pvpc_android_sharp.png"):
     """sharp() of the last capture()'s own screenshot: no new one. Only right after that capture, so the two reads are
     of the same screen (a second read of small text at another size)"""
     shape(_raw[0], 3)[0].save(path, compress_level=1)

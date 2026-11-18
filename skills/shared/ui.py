@@ -101,7 +101,7 @@ def window():
 CANT_CAPTURE = "can't capture the iPhone Mirroring window"
 
 
-SHARP = "/tmp/pvpc_sharp.png"
+SHARP = TMP + "_sharp.png"  # (its own per phone too: one shared file let one phone read the other's search bar)
 
 
 def near_len(got, q):

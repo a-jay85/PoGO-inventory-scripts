@@ -106,6 +106,8 @@ def _match(on, box, shape):
     """best overlap of shape with the on-pixels, anywhere in box, counting only a spot with little pale blue around
     it (RING_MAX): an icon sits on its own, a pale blue sprite's body (Wobbuffet) runs on past it"""
     x0, y0, x1, y1 = box
+    if len(on) * 2 < len(shape):  # too few pale blue pixels for any spot to pass the half-the-shape test below
+        return 0
     w, h = max(x for x, _ in shape) + 1, max(y for _, y in shape) + 1
     best = 0
     for y in range(y0, y1 - h + 1):
@@ -127,9 +129,10 @@ def icon_score(im, box):
     return max(_match(on, box, s) for s in SHAPES.values())
 
 
-def tile_icons(path, tile):
+def tile_icons(path, tile, only=None):
     """tile: (name, cp, x, y) from ui.tiles on this capture -> {"shiny": bool, "background": bool, "lucky": bool},
-    or {} if the picture can't be read. lucky is None on a capture of another size: only taught on the Pixel's"""
+    or {} if the picture can't be read. lucky is None on a capture of another size: only taught on the Pixel's.
+    only: just these ones (the background's shape match took ~0.1 s a tile, and a list read wants only lucky)"""
     try:
         from PIL import Image
         im = Image.open(path).convert("RGB")
@@ -143,10 +146,10 @@ def tile_icons(path, tile):
     # of the name ('93 AT', 'Dunsp'), which moved the boxes off the sparkle (2026-11-01: 3 shinies missed)
     cx, cy = min(COLUMNS, key=lambda c: abs(c - tile[2])) * W, tile[3] * H
     at = lambda b: (int(cx + b[0]), int(cy + b[2]), int(cx + b[1]), int(cy + b[3]))
-    shiny = len(_pixels(im, at(SPARKLE_BOX), sparkle)) >= SPARKLE_MIN
-    background = icon_score(im, at(ICON_BOX)) >= ICON_MIN
-    lucky = len(_pixels(im, at(LUCKY_BOX), bubble)) >= LUCKY_MIN if pixel else None
-    return {"shiny": shiny, "background": background, "lucky": lucky}
+    reads = {"shiny": lambda: len(_pixels(im, at(SPARKLE_BOX), sparkle)) >= SPARKLE_MIN,
+             "background": lambda: icon_score(im, at(ICON_BOX)) >= ICON_MIN,
+             "lucky": lambda: len(_pixels(im, at(LUCKY_BOX), bubble)) >= LUCKY_MIN if pixel else None}
+    return {k: f() for k, f in reads.items() if only is None or k in only}
 
 
 def candy_xl(texts):

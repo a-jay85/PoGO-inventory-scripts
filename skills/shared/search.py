@@ -713,18 +713,20 @@ def top_row(path, texts):
 
 
 def small_scroll(bounds):
-    """about a row and a half, so every tile is read on two or three screens"""
+    """down the list: on the Pixel about 2.5 rows, so the next screen still shows the last 1.5 (a row is 0.164 of
+    the screen, and the bottom one's names hide under the buttons). On the iPhone about a row and a half"""
     global scrolled
     scrolled = True
     front()
-    fx, fy = random.uniform(0.3, 0.7), random.uniform(0.6, 0.7)
+    # The Pixel's drag holds still before it lifts, so the list stops where the finger does: 0.45 moved 0.515, and
+    # a look 0.7 s after it had the rows still. It was 0.17-0.19 and a 0.7-0.9 s wait, 3.6 s a screen, 45 screens
+    # for 178 tiles; 0.45 took 19 (Pixel, 2026-11-17). The iPhone's swipe flings on, so it stays short
+    fx, fy = random.uniform(0.3, 0.7), random.uniform(0.75, 0.8) if ui.ANDROID else random.uniform(0.6, 0.7)
     x, y = base.to_points(fx, fy, bounds)
-    # an adb swipe flings on: 0.22 in 550ms moved 0.25-0.30, and rows slipped past between two looks.
-    # Slower and shorter lands near 0.22 (measured on the Pixel, 2026-10-09)
-    dist = bounds[3] * (random.uniform(0.17, 0.19) if ui.ANDROID else random.uniform(0.2, 0.25))
-    ms = random.randint(900, 1100) if ui.ANDROID else random.randint(450, 650)
+    dist = bounds[3] * (random.uniform(0.38, 0.42) if ui.ANDROID else random.uniform(0.2, 0.25))
+    ms = 500 if ui.ANDROID else random.randint(450, 650)  # (the Pixel's motionevent drag has its own pace)
     ui.sh(ui.HELPER, "drag", f"{x:.1f}", f"{y:.1f}", f"{x + random.uniform(-6, 6):.1f}", f"{y - dist:.1f}", str(ms))
-    time.sleep(random.uniform(0.7, 0.9))
+    time.sleep(random.uniform(*base.LIST_SETTLE) if ui.ANDROID else random.uniform(0.7, 0.9))
 
 
 def nameless(texts):
@@ -1211,7 +1213,7 @@ def read_results(q, path, texts, bounds, iv_only=False, resorted=False):
         add_to_grid(grid, screen_rows([(c[0] + c[2] / 2, c[1], int(re.sub(r"\D", "", c[4]))) for c in ui.tile_cps(texts)],
                                       ui.tiles(texts)))
         now = Counter((ui.tile_name(t[0]), t[1]) for t in ui.tiles(texts))
-        BUBBLES.update((ui.tile_name(t[0]), t[1]) for t in ui.tiles(texts) if pagefacts.tile_icons(path, t).get("lucky"))
+        BUBBLES.update((ui.tile_name(t[0]), t[1]) for t in ui.tiles(texts) if pagefacts.tile_icons(path, t, only=("lucky",)).get("lucky"))
         now.update(nameless(texts))
         if turn == 0:
             now.update(top_row(path, texts))

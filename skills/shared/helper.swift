@@ -228,7 +228,9 @@ case "drag":
         mouse(.leftMouseDragged, CGPoint(x: a.x + (b.x - a.x) * e, y: a.y + (b.y - a.y) * e))
         nap(ms / Double(n))
     }
-    nap(Double.random(in: 60...120))  // settle before release so it doesn't fling
+    if !(args.count > 8 && args[8] == "fling") {  // a 9th arg "fling": let go while moving, so it glides on
+        nap(Double.random(in: 60...120))  // settle before release so it doesn't fling
+    }
     mouse(.leftMouseUp, b)
     putBack(start, from: b)
 case "key":

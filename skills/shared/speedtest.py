@@ -29,8 +29,7 @@ def tags(T, n):
         base.steady_detail()
         t0 = time.time()
         go("menu", "menu")
-        go("TAG", "tags")
-        if base.show_tag(ui.norm(T)) is None:
+        if base.show_tag(ui.norm(T), go("TAG", "tags")) is None:
             base.cancel_tags()
             rows = sorted(base.TAG_AT, key=base.TAG_AT.get)
             raise base.Stop(f"no {T} tag on this account. Its rows, top to bottom: {rows}")

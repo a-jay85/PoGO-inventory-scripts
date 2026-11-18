@@ -723,13 +723,15 @@ def small_scroll(bounds):
     # The Pixel moves ~7.7 rows per screen of drag, give or take half a row. 4* (178 tiles), 2026-11-17: 0.17-0.19
     # and a 0.7-0.9 s wait took 164 s, 45 swipes; 0.2-0.22 and LIST_SETTLE 54-59 s and 178 every time. 0.27-0.29 (2
     # rows) lost twins (176, 178), 0.38-0.42 skipped rows (168). The list barely drifts after the drag (0.1 row in
-    # 1.2 s). The iPhone's swipe flings on, so it keeps its pace
-    fx, fy = random.uniform(0.3, 0.7), random.uniform(0.75, 0.8) if ui.ANDROID else random.uniform(0.6, 0.7)
+    # 1.2 s). The iPhone (pikachu, 265 tiles, 2026-11-18): from 0.6-0.7, 0.2-0.25 and a 0.7-0.9 s wait took 100 s,
+    # 50 swipes; from 0.75-0.8, 0.3 and 0.2 s 53 s, 40 swipes, 265 every time and no more names read differently
+    # than two old runs differ
+    fx, fy = random.uniform(0.3, 0.7), random.uniform(0.75, 0.8)
     x, y = base.to_points(fx, fy, bounds)
-    dist = bounds[3] * (random.uniform(0.2, 0.22) if ui.ANDROID else random.uniform(0.2, 0.25))
-    ms = 500 if ui.ANDROID else random.randint(450, 650)  # (the Pixel's motionevent drag has its own pace)
+    dist = bounds[3] * (random.uniform(0.2, 0.22) if ui.ANDROID else random.uniform(0.29, 0.31))
+    ms = 500  # (the Pixel's motionevent drag has its own pace)
     ui.sh(ui.HELPER, "drag", f"{x:.1f}", f"{y:.1f}", f"{x + random.uniform(-6, 6):.1f}", f"{y - dist:.1f}", str(ms))
-    time.sleep(random.uniform(*base.LIST_SETTLE) if ui.ANDROID else random.uniform(0.7, 0.9))
+    time.sleep(random.uniform(*base.LIST_SETTLE) if ui.ANDROID else random.uniform(0.15, 0.25))
 
 
 def nameless(texts):

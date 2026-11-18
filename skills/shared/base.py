@@ -775,8 +775,9 @@ def clean_row(n):
     return near[0] if len(near) == 1 else n
 
 
-def tick_tags():
-    _, texts, path, _ = wait_for("tags")
+def tick_tags(seen=None):
+    """the showing rows' ticks. seen: a look at the sheet from just now, no tap since (tag_sheet_step's after)"""
+    _, texts, path, _ = seen or wait_for("tags")
     ticks = {ui.norm(n): on for n, on in ui.ticked_tags(path, texts)}
     learn_rows(texts, set(ticks))
     return {clean_row(n): on for n, on in ticks.items()}
@@ -798,27 +799,36 @@ def learn_rows(texts, names):
         TAG_AT.setdefault(n, VIEW[0] + y)
 
 
-def tag_sheet_step(up=False, big=False):
+SHEET_SETTLE = (0.3, 0.4)  # after a tag sheet drag (was 0.7-0.9 s). A look caught mid-glide is fine: each step
+# looks again, and tap_tag_row waits for two looks that agree before it taps (2026-11-17, the user's video: 1.65 s a sheet)
+
+
+def tag_sheet_step(up=False, big=False, before=None):
     """scroll the tag sheet a small step (a big one skips rows: big only when the rows to stop at are known,
-    and it still keeps some of the rows in sight). -> did the rows move?"""
-    _, before, _, bounds = wait_for("tags")
+    and it still keeps some of the rows in sight). before: the look just taken (no look of its own then).
+    -> (did the rows move?, the look after: tick_tags takes it, so no second look)"""
+    before = before or wait_for("tags")
     a, b = (0.3, 0.7) if big else (0.4, 0.62)
-    drag(0.3, *((a, 0.3, b) if up else (b, 0.3, a)), bounds)
-    _, after, _, _ = wait_for("tags")
-    return [t[4] for t in after] != [t[4] for t in before]
+    drag(0.3, *((a, 0.3, b) if up else (b, 0.3, a)), before[3], settle=SHEET_SETTLE)
+    after = wait_for("tags")
+    return [t[4] for t in after[1]] != [t[4] for t in before[1]], after
 
 
 def seek_tag(T):
     """a row seen before this run: scroll straight to it, big steps while it's far. -> the ticks, or None if
     that didn't find it (show_tag's search takes over)"""
+    seen = None
     for _ in range(30):
-        ticks = tick_tags()
+        seen = seen or wait_for("tags")
+        ticks = tick_tags(seen)
         if T in ticks:
             return ticks
         if VIEW[0] is None:
             return None
         gap = TAG_AT[T] - (VIEW[0] + 0.5)  # from the middle of the sheet
-        if not tag_sheet_step(up=gap < 0, big=abs(gap) > 0.9):
+        # a big step moves 0.4 of the window, a small one 0.22: big whenever the row is past a big step away
+        moved, seen = tag_sheet_step(up=gap < 0, big=abs(gap) > 0.45, before=seen)
+        if not moved:
             return None
     return None
 
@@ -832,15 +842,18 @@ def show_tag(T):
         ticks = seek_tag(T)
         if ticks is not None:
             return ticks
+    seen = None
     for up in (False, True):
         same = 0
         for _ in range(30):
-            ticks = tick_tags()
+            seen = seen or wait_for("tags")
+            ticks = tick_tags(seen)
             if T in ticks:
                 return ticks
             if same >= 2:
                 break
-            same = 0 if tag_sheet_step(up) else same + 1
+            moved, seen = tag_sheet_step(up, before=seen)
+            same = 0 if moved else same + 1
     return None
 
 

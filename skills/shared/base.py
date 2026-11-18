@@ -814,21 +814,30 @@ SHEET_SETTLE = (0.3, 0.4)  # after a tag sheet drag (was 0.7-0.9 s). A look caug
 # looks again, and tap_tag_row waits for two looks that agree before it taps (2026-11-17, the user's video: 1.65 s a sheet)
 
 
-def tag_sheet_step(up=False, big=False, before=None):
+FLING_SETTLE = (0.5, 0.6)  # after a fling to the sheet's end: the glide stops there
+
+
+def tag_sheet_step(up=False, big=False, before=None, fling=False):
     """scroll the tag sheet a small step (a big one skips rows: big only when the rows to stop at are known,
     and it still keeps some of the rows in sight). before: the look just taken (no look of its own then).
+    fling: a quick flick that glides to the sheet's end (only when the row sought is near that end).
     -> (did the rows move?, the look after: tick_tags takes it, so no second look)"""
     before = before or wait_for("tags")
-    a, b = (0.3, 0.7) if big else (0.4, 0.62)
-    drag(0.3, *((a, 0.3, b) if up else (b, 0.3, a)), before[3], settle=SHEET_SETTLE)
+    a, b = (0.3, 0.7) if big or fling else (0.4, 0.62)
+    drag(0.3, *((a, 0.3, b) if up else (b, 0.3, a)), before[3], settle=FLING_SETTLE if fling else SHEET_SETTLE,
+         ms=random.randint(120, 170) if fling else None, fling=fling)
     after = wait_for("tags")
     return [t[4] for t in after[1]] != [t[4] for t in before[1]], after
 
 
-def seek_tag(T):
-    """a row seen before this run: scroll straight to it, big steps while it's far. -> the ticks, or None if
-    that didn't find it (show_tag's search takes over)"""
-    seen = None
+END_ROWS = 0.45  # a row this close to the sheet's first or last row shows once the sheet is at that end
+
+
+def seek_tag(T, seen=None):
+    """a row seen before this run: scroll straight to it, big steps while it's far, or one fling when it's near the
+    sheet's end (iPhone: 2 big drags, 2.9 s, to Fallen near the bottom, 2026-11-18). seen: a look at the sheet from
+    just now. -> the ticks, or None if that didn't find it (show_tag's search takes over)"""
+    flung = False
     for _ in range(30):
         seen = seen or wait_for("tags")
         ticks = tick_tags(seen)
@@ -838,22 +847,26 @@ def seek_tag(T):
             return None
         gap = TAG_AT[T] - (VIEW[0] + 0.5)  # from the middle of the sheet
         # a big step moves 0.4 of the window, a small one 0.22: big whenever the row is past a big step away
-        moved, seen = tag_sheet_step(up=gap < 0, big=abs(gap) > 0.45, before=seen)
+        end = min(TAG_AT.values()) if gap < 0 else max(TAG_AT.values())
+        fling = not flung and abs(gap) > 0.45 and abs(end - TAG_AT[T]) < END_ROWS  # once: no flinging back and forth
+        flung = flung or fling
+        moved, seen = tag_sheet_step(up=gap < 0, big=abs(gap) > 0.45, before=seen, fling=fling)
         if not moved:
             return None
     return None
 
 
-def show_tag(T):
+def show_tag(T, seen=None):
     """scroll the tag sheet until row T shows: straight there when this run has seen it, else down first, then back
     up. A long list hides tags past the first screen (HashTagAJay's GuaranteedLucky and Old).
+    seen: a look at the sheet from just now, no tap or drag since (the look go() found it with).
     -> the showing rows' ticks, or None if the account has no T"""
     ASKED.add(T)
     if T in TAG_AT:
-        ticks = seek_tag(T)
+        ticks = seek_tag(T, seen)
         if ticks is not None:
             return ticks
-    seen = None
+        seen = None
     for up in (False, True):
         same = 0
         for _ in range(30):
@@ -1041,8 +1054,9 @@ def set_tags(on=(), off=(), only=False):
     """tick the on tags and untick the off ones, leave the rest. only: afterwards the detail must show just the on tags"""
     still_opened("before the tags")
     go("menu", "menu")
-    go("TAG", "tags")
-    missing = [t for t in on if ui.norm(t) not in TAG_AT and show_tag(ui.norm(t)) is None]  # (seen: it's there)
+    sheet = [go("TAG", "tags")]  # the look that found the sheet: the first show_tag starts from it
+    fresh = lambda: sheet.pop() if sheet else None
+    missing = [t for t in on if ui.norm(t) not in TAG_AT and show_tag(ui.norm(t), fresh()) is None]  # (seen: it's there)
     if missing:  # this account may not have the tag: change nothing
         go("DONE", "detail")  # nothing ticked or unticked yet, so DONE changes nothing
         raise Skip(f"no {', '.join(missing)} tag on this account")
@@ -1051,7 +1065,7 @@ def set_tags(on=(), off=(), only=False):
     want = {**{ui.norm(t): False for t in down(off)}, **{ui.norm(t): True for t in down(on)}}  # unticks first
     with changing("ticking tags"):
         for T, v in want.items():
-            ticks = show_tag(T)
+            ticks = show_tag(T, fresh())
             if ticks is None:  # an off tag this account doesn't have
                 continue
             ticks = set_tick(T, v, names[T], ticks)
@@ -1379,17 +1393,25 @@ LIST_SETTLE = (0.35, 0.5)  # Android: a list or grid holds still this soon after
 # lifting, so it doesn't glide on). Measured on the Pokémon list (scroll()); /gift and /dex scroll lists the same way
 
 
-def drag(fx, fy, tx, ty, bounds, ms=None, settle=(0.7, 0.9), android_settle=None, bring_front=True, hold=None):
+def drag(fx, fy, tx, ty, bounds, ms=None, settle=(0.7, 0.9), android_settle=None, bring_front=True, hold=None,
+         fling=False):
     """a finger drag from (fx, fy) to (tx, ty), window fractions, then wait for it to stop moving.
     ms: how long the drag takes (default 400-600). settle: (lo, hi) seconds after it. android_settle: on Android
     that instead (LIST_SETTLE for a list; None keeps settle there too). bring_front: front() first.
-    hold: ms the finger holds still before it moves (default a few ms: a long press starts multi-select in the list)"""
+    hold: ms the finger holds still before it moves (default a few ms: a long press starts multi-select in the list).
+    fling: let go while still moving, so what's under it glides on"""
     if bring_front:
         front(planned=True)
     x1, y1 = to_points(fx, fy, bounds)
     x2, y2 = to_points(tx, ty, bounds)
-    ui.sh(ui.HELPER, "drag", f"{x1:.1f}", f"{y1:.1f}", f"{x2:.1f}", f"{y2:.1f}",
-          str(random.randint(400, 600) if ms is None else ms), *([str(int(hold))] if hold else []))
+    ms = random.randint(400, 600) if ms is None else ms
+    if fling and ui.ANDROID:  # a plain adb swipe: android.drag pauses before it lifts, and that kills the glide
+        W, H = ui.android.size()
+        ui.android.shell(f"input swipe {int(W * fx)} {int(H * fy)} {int(W * tx)} {int(H * ty)} {int(ms)}")
+        ui._seen = ui._older = None  # (it doesn't go through ui.sh, which forgets the old looks)
+    else:
+        ui.sh(ui.HELPER, "drag", f"{x1:.1f}", f"{y1:.1f}", f"{x2:.1f}", f"{y2:.1f}", str(ms),
+              *([str(int(hold or random.randint(20, 40))), "fling"] if fling else [str(int(hold))] if hold else []))
     time.sleep(random.uniform(*(android_settle if ui.ANDROID and android_settle else settle)))
 
 

@@ -159,6 +159,8 @@ CASES = {
     "raid team": plain(sids=["rhyhorn"], raid_team=["Mega Venusaur (party 1)"]),
     "raid team, many bosses": plain(sids=["rhyhorn"], raid_team=[f"Boss {i} (party 1)" for i in range(5)]),
     "raid team traded": plain(sids=["rhyhorn"], raid_team=["Mega Venusaur (party 1)"], traded=True),
+    "raid team traded, GIV comes off": plain(sids=["rhyhorn"], raid_team=["Mega Venusaur (party 1)"], traded=True,
+                                             other_tags=["GIV"]),
     "raid team shadow": plain(sids=["rhyhorn"], raid_team=["Mega Venusaur (party 1)"], shadow=True, ivs=(10, 10, 10)),
     "raid team, your tag stays": plain(sids=["rhyhorn"], raid_team=["Mega Venusaur (party 1)"], other_tags=["Old"]),
     "raid team: on none": plain(sids=["rhyhorn"], raid_team=[]),

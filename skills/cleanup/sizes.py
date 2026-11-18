@@ -29,9 +29,9 @@ from base import Stop, Skip, log, go, wait_for
 import search, session, home
 import cleantrades as ct
 from taps import Pass, press, details
-from tagsheet import search_exact, tag_chips
+from tagsheet import search_exact, favorite
 from savedsearch import results, tag_pile
-from rules import EVO_FOR, TRADE_EVOS, NAMES, TRANSFER, xxl_off
+from rules import EVO_FOR, TRADE_EVOS, NAMES, TRANSFER, XXL_OFF
 
 IVC = "IVC"
 SWEEP = f"#{TRANSFER}&!traded&%s"
@@ -44,15 +44,6 @@ def same(got, want):
     """OCR mixes the case of xxs (xXS) and drops spaces"""
     flat = lambda s: re.sub(r"\s", "", s or "").lower()
     return flat(got) == flat(want)
-
-
-def keep_xxl(info, texts):
-    """the open detail page of an XXL one: favorite on, its trade, Transfer and IVC tags off"""
-    off = xxl_off(tag_chips(texts))
-    base.set_star(True)
-    if off:
-        base.set_tags(off=off)
-    log(f"{info['name']} CP{info['cp']}: a favorite{', ' + '/'.join(off) + ' off' if off else ''}")
 
 
 def name_and_tag(info, size):
@@ -87,7 +78,7 @@ def walk(find, size, limit):
             if (badge or "").lower() != size:
                 raise Pass(f"the search says {size}, the badge reads {badge}")
             if size == "xxl":
-                keep_xxl(info, texts)
+                favorite(info, texts, XXL_OFF)
             else:
                 name_and_tag(info, size)
             done += 1

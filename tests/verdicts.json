@@ -753,6 +753,17 @@
   null,
   "on a raid team: Mega Venusaur (party 1)"
  ],
+ "raid team traded, GIV comes off": [
+  "keep",
+  [],
+  null,
+  "on a raid team: Mega Venusaur (party 1)",
+  {
+   "off": [
+    "GIV"
+   ]
+  }
+ ],
  "raid team shadow": [
   "keep",
   [],

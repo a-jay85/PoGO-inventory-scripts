@@ -232,7 +232,7 @@ def usual(f, t, today=None):
         return unsure("raid team: not in the count, and its CP could make a team")
     if f.raid_team:
         return Verdict("keep", (), f"on a raid team: {', '.join(f.raid_team[:3])}"
-                                   f"{f' and {len(f.raid_team) - 3} more' if len(f.raid_team) > 3 else ''}")
+                                   f"{f' and {len(f.raid_team) - 3} more' if len(f.raid_team) > 3 else ''}", off=strip)
     # shadow, lucky, costume, background: their own rules (odd_one) when untraded. Traded, the usual traded rules
     for k in ("shiny", "costume", "background"):
         if getattr(f, k) is None:

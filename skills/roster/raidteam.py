@@ -6,6 +6,10 @@ or higher, at the level and IVs its copies have today (the user, 2026-11-17). An
                                        count whoever is signed in; with a copies.json, carry on from it.
                                        --limit N: only the first N bosses (a test)
   python3 raidteam.py report [copies.json]   the teams again (Mac only)
+  POGO_PHONE=android caffeinate -dimsu python3 raidteam.py keep [teams.json] [--limit N]
+                                       every copy on a team: a favorite, its trade and Transfer tags off. Default the
+                                       signed-in account's newest whole count. --limit N: at most N copies. A whole
+                                       count (no --limit) runs this at its end
   pogo.py raidteam count                     the same, through the front door
 
 What it's for: a Pokémon on some team is a favorite, whatever its IVs (a Mighty one, a traded one powered up long
@@ -30,6 +34,13 @@ Output in runs/<time>-raidteam/: copies.json (every copy opened, saved after eac
 from it), teams.json (../shared/raidteams.py reads it, for the door and /ivc) and report.md. teams.json: per boss its 6; every copy opened, with the
 bosses it's on; per pile, the lowest CP a copy could make some team at (bar). A copy under its pile's bar can't be on
 any team. One over it that isn't among the opened ones came or grew after the count.
+
+Keep: the bulk taggers (cleantrades, tradeable tag, specieswise) tag whole searches without opening a page, so they can't
+ask raidteams.py. Every one of their searches leaves out favorites: a team member made a favorite is safe from all of
+them. Each one is found by its dex number, shadow or not and its exact CP, and told apart by HP, weight and height.
+Favorite on, rules.RAID_OFF off. One with the user's own tag (verdict.OWN_TAGS: Old, Evo, GuaranteedLucky, Remote
+Trade, RT) is passed over, traded or not: the door judges those. One powered up since the count isn't found: passed
+over too (the door and /ivc still keep it). Done ones go in kept.json beside teams.json, so a rerun skips them.
 """
 import argparse, json, math, os, re, subprocess, sys, time
 from collections import Counter
@@ -484,6 +495,79 @@ def report(c, who, out_dir):
     return p, lines
 
 
+def member_key(x):
+    return f"{'/'.join(x['species'])}|{x['shadow']}|{x['cp']}|{x['hp']}|{x['kg']}|{x['m']}"
+
+
+def cmd_keep(t, path, limit=None):
+    """every copy on a team in teams dict t (from path): a favorite, rules.RAID_OFF off. -> how many made favorites"""
+    import base, search, verdict
+    from rules import RAID_OFF
+    from savedsearch import results
+    from taps import details
+    from tagsheet import search_exact, tag_chips, favorite
+    done_path = os.path.join(os.path.dirname(path), "kept.json")
+    done = set(json.load(open(done_path))) if os.path.exists(done_path) else set()
+    todo = [x for x in t["copies"] if x["on"] and x.get("cp") and member_key(x) not in done]
+    log(f"keep: {len(todo)} copies on a team to make favorites ({len(done)} done before)")
+    own = {ui_key(x) for x in verdict.OWN_TAGS}
+    made = 0
+    for x in todo:
+        if limit is not None and made >= limit:
+            log(f"--limit {limit} reached")
+            break
+        q = f"{pvp.SPECIES[x['species'][0]]['dex']}&{'shadow' if x['shadow'] else '!shadow'}&cp{x['cp']}"
+        search.to_search_list()
+        search_exact(q)
+        if not results():
+            log(f"  {x['name']} CP{x['cp']} ({q}): none: powered up since the count, or gone")
+            continue
+        want = (x["cp"], x["hp"], x["kg"], x["m"])
+        hit = False
+        for info, texts, bounds, seen in details(key=lambda i: (i["cp"], i["hp"], i["name"])):
+            base.OPENED["who"] = base.who(info)  # (the swipe moved here on purpose: the star and tags check this one)
+            if not base.same_pokemon(base.who(info), want):
+                continue
+            hit = True
+            mine = [c for c in tag_chips(texts) if ui_key(c) in own]
+            if mine:
+                log(f"  {x['name']} CP{x['cp']}: has your tag {', '.join(mine)}: passed over (the door judges it)")
+            else:
+                favorite(info, texts, RAID_OFF)
+                made += 1
+            break
+        base.go("close", "list")
+        if not hit:
+            log(f"  {x['name']} CP{x['cp']} ({q}): no copy with its HP, weight and height: passed over")
+            continue
+        done.add(member_key(x))
+        json.dump(sorted(done), open(done_path, "w"), indent=0)
+    log(f"keep: {made} made favorites")
+    return made
+
+
+def ui_key(s):
+    return re.sub(r"[^A-Z]", "", s.upper())
+
+
+def keep_script(a):
+    import base, home, raidteams
+    base.new_run_dir(RUNS, suffix="raidkeep")
+    home.start()
+    who = home.trainer()
+    path = a.copies
+    if path:
+        t = json.load(open(path))
+        if t["trainer"] != who:
+            raise Stop(f"{path} is {t['trainer']}'s count, but {who} is signed in")
+    else:
+        t = raidteams.newest(who)[0]
+        if t is None:
+            raise Stop(f"no whole count for {who} yet: raidteam.py count (no --limit) first")
+        path = raidteams.path_of(who)
+    cmd_keep(t, path, a.limit)
+
+
 def script(a):
     import base, ui
     ms = models()
@@ -507,17 +591,27 @@ def script(a):
         p, lines = report(c, who, out)
         print("\n".join(lines[:8]))
         print(f"report: {p}")
+        if a.cmd == "count" and not a.limit:  # a whole count: its team members become favorites, for the bulk taggers
+            cmd_keep(c.teams(who), os.path.join(out, "teams.json"))
     finally:
         c.rater.close()
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=("count", "report"))
-    ap.add_argument("copies", nargs="?", help="count: carry on from this copies.json. report: which (default newest)")
-    ap.add_argument("--limit", type=int, help="only the first N bosses of each pull (a test)")
+    ap.add_argument("cmd", choices=("count", "report", "keep"))
+    ap.add_argument("copies", nargs="?", help="count: carry on from this copies.json. report: which (default newest). "
+                                              "keep: this teams.json (default the newest whole count)")
+    ap.add_argument("--limit", type=int, help="count, report: only the first N bosses of each pull (a test). "
+                                              "keep: at most N copies")
     a = ap.parse_args()
-    if a.cmd == "count":
+    if a.cmd == "keep":
+        import ui
+        if not ui.ANDROID:
+            sys.exit("Android only for now: POGO_PHONE=android")
+        import session
+        session.main(keep_script, a)
+    elif a.cmd == "count":
         import session
         session.main(script, a)
     else:

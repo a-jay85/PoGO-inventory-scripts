@@ -17,6 +17,9 @@ COSTLY_LINES = ("129,130,320,321,333,334,524,525,526,532,533,534,588,589,616,617
 NAMES = {"xxs": "xxs"}  # search term -> nickname, as ivc.make_name spells them. An XXL one is kept instead: XXL_OFF
 # an XXL one, traded or not, isn't traded (it has value in showcases, the user 2026-11-04): a favorite, these come off
 XXL_OFF = ("GuaranteedLucky", "Old", "GIV", "XLX", "2XL", "Reroll", "Special", "Luckydex", TRANSFER, "IVC")
+# one on its holder's own raid team (roster/raidteam.py keep): a favorite, these come off. The user's own Old and
+# GuaranteedLucky stay (verdict.py: the user's own tags come before the raid team rule)
+RAID_OFF = tuple(t for t in XXL_OFF if t not in ("GuaranteedLucky", "Old"))
 
 ALWAYS_KEEP = 44  # IV sum of 98%: 98% and 100% (a shadow: once purified) never get traded or transferred
 
@@ -82,8 +85,12 @@ SAVED = {GIVER: {CLEAN: ("traded", "!3*", "!4*", "!favorite", "!#"),
 
 
 
-def xxl_off(tags):
-    """which of XXL_OFF these tags, as read, hold (letters only: the page's reader drops digits, so 2XL reads as XL)"""
+def held(tags, among):
+    """which of among these tags, as read, hold (letters only: the page's reader drops digits, so 2XL reads as XL)"""
     key = lambda s: re.sub(r"[^A-Z]", "", s.upper())
     have = {key(t) for t in tags}
-    return tuple(t for t in XXL_OFF if key(t) in have)
+    return tuple(t for t in among if key(t) in have)
+
+
+def xxl_off(tags):
+    return held(tags, XXL_OFF)

@@ -160,11 +160,12 @@
    "Stop",
    "TRADE_EVOS",
    "TRANSFER",
+   "XXL_OFF",
    "XXL_SWEEP",
    "details",
+   "favorite",
    "go",
    "keep_search",
-   "keep_xxl",
    "log",
    "name_and_tag",
    "press",
@@ -173,11 +174,9 @@
    "script",
    "search_exact",
    "sweep",
-   "tag_chips",
    "tag_pile",
    "wait_for",
-   "walk",
-   "xxl_off"
+   "walk"
   ],
   "runs": [
    "skills/cleanup/runs"
@@ -1228,10 +1227,13 @@
    "boss_name",
    "by_cp",
    "cmd_count",
+   "cmd_keep",
    "fits",
    "is_mega",
+   "keep_script",
    "log",
    "main",
+   "member_key",
    "models",
    "newest",
    "read_copy",
@@ -1240,6 +1242,7 @@
    "script",
    "stats",
    "top_level",
+   "ui_key",
    "walk_pile"
   ],
   "runs": [
@@ -2053,11 +2056,13 @@
   "copies": {},
   "names": [
    "RUNS",
+   "_PATHS",
    "_TEAMS",
    "close",
    "log",
    "newest",
-   "on_team"
+   "on_team",
+   "path_of"
   ],
   "runs": [
    "skills/roster/runs",
@@ -2098,6 +2103,7 @@
    "OLD_AGE",
    "PVE_TOP",
    "PVP_FLOOR",
+   "RAID_OFF",
    "REROLL_ML",
    "REROLL_PVE",
    "SAVED",
@@ -2113,6 +2119,7 @@
    "XLX_LEVEL",
    "XL_CAP",
    "XXL_OFF",
+   "held",
    "xxl_off"
   ],
   "runs": []
@@ -2328,7 +2335,9 @@
    "caught",
    "count_exact",
    "counter",
+   "favorite",
    "go",
+   "held",
    "ios_start",
    "keep_capture",
    "log",

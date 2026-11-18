@@ -455,6 +455,13 @@ def to_friend(p, ours=False):
                         p.tap(0.87, bar[0][1] + bar[0][3] / 2)
                     log(f"{p.name}: the search for {p.friend} came up empty: cleared it")
                     empty = 0
+            elif s == "profile" and (box := p.find(lambda t: ui.norm(t[4]) == "TRAINER NICKNAME")):
+                # the friend search open and empty, its list hidden: on the FRIENDS tab already, so a FRIENDS tap
+                # does nothing (iPhone, after a trade left half-made: 45 taps in 90 s, 2026-11-18). Type in it
+                p.tap_text(box[0])
+                time.sleep(1.2)
+                p.type(p.friend)
+                p.key("return")
             elif s == "profile":
                 if friends := label(p, "FRIENDS"):  # (not read yet: the next look tries again)
                     p.tap_text(friends)
@@ -971,7 +978,9 @@ def warning(p):
     if not yes:
         raise Stop(f"{p.name}: trade warning without YES: {p.summary()}")
     lines = [re.sub(r"^[^A-Z]+", "", ui.up(t)) for t in p.texts if top < t[1] < yes[1] - 0.01]
-    reasons = [l for l in lines if l and "ARE YOU SURE" not in l and not l.startswith("THIS POK")]
+    # (the other player's 'CYRILLJAN HAS CONNECTED!' banner can show over the box: no reason, 2026-11-18)
+    reasons = [l for l in lines if l and "ARE YOU SURE" not in l and not l.startswith("THIS POK")
+               and not re.search(r"HAS CONNECTED!?$", l)]
     # (the bullet in front can read as a stray letter: "X MAX MOVE ...")
     unknown = [r for r in reasons if not any(r.startswith(k) or re.sub(r"^\S\s+", "", r).startswith(k)
                                              for k in OK_WARNINGS)]

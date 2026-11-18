@@ -286,9 +286,16 @@ class Door:
             _, t, p, _ = base.look()
             shots.append((t, p))
             last = t
-            if ui.ANDROID and pagefacts.caught_read(t):  # on most pages it shows by now: a second drag adds nothing
-                reads = [t, base.sharp_again()]  # (the same screenshot, read 3x bigger: the date's two reads)
+            if pagefacts.caught_read(t):  # on most pages it shows by now: a second drag adds nothing
+                if ui.ANDROID:
+                    reads = [t, base.sharp_again()]  # (the same screenshot, read 3x bigger: the date's two reads)
+                else:  # (the iPhone dragged twice every time, 2026-11-18: a new look is its second read)
+                    time.sleep(0.3)
+                    reads = [t, base.look()[1]]
+                    last = reads[-1]
             else:
+                dates = [(round(x[1], 3), x[4]) for x in t if re.search(r"CAUGHT|HATCHED|\d/20\d\d", ui.norm(x[4]))]
+                base.log(f"  the caught date isn't on the screen yet ({dates}): one more drag")
                 reads = tagsheet.scrolled_bottom(bounds, drags=1)
                 last = reads[0] if ui.ANDROID else reads[-1]  # (Android's second one is the sharp read)
                 for _ in range(2):  # a tall page (Mewtwo's two Mega rows): the date is a drag or two further

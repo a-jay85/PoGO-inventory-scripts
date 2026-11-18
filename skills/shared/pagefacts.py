@@ -214,7 +214,7 @@ def caught_read(texts):
     and clear of the screen's edge. The trade box and the place sit above that date, so they're on screen too. The page
     needn't be at its very bottom. One such read gave the same answers as the page's bottom on 55 of 55 pages, 2026-11-06
     (the only wrong one in 56 had its date at 0.977, so its place misread: DATE_LOWEST). Says nothing about what's under
-    the date, so a buddy's page, with no SWAP BUDDIES there, is like any other. Pixel only so far"""
+    the date, so a buddy's page, with no SWAP BUDDIES there, is like any other. Both phones since 2026-11-18"""
     label = [t[1] for t in texts if re.search(r"\b(CAUGHT|HATCHED)\b", ui.norm(t[4]))]
     return len(label) == 1 and any(label[0] < t[1] <= DATE_LOWEST and re.search(r"\b\d{1,2}/\d{1,2}/20\d\d\b", t[4])
                                    for t in texts)

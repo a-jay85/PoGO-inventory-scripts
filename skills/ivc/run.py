@@ -568,6 +568,7 @@ def plan(quiet=False):
         elif any(q not in results for q in sort.searches_for(m)):
             verdict, why = "SKIP", ["a pool search is missing: run pools again"]
         else:
+            m = with_team(m)
             verdict, why = sort.decide(m, results)
             verdict, why = recheck(m, results, wants, verdict, why)
             verdict, why = twin_check(m, results, verdict, why)
@@ -617,9 +618,18 @@ def species_of_search():
     return out
 
 
+def with_team(m):
+    """m with raidteams.on_team's answer for the signed-in account, which sort.decide reads. No account known yet:
+    as it is (the rule is off)"""
+    import raidteams, pokedb
+    who = pokedb.account()
+    return dict(m, raid_team=raidteams.on_team(who, [m["species"]], m.get("shadow"), m["cp"], m.get("hp"))) if who else m
+
+
 def judge(m, results, wants):
     if any(q not in results for q in sort.searches_for(m)):
         return "SKIP", ["a pool search is missing"]
+    m = with_team(m)
     verdict, why = sort.decide(m, results)
     verdict, why = recheck(m, results, wants, verdict, why)
     return twin_check(m, results, verdict, why)

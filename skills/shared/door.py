@@ -22,7 +22,7 @@ from collections import Counter
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, HERE)
-import ui, base, search, home, pagefacts, pokedb
+import ui, base, search, home, pagefacts, pokedb, raidteams
 from rules import GYM_DEX, XL_CAP, UNDER_360_XL
 from base import Stop, log
 
@@ -90,6 +90,7 @@ class Door:
         self.account = account or home.trainer()
         self.scope = scope or f"#{tag}"
         self.tables = vd.tables(vd.TO[self.account])
+        raidteams.newest(self.account)  # (logs the count's age once a run)
         if "missing" in self.tables:
             log(f"door: no species lists, those rules will say not sure ({self.tables['missing']})")
         self.sets, self.partial = {}, set()
@@ -249,6 +250,8 @@ class Door:
                      gigantamax="GIGANTAMAX" in near, dynamax="DYNAMAX" in near, size=size, kg=base.who(info)[2],
                      candy_xl=None if xl is None else 0 if xl else XL_CAP, candy=page.get("candy"), xl=page.get("xl"),
                      levels=self.levels(texts, info, sp, ivs, tile_cp), far=said("far", None if page["california"] is None else not page["california"]), gym_top20=gym_top20,
+                     raid_team=raidteams.on_team(self.account, list(sp), base.is_shadow(texts), info["cp"] or tile_cp,
+                                                 info["hp"], *base.who(info)[2:]),
                      iv_top=iv_top, pure_top=pure_top, pvp_judged=self.tag.upper() == "PVPC", ivc_judged=self.tag.upper() == "IVC",
                      other_tags=[t for t in tagsheet.tag_chips(texts)
                                  if t not in (self.tag.upper(), *((self.other.upper(),) if self.source else ()))])

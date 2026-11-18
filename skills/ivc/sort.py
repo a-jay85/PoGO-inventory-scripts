@@ -21,6 +21,7 @@ Keep if ANY of these passes (ties with the last place keep):
   gym         top 20 CP or top 20 IV among all of that species (GYM_DEFENDERS; Chansey and Blissey apart).
               IV ties: more of HP and Defense at 15 wins
 N = 6 if any species in that final's line can mega evolve (released in GO or not), else 5.
+Always keep: on its holder's own raid team (skills/shared/raidteams.py; not in the count but its CP could make one: LEAVE).
 Always keep: 98% or 100% (a shadow's own IV, or its purified IV). Armored Mewtwo (no search can split it out).
 Strong lines (the user, 2026-11-17): some species in the line (or its mega) is DialgaDex's #1 non-special, tradeable,
 non-shadow attacker against a boss like a 4-star raid's or higher, today or once unreleased megas come out
@@ -525,18 +526,23 @@ def gym_top20(sid, cp, ivs, shadow, tiles):
 
 
 def decide(m, results):
-    """m: dict species, cp, name, shadow, lucky, dynamax. results: search string -> [(tile name, cp)].
+    """m: dict species, cp, name, shadow, lucky, dynamax (raid_team: raidteams.on_team's answer). results: search string -> [(tile name, cp)].
     -> (KEEP | DOOR | LEAVE, [reasons])"""
     p = parse_name(m["name"])
     sized = p.size or bool(m.get("size"))  # the XXL/XXS badge read on the detail screen counts too
     why, notes = [], []
-    gym_unsure = False
+    team = m.get("raid_team", ())  # raidteams.on_team, set by the caller: on its holder's own raid team
+    if team:
+        return "KEEP", [f"on a raid team: {', '.join(team[:3])}{f' and {len(team) - 3} more' if len(team) > 3 else ''}"]
+    gym_unsure = team is None  # (a DOOR becomes LEAVE: not sure)
+    if team is None:
+        why.append("raid team: not in the count, and its CP could make a team")
     sid = m["species"]
     if sid in GYM_DEFENDERS:
         verdict, w = gym_keep(m, results[search(sid, "gym")])
         if verdict == "KEEP":
             return "KEEP", w
-        gym_unsure = verdict == "LEAVE"
+        gym_unsure = gym_unsure or verdict == "LEAVE"
         why += w
     mine = value(m["name"], m["shadow"])
     if mine is None:
@@ -671,6 +677,10 @@ def test():
     me = {"species": "charizard", "cp": 2000, "name": "93", "shadow": False, "lucky": False, "dynamax": False}
     six_better = [(f"{p}", 1500 + p) for p in (100, 98, 98, 96, 96, 96)]
     check("7th of 7 -> DOOR", decide(me, res(charizard__plain=six_better + [("93", 2000)]))[0], "DOOR")
+    out_of_six = res(charizard__plain=six_better + [("93", 2000)])
+    check("7th of 7 on a raid team -> KEEP", decide(dict(me, raid_team=["Boss A (party 1)"]), out_of_six)[0], "KEEP")
+    check("7th of 7, raid team not sure -> LEAVE", decide(dict(me, raid_team=None), out_of_six)[0], "LEAVE")
+    check("7th of 7, on no raid team -> DOOR", decide(dict(me, raid_team=[]), out_of_six)[0], "DOOR")
     check("tie with 6th keeps", decide(me, res(charizard__plain=six_better[:5] + [("93", 1)] + [("93", 2000)]))[0], "KEEP")
     check("pool across line", decide(me, res(charmander__plain=six_better, charizard__plain=[("93", 2000)]))[0], "DOOR")
     check("species names don't count",

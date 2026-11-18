@@ -962,7 +962,8 @@
    "unrenamed_check",
    "unrenamed_dexes",
    "unsure_before",
-   "walk_list"
+   "walk_list",
+   "with_team"
   ],
   "runs": [
    "skills/ivc/runs",
@@ -1233,7 +1234,6 @@
    "main",
    "models",
    "newest",
-   "newest_teams",
    "read_copy",
    "real_boss",
    "report",
@@ -1243,8 +1243,7 @@
    "walk_pile"
   ],
   "runs": [
-   "skills/roster/runs",
-   "skills/roster/runs/*-raidteam/teams.json"
+   "skills/roster/runs"
   ]
  },
  "skills/roster/roster.py": {
@@ -2049,6 +2048,21 @@
    "viable"
   ],
   "runs": []
+ },
+ "skills/shared/raidteams.py": {
+  "copies": {},
+  "names": [
+   "RUNS",
+   "_TEAMS",
+   "close",
+   "log",
+   "newest",
+   "on_team"
+  ],
+  "runs": [
+   "skills/roster/runs",
+   "skills/roster/runs/*-raidteam/teams.json"
+  ]
  },
  "skills/shared/rules.py": {
   "copies": {},

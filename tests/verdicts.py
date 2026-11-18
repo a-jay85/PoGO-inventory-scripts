@@ -155,6 +155,16 @@ CASES = {
     "gym top 20": plain(sids=["snorlax"], gym_top20=True),
     "gym not top 20": plain(sids=["snorlax"], gym_top20=False),
     "gym top 20 traded": plain(sids=["snorlax"], gym_top20=True, traded=True),
+    # raid teams (raidteams.on_team's answer): the holder's own team keeps, before every Transfer and GIV
+    "raid team": plain(sids=["rhyhorn"], raid_team=["Mega Venusaur (party 1)"]),
+    "raid team, many bosses": plain(sids=["rhyhorn"], raid_team=[f"Boss {i} (party 1)" for i in range(5)]),
+    "raid team traded": plain(sids=["rhyhorn"], raid_team=["Mega Venusaur (party 1)"], traded=True),
+    "raid team shadow": plain(sids=["rhyhorn"], raid_team=["Mega Venusaur (party 1)"], shadow=True, ivs=(10, 10, 10)),
+    "raid team, your tag stays": plain(sids=["rhyhorn"], raid_team=["Mega Venusaur (party 1)"], other_tags=["Old"]),
+    "raid team: on none": plain(sids=["rhyhorn"], raid_team=[]),
+    "raid team: on none, Transfer": plain(raid_team=[]),
+    "raid team: not sure": plain(raid_team=None),
+    "raid team: no count": plain(raid_team=()),
     # the order, CyrillJan's pile (to HashTagAJay)
     "traded": plain(traded=True),
     "traded Machoke: Evo": plain(sids=["machoke"], traded=True),
@@ -266,8 +276,41 @@ def answer(f):
         + (["purify"] if r.purify else []) + (["star"] if r.star else [])
 
 
+import raidteams  # noqa: E402
+
+TEAMS = {"bars": {"rhyhorn": 1500, "rhyhorn|shadow": 1400, "pidgey": None},  # made up: a count's teams.json
+         "copies": [{"species": ["rhyhorn"], "shadow": False, "cp": 2000, "hp": 150, "kg": 110.5, "m": 1.02,
+                     "on": ["Boss A (party 1)"]},
+                    {"species": ["rhyhorn"], "shadow": False, "cp": 1800, "hp": 140, "kg": 99.1, "m": 0.95, "on": []},
+                    {"species": ["rhyhorn"], "shadow": True, "cp": 1900, "hp": 145, "kg": 120.0, "m": 1.1,
+                     "on": ["Boss B (party 2)"]},
+                    {"species": ["rhyhorn"], "shadow": False, "cp": 1600, "hp": 120, "kg": None, "m": None,
+                     "on": ["Boss A (party 1)"]},
+                    {"species": ["rhyhorn"], "shadow": False, "cp": 1600, "hp": 120, "kg": None, "m": None, "on": []}]}
+TEAM_CASES = {  # (sids, shadow, cp, hp, kg, m) -> raidteams.on_team
+    "on, by kg and m": (["rhyhorn"], False, 2000, 150, 110.5, 1.02),
+    "on, powered up since (kg and m)": (["rhyhorn"], False, 2300, 165, 110.51, 1.02),
+    "off, by kg and m": (["rhyhorn"], False, 1800, 140, 99.1, 0.95),
+    "shadow, on": (["rhyhorn"], True, 1900, 145, 120.0, 1.1),
+    "no kg: by CP and HP": (["rhyhorn"], False, 2000, 150, None, None),
+    "a list read: CP only": (["rhyhorn"], False, 1800, None, None, None),
+    "twins, one on, one off": (["rhyhorn"], False, 1600, 120, None, None),
+    "not in the count, over the bar": (["rhyhorn"], False, 2100, 151, 105.0, 1.0),
+    "not in the count, under the bar": (["rhyhorn"], False, 1400, 110, 105.0, 1.0),
+    "shadow under its bar": (["rhyhorn"], True, 1300, 110, 105.0, 1.0),
+    "no copy can make a team": (["pidgey"], False, 300, 50, 1.0, 0.3),
+    "on no boss list": (["magikarp"], False, 100, 20, 10.0, 0.9),
+    "species not sure, one on a list": (["rhyhorn", "pidgey"], False, 1000, 100, None, None),
+    "species not sure, none on a list": (["pidgey", "magikarp"], False, 300, 50, None, None),
+    "CP not read, not in the count": (["rhyhorn"], False, None, 150, 105.0, 1.0),
+}
+
+
 def main():
     got = {k: answer(f) for k, f in CASES.items()}
+    got |= {f"on_team: {k}": repr(raidteams.on_team("x", *a, t=TEAMS)) for k, a in TEAM_CASES.items()}
+    got |= {"on_team: no count": repr(raidteams.on_team(None, ["rhyhorn"], False, 2000, 150))}
+    got = json.loads(json.dumps(got))  # (tuples -> lists, as the file has them)
     if "--record" in sys.argv:
         json.dump(got, open(GOLD, "w"), indent=1, ensure_ascii=False)
         print(f"recorded {len(got)} verdicts -> {GOLD}")

@@ -189,8 +189,8 @@ def ocr(path):
     return out
 
 
-# OCR now and then reads a Latin letter as its Cyrillic twin ('сP 927', 'AТК')
-LOOKALIKES = str.maketrans("АВЕКМНОРСТХаеорсухіІ", "ABEKMHOPCTXaeopcyxiI")
+# OCR now and then reads a Latin letter as its Cyrillic twin ('сP 927', 'AТК', 'Pvp Uц46')
+LOOKALIKES = str.maketrans("АВЕКМНОРСТХаеорсухіІц", "ABEKMHOPCTXaeopcyxiIu")
 
 
 def find(texts, pred):

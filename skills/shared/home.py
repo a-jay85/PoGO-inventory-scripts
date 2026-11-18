@@ -570,6 +570,10 @@ def trainer(fast=True):
         elif screen == "map":
             search.click(0.13, 0.91, bounds)  # the profile picture
             time.sleep(2.0)
+        elif screen == "detail" and time.time() < hatched_at[0] + HATCH_SCREENS:
+            log("  the hatched Pokémon's page: its X, to the map")  # (as start() does: back_to_list waited for a
+            base.tap_x(bounds)  # list and got the EGGS tab, Pixel 2026-11-18)
+            time.sleep(2.0)
         elif screen in OPEN:
             base.back_to_list()
         elif screen == "list" and not ui.full_list(texts):

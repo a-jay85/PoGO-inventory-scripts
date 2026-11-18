@@ -1589,7 +1589,7 @@ def to_tags_tab():
         if search.leave_multiselect(texts, bounds):  # a run cut off mid-swipe can leave the list in multi-select
             continue
         words = {ui.norm(t[4]) for t in texts}
-        if {"TAGS", "EGGS"} <= words:  # unfiltered list: pulling down here would close the Pokémon screen
+        if ui.full_list(texts):  # unfiltered list: pulling down here would close the Pokémon screen
             go("TAGS", "tag-tab")
             return
         if x_taps < 2:

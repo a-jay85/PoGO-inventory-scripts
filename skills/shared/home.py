@@ -463,7 +463,7 @@ def forget_storage():
 
 def storage_limit(texts):
     """the Pokémon screens' header count 'N / LIMIT' (TAGS / POKÉMON / EGGS showing) -> LIMIT, or None"""
-    if not {"TAGS", "EGGS"} <= {ui.norm(t[4]) for t in texts}:
+    if not ui.full_list(texts):
         return None
     for t in texts:
         if m := re.search(r"\b\d[\d,]*\s*/\s*(\d{1,2},?\d{3})\b", t[4]):
@@ -529,7 +529,7 @@ def trainer(fast=True):
                     return who
                 break
             screen, texts, path, bounds = look()
-            if storage_limit(texts) is None and not cleared and {"TAGS", "EGGS"} <= {ui.norm(t[4]) for t in texts}:
+            if storage_limit(texts) is None and not cleared and ui.full_list(texts):
                 search.clear_search()
                 cleared = True
             elif storage_limit(texts) is None:
@@ -572,7 +572,7 @@ def trainer(fast=True):
             time.sleep(2.0)
         elif screen in OPEN:
             base.back_to_list()
-        elif screen == "list" and not {"TAGS", "EGGS"} <= {ui.norm(t[4]) for t in texts}:
+        elif screen == "list" and not ui.full_list(texts):
             base.to_tags_tab()  # a tag's list: its X isn't the Pokémon screen's (stuck 12 looks, 2026-11-02)
         elif screen in ("list", "tag-tab"):
             base.tap_x(bounds)

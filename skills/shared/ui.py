@@ -225,6 +225,13 @@ def is_label(s, label):
     return re.fullmatch(re.escape(label) + r"( [A-Z]|[LI])?", norm(s)) is not None
 
 
+def full_list(texts):
+    """the Pokémon screen's TAGS and EGGS tabs both show: the full list (or its Tags tab), no tag's list. One stray
+    letter is fine ('EGGSI', Pixel 2026-11-18: an exact match backed out of the list three times and stopped)"""
+    words = [t[4] for t in texts]
+    return any(is_label(w, "TAGS") for w in words) and any(is_label(w, "EGGS") for w in words)
+
+
 # ---------- screen classification ----------
 
 def profile_tabs(texts):
@@ -277,7 +284,7 @@ def classify(texts):
         return "menu"
     # (a hurt Pokémon's tile in the list shows '82/91 HP' too: the list has its TAGS / EGGS tabs and search bar)
     if any(re.search(r"\d+\s*/\s*\d+\s*HP", t[4]) for t in texts) \
-            and not ({"TAGS", "EGGS"} <= set(words) and search_box(texts)):
+            and not (full_list(texts) and search_box(texts)):
         return "detail"
     # a Pokémon defending a gym opens its own screen: no HP line, tags or weight, just its gym record
     # ("Raid in progress!" shows only during a raid, so not that)

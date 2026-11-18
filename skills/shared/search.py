@@ -105,7 +105,7 @@ def walk_list(visit, limit=10 ** 9, stop=None, odd=None, passed=None, want=None)
         _, texts, path, bounds = wait_for("list")
         if leave_multiselect(texts, bounds):  # a drag held too long at the list's end reads as a long press
             continue
-        now_full = {"TAGS", "EGGS"} <= {ui.norm(t[4]) for t in texts}
+        now_full = ui.full_list(texts)
         full = now_full if full is None else full
         if now_full and not full:  # a tag's list turned into the whole Pokémon list: it was closed
             raise Stop("left the tag's list (the full Pokémon list is showing)")
@@ -284,7 +284,7 @@ def to_search_list():
         back_to_list()
     off_map()
     screen, texts, _, _ = base.look()
-    if not scrolled and screen == "list" and {"TAGS", "EGGS"} <= {ui.norm(t[4]) for t in texts} and bar_seen():
+    if not scrolled and screen == "list" and ui.full_list(texts) and bar_seen():
         log("  the full list, still at the top: no tab switch")  # (start_search clears what's in the bar)
         return
     for _ in range(3):
@@ -862,7 +862,7 @@ def edit_tail(prev, q, check):
         return None
     screen, texts, _, bounds = base.look()  # the full list, its bar holding prev, before any tap
     box = ui.search_box(texts)
-    if screen != "list" or not {"TAGS", "EGGS"} <= {ui.norm(t[4]) for t in texts} or not box \
+    if screen != "list" or not ui.full_list(texts) or not box \
             or not check(ui.search_text(box), prev):
         return None
     click(random.uniform(0.35, 0.55), 0.183 + random.uniform(-0.003, 0.003), bounds, gap=BAR_GAP)
@@ -902,7 +902,7 @@ def edit_tail(prev, q, check):
     else:
         log("the panel didn't close after Return")
         return None
-    if not check(got, q) or not {"TAGS", "EGGS"} <= {ui.norm(t[4]) for t in texts}:
+    if not check(got, q) or not ui.full_list(texts):
         return None
     return texts
 
@@ -1030,7 +1030,7 @@ def start_search(q, check=None, edit=False, nudges=2, live=False):
             log("the panel didn't close after Return")
             continue
         if check(got, q):
-            if not {"TAGS", "EGGS"} <= {ui.norm(t[4]) for t in texts}:  # typed in a tag's list: only searched that tag
+            if not ui.full_list(texts):  # typed in a tag's list: only searched that tag
                 log("  that searched inside a tag's list: going to the full Pokémon list")
                 to_search_list()
                 continue

@@ -2459,6 +2459,7 @@
    "evo_box",
    "evo_ticked",
    "find",
+   "full_list",
    "fuzz_box",
    "fuzz_circle",
    "gate",

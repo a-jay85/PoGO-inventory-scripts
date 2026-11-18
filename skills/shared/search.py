@@ -105,7 +105,7 @@ def walk_list(visit, limit=10 ** 9, stop=None, odd=None, passed=None, want=None)
         _, texts, path, bounds = wait_for("list")
         if leave_multiselect(texts, bounds):  # a drag held too long at the list's end reads as a long press
             continue
-        now_full = {"TAGS", "EGGS"} <= {ui.norm(t[4]) for t in texts}
+        now_full = ui.full_list(texts)
         full = now_full if full is None else full
         if now_full and not full:  # a tag's list turned into the whole Pokémon list: it was closed
             raise Stop("left the tag's list (the full Pokémon list is showing)")
@@ -284,7 +284,7 @@ def to_search_list():
         back_to_list()
     off_map()
     screen, texts, _, _ = base.look()
-    if not scrolled and screen == "list" and {"TAGS", "EGGS"} <= {ui.norm(t[4]) for t in texts} and bar_seen():
+    if not scrolled and screen == "list" and ui.full_list(texts) and bar_seen():
         log("  the full list, still at the top: no tab switch")  # (start_search clears what's in the bar)
         return
     for _ in range(3):
@@ -540,6 +540,20 @@ def lost_tail(got, q):
     return tail if got and len(tail) in (1, 2) and tail.isdigit() and q.lower().startswith(got.lower()) else ""
 
 
+def late_keys(q, check):
+    """a try's keys can land late, after it gave up: typing again on top made '888&!shadow888&!shadow' (2026-11-18,
+    '6&!shadow' three times running on the Pixel). One look before typing again: True if q is there (done), else the
+    bar gets emptied"""
+    got, _ = panel_text(quick=not ui.ANDROID)
+    if got and check(got, q) and not stray_a(got, q):
+        log(f"  {q!r} landed late: no typing again")
+        return True
+    if got:
+        key("a", cmd=True)
+        key("delete")
+    return False
+
+
 def type_into_panel(q, bounds, check=None):
     """the panel doesn't always put the cursor in the bar, and a tap on the bar doesn't always either.
     Tap the bar, type, wait for the letters to show. False if they come out wrong (the caller starts over).
@@ -549,6 +563,8 @@ def type_into_panel(q, bounds, check=None):
         if attempt:  # the tap that opened the panel already put the cursor in the bar: a 2nd tap can lose it
             click(random.uniform(0.35, 0.55), 0.183 + random.uniform(-0.003, 0.003), bounds, gap=BAR_GAP)
             time.sleep(0.3)
+            if late_keys(q, check):
+                return True
         if ui.ANDROID:  # adb's input text never loses keys or a shift
             time.sleep(random.uniform(0.4, 0.5))
         elif not bar_ready():
@@ -846,7 +862,7 @@ def edit_tail(prev, q, check):
         return None
     screen, texts, _, bounds = base.look()  # the full list, its bar holding prev, before any tap
     box = ui.search_box(texts)
-    if screen != "list" or not {"TAGS", "EGGS"} <= {ui.norm(t[4]) for t in texts} or not box \
+    if screen != "list" or not ui.full_list(texts) or not box \
             or not check(ui.search_text(box), prev):
         return None
     click(random.uniform(0.35, 0.55), 0.183 + random.uniform(-0.003, 0.003), bounds, gap=BAR_GAP)
@@ -886,7 +902,7 @@ def edit_tail(prev, q, check):
     else:
         log("the panel didn't close after Return")
         return None
-    if not check(got, q) or not {"TAGS", "EGGS"} <= {ui.norm(t[4]) for t in texts}:
+    if not check(got, q) or not ui.full_list(texts):
         return None
     return texts
 
@@ -1014,7 +1030,7 @@ def start_search(q, check=None, edit=False, nudges=2, live=False):
             log("the panel didn't close after Return")
             continue
         if check(got, q):
-            if not {"TAGS", "EGGS"} <= {ui.norm(t[4]) for t in texts}:  # typed in a tag's list: only searched that tag
+            if not ui.full_list(texts):  # typed in a tag's list: only searched that tag
                 log("  that searched inside a tag's list: going to the full Pokémon list")
                 to_search_list()
                 continue
@@ -1159,20 +1175,25 @@ def slider_to_top(bounds):
     return path, texts, bounds
 
 
-def sort_recent(bounds):
-    """sorted Recent, newest first -> (path, texts, bounds). Picking RECENT when it's the sort already flips the
-    order (arrow up, oldest first): read the arrow and pick it once more if it points up"""
+def sort_down(label, bounds):
+    """sorted by label, arrow down (Recent: newest first. Combat Power: highest first) -> (path, texts, bounds).
+    Picking the sort it already has flips the order (arrow up): read the arrow and pick it once more if it points up"""
     for attempt in range(3):
-        got = sort_by("RECENT", bounds)
+        got = sort_by(label, bounds)
         bounds = got[2]
         way = ui.sort_arrow(got[0], right_most=True)  # sort_by's own last shot
         if way is None:  # no arrow read: the menu can still be fading out
             way = base.settle(lambda: ui.sort_arrow(ui.capture()[0], right_most=True), lambda w: w, 2)
         if way == "down":
             return got
-        log(f"  sort arrow reads {way}: RECENT again")
+        log(f"  sort arrow reads {way}: {label} again")
     keep_capture("sort")
-    raise Stop("couldn't get the list sorted Recent, newest first")
+    raise Stop(f"couldn't get the list sorted by {label}, arrow down")
+
+
+def sort_recent(bounds):
+    """sorted Recent, newest first -> (path, texts, bounds)"""
+    return sort_down("RECENT", bounds)
 
 
 def sort_by_name(bounds):

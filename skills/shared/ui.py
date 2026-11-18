@@ -225,6 +225,13 @@ def is_label(s, label):
     return re.fullmatch(re.escape(label) + r"( [A-Z]|[LI])?", norm(s)) is not None
 
 
+def full_list(texts):
+    """the Pokémon screen's TAGS and EGGS tabs both show: the full list (or its Tags tab), no tag's list. One stray
+    letter is fine ('EGGSI', Pixel 2026-11-18: an exact match backed out of the list three times and stopped)"""
+    words = [t[4] for t in texts]
+    return any(is_label(w, "TAGS") for w in words) and any(is_label(w, "EGGS") for w in words)
+
+
 # ---------- screen classification ----------
 
 def profile_tabs(texts):
@@ -277,7 +284,7 @@ def classify(texts):
         return "menu"
     # (a hurt Pokémon's tile in the list shows '82/91 HP' too: the list has its TAGS / EGGS tabs and search bar)
     if any(re.search(r"\d+\s*/\s*\d+\s*HP", t[4]) for t in texts) \
-            and not ({"TAGS", "EGGS"} <= set(words) and search_box(texts)):
+            and not (full_list(texts) and search_box(texts)):
         return "detail"
     # a Pokémon defending a gym opens its own screen: no HP line, tags or weight, just its gym record
     # ("Raid in progress!" shows only during a raid, so not that)
@@ -380,7 +387,18 @@ def tiles(texts):
                 name = parts[over.index(c)]
             x = cx if len(over) > 1 else n[0] + n[2] / 2  # a box over several tiles: its middle is another tile's
             out.append((name.lstrip("•· ").strip(), int(re.sub(r"\D", "", c[4])), x, (c[1] + c[3] + n[1]) / 2))
-    return sorted(out, key=lambda t: (round(t[3] / 0.05), t[2]))
+    # rows by the gap between them: rounding y to steps of 0.05 split a row at 0.8202 / 0.8256 (16.4 / 16.5 steps),
+    # and the 3rd tile came before the 2nd (Pixel 2026-11-18). Rows sit 0.13+ apart, a row's tiles within 0.01
+    rows = []
+    for t in sorted(out, key=lambda t: t[3]):
+        if rows and t[3] - rows[-1][0][3] < ROW_GAP:
+            rows[-1].append(t)
+        else:
+            rows.append([t])
+    return [t for r in rows for t in sorted(r, key=lambda t: t[2])]
+
+
+ROW_GAP = 0.05  # tiles closer than this in y (from the row's top-most) are one row
 
 
 OK_ABOVE_CANCEL = 0.07  # the dialog's OK sits this far above CANCEL (0.069-0.070 in every rename capture)
@@ -655,6 +673,11 @@ def search_box(texts):
         hits = [t for t in texts if 0.155 < t[1] < 0.2 and 0.35 < t[0] < 0.5 and re.match(r"9\s+[^\s(]", t[4])]
     if not hits:  # the magnifier glued to the text ('Q4&shadow', '< 9113&!#Nope'): go by where the bar sits
         hits = [t for t in texts if 0.155 < t[1] < 0.2 and t[0] < 0.35 and t[4].strip() not in ("<", "‹", "Q", "9", "< 9", "‹ 9")]
+        # the magnifier as its own box, read as 'a', in front of the text ('a' + '6&!shadow', Pixel 2026-11-18). Only
+        # with text to its right: the iPhone's bar_ready types an A alone
+        hits.sort(key=lambda t: t[0])
+        if len(hits) == 2 and hits[0][4].strip() in ("a", "< a", "‹ a"):
+            hits = hits[1:]
         # a lone number there with no TAGS / EGGS tabs: the map's friend row ('Me' over '10', 2026-11-03), not a bar
         if not {"TAGS", "EGGS"} & {norm(t[4]) for t in texts}:
             hits = [t for t in hits if not t[4].strip().isdigit()]

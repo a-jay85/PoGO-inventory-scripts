@@ -7,6 +7,8 @@ what's tested (the user, 2026-11-17). Each round opens a tile of the full list, 
         (nothing saved). The rounds after the first find the row the way a run does: from where it was seen
   POGO_PHONE=android caffeinate -dimsu python3 speedtest.py cost [--n 3]
         the door's page bottom and back (caught date, Candy XL), then its power-up cost read, as door.facts() does
+  POGO_PHONE=android caffeinate -dimsu python3 speedtest.py appraise [--n 3]
+        open the appraisal, read its bars, close it, and the detail page steady again
   POGO_PHONE=android caffeinate -dimsu python3 speedtest.py list <search> [--n 1] [--dist 0.4] [--settle 0.3]
         type the search and read every tile, swiping down the list (search.read_results), then back to the top.
         --dist / --settle: try a swipe of that much of the screen and that wait after it, in place of the code's
@@ -56,6 +58,29 @@ def cost(n):
         log(f"  round {i + 1}: page bottom and back {took[-1][0]:.1f}s, cost read {took[-1][1]:.1f}s: {got}")
         base.back_to_list()
     log(f"cost: page bottom {', '.join(f'{a:.1f}' for a, _ in took)} s; cost read {', '.join(f'{b:.1f}' for _, b in took)} s")
+
+
+def appraise(n):
+    """open_appraisal, the bars read, the tap that closes it, and the detail page steady again:
+    the appraisal steps of /ivc's names.read (C3-C6 in ~/claude-plans/ivc-resort-speed-steps.md)"""
+    took = []
+    for i in range(n):
+        base.open_tile(i + 1)
+        base.steady_detail()
+        marks = [("start", time.time())]
+        base.open_appraisal()
+        marks.append(("open", time.time()))
+        base.appraise()
+        marks.append(("bars", time.time()))
+        go("dialog", "detail")
+        marks.append(("close", time.time()))
+        base.steady_detail()
+        marks.append(("steady", time.time()))
+        parts = [(k, t - marks[j][1]) for j, (k, t) in enumerate(marks[1:])]
+        took.append(marks[-1][1] - marks[0][1])
+        log(f"  round {i + 1}: {took[-1]:.1f}s: {', '.join(f'{k} {v:.2f}s' for k, v in parts)}")
+        base.back_to_list()
+    log(f"appraise: {', '.join(f'{t:.1f}' for t in took)} s")
 
 
 def listread(q, n, dist=None, settle=None):
@@ -120,6 +145,8 @@ def main(a):
         tags(words[0] if words else "Fallen", n)
     elif a[0] == "cost":
         cost(n)
+    elif a[0] == "appraise":
+        appraise(n)
     else:
         sys.exit(__doc__)
 

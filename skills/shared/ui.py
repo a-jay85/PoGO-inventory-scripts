@@ -236,8 +236,10 @@ def profile_tabs(texts):
 def gift_banner(texts):
     """a friend's banner across the top of any screen for a few seconds: 'X sent you a Gift!', 'X and 3 other friends
     have opened your Gifts!'. It hides what's under it (the profile's tabs). The same words in the Friends tab's rows
-    sit lower down, under the tabs and the search box"""
-    return any(t[1] < 0.2 and ("SENT YOU A" in t[4].upper() or "OPENED YOUR" in t[4].upper()) for t in texts)
+    sit lower down, under the tabs and the search box. 'Friendship level with X increased!' is one too: it hid the
+    Pokémon list's EGGS tab (Pixel, 2026-11-17)"""
+    return any(t[1] < 0.2 and ("SENT YOU A" in t[4].upper() or "OPENED YOUR" in t[4].upper()
+                               or t[4].upper().startswith("FRIENDSHIP LEVEL WITH")) for t in texts)
 
 
 def profile_page(texts):

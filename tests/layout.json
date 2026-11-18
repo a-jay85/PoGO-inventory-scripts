@@ -2237,6 +2237,7 @@
   "copies": {},
   "names": [
    "HERE",
+   "cost",
    "go",
    "log",
    "main",

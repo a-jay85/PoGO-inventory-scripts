@@ -1181,12 +1181,15 @@ TYPES = {"NORMAL", "FIRE", "WATER", "GRASS", "ELECTRIC", "ICE", "FIGHTING", "POI
 def steady_detail():
     """the screen slides in: wait for two reads that agree. The first one after open_tile() is the Pokémon that
     tags, star and name may change (OPENED)"""
+    import powerup  # here: powerup imports base
     prev = None
     for _ in range(6):
         _, texts, path, _ = wait_for("detail")
         info = ui.detail_info(texts)
-        now = (info["name"], info["cp"], info["hp"], tuple(info["tags"]))
+        now = (info["name"], info["cp"], info["hp"], tuple(info["tags"]), powerup.page_cost(texts))
         if now == prev:
+            if now[4] is not None:  # the power-up cost, from the same two reads: powerup.cost_levels takes no more
+                OPENED["steady_cost"] = (info["cp"], now[4])  # looks for it (they were after the page bottom, ~1 s)
             break
         prev = now
         time.sleep(0.15)

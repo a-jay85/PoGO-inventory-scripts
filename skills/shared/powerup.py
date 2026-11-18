@@ -139,7 +139,11 @@ def cost_levels(texts, cp):
     table has, or no two looks in a row agreed on it"""
     cost = page_cost(texts)
     seen = [cost]
-    for _ in range(6):  # right after a swipe the page still slides: a cost read then can be another's (2,200 read as
+    steady = cost is not None and base.OPENED.get("steady_cost") == (cp, cost)  # steady_detail's two reads agreed on it
+    for _ in range(6):
+        if steady:
+            break
+        # right after a swipe the page still slides: a cost read then can be another's (2,200 read as
         _, texts, _, _ = look()  # level 40+, 2026-10-23). Two looks in a row on this CP must agree
         again, now = page_cost(texts), ui.detail_info(texts)["cp"]
         seen.append((again, now))

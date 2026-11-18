@@ -9,7 +9,10 @@ Searches #TODO&mega&!#TODO4 (Mega-capable species only, so a Braixen never opens
 On each page it opens the Mega level page (the round Mega badge under the types) and Mega Evolves from there:
 
 - Only a tag that is exactly TODO (TODO4 is left alone).
-- "Daily level limit met" on the level page: done today, skipped. Mega right now ("07:59 left"): skipped.
+- "Daily level limit met" on the level page: done today, skipped.
+- Mega right now: skipped. The badge's "HH:MM left" is the Mega's own timer only up to 08:00 (a Mega lasts 8 hours).
+  Over that ("22:35 left") it's the rest timer's last day. At 08:00 or less it can be either, so the level page
+  decides: "REST PERIOD" there is resting, anything else is Mega now.
 - "REST PERIOD" on the level page is no skip: it only means MEGA EVOLVE costs energy now (the number by it).
 - MEGA EVOLVE tapped and no box comes up (a faded button: less energy than it costs): skipped.
 - Mewtwo: only when it's free.
@@ -86,6 +89,15 @@ def badge(texts):
     return None
 
 
+def left_minutes(b):
+    """a badge line '07:59 left' -> 479. None for a days line ('5 DAYS') or no badge line"""
+    m = b and re.search(r"(\d+):(\d+)\s*left", b[4], re.I)
+    return int(m.group(1)) * 60 + int(m.group(2)) if m else None
+
+
+MEGA_MINUTES = 8 * 60  # a Mega Evolution lasts 8 hours: a longer 'left' is the rest timer
+
+
 def badge_spot(texts):
     """-> (fx, fy) of the Mega badge: between the WEIGHT/HEIGHT labels and the Stardust row"""
     b = badge(texts)
@@ -125,6 +137,7 @@ def sheet(texts):
     return {
         "done_today": "Daily level limit met" in j,
         "mega_now": "REMAINING MEGA EVOLUTION PERIOD" in ui.norm(j),
+        "resting": "REST PERIOD" in ui.norm(j) and "REMAINING MEGA EVOLUTION PERIOD" not in ui.norm(j),
         "level": level.group(1) if level else None,
         "more": int(more.group(1)) if more else None,
         "button": btn[0] if btn else None,
@@ -279,8 +292,6 @@ def check(info, texts, free_only=False):
     b = badge(texts)
     if b and free_only:  # the line by the badge means it's resting or Mega now: never free
         raise Pass(f"not free yet ({b[4].strip()})")
-    if b and "left" in b[4].lower():
-        raise Pass(f"Mega Evolved right now ({b[4].strip()})")
     mewtwo = "MEWTWO" in " ".join(ui.norm(t[4]) for t in texts)
     if not two_forms(texts):
         return mewtwo, []
@@ -292,12 +303,13 @@ def check(info, texts, free_only=False):
     raise Pass("X/Y species and the nickname doesn't end in X or Y")
 
 
-def can(s, mewtwo, free_only=False):
-    """the level page (one form) -> (page cost, needs free, why). Raises Pass when it can't or mustn't Mega Evolve"""
+def can(s, mewtwo, free_only=False, short=None):
+    """the level page (one form) -> (page cost, needs free, why). Raises Pass when it can't or mustn't Mega Evolve.
+    short: the badge's 'HH:MM left' line when it's 08:00 or less (a Mega's timer, or the rest timer's last 8 hours)"""
     if s["done_today"]:
         raise Pass("daily level limit met: done today")
-    if s["mega_now"]:
-        raise Pass("Mega Evolved right now")
+    if s["mega_now"] or (short and not s["resting"]):
+        raise Pass(f"Mega Evolved right now{f' ({short})' if short else ''}")
     if not s["button"]:
         raise Pass(f"{s['level']} Level: no MEGA EVOLVE on the level page")
     cost = page_cost(s)
@@ -316,16 +328,19 @@ def mega(info, dry, free_only=False, seen=None):
     seen: the page's look the caller just took (screen, texts, path, bounds)"""
     _, texts, _, bounds = seen or look()
     mewtwo, forms = check(info, texts, free_only)
+    b = badge(texts)
+    mins = left_minutes(b)
+    short = b[4].strip() if mins is not None and mins <= MEGA_MINUTES else None
     s, texts, bounds = open_sheet(texts, bounds)
     try:
         if not forms:
-            cost, need_free, why = can(s, mewtwo, free_only)
+            cost, need_free, why = can(s, mewtwo, free_only, short)
         else:
             nope = []
             for form in forms:
                 try:
                     s, texts, bounds = pick_form(form, texts, bounds)
-                    cost, need_free, why = can(s, mewtwo, free_only)
+                    cost, need_free, why = can(s, mewtwo, free_only, short)
                     break
                 except Pass as e:
                     nope.append(f"{form}: {e}")
@@ -356,15 +371,16 @@ def mega(info, dry, free_only=False, seen=None):
                 raise Pass(f"the box says x{asked}, the page said {cost}{' (' + why + ': only free)' if need_free else ''}: NO")
             return f"DRY would Mega Evolve for {asked} energy ({s['level']} Level, {s['more']} more{', ' + why if why else ''})"
         press(yes[0], bounds)
-        finish()
+        finish(b and b[4].strip())
         return f"Mega Evolved for {asked} energy ({s['level']} Level, {s['more']} more{', ' + why if why else ''})"
     finally:
         if look()[0] != "detail":
             close_sheet()
 
 
-def finish():
-    """after YES: tap the energy crystal, YES on 'will no longer be Mega Evolved', wait for 'HH:MM left'"""
+def finish(before=None):
+    """after YES: tap the energy crystal, YES on 'will no longer be Mega Evolved', wait for the new Mega's 'HH:MM left'.
+    before: the badge line the page had before (a rest timer's '22:35 left' or '07:30 left' is no finished Mega)"""
     end = time.time() + 45
     tapped = 0
     back_since = None
@@ -403,7 +419,8 @@ def finish():
             time.sleep(1.5)  # the 'no longer be Mega Evolved' box can take a moment: a 2nd tap would close it
             continue
         b = badge(texts)
-        if screen == "detail" and b and "left" in b[4].lower():
+        mins = left_minutes(b)
+        if screen == "detail" and mins is not None and mins <= MEGA_MINUTES and b[4].strip() != before:
             time.sleep(1.5)  # the CP still changes a moment after the badge reads 'left': a swipe then doesn't take
             return
     keep_capture("finish")

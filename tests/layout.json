@@ -1073,6 +1073,7 @@
   "names": [
    "FREE_SEARCH",
    "HERE",
+   "MEGA_MINUTES",
    "PHONE",
    "Pass",
    "SEARCH",
@@ -1091,6 +1092,7 @@
    "front",
    "keep_capture",
    "key",
+   "left_minutes",
    "log",
    "look",
    "main",

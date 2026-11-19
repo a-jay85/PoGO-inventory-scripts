@@ -251,7 +251,7 @@ class Door:
                      candy_xl=None if xl is None else 0 if xl else XL_CAP, candy=page.get("candy"), xl=page.get("xl"),
                      levels=self.levels(texts, info, sp, ivs, tile_cp), far=said("far", None if page["california"] is None else not page["california"]), gym_top20=gym_top20,
                      raid_team=raidteams.on_team(self.account, list(sp), base.is_shadow(texts), info["cp"] or tile_cp,
-                                                 info["hp"], *base.who(info)[2:]),
+                                                 info["hp"], *base.who(info)[2:], iv_sum=sum(ivs) if ivs else None),
                      iv_top=iv_top, pure_top=pure_top, pvp_judged=self.tag.upper() == "PVPC", ivc_judged=self.tag.upper() == "IVC",
                      other_tags=[t for t in tagsheet.tag_chips(texts)
                                  if t not in (self.tag.upper(), *((self.other.upper(),) if self.source else ()))])

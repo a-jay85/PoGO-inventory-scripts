@@ -22,17 +22,23 @@ mega is a copy of its species, at that copy's level and IVs, one mega per team. 
 best moves with Elite TMs, so a copy's real moves don't count. Only the attackers on DialgaDex's lists (80 deep) count.
 
 How it counts. A pile is one storage search: the species' dex number, its form terms, and shadow or !shadow. Its list
-is sorted by CP, highest first, and walked from the top. A tile's CP caps the copy's level (no IVs give that CP any
-higher), so a 15/15/15 at that level caps its rating. Once that cap can't beat a boss's 6th, no copy further down can
-either, and the walk stops. Like roster.py it goes round by round: each boss asks for the first pile on its list whose
-cap still beats its 6th, and those piles are walked, until no boss asks.
+is sorted by CP, highest first, and walked from the top. A tile's CP caps the copy's level and IVs together: per IV
+mix, no level higher than the one that mix reaches at that CP (ceiling()). The best rating of those caps the copy's.
+Once that cap can't beat a boss's 6th, no copy further down can either, and the walk stops. Like roster.py it goes
+round by round: each boss asks for the first pile on its list whose cap still beats its 6th, and those piles are
+walked, until no boss asks.
+Fewer opens: once no 3★ or lower copy (or 2★ or lower) under this CP could beat any boss's 6th, the pile's search
+takes a star term (4*, or 3*,4*): the rest of its list is only copies that could. Fewer searches: from round 2, piles
+not searched yet go 8 at a time in one search (`123,456,...&!shadow`, sorted by CP). Its top tile's CP is the most
+any of them has, and a pile whose copies at that CP can't beat any 6th needs no search of its own.
 An opened copy: CP, HP and the power-up cost on the page's top (no drag) give the level and the IVs that fit
 (powerup.cost_levels). The database (pokedb) may know its IVs. Still more than one fit, and the best of them could beat
 some boss's 6th: the appraisal gives them.
 
 Output in runs/<time>-raidteam/: copies.json (every copy opened, saved after each pile: a stopped count carries on
 from it), teams.json (../shared/raidteams.py reads it, for the door and /ivc) and report.md. teams.json: per boss its 6; every copy opened, with the
-bosses it's on; per pile, the lowest CP a copy could make some team at (bar). A copy under its pile's bar can't be on
+bosses it's on; per pile, the lowest CP a copy could make some team at (bar), and where its walk took a star term
+(stars). A copy under its pile's bar can't be on
 any team. One over it that isn't among the opened ones came or grew after the count.
 
 Keep: the bulk taggers (cleantrades, tradeable tag, specieswise) tag whole searches without opening a page, so they can't
@@ -55,7 +61,11 @@ from base import Stop, Skip, log, newest
 
 TEAM = roster.TEAM
 HUNDO = (15, 15, 15)
+FULL = 45  # the highest IV sum
 CHUNK = 4  # needs(): piles of each boss's list rated per line to rate.mjs
+STEPS = ((0, 3), (4, 7), (8, 11), (12, 15))  # ceiling(): defense and HP IVs, 4 at a time
+STARS = ((44, "4*"), (36, "3*,4*"))  # no copy with an IV sum this high or less can help: the search's star term
+PROBE = 8  # piles in one probe() search
 RUNS = os.path.join(HERE, "runs")
 RATE = os.path.join(HERE, "rate.mjs")
 
@@ -131,6 +141,46 @@ def top_level(sid, cp):
     return max((lv for lv in pvp.LEVELS if pvp.cp(b, (0, 0, 0), lv) <= cp), default=pvp.LEVELS[0])
 
 
+def top_at(b, ivs, cp):
+    """the highest level these IVs give a CP of cp or less at, or None"""
+    lo, hi = 0, len(pvp.LEVELS) - 1
+    if pvp.cp(b, ivs, pvp.LEVELS[0]) > cp:
+        return None
+    while lo < hi:
+        mid = (lo + hi + 1) // 2
+        lo, hi = (mid, hi) if pvp.cp(b, ivs, pvp.LEVELS[mid]) <= cp else (lo, mid - 1)
+    return pvp.LEVELS[lo]
+
+
+_CEIL = {}
+
+
+def ceiling(sid, cp, smax=FULL):
+    """[(level, ivs)]: the best of their ratings is at least what any copy of sid with a CP of cp or less and an IV
+    sum of smax or less rates. Per attack IV and 4-wide steps of defense and HP: the highest level the step's lowest
+    IVs reach under cp, with its highest IVs (that fit smax). A copy's level can't be higher, nor its IVs, and a
+    rating only grows with both. Tighter than a 15/15/15 at the 0/0/0's level: a strong copy at that CP sits lower.
+    No CP: level 50"""
+    k = (sid, cp, smax)
+    if k not in _CEIL:
+        b, out = stats(sid), set()
+        for a in range(16):
+            for d0, d1 in STEPS:
+                for h0, h1 in STEPS:
+                    if a + d0 + h0 > smax:
+                        continue
+                    lv = pvp.LEVELS[-1] if not cp else top_at(b, (a, d0, h0), cp)
+                    if lv is not None:
+                        out.add((lv, (a, min(d1, smax - a - h0), min(h1, smax - a - d0))))
+        _CEIL[k] = [x for x in sorted(out) if not any(y != x and below(x, y) for y in out)]
+    return _CEIL[k]
+
+
+def below(x, y):
+    """(level, ivs) x rates no higher than y: no higher a level, no higher an IV"""
+    return x[0] <= y[0] and all(i <= j for i, j in zip(x[1], y[1]))
+
+
 def fits(sids, cp, hp, levels=None):
     """[(sid, level, ivs)] that give exactly this CP and HP, at these levels (None: any)"""
     out = []
@@ -189,16 +239,25 @@ class Count:
         """the attackers of this pile on this boss's list"""
         return self.ent[(id(m), id(b))].get(q, [])
 
-    def cap_asks(self, m, b, q, cp):
+    def loose_asks(self, m, b, q, cp):
         return [(m.A[i], top_level(m.sid[i], cp), HUNDO) for i in self.entries(m, b, q)]
 
-    def cap(self, m, b, q, cp):
-        """the best rating any copy of pile q with this CP or less could have against this boss"""
-        return max((r or 0 for r in self.rater.rate(m.data["party"], b, self.cap_asks(m, b, q, cp))), default=0)
+    def cap_asks(self, m, b, q, cp, smax=FULL):
+        return [(m.A[i], lv, ivs) for i in self.entries(m, b, q) for lv, ivs in ceiling(m.sid[i], cp, smax)]
 
-    def warm_caps(self, wants):
-        """[(m, b, q, cp)]: every cap() these will ask for, in one line to rate.mjs"""
-        self.rater.warm([(m.data["party"], b, self.cap_asks(m, b, q, cp)) for m, b, q, cp in wants])
+    def best(self, m, b, asks):
+        return max((r or 0 for r in self.rater.rate(m.data["party"], b, asks)), default=0)
+
+    def over(self, m, b, q, cp, r, smax=FULL):
+        """could a copy of pile q with this CP or less (IV sum smax or less) rate over r against this boss? A
+        15/15/15 at the 0/0/0's level first (one ask), then ceiling()'s (a few hundred)"""
+        return self.best(m, b, self.loose_asks(m, b, q, cp)) > r and self.best(m, b, self.cap_asks(m, b, q, cp, smax)) > r
+
+    def warm_over(self, wants):
+        """[(m, b, q, cp, r, smax)]: everything over() will ask for these, in two lines to rate.mjs"""
+        self.rater.warm([(m.data["party"], b, self.loose_asks(m, b, q, cp)) for m, b, q, cp, r, smax in wants])
+        self.rater.warm([(m.data["party"], b, self.cap_asks(m, b, q, cp, smax)) for m, b, q, cp, r, smax in wants
+                         if self.best(m, b, self.loose_asks(m, b, q, cp)) > r])
 
     def option_asks(self, m, b):
         asks, who = [], []
@@ -248,12 +307,18 @@ class Count:
     def listing(self, q):
         return [(m, b) for m, b in self.pairs if self.entries(m, b, q)]
 
-    def beats(self, q, cp, pairs=None):
-        """the pairs (of these, else all listing q) whose 6th a copy of pile q with this CP could still beat"""
+    def beats(self, q, cp, pairs=None, smax=FULL):
+        """the pairs (of these, else all listing q) whose 6th a copy of pile q with this CP (and an IV sum of smax or
+        less) could still beat"""
         pairs = self.listing(q) if pairs is None else pairs
         self.warm_sixths(pairs)
-        self.warm_caps([(m, b, q, cp) for m, b in pairs])
-        return [(m, b) for m, b in pairs if self.cap(m, b, q, cp) > self.sixth(m, b)]
+        self.warm_over([(m, b, q, cp, self.sixth(m, b), smax) for m, b in pairs])
+        return [(m, b) for m, b in pairs if self.over(m, b, q, cp, self.sixth(m, b), smax)]
+
+    def stars(self, q, cp):
+        """the star term pile q's search can take from this CP down: no copy under it could beat any listing boss's
+        6th (the 6ths only grow), so the list it leaves out never needs walking. None: none"""
+        return next((t for smax, t in STARS if not self.beats(q, cp, smax=smax)), None)
 
     def wanted(self, q):
         """the pairs whose 6th the next copy in pile q could still beat"""
@@ -267,10 +332,11 @@ class Count:
             left[(id(m), id(b))] = (m, b, [q for q in self.ent[(id(m), id(b))] if not self.walk[q]["end"]])
         need = []
         while left:  # a few piles of each pair at a time: most find theirs in the first few
-            self.warm_caps([(m, b, q, self.walk[q]["next_cp"]) for m, b, qs in left.values() for q in qs[:CHUNK]])
+            self.warm_over([(m, b, q, self.walk[q]["next_cp"], self.sixth(m, b), FULL)
+                            for m, b, qs in left.values() for q in qs[:CHUNK]])
             for k, (m, b, qs) in list(left.items()):
                 r6 = self.sixth(m, b)
-                hit = next((q for q in qs[:CHUNK] if self.cap(m, b, q, self.walk[q]["next_cp"]) > r6), None)
+                hit = next((q for q in qs[:CHUNK] if self.over(m, b, q, self.walk[q]["next_cp"], r6)), None)
                 if hit or len(qs) <= CHUNK:
                     del left[k]
                     if hit and hit not in need:
@@ -290,26 +356,31 @@ class Count:
                    for m, b, asks in groups)
 
     def bars(self):
-        """pile -> the lowest CP a copy of it could make some team at today (None: none could). A cap only changes
-        where some form's 0/0/0 CP is, and grows with the CP: the first of those whose cap beats some 6th. Every
-        pile's search goes a step at a time together, so each step is one line to rate.mjs"""
+        """pile -> the lowest CP a copy of it could make some team at today (None: none could). Two answers, the higher
+        counts. A 15/15/15 at the 0/0/0's level: its cap only changes where some form's 0/0/0 CP is, and grows with
+        the CP: the first of those whose cap beats some 6th (every pile a step at a time together, one line to rate.mjs
+        a step). And a walk that stopped: at the count's end no boss asks for its next copy (needs()), so nothing at
+        that CP or under can make a team. ceiling()'s own halving search would cost minutes"""
         self.warm_sixths()
         cps = {q: sorted({pvp.cp(stats(x), (0, 0, 0), lv) for x in p["sids"] if x in pvp.SPECIES for lv in pvp.LEVELS})
                for q, p in self.piles.items()}
         lst = {q: self.listing(q) for q in self.piles}
-        self.warm_caps([(m, b, q, cps[q][-1]) for q in self.piles if cps[q] for m, b in lst[q]])
-        span = {q: [0, len(cps[q]) - 1] for q in self.piles if cps[q] and self.any_beats(q, cps[q][-1], lst[q])}
+        loose = lambda qcs: self.rater.warm([(m.data["party"], b, self.loose_asks(m, b, q, cp)) for q, cp in qcs for m, b in lst[q]])
+        hit = lambda q, cp: any(self.best(m, b, self.loose_asks(m, b, q, cp)) > self.sixth(m, b) for m, b in lst[q])
+        loose([(q, cps[q][-1]) for q in self.piles if cps[q]])
+        span = {q: [0, len(cps[q]) - 1] for q in self.piles if cps[q] and hit(q, cps[q][-1])}
         while any(lo < hi for lo, hi in span.values()):
-            self.warm_caps([(m, b, q, cps[q][(lo + hi) // 2]) for q, (lo, hi) in span.items() if lo < hi for m, b in lst[q]])
+            loose([(q, cps[q][(lo + hi) // 2]) for q, (lo, hi) in span.items() if lo < hi])
             for q, sp in span.items():
                 lo, hi = sp
                 if lo < hi:
                     mid = (lo + hi) // 2
-                    sp[:] = [lo, mid] if self.any_beats(q, cps[q][mid], lst[q]) else [mid + 1, hi]
-        return {q: cps[q][span[q][0]] if q in span else None for q in self.piles}
-
-    def any_beats(self, q, cp, pairs):
-        return any(self.cap(m, b, q, cp) > self.sixth(m, b) for m, b in pairs)
+                    sp[:] = [lo, mid] if hit(q, cps[q][mid]) else [mid + 1, hi]
+        out = {q: cps[q][span[q][0]] if q in span else None for q in self.piles}
+        for q, w in self.walk.items():
+            if out[q] is not None and not w["end"] and w["next_cp"]:
+                out[q] = max(out[q], w["next_cp"] + 1)
+        return out
 
     # ---------- saving ----------
 
@@ -343,9 +414,14 @@ class Count:
                                   "ivs": sorted({v for *_, v in c["fits"]}) if len({v for *_, v in c["fits"]}) <= 4 else None,
                                   "on": on.get(k, []), "skip": c.get("skip")})
         bars = self.bars()
+        out["stars"] = {}  # [[smax, cp]]: a pile walked with a star term from that CP down: no copy at that CP or
+        # under with an IV sum of smax or less can make a team (it was left out of the search)
         for q, p in self.piles.items():
             for x in p["sids"]:
-                out["bars"][f"{x}{'|shadow' if p['shadow'] else ''}"] = bars[q]
+                key = f"{x}{'|shadow' if p['shadow'] else ''}"
+                out["bars"][key] = bars[q]
+                if self.walk[q].get("stars"):
+                    out["stars"][key] = self.walk[q]["stars"]
         return out
 
 
@@ -362,61 +438,141 @@ class Enough(Exception):
     """this tile's cap can't beat the 6th of any boss that asked: neither can the rest of the list"""
 
 
+class Tighter(Exception):
+    """from this tile down the search can take a star term: type it again with it"""
+
+
 def by_cp(ts):
     """the tiles' CPs go down, top to bottom (a CP not read is passed over)"""
     cps = [cp for _, cp in ts if cp]
     return all(x >= y for x, y in zip(cps, cps[1:]))
 
 
-def walk_pile(c, q, asked):
-    """walk pile q's list from the top, sorted by CP, highest first. asked: the pairs that wanted it this round"""
+def with_stars(q, stars):
+    """pile q's search with a star term, before its shadow term (a typed search keeps a thick last letter)"""
+    head, tail = q.rsplit("&", 1)
+    return f"{head}&{stars}&{tail}" if stars else q
+
+
+def floor_of(stars):
+    """the lowest IV sum a star term lets through"""
+    return {t: smax + 1 for smax, t in STARS}.get(stars, 0)
+
+
+def sorted_tiles(c, typed):
+    """type the search, sort its list by CP once (a search keeps the list's sort) -> its first tiles [(name, cp)]"""
     import base, search, taps, ui
     from tagsheet import search_exact
-    w = c.walk[q]
-    search_exact(q)
+    search_exact(typed)
     ts = taps.settled_tiles()
-    if not ts:
-        log(f"  {q}: none")
-        w["end"] = True
-        return
-    if not c.sorted or not by_cp(ts):  # a search keeps the list's sort: once is enough, unless it changed
+    if ts and (not c.sorted or not by_cp(ts)):
         _, _, _, bounds = base.look()
         _, texts, _ = search.sort_down("COMBAT POWER", bounds)
         c.sorted = True
-        if not by_cp([(n, cp) for n, cp, _, _ in ui.tiles(texts)]):
-            raise Stop(f"{q}: sorted by Combat Power, but the CPs don't go down")
-    passed = Counter((x["name"], x["tile_cp"]) for x in c.copies if x["q"] == q)
+        ts = [(n, cp) for n, cp, _, _ in ui.tiles(texts)]
+        if not by_cp(ts):
+            raise Stop(f"{typed}: sorted by Combat Power, but the CPs don't go down")
+    return ts
 
-    def want(name, cp):
-        if passed[(name, cp)] > 0:  # opened before: walk_list passes it over
-            return True
-        if not c.beats(q, cp, asked):
-            w["next_cp"] = cp
-            raise Enough()
-        return True
 
-    def visit(i, name, cp):
-        try:
-            info, texts, _ = base.open_checked(i, name, cp, name_ok=True)
-            one = read_copy(c, q, c.piles[q], info, texts, name, cp)
-            c.copies.append(one)
-            lvs = "/".join(map(str, sorted({lv for _, lv, _ in one["fits"]})))
-            log(f"  {name} CP{one['cp']}: level {lvs}, IVs {'sure' if one['ivs_sure'] else str(len(one['fits'])) + ' fits'}")
-        except Skip as e:
-            log(f"  {name} CP{cp}: passed ({e})")
-            c.copies.append({"q": q, "name": name, "tile_cp": cp, "skip": str(e), "fits": []})  # not opened again on a carry-on
-        base.back_to_list()
-        return False
-
-    try:
-        if search.walk_list(visit, want=want, passed=passed):
+def walk_pile(c, q, asked, most=None):
+    """walk pile q's list from the top, sorted by CP, highest first. asked: the pairs that wanted it this round.
+    most: open at most this many, then leave the rest for a later round (other piles raise the 6ths meanwhile)"""
+    import base, search
+    w = c.walk[q]
+    opened = [0]
+    while True:
+        stars = c.stars(q, w["next_cp"])
+        typed = with_stars(q, stars)
+        if stars:
+            log(f"  {typed}: no copy under {stars} could make a team from CP{w['next_cp']} down")
+            smax = next(x for x, t in STARS if t == stars)
+            if [smax, w["next_cp"]] not in w.setdefault("stars", []):
+                w["stars"].append([smax, w["next_cp"]])
+        if not sorted_tiles(c, typed):
+            log(f"  {typed}: none")
             w["end"] = True
-    except Enough:
-        pass
+            return
+        passed = Counter((x["name"], x["tile_cp"]) for x in c.copies if x["q"] == q)
+
+        def want(name, cp):
+            if passed[(name, cp)] > 0:  # opened before: walk_list passes it over
+                return True
+            if not c.beats(q, cp, asked):
+                w["next_cp"] = cp
+                raise Enough()
+            if most and opened[0] >= most:
+                w["next_cp"] = cp
+                raise Enough()
+            if cp and c.stars(q, cp) != stars:
+                w["next_cp"] = cp
+                raise Tighter()
+            return True
+
+        def visit(i, name, cp):
+            opened[0] += 1
+            try:
+                info, texts, _ = base.open_checked(i, name, cp, name_ok=True)
+                one = read_copy(c, q, c.piles[q], info, texts, name, cp, floor_of(stars))
+                c.copies.append(one)
+                lvs = "/".join(map(str, sorted({lv for _, lv, _ in one["fits"]})))
+                log(f"  {name} CP{one['cp']}: level {lvs}, IVs {'sure' if one['ivs_sure'] else str(len(one['fits'])) + ' fits'}")
+            except Skip as e:
+                log(f"  {name} CP{cp}: passed ({e})")
+                c.copies.append({"q": q, "name": name, "tile_cp": cp, "skip": str(e), "fits": []})  # not opened again on a carry-on
+            base.back_to_list()
+            return False
+
+        try:
+            if search.walk_list(visit, want=want, passed=passed):
+                w["end"] = True  # a star term's list too: what it leaves out can't make a team
+            return
+        except Enough:
+            return
+        except Tighter:
+            continue
 
 
-def read_copy(c, q, p, info, texts, name, tile_cp):
-    """the opened page -> a copy dict, or None (not this pile's, or nothing fits its CP and HP)"""
+def probe(c, qs):
+    """one search for several piles that haven't been searched (the same shadow, no form terms): its top tile's CP
+    is the most any of them has. A pile whose copies at that CP can't beat any boss's 6th is settled: no search of
+    its own. -> the piles settled"""
+    shadow = c.piles[qs[0]]["shadow"]
+    typed = ",".join(str(c.piles[q]["dex"]) for q in qs) + f"&{'shadow' if shadow else '!shadow'}"
+    ts = sorted_tiles(c, typed)
+    top = ts[0][1] if ts else 0
+    if ts and not top:
+        log(f"  {typed}: its top tile's CP didn't read")
+        return []
+    done = [q for q in qs if not c.beats(q, top)] if top else qs
+    for q in qs:
+        c.walk[q]["probed"] = True  # once: a group that settled none would settle none again
+    for q in done:
+        c.walk[q]["next_cp" if top else "end"] = top or True
+    log(f"  {typed}: {'top CP' + str(top) if top else 'none'}, {len(done)} of {len(qs)} piles settled")
+    return done
+
+
+def probes(c):
+    """the piles not searched or probed yet (no form terms) whose copies could still beat some boss's 6th, in groups
+    of PROBE that one search can cover. Piles of about the same top CP go together: one strong pile in a group
+    would settle none of the rest"""
+    def plain(q):
+        return q == f"{c.piles[q]['dex']}&{'shadow' if c.piles[q]['shadow'] else '!shadow'}"
+    fresh = [q for q in c.piles if c.walk[q]["next_cp"] is None and not c.walk[q]["end"]
+             and not c.walk[q].get("probed") and plain(q)]
+    fresh = [q for q in fresh if c.beats(q, None)]
+    top = lambda q: max(pvp.cp(stats(x), HUNDO, pvp.LEVELS[-1]) for x in c.piles[q]["sids"] if x in pvp.SPECIES)
+    out = []
+    for sh in (False, True):
+        g = sorted((q for q in fresh if c.piles[q]["shadow"] == sh), key=top)
+        out += [g[i:i + PROBE] for i in range(0, len(g), PROBE) if len(g[i:i + PROBE]) > 1]
+    return out
+
+
+def read_copy(c, q, p, info, texts, name, tile_cp, floor=0):
+    """the opened page -> a copy dict, or None (not this pile's, or nothing fits its CP and HP). floor: the search's
+    star term let through only IV sums this high"""
     import base, powerup, pokedb
     if base.is_shadow(texts) != p["shadow"]:
         raise Skip(f"{'not ' if p['shadow'] else ''}a shadow, but in the {q} search")
@@ -427,6 +583,7 @@ def read_copy(c, q, p, info, texts, name, tile_cp):
         got = fits(p["sids"], cp, hp)  # a cost misread: CP and HP alone
     if not got:
         raise Skip(f"no level and IVs give CP{cp} {hp} HP")
+    got = [f for f in got if sum(f[2]) >= floor] or got
     kg, m = (base.OPENED.get("who") or (None,) * 4)[2:]
     known = [r for r in pokedb.find(cp=cp, hp=hp)
              if r.get("atk") is not None and base.same_pokemon((cp, hp, kg, m), (r["cp"], r["hp"], r["kg"], r["m"]))]
@@ -460,6 +617,12 @@ def cmd_count(c, resume, out_dir):
     log(f"stopped? carry on with: raidteam.py count {path}" + (f" --limit {c.limit}" if c.limit else ""))
     for rnd in range(1, 500):
         need = c.needs()
+        if rnd > 1 and (groups := probes(c)):  # (round 1's piles are the bosses' best: most have copies to open)
+            log(f"round {rnd}: {sum(map(len, groups))} piles not searched yet, in {len(groups)} searches")
+            for g in groups:
+                probe(c, g)
+            json.dump(c.state(who), open(path, "w"), indent=0)
+            need = c.needs()
         if not need:
             break
         log(f"round {rnd}: {len(need)} piles to walk, {len(c.copies)} copies opened so far")

@@ -495,7 +495,16 @@ def open_tiles(c, q, todo, past):
     page by the hidden next button (taps.tap_next), no close and no tile tap between. past(name, cp): the walk is
     past where they'd be (stop there, not at the list's end)"""
     import base, search, taps, ui
-    left = Counter((squash(n), cp) for n, cp in todo)
+    left = Counter(todo)
+
+    def find(name, cp):
+        """the wanted tile this one is, or None: the same CP and the name OCR'd alike (search.looks_same: the name
+        pass's reads add marks, '91hpatbs*^' for '91 hp at BS*'). A CP that didn't read: the name, if only one has it"""
+        ks = [k for k in +left if k[1] == cp and (squash(k[0]) == squash(name) or search.looks_same(k[0], name))]
+        if not ks and cp is None:
+            ks = [k for k in +left if search.looks_same(k[0], name)]
+            ks = ks if len(ks) == 1 else []
+        return ks[0] if ks else None
 
     def record(name, cp, info, texts):
         try:
@@ -506,13 +515,6 @@ def open_tiles(c, q, todo, past):
         except Skip as e:
             log(f"  {name} CP{cp}: passed ({e})")
             c.copies.append({"q": q, "name": name, "tile_cp": cp, "skip": str(e), "fits": []})  # not opened again on a carry-on
-
-    def target(name, cp):
-        """the wanted tile this page is, or None. A page CP that didn't read: its name, if only one wanted has it"""
-        if left[(squash(name), cp)] > 0:
-            return (squash(name), cp)
-        ks = [k for k in +left if k[0] == squash(name)] if cp is None else []
-        return ks[0] if len(ks) == 1 else None
 
     def page_on():
         misses = 0
@@ -527,7 +529,7 @@ def open_tiles(c, q, todo, past):
             info, texts, _ = base.steady_detail()
             if past(info["name"], info["cp"]):
                 return
-            k = target(info["name"], info["cp"])
+            k = find(info["name"], info["cp"])
             if not k:
                 misses += 1
                 continue
@@ -538,10 +540,10 @@ def open_tiles(c, q, todo, past):
     def want(name, cp):
         if not +left or past(name, cp):
             raise Enough()
-        return left[(squash(name), cp)] > 0
+        return find(name, cp) is not None
 
     def visit(i, name, cp):
-        left[(squash(name), cp)] -= 1
+        left[find(name, cp)] -= 1
         try:
             info, texts, _ = base.open_checked(i, name, cp, name_ok=True)
             record(name, cp, info, texts)
@@ -552,6 +554,7 @@ def open_tiles(c, q, todo, past):
         base.back_to_list()
         return False
 
+    taps.settled_tiles()  # (a list just back at its top can still be drawing: "no tile 6 (3 tiles)")
     try:
         search.walk_list(visit, want=want)
     except Enough:

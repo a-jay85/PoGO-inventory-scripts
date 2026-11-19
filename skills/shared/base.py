@@ -1364,10 +1364,13 @@ def type_line(texts):
 
 
 def can_have(sid, cp, hp):
-    """some IVs at some level give this exact CP and HP: a CP too high for the earlier stages rules them out"""
+    """some IVs at some level give this exact CP and HP: a CP too high for the earlier stages rules them out.
+    cp None (it didn't read): the HP alone"""
     b = pvp.SPECIES[sid]["baseStats"]
     for lv in pvp.LEVELS:
         hs = [h for h in range(16) if pvp.hp(b, (0, 0, h), lv) == hp]
+        if hs and cp is None:
+            return True
         if hs and any(pvp.cp(b, (a, d, h), lv) == cp for h in hs for a in range(16) for d in range(16)):
             return True
     return False
@@ -1399,9 +1402,10 @@ def species_from_candy(texts, cp, hp):
     if not lines:
         raise Skip(f"species unclear: candy reads {got!r}")
     seen = type_line(texts)
-    # every form whose line starts there: tree() misses some (Alolan Raichu isn't among Pikachu's evolutions)
+    # every form whose line starts there: tree() misses some (Alolan Raichu isn't among Pikachu's evolutions).
+    # No type read (busy art behind it) says nothing: then every form, and the CP and HP pick
     forms = [s for s in pvp.PLAIN if pvp.root(s) in lines
-             and {t.upper() for t in pvp.PLAIN[s]["types"] if t != "none"} == seen]
+             and (not seen or {t.upper() for t in pvp.PLAIN[s]["types"] if t != "none"} == seen)]
     sp = [s for s in forms if can_have(s, cp, hp)]
     if not sp:
         raise Skip(f"species unclear: no form in the {got} line has types {sorted(seen)} and CP{cp} {hp}HP")
@@ -1537,6 +1541,23 @@ def exact_ivs(sp, cp, hp, ivs, raws):
     got = _exact_ivs(sp, cp, hp, ivs, raws)
     learn_ivs(sp, cp, hp, got)
     return got
+
+
+def ivs_by_hp(sp, hp, ivs, raws, levels=None):
+    """exact_ivs for a page whose CP didn't read (busy art or the Pokémon over it): crisp bars only, and their
+    stamina must give this HP at a level the power-up cost allows (levels: powerup.cost_levels', None = any).
+    The database learns them, and the species when only one fits. -> the IVs, or Skip"""
+    if any(abs(r - round(r)) > 0.3 for r in raws):
+        raise Skip(f"IVs unsure: no CP and bars not crisp {raws}")
+    lvs = levels or pvp.LEVELS
+    fit = [s for s in sp if s in pvp.SPECIES
+           and any(pvp.hp(pvp.SPECIES[s]["baseStats"], tuple(ivs), lv) == hp for lv in lvs)]
+    if not fit:
+        raise Skip(f"IVs unsure: no CP, and {ivs} gives no {sp} {hp}HP at {lvs[0]}-{lvs[-1]}")
+    pokedb.learn(OPENED.get("who"), ivs=tuple(ivs), species=fit[0] if len(fit) == 1 else None)
+    if len(fit) > 1:
+        log(f"  no CP: {fit} all fit {hp}HP, species not learned")
+    return tuple(ivs)
 
 
 def learn_ivs(sp, cp, hp, ivs, raws=None):

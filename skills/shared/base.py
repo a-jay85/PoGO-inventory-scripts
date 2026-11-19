@@ -448,6 +448,8 @@ if not ui.ANDROID:
 def bring_forward():
     for _ in range(3):  # the first open sometimes loses to whatever app had focus
         if ui.sh(ui.HELPER, "front").strip() == "iPhone Mirroring":
+            if _ and session.opened:  # opened again mid-run (quit under the run): macOS 27 opens it smaller
+                session.fit()
             return
         subprocess.run(["open", "-a", "iPhone Mirroring"])
         time.sleep(1.5)

@@ -146,6 +146,25 @@ def mirroring_screen():
     return "up", j
 
 
+def fit():
+    """the iPhone Mirroring window at the size the scripts read (ui.SIZE): macOS 27 opens it smaller"""
+    try:
+        ui.window()
+    except ui.Refused:
+        return  # no window yet: connect() fits it once it's up
+    try:
+        was = ui.fit_window()
+    except ui.Refused as e:
+        raise Stop(f"{e}. Allow this terminal in System Settings > Privacy & Security > Accessibility")
+    if was:
+        time.sleep(0.5)  # the window redraws at the new size
+        now = ui.window()[3:]
+        if (round(now[0]), round(now[1])) != ui.SIZE:
+            raise Stop(f"set the iPhone Mirroring window to {ui.SIZE[0]} x {ui.SIZE[1]}, but it's "
+                       f"{now[0]:.0f} x {now[1]:.0f}")
+        log(f"iPhone Mirroring window {was[0]} x {was[1]} -> {ui.SIZE[0]} x {ui.SIZE[1]}")
+
+
 def connect():
     """iPhone Mirroring open and showing the iPhone. Opened once more if it can't reach it"""
     for attempt in range(2):
@@ -156,6 +175,7 @@ def connect():
         while time.time() < end:
             state, j = mirroring_screen()
             if state == "up":
+                fit()
                 return
             if state == "trouble":
                 if "IPHONE IN USE" in j:  # opening it again won't help while it's in your hand. The words must not

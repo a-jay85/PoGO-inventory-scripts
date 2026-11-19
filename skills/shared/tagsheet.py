@@ -168,6 +168,30 @@ def counter(cache, done=None, edit=False, live=False):
     return n
 
 
+def group_hits(fams, prefix, count, n, seen):
+    """group test (/cleanup read, /dex ★100%): fams [(key, its dex numbers)] -> the keys where
+    prefix&<their dexes>&count finds something. Halves each group with hits, or tests each family alone once hits
+    turn out common. n(query) -> result count. seen: [hits, families settled] so far in this pass, updated"""
+    hits, todo = [], [fams]
+    while todo:
+        g = todo.pop(0)
+        dexes = ",".join(search.dex_ranges({d for _, ds in g for d in ds}))
+        n_ = n(f"{prefix}{dexes}&{count}")
+        log(f"  {len(g)} families {g[0][0]}-{g[-1][0]}: {n_}")
+        if not n_:
+            seen[1] += len(g)
+            continue
+        if len(g) == 1:
+            hits.append(g[0][0])
+            seen[0] += 1
+            seen[1] += 1
+        elif len(g) <= 3 or (seen[0] + 1) / (seen[1] + 10) > 0.2:  # hits are common: halving costs more than one each
+            todo += [[f] for f in g]
+        else:
+            todo += [g[:len(g) // 2], g[len(g) // 2:]]
+    return sorted(hits)
+
+
 def _search_exact(q, Q, gap_ok, edit, live):
     for attempt in range(3):
         _views.clear()

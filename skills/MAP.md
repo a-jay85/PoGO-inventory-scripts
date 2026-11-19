@@ -617,6 +617,7 @@ Shared taps: the swipe to the next Pokémon, SELECT ALL, an exact search, the St
 - `class Again`: the screen was still settling: read it again
 - `press(t, bounds, hold=None)`: one tap in the middle of an OCR box (never go(): a 2nd tap after PURIFY lands on POWER UP)
 - `exact(texts, word)`: boxes whose text is exactly this word, case and all ('TRANSFER' button, not the 'transfer.' line)
+- `yes_no(texts, words)`: a YES / NO box that says `words` (any case): where YES and NO are, (yes y, no y) rounded, for base.steady() to wait on until it's done growing
 - `swipe_next(bounds)`: swipe left across the Pokémon's picture: the next one in the list opens
 - `tap_next(bounds)`: on to the next Pokémon in the list by the hidden button at the CP arc's right end (NEXT_AT, NEXT_AT_IOS)
 - `next_one(bounds, moved, poll=0.12, tap=False)`: swipe on to the next Pokémon: True once a detail page shows one moved(texts) says is another

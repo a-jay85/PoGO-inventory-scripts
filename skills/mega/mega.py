@@ -44,7 +44,7 @@ import base
 from base import Stop, log, keep_capture, look, front
 import search
 import session
-from taps import Pass, exact, press, next_one, settled_tiles, row_of
+from taps import Pass, exact, press, yes_no, next_one, settled_tiles, row_of
 from tagsheet import search_exact
 
 TAG = "TODO"
@@ -186,11 +186,8 @@ def page_cost(s):
 def box_key(texts):
     """the Mega Evolve box: its cost and where YES and NO are, so base.steady() waits until it's done growing (a tap while
     it grows can miss, and the box closes with no Mega Evolution). None while it isn't there yet"""
-    j = " ".join(t[4] for t in texts)
-    yes, no = exact(texts, "YES"), exact(texts, "NO")
-    if "lasts for 8 hours" not in j or len(yes) != 1 or len(no) != 1:
-        return None
-    return ask_cost(texts), round(yes[0][1], 2), round(no[0][1], 2)
+    spots = yes_no(texts, "lasts for 8 hours")
+    return spots and (ask_cost(texts), *spots)
 
 
 def open_sheet(texts, bounds):

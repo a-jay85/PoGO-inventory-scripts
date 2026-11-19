@@ -520,7 +520,8 @@
    "script",
    "search_exact",
    "settled_tiles",
-   "wait_box"
+   "wait_box",
+   "yes_no"
   ],
   "runs": [
    "skills/evo/runs"
@@ -1140,7 +1141,8 @@
    "show_me",
    "to_list",
    "two_forms",
-   "walk"
+   "walk",
+   "yes_no"
   ],
   "runs": [
    "skills/mega/runs"
@@ -2436,7 +2438,8 @@
    "swipe_next",
    "tap_next",
    "tile_names",
-   "wait_for"
+   "wait_for",
+   "yes_no"
   ],
   "runs": []
  },

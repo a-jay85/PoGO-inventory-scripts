@@ -229,7 +229,9 @@ def ocr(path):
     (2x for every look: worse now and then, a half-hidden top row lost.) The boxes are fractions: the same at 2x"""
     out = ocr_once(path)
     kind = classify(out)
-    thin = kind == "list" and len(tiles(out)) < len(tile_cps(out))
+    thin = kind == "list" and (len(tiles(out)) < len(tile_cps(out)) or not ANDROID and not tiles(out))  # (no tiles
+    # at all on an iPhone list: its one tile's CP and name read upside down, 'GIZE' for CP 3219, and /raidteam tapped
+    # a tile it couldn't see, 2026-11-19. 2x read it. A real 0 pays the 2nd read: about 0.1 s)
     tabless = kind == "list" and not ANDROID and not full_list(out)  # a tag's list, or tabs read upside down
     # (iPhone 2026-11-19: a 1-result list read EGGS as 'SOWI' and lost TAGS; start_search went to the full list
     # over and over till it stopped. 2x read them right. A tag's list pays the 2nd read: about 0.1 s)

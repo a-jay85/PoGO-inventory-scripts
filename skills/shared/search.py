@@ -224,6 +224,7 @@ def leave_multiselect(texts, bounds):
 
 
 BAR_GAP = 0.7  # two taps on the bar closer than this act as a double-tap
+RESUME_DEAF = 40  # s: the Pixel's game, brought back after the phone was locked, drops taps for 7-25 s (2026-11-19)
 POLL = 0.0  # between looks while waiting for the screen: a look itself takes ~0.35 s, and waiting more saved nothing (Android, 2026-10-23)
 
 
@@ -412,7 +413,9 @@ def clear_search():
     global scrolled
     LAST["q"] = None
     want = ("list", "tag-tab", "detail", "menu", "appraisal", "gym")
-    for _ in range(3):
+    t0, tries = time.time(), 0
+    while tries < 3:
+        tries += 1
         screen, texts, path, bounds = base.look()
         if leave_multiselect(texts, bounds):
             continue
@@ -457,8 +460,13 @@ def clear_search():
         if screen == "list" and ui.search_box(texts) and x_button(bounds):
             return "panel"
         # an empty bar OCR reads nothing in, not even the < (Pixel 2026-11-19: 'couldn't get an empty search bar' twice)
-        if screen == "list" and (empty_bar(texts) or bare_pill(texts, path)) and open_panel(bounds):
-            return "panel"
+        if screen == "list" and (empty_bar(texts) or bare_pill(texts, path)):
+            if open_panel(bounds):
+                return "panel"
+            if time.time() - t0 < RESUME_DEAF:  # the game just brought back drops taps: the bar again, never the X
+                log("  the bar's tap didn't open the panel: again")
+                tries -= 1
+                continue
         if screen not in ("list", "tag-tab"):
             back_to_list()
             screen, texts, _, bounds = wait_for("list", "tag-tab")

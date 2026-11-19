@@ -75,9 +75,11 @@ def tap_next(bounds):
 
 def next_one(bounds, moved, poll=0.12, tap=False):
     """swipe on to the next Pokémon: True once a detail page shows one moved(texts) says is another. A swipe that does
-    nothing twice = the end of the list. bounds None: read them before each swipe. tap: tap_next instead"""
-    for attempt in range(2):
-        (tap_next if tap else swipe_next)(bounds or look()[3])
+    nothing twice, and the other way once (tap_next for a swipe), = the end of the list: a busy Pixel dropped both swipes
+    mid-list (2026-11-19: dbfill's 4* walk ended at 106 of 300+, on Omastar CP955). bounds None: read them before each
+    swipe. tap: tap_next instead"""
+    for attempt in range(3):
+        (tap_next if tap != (attempt == 2) else swipe_next)(bounds or look()[3])
         for _ in range(10):
             time.sleep(poll)
             screen, texts, _, _ = look()
@@ -116,6 +118,8 @@ def details(key=by_name_cp_hp, read=None, poll=0.12, reswipe=False):
         seen.add(key(info))
         yield info, texts, bounds, seen
         if not next_one(bounds, moved, poll=poll):
+            log(f"  swipes and the next button didn't move off {key(info)}: end of the list")
+            keep_capture("end")
             return
 
 

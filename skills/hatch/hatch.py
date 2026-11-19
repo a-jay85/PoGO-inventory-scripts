@@ -71,8 +71,8 @@ def through_hatches():
                 f"{ui.summary([t for t in texts if 0.07 < t[1] < 0.3], 60)}")
             base.tap_x(bounds, rest=2.0)
             continue
-        if screen == "map":
-            on_map = on_map or time.time()
+        if screen in ("map", "list", "tag-tab"):  # the game can reopen on the Pokémon list or a tag's list as it
+            on_map = on_map or time.time()  # was left: waited out like the map, then to_eggs goes from there
             if time.time() > on_map + WAIT_HATCH:
                 return "map", hatched
         else:

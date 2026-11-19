@@ -265,10 +265,11 @@ def is_label(s, label):
 
 
 def full_list(texts):
-    """the Pokémon screen's TAGS and EGGS tabs both show: the full list (or its Tags tab), no tag's list. One stray
-    letter is fine ('EGGSI', Pixel 2026-11-18: an exact match backed out of the list three times and stopped)"""
-    words = [t[4] for t in texts]
-    return any(is_label(w, "TAGS") for w in words) and any(is_label(w, "EGGS") for w in words)
+    """the Pokémon screen's TAGS or EGGS tab shows: the full list (or its Tags tab), no tag's list (a tag's list has
+    neither). One stray letter is fine ('EGGSI', Pixel 2026-11-18: an exact match backed out of the list three times
+    and stopped). Either one: a 0-result search's pale screen read TAGS but not EGGS, and the search went to the full
+    list over and over till it stopped (iPhone, 2026-11-19)"""
+    return any(is_label(t[4], w) for t in texts if t[1] < 0.15 for w in ("TAGS", "EGGS"))
 
 
 # ---------- screen classification ----------

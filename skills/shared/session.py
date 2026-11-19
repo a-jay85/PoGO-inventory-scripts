@@ -7,7 +7,7 @@
   digits only, outside the repo so it's never committed). A PIN that fails is never typed again that run: wrong PINs
   lock the phone out for longer each time. It's typed again only if the phone locks itself mid-run after it worked.
   First, once per run: a Pixel on over a day with under 1 GB free for apps is slow (the game drops taps), so it's
-  restarted (about a minute). Every run logs the phone's 'on, MB free, load' line. POGO_NO_RESTART=1 only says so;
+  restarted (about a minute). Every run logs the phone's 'on, MB free, load, battery' line. POGO_NO_RESTART=1 only says so;
   POGO_RESTART=1 restarts it anyway.
   close() goes to the home screen (the game to the back), then locks the phone.
 - main(body) runs a script's body: STOPPED / interrupted / CRASHED lines and exit codes 1 / 130 / 2, the run folder
@@ -116,21 +116,24 @@ BOOT_TIMEOUT = 180  # s for a restarted phone to say it's up
 
 
 def health():
-    """-> (seconds on, MB free for apps, 1-minute load). MemFree says little: Android keeps it low on purpose"""
-    out = ui.android.shell("cat /proc/uptime /proc/loadavg; grep MemAvailable /proc/meminfo").split()
-    return float(out[0]), int(out[out.index("MemAvailable:") + 1]) // 1024, float(out[2])
+    """-> (seconds on, MB free for apps, 1-minute load, battery %). MemFree says little: Android keeps it low on
+    purpose"""
+    out = ui.android.shell("cat /proc/uptime /proc/loadavg; grep MemAvailable /proc/meminfo; "
+                           "dumpsys battery | grep -m1 ' level:'").split()
+    return (float(out[0]), int(out[out.index("MemAvailable:") + 1]) // 1024, float(out[2]),
+            int(out[out.index("level:") + 1]))
 
 
-def say_health(up, mb, load):
-    return f"on {int(up // 3600)}h{int(up % 3600 // 60):02d}m, {mb} MB free, load {load:.1f}"
+def say_health(up, mb, load, battery):
+    return f"on {int(up // 3600)}h{int(up % 3600 // 60):02d}m, {mb} MB free, load {load:.1f}, battery {battery}%"
 
 
 def restart_if_worn():
     """a Pixel on a long time with little memory free is slow: the game drops taps and reads come late. Then it's
     restarted (about a minute) before the run uses it. Once per run, at its start, never mid-run.
     POGO_NO_RESTART=1: only says it would. POGO_RESTART=1: restarts it whatever its numbers"""
-    up, mb, load = health()
-    log(f"phone: {say_health(up, mb, load)}")
+    up, mb, load, battery = health()
+    log(f"phone: {say_health(up, mb, load, battery)}")
     if not flag("POGO_RESTART") and (up < WORN_UP or mb > WORN_MB):  # (a chain's next step finds it fresh)
         return
     if flag("POGO_NO_RESTART"):

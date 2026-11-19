@@ -165,13 +165,21 @@ def run_shortcut(name, suffix=""):
     raise Stop(f"couldn't run the {name!r} shortcut{' + ' + suffix if suffix else ''}")
 
 
+BAR_SEEN = [None]  # bar_end's last look at the panel (append reads the bar from it: no look more)
+
+
+def panel_up():
+    BAR_SEEN[0] = ui.ocr(ui.capture()[0])
+    return ui.search_panel(BAR_SEEN[0])
+
+
 def bar_end(bounds=None, taps=2):
     """tap the filled bar until the panel opens (the iPhone drops a bar tap now and then, and a tap while the list
     still loads does nothing), then put the cursor at its end. -> False if the panel never opened"""
     bounds = bounds or look()[3]
     for tap in range(taps):
         search.click(0.45, 0.183, bounds, gap=search.BAR_GAP)
-        if base.settle(lambda: ui.search_panel(ui.ocr(ui.capture()[0])), bool, timeout=3):
+        if base.settle(panel_up, bool, timeout=3):
             break
         if tap < taps - 1:
             log("  the tap on the search bar didn't open it: tapping it again")
@@ -195,6 +203,11 @@ def append(suffix, bounds=None, before=None):
     want = same_l(suffix)
     if len(want) > 24:  # a long one doesn't fit in the bar: only its end shows
         want = want[-24:]
+    if not before and BAR_SEEN[0]:  # what the bar held when the panel opened: a saved search's. When nothing typed
+        # lands, it still ends with that, and the piece is typed once more (iPhone 2026-11-19: no key of a Clean Trades
+        # suffix landed, the panel up, and /cleantrades stopped on 'couldn't run the shortcut')
+        box = ui.search_box(BAR_SEEN[0])
+        before = box and ui.search_text(box)
     old = same_l(before)[-16:] if before else None
     for attempt in range(2):
         base.type_text(suffix)

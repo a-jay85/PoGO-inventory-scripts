@@ -232,10 +232,16 @@ def ocr(path):
         big = f"/tmp/pogo-ocr2x-{os.getpid()}-{threading.get_ident()}.png"  # (two phones at once: one file each)
         im.resize((im.width * 2, im.height * 2), Image.LANCZOS).save(big, compress_level=1)
         again = ocr_once(big)
-        if thin and len(tiles(again)) > len(tiles(out)) or tabless and full_list(again) \
+        if thin and len(tiles(again)) > len(tiles(out)) or tabless and (full_list(again) or header(again) > header(out)) \
                 or flipped and (top_clock(again) or classify(again) != kind):
             return again
     return out
+
+
+def header(texts):
+    """the POKÉMON header at the top reads (the trade picker has it with no TAGS or EGGS beside it: iPhone 2026-11-19
+    read it upside down, 'NOWĄYOd', and /trade stopped on 'the search bar doesn't show'. 2x read it right)"""
+    return any(t[1] < 0.15 and norm(t[4]).replace("É", "").startswith("POKMON") for t in texts)
 
 
 MENU_WORDS = {"POKDEX", "ITEMS", "SHOP", "BATTLE", "SETTINGS"}

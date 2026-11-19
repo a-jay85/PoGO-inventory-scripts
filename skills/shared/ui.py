@@ -981,8 +981,14 @@ def locate(T, path, texts, screen, aspect):
     if len(hits) != 1:
         raise Refused(f"REFUSED: found {len(hits)} matches for {T} on '{screen}': {[h[4] for h in hits]}")
     box = hits[0][:4]
+    if T in TABS:  # a tab's tap goes under its word (TAB_DY)
+        box = (box[0], box[1] + TAB_DY, box[2], box[3])
     return box[0] + box[2] / 2, box[1], lambda: fuzz_box(*box, texts)
 
+
+TABS = ("TAGS", "POKMON", "EGGS")  # the storage's tabs, at the window's top
+TAB_DY = 0.025  # a tab's tap: this much under its word. The iPhone missed its word 6 of 6 times (Mirroring takes
+# taps that high for itself) and landed 6 of 6 this much lower; the Pixel took 6 of 6 both ways (2026-11-19)
 
 RESTED = {}  # (target, screen, bounds) -> (x, y): where a button stood when two looks agreed it was still
 

@@ -241,6 +241,14 @@ def unstick(texts):
         return False
     if pages.step_out(texts, bounds):  # a whole screen another script knows (a trade's lobby, a gym...): its way out
         return False
+    if ui.search_panel(texts) and backs < MAX_BACKS:  # the search panel a stopped search left open (iPhone
+        # 2026-11-19: /trade stopped on it, 'don't know this screen'). Return closes it. Counted with the Backs, so
+        # a panel that stays ends in the Stop below
+        backs += 1
+        log("  the search panel is open: Return closes it")
+        base.key("return")
+        time.sleep(1.5)
+        return False
     if leave_scopely(texts):
         return False
     if ui.ANDROID:

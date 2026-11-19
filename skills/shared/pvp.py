@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""PvP stat-product rank helper for /pvpc.
+"""The game master (PvPoke's gamemaster.json): base stats, CP and HP, the level from IVs, CP and HP (level_of),
+evolutions, and PvP ranks and nicknames.
 
   pvp.py check <species> <cp> <hp> <stars> [--near a/d/h] [--own]
         -> every IV/level combo matching CP+HP+stars (-1 = unknown), best ranks, the name, and a VERDICT line.

@@ -288,8 +288,9 @@ TEAMS = {"bars": {"rhyhorn": 1500, "rhyhorn|shadow": 1400, "pidgey": None},  # m
                      "on": ["Boss B (party 2)"]},
                     {"species": ["rhyhorn"], "shadow": False, "cp": 1600, "hp": 120, "kg": None, "m": None,
                      "on": ["Boss A (party 1)"]},
-                    {"species": ["rhyhorn"], "shadow": False, "cp": 1600, "hp": 120, "kg": None, "m": None, "on": []}]}
-TEAM_CASES = {  # (sids, shadow, cp, hp, kg, m) -> raidteams.on_team
+                    {"species": ["rhyhorn"], "shadow": False, "cp": 1600, "hp": 120, "kg": None, "m": None, "on": []}],
+         "stars": {"rhyhorn": [[36, 2050]]}}  # walked with 3*,4* from CP2050 down
+TEAM_CASES = {  # (sids, shadow, cp, hp, kg, m[, iv_sum]) -> raidteams.on_team
     "on, by kg and m": (["rhyhorn"], False, 2000, 150, 110.5, 1.02),
     "on, powered up since (kg and m)": (["rhyhorn"], False, 2300, 165, 110.51, 1.02),
     "off, by kg and m": (["rhyhorn"], False, 1800, 140, 99.1, 0.95),
@@ -305,12 +306,16 @@ TEAM_CASES = {  # (sids, shadow, cp, hp, kg, m) -> raidteams.on_team
     "species not sure, one on a list": (["rhyhorn", "pidgey"], False, 1000, 100, None, None),
     "species not sure, none on a list": (["pidgey", "magikarp"], False, 300, 50, None, None),
     "CP not read, not in the count": (["rhyhorn"], False, None, 150, 105.0, 1.0),
+    "over the bar, 2* under the star search": (["rhyhorn"], False, 2000, 149, 105.0, 1.0, 36),
+    "over the bar, 3*: the star search had it": (["rhyhorn"], False, 2000, 149, 105.0, 1.0, 37),
+    "2*, over the star search's start": (["rhyhorn"], False, 2100, 151, 105.0, 1.0, 30),
+    "2*, a shadow: its pile had no star search": (["rhyhorn"], True, 2000, 149, 105.0, 1.0, 30),
 }
 
 
 def main():
     got = {k: answer(f) for k, f in CASES.items()}
-    got |= {f"on_team: {k}": repr(raidteams.on_team("x", *a, t=TEAMS)) for k, a in TEAM_CASES.items()}
+    got |= {f"on_team: {k}": repr(raidteams.on_team("x", *a[:6], t=TEAMS, iv_sum=(a[6:] or [None])[0])) for k, a in TEAM_CASES.items()}
     got |= {"on_team: no count": repr(raidteams.on_team(None, ["rhyhorn"], False, 2000, 150))}
     got = json.loads(json.dumps(got))  # (tuples -> lists, as the file has them)
     if "--record" in sys.argv:

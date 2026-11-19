@@ -322,7 +322,9 @@ def wait_for(*screens, timeout=10, capture=True, look=None, poll=None, catch=Tru
                 return screen, texts, path, bounds
             # a box over the screen (an 'evolve?' box from a late tap, a friend card, a trade's late 'expired'):
             # popups.py closes it, and the wait goes on
-            if screen == "unknown" and popups.clear(texts, bounds):
+            # Android's own boxes sit over a screen that still reads as itself (the battery saver box over the list,
+            # Pixel 2026-11-18: four tiles lost, then no empty search bar)
+            if (screen == "unknown" or popups.battery_saver(texts)) and popups.clear(texts, bounds):
                 end = max(end, time.time() + 3)
                 continue
             if screen == "unknown" and not banner and ui.gift_banner(texts):

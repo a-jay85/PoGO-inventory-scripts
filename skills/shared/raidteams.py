@@ -5,7 +5,8 @@ however old: every script that asks logs its age in days once.
 
 A copy is found in the count by species, shadow, kg and m (a power-up changes CP and HP, never those), else by CP
 and HP. One the count doesn't have, at or over its pile's bar (the lowest CP that could make some team), was caught
-or powered up after the count: not sure. Under the bar it can't make a team.
+or powered up after the count: not sure. Under the bar it can't make a team. Nor can one whose stars the count's
+search left out (stars: its IV sum that low, its CP that low or lower).
 """
 import glob, json, os, time
 
@@ -51,9 +52,10 @@ def close(a, b, by):
     return a is not None and b is not None and abs(a - b) <= by
 
 
-def on_team(who, sids, shadow, cp, hp, kg=None, m=None, t=None):
+def on_team(who, sids, shadow, cp, hp, kg=None, m=None, t=None, iv_sum=None):
     """-> the bosses whose team it's on (a list: [] = on none), or None: not sure. () when there's no count to ask.
-    t: the teams dict (default the account's newest)"""
+    t: the teams dict (default the account's newest). iv_sum: its IV sum, if known: the count's search may have left
+    its stars out (stars)"""
     t = t if t is not None else newest(who)[0] if who else None
     if t is None:
         return ()
@@ -73,4 +75,7 @@ def on_team(who, sids, shadow, cp, hp, kg=None, m=None, t=None):
         return list(ons.pop()) if len(ons) == 1 else None
     if cp is None:
         return None
+    if iv_sum is not None and any(iv_sum <= smax and (top is None or cp <= top)
+                                  for smax, top in t.get("stars", {}).get(f"{sid}{'|shadow' if shadow else ''}", [])):
+        return []
     return None if cp >= bar else []

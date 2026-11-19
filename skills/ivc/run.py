@@ -623,7 +623,8 @@ def with_team(m):
     as it is (the rule is off)"""
     import raidteams, pokedb
     who = pokedb.account()
-    return dict(m, raid_team=raidteams.on_team(who, [m["species"]], m.get("shadow"), m["cp"], m.get("hp"))) if who else m
+    return dict(m, raid_team=raidteams.on_team(who, [m["species"]], m.get("shadow"), m["cp"], m.get("hp"),
+                                               iv_sum=sort.value(m["name"], m.get("shadow")))) if who else m
 
 
 def judge(m, results, wants):

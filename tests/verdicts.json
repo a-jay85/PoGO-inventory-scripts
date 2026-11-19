@@ -1567,5 +1567,9 @@
  "on_team: species not sure, one on a list": "None",
  "on_team: species not sure, none on a list": "[]",
  "on_team: CP not read, not in the count": "None",
+ "on_team: over the bar, 2* under the star search": "[]",
+ "on_team: over the bar, 3*: the star search had it": "None",
+ "on_team: 2*, over the star search's start": "None",
+ "on_team: 2*, a shadow: its pile had no star search": "None",
  "on_team: no count": "()"
 }

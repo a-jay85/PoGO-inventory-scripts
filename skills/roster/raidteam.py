@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """/raidteam: the signed-in account's best 6 raid attackers against every released raid boss like a 4-star raid's
-or higher, at the level and IVs its copies have today (the user, 2026-11-17). Android only for now.
+or higher, at the level and IVs its copies have today (the user, 2026-11-17). Both phones (the iPhone since 2026-11-19).
 
   POGO_PHONE=android caffeinate -dimsu python3 raidteam.py count [copies.json] [--limit N]
                                        count whoever is signed in; with a copies.json, carry on from it.
@@ -806,8 +806,6 @@ def script(a):
     c = Count(ms, Rater(), a.limit)
     try:
         if a.cmd == "count":
-            if not ui.ANDROID:
-                sys.exit("Android only for now: POGO_PHONE=android")
             base.new_run_dir(RUNS, suffix="raidteam")
             who = cmd_count(c, a.copies, base.RUN_DIR)
             out = base.RUN_DIR
@@ -838,9 +836,6 @@ def main():
                                               "keep: at most N copies")
     a = ap.parse_args()
     if a.cmd == "keep":
-        import ui
-        if not ui.ANDROID:
-            sys.exit("Android only for now: POGO_PHONE=android")
         import session
         session.main(keep_script, a)
     elif a.cmd == "count":

@@ -1457,9 +1457,11 @@ def open_tile(i):
     return wait_for("detail")
 
 
-def open_appraisal():
+def open_appraisal(again=True):
     """from the detail screen to the appraisal, its bars showing. Taps the appraisal button above the menu
-    button. A detail screen without one (an older game) goes through the menu's APPRAISE instead"""
+    button. A detail screen without one (an older game) goes through the menu's APPRAISE instead.
+    again: once more when the intro's tap left the detail screen (the box closed with no appraisal: Mewtwo, Pixel,
+    raidteam, 2026-11-18, a LOST)"""
     try:
         got = go("appraisal", "appraise-intro", "appraisal")
     except Lost as e:
@@ -1469,7 +1471,13 @@ def open_appraisal():
         go("menu", "menu")
         got = go("APPRAISE", "appraise-intro", "appraisal")
     if got[0] == "appraise-intro":
-        skip_intro(*got[1:])
+        try:
+            skip_intro(*got[1:])
+        except Lost as e:
+            if not again or "screen is detail" not in str(e):
+                raise
+            log("  the appraisal's intro closed to the detail screen: opening it again")
+            open_appraisal(again=False)
 
 
 INTRO_TAPS = 4

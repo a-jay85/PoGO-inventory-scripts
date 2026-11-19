@@ -21,24 +21,22 @@ counts). Every attacker on a boss's list counts, legendary, shadow and mega too:
 mega is a copy of its species, at that copy's level and IVs, one mega per team. Ratings are DialgaDex's own (rate.mjs):
 best moves with Elite TMs, so a copy's real moves don't count. Only the attackers on DialgaDex's lists (80 deep) count.
 
-How it counts. A pile is one storage search: the species' dex number, its form terms, and shadow or !shadow. Its list
-is sorted by CP, highest first, and walked from the top. A tile's CP caps the copy's level and IVs together: per IV
-mix, no level higher than the one that mix reaches at that CP (ceiling()). The best rating of those caps the copy's.
-Once that cap can't beat a boss's 6th, no copy further down can either, and the walk stops. Like roster.py it goes
-round by round: each boss asks for the first pile on its list whose cap still beats its 6th, and those piles are
-walked, until no boss asks.
-Fewer opens: once no 3★ or lower copy (or 2★ or lower) under this CP could beat any boss's 6th, the pile's search
-takes a star term (4*, or 3*,4*): the rest of its list is only copies that could. Fewer searches: from round 2, piles
-not searched yet go 8 at a time in one search (`123,456,...&!shadow`, sorted by CP). Its top tile's CP is the most
-any of them has, and a pile whose copies at that CP can't beat any 6th needs no search of its own.
+How it counts (the user, 2026-11-18). A pile is one storage search: the species' dex number, its form terms, and
+shadow or !shadow. Per pile only its top 6 by CP and its top 6 by IV% (the /ivc names, '96 D GGBI', '100 RT*') count,
+ties too: overall IV% counts a little over a 15 attack, so there's no walk down the list. Piles go best first (their
+best place on any boss's list), so the 6ths fill early. Each pile is searched sorted by CP first, all of them, then
+again sorted by Name, where the IV names come first. A pile whose best copy at its top CP can't beat any boss's 6th
+needs neither. A tile pokedb knows (its nickname, CP and the pile's species, shadow or not) counts without an open.
+The rest open in the list's order: the first from the list, then on from page to page by the hidden next button
+under the CP arc (taps.tap_next), no close between, and only while a copy at its CP could beat some boss's 6th.
 An opened copy: CP, HP and the power-up cost on the page's top (no drag) give the level and the IVs that fit
 (powerup.cost_levels). The database (pokedb) may know its IVs. Still more than one fit, and the best of them could beat
 some boss's 6th: the appraisal gives them.
 
 Output in runs/<time>-raidteam/: copies.json (every copy opened, saved after each pile: a stopped count carries on
 from it), teams.json (../shared/raidteams.py reads it, for the door and /ivc) and report.md. teams.json: per boss its 6; every copy opened, with the
-bosses it's on; per pile, the lowest CP a copy could make some team at (bar), and where its walk took a star term
-(stars). A copy under its pile's bar can't be on
+bosses it's on; per pile, the lowest CP a copy could make some team at (bar). stars: empty since 2026-11-18 (no star term
+searches). A copy under its pile's bar can't be on
 any team. One over it that isn't among the opened ones came or grew after the count.
 
 Keep: the bulk taggers (cleantrades, tradeable tag, specieswise) tag whole searches without opening a page, so they can't

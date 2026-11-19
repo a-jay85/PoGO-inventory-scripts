@@ -98,6 +98,29 @@ def window():
     return int(wid), float(x), float(y), float(w), float(h)
 
 
+SIZE = (406, 890)  # the iPhone Mirroring window the scripts are tuned to (macOS 26's only size). macOS 27 lets it be
+#                    resized and opens it at 403 x 884, which icon_score and the crops don't take. It forgets a set
+#                    size on quit, so fit_window() runs on every open
+
+
+def fit_window():
+    """the iPhone Mirroring window set to SIZE. -> the size it had before, or None if it was right already"""
+    if ANDROID:
+        return None
+    w, h = window()[3:]
+    if (round(w), round(h)) == SIZE:
+        return None
+    global _seen, _older
+    _seen = _older = None  # a look from before the resize has the old boxes
+    try:
+        sh("osascript", "-e", f'tell application "System Events" to tell process "iPhone Mirroring" '
+                              f'to set size of window 1 to {{{SIZE[0]}, {SIZE[1]}}}')
+    except subprocess.CalledProcessError as e:
+        raise Refused(f"can't set the iPhone Mirroring window to {SIZE[0]} x {SIZE[1]} (it's {w:.0f} x {h:.0f}): "
+                      f"{(e.stderr or '').strip()[:120]}")
+    return round(w), round(h)
+
+
 CANT_CAPTURE = "can't capture the iPhone Mirroring window"
 
 

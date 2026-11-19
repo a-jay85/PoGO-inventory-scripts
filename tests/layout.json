@@ -24,6 +24,7 @@
    "account": "shared/account.py",
    "advsync": "shared/advsync.py",
    "cleantrades": "cleanup/cleantrades.py",
+   "dbfill": "cleanup/dbfill.py",
    "dbsweep": "cleanup/dbsweep.py",
    "dex": "dex/dex.py",
    "evo": "evo/evo.py",
@@ -77,6 +78,22 @@
    "tag_pile",
    "untraded",
    "wait_for"
+  ],
+  "runs": [
+   "skills/cleanup/runs"
+  ]
+ },
+ "skills/cleanup/dbfill.py": {
+  "copies": {},
+  "names": [
+   "DEFAULT",
+   "HERE",
+   "Skip",
+   "details",
+   "fill_one",
+   "known",
+   "log",
+   "script"
   ],
   "runs": [
    "skills/cleanup/runs"

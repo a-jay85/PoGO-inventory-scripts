@@ -35,6 +35,7 @@ STEPS = {
     "cleantrades": ("cleanup/cleantrades.py", {"evo", "transfer"}, set()),
     "sizes":       ("cleanup/sizes.py", set(), set()),
     "dbsweep":     ("cleanup/dbsweep.py", set(), set()),
+    "dbfill":      ("cleanup/dbfill.py", set(), set()),
     "tradeable":   ("cleanup/tradeable.py", {"refresh", "dynamax", "read", "plan", "tag", "door"}, {"refresh", "plan"}),  # door: the default
     "leftovers":   ("cleanup/leftovers.py", {"again"}, set()),
     "specieswise": ("cleanup/specieswise.py", {"plan", "GIV", "Transfer"}, {"plan"}),

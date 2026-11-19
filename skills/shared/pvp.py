@@ -140,10 +140,15 @@ def lc_eligible(species):
     return "parent" not in fam and bool(evolutions(species))
 
 
+def levels_for(species, ivs, cpv, hpv):
+    """the levels at which these exact IVs give this CP and HP (lowest first)"""
+    base, ivs = SPECIES[species]["baseStats"], tuple(ivs)
+    return [lv for lv in LEVELS if cp(base, ivs, lv) == cpv and hp(base, ivs, lv) == hpv]
+
+
 def level_of(species, ivs, cpv, hpv):
     """the level these IVs give this CP and HP at (the lowest, if two levels share them), or None"""
-    base = SPECIES[species]["baseStats"]
-    return next((lv for lv in LEVELS if cp(base, ivs, lv) == cpv and hp(base, ivs, lv) == hpv), None)
+    return min(levels_for(species, ivs, cpv, hpv), default=None)
 
 
 @lru_cache(None)

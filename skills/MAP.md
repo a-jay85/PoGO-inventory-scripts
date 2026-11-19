@@ -169,7 +169,6 @@ The shared tapper: screen reading, taps, timing, run folders and logging, and th
 - `candy(texts)`: the family's candy name: 'ABSOL CANDY' on one line, or the word right above CANDY (not CANDY XL)
 - `type_line(texts)`: the types under the name ('ICE / FLYING'), between the HP line and STARDUST
 - `can_have(sid, cp, hp)`: some IVs at some level give this exact CP and HP: a CP too high for the earlier stages rules them out
-- `levels_for(sid, ivs, cp, hp)`: the levels at which these exact IVs give this CP and HP
 - `narrow(sp, ivs, cp, hp)`: the species it could be, once the appraisal's IVs are known: only those where they give this CP and HP (Beldum or Metang)
 - `species_from_candy(texts, cp, hp)`: for a Pokémon whose name isn't its species (a nickname): the line from the candy name, the forms in it with the types shown, and of those the ones that can have this CP …
 - `dynamax(texts)`
@@ -430,6 +429,7 @@ The game master (PvPoke's gamemaster.json): base stats, CP and HP, the level fro
 - `family(species, ivs=None)`: species plus every evolution reachable from it (with these IVs, if given)
 - `tops(species, ivs=None)`: final evolutions reachable from species (itself if final)
 - `lc_eligible(species)`
+- `levels_for(species, ivs, cpv, hpv)`: the levels at which these exact IVs give this CP and HP (lowest first)
 - `level_of(species, ivs, cpv, hpv)`: the level these IVs give this CP and HP at (the lowest, if two levels share them), or None
 - `plays(form, cap)`: this form can get near the league's cap: its 15/15/15 CP at level 50 is over cap - CP_ROOM (Great: over 1400, Ultra: over 2400, Little: over 400)
 - `live(slot)`: a (league, form) slot a name can still show: the form plays that league

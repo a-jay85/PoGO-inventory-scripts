@@ -356,7 +356,7 @@ class Door:
 
     def iv_levels(self, sp, ivs, cp, hp, quiet=False):
         """the level from the appraisal's IVs, CP and HP, when the power-up cost doesn't read"""
-        got = base.levels_for(sp[0], ivs, cp, hp) if len(sp) == 1 and ivs and sp[0] in vd.pvp.SPECIES \
+        got = vd.pvp.levels_for(sp[0], ivs, cp, hp) if len(sp) == 1 and ivs and sp[0] in vd.pvp.SPECIES \
             and cp is not None and hp is not None else []
         if got and not quiet:
             log(f"  power-up cost didn't read: level {got} from IVs, CP and HP")

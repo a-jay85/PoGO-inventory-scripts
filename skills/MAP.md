@@ -676,6 +676,7 @@ Screen reader + tap planner for /pvpc
 - `ocr_once(path)`
 - `ocr_2x(path)`: OCR a 2x copy: it reads white on green (a GIV chip, YES) and upside-down lines the 1x read misses
 - `ocr(path)`: the png's text. A list with more tile CPs than names read: once more from a 2x copy, kept if it finds more tiles. A list with no TAGS or EGGS tab read: at 2x, kept if …
+- `size_lost(texts)`: the units ('kg', 'm') whose value didn't read while the other's value or a WEIGHT / HEIGHT label did (the size row is on screen)
 - `header(texts)`: the POKÉMON header at the top reads (the trade picker has it with no TAGS or EGGS beside it: iPhone 2026-11-19 read it upside down, 'NOWĄYOd', and /trade stopped on 'the …
 - `main_menu(texts)`: the main menu (the Poke Ball's screen): its POKEMON and 2 more of its buttons
 - `top_clock(texts)`: the phone's clock read at the top

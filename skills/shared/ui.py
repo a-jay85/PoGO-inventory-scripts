@@ -239,6 +239,12 @@ def ocr(path):
     # (the iPhone's clock is always read; the Pixel's white one often isn't, so there only an unknown screen pays for
     # the 2nd read. An iPhone unknown screen pays too: 2026-11-19 a list read its clock right and the rest upside down
     # ('NOWẠO', 'SOVL'), and /cleantrades stopped on 'screen is unknown'. 2x read it as the list)
+    lost = kind == "detail" and size_lost(out)  # a detail page's weight or height not read, the other one read
+    # (Pixel 2026-11-19: Pinsir's '1.35m' read in no look at 1x, so dbfill couldn't find it in pokedb and appraised it
+    # again every run. 2x read it. Only the lost value's box is added: the 1x read stays as it was)
+    if lost:
+        again = ocr_2x(path)
+        out = out + [t for t in again if any(re.fullmatch(r"\d+(?:[.,]\d+)?\s*" + u, t[4].strip()) for u in lost)]
     if thin or tabless or flipped:
         again = ocr_2x(path)
         if thin and len(tiles(again)) > len(tiles(out)) or tabless and (full_list(again) or header(again) > header(out)) \
@@ -247,6 +253,16 @@ def ocr(path):
             # no YES or NO, its clock read 'З:44', and /cleantrades stopped on 'the power-up didn't show', 2026-11-19)
             return again
     return out
+
+
+def size_lost(texts):
+    """the units ('kg', 'm') whose value didn't read while the other's value or a WEIGHT / HEIGHT label did (the
+    size row is on screen). A lost value loses its label too: Pinsir read '41.76kg' and WEIGHT, no '1.35m', no HEIGHT"""
+    words = {norm(t[4]) for t in texts}
+    got = {u for u in ("kg", "m") if any(re.fullmatch(r"\d+(?:[.,]\d+)?\s*" + u, t[4].strip()) for t in texts)}
+    if not got and not words & {"WEIGHT", "HEIGHT"}:
+        return []
+    return [u for u in ("kg", "m") if u not in got]
 
 
 def header(texts):

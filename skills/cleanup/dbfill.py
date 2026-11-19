@@ -35,6 +35,8 @@ def known(info):
     read) with them. By weight, height and HP, as pokedb matches: a CP that didn't read still finds it"""
     who = base.OPENED.get("who")
     if not who or None in who[1:]:
+        log(f"  {info['name']}: HP {who and who[1]}, {who and who[2]} kg, {who and who[3]} m read: can't look it up")
+        base.keep_capture("no kg or m")
         return False
     return any(r.get("atk") is not None and base.same_pokemon(who, (r["cp"], r["hp"], r["kg"], r["m"]))
                for r in pokedb.find(hp=who[1], kg=round(who[2], 2), m=round(who[3], 2)))

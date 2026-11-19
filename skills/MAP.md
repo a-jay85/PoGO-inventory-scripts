@@ -331,7 +331,6 @@ Whole screens that belong to one script, and the way out of each, for every othe
 ## skills/shared/peek.py
 Look at the phone (or a saved png) for as few tokens as possible
 
-- `rows(texts, gap=0.012)`: OCR boxes -> rows of text, top to bottom, left to right
 - `main()`
 
 ## skills/shared/pokedb.py
@@ -680,6 +679,7 @@ Screen reader + tap planner for /pvpc
 - `up(t)`
 - `joined(texts)`: all the screen's text in one upper-case line
 - `summary(texts, n=250)`: the screen's text for a log line
+- `rows(texts, gap=0.012)`: OCR boxes -> [(y, joined text)]: rows top to bottom, each row's words left to right
 - `norm(s)`
 - `label(texts, word)`: the text box that reads exactly word, or None
 - `center(t)`: a text box's middle
@@ -1275,7 +1275,6 @@ Rules for /ivc: which IVC Pokémon to keep (favorite + untag) and which to send 
 ## skills/mega/mega.py
 Mega Evolve every Pokémon tagged TODO, once a day each
 
-- `rows(texts)`: -> [(y, joined text)] rows top to bottom
 - `form_of(name)`: the nickname's last letter when it's ' X' / ' Y' -> 'X' / 'Y', else None
 - `two_forms(texts)`: an X/Y species: its energy labels read 'ENERGY X' and 'ENERGY Y'
 - `badge(texts)`: the Mega badge's line under the types: '5 DAYS' (rest), '07:59 left' (Mega now), or None (an icon only)

@@ -1130,7 +1130,6 @@
    "press",
    "reopen",
    "row_of",
-   "rows",
    "script",
    "search_exact",
    "settled_tiles",
@@ -1874,8 +1873,7 @@
    "CROPS",
    "HERE",
    "OUT",
-   "main",
-   "rows"
+   "main"
   ],
   "runs": []
  },
@@ -2579,6 +2577,7 @@
    "profile_tabs",
    "remember",
    "right_buttons",
+   "rows",
    "safe",
    "scopely",
    "search_box",

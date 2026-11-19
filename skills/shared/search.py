@@ -61,6 +61,15 @@ def dex_numbers(s):
     return out
 
 
+def dexes_of(q):
+    """'&1-3,7&!galar' -> {1, 2, 3, 7}: the dex numbers a search is for (its first term of only digits, commas and
+    dashes). None if it has none (&dynamax)"""
+    for term in q.split("&"):
+        if term and re.fullmatch(r"[\d,\-]+", term):
+            return dex_numbers(term)
+    return None
+
+
 # ---------- walking a list ----------
 
 def zoom_name(im, t):

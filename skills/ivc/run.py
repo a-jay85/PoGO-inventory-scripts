@@ -508,11 +508,6 @@ def twin_check(m, results, verdict, why):
     return "LEAVE", [f"would be DOOR, but {', '.join(pairs)} may be one Pokémon read twice"] + why
 
 
-def dexes_of(q):
-    """'25,26&!alola&!shadow' -> {25, 26}"""
-    return {int(d) for d in q.split("&")[0].split(",")}
-
-
 def unrenamed_dexes(u):
     """the dex numbers an unrenamed one's searches cover: its name's species and their families (a 'Happiny' is
     in the Blissey searches). Empty when the name is no species"""
@@ -541,7 +536,7 @@ def unrenamed_check(m, scanned, verdict, why):
         could |= dexes
         if not dexes and u.get("dex_range"):
             ranges.append(u["dex_range"])
-    hit = sorted({d for q in sort.searches_for(m) for d in dexes_of(q)
+    hit = sorted({d for q in sort.searches_for(m) for d in search.dexes_of(q) or ()
                   if d in could or any(a <= d <= b for a, b in ranges)})
     if not hit:
         return verdict, why

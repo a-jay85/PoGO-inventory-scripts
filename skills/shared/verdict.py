@@ -52,6 +52,7 @@ import pvp
 from base import ALWAYS_KEEP  # an IV sum of 98%+ never loses its star
 import tradeable as tr  # builds the species lists
 import rules  # the numbers and lists: one copy, there
+import search  # dexes_of, dex_numbers
 from rules import GIVER, TAKER, XL_CAP, XLX_FOR
 from ivc import GYM_DEFENDERS, make_name as ivc_name
 from rules import NAMES as SIZE_NAMES  # a never-traded XXS one gets this name and IVC
@@ -62,7 +63,7 @@ TO = {GIVER: TAKER, TAKER: GIVER}
 OLD_DAYS = int(re.search(r"\d+", rules.OLD_AGE).group())
 LUCKY_YEARS = rules.LUCKY_YEARS
 # GIV (medal), from rules.py's MEDALS: dex -> (size it needs, or None; fits(kg); the kg range that reads right)
-MEDALS = {min(tr.dexes_of(q)): (("xxs", "xs") if "xxs,xs" in q else None, fits, rules.MEDAL_KG[name])
+MEDALS = {min(search.dexes_of(q)): (("xxs", "xs") if "xxs,xs" in q else None, fits, rules.MEDAL_KG[name])
           for name, q, fits in rules.MEDALS}
 FUSED = ("kyurem_black", "kyurem_white", "necrozma_dusk_mane", "necrozma_dawn_wings")  # trades.py: can't be traded
 TRADE_BY_HAND = {"meltan", "melmetal"}  # mythical, but trades.py retags them like a legendary
@@ -76,8 +77,8 @@ OWN_TAGS += REMOTE_TAGS
 TRADE_TAGS += REMOTE_TAGS
 IGNORED_TAGS = ("CPD",)  # as if these tags weren't there: no rule reads them, none takes them off (the user, 2026-11-05)
 OVER_93 = 42  # a costume one at 93%+ (42 of 45) is named and a favorite (the user, 2026-11-02)
-TRADE_EVO_DEX = {int(d) for d in TRADE_EVOS.split(",")}  # evolve free once traded
-COSTLY_DEX = {int(d) for d in COSTLY_LINES.split(",")}  # a family with an evolution over 100 candy
+TRADE_EVO_DEX = search.dex_numbers(TRADE_EVOS)  # evolve free once traded
+COSTLY_DEX = search.dex_numbers(COSTLY_LINES)  # a family with an evolution over 100 candy
 
 
 @dataclass

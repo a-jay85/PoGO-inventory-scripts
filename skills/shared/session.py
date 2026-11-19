@@ -7,8 +7,9 @@
   digits only, outside the repo so it's never committed). A PIN that fails is never typed again that run: wrong PINs
   lock the phone out for longer each time. It's typed again only if the phone locks itself mid-run after it worked.
   First, once per run: a Pixel on over a day with under 1 GB free for apps is slow (the game drops taps), so it's
-  restarted (about a minute). Every run logs the phone's 'on, MB free, load, battery' line. POGO_NO_RESTART=1 only says so;
-  POGO_RESTART=1 restarts it anyway.
+  restarted (about a minute). POGO_NO_RESTART=1 only says so; POGO_RESTART=1 restarts it anyway. Every run logs the
+  phone's 'on, MB free, load, battery' line at its start and at its end, with the battery used and a row in
+  BATTERY_LOG (to see the battery use over time when it's unplugged).
   close() goes to the home screen (the game to the back), then locks the phone.
 - main(body) runs a script's body: STOPPED / interrupted / CRASHED lines and exit codes 1 / 130 / 2, the run folder
   at the end, and close() if the run opened the phone. A run that never touched the phone (a usage error, a plan step)
@@ -116,24 +117,51 @@ BOOT_TIMEOUT = 180  # s for a restarted phone to say it's up
 
 
 def health():
-    """-> (seconds on, MB free for apps, 1-minute load, battery %). MemFree says little: Android keeps it low on
-    purpose"""
-    out = ui.android.shell("cat /proc/uptime /proc/loadavg; grep MemAvailable /proc/meminfo; "
-                           "dumpsys battery | grep -m1 ' level:'").split()
+    """-> (seconds on, MB free for apps, 1-minute load, battery %, plugged in). MemFree says little: Android keeps
+    it low on purpose"""
+    text = ui.android.shell("cat /proc/uptime /proc/loadavg; grep MemAvailable /proc/meminfo; "
+                            "dumpsys battery | grep -E -m4 ' level:|powered:'")
+    out = text.split()
     return (float(out[0]), int(out[out.index("MemAvailable:") + 1]) // 1024, float(out[2]),
-            int(out[out.index("level:") + 1]))
+            int(out[out.index("level:") + 1]), "powered: true" in text)
 
 
-def say_health(up, mb, load, battery):
-    return f"on {int(up // 3600)}h{int(up % 3600 // 60):02d}m, {mb} MB free, load {load:.1f}, battery {battery}%"
+def say_health(up, mb, load, battery, plugged):
+    return (f"on {int(up // 3600)}h{int(up % 3600 // 60):02d}m, {mb} MB free, load {load:.1f}, "
+            f"battery {battery}% {'plugged in' if plugged else 'on battery'}")
+
+
+BATTERY_LOG = os.path.expanduser("~/.config/pogo/phone-battery.csv")  # one row per Pixel run: its battery over time
+started = None  # (time, battery %) at this run's start, for the end line
+
+
+def end_health():
+    """the end of a Pixel run: the same line as at its start, with the battery it used, and a row in BATTERY_LOG
+    (when, script, minutes, battery at the start and end, plugged in) to see the battery use over time unplugged"""
+    reading = health()
+    battery, plugged = reading[3], reading[4]
+    used = ""
+    if started:
+        mins = (time.time() - started[0]) / 60
+        used = f" ({battery - started[1]:+d}% in {mins:.0f} min)"
+        new = not os.path.exists(BATTERY_LOG)
+        os.makedirs(os.path.dirname(BATTERY_LOG), exist_ok=True)
+        with open(BATTERY_LOG, "a") as f:
+            if new:
+                f.write("end,script,minutes,start %,end %,plugged in\n")
+            f.write(f"{time.strftime('%Y-%m-%d %H:%M')},{os.path.basename(sys.argv[0])},{mins:.1f},"
+                    f"{started[1]},{battery},{'yes' if plugged else 'no'}\n")
+    log(f"phone at the end: {say_health(*reading)}{used}")
 
 
 def restart_if_worn():
     """a Pixel on a long time with little memory free is slow: the game drops taps and reads come late. Then it's
     restarted (about a minute) before the run uses it. Once per run, at its start, never mid-run.
     POGO_NO_RESTART=1: only says it would. POGO_RESTART=1: restarts it whatever its numbers"""
-    up, mb, load, battery = health()
-    log(f"phone: {say_health(up, mb, load, battery)}")
+    global started
+    up, mb, load, battery, plugged = health()
+    started = (time.time(), battery)
+    log(f"phone: {say_health(up, mb, load, battery, plugged)}")
     if not flag("POGO_RESTART") and (up < WORN_UP or mb > WORN_MB):  # (a chain's next step finds it fresh)
         return
     if flag("POGO_NO_RESTART"):
@@ -305,6 +333,11 @@ def close():
     """the end of a run: the Pixel's brightness back (every run dims it), then lock it; or quit iPhone Mirroring"""
     if ui.ANDROID and held and ui.android.restore():
         log("put the phone's brightness back")
+    if ui.ANDROID and held and started:
+        try:  # (never in the way of the lock)
+            end_health()
+        except Exception as e:
+            log(f"couldn't read the phone's battery at the end: {type(e).__name__}: {e}")
     if flag("POGO_KEEP_OPEN"):
         return
     if who := claim():

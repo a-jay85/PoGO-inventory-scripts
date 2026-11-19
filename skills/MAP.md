@@ -569,8 +569,9 @@ A run's phone from start to end
 - `locked()`
 - `read_pin()`
 - `unlock()`: phone awake and unlocked
-- `health()`: -> (seconds on, MB free for apps, 1-minute load, battery %)
-- `say_health(up, mb, load, battery)`
+- `health()`: -> (seconds on, MB free for apps, 1-minute load, battery %, plugged in)
+- `say_health(up, mb, load, battery, plugged)`
+- `end_health()`: the end of a Pixel run: the same line as at its start, with the battery it used, and a row in BATTERY_LOG (when, script, minutes, battery at the start and end, plugged …
 - `restart_if_worn()`: a Pixel on a long time with little memory free is slow: the game drops taps and reads come late
 - `lock()`: the home screen, then screen off and locked (the Pixel 4 XL shows its lock screen at once: checked 2026-10-23)
 - `mirroring_running()`

@@ -110,7 +110,8 @@ def unlock():
 
 WORN_UP = 24 * 3600  # s on: a Pixel on this long with WORN_MB or less free gets restarted at a run's start
 WORN_MB = 1024  # MB the phone can still give apps (MemAvailable). 2026-11-19: 1d15h up, 690 MB, and the game
-#                 dropped taps for 7-33 s each time it came back
+#                 dropped taps for 7-33 s each time it came back. A fresh restart: 3.1 GB. Down to 0.8 GB 24 min later
+#                 with the game open, so memory alone says little: the day on is what counts
 BOOT_TIMEOUT = 180  # s for a restarted phone to say it's up
 
 
@@ -153,6 +154,11 @@ def restart_if_worn():
     else:
         raise Stop(f"restarted the phone, but it didn't come back in {BOOT_TIMEOUT}s: check it's on and plugged in")
     time.sleep(5)  # the lock screen and the window manager settle
+    unlock()
+    # the first unlock after a restart blanks 'settings get' for a moment: dim() read nothing and crashed (2026-11-19)
+    brightness = lambda: ui.android.shell("settings get system screen_brightness", timeout=10).strip()
+    if not base.settle(brightness, str.isdigit, 30).isdigit():
+        raise Stop("restarted the phone, but its settings never answered: check it, then run again")
     log(f"  restarted in {time.time() - t0:.0f}s: {say_health(*health())}")
 
 

@@ -1042,6 +1042,9 @@ def start_search(q, check=None, edit=False, nudges=2, live=False):
             log("the panel didn't close after Return")
             continue
         if check(got, q):
+            if not ui.full_list(texts):  # the tabs may not be drawn yet: look again before calling it a tag's list
+                # (iPhone 2026-11-19: a full list read too soon got its X, which closed the whole Pokémon screen)
+                texts = base.settle(lambda: ui.ocr(ui.capture()[0]), ui.full_list, timeout=2)
             if not ui.full_list(texts):  # typed in a tag's list: only searched that tag
                 log("  that searched inside a tag's list: going to the full Pokémon list")
                 to_search_list()

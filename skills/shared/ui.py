@@ -212,6 +212,14 @@ def ocr_once(path):
     return out
 
 
+def ocr_2x(path):
+    """OCR a 2x copy: it reads white on green (a GIV chip, YES) and upside-down lines the 1x read misses"""
+    im = Image.open(path)
+    big = f"/tmp/pogo-ocr2x-{os.getpid()}-{threading.get_ident()}.png"  # (two phones at once: one file each)
+    im.resize((im.width * 2, im.height * 2), Image.LANCZOS).save(big, compress_level=1)
+    return ocr_once(big)
+
+
 def ocr(path):
     """the png's text. A list with more tile CPs than names read: once more from a 2x copy, kept if it finds more
     tiles. A list with no TAGS or EGGS tab read: at 2x, kept if that reads one. No clock read at the top (an unknown
@@ -221,19 +229,22 @@ def ocr(path):
     (2x for every look: worse now and then, a half-hidden top row lost.) The boxes are fractions: the same at 2x"""
     out = ocr_once(path)
     kind = classify(out)
-    thin = kind == "list" and len(tiles(out)) < len(tile_cps(out))
+    thin = kind == "list" and (len(tiles(out)) < len(tile_cps(out)) or not ANDROID and not tiles(out))  # (no tiles
+    # at all on an iPhone list: its one tile's CP and name read upside down, 'GIZE' for CP 3219, and /raidteam tapped
+    # a tile it couldn't see, 2026-11-19. 2x read it. A real 0 pays the 2nd read: about 0.1 s)
     tabless = kind == "list" and not ANDROID and not full_list(out)  # a tag's list, or tabs read upside down
     # (iPhone 2026-11-19: a 1-result list read EGGS as 'SOWI' and lost TAGS; start_search went to the full list
     # over and over till it stopped. 2x read them right. A tag's list pays the 2nd read: about 0.1 s)
-    flipped = not top_clock(out) and (kind == "unknown" or not ANDROID)  # (the iPhone's clock is always read;
-    # the Pixel's white one often isn't, so there only an unknown screen pays for the 2nd read)
+    flipped = not top_clock(out) and (kind == "unknown" or not ANDROID) or kind == "unknown" and not ANDROID
+    # (the iPhone's clock is always read; the Pixel's white one often isn't, so there only an unknown screen pays for
+    # the 2nd read. An iPhone unknown screen pays too: 2026-11-19 a list read its clock right and the rest upside down
+    # ('NOWẠO', 'SOVL'), and /cleantrades stopped on 'screen is unknown'. 2x read it as the list)
     if thin or tabless or flipped:
-        im = Image.open(path)
-        big = f"/tmp/pogo-ocr2x-{os.getpid()}-{threading.get_ident()}.png"  # (two phones at once: one file each)
-        im.resize((im.width * 2, im.height * 2), Image.LANCZOS).save(big, compress_level=1)
-        again = ocr_once(big)
+        again = ocr_2x(path)
         if thin and len(tiles(again)) > len(tiles(out)) or tabless and (full_list(again) or header(again) > header(out)) \
-                or flipped and (top_clock(again) or classify(again) != kind):
+                or flipped and (top_clock(again) or classify(again) != kind or kind == "unknown" and len(again) > len(out)):
+            # (an unknown screen keeps the read that saw more: the Pixel's 'Do you really want to power up' box read
+            # no YES or NO, its clock read 'З:44', and /cleantrades stopped on 'the power-up didn't show', 2026-11-19)
             return again
     return out
 
@@ -423,7 +434,8 @@ def detail_info(texts):
 
 def tile_cps(texts):
     """the CP labels of the list's tiles"""
-    cps = [t for t in texts if re.fullmatch(r"CP\s*\d+", t[4].upper().replace(" ", ""))]
+    # (EP: the C read as E, iPhone, raidteam keep stopped on 'EP2549', 2026-11-19)
+    cps = [t for t in texts if re.fullmatch(r"[CE]P\s*\d+", t[4].upper().replace(" ", ""))]
     # a shiny's sparkles cover the 'CP': '$1636', 'ф1629', '$2256,', ':P393', 'c2554,', or just '2168' (that one only in a
     # row of CPs, or over a name when the screen has no real CP to go by: a list of only shinies). Not a tagged name
     # ('•96') under a real CP

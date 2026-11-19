@@ -799,6 +799,8 @@ def clean_row(n):
         return n
     if n[-1:] in ("L", "I", "|") and (n[:-1] in ASKED or n[:-1] in TAG_AT):
         return n[:-1]
+    if "U" in n and n.replace("U", "V") in ASKED:  # a V read as U ('PupC', Pixel /ivc stopped on it 2026-11-19)
+        return n.replace("U", "V")
     near = [T for T in ASKED if one_letter_off(n, T)]
     return near[0] if len(near) == 1 else n
 
@@ -908,7 +910,10 @@ def tap_tag_row(T, name, first=None):
     (Transfer, Remote Trade) is tapped by its own row, and only when two looks in a row agree it's the tag sheet,
     standing still, with exactly one row that says just that. first: a look at the sheet from just now, no tap since"""
     if T in ui.CONFIRM_SCREENS and not any(z in T for z in ui.HAZARDS):
-        return tap(name)
+        try:
+            return tap(name)
+        except Lost:  # its word misread ('PupC'): found by its own row below, where clean_row mends it
+            first = None
     seen = [first] if first else []
 
     def read():
@@ -1094,6 +1099,9 @@ def set_tags(on=(), off=(), only=False):
         good = lambda t: (sorted(t) == sorted(ON)) if only else (ON <= set(t) and not OFF & set(t))
         # the chips can draw late: an XLX chip showed after the 3 s look gave up (Pixel /leftovers, 2026-11-16)
         tags = settle(detail_tags, good, timeout=6)
+        if not good(tags) and LAST_LOOK and LAST_LOOK[2] == "detail":  # white on green: the 1x read can miss a chip
+            # the 2x read sees (a GIV chip, Pixel /tradeable stopped on it 2026-11-19)
+            tags = [row_name(t) for t in ui.detail_info(ui.ocr_2x(LAST_LOOK[4]))["tags"]] or tags
         if not good(tags):
             keep_capture("tags")
             raise Stop(f"after DONE tags are {tags}, wanted {sorted(ON)} on{' only' if only else ''}, {sorted(OFF)} off")

@@ -327,10 +327,13 @@ def power_up(info, texts, levels=None, known=None):
         screen, t2, _, b2 = look()
         again = time.time() - tapped > 3  # a tap can miss: tap again while the same box is still up
         no = exact(t2, "NO")
-        if len(no) == 1 and any("really want to power up" in t[4] for t in t2):
+        ask = [t for t in t2 if "really want to power up" in t[4]]
+        if ask and len(no) <= 1:
             if again:
-                yes = exact(t2, "YES")  # (YES is white on green: OCR mostly misses it)
-                press(yes[0] if len(yes) == 1 else (no[0][0], no[0][1] - 0.078, no[0][2], no[0][3], "YES"), b2)
+                yes = exact(t2, "YES")  # (YES is white on green: OCR mostly misses it. Its pale green NO too, at
+                # times: then YES is under the question's first line. Pixel 2026-11-19, /cleantrades stopped twice)
+                press(yes[0] if len(yes) == 1 else (no[0][0], no[0][1] - 0.078, no[0][2], no[0][3], "YES") if no
+                      else (ask[0][0], ask[0][1] + 0.112, ask[0][2], ask[0][3], "YES"), b2)
                 tapped = time.time()
             continue
         head = any(re.match(r"POWER UP\s*:", t[4].strip(), re.I) for t in t2)

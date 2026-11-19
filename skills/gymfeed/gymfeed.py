@@ -117,7 +117,7 @@ def look():
 
 def cp_labels(texts):
     """the gym view's CP labels over its Pokémon -> [(cx, cy)]"""
-    return [(t[0] + t[2] / 2, t[1] + t[3] / 2) for t in texts
+    return [ui.center(t) for t in texts
             if LABEL_RE.match(t[4].strip()) and 0.3 < t[1] < 0.66 and t[3] < 0.04]
 
 

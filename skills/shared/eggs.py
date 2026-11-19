@@ -66,13 +66,9 @@ def oh(texts):
     return any(t[4].strip() == "Oh?" for t in texts)
 
 
-def label(texts, word):
-    return next((t for t in texts if ui.norm(t[4]) == word), None)
-
-
 def eggs_tab(texts):
     """the Pokémon screens' EGGS tab, with its eggs: its tab label and at least one 'walked / km'"""
-    return bool(label(texts, "EGGS")) and any(KM_RE.search(t[4]) for t in texts)
+    return bool(ui.label(texts, "EGGS")) and any(KM_RE.search(t[4]) for t in texts)
 
 
 def teal(path, t):
@@ -112,7 +108,7 @@ def to_eggs():
         screen, texts, path, bounds = look()
         if eggs_tab(texts):
             return
-        tab = label(texts, "EGGS")
+        tab = ui.label(texts, "EGGS")
         if not tab:
             break
         base.tap_box(tab, bounds, dy=ui.TAB_DY, rest=1.5)  # (under its word, as every tab tap)
@@ -136,16 +132,16 @@ def incubate(egg, bounds):
     walked, km, _, t = egg
     log(f"opening a {km:g} km egg")
     base.click(t[0] + t[2] / 2, t[1] - EGG_ABOVE, bounds, fuzz=0.01, rest=1.5)
-    _, texts, _, bounds = base.settle(look, lambda g: label(g[1], "INCUBATE"), timeout=6)
-    button = label(texts, "INCUBATE")
+    _, texts, _, bounds = base.settle(look, lambda g: ui.label(g[1], "INCUBATE"), timeout=6)
+    button = ui.label(texts, "INCUBATE")
     if not button:
         log(f"  no INCUBATE on its page: {ui.summary(texts, 80)}")
         leave_to_eggs()
         return False
     base.tap_box(button, bounds, rest=1.0)
     uses = lambda ts: [x for x in ts if USE_RE.fullmatch(x[4].strip())]  # not 'Use an Incubator to hatch...'
-    _, texts, _, bounds = base.settle(look, lambda g: label(g[1], "INCUBATORS") and uses(g[1]), timeout=6)
-    if not label(texts, "INCUBATORS"):
+    _, texts, _, bounds = base.settle(look, lambda g: ui.label(g[1], "INCUBATORS") and uses(g[1]), timeout=6)
+    if not ui.label(texts, "INCUBATORS"):
         keep_capture("picker")
         log(f"  the incubator picker didn't open: {ui.summary(texts, 80)}")
         leave_to_eggs()

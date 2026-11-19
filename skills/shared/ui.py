@@ -304,6 +304,16 @@ def norm(s):
     return re.sub(r"[^A-Z ]", "", s.translate(LOOKALIKE).upper()).strip()
 
 
+def label(texts, word):
+    """the text box that reads exactly word, or None"""
+    return next((t for t in texts if norm(t[4]) == word), None)
+
+
+def center(t):
+    """a text box's middle"""
+    return t[0] + t[2] / 2, t[1] + t[3] / 2
+
+
 def is_label(s, label):
     """OCR sometimes tacks a stray letter onto a bar label (Duskull's read 'Attack l'), or glues the cursor on ('Defensel')"""
     return re.fullmatch(re.escape(label) + r"( [A-Z]|[LI])?", norm(s)) is not None
@@ -499,7 +509,7 @@ def dialog_ok(texts):
     ok = [t for t in texts if norm(t[4]) == "OK"]
     if ok:
         return ok[0]
-    cancel = next((t for t in texts if norm(t[4]) == "CANCEL"), None)
+    cancel = label(texts, "CANCEL")
     if cancel is None:
         return None
     return (0.44, cancel[1] - OK_ABOVE_CANCEL, 0.12, cancel[3], "")

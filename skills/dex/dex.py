@@ -245,7 +245,7 @@ def pick_page(label):
             return int(m.group(1).replace(",", "")), texts, bounds
         if t:
             log(f"tapping the {label} chip")
-            tap_at(t[0] + t[2] / 2, t[1] + t[3] / 2, bounds)
+            tap_at(*ui.center(t), bounds)
             continue
         if i == len(swipes):
             break

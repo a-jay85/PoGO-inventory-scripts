@@ -44,8 +44,8 @@ TYPERS = {("search", "start_search"): (0, "q"), ("search", "type_into_panel"): (
           ("savedsearch", "append"): (0, "suffix"), ("tagsheet", "search_exact"): (0, "q"),
           ("trade", "type_search"): (1, "q"), ("gift", "search"): "last"}
 LONG = ("savedsearch", "long_search")  # reorders the terms it's given (see long_end)
-FINDERS = {("gift", "label"), ("gift", "menu_label"), ("gift", "send_gift_label"), ("popups", "label"),
-           ("pages", "label"), ("trade", "label")}
+FINDERS = {("gift", "label"), ("gift", "menu_label"), ("gift", "send_gift_label"), ("ui", "label"),
+           ("trade", "label")}
 LOOKS = {"look", "capture", "ocr", "sharp", "panel_text", "wait_for", "wait", "now", "screenshot", "search_line"}
 SHARED_WAITS = {("base", "settle"), ("base", "steady"), ("base", "wait_for"), ("base", "tries")}
 SAY = {"thin": "put a term that doesn't end in a thin letter last (xxl&#IVC, not #IVC&xxl)",

@@ -69,7 +69,7 @@ def moves_on(texts):
 
 def label_spot(texts, lo, hi, lowest):
     """the middle of a label between lo and hi (window fractions) that is never a button and isn't near one"""
-    spots = [(t[0] + t[2] / 2, t[1] + t[3] / 2) for t in texts if SCROLL_FROM.search(ui.norm(t[4]))]
+    spots = [ui.center(t) for t in texts if SCROLL_FROM.search(ui.norm(t[4]))]
     spots = sorted((p for p in spots if lo < p[1] < hi and ui.safe(p[0], p[1], texts)), key=lambda p: p[1])
     return (spots[-1] if lowest else spots[0]) if spots else None
 

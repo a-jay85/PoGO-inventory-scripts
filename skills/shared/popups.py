@@ -30,15 +30,6 @@ WALK_X = (0.5, 0.86)  # the weekly walk reward's round X after CLAIM REWARD (Pix
 EGG_TO_X = 0.082  # a friend card with USE LUCKY EGG: its X sits this far under the button's middle (Pixel 0.849 -> 0.931)
 
 
-def label(texts, word):
-    """the text box that reads exactly word, or None"""
-    return next((t for t in texts if ui.norm(t[4]) == word), None)
-
-
-def center(t):
-    return t[0] + t[2] / 2, t[1] + t[3] / 2
-
-
 # ---------- what each box is, and where its tap goes ----------
 # each: texts -> (fx, fy) to tap (screen fractions), or None when it isn't up
 
@@ -60,9 +51,9 @@ def trade_ok(texts):
     miss their white-on-green OK, which sits just under the message (on the Android, "expired." gets a line of its own)"""
     if not trade_box(texts):
         return None
-    ok = label(texts, "OK")
+    ok = ui.label(texts, "OK")
     if ok:
-        return center(ok)
+        return ui.center(ok)
     msg = [t for t in texts if "EXPIRED" in ui.up(t) or "OUT OF RANGE" in ui.up(t) or "CANCELED" in ui.up(t)]
     return (0.5, max(t[1] for t in msg) + 0.077) if msg else None
 
@@ -78,8 +69,8 @@ def trade_limit_ok(texts):
     """the daily trading limit box's OK (Pixel), or None"""
     if not trade_limit(texts):
         return None
-    ok = label(texts, "OK")
-    return center(ok) if ok else None
+    ok = ui.label(texts, "OK")
+    return ui.center(ok) if ok else None
 
 
 def manage_favorite(texts):
@@ -91,14 +82,14 @@ def exit_box(texts):
     """Android: 'Do you want to exit Pokémon GO?' (Back on the map): CANCEL"""
     if "EXIT POK" not in ui.joined(texts):
         return None
-    hit = label(texts, "CANCEL") or label(texts, "NO")
-    return center(hit) if hit else None
+    hit = ui.label(texts, "CANCEL") or ui.label(texts, "NO")
+    return ui.center(hit) if hit else None
 
 
 def evolve_box(texts):
     """'Do you want to evolve ...?': a late tap landed on EVOLVE. Never evolve here: NO"""
     no = [t for t in texts if ui.up(t) == "NO"]
-    return center(no[0]) if no and "WANT TO EVOLVE" in ui.joined(texts) else None
+    return ui.center(no[0]) if no and "WANT TO EVOLVE" in ui.joined(texts) else None
 
 
 def friend_card(texts):
@@ -108,8 +99,8 @@ def friend_card(texts):
     j = ui.joined(texts)
     if "FRIENDS" not in j or not ("AND YOU BECAME" in j or "NEW BONUS" in j):
         return None
-    egg = label(texts, "USE LUCKY EGG")
-    return (0.5, center(egg)[1] + EGG_TO_X) if egg else FRIEND_CARD_X
+    egg = ui.label(texts, "USE LUCKY EGG")
+    return (0.5, ui.center(egg)[1] + EGG_TO_X) if egg else FRIEND_CARD_X
 
 
 def passenger(texts):
@@ -118,7 +109,7 @@ def passenger(texts):
     if "TOO FAST" not in ui.joined(texts):
         return None
     hit = next((t for t in texts if "PASSENGER" in ui.up(t)), None)
-    return center(hit) if hit else None
+    return ui.center(hit) if hit else None
 
 
 def challenge(texts):
@@ -127,25 +118,25 @@ def challenge(texts):
     completed 77%" box over the map (2026-11-04) has one button, LET'S GO!"""
     if "WEEKLY CHALLENGE" not in ui.joined(texts):
         return None
-    hit = label(texts, "MAYBE LATER") or label(texts, "LETS GO")
-    return center(hit) if hit else None
+    hit = ui.label(texts, "MAYBE LATER") or ui.label(texts, "LETS GO")
+    return ui.center(hit) if hit else None
 
 
 def party_done(texts):
     """a finished Party Challenge over the map (2026-11-04): Back does nothing there, and it comes back each time the
     map does, so CLAIM REWARD"""
-    hit = label(texts, "CLAIM REWARD")
-    return center(hit) if hit and "PARTY CHALLENGE" in ui.joined(texts) else None
+    hit = ui.label(texts, "CLAIM REWARD")
+    return ui.center(hit) if hit and "PARTY CHALLENGE" in ui.joined(texts) else None
 
 
 def walk_reward(texts):
     """Adventure Sync's weekly reward on Monday ('You walked 390.9 km last week!', Pixel HashTagAJay, 2026-11-16:
     the account switch's egg check and /leftovers stopped on it): CLAIM REWARD, its only button. Then the same card
     stays up with a round X where the button was (WALK_X, higher than base.X_BUTTON, which misses it)"""
-    if "LAST WEEK" not in ui.joined(texts) or not label(texts, "REWARDS"):
+    if "LAST WEEK" not in ui.joined(texts) or not ui.label(texts, "REWARDS"):
         return None
-    hit = label(texts, "CLAIM REWARD")
-    return center(hit) if hit else WALK_X
+    hit = ui.label(texts, "CLAIM REWARD")
+    return ui.center(hit) if hit else WALK_X
 
 
 def party_pick(texts):
@@ -154,28 +145,28 @@ def party_pick(texts):
     if "CHOOSE A PARTY CHALLENGE" not in ui.joined(texts):
         return None
     hit = next((t for t in texts if re.fullmatch(r"[\d\s]*START", ui.up(t))), None)
-    return center(hit) if hit else None
+    return ui.center(hit) if hit else None
 
 
 def party_rejoin(texts):
     """'Continue Party Play?' after signing in (Pixel, 2026-11-14: CyrillJan, after the switch from HashTagAJay):
     REJOIN PARTY or LEAVE PARTY, and Back opens 'leave your party?'. REJOIN PARTY, so nothing the user set up is
     lost; leaving disbands the party and loses its rewards"""
-    hit = label(texts, "REJOIN PARTY")
-    return center(hit) if hit and "CONTINUE PARTY PLAY" in ui.joined(texts) else None
+    hit = ui.label(texts, "REJOIN PARTY")
+    return ui.center(hit) if hit and "CONTINUE PARTY PLAY" in ui.joined(texts) else None
 
 
 def party_leave(texts):
     """'Are you sure you want to leave your party? If you leave, your party will disband.' (what Back on 'Continue
     Party Play?' opens): NO, which goes back to that box"""
-    hit = label(texts, "NO")
-    return center(hit) if hit and "PARTY WILL DISBAND" in ui.joined(texts) else None
+    hit = ui.label(texts, "NO")
+    return ui.center(hit) if hit and "PARTY WILL DISBAND" in ui.joined(texts) else None
 
 
 def party_ended(texts):
     """'The party has ended' (a party lasts 3 hours): OK"""
-    hit = label(texts, "OK")
-    return center(hit) if hit and "THE PARTY HAS ENDED" in ui.joined(texts) else None
+    hit = ui.label(texts, "OK")
+    return ui.center(hit) if hit and "THE PARTY HAS ENDED" in ui.joined(texts) else None
 
 
 def party_summary(texts):
@@ -185,8 +176,8 @@ def party_summary(texts):
 
 def rocket_radar(texts):
     """a new Rocket Radar (2026-11-05): Back does nothing, no X. EQUIP, its only button"""
-    hit = label(texts, "EQUIP")
-    return center(hit) if hit and "ROCKET RADAR" in ui.joined(texts) else None
+    hit = ui.label(texts, "EQUIP")
+    return ui.center(hit) if hit and "ROCKET RADAR" in ui.joined(texts) else None
 
 
 def safety(texts):
@@ -194,9 +185,9 @@ def safety(texts):
     OK, its only button. OCR can miss its white-on-green OK: it sits SAFETY_TO_OK under the message's last line"""
     if "STAY AWARE OF YOUR SURROUNDINGS" not in ui.joined(texts):
         return None
-    hit = label(texts, "OK")
+    hit = ui.label(texts, "OK")
     if hit:
-        return center(hit)
+        return ui.center(hit)
     last = next((t for t in texts if "PLAYING POK" in ui.norm(t[4])), None)
     return (0.5, last[1] + last[3] / 2 + SAFETY_TO_OK) if last else None
 
@@ -204,22 +195,22 @@ def safety(texts):
 def news(texts):
     """an event's news card as the game loads ('Dynamax Trails', SEE DETAILS and DISMISS; iPhone, 2026-11-13: /trade's
     restart stopped on it): DISMISS"""
-    hit = label(texts, "DISMISS")
-    return center(hit) if hit and label(texts, "SEE DETAILS") else None
+    hit = ui.label(texts, "DISMISS")
+    return ui.center(hit) if hit and ui.label(texts, "SEE DETAILS") else None
 
 
 def battery_saver(texts):
     """Android's own 'Turn on Extreme Battery Saver?' box at 10% battery, over any screen (Pixel, 2026-11-13: over a
     hatched egg's rewards): No thanks"""
-    hit = next((t for t in texts if ui.norm(t[4]) == "NO THANKS"), None)
-    return center(hit) if hit and "BATTERY SAVER" in ui.joined(texts) else None
+    hit = ui.label(texts, "NO THANKS")
+    return ui.center(hit) if hit and "BATTERY SAVER" in ui.joined(texts) else None
 
 
 def mirroring_welcome(texts):
     """iPhone Mirroring's own 'iPhone on Your Mac' welcome page as it opens ('Stay up to date', Learn More... / Not Now
     / Continue; iPhone, 2026-11-18: home.start stopped on it as an unknown screen): Not Now, which changes nothing"""
-    hit = label(texts, "NOT NOW")
-    return center(hit) if hit and "IPHONE ON YOUR MAC" in ui.joined(texts) else None
+    hit = ui.label(texts, "NOT NOW")
+    return ui.center(hit) if hit and "IPHONE ON YOUR MAC" in ui.joined(texts) else None
 
 
 # name, where its tap goes, what the log says, seconds the box takes to go

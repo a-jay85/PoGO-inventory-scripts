@@ -224,7 +224,6 @@ The Eggs tab: read the eggs, put the mode's one in the free ∞ incubator, and s
 - `set_mode(m)`
 - `pick(free, have, m)`: the free egg the mode takes: the fewest km (shortest) or the most (longest); same km, the top one
 - `oh(texts)`
-- `label(texts, word)`
 - `eggs_tab(texts)`: the Pokémon screens' EGGS tab, with its eggs: its tab label and at least one 'walked / km'
 - `teal(path, t)`: how many teal pixels the label has: an incubating egg's number is teal, the others grey
 - `eggs(path, texts)`: -> [(walked, km, incubating, label box)], top to bottom
@@ -289,8 +288,6 @@ What the door needs to know, read off the list tile and the Pokémon's own page 
 Whole screens that belong to one script, and the way out of each, for every other script
 
 - `words(texts)`
-- `label(texts, word)`
-- `center(t)`
 - `trade_leave(texts)`: 'Do you want to cancel this trade?' after the exit door: YES / NO
 - `trade_warning(texts)`: 'Are you sure you want to trade?' before the confirm screen
 - `confirm_label(texts)`: the trade's CONFIRM button (CANCEL once tapped), left of the middle
@@ -363,8 +360,6 @@ A memory of each account's Pokémon, built from what the scripts already read
 ## skills/shared/popups.py
 Boxes the game pops up over any screen, by itself or left over from another script, that one safe tap closes
 
-- `label(texts, word)`: the text box that reads exactly word, or None
-- `center(t)`
 - `trade_box(texts)`: a trade's info box, with OK: 'range' ('... is out of range for trading') or 'expired' (a trade left open too long, the other side left, or the trading service lost it)
 - `trade_ok(texts)`: the trade box's OK. The iPhone's "This trade with ... has expired." and "... is out of range" boxes: OCR can miss their white-on-green OK, which sits just under the …
 - `trade_limit(texts)`: the account has made the game's 100 trades today: the Pixel's "<trainer> has reached the daily trading limit for today." box (its OK), or the iPhone's "Daily trading …
@@ -685,6 +680,8 @@ Screen reader + tap planner for /pvpc
 - `joined(texts)`: all the screen's text in one upper-case line
 - `summary(texts, n=250)`: the screen's text for a log line
 - `norm(s)`
+- `label(texts, word)`: the text box that reads exactly word, or None
+- `center(t)`: a text box's middle
 - `is_label(s, label)`: OCR sometimes tacks a stray letter onto a bar label (Duskull's read 'Attack l'), or glues the cursor on ('Defensel')
 - `full_list(texts)`: the Pokémon screen's TAGS or EGGS tab shows: the full list (or its Tags tab), no tag's list (a tag's list has neither)
 - `profile_tabs(texts)`: any tab of the profile (ME, FRIENDS or SOCIAL): its three tab names across the top

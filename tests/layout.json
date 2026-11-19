@@ -93,7 +93,8 @@
    "fill_one",
    "known",
    "log",
-   "script"
+   "script",
+   "species"
   ],
   "runs": [
    "skills/cleanup/runs"
@@ -1531,6 +1532,7 @@
    "idle_seconds",
    "is_shadow",
    "is_tag",
+   "ivs_by_hp",
    "just_seen",
    "keep_capture",
    "key",

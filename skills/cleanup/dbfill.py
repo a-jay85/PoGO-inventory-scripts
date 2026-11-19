@@ -11,7 +11,9 @@ yet get opened and appraised. Nothing is tagged or changed in the game.
 
 It opens the first result and swipes on through the rest. Each page's top read goes into the database as it does
 in every script (base.steady_detail). A page the database already has IVs for (same weight, height, CP and HP) is
-swiped past. The rest are appraised, and their IVs and species are learned (base.exact_ivs).
+swiped past. The rest are appraised, and their IVs and species are learned (base.exact_ivs). A nickname whose candy
+and types don't tell the species: the appraisal's 'This ... was caught' line does. A CP that doesn't read (art or the
+Pokémon over it): the bars are checked against the HP instead (base.ivs_by_hp).
 Only targeted searches: the user ruled out opening all of storage for the database at once.
 Log in runs/<time>-dbfill/.
 """
@@ -21,28 +23,58 @@ HERE = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import base
 from base import Skip, log
-import home, pokedb, search, session, ui
+import home, pokedb, powerup, pvp, search, session, ui
 from taps import details
 
 DEFAULT = "4*"
 
 
 def known(info):
-    """the database already has this page's IVs: one record of the same Pokémon (weight, height, CP, HP) with them"""
+    """the database already has this page's IVs: one record of the same Pokémon (weight, height, HP, and CP when it
+    read) with them. By weight, height and HP, as pokedb matches: a CP that didn't read still finds it"""
     who = base.OPENED.get("who")
-    if not who or info["cp"] is None or info["hp"] is None:
+    if not who or None in who[1:]:
         return False
     return any(r.get("atk") is not None and base.same_pokemon(who, (r["cp"], r["hp"], r["kg"], r["m"]))
-               for r in pokedb.find(cp=info["cp"], hp=info["hp"]))
+               for r in pokedb.find(hp=who[1], kg=round(who[2], 2), m=round(who[3], 2)))
+
+
+def species(info, texts):
+    """the name, else the candy line and types. A CP no form there can have is a misread (CP25450, CP24): then the
+    HP alone picks. -> (species or None, the CP to trust or None)"""
+    cp = info["cp"]
+    sp = ui.species_for(info["name"], info["texts"])
+    if sp:
+        return sp, cp if cp is None or any(base.can_have(s, cp, info["hp"]) for s in sp if s in pvp.SPECIES) else None
+    try:
+        return base.species_from_candy(texts, cp, info["hp"]), cp
+    except Skip as e:
+        if cp is None:
+            log(f"  {e}: asking the appraisal")
+            return None, None
+    try:
+        sp = base.species_from_candy(texts, None, info["hp"])
+        log(f"  CP{cp} fits none of them: a misread, left out")
+        return sp, None
+    except Skip as e:
+        log(f"  {e}: asking the appraisal")
+        return None, None
 
 
 def fill_one(info, texts):
-    """appraise the open page; the database learns its IVs. Leaves the detail page open. -> the IVs"""
-    sp = ui.species_for(info["name"], info["texts"]) or base.species_from_candy(texts, info["cp"], info["hp"])
+    """appraise the open page; the database learns its IVs. A name and candy that don't tell the species: the
+    appraisal's 'This Annihilape was caught' line does. A CP that didn't read: the bars are checked against the HP
+    at the levels the power-up cost allows. Leaves the detail page open. -> the IVs"""
+    sp, cp = species(info, texts)
+    levels = None if cp is not None else powerup.cost_levels(texts, info["cp"])[1] or None
     base.open_appraisal()
     try:
+        if not sp:
+            sp = base.appraisal_species(info["texts"])
         bars, raws = base.appraise()
-        return base.exact_ivs(sp, info["cp"], info["hp"], bars, raws)
+        if cp is None:
+            return base.ivs_by_hp(sp, info["hp"], bars, raws, levels)
+        return base.exact_ivs(sp, cp, info["hp"], bars, raws)
     finally:
         base.go("dialog", "detail")
 

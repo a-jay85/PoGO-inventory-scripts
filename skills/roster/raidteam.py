@@ -487,11 +487,51 @@ def known_copy(c, q, name, cp):
             "ivs_sure": True, "from": "pokedb"}
 
 
+PAGE_MISSES = 4  # paging on past this many tiles not wanted in a row: back to the list instead (its walk skips them)
+
+
 def open_tiles(c, q, todo, past):
-    """open these tiles [(name, cp)] of pile q, walking its list from the top as it's sorted. past(name, cp): the
-    walk is past where they'd be (stop there, not at the list's end)"""
-    import base, search
+    """open these tiles [(name, cp)] of pile q, in its list's order: the first from the list, then on from page to
+    page by the hidden next button (taps.tap_next), no close and no tile tap between. past(name, cp): the walk is
+    past where they'd be (stop there, not at the list's end)"""
+    import base, search, taps, ui
     left = Counter((squash(n), cp) for n, cp in todo)
+
+    def record(name, cp, info, texts):
+        try:
+            one = read_copy(c, q, c.piles[q], info, texts, name, cp)
+            c.copies.append(one)
+            lvs = "/".join(map(str, sorted({lv for _, lv, _ in one["fits"]})))
+            log(f"  {name} CP{one['cp']}: level {lvs}, IVs {'sure' if one['ivs_sure'] else str(len(one['fits'])) + ' fits'}")
+        except Skip as e:
+            log(f"  {name} CP{cp}: passed ({e})")
+            c.copies.append({"q": q, "name": name, "tile_cp": cp, "skip": str(e), "fits": []})  # not opened again on a carry-on
+
+    def target(name, cp):
+        """the wanted tile this page is, or None. A page CP that didn't read: its name, if only one wanted has it"""
+        if left[(squash(name), cp)] > 0:
+            return (squash(name), cp)
+        ks = [k for k in +left if k[0] == squash(name)] if cp is None else []
+        return ks[0] if len(ks) == 1 else None
+
+    def page_on():
+        misses = 0
+        while +left and misses < PAGE_MISSES:
+            now = base.who(base.detail_now())
+            if not taps.next_one(None, lambda t: not base.same_pokemon(now, base.who(ui.detail_info(t))),
+                                 poll=base.short_wait(0.12), tap=True):
+                return  # the list's end
+            base.OPENED.clear()  # (a new Pokémon on the page: steady_detail's first read is it)
+            info, texts, _ = base.steady_detail()
+            if past(info["name"], info["cp"]):
+                return
+            k = target(info["name"], info["cp"])
+            if not k:
+                misses += 1
+                continue
+            misses = 0
+            left[k] -= 1
+            record(info["name"], k[1], info, texts)
 
     def want(name, cp):
         if not +left or past(name, cp):
@@ -502,13 +542,11 @@ def open_tiles(c, q, todo, past):
         left[(squash(name), cp)] -= 1
         try:
             info, texts, _ = base.open_checked(i, name, cp, name_ok=True)
-            one = read_copy(c, q, c.piles[q], info, texts, name, cp)
-            c.copies.append(one)
-            lvs = "/".join(map(str, sorted({lv for _, lv, _ in one["fits"]})))
-            log(f"  {name} CP{one['cp']}: level {lvs}, IVs {'sure' if one['ivs_sure'] else str(len(one['fits'])) + ' fits'}")
+            record(name, cp, info, texts)
+            page_on()
         except Skip as e:
             log(f"  {name} CP{cp}: passed ({e})")
-            c.copies.append({"q": q, "name": name, "tile_cp": cp, "skip": str(e), "fits": []})  # not opened again on a carry-on
+            c.copies.append({"q": q, "name": name, "tile_cp": cp, "skip": str(e), "fits": []})
         base.back_to_list()
         return False
 

@@ -46,7 +46,7 @@ def species(info, texts):
     cp = info["cp"]
     sp = ui.species_for(info["name"], info["texts"])
     if sp:
-        return sp, cp if cp is None or any(base.can_have(s, cp, info["hp"]) for s in sp if s in pvp.SPECIES) else None
+        return sp, fits(sp, cp, info["hp"])
     try:
         return base.species_from_candy(texts, cp, info["hp"]), cp
     except Skip as e:
@@ -59,7 +59,15 @@ def species(info, texts):
         return sp, None
     except Skip as e:
         log(f"  {e}: asking the appraisal")
-        return None, None
+        return None, cp  # (the appraisal's species checks it)
+
+
+def fits(sp, cp, hp):
+    """cp if some form of sp can have it with this HP, else None (a misread)"""
+    if cp is None or any(base.can_have(s, cp, hp) for s in sp if s in pvp.SPECIES):
+        return cp
+    log(f"  CP{cp} fits none of {sp}: a misread, left out")
+    return None
 
 
 def fill_one(info, texts):
@@ -72,6 +80,7 @@ def fill_one(info, texts):
     try:
         if not sp:
             sp = base.appraisal_species(info["texts"])
+            cp = fits(sp, cp, info["hp"])
         bars, raws = base.appraise()
     finally:
         base.go("dialog", "detail")

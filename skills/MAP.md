@@ -1024,7 +1024,7 @@ Evolve every free trade evolution tagged Evo, as fast as the game lets it
 - `hearts_spot()`: -> (x of the first heart's centre, y of the row, 0-1), measured from the FRIENDSHIP LEVEL label above the hearts, or None
 - `forever_fill(im, W, H, cy)`: a Forever Friend's bar right of the one heart -> (5, how full, 0-1), or None when there's no bar
 - `heart_fill()`: the five hearts right of Level on the friend page -> (hearts full, how full the next one is, 0-1), or None when they can't be read
-- `poll_until(ok, timeout)`: look every POLL seconds until ok() -> True, or False once timeout seconds have passed
+- `poll_until(ok, timeout)`: look until ok() -> True, or False once timeout seconds have passed (base.settle: a look every 0.1 s)
 - `meter()`: -> friendship points to the next level when that level is the 3rd, 4th or 5th heart or the Forever bar, else None (a level-up there doesn't matter)
 - `title_block(t, lines, left=False)`: t and the lines under it in the same column (centred in the picker, left-aligned on the preview) -> (title, city), when t starts a gift's title
 - `in_california(city)`: the state is the city line's second part: 'Fremont, CA, United' or 'Fremont, California,' (OCR: 'Califomia')

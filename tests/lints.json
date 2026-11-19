@@ -13,7 +13,6 @@
   "skills/evo/evo.py script": 1,
   "skills/gift/gift.py close_popup": 1,
   "skills/gift/gift.py list_loaded": 1,
-  "skills/gift/gift.py poll_until": 1,
   "skills/gift/gift.py run_searches": 1,
   "skills/gift/gift.py search": 1,
   "skills/gift/gift.py send_gift": 2,

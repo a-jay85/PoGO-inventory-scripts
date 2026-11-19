@@ -811,15 +811,8 @@ def heart_fill():
 
 
 def poll_until(ok, timeout):
-    """look every POLL seconds until ok() -> True, or False once timeout seconds have passed"""
-    end = time.time() + timeout
-    while True:
-        look()
-        if ok():
-            return True
-        if time.time() >= end:
-            return False
-        time.sleep(POLL)
+    """look until ok() -> True, or False once timeout seconds have passed (base.settle: a look every 0.1 s)"""
+    return bool(base.settle(lambda: (look(), ok())[1], bool, timeout))
 
 
 meter_spot = None  # which kind of spot opened the friendship screen last: tried first next time

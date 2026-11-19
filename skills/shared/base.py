@@ -1376,19 +1376,13 @@ def can_have(sid, cp, hp):
     return False
 
 
-def levels_for(sid, ivs, cp, hp):
-    """the levels at which these exact IVs give this CP and HP"""
-    b = pvp.SPECIES[sid]["baseStats"]
-    return [lv for lv in pvp.LEVELS if pvp.cp(b, tuple(ivs), lv) == cp and pvp.hp(b, tuple(ivs), lv) == hp]
-
-
 def narrow(sp, ivs, cp, hp):
     """the species it could be, once the appraisal's IVs are known: only those where they give this CP and HP
     (Beldum or Metang). Forms of one dex with the same stats (costume Pikachus) are the plain one. None fits (a misread):
     sp as it was"""
     if len(sp) < 2 or not ivs or cp is None or hp is None:
         return sp
-    got = [s for s in sp if s in pvp.SPECIES and levels_for(s, ivs, cp, hp)] or sp
+    got = [s for s in sp if s in pvp.SPECIES and pvp.levels_for(s, ivs, cp, hp)] or sp
     one = {(pvp.SPECIES[s]["dex"], tuple(sorted(pvp.SPECIES[s]["baseStats"].items()))) for s in got}
     plain = [s for s in got if "_" not in s]
     return plain if len(got) > 1 and len(one) == 1 and len(plain) == 1 else got

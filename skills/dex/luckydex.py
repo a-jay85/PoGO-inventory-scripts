@@ -55,7 +55,7 @@ def guard(texts, bounds):
     """a stray long press on the list selects a Pokémon, and a tap at the bottom then lands on TRANSFER: never"""
     j = ui.joined(texts)
     if "TRANSFER" in j and ("PROFESSOR" in j or re.search(r"TRANSFER\s*\(\d+\)", j)):
-        cancel = next((t for t in texts if ui.norm(t[4]) == "CANCEL"), None)
+        cancel = ui.label(texts, "CANCEL")
         if cancel:
             search.click(cancel[0] + cancel[2] / 2, cancel[1] + cancel[3] / 2, bounds)
         keep_capture("transfer")
@@ -137,7 +137,7 @@ def manage(name, action):
 
 def remove(name):
     texts, bounds = manage(name, "Remove")
-    yes = next((t for t in texts if ui.norm(t[4]) == "YES"), None)
+    yes = ui.label(texts, "YES")
     if not (yes and "REMOVE THIS" in ui.joined(texts)):
         keep_capture("remove")
         raise Stop(f"no 'remove this search' box for {name!r}")

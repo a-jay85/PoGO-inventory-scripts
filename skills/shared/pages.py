@@ -34,14 +34,6 @@ def words(texts):
     return {ui.norm(t[4]) for t in texts}
 
 
-def label(texts, word):
-    return next((t for t in texts if ui.norm(t[4]) == word), None)
-
-
-def center(t):
-    return t[0] + t[2] / 2, t[1] + t[3] / 2
-
-
 # ---------- /trade's screens ----------
 
 def trade_leave(texts):
@@ -253,31 +245,31 @@ def x_button(texts):
 
 
 def leave_trade_yes(texts):
-    t = label(texts, "YES")
-    return center(t) if t else None
+    t = ui.label(texts, "YES")
+    return ui.center(t) if t else None
 
 
 def warning_no(texts):
-    t = label(texts, "NO")  # (its YES goes on to the confirm screen: never tapped here)
-    return center(t) if t else None
+    t = ui.label(texts, "NO")  # (its YES goes on to the confirm screen: never tapped here)
+    return ui.center(t) if t else None
 
 
 def confirm_out(texts):
     """takes back a CONFIRM that landed (CANCEL), else the exit door. (Change Pokémon went back to the list, and the
     list's X back to this screen while the pick stood: the two went round for minutes)"""
     t = confirm_label(texts)
-    return center(t) if t and ui.norm(t[4]) == "CANCEL" else EXIT_DOOR
+    return ui.center(t) if t and ui.norm(t[4]) == "CANCEL" else EXIT_DOOR
 
 
 def recent(texts):
-    t = label(texts, "RECENT")
-    return center(t) if t else None
+    t = ui.label(texts, "RECENT")
+    return ui.center(t) if t else None
 
 
 def can_receive(texts):
     """the gift sort menu's row (OCR can glue its round pick button on: 'OCAN RECEIVE A GIFT')"""
     t = next((t for t in texts if re.fullmatch(r"[OQCD]? ?CAN RECEIVE A GIFT", ui.norm(t[4]))), None)
-    return center(t) if t else None
+    return ui.center(t) if t else None
 
 
 # order: the more particular first (a trade's warning and confirm screens show a Pokémon's CP too)

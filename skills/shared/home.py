@@ -53,7 +53,7 @@ def spotlight(texts):
 def top_hit(texts):
     """iPhone: Spotlight's Top Hit, upper case (the row just under the 'Top Hit' heading), None if none.
     Pokémon HOME can be in the same list, so only an exact POKÉMON GO opens anything"""
-    head = next((t for t in texts if ui.norm(t[4]) == "TOP HIT"), None)
+    head = ui.label(texts, "TOP HIT")
     if not head:
         return None
     below = [t for t in texts if head[1] + head[3] < t[1] < head[1] + 0.2]
@@ -112,7 +112,7 @@ def note_storage(texts):
 
 def press_text(texts, bounds, word):
     """tap a button by its label (exit dialog's CANCEL: not a target ui.plan knows)"""
-    hit = next((t for t in texts if ui.norm(t[4]) == word), None)
+    hit = ui.label(texts, word)
     if not hit:
         return False
     base.tap_box(hit, bounds)

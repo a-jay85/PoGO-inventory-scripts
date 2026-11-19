@@ -235,7 +235,9 @@ def ocr(path):
         im.resize((im.width * 2, im.height * 2), Image.LANCZOS).save(big, compress_level=1)
         again = ocr_once(big)
         if thin and len(tiles(again)) > len(tiles(out)) or tabless and (full_list(again) or header(again) > header(out)) \
-                or flipped and (top_clock(again) or classify(again) != kind):
+                or flipped and (top_clock(again) or classify(again) != kind or kind == "unknown" and len(again) > len(out)):
+            # (an unknown screen keeps the read that saw more: the Pixel's 'Do you really want to power up' box read
+            # no YES or NO, its clock read 'З:44', and /cleantrades stopped on 'the power-up didn't show', 2026-11-19)
             return again
     return out
 

@@ -667,7 +667,8 @@ def long_pressed(p, name):
 
 def bar(p):
     for t in p.texts:
-        s = re.sub(r"\s", "", t[4]).lower()
+        s = re.sub(r"\s", "", ui.search_text(t)).lower()  # (search_text drops the magnifier: 'Q giv,...' read as one
+        # box came out 'qgiv,...', and pick_pile stopped, iPhone 2026-11-19)
         if t[1] < 0.24 and ("distance" in s or "candy" in s):  # ('conntcandy': OCR garbles the bar's letters too)
             return s
     return None

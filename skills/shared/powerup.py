@@ -180,8 +180,9 @@ def cost_levels(texts, cp):
     return cost, sorted(lvs)
 
 
-def read_dialog(cp, after=None):
+def read_dialog(cp, after=None, ok=None):
     """the open power-up dialog. Wait until its first CP is the page's and (after a +) its 'after' CP has moved.
+    ok(cp): for a page whose own CP didn't read, a first CP this one can have, instead of the page's.
     -> (CP after, total dust, POWER UP box, CANCEL box, + box, bounds, title)"""
     for _ in range(25):
         time.sleep(search.POLL)
@@ -193,8 +194,9 @@ def read_dialog(cp, after=None):
         if not (head and line and len(ok) == 1 and len(no) == 1):
             continue
         a, b = map(int, re.fullmatch(r"CP\s*(\d+)\D+(\d+)", line[4].strip()).groups())
-        if a != cp or b == after:  # (its CP must be the page's: 'CP 372 →385' can read as 'CP3 →72')
-            continue
+        if (not ok(a) if ok else a != cp) or b == after:  # (its CP must be the page's: 'CP 372 →385' can read as
+            continue  # 'CP3 →72')
+        LAST_FROM[0] = a
         dust = next((int(m.group(1).replace(",", "")) for t in texts if line[1] + 0.02 < t[1] < line[1] + 0.075
                      and (m := re.fullmatch(r"\D{0,3}?(\d{1,2},\d{3}|\d{3})", t[4].strip()))), None)
         plus = [t for t in texts if t[4].strip() == "+" and t[0] > 0.6 and line[1] < t[1] < ok[0][1]]
@@ -205,18 +207,32 @@ def read_dialog(cp, after=None):
     raise Stop("no power-up dialog, or its CP didn't move after +")
 
 
-def dialog(info):
-    """tap POWER UP on the detail page. -> read_dialog() without the title"""
+LAST_FROM = [None]  # the first CP of read_dialog's last read ('CP 3085 → 3120': 3085)
+
+
+def dialog(info, ok=None):
+    """tap POWER UP on the detail page. ok: read_dialog's, for a page whose CP didn't read. -> read_dialog() without
+    the title"""
     _, texts, _, bounds = look()
     btn = [t for t in texts if ui.norm(t[4]) == "POWER UP" and t[1] > 0.6]
     if len(btn) != 1:
         raise Pass("can't find POWER UP")
     press(btn[0], bounds)
-    *got, head = read_dialog(info["cp"])
+    *got, head = read_dialog(info["cp"], ok=ok)
     if ui.letters(head.split(":", 1)[1]) != ui.letters(info["name"]):
         press(got[3], got[5])
         raise Stop(f"the power-up dialog names someone else: {head!r} (wanted {info['name']})")
     return got
+
+
+def dialog_cp(info, ok):
+    """the CP of a page whose own CP won't read (event art or the Pokémon over it): the power-up dialog shows it on
+    plain white ('CP 3085 → 3120'). Opened and cancelled: nothing is spent. ok(cp): a CP this one can have.
+    Pass: no POWER UP (level 50, or the trainer's cap)"""
+    d = dialog(info, ok=ok)
+    cancel(d[3], d[5])
+    log(f"  CP{LAST_FROM[0]} from the power-up dialog")
+    return LAST_FROM[0]
 
 
 def more(cp, d):

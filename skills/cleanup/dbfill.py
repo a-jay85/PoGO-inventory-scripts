@@ -13,7 +13,8 @@ It opens the first result and swipes on through the rest. Each page's top read g
 in every script (base.steady_detail). A page the database already has IVs for (same weight, height, CP and HP) is
 swiped past. The rest are appraised, and their IVs and species are learned (base.exact_ivs). A nickname whose candy
 and types don't tell the species: the appraisal's 'This ... was caught' line does. A CP that doesn't read (art or the
-Pokémon over it): the bars are checked against the HP instead (base.ivs_by_hp).
+Pokémon over it): the power-up dialog shows it on plain white (opened and cancelled, nothing spent). No POWER UP
+there (level 50): the bars are checked against the HP instead (base.ivs_by_hp).
 Only targeted searches: the user ruled out opening all of storage for the database at once.
 Log in runs/<time>-dbfill/.
 """
@@ -24,7 +25,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import base
 from base import Skip, log
 import home, pokedb, powerup, pvp, search, session, ui
-from taps import details
+from taps import Pass, details
 
 DEFAULT = "4*"
 
@@ -63,8 +64,8 @@ def species(info, texts):
 
 def fill_one(info, texts):
     """appraise the open page; the database learns its IVs. A name and candy that don't tell the species: the
-    appraisal's 'This Annihilape was caught' line does. A CP that didn't read: the bars are checked against the HP
-    at the levels the power-up cost allows. Leaves the detail page open. -> the IVs"""
+    appraisal's 'This Annihilape was caught' line does. A CP that didn't read is read off the power-up dialog, else the bars are checked against the HP at the levels the power-up cost allows.
+    Leaves the detail page open. -> the IVs"""
     sp, cp = species(info, texts)
     levels = None if cp is not None else powerup.cost_levels(texts, info["cp"])[1] or None
     base.open_appraisal()
@@ -72,11 +73,27 @@ def fill_one(info, texts):
         if not sp:
             sp = base.appraisal_species(info["texts"])
         bars, raws = base.appraise()
-        if cp is None:
-            return base.ivs_by_hp(sp, info["hp"], bars, raws, levels)
-        return base.exact_ivs(sp, cp, info["hp"], bars, raws)
     finally:
         base.go("dialog", "detail")
+    if cp is None:
+        cp = dialog_cp(info, sp)
+    if cp is None:
+        return base.ivs_by_hp(sp, info["hp"], bars, raws, levels)
+    return base.exact_ivs(sp, cp, info["hp"], bars, raws)
+
+
+def dialog_cp(info, sp):
+    """the CP off the power-up dialog (opened and cancelled), into the database. None: no POWER UP (level 50)"""
+    try:
+        cp = powerup.dialog_cp(info, lambda c: any(base.can_have(s, c, info["hp"]) for s in sp if s in pvp.SPECIES))
+    except Pass as e:
+        log(f"  no CP from the power-up dialog: {e}")
+        return None
+    who = base.OPENED.get("who")
+    if who:
+        base.OPENED["who"] = (cp, *who[1:])
+        pokedb.seen(base.OPENED["who"])
+    return cp
 
 
 def script(query, limit):

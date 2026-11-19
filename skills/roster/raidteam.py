@@ -62,10 +62,7 @@ from base import Stop, Skip, log, newest
 TEAM = roster.TEAM
 HUNDO = (15, 15, 15)
 FULL = 45  # the highest IV sum
-CHUNK = 4  # needs(): piles of each boss's list rated per line to rate.mjs
 STEPS = ((0, 3), (4, 7), (8, 11), (12, 15))  # ceiling(): defense and HP IVs, 4 at a time
-STARS = ((44, "4*"), (36, "3*,4*"))  # no copy with an IV sum this high or less can help: the search's star term
-PROBE = 8  # piles in one probe() search
 RUNS = os.path.join(HERE, "runs")
 RATE = os.path.join(HERE, "rate.mjs")
 
@@ -315,36 +312,6 @@ class Count:
         self.warm_over([(m, b, q, cp, self.sixth(m, b), smax) for m, b in pairs])
         return [(m, b) for m, b in pairs if self.over(m, b, q, cp, self.sixth(m, b), smax)]
 
-    def stars(self, q, cp):
-        """the star term pile q's search can take from this CP down: no copy under it could beat any listing boss's
-        6th (the 6ths only grow), so the list it leaves out never needs walking. None: none"""
-        return next((t for smax, t in STARS if not self.beats(q, cp, smax=smax)), None)
-
-    def wanted(self, q):
-        """the pairs whose 6th the next copy in pile q could still beat"""
-        return self.beats(q, self.walk[q]["next_cp"])
-
-    def needs(self):
-        """each boss: the first pile on its list not walked to its end whose next copy could beat its 6th"""
-        self.warm_sixths()
-        left = {}  # each pair still looking: its piles not walked to the end, in list order (dict: first place)
-        for m, b in self.pairs:
-            left[(id(m), id(b))] = (m, b, [q for q in self.ent[(id(m), id(b))] if not self.walk[q]["end"]])
-        need = []
-        while left:  # a few piles of each pair at a time: most find theirs in the first few
-            self.warm_over([(m, b, q, self.walk[q]["next_cp"], self.sixth(m, b), FULL)
-                            for m, b, qs in left.values() for q in qs[:CHUNK]])
-            for k, (m, b, qs) in list(left.items()):
-                r6 = self.sixth(m, b)
-                hit = next((q for q in qs[:CHUNK] if self.over(m, b, q, self.walk[q]["next_cp"], r6)), None)
-                if hit or len(qs) <= CHUNK:
-                    del left[k]
-                    if hit and hit not in need:
-                        need.append(hit)
-                else:
-                    left[k] = (m, b, qs[CHUNK:])
-        return need
-
     def could_help(self, q, fits_):
         """the best of these fits could beat some listing boss's 6th"""
         pairs = self.listing(q)
@@ -438,27 +405,12 @@ class Enough(Exception):
     """this tile's cap can't beat the 6th of any boss that asked: neither can the rest of the list"""
 
 
-class Tighter(Exception):
-    """from this tile down the search can take a star term: type it again with it"""
-
-
 def by_cp(ts):
     """the tiles' CPs go down, top to bottom (a CP not read is passed over, and so is one misread: shiny sparkles by
     a CP2850 read as 987, Pixel 2026-11-18)"""
     cps = [cp for _, cp in ts if cp]
     down = lambda xs: all(x >= y for x, y in zip(xs, xs[1:]))
     return down(cps) or len(cps) > 3 and any(down(cps[:i] + cps[i + 1:]) for i in range(len(cps)))
-
-
-def with_stars(q, stars):
-    """pile q's search with a star term, before its shadow term (a typed search keeps a thick last letter)"""
-    head, tail = q.rsplit("&", 1)
-    return f"{head}&{stars}&{tail}" if stars else q
-
-
-def floor_of(stars):
-    """the lowest IV sum a star term lets through"""
-    return {t: smax + 1 for smax, t in STARS}.get(stars, 0)
 
 
 def sorted_tiles(c, typed):
@@ -471,110 +423,182 @@ def sorted_tiles(c, typed):
         _, _, _, bounds = base.look()
         _, texts, _ = search.sort_down("COMBAT POWER", bounds)
         c.sorted = True
-        ts = [(n, cp) for n, cp, _, _ in ui.tiles(texts)]
+        ts = [(ui.tile_name(n), cp) for n, cp, _, _ in ui.tiles(texts)]
         if not by_cp(ts):
             raise Stop(f"{typed}: sorted by Combat Power, but the CPs don't go down")
     return ts
 
 
-def walk_pile(c, q, asked, most=None):
-    """walk pile q's list from the top, sorted by CP, highest first. asked: the pairs that wanted it this round.
-    most: open at most this many, then leave the rest for a later round (other piles raise the 6ths meanwhile)"""
-    import base, search
-    w = c.walk[q]
-    opened = [0]
-    while True:
-        stars = c.stars(q, w["next_cp"])
-        typed = with_stars(q, stars)
-        if stars:
-            log(f"  {typed}: no copy under {stars} could make a team from CP{w['next_cp']} down")
-            smax = next(x for x, t in STARS if t == stars)
-            if [smax, w["next_cp"]] not in w.setdefault("stars", []):
-                w["stars"].append([smax, w["next_cp"]])
-        if not sorted_tiles(c, typed):
-            log(f"  {typed}: none")
-            w["end"] = True
-            return
-        passed = Counter((x["name"], x["tile_cp"]) for x in c.copies if x["q"] == q)
-
-        def want(name, cp):
-            if passed[(name, cp)] > 0:  # opened before: walk_list passes it over
-                return True
-            if not c.beats(q, cp, asked):
-                w["next_cp"] = cp
-                raise Enough()
-            if most and opened[0] >= most:
-                w["next_cp"] = cp
-                raise Enough()
-            if cp and c.stars(q, cp) != stars:
-                w["next_cp"] = cp
-                raise Tighter()
-            return True
-
-        def visit(i, name, cp):
-            opened[0] += 1
-            try:
-                info, texts, _ = base.open_checked(i, name, cp, name_ok=True)
-                one = read_copy(c, q, c.piles[q], info, texts, name, cp, floor_of(stars))
-                c.copies.append(one)
-                lvs = "/".join(map(str, sorted({lv for _, lv, _ in one["fits"]})))
-                log(f"  {name} CP{one['cp']}: level {lvs}, IVs {'sure' if one['ivs_sure'] else str(len(one['fits'])) + ' fits'}")
-            except Skip as e:
-                log(f"  {name} CP{cp}: passed ({e})")
-                c.copies.append({"q": q, "name": name, "tile_cp": cp, "skip": str(e), "fits": []})  # not opened again on a carry-on
-            base.back_to_list()
-            return False
-
-        try:
-            if search.walk_list(visit, want=want, passed=passed):
-                w["end"] = True  # a star term's list too: what it leaves out can't make a team
-            return
-        except Enough:
-            return
-        except Tighter:
-            continue
+IV_NAME = re.compile(r"(\d{2,3})(?!\d)")  # an /ivc name starts with its IV% ('96 D GGBI', '100 RT*')
 
 
-def probe(c, qs):
-    """one search for several piles that haven't been searched (the same shadow, no form terms): its top tile's CP
-    is the most any of them has. A pile whose copies at that CP can't beat any boss's 6th is settled: no search of
-    its own. -> the piles settled"""
-    shadow = c.piles[qs[0]]["shadow"]
-    typed = ",".join(str(c.piles[q]["dex"]) for q in qs) + f"&{'shadow' if shadow else '!shadow'}"
-    ts = sorted_tiles(c, typed)
-    top = max((cp for _, cp in ts[:3] if cp), default=0)  # the top row's best: one misread low can't settle a pile
-    if ts and not top:
-        log(f"  {typed}: its top tile's CP didn't read")
+def iv_pct(name):
+    """an /ivc name's IV% (0-100), else None"""
+    m = IV_NAME.match(name or "")
+    return int(m.group(1)) if m and int(m.group(1)) <= 100 else None
+
+
+def squash(name):
+    """a name to match on: OCR drops or adds spaces ('96 D C*X' / '96 D C* X')"""
+    return re.sub(r"\s+", "", name or "").lower()
+
+
+def top(ts, key, n=TEAM):
+    """the tiles [(name, cp)] whose key is among the n highest, and every one tied with the nth"""
+    vals = sorted((key(t) for t in ts if key(t) is not None), reverse=True)
+    if not vals:
         return []
-    done = [q for q in qs if not c.beats(q, top)] if top else qs
-    for q in qs:
-        c.walk[q]["probed"] = True  # once: a group that settled none would settle none again
-    for q in done:
-        c.walk[q]["next_cp" if top else "end"] = top or True
-    log(f"  {typed}: {'top CP' + str(top) if top else 'none'}, {len(done)} of {len(qs)} piles settled")
-    return done
+    cut = vals[min(n, len(vals)) - 1]
+    return [t for t in ts if key(t) is not None and key(t) >= cut]
 
 
-def probes(c):
-    """the piles not searched or probed yet (no form terms) whose copies could still beat some boss's 6th, in groups
-    of PROBE that one search can cover. Piles of about the same top CP go together: one strong pile in a group
-    would settle none of the rest"""
-    def plain(q):
-        return q == f"{c.piles[q]['dex']}&{'shadow' if c.piles[q]['shadow'] else '!shadow'}"
-    fresh = [q for q in c.piles if c.walk[q]["next_cp"] is None and not c.walk[q]["end"]
-             and not c.walk[q].get("probed") and plain(q)]
-    fresh = [q for q in fresh if c.beats(q, None)]
-    top = lambda q: max(pvp.cp(stats(x), HUNDO, pvp.LEVELS[-1]) for x in c.piles[q]["sids"] if x in pvp.SPECIES)
-    out = []
-    for sh in (False, True):
-        g = sorted((q for q in fresh if c.piles[q]["shadow"] == sh), key=top)
-        out += [g[i:i + PROBE] for i in range(0, len(g), PROBE) if len(g[i:i + PROBE]) > 1]
-    return out
+def piles_in_order(c):
+    """the piles, best first: by their best place on any boss's list (so the 6ths fill early, and later piles
+    need fewer opens)"""
+    rank = {}
+    for m, b in c.pairs:
+        for k, q in enumerate(c.ent[(id(m), id(b))]):  # (in list order)
+            rank[q] = min(rank.get(q, k), k)
+    return sorted(rank, key=rank.get)
 
 
-def read_copy(c, q, p, info, texts, name, tile_cp, floor=0):
-    """the opened page -> a copy dict, or None (not this pile's, or nothing fits its CP and HP). floor: the search's
-    star term let through only IV sums this high"""
+def known_copy(c, q, name, cp):
+    """pokedb's record of this tile: its nickname, CP and the pile's species, shadow or not, with its IVs -> a copy
+    dict like read_copy's, or None (not known, more than one record, or it doesn't add up at this CP)"""
+    import pokedb
+    p = c.piles[q]
+    base_of = lambda s: (s or "").removesuffix("_shadow")
+    sids = {base_of(s) for s in p["sids"]}
+
+    def shadow(r):
+        try:
+            return bool(json.loads(r.get("flags") or "{}").get("shadow"))
+        except ValueError:
+            return None
+    rows = [r for r in pokedb.find(cp=cp) if r.get("atk") is not None and base_of(r["species"]) in sids
+            and squash(r["nickname"]) == squash(name) and shadow(r) == p["shadow"]]
+    if len(rows) != 1:
+        return None
+    r = rows[0]
+    got = [f for f in fits(p["sids"], cp, r["hp"]) if f[2] == (r["atk"], r["def"], r["sta"])]
+    if not got:
+        return None
+    return {"q": q, "name": name, "tile_cp": cp, "cp": cp, "hp": r["hp"], "kg": r["kg"], "m": r["m"], "fits": got,
+            "ivs_sure": True, "from": "pokedb"}
+
+
+def open_tiles(c, q, todo, past):
+    """open these tiles [(name, cp)] of pile q, walking its list from the top as it's sorted. past(name, cp): the
+    walk is past where they'd be (stop there, not at the list's end)"""
+    import base, search
+    left = Counter((squash(n), cp) for n, cp in todo)
+
+    def want(name, cp):
+        if not +left or past(name, cp):
+            raise Enough()
+        return left[(squash(name), cp)] > 0
+
+    def visit(i, name, cp):
+        left[(squash(name), cp)] -= 1
+        try:
+            info, texts, _ = base.open_checked(i, name, cp, name_ok=True)
+            one = read_copy(c, q, c.piles[q], info, texts, name, cp)
+            c.copies.append(one)
+            lvs = "/".join(map(str, sorted({lv for _, lv, _ in one["fits"]})))
+            log(f"  {name} CP{one['cp']}: level {lvs}, IVs {'sure' if one['ivs_sure'] else str(len(one['fits'])) + ' fits'}")
+        except Skip as e:
+            log(f"  {name} CP{cp}: passed ({e})")
+            c.copies.append({"q": q, "name": name, "tile_cp": cp, "skip": str(e), "fits": []})  # not opened again on a carry-on
+        base.back_to_list()
+        return False
+
+    try:
+        search.walk_list(visit, want=want)
+    except Enough:
+        pass
+    if +left:
+        log(f"  {q}: not found on its list: {', '.join(f'{n} CP{cp}' for n, cp in +left)}")
+
+
+def take(c, q, tiles, past, to_top=None):
+    """these tiles of pile q count: the ones counted before are passed, pokedb's known ones are added without an
+    open, and the rest are opened if a copy at their CP could still beat some boss's 6th"""
+    have = Counter((squash(x["name"]), x["tile_cp"]) for x in c.copies if x["q"] == q)
+    todo, known = [], 0
+    for name, cp in tiles:
+        k = (squash(name), cp)
+        if have[k] > 0:
+            have[k] -= 1
+            continue
+        one = known_copy(c, q, name, cp) if cp else None
+        if one:
+            c.copies.append(one)
+            known += 1
+            continue
+        todo.append((name, cp))
+    todo = [t for t in todo if c.beats(q, t[1])]
+    log(f"  {len(tiles)} tiles: {known} known in pokedb, {len(todo)} to open")
+    if todo:
+        if to_top:
+            to_top()
+        open_tiles(c, q, todo, past)
+
+
+def cp_pass(c, q):
+    """pile q's top 6 by CP (and ties): the list sorted by CP, highest first. Its first screen holds them"""
+    w = c.walk[q]
+    if not c.beats(q, None):
+        log(f"{q}: no copy of it could beat any boss's 6th")
+        w["end"] = True
+        return
+    ts = sorted_tiles(c, q)
+    if not ts:
+        log(f"{q}: none")
+        w["end"] = True
+        return
+    w["top_cp"] = max((cp for _, cp in ts[:3] if cp), default=None)  # the top row's best: one misread low can't hide it
+    hi = top(ts, lambda t: t[1])
+    log(f"{q}: top {len(hi)} by CP, CP{hi[0][1]} to CP{hi[-1][1]}")
+    low = min(cp for _, cp in hi)
+    take(c, q, hi, past=lambda n, cp: cp is not None and cp < low)
+    w["cp_done"] = True
+
+
+def name_pass(c, q, named):
+    """pile q's top 6 by IV% (and ties), from its /ivc names: the list sorted by Name, where they come first.
+    named: the list is sorted by Name already. -> named"""
+    import base, search
+    from tagsheet import search_exact
+    w = c.walk[q]
+    if not c.beats(q, w.get("top_cp")):
+        log(f"{q}: no copy at its top CP{w.get('top_cp')} could beat any boss's 6th: no IV names needed")
+        w["end"] = True
+        return named
+    if named:
+        ts, _ = search.run_search(q, iv_only=True)
+    else:
+        search_exact(q)
+        path, texts, bounds = search.sort_by_name(base.look()[3])
+        ts, _ = search.read_results(q, path, texts, bounds, iv_only=True)
+        named = True
+    hi = top(ts, lambda t: iv_pct(t[0]))
+    if not hi:
+        log(f"{q}: no IV names")
+        w["end"] = True
+        return named
+    log(f"{q}: top {len(hi)} by IV name, {max(iv_pct(n) for n, _ in hi)}% down to {min(iv_pct(n) for n, _ in hi)}%")
+    plain = [0]
+
+    def past(n, cp):  # past the IV names: 3 plain names in a row (one misread IV name isn't the end)
+        plain[0] = plain[0] + 1 if iv_pct(n) is None else 0
+        return plain[0] >= 3
+    take(c, q, hi, past, to_top=lambda: search_exact(q))  # back to the list's top (a search keeps its sort)
+    w["end"] = True
+    return named
+
+
+def read_copy(c, q, p, info, texts, name, tile_cp):
+    """the opened page -> a copy dict, or None (not this pile's, or nothing fits its CP and HP)"""
     import base, powerup, pokedb
     if base.is_shadow(texts) != p["shadow"]:
         raise Skip(f"{'not ' if p['shadow'] else ''}a shadow, but in the {q} search")
@@ -585,7 +609,6 @@ def read_copy(c, q, p, info, texts, name, tile_cp, floor=0):
         got = fits(p["sids"], cp, hp)  # a cost misread: CP and HP alone
     if not got:
         raise Skip(f"no level and IVs give CP{cp} {hp} HP")
-    got = [f for f in got if sum(f[2]) >= floor] or got
     kg, m = (base.OPENED.get("who") or (None,) * 4)[2:]
     known = [r for r in pokedb.find(cp=cp, hp=hp)
              if r.get("atk") is not None and base.same_pokemon((cp, hp, kg, m), (r["cp"], r["hp"], r["kg"], r["m"]))]
@@ -617,23 +640,16 @@ def cmd_count(c, resume, out_dir):
     search.to_search_list()  # (trainer() can end on the map)
     path = os.path.join(out_dir, "copies.json")
     log(f"stopped? carry on with: raidteam.py count {path}" + (f" --limit {c.limit}" if c.limit else ""))
-    for rnd in range(1, 500):
-        need = c.needs()
-        if rnd > 1 and (groups := probes(c)):  # (round 1's piles are the bosses' best: most have copies to open)
-            log(f"round {rnd}: {sum(map(len, groups))} piles not searched yet, in {len(groups)} searches")
-            for g in groups:
-                probe(c, g)
+    piles = piles_in_order(c)
+    log(f"{len(piles)} piles: each one's top {TEAM} by CP, then its top {TEAM} by IV name")
+    for q in piles:  # sorted by CP once, for all of them
+        if not c.walk[q]["end"] and not c.walk[q].get("cp_done"):
+            cp_pass(c, q)
             json.dump(c.state(who), open(path, "w"), indent=0)
-            need = c.needs()
-        if not need:
-            break
-        log(f"round {rnd}: {len(need)} piles to walk, {len(c.copies)} copies opened so far")
-        for q in need:
-            asked = c.wanted(q)
-            if not asked:
-                continue
-            log(f"{q}: {len(asked)} bosses could use one")
-            walk_pile(c, q, asked)
+    named = False
+    for q in piles:  # then by Name once
+        if not c.walk[q]["end"]:
+            named = name_pass(c, q, named)
             json.dump(c.state(who), open(path, "w"), indent=0)
     if c.sorted:  # other scripts walk the list as it's sorted: back to Recent, newest first, the game's own
         import base

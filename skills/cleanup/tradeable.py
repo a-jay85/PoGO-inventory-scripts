@@ -27,7 +27,8 @@ One tag each, the first that fits:
     copy would be #1 against some raid boss (/roster's roster.json).
  3. GIV: any of
     - a new 100 would fill a hole on HashTagAJay's ★100% page, itself or by evolving (dex.hundred_useful: a later
-      stage on the page counts for the earlier ones, and each missing branch wants its own copy)
+      stage on the page counts for the earlier ones, each missing branch wants its own copy, and only a 100 still in
+      storage counts as a copy: the /dex run's owned-100.json)
     - PvPoke top 100 in Great, Ultra or Master League, with every rank 1 IV 5 or more (pvp-giv-<date>.json)
     - a new copy would be #2-#6 against some raid boss
     - HashTagAJay has a lucky one of the family and under 348 candy (read)
@@ -304,30 +305,6 @@ def families_by_dex(m):
     return sorted(out.items())
 
 
-def find(fams, prefix, count, n, seen):
-    """group test: the families where prefix&<their dexes>&count finds something. Halves each group with hits, or
-    tests each family alone once hits turn out common. n(query) -> result count. seen: [hits, families settled] so
-    far in this pass, updated"""
-    hits, todo = [], [fams]
-    while todo:
-        g = todo.pop(0)
-        dexes = ",".join(dex.ranges({d for _, ds in g for d in ds}))
-        n_ = n(f"{prefix}{dexes}&{count}")
-        log(f"  {len(g)} families {g[0][0]}-{g[-1][0]}: {n_}")
-        if not n_:
-            seen[1] += len(g)
-            continue
-        if len(g) == 1:
-            hits.append(g[0][0])
-            seen[0] += 1
-            seen[1] += 1
-        elif len(g) <= 3 or (seen[0] + 1) / (seen[1] + 10) > 0.2:  # hits are common: halving costs more than one each
-            todo += [[f] for f in g]
-        else:
-            todo += [g[:len(g) // 2], g[len(g) // 2:]]
-    return sorted(hits)
-
-
 def cmd_read(resume=None):
     """resume: a stopped run's searches.json, so its searches aren't typed again"""
     base.new_run_dir(os.path.join(HERE, "runs"), suffix="read")
@@ -344,10 +321,10 @@ def cmd_read(resume=None):
     fams = families_by_dex(m)
     chunks = [fams[i:i + 20] for i in range(0, len(fams), 20)]  # 20 families: a short search, and fewer splits
     seen = [0, 0]
-    lucky = [h for c in chunks for h in find(c, "lucky&", f"countcandy0-{LUCKY_CANDY - 1}", n, seen)]
+    lucky = [h for c in chunks for h in tagsheet.group_hits(c, "lucky&", f"countcandy0-{LUCKY_CANDY - 1}", n, seen)]
     log(f"lucky, under {LUCKY_CANDY} candy: {lucky}")
     seen = [0, 0]
-    xl = [h for c in chunks for h in find(c, "", f"countcandyxl{XL_CAP}-", n, seen)]
+    xl = [h for c in chunks for h in tagsheet.group_hits(c, "", f"countcandyxl{XL_CAP}-", n, seen)]
     log(f"{XL_CAP}+ Candy XL: {xl}")
     out = {"trainer": who, "lucky_low_candy": lucky, "xl_full": xl}
     json.dump(out, open(os.path.join(base.RUN_DIR, "read.json"), "w"), indent=1)
@@ -488,7 +465,11 @@ def taker_species(m):
     for s in ok:
         if s in reroll:
             why.setdefault(s, ("Reroll", "#1 raid attacker: " + ", ".join(roster["species"][s]["bosses"][:3])))
-    hund = dex.hundred_useful(set(hund_missing), m.by, m.parent)
+    hund_owned = dex.owned_100(hund_run)
+    if hund_owned is None:  # (the page alone would count 100s gone since as copies: the Magnemite of 2026-11-19)
+        raise NoData(f"the newest ★100% /dex run of {TAKER} has no count of its 100s yet: "
+                     f"POGO_PHONE=android python3 ../dex/dex.py evolve 100, signed in as {TAKER}")
+    hund = dex.hundred_useful(set(hund_missing), hund_owned, m.by, m.parent)
     low = {m.root(s) for s in m.by if m.dex(s) in read["lucky_low_candy"]}
     for s in ok:
         if s in hund:

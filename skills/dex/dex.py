@@ -6,8 +6,9 @@ to paste. Android only for now.
   POGO_PHONE=android caffeinate -dimsu python3 dex.py 100       the ★100% page
   POGO_PHONE=android caffeinate -dimsu python3 dex.py xxs       the XXS page: each search starts with xxs&
   POGO_PHONE=android python3 dex.py look                        what it reads on a grid screen now; taps nothing
-  POGO_PHONE=android python3 dex.py evolve [lucky|xxs] [run]    the evolve step again on a page already read (default:
-                                                                Lucky, its newest run); doesn't read the page again
+  POGO_PHONE=android python3 dex.py evolve [lucky|xxs|100] [run]  the evolve step again on a page already read (default:
+                                                                Lucky, its newest run); doesn't read the page again.
+                                                                100: counts the 100s in storage again
 
 Gets there from anywhere: main menu, POKÉDEX, the page's chip at the bottom, then KANTO. The page is one long grid,
 four to a row, Kanto to Paldea (0001-1024). A caught entry has a picture with its number at the bottom of the tile.
@@ -24,6 +25,8 @@ Each run saves the signed-in trainer to trainer.txt. Other scripts pick a run wi
 same account for evolve. Any check that fails stops the run with no search printed.
 The Lucky and XXS runs also list the lucky or XXS ones in storage that could evolve into a hole (evolve-<page>.txt), and
 leave those holes out of the search. Both keep their mark when they evolve, so one step (evolvable) does both.
+The ★100% run counts the 100s in storage of each species on the page with a missing evolution (count_owned, counts
+only, owned-100.json): the page shows one was there once, not that it still is. hundred_useful works from both.
 """
 import argparse, difflib, os, random, re, statistics, sys, time
 from PIL import Image
@@ -386,12 +389,13 @@ def ancestors(sid, parent):
 
 # ---------- ★100%: which new copies fill a hole ----------
 
-def hundred_useful(missing, by=None, parent=None):
+def hundred_useful(missing, owned, by=None, parent=None):
     """-> the species forms a new 100% copy of would fill a ★100% hole with, itself or by evolving.
     The page never got the 100s caught before it came out, so a later stage on the page counts for the earlier
-    ones: Pidgeot there, Pidgey's hole is filled. Each 100 on the page is one copy, and a copy goes down one
-    branch: a 100 Eevee fills one missing Eeveelution, and each other missing one wants a new Eevee. Two forms
-    with one number (Raichu, Alolan Raichu) are one hole"""
+    ones: Pidgeot there, Pidgey's hole is filled. owned {sid: n}: the 100 copies storage holds now (count_owned).
+    The page only says one was there once: a Magnemite on it that's gone since evolves into nothing. Each copy goes
+    down one branch: a 100 Eevee fills one missing Eeveelution, and each other missing one wants a new Eevee. Two
+    forms with one number (Raichu, Alolan Raichu) are one hole"""
     if by is None:
         by, parent = evo_tree()
     kids = {}
@@ -400,15 +404,15 @@ def hundred_useful(missing, by=None, parent=None):
 
     def short(sid, extra):
         """how many more 100 copies of sid its line still wants, with one more of extra"""
-        have = (by[sid]["dex"] not in missing) + (sid == extra)
+        copies = owned.get(sid, 0) + (sid == extra)
         if sid not in kids:
-            return max(0, 1 - have)
+            return max(0, (by[sid]["dex"] in missing) - copies)
         per_dex = {}
         for k in kids[sid]:
             d = by[k]["dex"]
             per_dex[d] = min(per_dex.get(d, 99), short(k, extra))
         want = sum(per_dex.values())
-        return max(0, want - have)  # nothing wanted below: a later stage on the page fills this one
+        return max(0, want - copies)  # nothing wanted below: a later stage on the page fills this one
 
     roots = {}
     for sid in by:
@@ -419,6 +423,47 @@ def hundred_useful(missing, by=None, parent=None):
         if now:
             out |= {s for s in family if short(r, s) < now}
     return out
+
+
+def hundo_sources(missing, by, parent):
+    """the species forms on the ★100% page with a missing number below them: the only ones whose 100 copies in
+    storage change hundred_useful's answer (an old 100 at a missing number isn't counted: a new copy is still asked
+    for, as before)"""
+    out = set()
+    for sid in parent:
+        if by[sid]["dex"] in missing:
+            out |= {a for a in ancestors(sid, parent) if by[a]["dex"] not in missing}
+    return sorted(out, key=lambda s: (by[s]["dex"], s))
+
+
+def count_owned(missing, by, parent):
+    """{sid: n} of hundo_sources' 100 copies in storage now, with counts only (no Pokémon opened): dex numbers in
+    groups of 20, halved where a group finds some (tagsheet.group_hits), then one count per form of each number
+    found. Saved as owned-100.json in the run folder"""
+    srcs = hundo_sources(missing, by, parent)
+    dexes = sorted({by[s]["dex"] for s in srcs})
+    log(f"★100%: counting the 100s in storage of {len(srcs)} forms on the page with a missing number below")
+    to_storage()
+    count = counter({}, edit=True, live=True)  # (as evolvable: edit the last search's end, count with the keyboard up)
+    seen, hits = [0, 0], []
+    for i in range(0, len(dexes), 20):
+        hits += tagsheet.group_hits([(d, [d]) for d in dexes[i:i + 20]], "4*&", "!costume", count, seen)
+    owned = {}
+    for d in hits:
+        for s in (s for s in srcs if by[s]["dex"] == d):
+            if n := count(source_query([s], by, word="4*")):  # (a plain form with no regional one: cached already)
+                owned[s] = n
+    log(f"  100s in storage: {owned}")
+    import json
+    json.dump(owned, open(os.path.join(base.RUN_DIR, "owned-100.json"), "w"), indent=0)
+    return owned
+
+
+def owned_100(run):
+    """a ★100% run's count_owned answer, or None (a run from before it counted)"""
+    import json
+    f = os.path.join(run, "owned-100.json")
+    return json.load(open(f)) if os.path.exists(f) else None
 
 
 def lines(missing):
@@ -574,7 +619,7 @@ def write_searches(page, missing):
             f.write("\n".join(report) + "\n")
     if page == "100":
         by, parent = evo_tree()
-        want = {by[s]["dex"] for s in hundred_useful(set(missing), by, parent)}
+        want = {by[s]["dex"] for s in hundred_useful(set(missing), count_owned(set(missing), by, parent), by, parent)}
         known = {p["dex"] for p in by.values()}
         filled = sorted(n for n in missing if n in known and n not in want)
         extra = sorted(want - set(missing))
@@ -634,19 +679,28 @@ def cmd_look():
 
 
 def cmd_evolve(page, run):
-    """the Lucky (or XXS) step again on a page already read: storage changed, or the rules did"""
+    """the Lucky (or XXS) step again on a page already read: storage changed, or the rules did. ★100%: the count of
+    100s in storage again (count_owned), on the account that read the page"""
     runs = os.path.join(HERE, "runs")
-    files = (f"page-{page}.txt", f"missing-{page}.txt")
+    files = (f"page-{page}.txt",) if page == "100" else (f"page-{page}.txt", f"missing-{page}.txt")
+    # (★100%'s missing-100.txt is the wanted list, not the page)
     if not run:
         run = max((d for d in os.listdir(runs) if d.endswith(f"-{page}") and not d.endswith(f"-evolve-{page}")
                    and any(os.path.exists(os.path.join(runs, d, f)) for f in files)), default=None)
         if not run:
-            sys.exit(f"no {EVOLVE[page][1]} run yet: dex.py {page}")
+            sys.exit(f"no {PAGES[page]} run yet: dex.py {page}")
     run = os.path.join(runs, run) if not os.path.isabs(run) else run
     path = next(os.path.join(run, f) for f in files if os.path.exists(os.path.join(run, f)))
     missing = sorted(read_numbers(path, page))
     base.new_run_dir(runs, suffix=f"evolve-{page}")
     who = trainer_of(run)
+    if page == "100":
+        now = home.trainer()
+        if who and now != who:
+            raise Stop(f"the page is {who}'s, but {now} is signed in: its 100s can't be counted")
+        who = who or now
+        with open(os.path.join(base.RUN_DIR, "page-100.txt"), "w") as f:  # (latest() reads this run's page)
+            f.write(",".join(ranges(missing)) + "\n")
     if who:
         save_trainer(who)
     log(f"page from {path}: {len(missing)} missing" + (f" ({who})" if who else ""))
@@ -661,7 +715,7 @@ def script(page):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("page", choices=(*PAGES, "look", "evolve"))
-    ap.add_argument("rest", nargs="*", metavar="[lucky|xxs] [run]",
+    ap.add_argument("rest", nargs="*", metavar="[lucky|xxs|100] [run]",
                     help="evolve: which page (default lucky), and a run's folder (default: the newest)")
     a = ap.parse_args()
     if not ui.ANDROID:
@@ -669,7 +723,7 @@ def main():
     if a.page == "look":
         return cmd_look()
     if a.page == "evolve":
-        page = a.rest.pop(0) if a.rest and a.rest[0] in EVOLVE else "lucky"
+        page = a.rest.pop(0) if a.rest and a.rest[0] in (*EVOLVE, "100") else "lucky"
         if len(a.rest) > 1:
             ap.error("evolve takes a page and one run folder at most")
         return session.main(cmd_evolve, page, a.rest[0] if a.rest else None)

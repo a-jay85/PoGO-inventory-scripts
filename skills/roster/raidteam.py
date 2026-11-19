@@ -421,9 +421,9 @@ def sorted_tiles(c, typed):
     ts = taps.settled_tiles()
     if ts and (not c.sorted or not by_cp(ts)):
         _, _, _, bounds = base.look()
-        _, texts, _ = search.sort_down("COMBAT POWER", bounds)
+        search.sort_down("COMBAT POWER", bounds)
         c.sorted = True
-        ts = [(ui.tile_name(n), cp) for n, cp, _, _ in ui.tiles(texts)]
+        ts = taps.settled_tiles()  # (the sort's own read can be mid-redraw: names and CPs wrong, 3 of 6 not found)
         if not by_cp(ts):
             raise Stop(f"{typed}: sorted by Combat Power, but the CPs don't go down")
     return ts
@@ -517,6 +517,8 @@ def open_tiles(c, q, todo, past):
     def page_on():
         misses = 0
         while +left and misses < PAGE_MISSES:
+            if base.wait_for("appraisal", "detail")[0] == "appraisal":  # read_copy appraised it: back to its page
+                base.go("dialog", "detail")
             now = base.who(base.detail_now())
             if not taps.next_one(None, lambda t: not base.same_pokemon(now, base.who(ui.detail_info(t))),
                                  poll=base.short_wait(0.12), tap=True):

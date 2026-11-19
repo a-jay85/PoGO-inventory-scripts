@@ -237,6 +237,7 @@ def poll_gap(ios):
 
 
 LOOK_S = 0.35  # about how long one Android look takes (capture + OCR)
+LIST_REDRAW = 1.5  # seconds a list may take to draw its tiles after a close
 ANDROID_WAIT = 0.1  # Android: every fixed wait in a Pokémon's check and the list walk, the shortest one there was
 # (tap_gap's low end, settle's poll). Tried 2026-11-18 against 0.15-0.5 s ones: a look takes ~0.35 s anyway
 
@@ -557,7 +558,7 @@ def tap(target, dry=False, rested=False):
             if any(w in str(e) for w in ("screen is 'unknown'", "found 0 matches", "found 0 close buttons",
                                          "found 0 appraisal buttons", "found 0 menu buttons", "(0 tiles)")) and _ < 7:
                 ui._seen = ui._older = None  # that look was mid-animation: don't reuse it
-                time.sleep(short_wait(0.4))
+                time.sleep(0.4 if "(0 tiles)" in str(e) else short_wait(0.4))  # a list's redraw: the longer wait
                 continue
             keep_capture("refused")
             if "never-tap" in str(e):
@@ -659,7 +660,10 @@ def back_to_list():
         screen = go("close", "detail")[0]
     if screen in ("detail", "gym"):
         go("close", "list")
-    wait_for("list")
+    texts = wait_for("list")[1]
+    if not ui.tiles(texts):  # the list shows before its tiles redraw (2 lost at ANDROID_WAIT, raidteam, Pixel,
+        # 2026-11-18): wait for them, so the next tap finds its tile. A list that's empty for real costs LIST_REDRAW
+        settle(lambda: look()[1], ui.tiles, LIST_REDRAW)
 
 
 def recover(e, what):

@@ -371,8 +371,11 @@ class Count:
             out["bosses"][key] = [{"attacker": attacker_name(m.A[i]), "rating": round(r, 2), "copy": k} for r, k, i in t]
             for r, k, i in t:
                 on.setdefault(k, []).append(key)
+        def shadow_of(q):  # a carried-on copy's pile can be gone from this run's piles (iPhone 2026-11-19: KeyError
+            return self.piles[q]["shadow"] if q in self.piles else "&shadow" in q  # '36&!shadow' at the report)
+
         for k, c in enumerate(self.copies):
-            out["copies"].append({"species": sorted({s for s, *_ in c["fits"]}), "shadow": self.piles[c["q"]]["shadow"],
+            out["copies"].append({"species": sorted({s for s, *_ in c["fits"]}), "shadow": shadow_of(c["q"]),
                                   "cp": c.get("cp", c["tile_cp"]), "hp": c.get("hp"), "kg": c.get("kg"), "m": c.get("m"),
                                   "name": c["name"],
                                   "levels": sorted({lv for _, lv, _ in c["fits"]}),

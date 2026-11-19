@@ -59,12 +59,11 @@ def script(query, limit):
     t_start = time.time()
 
     def read():
-        base.OPENED.clear()  # (a new Pokémon on the page: steady_detail's first read is it, and learns its who)
-        info, texts, _ = base.steady_detail()
-        if info["cp"] is None:  # right after a swipe the CP sparkles in and can read blank (Pixel, Chansey, 2026-11-19)
-            base.settle(lambda: ui.detail_info(base.wait_for("detail")[1]), lambda i: i["cp"] is not None, 2)
-            base.OPENED.clear()
-            info, texts, _ = base.steady_detail()
+        def steady():
+            base.OPENED.clear()  # (a new Pokémon on the page: steady_detail's first read is it, and learns its who)
+            return base.steady_detail()
+        # right after a swipe the CP sparkles in and can read blank (Pixel, Chansey, 2026-11-19): read it again
+        info, texts, _ = base.settle(steady, lambda r: r[0]["cp"] is not None, 3)
         return info, texts, None  # (None: next_one reads the bounds before each swipe)
 
     # (seen by weight and height too: three 100 Chansey at CP1255 396HP ended the walk at the second, 2026-11-19)

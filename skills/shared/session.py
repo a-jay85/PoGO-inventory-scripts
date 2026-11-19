@@ -6,6 +6,9 @@
 - Android: ready() wakes the phone and unlocks it, and turns its brightness to the lowest (1, which the screen shows as 0) for the run (close() puts it back). With a PIN on the phone, the PIN comes from PIN_FILE (one line,
   digits only, outside the repo so it's never committed). A PIN that fails is never typed again that run: wrong PINs
   lock the phone out for longer each time. It's typed again only if the phone locks itself mid-run after it worked.
+  First, once per run: a Pixel on over a day with under 1 GB free for apps is slow (the game drops taps), so it's
+  restarted (about a minute). Every run logs the phone's 'on, MB free, load' line. POGO_NO_RESTART=1 only says so;
+  POGO_RESTART=1 restarts it anyway.
   close() goes to the home screen (the game to the back), then locks the phone.
 - main(body) runs a script's body: STOPPED / interrupted / CRASHED lines and exit codes 1 / 130 / 2, the run folder
   at the end, and close() if the run opened the phone. A run that never touched the phone (a usage error, a plan step)
@@ -103,6 +106,60 @@ def unlock():
     pin_failed = True
     raise Stop(f"the PIN in {PIN_FILE} didn't unlock the phone. Not trying again (wrong PINs lock the phone out): "
                f"fix the file, or unlock it by hand")
+
+
+WORN_UP = 24 * 3600  # s on: a Pixel on this long with WORN_MB or less free gets restarted at a run's start
+WORN_MB = 1024  # MB the phone can still give apps (MemAvailable). 2026-11-19: 1d15h up, 690 MB, and the game
+#                 dropped taps for 7-33 s each time it came back. A fresh restart: 3.1 GB. Down to 0.8 GB 24 min later
+#                 with the game open, so memory alone says little: the day on is what counts
+BOOT_TIMEOUT = 180  # s for a restarted phone to say it's up
+
+
+def health():
+    """-> (seconds on, MB free for apps, 1-minute load). MemFree says little: Android keeps it low on purpose"""
+    out = ui.android.shell("cat /proc/uptime /proc/loadavg; grep MemAvailable /proc/meminfo").split()
+    return float(out[0]), int(out[out.index("MemAvailable:") + 1]) // 1024, float(out[2])
+
+
+def say_health(up, mb, load):
+    return f"on {int(up // 3600)}h{int(up % 3600 // 60):02d}m, {mb} MB free, load {load:.1f}"
+
+
+def restart_if_worn():
+    """a Pixel on a long time with little memory free is slow: the game drops taps and reads come late. Then it's
+    restarted (about a minute) before the run uses it. Once per run, at its start, never mid-run.
+    POGO_NO_RESTART=1: only says it would. POGO_RESTART=1: restarts it whatever its numbers"""
+    up, mb, load = health()
+    log(f"phone: {say_health(up, mb, load)}")
+    if not flag("POGO_RESTART") and (up < WORN_UP or mb > WORN_MB):  # (a chain's next step finds it fresh)
+        return
+    if flag("POGO_NO_RESTART"):
+        log("  the phone is worn (long on, little memory free): a restart would speed it up (POGO_NO_RESTART set)")
+        return
+    log("  the phone is worn (long on, little memory free): restarting it first (about a minute)")
+    t0 = time.time()
+    ui.android.adb("reboot", timeout=60)
+    end = t0 + BOOT_TIMEOUT
+    while time.time() < end:  # adb drops, then comes back before the phone is done starting
+        time.sleep(3)
+        try:
+            # boot done, and settings answering: right after the boot says done, 'settings get' printed nothing and
+            # dim() crashed (2026-11-19)
+            out = ui.android.shell("getprop sys.boot_completed; settings get system screen_brightness",
+                                   timeout=10).split()
+            if out[:1] == ["1"] and len(out) == 2 and out[1].isdigit():
+                break
+        except subprocess.TimeoutExpired:
+            pass
+    else:
+        raise Stop(f"restarted the phone, but it didn't come back in {BOOT_TIMEOUT}s: check it's on and plugged in")
+    time.sleep(5)  # the lock screen and the window manager settle
+    unlock()
+    # the first unlock after a restart blanks 'settings get' for a moment: dim() read nothing and crashed (2026-11-19)
+    brightness = lambda: ui.android.shell("settings get system screen_brightness", timeout=10).strip()
+    if not base.settle(brightness, str.isdigit, 30).isdigit():
+        raise Stop("restarted the phone, but its settings never answered: check it, then run again")
+    log(f"  restarted in {time.time() - t0:.0f}s: {say_health(*health())}")
 
 
 def lock():
@@ -232,6 +289,8 @@ def ready():
         raise Stop(f"{who} is using the {'Pixel' if ui.ANDROID else 'iPhone'}: run this after it ends")
     if ui.ANDROID:
         adb_ok()
+        if not opened:
+            restart_if_worn()
         unlock()
         ui.android.dim()  # USB or Wi-Fi
     elif not opened or not mirroring_running():

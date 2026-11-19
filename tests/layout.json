@@ -2318,12 +2318,15 @@
    "skills/shared/session.py": 2
   },
   "names": [
+   "BOOT_TIMEOUT",
    "CONNECT_TIMEOUT",
    "HERE",
    "MIRRORING",
    "PIN_FILE",
    "Stop",
    "TROUBLE",
+   "WORN_MB",
+   "WORN_UP",
    "adb_ok",
    "awake",
    "claim",
@@ -2331,6 +2334,7 @@
    "connect",
    "fit",
    "flag",
+   "health",
    "held",
    "keep_capture",
    "limit",
@@ -2345,6 +2349,8 @@
    "quit_mirroring",
    "read_pin",
    "ready",
+   "restart_if_worn",
+   "say_health",
    "unlock"
   ],
   "runs": []

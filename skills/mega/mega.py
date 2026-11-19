@@ -56,18 +56,6 @@ PHONE = "android" if ui.ANDROID else "iphone"
 
 # ---------- reading ----------
 
-def rows(texts):
-    """-> [(y, joined text)] rows top to bottom"""
-    out = []
-    for t in sorted(texts, key=lambda t: t[1] + t[3] / 2):
-        mid = t[1] + t[3] / 2
-        if out and mid - out[-1][0] < 0.012:
-            out[-1][1].append(t)
-        else:
-            out.append([mid, [t]])
-    return [(m, "  ".join(x[4] for x in sorted(r, key=lambda x: x[0]))) for m, r in out]
-
-
 def form_of(name):
     """the nickname's last letter when it's ' X' / ' Y' -> 'X' / 'Y', else None"""
     m = re.search(r"\s([XY])$", (name or "").strip())
@@ -129,7 +117,7 @@ def sheet(texts):
         cost = max(nums) if nums else 0
     # the energy it has: the line under LEVEL UP, 'PINSIR MEGA ENERGY  • 26' or 'MEGA MEWTWO X N ENERGY 9,147'
     have = None
-    for y, r in rows(texts):
+    for y, r in ui.rows(texts):
         if y > 0.45 and "ENERGY" in ui.norm(r) and "Use Mega Energy" not in r:
             m = re.findall(r"\d[\d,]*", r.split("ENERGY", 1)[-1] if "ENERGY" in r else r)
             if m:
@@ -207,7 +195,7 @@ def pick_form(form, texts, bounds):
         raise Pass(f"can't find the Mega {form} tab: {[t[4] for t in texts if t[1] < 0.45]}")
 
     def shows(texts):  # the energy line under LEVEL UP names the form: 'MEGA MEWTWO X N ENERGY 9,147', or 'XN'
-        line = " ".join(ui.norm(r) for y, r in rows(texts) if "ENERGY" in ui.norm(r) and y > 0.45)
+        line = " ".join(ui.norm(r) for y, r in ui.rows(texts) if "ENERGY" in ui.norm(r) and y > 0.45)
         return sheet_key(texts) if re.search(rf"MEGA \S+ {form}", line) else None
     if shows(texts) is None:  # (the page opens on the form it last used)
         press(tab[0], bounds)

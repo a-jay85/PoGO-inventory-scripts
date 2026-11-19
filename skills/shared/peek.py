@@ -22,18 +22,6 @@ OUT = "/tmp/peek.png"
 CROPS = {"top": (0, 0, 1, 0.25), "mid": (0, 0.25, 1, 0.75), "bottom": (0, 0.75, 1, 1)}
 
 
-def rows(texts, gap=0.012):
-    """OCR boxes -> rows of text, top to bottom, left to right"""
-    out = []
-    for x, y, w, h, t in sorted(texts, key=lambda b: b[1] + b[3] / 2):
-        mid = y + h / 2
-        if out and mid - out[-1][0] < gap:
-            out[-1][1].append((x, t))
-        else:
-            out.append([mid, [(x, t)]])
-    return [(mid, "  ".join(t for _, t in sorted(r))) for mid, r in out]
-
-
 def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("png", nargs="?")
@@ -44,7 +32,7 @@ def main():
 
     path = a.png or ui.capture()[0]
     if a.text:
-        for mid, line in rows(ui.ocr(path)):
+        for mid, line in ui.rows(ui.ocr(path)):
             print(f"{round(mid * 100):2d}| {line}")
         return
 

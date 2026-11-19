@@ -295,6 +295,18 @@ def summary(texts, n=250):
     return " | ".join(t[4] for t in texts)[:n]
 
 
+def rows(texts, gap=0.012):
+    """OCR boxes -> [(y, joined text)]: rows top to bottom, each row's words left to right"""
+    out = []
+    for x, y, w, h, t in sorted(texts, key=lambda b: b[1] + b[3] / 2):
+        mid = y + h / 2
+        if out and mid - out[-1][0] < gap:
+            out[-1][1].append((x, t))
+        else:
+            out.append([mid, [(x, t)]])
+    return [(mid, "  ".join(t for _, t in sorted(r))) for mid, r in out]
+
+
 # OCR sometimes reads a Latin letter as its Cyrillic or Greek twin ('нootHooT'): map them back before dropping non A-Z
 LOOKALIKE = str.maketrans("АВСЕНІЈКМОРЅТХУаbesнікмопрѕтхуΑΒΕΗΙΚΜΝΟΡΤΧΥΖ",
                           "ABCEHIJKMOPSTXYabesнikmonpstxyABEHIKMNOPTXYZ".replace("н", "h"))

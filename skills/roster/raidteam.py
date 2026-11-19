@@ -436,6 +436,12 @@ def iv_pct(name):
     return int(m.group(1)) if m and int(m.group(1)) <= 100 else None
 
 
+def bare(name):
+    """a name's letters and digits only: OCR adds or drops marks ('98 ADC*X ^' / '98 AD C* X'). '93 H' and '93 HP'
+    stay two"""
+    return re.sub(r"[^a-z0-9]", "", (name or "").lower())
+
+
 def squash(name):
     """a name to match on: OCR drops or adds spaces ('96 D C*X' / '96 D C* X')"""
     return re.sub(r"\s+", "", name or "").lower()
@@ -474,7 +480,9 @@ def known_copy(c, q, name, cp):
         except ValueError:
             return None
     rows = [r for r in pokedb.find(cp=cp) if r.get("atk") is not None and base_of(r["species"]) in sids
-            and squash(r["nickname"]) == squash(name) and shadow(r) == p["shadow"]]
+            and shadow(r) == p["shadow"]]
+    same = [r for r in rows if squash(r["nickname"]) == squash(name)]
+    rows = same or [r for r in rows if bare(r["nickname"]) == bare(name)]  # a name read with a mark more or less
     if len(rows) != 1:
         return None
     r = rows[0]
@@ -564,12 +572,14 @@ def open_tiles(c, q, todo, past):
 def take(c, q, tiles, past, to_top=None):
     """these tiles of pile q count: the ones counted before are passed, pokedb's known ones are added without an
     open, and the rest are opened if a copy at their CP could still beat some boss's 6th"""
-    have = Counter((squash(x["name"]), x["tile_cp"]) for x in c.copies if x["q"] == q)
+    have = [(x["name"], x["tile_cp"]) for x in c.copies if x["q"] == q]
     todo, known = [], 0
     for name, cp in tiles:
-        k = (squash(name), cp)
-        if have[k] > 0:
-            have[k] -= 1
+        # counted before: the same CP and name ('98 AD C* X' by CP, '98 ADC*X ^' by name: one Mewtwo, 2026-11-18)
+        k = next((h for h in have if h[1] == cp and squash(h[0]) == squash(name)), None) or \
+            next((h for h in have if h[1] == cp and bare(h[0]) == bare(name)), None)
+        if k:
+            have.remove(k)
             continue
         one = known_copy(c, q, name, cp) if cp else None
         if one:

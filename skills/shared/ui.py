@@ -225,8 +225,10 @@ def ocr(path):
     tabless = kind == "list" and not ANDROID and not full_list(out)  # a tag's list, or tabs read upside down
     # (iPhone 2026-11-19: a 1-result list read EGGS as 'SOWI' and lost TAGS; start_search went to the full list
     # over and over till it stopped. 2x read them right. A tag's list pays the 2nd read: about 0.1 s)
-    flipped = not top_clock(out) and (kind == "unknown" or not ANDROID)  # (the iPhone's clock is always read;
-    # the Pixel's white one often isn't, so there only an unknown screen pays for the 2nd read)
+    flipped = not top_clock(out) and (kind == "unknown" or not ANDROID) or kind == "unknown" and not ANDROID
+    # (the iPhone's clock is always read; the Pixel's white one often isn't, so there only an unknown screen pays for
+    # the 2nd read. An iPhone unknown screen pays too: 2026-11-19 a list read its clock right and the rest upside down
+    # ('NOWẠO', 'SOVL'), and /cleantrades stopped on 'screen is unknown'. 2x read it as the list)
     if thin or tabless or flipped:
         im = Image.open(path)
         big = f"/tmp/pogo-ocr2x-{os.getpid()}-{threading.get_ident()}.png"  # (two phones at once: one file each)

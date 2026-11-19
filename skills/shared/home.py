@@ -443,6 +443,7 @@ def start(storage=True):
 # ---------- who's signed in ----------
 
 TRAINERS = ("HashTagAJay", "CyrillJan")  # the user's two accounts
+CLIP = 3  # letters OCR can drop off the end of a trainer name (clipped_names): each start left is still one trainer's
 
 
 def squash(s):
@@ -493,10 +494,10 @@ def profile(texts):
 
 
 def clipped_names(texts, below):
-    """OCR can drop the last letter or two of a name that's all there ('HashTagAJa' for HashTagAJay, iPhone, 2026-11-10,
-    on the profile under a gift banner and on /gift's ME tab): the trainers one line above `below` is the start of,
-    all but those letters"""
-    return [n for n in TRAINERS if any(len(n) - 2 <= len(w := squash(t[4])) < len(n) and squash(n).startswith(w)
+    """OCR can drop the last letters of a name that's all there ('HashTagAJa' for HashTagAJay, iPhone, 2026-11-10,
+    on the profile under a gift banner and on /gift's ME tab; 'HashTagA' with the buddy's art over 'Jay', Pixel,
+    2026-11-19): the trainers one line above `below` is the start of, all but up to CLIP letters"""
+    return [n for n in TRAINERS if any(len(n) - CLIP <= len(w := squash(t[4])) < len(n) and squash(n).startswith(w)
                                        for t in texts if t[1] < below)]
 
 

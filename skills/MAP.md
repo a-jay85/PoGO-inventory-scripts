@@ -269,7 +269,7 @@ Start from anywhere: every script calls start() first, so the phone can be on an
 - `forget_storage()`: the account is changing
 - `storage_limit(texts)`: the Pokémon screens' header count 'N / LIMIT' (TAGS / POKÉMON / EGGS showing) -> LIMIT, or None
 - `profile(texts)`: the profile's ME tab
-- `clipped_names(texts, below)`: OCR can drop the last letter or two of a name that's all there ('HashTagAJa' for HashTagAJay, iPhone, 2026-11-10, on the profile under a gift banner and on /gift's ME …
+- `clipped_names(texts, below)`: OCR can drop the last letters of a name that's all there ('HashTagAJa' for HashTagAJay, iPhone, 2026-11-10, on the profile under a gift banner and on /gift's ME tab; …
 - `to_map()`: from anywhere to the map -> its texts
 - `trainer(fast=True)`: the signed-in trainer's name
 

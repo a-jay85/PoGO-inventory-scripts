@@ -799,6 +799,8 @@ def clean_row(n):
         return n
     if n[-1:] in ("L", "I", "|") and (n[:-1] in ASKED or n[:-1] in TAG_AT):
         return n[:-1]
+    if "U" in n and n.replace("U", "V") in ASKED:  # a V read as U ('PupC', Pixel /ivc stopped on it 2026-11-19)
+        return n.replace("U", "V")
     near = [T for T in ASKED if one_letter_off(n, T)]
     return near[0] if len(near) == 1 else n
 
@@ -908,7 +910,10 @@ def tap_tag_row(T, name, first=None):
     (Transfer, Remote Trade) is tapped by its own row, and only when two looks in a row agree it's the tag sheet,
     standing still, with exactly one row that says just that. first: a look at the sheet from just now, no tap since"""
     if T in ui.CONFIRM_SCREENS and not any(z in T for z in ui.HAZARDS):
-        return tap(name)
+        try:
+            return tap(name)
+        except Lost:  # its word misread ('PupC'): found by its own row below, where clean_row mends it
+            first = None
     seen = [first] if first else []
 
     def read():

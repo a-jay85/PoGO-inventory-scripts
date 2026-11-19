@@ -408,6 +408,8 @@ def clear_search():
         screen, texts, _, bounds = base.look()
         if leave_multiselect(texts, bounds):
             continue
+        if base.popups.battery_saver(texts) and base.popups.clear(texts, bounds):  # over the list, it eats the X's tap
+            continue
         if ui.profile_tabs(texts):  # the Friends tab mid-run (a tap on a friend's banner): its X, then the list
             log("  on the profile: closing it")
             base.tap_x(bounds)

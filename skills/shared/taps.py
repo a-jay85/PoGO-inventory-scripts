@@ -42,6 +42,15 @@ def exact(texts, word):
     return [t for t in texts if t[4].strip() == word]
 
 
+def yes_no(texts, words):
+    """a YES / NO box that says `words` (any case): where YES and NO are, (yes y, no y) rounded, for base.steady()
+    to wait on until it's done growing. None while it isn't there yet (exactly one YES and one NO, and the words)"""
+    yes, no = exact(texts, "YES"), exact(texts, "NO")
+    if len(yes) != 1 or len(no) != 1 or words.upper() not in ui.joined(texts):
+        return None
+    return round(yes[0][1], 2), round(no[0][1], 2)
+
+
 def swipe_next(bounds):
     """swipe left across the Pokémon's picture: the next one in the list opens"""
     front()

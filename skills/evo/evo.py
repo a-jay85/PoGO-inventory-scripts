@@ -30,7 +30,7 @@ import ui
 import base
 from base import Stop, log, keep_capture, look
 import search, session, home, account, pokedb
-from taps import exact, press, settled_tiles, row_of
+from taps import exact, press, yes_no, settled_tiles, row_of
 from tagsheet import search_exact
 from rules import EVO, EVO_FOR, TRADE_EVOS
 
@@ -52,10 +52,7 @@ def evolve_row(texts):
 def box_key(texts):
     """the "want to evolve" box: where YES and NO are. None while it isn't there yet. A Power Up box has YES / NO too:
     never that one"""
-    yes, no = exact(texts, "YES"), exact(texts, "NO")
-    if len(yes) != 1 or len(no) != 1 or "WANT TO EVOLVE" not in ui.joined(texts):
-        return None
-    return round(yes[0][1], 2), round(no[0][1], 2)
+    return yes_no(texts, "WANT TO EVOLVE")
 
 
 def wait_box():

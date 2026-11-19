@@ -233,6 +233,16 @@ def ocr(path):
     return out
 
 
+MENU_WORDS = {"POKDEX", "ITEMS", "SHOP", "BATTLE", "SETTINGS"}
+
+
+def main_menu(texts):
+    """the main menu (the Poke Ball's screen): its POKEMON and 2 more of its buttons. Not all four: the iPhone read
+    ITEMS upside down ('SWELI') on a menu it read right otherwise, and the count stopped there (2026-11-19)"""
+    words = {norm(t[4]).replace("É", "") for t in texts}
+    return "POKMON" in words and len(words & MENU_WORDS) >= 2
+
+
 def top_clock(texts):
     """the phone's clock read at the top. Gone on an unknown screen: the reader may have taken the whole screen
     upside down. A 1-result list on the iPhone read as '•SASd A OOTe | ZI/OI | SOVI | - 80:10' (the clock 01:08 at

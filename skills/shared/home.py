@@ -34,8 +34,7 @@ APP_NAME = "Pokemon GO"  # iPhone: typed into Spotlight, whose Top Hit is then t
 PILL = (0.5, 0.84)  # iPhone: the home screen's Search pill, if its text isn't read
 
 
-def main_menu(texts):
-    return {"POKDEX", "POKMON", "ITEMS", "SHOP"} <= {ui.norm(t[4]).replace("É", "") for t in texts}
+main_menu = ui.main_menu  # (trade.py imports it from here)
 
 
 def home_search(texts):

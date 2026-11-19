@@ -20,7 +20,7 @@ import ui
 import base
 
 HANDS_OFF = set()  # box names the running script handles itself
-AGAIN_WINDOW, MAX_AGAIN = 60, 6  # the same box closed this many times within this many seconds: it isn't closing
+AGAIN_WINDOW, MAX_AGAIN = 60, 6  # the same box closed (or pages.py page left) this many times within this many seconds: it isn't closing
 closed = {}  # box name -> the times it was closed lately
 
 MANAGE_X = (0.5, 0.906)  # the round X that closes the Manage Favorite Search box
@@ -251,6 +251,16 @@ def which(texts):
     return None
 
 
+def once_more(hist, name, texts, kind, did):
+    """note one more time `name` was left or closed. Raises Stop (with a `kind` capture) when that makes more than
+    MAX_AGAIN times in AGAIN_WINDOW seconds: its way out doesn't work. hist: the caller's {name: [times]}"""
+    now = time.time()
+    hist[name] = [t for t in hist.get(name, []) if now - t < AGAIN_WINDOW] + [now]
+    if len(hist[name]) > MAX_AGAIN:
+        base.keep_capture(kind)
+        raise base.Stop(f"{did} {MAX_AGAIN} times in {AGAIN_WINDOW}s and it keeps coming back: {ui.summary(texts, 120)}")
+
+
 def clear(texts, bounds):
     """close the box up on this screen, if one is. -> its name, or None when no box is up. Raises Stop when the same
     box keeps coming back"""
@@ -258,12 +268,7 @@ def clear(texts, bounds):
     if not got:
         return None
     name, (fx, fy), say, wait = got
-    now = time.time()
-    recent = closed[name] = [t for t in closed.get(name, []) if now - t < AGAIN_WINDOW] + [now]
-    if len(recent) > MAX_AGAIN:
-        base.keep_capture("popup")
-        raise base.Stop(f"closed the {name} box {MAX_AGAIN} times in {AGAIN_WINDOW}s and it keeps coming back: "
-                        f"{ui.summary(texts, 120)}")
+    once_more(closed, name, texts, "popup", f"closed the {name} box")
     base.log(f"  {say}")
     base.click(fx, fy, bounds, fuzz=0.004)
     time.sleep(wait)

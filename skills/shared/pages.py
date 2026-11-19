@@ -20,13 +20,13 @@ import re, sys, time
 
 import ui
 import base
+import popups  # once_more: the same 'keeps coming back' rule as its boxes
 
 EXIT_DOOR = (0.09, 0.115)  # the trade's exit door, top left: leave the trade
 GYM_SORT_BUTTON = (0.85, 0.93)  # the gym badge list's sort button, bottom right; its menu's X sits in the same spot
 CP_RE = re.compile(r"^\W*[cC][pP]\s*\d{2,4}\W*$")
 # '0d 3h 7m' on a gym Pokémon's page. OCR reads any 0 as O: 'Od 3h 7m.', 'Od 12h Om'
 DEFEND_RE = re.compile(r"\b[0-9O]+d\s*[0-9O]+h\s*[0-9O]+m")
-AGAIN_WINDOW, MAX_AGAIN = 60, 6  # the same page left this many times within this many seconds: the way out doesn't work
 left = {}  # page name -> the times it was left lately
 
 
@@ -319,12 +319,7 @@ def step_out(texts, bounds):
     if not got or not got[1]:
         return None
     name, (fx, fy) = got
-    now = time.time()
-    recent_ = left[name] = [t for t in left.get(name, []) if now - t < AGAIN_WINDOW] + [now]
-    if len(recent_) > MAX_AGAIN:
-        base.keep_capture("page")
-        raise base.Stop(f"left the {name} page {MAX_AGAIN} times in {AGAIN_WINDOW}s and it keeps coming back: "
-                        f"{ui.summary(texts, 120)}")
+    popups.once_more(left, name, texts, "page", f"left the {name} page")
     base.log(f"  on another script's page ({name}): its way out")
     base.click(fx, fy, bounds, fuzz=0.004)
     time.sleep(1.5)

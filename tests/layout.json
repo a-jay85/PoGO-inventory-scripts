@@ -1816,13 +1816,11 @@
    "skills/shared/pages.py": 2
   },
   "names": [
-   "AGAIN_WINDOW",
    "COUNTDOWN",
    "CP_RE",
    "DEFEND_RE",
    "EXIT_DOOR",
    "GYM_SORT_BUTTON",
-   "MAX_AGAIN",
    "PAGES",
    "buddy",
    "can_receive",
@@ -1949,6 +1947,7 @@
    "manage_favorite",
    "mirroring_welcome",
    "news",
+   "once_more",
    "party_done",
    "party_ended",
    "party_leave",

@@ -383,6 +383,7 @@ Boxes the game pops up over any screen, by itself or left over from another scri
 - `battery_saver(texts)`: Android's own 'Turn on Extreme Battery Saver?' box at 10% battery, over any screen (Pixel, 2026-11-13: over a hatched egg's rewards): No thanks
 - `mirroring_welcome(texts)`: iPhone Mirroring's own 'iPhone on Your Mac' welcome page as it opens ('Stay up to date', Learn More... / Not Now / Continue; iPhone, 2026-11-18: home.start stopped on it …
 - `which(texts)`: the box up on this screen -> (name, (fx, fy), log line, wait), or None
+- `once_more(hist, name, texts, kind, did)`: note one more time `name` was left or closed
 - `clear(texts, bounds)`: close the box up on this screen, if one is
 
 ## skills/shared/powerup.py

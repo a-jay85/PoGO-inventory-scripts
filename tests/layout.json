@@ -2319,6 +2319,7 @@
    "skills/shared/session.py": 2
   },
   "names": [
+   "BATTERY_LOG",
    "BOOT_TIMEOUT",
    "CONNECT_TIMEOUT",
    "HERE",
@@ -2333,6 +2334,7 @@
    "claim",
    "close",
    "connect",
+   "end_health",
    "fit",
    "flag",
    "health",
@@ -2352,6 +2354,7 @@
    "ready",
    "restart_if_worn",
    "say_health",
+   "started",
    "unlock"
   ],
   "runs": []

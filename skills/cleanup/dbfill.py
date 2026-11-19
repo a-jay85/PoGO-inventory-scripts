@@ -61,6 +61,10 @@ def script(query, limit):
     def read():
         base.OPENED.clear()  # (a new Pokémon on the page: steady_detail's first read is it, and learns its who)
         info, texts, _ = base.steady_detail()
+        if info["cp"] is None:  # right after a swipe the CP sparkles in and can read blank (Pixel, Chansey, 2026-11-19)
+            base.settle(lambda: ui.detail_info(base.wait_for("detail")[1]), lambda i: i["cp"] is not None, 2)
+            base.OPENED.clear()
+            info, texts, _ = base.steady_detail()
         return info, texts, None  # (None: next_one reads the bounds before each swipe)
 
     for info, texts, _, seen in details(read=read, poll=search.POLL, reswipe=True):

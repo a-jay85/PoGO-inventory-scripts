@@ -1094,6 +1094,9 @@ def set_tags(on=(), off=(), only=False):
         good = lambda t: (sorted(t) == sorted(ON)) if only else (ON <= set(t) and not OFF & set(t))
         # the chips can draw late: an XLX chip showed after the 3 s look gave up (Pixel /leftovers, 2026-11-16)
         tags = settle(detail_tags, good, timeout=6)
+        if not good(tags) and LAST_LOOK and LAST_LOOK[2] == "detail":  # white on green: the 1x read can miss a chip
+            # the 2x read sees (a GIV chip, Pixel /tradeable stopped on it 2026-11-19)
+            tags = [row_name(t) for t in ui.detail_info(ui.ocr_2x(LAST_LOOK[4]))["tags"]] or tags
         if not good(tags):
             keep_capture("tags")
             raise Stop(f"after DONE tags are {tags}, wanted {sorted(ON)} on{' only' if only else ''}, {sorted(OFF)} off")

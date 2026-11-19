@@ -212,6 +212,14 @@ def ocr_once(path):
     return out
 
 
+def ocr_2x(path):
+    """OCR a 2x copy: it reads white on green (a GIV chip, YES) and upside-down lines the 1x read misses"""
+    im = Image.open(path)
+    big = f"/tmp/pogo-ocr2x-{os.getpid()}-{threading.get_ident()}.png"  # (two phones at once: one file each)
+    im.resize((im.width * 2, im.height * 2), Image.LANCZOS).save(big, compress_level=1)
+    return ocr_once(big)
+
+
 def ocr(path):
     """the png's text. A list with more tile CPs than names read: once more from a 2x copy, kept if it finds more
     tiles. A list with no TAGS or EGGS tab read: at 2x, kept if that reads one. No clock read at the top (an unknown
@@ -230,10 +238,7 @@ def ocr(path):
     # the 2nd read. An iPhone unknown screen pays too: 2026-11-19 a list read its clock right and the rest upside down
     # ('NOWẠO', 'SOVL'), and /cleantrades stopped on 'screen is unknown'. 2x read it as the list)
     if thin or tabless or flipped:
-        im = Image.open(path)
-        big = f"/tmp/pogo-ocr2x-{os.getpid()}-{threading.get_ident()}.png"  # (two phones at once: one file each)
-        im.resize((im.width * 2, im.height * 2), Image.LANCZOS).save(big, compress_level=1)
-        again = ocr_once(big)
+        again = ocr_2x(path)
         if thin and len(tiles(again)) > len(tiles(out)) or tabless and (full_list(again) or header(again) > header(out)) \
                 or flipped and (top_clock(again) or classify(again) != kind or kind == "unknown" and len(again) > len(out)):
             # (an unknown screen keeps the read that saw more: the Pixel's 'Do you really want to power up' box read

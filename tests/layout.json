@@ -2541,6 +2541,7 @@
    "nickname_field",
    "norm",
    "ocr",
+   "ocr_2x",
    "ocr_lines",
    "ocr_once",
    "plan",

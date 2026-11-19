@@ -716,14 +716,6 @@ def walk(suffix, xlx, power, limit, skip_dex=(), unsure=None):
 SMALL_PILE = 40  # a pile this small is opened once to read its species: searches for species not in it are skipped
 
 
-def dexes_of(q):
-    """'&1-3,7&!galar' -> {1, 2, 3, 7}: the dex numbers a plan search is for. None if it has none (&dynamax)"""
-    for term in q.split("&"):
-        if term and re.fullmatch(r"[\d,\-]+", term):
-            return search.dex_numbers(term)
-    return None
-
-
 def survey():
     """-> the dex numbers in the pile, opening each one once. None if the pile is big (searching is quicker then) or
     one's species can't be told from its name (a nickname): then every search runs"""
@@ -798,7 +790,7 @@ def cmd_tag(limit):
     log(f"{who}: tagging for {to} from {plan['from']}, XLX at level {XLX_LEVEL}+")
     search.to_search_list()
     have = survey()  # a small pile: only the searches for species in it run
-    wanted = lambda q: have is None or (d := dexes_of(q)) is None or bool(d & have)
+    wanted = lambda q: have is None or (d := search.dexes_of(q)) is None or bool(d & have)
     done, save_done = bulk_tag(plan, wanted)
     # (the taker's 360+ XL families are passed on the detail page: as '&!<dex>' terms they'd overflow the bar)
     traded = NO_SPECIAL + "&" + ",".join(f"#{t}" for t in TAGS)  # (one tagged before special trades were left out)

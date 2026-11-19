@@ -36,7 +36,7 @@ def groups(iv_only=True):
     taken = Counter()
     base.front()
     for g, q in searches(fallen):
-        dexes = set(map(int, q.split("&")[0].split(",")))
+        dexes = search.dexes_of(q)
         # a Pokémon is in one group only: once all of a search's dex numbers are placed, it can't find anything new
         if not any(taken[k] < want[k] and dexes & set(f["dex"]) for f in fallen for k in [(f["name"], f["cp"])]):
             log(f"  {g}: every fallen-out one it could hold is placed, not typed: {q}")

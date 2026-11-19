@@ -501,6 +501,7 @@ In-game searches and list walking, shared by /ivc and /pvpc's fallen-out step
 - `dex_ranges(ns)`: {1, 2, 3, 7} -> ['1-3', '7']: the game's dex numbers and ranges, in order
 - `dex_list(ns)`: {1, 2, 3, 7} -> '1-3,7': the game's OR of dex numbers and ranges
 - `dex_numbers(s)`: '14,22,29-33' (commas or new lines) -> {14, 22, 29, ..., 33}
+- `dexes_of(q)`: '&1-3,7&!galar' -> {1, 2, 3, 7}: the dex numbers a search is for (its first term of only digits, commas and dashes)
 - `zoom_name(im, t)`: read one tile's name again from a 3x crop under its CP: small names read better big ('od' -> '40 d')
 - `read_tiles(texts, path, odd=None)`: the list's tiles with clean names
 - `list_ended(ts)`: these tiles leave room for another row: nothing more to scroll to
@@ -866,7 +867,6 @@ Tag CyrillJan's Tradeable saved search by what a trade to HashTagAJay is worth, 
 - `tag_pile(tag, suffix)`
 - `level_of(info, texts)`: -> the levels this one can be at, from the power-up cost on the detail page
 - `walk(suffix, xlx, power, limit, skip_dex=(), unsure=None)`: open each one in the pile + suffix: xlx -> tag it XLX if it's XLX_LEVEL+ (the ones it can't tell go in unsure)
-- `dexes_of(q)`: '&1-3,7&!galar' -> {1, 2, 3, 7}: the dex numbers a plan search is for
 - `survey()`: -> the dex numbers in the pile, opening each one once
 - `tagged_before(plan)`: the tag searches an earlier run already did with these same searches, in the last DONE_HOURS (a rerun skips them: 14 s each, even at 0)
 - `bulk_tag(plan, wanted=lambda q: True)`: bulk_searches' tag searches, each one SELECT ALL + tag (Tradeable's !# drops the tagged ones from the rest) -> (set of searches done, save()), for more tag searches after
@@ -1193,7 +1193,6 @@ Unattended /ivc: keep the best IVC Pokémon (favorite + untick IVC)
 - `reread(members, done, wants)`: a search read short or long only matters when it could flip a KEEP or DOOR (plan would LEAVE it)
 - `recheck(m, results, wants, verdict, why)`: a search read a few tiles more or fewer than the game counted
 - `twin_check(m, results, verdict, why)`: a DOOR beaten by a tile read two ways ('98 ADBS V' and '98 AD BS*', same IV and CP) may be beaten by one Pokémon counted twice
-- `dexes_of(q)`: '25,26&!alola&!shadow' -> {25, 26}
 - `unrenamed_dexes(u)`: the dex numbers an unrenamed one's searches cover: its name's species and their families (a 'Happiny' is in the Blissey searches)
 - `unsure_before(u)`: an unrenamed one the door wasn't sure of last time, under the same rules: /ivc found its IV too low to show (no name), so it beats no KEEP and opening it again ends the …
 - `unrenamed_check(m, scanned, verdict, why)`: an IVC Pokémon still named after its species has no IV in the pools: it could beat a KEEP. A KEEP whose searches could show one (its name's family, or, a name that's no …

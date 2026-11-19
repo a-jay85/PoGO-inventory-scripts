@@ -517,6 +517,7 @@ def trainer(fast=True):
     """the signed-in trainer's name. fast: the storage limit tells it, read twice the same. The header only shows it
     over an empty search ('Q (33)' over any other), so a look on the way in counts, and otherwise the bar gets cleared
     (ends on the Pokémon screen). Else read off the profile (ME tab) from the map, ending on the map. Starts anywhere"""
+    session.ready()  # the first look needs the phone: iPhone Mirroring open (2026-11-18: closed, the look crashed)
     if fast and not profile(look()[1]):  # (on the profile: the name is right there)
         start()
         cleared = False

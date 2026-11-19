@@ -215,6 +215,13 @@ def battery_saver(texts):
     return center(hit) if hit and "BATTERY SAVER" in ui.joined(texts) else None
 
 
+def mirroring_welcome(texts):
+    """iPhone Mirroring's own 'iPhone on Your Mac' welcome page as it opens ('Stay up to date', Learn More... / Not Now
+    / Continue; iPhone, 2026-11-18: home.start stopped on it as an unknown screen): Not Now, which changes nothing"""
+    hit = label(texts, "NOT NOW")
+    return center(hit) if hit and "IPHONE ON YOUR MAC" in ui.joined(texts) else None
+
+
 # name, where its tap goes, what the log says, seconds the box takes to go
 BOXES = (
     ("trade box", trade_ok, "a trade's box is up ({}): tapping OK", 1.5),
@@ -235,6 +242,7 @@ BOXES = (
     ("news", news, "an event's news card is up: tapping DISMISS", 1.5),
     ("safety", safety, "the 'Stay Aware of Your Surroundings' warning is up: tapping OK", 1.5),
     ("rocket radar", rocket_radar, "a new Rocket Radar is up: tapping EQUIP, its only button", 2.5),
+    ("mirroring welcome", mirroring_welcome, "iPhone Mirroring's welcome page is up: tapping Not Now", 2.0),
     ("battery saver", battery_saver, "Android asks to turn on Extreme Battery Saver: tapping No thanks", 1.0),
 )
 

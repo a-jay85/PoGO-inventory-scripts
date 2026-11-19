@@ -506,6 +506,8 @@ def open_tiles(c, q, todo, past):
     def find(name, cp):
         """the wanted tile this one is, or None: the same CP and the name OCR'd alike (search.looks_same: the name
         pass's reads add marks, '91hpatbs*^' for '91 hp at BS*'). A CP that didn't read: the name, if only one has it"""
+        if not name:  # a page read with no name (iPhone 2026-11-19: crashed in looks_same): not one of them
+            return None
         ks = [k for k in +left if k[1] == cp and (squash(k[0]) == squash(name) or search.looks_same(k[0], name))]
         if not ks and cp is None:
             ks = [k for k in +left if search.looks_same(k[0], name)]

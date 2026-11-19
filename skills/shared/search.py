@@ -784,6 +784,16 @@ def merge_cutoffs(most, sightings, together=()):
             most[o] = max(most[o], most[k])
             sightings[o] += sightings[k]
             del most[k]
+    # one tile read two ways on two screens: '98 HD PsyS*Y' and '98 HD Psys*W', both CP2975 (raidteam, 2026-11-18,
+    # then 'not found' and a walk to the list's end looking for the 2nd). Never side by side: one Pokémon
+    for k in sorted(most, key=lambda k: sightings[k]):
+        if not k[1] or most[k] > 1:
+            continue
+        like = [o for o in most if o != k and o[1] == k[1] and looks_same(o[0], k[0]) and frozenset((k, o)) not in together]
+        if like:
+            o = max(like, key=lambda o: sightings[o])
+            sightings[o] += sightings[k]
+            del most[k]
 
 
 def screen_rows(cps, tiles):

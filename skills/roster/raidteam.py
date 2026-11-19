@@ -622,11 +622,7 @@ def name_pass(c, q, named):
         path, texts, bounds = search.sort_by_name(base.look()[3])
         ts, _ = search.read_results(q, path, texts, bounds, iv_only=True)
         named = True
-    once = []  # one tile read two ways on two screens, its CP the same ('98 HD PsyS*Y' / '98 HD Psys*W', 2026-11-18):
-    for t in ts:  # one tile, else the 2nd isn't found and the walk goes to the list's end looking
-        if not any(t[1] == o[1] and search.looks_same(t[0], o[0]) for o in once):
-            once.append(t)
-    hi = top(once, lambda t: iv_pct(t[0]))
+    hi = top(ts, lambda t: iv_pct(t[0]))
     if not hi:
         log(f"{q}: no IV names")
         w["end"] = True

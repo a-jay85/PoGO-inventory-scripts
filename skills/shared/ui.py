@@ -214,18 +214,28 @@ def ocr_once(path):
 
 def ocr(path):
     """the png's text. A list with more tile CPs than names read: once more from a 2x copy, kept if it finds more
-    tiles. Rayquaza's green coils at the Pixel's 406 px: the reader took 3 rows upside down ('93 H' as 'H £6',
-    'Rayquaza' as 'ezenbley') and the list read 10 of 14, missing its 96s and 93s (2026-11-18). 2x read all 14.
+    tiles. An unknown screen with no clock at the top: once more at 2x, kept if it knows the screen (top_clock).
+    Rayquaza's green coils at the Pixel's 406 px: the reader took 3 rows upside down ('93 H' as 'H £6', 'Rayquaza'
+    as 'ezenbley') and the list read 10 of 14, missing its 96s and 93s (2026-11-18). 2x read all 14.
     (2x for every look: worse now and then, a half-hidden top row lost.) The boxes are fractions: the same at 2x"""
     out = ocr_once(path)
-    if classify(out) == "list" and len(tiles(out)) < len(tile_cps(out)):
+    kind = classify(out)
+    thin = kind == "list" and len(tiles(out)) < len(tile_cps(out))
+    if thin or (kind == "unknown" and not top_clock(out)):
         im = Image.open(path)
         big = f"/tmp/pogo-ocr2x-{os.getpid()}-{threading.get_ident()}.png"  # (two phones at once: one file each)
         im.resize((im.width * 2, im.height * 2), Image.LANCZOS).save(big, compress_level=1)
         again = ocr_once(big)
-        if len(tiles(again)) > len(tiles(out)):
+        if thin and len(tiles(again)) > len(tiles(out)) or not thin and classify(again) != "unknown":
             return again
     return out
+
+
+def top_clock(texts):
+    """the phone's clock read at the top. Gone on an unknown screen: the reader may have taken the whole screen
+    upside down. A 1-result list on the iPhone read as '•SASd A OOTe | ZI/OI | SOVI | - 80:10' (the clock 01:08 at
+    the bottom, 2026-11-19), and its 2x copy read right"""
+    return any(t[1] < 0.06 and re.search(r"\d:\d\d", t[4]) for t in texts)
 
 
 # OCR now and then reads a Latin letter as its Cyrillic twin ('сP 927', 'AТК', 'Pvp Uц46')
@@ -265,10 +275,11 @@ def is_label(s, label):
 
 
 def full_list(texts):
-    """the Pokémon screen's TAGS and EGGS tabs both show: the full list (or its Tags tab), no tag's list. One stray
-    letter is fine ('EGGSI', Pixel 2026-11-18: an exact match backed out of the list three times and stopped)"""
-    words = [t[4] for t in texts]
-    return any(is_label(w, "TAGS") for w in words) and any(is_label(w, "EGGS") for w in words)
+    """the Pokémon screen's TAGS or EGGS tab shows: the full list (or its Tags tab), no tag's list (a tag's list has
+    neither). One stray letter is fine ('EGGSI', Pixel 2026-11-18: an exact match backed out of the list three times
+    and stopped). Either one: a 0-result search's pale screen read TAGS but not EGGS, and the search went to the full
+    list over and over till it stopped (iPhone, 2026-11-19)"""
+    return any(is_label(t[4], w) for t in texts if t[1] < 0.15 for w in ("TAGS", "EGGS"))
 
 
 # ---------- screen classification ----------
@@ -981,8 +992,14 @@ def locate(T, path, texts, screen, aspect):
     if len(hits) != 1:
         raise Refused(f"REFUSED: found {len(hits)} matches for {T} on '{screen}': {[h[4] for h in hits]}")
     box = hits[0][:4]
+    if T in TABS:  # a tab's tap goes under its word (TAB_DY)
+        box = (box[0], box[1] + TAB_DY, box[2], box[3])
     return box[0] + box[2] / 2, box[1], lambda: fuzz_box(*box, texts)
 
+
+TABS = ("TAGS", "POKMON", "EGGS")  # the storage's tabs, at the window's top
+TAB_DY = 0.025  # a tab's tap: this much under its word. The iPhone missed its word 6 of 6 times (Mirroring takes
+# taps that high for itself) and landed 6 of 6 this much lower; the Pixel took 6 of 6 both ways (2026-11-19)
 
 RESTED = {}  # (target, screen, bounds) -> (x, y): where a button stood when two looks agreed it was still
 

@@ -11,4 +11,3 @@ paths:
 - Retiring a launchd job: delete its plist from ~/Library/LaunchAgents. `bootout` alone comes back at login.
 - To turn a timer back on: run the script by hand, or `timer.py in <name> 0`.
 - The in-use skip has never been seen live. A touch mid-run doesn't pause a Pixel run (not built).
-- Open: hatch stops with "no Eggs tab or map in 150s" when the game reopens on a storage tag list.

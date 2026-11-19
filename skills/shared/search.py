@@ -1033,15 +1033,22 @@ def start_search(q, check=None, edit=False, nudges=2, live=False):
                 continue
             if not type_into_panel(q, bounds, check):
                 continue
-        key("return")
-        for _ in base.tries(30, 0.02):  # the panel closes and the results show
-            got, texts = panel_text(quick=not ui.ANDROID)
-            if not ui.search_panel(texts) and ui.classify(texts) == "list":
-                break
+        for ret in range(2):  # a Return sent while late keys still land can be lost (iPhone, 2026-11-19: the
+            key("return")  # panel stayed up 3 times in a row with the whole search in the bar): one more Return
+            for _ in base.tries(30, 0.02):  # the panel closes and the results show
+                got, texts = panel_text(quick=not ui.ANDROID)
+                if not ui.search_panel(texts) and ui.classify(texts) == "list":
+                    break
+            else:
+                log("the panel didn't close after Return" + (": Return again" if not ret else ""))
+                continue
+            break
         else:
-            log("the panel didn't close after Return")
             continue
         if check(got, q):
+            if not ui.full_list(texts):  # the tabs may not be drawn yet: look again before calling it a tag's list
+                # (iPhone 2026-11-19: a full list read too soon got its X, which closed the whole Pokémon screen)
+                texts = base.settle(lambda: ui.ocr(ui.capture()[0]), ui.full_list, timeout=2)
             if not ui.full_list(texts):  # typed in a tag's list: only searched that tag
                 log("  that searched inside a tag's list: going to the full Pokémon list")
                 to_search_list()

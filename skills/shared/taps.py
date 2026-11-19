@@ -59,14 +59,17 @@ def swipe_next(bounds):
 
 NEXT_AT = (0.90, 0.305)  # Android: a hidden button just under the CP arc's right end opens the next Pokémon in the
 # list (its left end, 0.10: the one before). The user found it, 2026-11-18: 2 of 2 taps went on by one tile
+NEXT_AT_IOS = (0.89, 0.312)  # the iPhone (Mirroring window 406x890): right at the arc's right end, (362, 278) in its
+# capture, measured off a detail page 2026-11-19. The user: "tap right at the end of the CP arc"
 
 
 def tap_next(bounds):
-    """on to the next Pokémon in the list by NEXT_AT's hidden button (Android). The iPhone swipes (not tried there)"""
+    """on to the next Pokémon in the list by the hidden button at the CP arc's right end (NEXT_AT, NEXT_AT_IOS)"""
     if not ui.ANDROID:
-        return swipe_next(bounds)
-    W, H = ui.android.size()
-    ui.android.shell(f"input tap {int(W * NEXT_AT[0])} {int(H * NEXT_AT[1])}")
+        base.click(*NEXT_AT_IOS, bounds or look()[3])
+    else:
+        W, H = ui.android.size()
+        ui.android.shell(f"input tap {int(W * NEXT_AT[0])} {int(H * NEXT_AT[1])}")
     base.ui._seen = base.ui._older = None
 
 

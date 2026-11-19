@@ -115,7 +115,7 @@ def to_eggs():
         tab = label(texts, "EGGS")
         if not tab:
             break
-        base.tap_box(tab, bounds, rest=1.5)
+        base.tap_box(tab, bounds, dy=ui.TAB_DY, rest=1.5)  # (under its word, as every tab tap)
     keep_capture("eggs")
     raise Stop("couldn't open the Eggs tab")
 

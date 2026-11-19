@@ -136,7 +136,7 @@ STARTED = time.time()  # input from before the script started (the keys that sta
 
 def tap_gap():
     """wait until a short random gap has passed since the last tap"""
-    time.sleep(max(0.0, last_tap + random.uniform(0.1, 0.25) - time.time()))
+    time.sleep(max(0.0, last_tap + (ANDROID_WAIT if ui.ANDROID else random.uniform(0.1, 0.25)) - time.time()))
 
 
 # ---------- screen ----------
@@ -237,6 +237,13 @@ def poll_gap(ios):
 
 
 LOOK_S = 0.35  # about how long one Android look takes (capture + OCR)
+ANDROID_WAIT = 0.1  # Android: every fixed wait in a Pokémon's check and the list walk, the shortest one there was
+# (tap_gap's low end, settle's poll). Tried 2026-11-18 against 0.15-0.5 s ones: a look takes ~0.35 s anyway
+
+
+def short_wait(ios):
+    """a fixed wait in a Pokémon's check or the list walk: ANDROID_WAIT on Android, as it was on the iPhone"""
+    return ANDROID_WAIT if ui.ANDROID else ios
 
 
 def tries(n, ios):
@@ -540,7 +547,7 @@ def tap(target, dry=False, rested=False):
         try:
             fx, fy, bounds, screen = ui.plan(target, rested)
         except Moving:
-            time.sleep(0.15)
+            time.sleep(short_wait(0.15))
             continue
         except Refused as e:
             # caught mid-animation: a menu still opening, or the appraisal still fading off the detail page, its X not
@@ -549,7 +556,7 @@ def tap(target, dry=False, rested=False):
             if any(w in str(e) for w in ("screen is 'unknown'", "found 0 matches", "found 0 close buttons",
                                          "found 0 appraisal buttons", "found 0 menu buttons")) and _ < 7:
                 ui._seen = ui._older = None  # that look was mid-animation: don't reuse it
-                time.sleep(0.4)
+                time.sleep(short_wait(0.4))
                 continue
             keep_capture("refused")
             if "never-tap" in str(e):
@@ -617,7 +624,7 @@ def scroll(bounds, how, up=False):
     else:
         ui.sh(ui.HELPER, "drag", f"{x:.1f}", f"{y:.1f}", f"{x + random.uniform(-8, 8):.1f}", f"{y - dist:.1f}",
               str(random.randint(350, 600)))
-    time.sleep(random.uniform(0.6, 0.9) if not ui.ANDROID else random.uniform(*LIST_SETTLE))  # let the list settle before reading it (adb's drag pauses before lifting, so it glides less)
+    time.sleep(random.uniform(0.6, 0.9) if not ui.ANDROID else ANDROID_WAIT)  # (LIST_SETTLE before 2026-11-18)  # let the list settle before reading it (adb's drag pauses before lifting, so it glides less)
 
 
 # ---------- one Pokémon ----------
@@ -682,12 +689,12 @@ def settle(read, ok, timeout=3):
         time.sleep(0.1)
 
 
-def steady(read, tries=30, gap=0.15):
+def steady(read, tries=30, gap=None):
     """look until read(texts) gives the same answer (not None) twice in a row: a page that slides up or a box that
     grows in reads wrong mid-way, and a tap then misses. -> (answer or None, texts, bounds)"""
     last = None
     for _ in range(tries):
-        time.sleep(gap)
+        time.sleep(short_wait(0.15) if gap is None else gap)
         _, texts, _, bounds = look()
         r = read(texts)
         if r is not None and r == last:
@@ -1268,7 +1275,7 @@ def opened_right(info, tile_name, tile_cp):
         # A moving arm can cover it too (Chandelure's, CP183 for CP1839, 2026-11-03): only a few looks get past that
         for i in range(CP_LOOKS if str(tile_cp).startswith(str(info["cp"])) else 1):
             if i:
-                time.sleep(0.5)
+                time.sleep(short_wait(0.5))
             try:
                 again = ui.detail_info(ui.ocr(ui.android.sharp()))["cp"]
             except StopIteration:  # no HP line in this read

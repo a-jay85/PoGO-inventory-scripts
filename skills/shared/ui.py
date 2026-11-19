@@ -985,7 +985,8 @@ def plan(target, rested=False):
             spots.append((screen, locate(T, path, texts, screen, bounds[2] / bounds[3])))
             continue
         if i:
-            time.sleep(max(0.0, 0.4 - (time.time() - prev[0])) if prev else 0.4)
+            gap = 0.1 if ANDROID else 0.4  # base.ANDROID_WAIT (ui can't import base)
+            time.sleep(max(0.0, gap - (time.time() - prev[0])) if prev else gap)
         path, bounds = capture()
         texts = ocr(path)
         screen = classify(texts)

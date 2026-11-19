@@ -177,7 +177,7 @@ def tile_names(texts):
 def settled_tiles():
     last = None
     for _ in range(12):
-        time.sleep(0.25)
+        time.sleep(base.short_wait(0.25))
         screen, texts, path, bounds = look()
         ts = [(ui.tile_name(n), c) for n, c, _, _ in ui.tiles(texts)] if screen == "list" else None
         if ts is not None and ts == last:

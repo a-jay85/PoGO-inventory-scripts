@@ -405,8 +405,9 @@ Powering one Pokémon up: its level from the page and the dialog, and the cheap 
 - `page_candy(texts)`: the Candy next to the Stardust on the detail page's POWER UP row, or None if it can't be read (it often can't)
 - `candy_at(lv)`: Candy for one power-up from this level, under 40 (a purified one's rounds up to the same)
 - `cost_levels(texts, cp)`: -> (cost, every level the detail page's power-up cost fits)
-- `read_dialog(cp, after=None)`: the open power-up dialog
-- `dialog(info)`: tap POWER UP on the detail page
+- `read_dialog(cp, after=None, can_be=None)`: the open power-up dialog
+- `dialog(info, can_be=None)`: tap POWER UP on the detail page
+- `dialog_cp(info, can_be)`: the CP of a page whose own CP won't read (event art or the Pokémon over it): the power-up dialog shows it on plain white ('CP 3085 → 3120')
 - `more(cp, d)`: tap + in the dialog: one more power-up
 - `cancel(box, bounds)`
 - `fits(c, rows)`: does this (species, IVs, level) give every dialog row (n power-ups, CP after, total dust)?
@@ -772,7 +773,9 @@ Fills the Pokémon database (../shared/pokedb.py) with the IVs of one search's P
 
 - `known(info)`: the database already has this page's IVs: one record of the same Pokémon (weight, height, HP, and CP when it read) with them
 - `species(info, texts)`: the name, else the candy line and types
+- `fits(sp, cp, hp)`: cp if some form of sp can have it with this HP, else None (a misread)
 - `fill_one(info, texts)`: appraise the open page; the database learns its IVs
+- `dialog_cp(info, sp)`: the CP off the power-up dialog (opened and cancelled), into the database
 - `script(query, limit)`
 
 ## skills/cleanup/dbsweep.py

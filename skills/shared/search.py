@@ -404,7 +404,7 @@ def clear_search():
     LAST["q"] = None
     want = ("list", "tag-tab", "detail", "menu", "appraisal", "gym")
     for _ in range(3):
-        screen, texts, _, bounds = base.look()
+        screen, texts, path, bounds = base.look()
         if leave_multiselect(texts, bounds):
             continue
         if base.popups.battery_saver(texts) and base.popups.clear(texts, bounds):  # over the list, it eats the X's tap
@@ -424,7 +424,7 @@ def clear_search():
             screen = None
         try:
             if screen not in want:  # the first look is enough when it's already one of them
-                screen, texts, _, bounds = wait_for(*want, timeout=6)
+                screen, texts, path, bounds = wait_for(*want, timeout=6)
         except Stop:
             # a box (a friend card) came up as the bottom X closed the list, so off_map saw no map; wait_for closed
             # the box and was left on the map (Pixel, 2026-11-11)
@@ -447,7 +447,8 @@ def clear_search():
             return "list"
         if screen == "list" and ui.search_box(texts) and x_button(bounds):
             return "panel"
-        if screen == "list" and empty_bar(texts) and open_panel(bounds):
+        # an empty bar OCR reads nothing in, not even the < (Pixel 2026-11-19: 'couldn't get an empty search bar' twice)
+        if screen == "list" and (empty_bar(texts) or bare_pill(texts, path)) and open_panel(bounds):
             return "panel"
         if screen not in ("list", "tag-tab"):
             back_to_list()

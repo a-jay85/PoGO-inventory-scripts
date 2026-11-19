@@ -67,7 +67,8 @@ def script(query, limit):
             info, texts, _ = base.steady_detail()
         return info, texts, None  # (None: next_one reads the bounds before each swipe)
 
-    for info, texts, _, seen in details(read=read, poll=search.POLL, reswipe=True):
+    # (seen by weight and height too: three 100 Chansey at CP1255 396HP ended the walk at the second, 2026-11-19)
+    for info, texts, _, seen in details(key=base.who, read=read, poll=search.POLL, reswipe=True):
         n["seen"] += 1
         if known(info):
             n["known"] += 1

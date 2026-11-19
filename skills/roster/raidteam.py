@@ -443,9 +443,11 @@ class Tighter(Exception):
 
 
 def by_cp(ts):
-    """the tiles' CPs go down, top to bottom (a CP not read is passed over)"""
+    """the tiles' CPs go down, top to bottom (a CP not read is passed over, and so is one misread: shiny sparkles by
+    a CP2850 read as 987, Pixel 2026-11-18)"""
     cps = [cp for _, cp in ts if cp]
-    return all(x >= y for x, y in zip(cps, cps[1:]))
+    down = lambda xs: all(x >= y for x, y in zip(xs, xs[1:]))
+    return down(cps) or len(cps) > 3 and any(down(cps[:i] + cps[i + 1:]) for i in range(len(cps)))
 
 
 def with_stars(q, stars):
@@ -540,7 +542,7 @@ def probe(c, qs):
     shadow = c.piles[qs[0]]["shadow"]
     typed = ",".join(str(c.piles[q]["dex"]) for q in qs) + f"&{'shadow' if shadow else '!shadow'}"
     ts = sorted_tiles(c, typed)
-    top = ts[0][1] if ts else 0
+    top = max((cp for _, cp in ts[:3] if cp), default=0)  # the top row's best: one misread low can't settle a pile
     if ts and not top:
         log(f"  {typed}: its top tile's CP didn't read")
         return []

@@ -434,7 +434,8 @@ def detail_info(texts):
 
 def tile_cps(texts):
     """the CP labels of the list's tiles"""
-    cps = [t for t in texts if re.fullmatch(r"CP\s*\d+", t[4].upper().replace(" ", ""))]
+    # (EP: the C read as E, iPhone, raidteam keep stopped on 'EP2549', 2026-11-19)
+    cps = [t for t in texts if re.fullmatch(r"[CE]P\s*\d+", t[4].upper().replace(" ", ""))]
     # a shiny's sparkles cover the 'CP': '$1636', 'ф1629', '$2256,', ':P393', 'c2554,', or just '2168' (that one only in a
     # row of CPs, or over a name when the screen has no real CP to go by: a list of only shinies). Not a tagged name
     # ('•96') under a real CP

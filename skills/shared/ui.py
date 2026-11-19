@@ -13,7 +13,7 @@ Claude doesn't need screenshots, and hands back fuzzed tap spots in screenshot c
 
 With POGO_PHONE=android the screen comes from the phone's own screenshots and taps go through adb (see android.py).
 """
-import json, os, random, re, shutil, subprocess, sys, time, unicodedata
+import json, os, random, re, shutil, subprocess, sys, threading, time, unicodedata
 from PIL import Image
 
 HERE = os.path.dirname(os.path.realpath(__file__))
@@ -179,13 +179,29 @@ def ocr_lines(path):
     return sh(HELPER, "ocr", path).splitlines() if lines is None else lines
 
 
-def ocr(path):
+def ocr_once(path):
     ensure_helper()
     out = []
     for line in ocr_lines(path):
         box, _, text = line.partition("\t")
         x, y, w, h = map(float, box.split())
         out.append((x, y, w, h, text.strip().translate(LOOKALIKES)))
+    return out
+
+
+def ocr(path):
+    """the png's text. A list with more tile CPs than names read: once more from a 2x copy, kept if it finds more
+    tiles. Rayquaza's green coils at the Pixel's 406 px: the reader took 3 rows upside down ('93 H' as 'H £6',
+    'Rayquaza' as 'ezenbley') and the list read 10 of 14, missing its 96s and 93s (2026-11-18). 2x read all 14.
+    (2x for every look: worse now and then, a half-hidden top row lost.) The boxes are fractions: the same at 2x"""
+    out = ocr_once(path)
+    if classify(out) == "list" and len(tiles(out)) < len(tile_cps(out)):
+        im = Image.open(path)
+        big = f"/tmp/pogo-ocr2x-{os.getpid()}-{threading.get_ident()}.png"  # (two phones at once: one file each)
+        im.resize((im.width * 2, im.height * 2), Image.LANCZOS).save(big, compress_level=1)
+        again = ocr_once(big)
+        if len(tiles(again)) > len(tiles(out)):
+            return again
     return out
 
 
@@ -985,7 +1001,8 @@ def plan(target, rested=False):
             spots.append((screen, locate(T, path, texts, screen, bounds[2] / bounds[3])))
             continue
         if i:
-            time.sleep(max(0.0, 0.4 - (time.time() - prev[0])) if prev else 0.4)
+            gap = 0.1 if ANDROID else 0.4  # base.ANDROID_WAIT (ui can't import base)
+            time.sleep(max(0.0, gap - (time.time() - prev[0])) if prev else gap)
         path, bounds = capture()
         texts = ocr(path)
         screen = classify(texts)

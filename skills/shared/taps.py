@@ -57,11 +57,24 @@ def swipe_next(bounds):
     base.ui._seen = base.ui._older = None
 
 
-def next_one(bounds, moved, poll=0.12):
+NEXT_AT = (0.90, 0.305)  # Android: a hidden button just under the CP arc's right end opens the next Pokémon in the
+# list (its left end, 0.10: the one before). The user found it, 2026-11-18: 2 of 2 taps went on by one tile
+
+
+def tap_next(bounds):
+    """on to the next Pokémon in the list by NEXT_AT's hidden button (Android). The iPhone swipes (not tried there)"""
+    if not ui.ANDROID:
+        return swipe_next(bounds)
+    W, H = ui.android.size()
+    ui.android.shell(f"input tap {int(W * NEXT_AT[0])} {int(H * NEXT_AT[1])}")
+    base.ui._seen = base.ui._older = None
+
+
+def next_one(bounds, moved, poll=0.12, tap=False):
     """swipe on to the next Pokémon: True once a detail page shows one moved(texts) says is another. A swipe that does
-    nothing twice = the end of the list. bounds None: read them before each swipe"""
+    nothing twice = the end of the list. bounds None: read them before each swipe. tap: tap_next instead"""
     for attempt in range(2):
-        swipe_next(bounds or look()[3])
+        (tap_next if tap else swipe_next)(bounds or look()[3])
         for _ in range(10):
             time.sleep(poll)
             screen, texts, _, _ = look()
@@ -177,7 +190,7 @@ def tile_names(texts):
 def settled_tiles():
     last = None
     for _ in range(12):
-        time.sleep(0.25)
+        time.sleep(base.short_wait(0.25))
         screen, texts, path, bounds = look()
         ts = [(ui.tile_name(n), c) for n, c, _, _ in ui.tiles(texts)] if screen == "list" else None
         if ts is not None and ts == last:

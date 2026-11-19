@@ -784,6 +784,16 @@ def merge_cutoffs(most, sightings, together=()):
             most[o] = max(most[o], most[k])
             sightings[o] += sightings[k]
             del most[k]
+    # one tile read two ways on two screens: '98 HD PsyS*Y' and '98 HD Psys*W', both CP2975 (raidteam, 2026-11-18,
+    # then 'not found' and a walk to the list's end looking for the 2nd). Never side by side: one Pokémon
+    for k in sorted(most, key=lambda k: sightings[k]):
+        if not k[1] or most[k] > 1:
+            continue
+        like = [o for o in most if o != k and o[1] == k[1] and looks_same(o[0], k[0]) and frozenset((k, o)) not in together]
+        if like:
+            o = max(like, key=lambda o: sightings[o])
+            sightings[o] += sightings[k]
+            del most[k]
 
 
 def screen_rows(cps, tiles):
@@ -1264,6 +1274,8 @@ def read_results(q, path, texts, bounds, iv_only=False, resorted=False):
         together |= {frozenset((a, b)) for a in now for b in now if a != b and a[1] == b[1]}
         if want is not None and want <= 9 and sum(most.values()) == want:  # one screen, all read
             break
+        if want is not None and sum(most.values()) == want == len(grid_tiles(grid)):  # all read, and as many places
+            break  # on the list: no swipe at the end to see it not move, then 1.5 s more (Rayquaza: 14, 2026-11-18)
         order = [bool(re.match(r"\d", ui.tile_name(t[0]))) for t in ui.tiles(texts)]  # row by row
         if iv_only and order.count(False) >= 3:  # past the IV names
             if True in order[order.index(False):]:  # an IV name after a plain one: not sorted by name

@@ -391,6 +391,7 @@
    "to_storage",
    "trainer_of",
    "walk_grid",
+   "ways_left",
    "where",
    "write_searches"
   ],

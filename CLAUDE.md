@@ -96,6 +96,8 @@ The repo is public. These stay local and are in `.gitignore`:
 
 `python3 tests/verdicts.py` pins the final tag `verdict.py` gives made-up Pokémon. `python3 tests/taggers.py` runs the bulk taggers' searches (`tradeable.py tag`, `cleantrades.py`) over made-up Pokémon and checks they tag what `verdict.py` says. Run both after any change to a rule or a tag search.
 
+`python3 tests/hundred.py` checks `dex.hundred_useful` (which forms a new 100% copy would help) on a made-up evolution tree. Run it after any change to it. It must say "all hundred cases right".
+
 `skills/cleanup/savedsearches.py` reads the saved searches off the Pixel and checks they hold the terms in `rules.SAVED`. Run it after changing one on the phone.
 
 Nothing tests taps and timing off the phone. A change to how a skill reads or taps the phone isn't done until it has run on the phone, from its worktree, through `watch.py` (the merge gate looks for that run):

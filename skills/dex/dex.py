@@ -394,35 +394,76 @@ def hundred_useful(missing, owned, by=None, parent=None):
     The page never got the 100s caught before it came out, so a later stage on the page counts for the earlier
     ones: Pidgeot there, Pidgey's hole is filled. owned {sid: n}: the 100 copies storage holds now (count_owned).
     The page only says one was there once: a Magnemite on it that's gone since evolves into nothing. Each copy goes
-    down one branch: a 100 Eevee fills one missing Eeveelution, and each other missing one wants a new Eevee. Two
-    forms with one number (Raichu, Alolan Raichu) are one hole"""
+    down one branch and fills every number on the way: a 100 Eevee fills one missing Eeveelution, and each other
+    missing one wants a new Eevee. A hole is a number, so its forms fill it alike: two plain 100 Diglett fill
+    Dugtrio's, and no Alolan Diglett is wanted. Only Hisuian Sneasel reaches Sneasler, so a plain one can't fill it.
+    The forms joined by evolving or by a shared number are judged together (ways_left)"""
     if by is None:
         by, parent = evo_tree()
     kids = {}
     for c, p in parent.items():
         kids.setdefault(p, []).append(c)
 
-    def short(sid, extra):
-        """how many more 100 copies of sid its line still wants, with one more of extra"""
-        copies = owned.get(sid, 0) + (sid == extra)
-        if sid not in kids:
-            return max(0, (by[sid]["dex"] in missing) - copies)
-        per_dex = {}
-        for k in kids[sid]:
-            d = by[k]["dex"]
-            per_dex[d] = min(per_dex.get(d, 99), short(k, extra))
-        want = sum(per_dex.values())
-        return max(0, want - copies)  # nothing wanted below: a later stage on the page fills this one
+    def below(s):
+        out, todo = [], list(kids.get(s, []))
+        while todo:
+            out.append(todo.pop())
+            todo += kids.get(out[-1], [])
+        return out
 
-    roots = {}
-    for sid in by:
-        roots.setdefault((ancestors(sid, parent) or [sid])[-1], []).append(sid)
+    def paths(s):
+        """the numbers on each way down from s to a last stage"""
+        return [{by[s]["dex"]} | p for k in kids[s] for p in paths(k)] if s in kids else [{by[s]["dex"]}]
+
+    top = {s: s for s in by}
+
+    def root(s):
+        while top[s] != s:
+            s = top[s]
+        return s
+    first = {}
+    for s in by:
+        if s in parent:
+            top[root(s)] = root(parent[s])
+        d = by[s]["dex"]
+        if d in first:
+            if root(s) != root(first[d]):
+                top[root(s)] = root(first[d])
+        else:
+            first[d] = s
+    groups = {}
+    for s in by:
+        groups.setdefault(root(s), []).append(s)
+
     out = set()
-    for r, family in roots.items():
-        now = short(r, None)
+    for forms in groups.values():
+        later = {by[s]["dex"] for s in forms if any(by[k]["dex"] not in missing for k in below(s))}
+        holes = {by[s]["dex"] for s in forms if by[s]["dex"] in missing} - later
+        if not holes:
+            continue
+        ways = {s: sorted({frozenset(p & holes) for p in paths(s)} - {frozenset()}, key=sorted) for s in forms}
+        now = ways_left(holes, ways, owned)
         if now:
-            out |= {s for s in family if short(r, s) < now}
+            out |= {s for s in forms if ways[s] and ways_left(holes, ways, owned, s) < now}
     return out
+
+
+def ways_left(holes, ways, owned, extra=None):
+    """the fewest holes left after every copy (owned, plus one of extra) is sent down one of its ways: every way to
+    send them is tried. Copies of one form are alike, so only which ways they take counts, not which copy takes
+    which"""
+    import itertools
+    pools = []
+    for s, w in ways.items():
+        n = min(owned.get(s, 0) + (s == extra), len(holes))
+        if n and w:
+            pools.append(list(itertools.combinations_with_replacement(w, n)))
+    best = len(holes)
+    for pick in itertools.product(*pools):
+        best = min(best, len(holes - set().union(*(x for ch in pick for x in ch))))
+        if not best:
+            break
+    return best
 
 
 def hundo_sources(missing, by, parent):

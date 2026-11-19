@@ -371,8 +371,11 @@ class Count:
             out["bosses"][key] = [{"attacker": attacker_name(m.A[i]), "rating": round(r, 2), "copy": k} for r, k, i in t]
             for r, k, i in t:
                 on.setdefault(k, []).append(key)
+        def shadow_of(q):  # a carried-on copy's pile can be gone from this run's piles (iPhone 2026-11-19: KeyError
+            return self.piles[q]["shadow"] if q in self.piles else "&shadow" in q  # '36&!shadow' at the report)
+
         for k, c in enumerate(self.copies):
-            out["copies"].append({"species": sorted({s for s, *_ in c["fits"]}), "shadow": self.piles[c["q"]]["shadow"],
+            out["copies"].append({"species": sorted({s for s, *_ in c["fits"]}), "shadow": shadow_of(c["q"]),
                                   "cp": c.get("cp", c["tile_cp"]), "hp": c.get("hp"), "kg": c.get("kg"), "m": c.get("m"),
                                   "name": c["name"],
                                   "levels": sorted({lv for _, lv, _ in c["fits"]}),
@@ -506,6 +509,8 @@ def open_tiles(c, q, todo, past):
     def find(name, cp):
         """the wanted tile this one is, or None: the same CP and the name OCR'd alike (search.looks_same: the name
         pass's reads add marks, '91hpatbs*^' for '91 hp at BS*'). A CP that didn't read: the name, if only one has it"""
+        if not name:  # a page read with no name (iPhone 2026-11-19: crashed in looks_same): not one of them
+            return None
         ks = [k for k in +left if k[1] == cp and (squash(k[0]) == squash(name) or search.looks_same(k[0], name))]
         if not ks and cp is None:
             ks = [k for k in +left if search.looks_same(k[0], name)]

@@ -214,28 +214,46 @@ def ocr_once(path):
 
 def ocr(path):
     """the png's text. A list with more tile CPs than names read: once more from a 2x copy, kept if it finds more
-    tiles. An unknown screen with no clock at the top: once more at 2x, kept if it knows the screen (top_clock).
+    tiles. A list with no TAGS or EGGS tab read: at 2x, kept if that reads one. No clock read at the top (an unknown
+    screen on the Pixel): at 2x, kept if that finds the clock or another screen (top_clock).
     Rayquaza's green coils at the Pixel's 406 px: the reader took 3 rows upside down ('93 H' as 'H £6', 'Rayquaza'
     as 'ezenbley') and the list read 10 of 14, missing its 96s and 93s (2026-11-18). 2x read all 14.
     (2x for every look: worse now and then, a half-hidden top row lost.) The boxes are fractions: the same at 2x"""
     out = ocr_once(path)
     kind = classify(out)
     thin = kind == "list" and len(tiles(out)) < len(tile_cps(out))
-    if thin or (kind == "unknown" and not top_clock(out)):
+    tabless = kind == "list" and not ANDROID and not full_list(out)  # a tag's list, or tabs read upside down
+    # (iPhone 2026-11-19: a 1-result list read EGGS as 'SOWI' and lost TAGS; start_search went to the full list
+    # over and over till it stopped. 2x read them right. A tag's list pays the 2nd read: about 0.1 s)
+    flipped = not top_clock(out) and (kind == "unknown" or not ANDROID)  # (the iPhone's clock is always read;
+    # the Pixel's white one often isn't, so there only an unknown screen pays for the 2nd read)
+    if thin or tabless or flipped:
         im = Image.open(path)
         big = f"/tmp/pogo-ocr2x-{os.getpid()}-{threading.get_ident()}.png"  # (two phones at once: one file each)
         im.resize((im.width * 2, im.height * 2), Image.LANCZOS).save(big, compress_level=1)
         again = ocr_once(big)
-        if thin and len(tiles(again)) > len(tiles(out)) or not thin and classify(again) != "unknown":
+        if thin and len(tiles(again)) > len(tiles(out)) or tabless and full_list(again) \
+                or flipped and (top_clock(again) or classify(again) != kind):
             return again
     return out
+
+
+MENU_WORDS = {"POKDEX", "ITEMS", "SHOP", "BATTLE", "SETTINGS"}
+
+
+def main_menu(texts):
+    """the main menu (the Poke Ball's screen): its POKEMON and 2 more of its buttons. Not all four: the iPhone read
+    ITEMS upside down ('SWELI') on a menu it read right otherwise, and the count stopped there (2026-11-19)"""
+    words = {norm(t[4]).replace("É", "") for t in texts}
+    return "POKMON" in words and len(words & MENU_WORDS) >= 2
 
 
 def top_clock(texts):
     """the phone's clock read at the top. Gone on an unknown screen: the reader may have taken the whole screen
     upside down. A 1-result list on the iPhone read as '•SASd A OOTe | ZI/OI | SOVI | - 80:10' (the clock 01:08 at
-    the bottom, 2026-11-19), and its 2x copy read right"""
-    return any(t[1] < 0.06 and re.search(r"\d:\d\d", t[4]) for t in texts)
+    the bottom, 2026-11-19), and its 2x copy read right. The same read of a 0-or-1-result list missed its TAGS and
+    EGGS tabs, and start_search went to the full list over and over till it stopped (the raid count's 890&!shadow)"""
+    return any(t[1] < 0.1 and re.search(r"\d:\d\d", t[4]) for t in texts)
 
 
 # OCR now and then reads a Latin letter as its Cyrillic twin ('сP 927', 'AТК', 'Pvp Uц46')

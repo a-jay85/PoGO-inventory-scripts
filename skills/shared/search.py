@@ -176,8 +176,7 @@ def off_map():
     for _ in range(2):
         path, bounds = ui.capture()
         texts = ui.ocr(path)
-        words = {ui.norm(t[4]) for t in texts}
-        if {"POKDEX", "POKMON", "ITEMS", "SHOP"} <= {w.replace("É", "") for w in words}:  # main menu
+        if ui.main_menu(texts):
             t = next(t for t in texts if ui.norm(t[4]).replace("É", "") == "POKMON")
             fx, fy = t[0] + t[2] / 2, t[1] + 0.055  # the round button under the label
         elif len(texts) <= 16 and pokeball(path):  # the map (an event's raid and Rocket timers add to its text: 11 seen)

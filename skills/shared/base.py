@@ -718,8 +718,8 @@ OPENED = {}  # "who": (CP, max HP, kg, m) read on the detail screen right after 
 
 
 def number(s, unit):
-    """'12.5 kg' -> 12.5 (a comma decimal too), None if it isn't that"""
-    m = re.fullmatch(r"([\d.,]+)\s*" + unit, (s or "").strip())
+    """'12.5 kg' -> 12.5 (a comma decimal too), None if it isn't that (an OCR misread like '..27 m' too)"""
+    m = re.fullmatch(r"(\d+(?:[.,]\d+)?)\s*" + unit, (s or "").strip())
     return float(m.group(1).replace(",", ".")) if m else None
 
 

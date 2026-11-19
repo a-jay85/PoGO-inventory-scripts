@@ -7,7 +7,8 @@
   digits only, outside the repo so it's never committed). A PIN that fails is never typed again that run: wrong PINs
   lock the phone out for longer each time. It's typed again only if the phone locks itself mid-run after it worked.
   First, once per run: a Pixel on over a day with under 1 GB free for apps is slow (the game drops taps), so it's
-  restarted (about a minute). Every run logs the phone's 'on, MB free, load' line. POGO_NO_RESTART=1 only says so.
+  restarted (about a minute). Every run logs the phone's 'on, MB free, load' line. POGO_NO_RESTART=1 only says so;
+  POGO_RESTART=1 restarts it anyway.
   close() goes to the home screen (the game to the back), then locks the phone.
 - main(body) runs a script's body: STOPPED / interrupted / CRASHED lines and exit codes 1 / 130 / 2, the run folder
   at the end, and close() if the run opened the phone. A run that never touched the phone (a usage error, a plan step)
@@ -126,10 +127,10 @@ def say_health(up, mb, load):
 def restart_if_worn():
     """a Pixel on a long time with little memory free is slow: the game drops taps and reads come late. Then it's
     restarted (about a minute) before the run uses it. Once per run, at its start, never mid-run.
-    POGO_NO_RESTART=1: only says it would"""
+    POGO_NO_RESTART=1: only says it would. POGO_RESTART=1: restarts it whatever its numbers"""
     up, mb, load = health()
     log(f"phone: {say_health(up, mb, load)}")
-    if up < WORN_UP or mb > WORN_MB:  # (a chain's next step finds it fresh)
+    if not flag("POGO_RESTART") and (up < WORN_UP or mb > WORN_MB):  # (a chain's next step finds it fresh)
         return
     if flag("POGO_NO_RESTART"):
         log("  the phone is worn (long on, little memory free): a restart would speed it up (POGO_NO_RESTART set)")
@@ -141,13 +142,17 @@ def restart_if_worn():
     while time.time() < end:  # adb drops, then comes back before the phone is done starting
         time.sleep(3)
         try:
-            if ui.android.shell("getprop sys.boot_completed", timeout=10).strip() == "1":
+            # boot done, and settings answering: right after the boot says done, 'settings get' printed nothing and
+            # dim() crashed (2026-11-19)
+            out = ui.android.shell("getprop sys.boot_completed; settings get system screen_brightness",
+                                   timeout=10).split()
+            if out[:1] == ["1"] and len(out) == 2 and out[1].isdigit():
                 break
         except subprocess.TimeoutExpired:
             pass
     else:
         raise Stop(f"restarted the phone, but it didn't come back in {BOOT_TIMEOUT}s: check it's on and plugged in")
-    time.sleep(8)  # the lock screen and the window manager settle after the boot says done
+    time.sleep(5)  # the lock screen and the window manager settle
     log(f"  restarted in {time.time() - t0:.0f}s: {say_health(*health())}")
 
 

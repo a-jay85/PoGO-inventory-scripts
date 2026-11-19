@@ -64,6 +64,8 @@ def script(query, limit):
             return base.steady_detail()
         # right after a swipe the CP sparkles in and can read blank (Pixel, Chansey, 2026-11-19): read it again
         info, texts, _ = base.settle(steady, lambda r: r[0]["cp"] is not None, 3)
+        if info["cp"] is None:
+            base.keep_capture("no CP")
         return info, texts, None  # (None: next_one reads the bounds before each swipe)
 
     # (seen by weight and height too: three 100 Chansey at CP1255 396HP ended the walk at the second, 2026-11-19)

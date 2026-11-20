@@ -28,7 +28,7 @@ When only 0-100km ones are left on both, they're traded with each other, the spe
 for another day. At most 99 trades a day (one is left for a special trade by hand), counted in .state.json;
 --done N says N were already made today. --limit N: at most N trades this run (default 48).
 Fridays are Friendship Fridays: every trade gives 2 Candy XL and double the lucky odds, so a Friday run trades only
-the ones tagged 2XL, on both phones. The rules above stay, with #2xl in place of giv,xlx. No GIV or XLX on a Friday,
+the ones tagged 2XL, on both phones. The rules above stay, with #2xl in place of giv. No GIV on a Friday,
 and no 2XL any other day. A regular trade costs 80 Stardust on a Friday (20% off). A Friday whose confirm screen shows
 100 has no Friendship Friday (Niantic skips one now and then): nothing is traded, and the run (and the rest of the
 day's runs) goes on with the other days' rules. A run stops at midnight if that
@@ -86,7 +86,7 @@ def set_piles(tags, saved):
              (NEAR, NEAR, "0-100km with 0-100km")]  # no far-apart bonus: the 100+km ones are kept for another day
 
 
-set_piles("giv,xlx", saved=True)  # main() switches a Friday run to #2xl, typed
+set_piles("giv", saved=True)  # main() switches a Friday run to #2xl, typed
 
 
 def friendship_friday():
@@ -1459,9 +1459,9 @@ def solo_main(a, name, android):
             except NoFriday as e:
                 friday = False
                 base.write_json(STATE, {**state(), "no_friday": today()})
-                set_piles("giv,xlx", saved=True)
+                set_piles("giv", saved=True)
                 COST, COST_READS = REGULAR_COST, REGULAR_READS
-                log(f"{e}: no Friendship Friday this week. Trading GIV and XLX like any other day")
+                log(f"{e}: no Friendship Friday this week. Trading GIV like any other day")
                 to_friend(p, ours=True)
                 continue
             except DailyLimit as e:
@@ -1550,9 +1550,9 @@ def main():
             except NoFriday as e:
                 friday, fresh = False, True  # the next round backs both out of this confirm screen first
                 base.write_json(STATE, {**state(), "no_friday": today()})
-                set_piles("giv,xlx", saved=True)
+                set_piles("giv", saved=True)
                 COST, COST_READS = REGULAR_COST, REGULAR_READS
-                log(f"{e}: no Friendship Friday this week. Trading GIV and XLX like any other day")
+                log(f"{e}: no Friendship Friday this week. Trading GIV like any other day")
                 continue
             except DailyLimit as e:
                 log(f"{e}: done for the day")

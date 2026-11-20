@@ -60,8 +60,8 @@ QUERIES = [q for _, q in REAL] + [
     "#Nope&purified",
     "#Transfer,#Nope&!traded&xxl",
     "&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&",
-    "giv,xlx&distance100-&countcandy0-2499",
-    "giv,xlx&distance0-100&countcandy2500-",
+    "giv&distance100-&countcandy0-2499",
+    "giv&distance0-100&countcandy2500-",
     "1-151&countcandyxl0-359",
     "PvpC",
 ]

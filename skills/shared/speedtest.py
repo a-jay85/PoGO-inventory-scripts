@@ -8,6 +8,9 @@ what's tested (the user, 2026-11-17). Each round opens a tile of the full list, 
   POGO_PHONE=android caffeinate -dimsu python3 speedtest.py cost [<search>] [--n 3]
         the door's page bottom and back (caught date, Candy XL), then its power-up cost read, as door.facts() does.
         <search>: that search's tiles (485&shadow: shadows, whose cost is 1.2x)
+  POGO_PHONE=android caffeinate -dimsu python3 speedtest.py plays [<search>] [--n 3]
+        powerup.power_up in its --look mode: would it power up for a Candy XL tier? It reads the dialog, then cancels
+        (485&shadow: shadows, whose plays are fewer)
   POGO_PHONE=android caffeinate -dimsu python3 speedtest.py appraise [--n 3]
         open the appraisal, read its bars, close it, and the detail page steady again
   POGO_PHONE=android caffeinate -dimsu python3 speedtest.py list <search> [--n 1] [--dist 0.4] [--settle 0.3]
@@ -60,6 +63,23 @@ def cost(n, q=None):
         log(f"  round {i + 1}: page bottom and back {took[-1][0]:.1f}s, cost read {took[-1][1]:.1f}s: {got}")
         base.back_to_list()
     log(f"cost: page bottom {', '.join(f'{a:.1f}' for a, _ in took)} s; cost read {', '.join(f'{b:.1f}' for _, b in took)} s")
+
+
+def plays(n, q=None):
+    import powerup, tagsheet
+    powerup.LOOK = True  # (the dialog read, then cancelled: nothing powered up)
+    if q:
+        tagsheet.search_exact(q)
+    for i in range(n):
+        base.open_tile(i + 1)
+        info, texts, _ = base.steady_detail()
+        t0 = time.time()
+        try:
+            got = f"{powerup.power_up(info, texts)} power-ups"
+        except powerup.Pass as e:
+            got = str(e)
+        log(f"  round {i + 1}: {info['name']} CP{info['cp']}: {got} ({time.time() - t0:.1f}s)")
+        base.back_to_list()
 
 
 def appraise(n):
@@ -147,6 +167,8 @@ def main(a):
         tags(words[0] if words else "Fallen", n)
     elif a[0] == "cost":
         cost(n, words[0] if words else None)
+    elif a[0] == "plays":
+        plays(n, words[0] if words else None)
     elif a[0] == "appraise":
         appraise(n)
     else:

@@ -52,6 +52,7 @@ def plays_for(rate):
 PLAYS = plays_for(DUST_RATE[0])  # {14: 15, 19: 20, 22: 23, 30: 31}: 2 taps (1 from the half level)
 # lucky, half the Stardust: a level 2 back costs the same per Candy XL (4 taps), and 25 -> 26 sits right on PLAY_DUST
 LUCKY_PLAYS = plays_for(DUST_RATE[1])  # {13: 15, 14: 15, 18: 20, 19: 20, 21: 23, 22: 23, 25: 26, 29: 31, 30: 31}
+SHADOW_PLAYS = plays_for(SHADOW_RATE)  # {14: 15}: 1.2x the Stardust puts 19, 22 and 30 over PLAY_DUST
 PURIFIED_AT = 25  # purifying sets the level to 25
 MAX_PLUS = 4  # + taps to find the level: from 19 the cost only jumps on the 5th power-up (at 21)
 
@@ -284,7 +285,7 @@ def steps(cands, plays=PLAYS):
 
 
 def power_up(info, texts, levels=None, known=None):
-    """1-2 power-ups (up to 4 for a lucky one) if this one sits right under an XL tier (PLAYS, LUCKY_PLAYS). -> power-ups made. Raise Pass to leave it.
+    """1-2 power-ups (up to 4 for a lucky one) if this one sits right under an XL tier (PLAYS, LUCKY_PLAYS, SHADOW_PLAYS). -> power-ups made. Raise Pass to leave it.
     Its level comes from the dialog: + adds a power-up, and each total (CP after, Stardust) rules levels out.
     levels: the caller's (its IVs, CP and HP can name the one level): narrows the cost's, or stands in when it doesn't read.
     known: cost_levels() already read on this open, at this CP (no more looks for it)"""
@@ -292,7 +293,9 @@ def power_up(info, texts, levels=None, known=None):
     lvs = sorted(set(lvs) & set(levels or ())) or lvs or sorted(levels or ())
     if not lvs:
         raise Unsure(f"can't read the power-up cost ({cost})")
-    plays = LUCKY_PLAYS if is_lucky(texts) else PLAYS  # (lucky: half the Stardust, more plays)
+    shadow = base.is_shadow(texts)
+    plays = SHADOW_PLAYS if shadow else LUCKY_PLAYS if is_lucky(texts) else PLAYS  # (lucky: half the Stardust, more
+    # plays. A shadow: 1.2x, fewer. Purified 0.9x: the same plays as a normal one, lucky and purified as a lucky one)
     if not any(math.floor(lv) in plays for lv in lvs):  # the cost rules out every play: no taps
         raise Pass(f"{cost} dust a power-up means level {lvs[0]}-{lvs[-1]}: none is {'/'.join(map(str, plays))}")
     species = ui.species_for(info["name"], info["texts"]) or nickname_species(info, texts)
@@ -330,7 +333,8 @@ def power_up(info, texts, levels=None, known=None):
     if after not in want:  # (IVs that fit can still part ways on the CP n power-ups later: the level is the same)
         cancel(d[3], d[5])
         raise Stop(f"{n} power-up(s) should give CP{sorted(want)}, the dialog says CP{after}")
-    candy = sum(candy_at(lvs[0] + 0.5 * k) for k in range(n))  # (25.5 -> 26 is still 3)
+    candy = sum(math.ceil(candy_at(lvs[0] + 0.5 * k) * (SHADOW_RATE if shadow else 1)) for k in range(n))  # (25.5 ->
+    # 26 is still 3. A shadow's is 1.2x too, rounded up here: it only checks there's enough)
     if have_candy < candy:
         cancel(d[3], d[5])
         raise Pass(f"{say}: needs {candy} candy, has {have_candy}")

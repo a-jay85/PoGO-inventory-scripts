@@ -2013,6 +2013,7 @@
    "PLAY_DUST",
    "PURIFIED_AT",
    "Pass",
+   "SHADOW_PLAYS",
    "SHADOW_RATE",
    "Skip",
    "Stop",
@@ -2404,6 +2405,7 @@
    "listread",
    "log",
    "main",
+   "plays",
    "tags"
   ],
   "runs": [

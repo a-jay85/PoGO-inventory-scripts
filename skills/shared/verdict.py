@@ -36,6 +36,9 @@ A special trade not kept (the user, 2026-11-19), its star off and its name back 
   mythical: caught in a raid (the door's one `mythical&raid` search) can't be traded: Spot Transfer. Else a one- or
   two-time one (Mew, Celebi, ...): a favorite, kept. Meltan and Melmetal: the legendary rules
   shiny (any): untraded Remote Trade + RT; traded, a favorite with no tags
+A costume one that's a favorite already, traded or not (costume_fav(): the user, 2026-11-19, lucky remote trades bring
+rare costumes): it stays a favorite, its name back to the default, never Transfer or a trade tag. One that isn't (an
+event's, there are many) gets the rules below.
 A costume one (the user, 2026-11-02): 93%+ is named and a favorite, traded or not. Else the usual rules, but if its plain
 form evolves and it can't (no Evolve button: dead_end), only as its own species: CyrillJan's raid list and 2XL go by
 its own place in DialgaDex's tops (raid_self), and no trade-evolution GIV.
@@ -101,6 +104,7 @@ class Facts:
     lucky: bool = False
     shadow: bool = False
     costume: bool = False
+    favorite: bool = False  # its star is on (read for a costume one only; None = not read)
     background: bool = False
     gigantamax: bool = False
     dynamax: bool = False
@@ -199,7 +203,7 @@ def shiny(f, v):
     """a shiny one (the user's rule, 2026-11-03): judged like any other first. If it doesn't qualify, its name goes
     back to the default and it's a favorite. Traded, all its tags come off. Untraded, it gets Remote Trade and RT.
     (On its way to /ivc or /pvpc to be judged, it goes there first)"""
-    if v.kind != "tag" or "IVC" in v.tags and not f.ivc_judged or "PvpC" in v.tags and not f.pvp_judged:
+    if f.costume and f.favorite or v.kind != "tag" or "IVC" in v.tags and not f.ivc_judged or "PvpC" in v.tags and not f.pvp_judged:
         return v
     why = f"shiny, doesn't qualify ({v.why})"
     if f.traded:
@@ -252,6 +256,8 @@ def usual(f, t, today=None):
         return unsure("traded or not not read")
     if odd and not f.traded and kinds & {"legendary", "ultrabeast", "mythical"}:
         return unsure(f"{', '.join(odd)} special trade: by hand")
+    if f.costume and (v := costume_fav(f, sid, kinds, strip)):  # (before the special trades and Transfer)
+        return v
     if f.caught is None:
         return unsure("catch date not read")
     old = (today - f.caught).days >= OLD_DAYS
@@ -271,11 +277,7 @@ def usual(f, t, today=None):
             return Verdict("keep", (), "gym defender: top 20 CP or IV", name=name)
 
     if f.costume and f.iv_sum >= OVER_93:  # (traded or not)
-        if f.ivs is None:
-            return unsure("costume 93%+: IVs not read (for its name)")
-        name = ivc_name(tuple(f.ivs), f.shadow, (f.size or "").upper(), lucky=f.lucky,
-                        legendary=bool(kinds & {"legendary", "ultrabeast", "mythical"}), gym=sid in GYM_DEFENDERS)
-        return Verdict("keep", (), f"costume, {round(f.iv_sum / 45 * 100)}%: named and a favorite", name=name)
+        return costume_93(f, sid, kinds, strip)
     if f.lucky:
         return lucky(f, sid, dexn, strip)
     if odd and not f.traded and (v := odd_one(f, t, sid, odd, today)):
@@ -419,6 +421,30 @@ def transfer(f, sid, why, off=(), purify=False, clear=False):
             return tag("GIV", why=f"untraded, its line has an evolution over 100 candy (else Transfer: {why})", off=off,
                        clear=clear)
     return tag("Transfer", why=why, off=off, purify=purify, clear=clear)
+
+
+def costume_93(f, sid, kinds, strip=()):
+    """a costume one at 93%+ (the user, 2026-11-02): named and a favorite, traded or not"""
+    if f.ivs is None:
+        return unsure("costume 93%+: IVs not read (for its name)")
+    name = ivc_name(tuple(f.ivs), f.shadow, (f.size or "").upper(), lucky=f.lucky,
+                    legendary=bool(kinds & {"legendary", "ultrabeast", "mythical"}), gym=sid in GYM_DEFENDERS)
+    return Verdict("keep", (), f"costume, {round(f.iv_sum / 45 * 100)}%: named and a favorite", name=name, off=strip)
+
+
+def costume_fav(f, sid, kinds, strip):
+    """a costume one on no raid team that's a favorite already, traded or not, lucky, shadow or shiny too (the user,
+    2026-11-19: lucky remote trades bring rare costumes): it stays a favorite, its name back to the default (93%+:
+    costume_93's name), never Transfer or a trade tag. -> Verdict, or None: not a favorite, the usual rules (an
+    event's costume: there are many)"""
+    if f.favorite is None:
+        return unsure("costume: a favorite or not not read")
+    if not f.favorite:
+        return None
+    if f.iv_sum >= OVER_93:
+        return costume_93(f, sid, kinds, strip)
+    return Verdict("tag", (), "costume, a favorite already: stays one, name back to the default, never traded or "
+                              "transferred", off=strip, clear=True, star=True)
 
 
 def lucky(f, sid, dexn, strip):

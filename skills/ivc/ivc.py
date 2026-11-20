@@ -103,6 +103,41 @@ def make_name(ivs, shadow=False, size=None, moves=(), lucky=False, legendary=Fal
     raise ValueError(f"nothing fits: {cands}")
 
 
+ALL_IVS = [(a, d, h) for a in range(16) for d in range(16) for h in range(16)]
+STATS = {stat_letters(v) for v in ALL_IVS} - {""}  # every stat-letter part a name can have ('HA', 'hd')
+NAME_HEAD = re.compile(r"^(\d{2,3})(?:/(\d{2,3}))?(.*)$")
+
+
+def name_letters(rest):
+    """the stat letters after a name's IV%: its first word, or one-letter H/A/D words in a row joined (OCR splits
+    them: '96 H A DBDC*' is HA)"""
+    words = rest.split("*")[0].split("^")[0].split()
+    if not words:
+        return ""
+    if len(words[0]) == 1 and words[0] in "HADhad":
+        out = ""
+        for w in words:
+            if len(w) != 1 or w not in "HADhad":
+                break
+            out += w
+        return out
+    return words[0]
+
+
+def read_name(name, shadow=False):
+    """an /ivc name back to the IVs it allows: [(a, d, h)], None with no IV% in it. The % pins the IV sum, the stat
+    letters (when read) which stats are 15 or lead. A '/' name on a Pokémon that isn't a shadow now was purified: the
+    IVs are the purified ones. Only as sure as the OCR: check them against something read (a CP)"""
+    m = NAME_HEAD.match((name or "").strip())
+    if not m or int(m.group(1)) > 100:
+        return None
+    p, pur, rest = int(m.group(1)), m.group(2), m.group(3)
+    tok = name_letters(rest)
+    out = [v for v in ALL_IVS if pct(v) == p and (not pur or pct(purified(v)) == int(pur))
+           and (tok not in STATS or stat_letters(v) == tok)]  # (no letters read: the sum alone)
+    return sorted({purified(v) for v in out}) if pur and not shadow else out
+
+
 def elite_moves(species):
     gm = json.load(open(GM_PATH))
     by_id = {p["speciesId"]: p for p in gm["pokemon"]}
@@ -151,7 +186,7 @@ def test():
     for ivs, shadow, size, moves, want, *flag in EXAMPLES:
         got = make_name(ivs, shadow, size, moves, lucky="lucky" in flag, legendary="legendary" in flag,
                         gym="gym" in flag)
-        ok = got == want
+        ok = got == want and (not got or ivs in (read_name(got, shadow) or [ivs]))  # (and read back: its IVs are among the name's)
         bad += not ok
         print(f"{'ok ' if ok else 'BAD'} {'/'.join(map(str, ivs)):9} {'shadow ' if shadow else ''.join(flag)[:6]:7}{size or '':4} "
               f"{','.join(moves):13} -> {got or 'NOPE'!r}" + ("" if ok else f"  wanted {want!r}"))

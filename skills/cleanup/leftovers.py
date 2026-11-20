@@ -18,8 +18,8 @@ opened once and gets its final tag at the door (../shared/door.py, ../shared/ver
 The species lists are tradeable.py's giver_species() (data: tradeable.py refresh).
 
 Leftovers is the user's: '!4*&!3*&!#&!favorite&!shiny&!lucky&!shadow&!legendary&!mythical&!ultrabeasts&!pvp&!age0-7
-&!xxl' (read off the iPhone 2026-11-16). Its !# and !favorite drop each one judged (a tag or a star) out of it. The
-walk adds &!gigantamax (a special trade it doesn't leave out). --limit N stops after N opened.
+&!xxl&!gigantamax' (read off the iPhone 2026-11-16, !gigantamax added 2026-11-19). Its !# and !favorite drop each
+one judged (a tag or a star) out of it. --limit N stops after N opened.
 
 again GIV|Transfer: HashTagAJay's #GIV or #Transfer pile, each one judged again under today's rules (the user,
 2026-11-16). The door takes the pile's tag off and gives the verdict's (GIV again: it stays). Not sure: left as it is.
@@ -40,7 +40,7 @@ import tradeable
 from rules import GIVER, TAKER
 
 SHORTCUT = "Leftovers"
-SUFFIX = "&!gigantamax"  # the Gigantamax ones are special trades: Leftovers doesn't leave them out
+SUFFIX = ""  # Leftovers leaves out the special trades itself, Gigantamax too (rules.SAVED, the user 2026-11-19)
 
 
 def gone(got, gate):

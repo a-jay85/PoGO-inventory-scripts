@@ -44,9 +44,14 @@ REROLL_ML = 20  # Reroll: PvPoke's Master League top this many (or evolves into 
 HARD_EGGS = ("10 km", "12 km")  # GIV: a family that hatches from these eggs (refresh keeps every one it has seen)
 HARD_TO_FARM = ("smeargle",)  # GIV: hard to farm too
 # Leftovers: a likely special trade the user tags by hand (the user, 2026-11-16). PvPoke's "regional" tag, plus these
-# it misses, and their earlier stages. Spinda: each pattern is a new dex entry
-BY_HAND = ("spinda", "throh", "sawk", "scatterbug", "spewpa", "vivillon", "flabebe", "floette", "florges",
-           "oricorio_baile", "oricorio_pau", "oricorio_pom_pom", "oricorio_sensu", "shellos", "gastrodon", "furfrou")
+# it misses, and their earlier stages. Spinda: each pattern is a new dex entry. Not SF_NATIVE
+BY_HAND = ("spinda", "sawk", "scatterbug", "spewpa", "vivillon", "flabebe", "floette", "florges",
+           "oricorio_baile", "oricorio_pau", "oricorio_sensu", "shellos", "gastrodon", "furfrou")
+# regionals that spawn in San Francisco, CA: judged like any other, not by hand (the user, 2026-11-19). From Pokemon GO
+# Hub's regional list (North America, the Americas, the Western Hemisphere). A form the page can't tell apart (Shellos'
+# sea, Basculin's stripe, Flabebe's flower, Tatsugiri, Furfrou's trim, Vivillon's pattern) stays by hand
+SF_NATIVE = {"tauros", "tauros_aqua", "illumise", "seviper", "lunatone", "panpour", "simipour", "throh", "durant",
+             "oricorio_pom_pom"}
 PVP_FLOOR = 5  # every rank 1 IV at least this
 HARD_CANDY = 100  # a stage 1 that costs this much candy to evolve into counts for the evolved GIV rule
 BABIES = {172, 173, 174, 175, 236, 238, 239, 240, 298, 360, 406, 433, 438, 439, 440, 446, 447, 458, 848}  # not a stage
@@ -81,7 +86,8 @@ SAVED = {GIVER: {CLEAN: ("traded", "!3*", "!4*", "!favorite", "!#"),
          TAKER: {CLEAN: ("traded", "!3*", "!4*", "!favorite", "!#"),
                  "IV Check": ("4*,3*", "!favorite", "!#"),
                  "PvpC1": (), "PvpC2": (),
-                 "Leftovers": ("!favorite", "!#")}}  # (leftovers.py: any tag or star takes one out of it)
+                 "Leftovers": ("!favorite", "!mythical", "!gigantamax", "!#")}}  # (leftovers.py: any tag or star takes
+# one out of it. No mythical or Gigantamax: the door types no mythical&raid search, the walk adds nothing, 2026-11-19)
 
 
 

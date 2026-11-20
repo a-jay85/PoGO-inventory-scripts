@@ -23,6 +23,7 @@ from collections import Counter
 HERE = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, HERE)
 import ui, base, search, home, pagefacts, pokedb, raidteams
+import rules
 from rules import GYM_DEX, XL_CAP, UNDER_360_XL
 from base import Stop, log
 
@@ -33,7 +34,7 @@ RULES = hashlib.md5(b"".join(open(os.path.join(HERE, f), "rb").read() for f in (
                     ).hexdigest()[:8]  # new rules or a new reader: judge again
 SEARCHES = {"costume": "costume"}  # the one fact the page and tile can't show. The rest come from pagefacts
 RAID = "mythical&raid"  # a mythical caught in a raid can't be traded (verdict.special): typed only when the scope could
-# hold a mythical (a scope of dex numbers with none, like /ivc's #IVC&13, skips it)
+# hold a mythical (a scope of dex numbers with none, like /ivc's #IVC&13, or a saved search with !mythical, skips it)
 # (2026-10-31: traded and the catch place off the page's bottom, Candy XL off its top, shiny and background off the tile)
 SAID = {"traded": "traded", "shiny": "shiny", "background": "background", "far": "distance100-",
         "xl_under": UNDER_360_XL[1:]}  # a scope that already says one of these (#Nope&traded) is believed over the page
@@ -97,11 +98,14 @@ class Door:
             log(f"door: no species lists, those rules will say not sure ({self.tables['missing']})")
         self.sets, self.partial = {}, set()
         said = set(self.scope.lower().split("&"))  # '#Nope&traded': every one is traded, so no search can misread it
+        if not self.source:  # a saved search's pile (tradeable.door_walk): its terms too (Leftovers: !mythical)
+            said |= set(rules.SAVED.get(self.account, {}).get(tag, ()))
         self.said = {k: term in said for k, term in SAID.items() if term in said or "!" + term in said}
         empty = lambda term: self.source and any(a == self.account and t == term and wide <= said for a, wide, t in EMPTY)
         searches = dict(SEARCHES)
         dexes = search.dexes_of(self.scope)
-        if dexes is None or dexes & {x["dex"] for x in vd.pvp.SPECIES.values() if "mythical" in (x.get("tags") or [])}:
+        if "!mythical" not in said and (dexes is None or dexes & {x["dex"] for x in vd.pvp.SPECIES.values()
+                                                                   if "mythical" in (x.get("tags") or [])}):
             searches["raid"] = RAID
         self.typed = not all(empty(term) for term in searches.values())  # False: the screen wasn't touched
         if self.typed:

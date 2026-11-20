@@ -17,8 +17,8 @@
 
 The species lists and the order here are also ../shared/verdict.py's: /ivc and /pvpc judge a Pokémon that
 isn't a keeper with them (the door, no Nope). giver_species() is the other side, HashTagAJay's pile (leftovers.py),
-judged for any account: Reroll, GIV, GIV (level 26+), GIV (evolved, 10/12 km eggs, Smeargle); regionals and Spinda
-by hand (its docstring has the rules). MEDALS (a tiny Rattata, a big Magikarp: GIV for any account's medals) are the
+judged for any account: Reroll, GIV, GIV (level 26+), GIV (evolved, 10/12 km eggs, Smeargle); regionals not from
+San Francisco (rules.SF_NATIVE) and Spinda by hand (its docstring has the rules). MEDALS (a tiny Rattata, a big Magikarp: GIV for any account's medals) are the
 door's too, on HashTagAJay.
 
 One tag each, the first that fits:
@@ -82,7 +82,7 @@ import sizes
 from taps import Pass, owned, details
 from ivc import GYM_DEFENDERS
 from rules import (GIVER, TAKER, TAGS, XLX, OLD_XLX, TRANSFER, LUCKY_CANDY, XL_CAP, XLX_LEVEL, GIV_FOR_TAKER, XLX_FOR,
-    PVE_TOP, REROLL_ML, HARD_EGGS, HARD_TO_FARM, BY_HAND, PVP_FLOOR, HARD_CANDY, BABIES, SPECIAL, NO_SPECIAL, DYNAMAX, UNDER_360_XL, TAG_SKIP, GUARANTEED,
+    PVE_TOP, REROLL_ML, HARD_EGGS, HARD_TO_FARM, BY_HAND, SF_NATIVE, PVP_FLOOR, HARD_CANDY, BABIES, SPECIAL, NO_SPECIAL, DYNAMAX, UNDER_360_XL, TAG_SKIP, GUARANTEED,
     LUCKY_YEAR, OLD, OLD_AGE)
 
 if ui.ANDROID:  # a look's shrink, save and OCR take 0.3-0.6 s, so at 0.3 most head-start shots were thrown away. The
@@ -564,7 +564,8 @@ def giver_species(m):
         a gym defender's line (/ivc's GYM_DEFENDERS and what evolves into them: a potential top gym defender for an
         account with fewer, the user 2026-11-16)
       dmax: what dmax_need says (a Dynamax one, or one that can Dynamax while this account is short: verdict.py)
-      by_hand: likely special trades the user tags by hand: regionals (PvPoke's tag + rules.BY_HAND) and Spinda
+      by_hand: likely special trades the user tags by hand: regionals (PvPoke's tag + rules.BY_HAND, less
+        rules.SF_NATIVE: they spawn in San Francisco) and Spinda
     (An Adventure Effect move would be a Reroll, but only legendaries and Ultra Beasts have one: special trades)"""
     read_f = newest_for(os.path.join("*-read", "read.json"), GIVER)  # (only its 360+ XL families: none without)
     xl_full = json.load(open(read_f))["xl_full"] if read_f else []
@@ -600,6 +601,7 @@ def giver_species(m):
     for s in m.by:
         if "regional" in (m.by[s].get("tags") or []) or s in BY_HAND:
             by_hand |= {s, *(x for x in dex.ancestors(s, m.parent) if m.dex(x) not in BABIES)}
+    by_hand -= SF_NATIVE  # (caught in San Francisco: judged like any other)
     return {"why": why, "evolved": evolved_giv(m, ok, why, json.load(open(hard_f))), "hard": hard, "by_hand": by_hand,
             "dmax": dmax_need(m, ok),
             "xl_full": {m.dex(x) for s in m.by if m.dex(s) in xl_full for x in m.family(s)},

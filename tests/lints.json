@@ -1,6 +1,8 @@
 {
  "none": [],
- "thin": [],
+ "thin": [
+  "skills/shared/rules.py SAVED: ends 'thical'"
+ ],
  "waits": {
   "skills/cleanup/cleantrades.py power_walk": 1,
   "skills/cleanup/cleantrades.py power_walk.read": 1,

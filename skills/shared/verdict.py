@@ -18,7 +18,7 @@ to. Signed in as CyrillJan (the pile goes to HashTagAJay):
   GuaranteedLucky > Luckydex > Old > 2XL (a raid attacker's line or a Dynamax one) > Reroll > GIV > xxs > GIV (level 26+) > GIV
   (evolved, Dynamax, Tandemaus) > GIV (far) > GIV (can Dynamax, account short of candy) > Transfer
 Signed in as HashTagAJay (the pile goes to CyrillJan or the user's wife's account, judged for any account):
-  regional or Spinda: unsure (by hand) > GuaranteedLucky > Old > GIV (medal) > 2XL > Reroll > GIV > xxs > GIV (level 26+) >
+  regional (not from San Francisco) or Spinda: unsure (by hand) > GuaranteedLucky > Old > GIV (medal) > 2XL > Reroll > GIV > xxs > GIV (level 26+) >
   GIV (evolved, 10/12 km egg family, Smeargle, gym defender line, Dynamax) > GIV (trade evolution) > GIV (far) >
   GIV (can Dynamax, account short of candy) > Transfer
   (Reroll: a strong line (tradeable.strong_lines: on the ideal raid team, or a gym defender's line), DialgaDex top 6

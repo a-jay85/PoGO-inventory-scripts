@@ -312,6 +312,86 @@
   null,
   "Gigantamax: a special trade, by hand"
  ],
+ "costume favorite": [
+  "tag",
+  [],
+  null,
+  "costume, a favorite already: stays one, name back to the default, never traded or transferred",
+  "star",
+  "clear"
+ ],
+ "costume favorite, star not read": [
+  "unsure",
+  [],
+  null,
+  "costume: a favorite or not not read"
+ ],
+ "costume favorite, 93%: its IV name": [
+  "keep",
+  [],
+  "93",
+  "costume, 93%: named and a favorite"
+ ],
+ "costume favorite traded, trade tags come off": [
+  "tag",
+  [],
+  null,
+  "costume, a favorite already: stays one, name back to the default, never traded or transferred",
+  {
+   "off": [
+    "GIV",
+    "Reroll"
+   ]
+  },
+  "star",
+  "clear"
+ ],
+ "costume favorite, caught 2017: no GuaranteedLucky": [
+  "tag",
+  [],
+  null,
+  "costume, a favorite already: stays one, name back to the default, never traded or transferred",
+  "star",
+  "clear"
+ ],
+ "costume favorite shiny, untraded: no Remote Trade": [
+  "tag",
+  [],
+  null,
+  "costume, a favorite already: stays one, name back to the default, never traded or transferred",
+  "star",
+  "clear"
+ ],
+ "costume favorite shadow": [
+  "tag",
+  [],
+  null,
+  "costume, a favorite already: stays one, name back to the default, never traded or transferred",
+  "star",
+  "clear"
+ ],
+ "costume favorite lucky, out of the top IV": [
+  "tag",
+  [],
+  null,
+  "costume, a favorite already: stays one, name back to the default, never traded or transferred",
+  "star",
+  "clear"
+ ],
+ "costume favorite on a raid team": [
+  "keep",
+  [],
+  null,
+  "on a raid team: Boss A (party 1)"
+ ],
+ "costume not a favorite, traded: Transfer": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "traded: can't trade again"
+ ],
  "shiny shadow, no purify": [
   "tag",
   [

@@ -248,9 +248,11 @@ class Door:
         said = lambda k, v: self.said.get(k, v)
         rows = [ui.norm(t[4]) for t in texts]
         lucky = any(r.startswith("LUCKY POK") for r in rows)  # only a trade makes one lucky
+        costume = self.has("costume", tile)
+        favorite = base.star_now()[0] if costume else False  # (only a costume one's rule asks: verdict.costume_fav)
         f = vd.Facts(evolves=can_evolve(texts), account=self.account, sids=list(sp), iv_sum=sum(ivs) if ivs else None,
                      ivs=tuple(ivs) if ivs else None, shiny=said("shiny", icons.get("shiny")),
-                     costume=self.has("costume", tile), background=said("background", icons.get("background")),
+                     costume=costume, favorite=favorite, background=said("background", icons.get("background")),
                      traded=True if lucky else said("traded", page["traded"]), caught=page["caught"], shadow=base.is_shadow(texts),
                      lucky=lucky,
                      gigantamax="GIGANTAMAX" in near, dynamax="DYNAMAX" in near, size=size, kg=base.who(info)[2],

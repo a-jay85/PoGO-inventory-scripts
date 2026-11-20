@@ -1108,8 +1108,9 @@ def set_tags(on=(), off=(), only=False):
         pokedb.tagged(OPENED.get("who"), tags)
 
 
-def set_star(on):
-    """favorite (on) or not. The star toggles, so it's only tapped when it's the other way"""
+def star_now():
+    """on the open detail page: -> (a favorite or not, None when the star can't be told; the star's spot; the screen's
+    bounds)"""
     _, texts, path, bounds = wait_for("detail")
     still_opened("before the star", ui.detail_info(texts))
     filled, spot = ui.star_filled(path, texts), ui.star_spot(texts)
@@ -1117,6 +1118,12 @@ def set_star(on):
         path = ui.android.sharp()
         texts = ui.ocr(path)
         filled, spot = ui.star_filled(path, texts), ui.star_spot(texts)
+    return filled, spot, bounds
+
+
+def set_star(on):
+    """favorite (on) or not. The star toggles, so it's only tapped when it's the other way"""
+    filled, spot, bounds = star_now()
     if filled is None:
         raise Skip("can't find the favorite star")
     if filled is not on:

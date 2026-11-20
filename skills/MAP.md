@@ -152,6 +152,7 @@ The shared tapper: screen reading, taps, timing, run folders and logging, and th
 - `back_out_of_tags(T, ticks)`: a tick wouldn't take after every try (seen on the iPhone 2026-11-05: taps lost for a while, then fine again)
 - `set_tick(T, v, name, ticks)`: row T of the open tag sheet (one Pokémon or a whole search's), showing: tap until its tick reads v
 - `set_tags(on=(), off=(), only=False)`: tick the on tags and untick the off ones, leave the rest
+- `star_now()`: on the open detail page: -> (a favorite or not, None when the star can't be told; the star's spot; the screen's bounds)
 - `set_star(on)`: favorite (on) or not
 - `same_name(got, want)`: OCR mangles the v in Pvp (Pyp, PУp, PvP): be loose on the first three letters only
 - `clear_name(ok=lambda g: bool(g) and (not re.match('P\\S?p ?[LGU]|\\d', g)))`: blank the nickname: the game shows the species name again
@@ -759,6 +760,8 @@ The final tag for a Pokémon that just fell short of a keeper, judged right wher
 - `dmax_short(f, t, sid)`: one that can Dynamax (or evolves into one that can), but isn't a Dynamax one: GIV while the account holding it is short of that family's Candy (DMAX_CANDY or less) or …
 - `two_xl(f, t, sid)`: 2XL (a Friendship Friday trade: a sure 2 Candy XL) when this account has under XL_CAP Candy XL of the family
 - `transfer(f, sid, why, off=(), purify=False, clear=False)`: Transfer, unless it's untraded and (the user's rules, 2026-10-31, for every Transfer): an xxs one -> IVC, named xxs (/ivc counts that name as done) one that evolves free …
+- `costume_93(f, sid, kinds, strip=())`: a costume one at 93%+ (the user, 2026-11-02): named and a favorite, traded or not
+- `costume_fav(f, sid, kinds, strip)`: a costume one on no raid team that's a favorite already, traded or not, lucky, shadow or shiny too (the user, 2026-11-19: lucky remote trades bring rare costumes): it …
 - `lucky(f, sid, dexn, strip)`: a lucky one, traded or not (the user's rule, 2026-10-30): in /ivc's spots for its line it stays: on a strong line the top 5 IV of its non-shadow ones (6 if the line can …
 - `plain_evolves(sid)`
 - `dead_end(f, sid)`: a costume one whose plain form evolves, but it can't (no Evolve button): judged as its own species only, for raids and PvP (the user, 2026-11-02)

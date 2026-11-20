@@ -18,6 +18,6 @@ paths:
 ## leftovers / specieswise
 - The Leftovers saved search (read off the iPhone; the user can't copy it): `!4*&!3*&!#&!favorite&!shiny&!lucky&!shadow&!legendary&!mythical&!ultrabeasts&!pvp&!age0-7&!xxl`.
 - HashTagAJay trades away only what helps another, less developed account. It has 360+ XL for most species.
-- Regionals and Spinda go on the not-sure list; the user tags them by hand.
+- Regionals not from San Francisco (`rules.SF_NATIVE` lists the ones that are) and Spinda go on the not-sure list; the user tags them by hand.
 - Open: shadows are still skipped in the "#1 vs a boss" check (the user didn't pick). Claude chose "whole line, any IV" for gym-defender lines; the user may want it tighter.
 - To re-judge a tag pile, use `pogo.py specieswise GIV|Transfer` first (by species, no opening). Use the per-Pokémon door walk (`leftovers.py again`) only if the user asks.

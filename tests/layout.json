@@ -2103,6 +2103,7 @@
    "VIABLE_TOP",
    "all_ranks",
    "base_name",
+   "can_dynamax",
    "cascade",
    "children",
    "cmd_check",

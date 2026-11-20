@@ -1168,10 +1168,10 @@ def fallen_out(limit, hold=None):
 
 
 def can_dynamax():
-    """dex numbers that can Dynamax (tradeable.py refresh's dynamax-<date>.json, from the game master). None saved:
-    every one"""
-    f = base.newest(os.path.join(HERE, "..", "cleanup"), "dynamax-[0-9]*[0-9].json")
-    return set(json.load(open(f))) if f else set(sort.SPECIES[s]["dex"] for s in sort.SPECIES)
+    """dex numbers that can Dynamax (pvp.can_dynamax). None saved: every one"""
+    import pvp
+    got = pvp.can_dynamax()
+    return got if got is not None else set(sort.SPECIES[s]["dex"] for s in sort.SPECIES)
 
 
 def drop_dmax():

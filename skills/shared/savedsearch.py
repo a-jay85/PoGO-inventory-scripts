@@ -7,7 +7,7 @@ HERE = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, HERE)
 import ui
 import base
-from base import Stop, log, keep_capture, go, look, wait_for
+from base import Stop, log, keep_capture, look, wait_for
 import search
 from taps import press, select_all, settled_tiles
 from tagsheet import still_sheet, search_exact
@@ -316,11 +316,9 @@ def tag_pile(name, tag, suffix=None, off=(), query=None):
 
 
 def close_sheet(texts, bounds):
-    """leave the tag sheet unsaved (Android: the X under DONE), then multi-select"""
-    if not ui.ANDROID:
-        go("CANCEL", "list")
-    else:
-        d = next(t for t in texts if ui.norm(t[4]) == "DONE")
-        press((d[0] + d[2] / 2 - 0.03, d[1] + 0.075, 0.06, 0.03, ""), bounds)
+    """leave the tag sheet unsaved by the round X under DONE (the iPhone has no CANCEL either, 2026-11-20), then
+    multi-select"""
+    d = next(t for t in texts if ui.norm(t[4]) == "DONE")
+    press((d[0] + d[2] / 2 - 0.03, d[1] + 0.075, 0.06, 0.03, ""), bounds)
     _, texts, _, bounds = wait_for("list")
     search.leave_multiselect(texts, bounds)

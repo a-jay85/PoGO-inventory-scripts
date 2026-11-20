@@ -491,7 +491,7 @@ The search list's saved searches: read their labels, run one, add to it, type a 
 - `append(suffix, bounds=None, before=None)`: tap the filled bar, type suffix at the end, Return
 - `long_search(q)`: search_exact for a search too long to read back from the bar (it shows ~30 characters): type a head short enough to read back whole, then append the rest a few '&' terms …
 - `tag_pile(name, tag, suffix=None, off=(), query=None)`: tag everything in a shortcut's search + suffix (default: the ones that don't have the tag yet), and take the off tags away from them
-- `close_sheet(texts, bounds)`: leave the tag sheet unsaved (Android: the X under DONE), then multi-select
+- `close_sheet(texts, bounds)`: leave the tag sheet unsaved by the round X under DONE (the iPhone has no CANCEL either, 2026-11-20), then multi-select
 
 ## skills/shared/search.py
 In-game searches and list walking, shared by /ivc and /pvpc's fallen-out step

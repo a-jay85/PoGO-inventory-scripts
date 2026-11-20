@@ -591,7 +591,7 @@ A run's phone from start to end
 Go through a step's motions on the phone and time them, changing nothing: for speed work, where the logic isn't what's tested (the user, 2026-11-17)
 
 - `tags(T, n)`
-- `cost(n)`
+- `cost(n, q=None)`
 - `appraise(n)`: open_appraisal, the bars read, the tap that closes it, and the detail page steady again: the appraisal steps of /ivc's names.read (C3-C6 in …
 - `listread(q, n, dist=None, settle=None)`
 - `main(a)`

@@ -207,6 +207,7 @@
  "skills/cleanup/specieswise.py": {
   "copies": {},
   "names": [
+   "CAP_TAGS",
    "CHUNK",
    "D",
    "GIVER",
@@ -220,6 +221,7 @@
    "LEFT_OUT",
    "PILES",
    "Stop",
+   "TIER",
    "TOP",
    "WHO",
    "args",
@@ -237,7 +239,9 @@
    "plan_of",
    "query",
    "runs",
-   "species_tag"
+   "species_tag",
+   "tiers",
+   "under26"
   ],
   "runs": [
    "skills/cleanup/runs"

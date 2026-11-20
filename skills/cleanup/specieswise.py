@@ -9,7 +9,10 @@ no odd size, level 20, caught nearby, its gym top 20 out. HashTagAJay's Candy an
 Pokémon database (../shared/pokedb.py: what the scripts read last); a family it has no count for counts as 360+ XL
 and plenty of Candy (most of HashTagAJay's are). So the species rules decide: Reroll, GIV (raid top 6, stage 2, hard
 evolutions, egg families, gym lines, trade evolutions, costly lines, short of Candy for Dynamax), 2XL (under 360 XL),
-or Transfer. No appraisal, no power-up cost, no page read: the IV and level rules (98%+, GIV at level 26+) don't run.
+or Transfer. No appraisal, no power-up cost, no page read: the IV rule (98%+) doesn't run. Level isn't searchable, so a
+Transfer search takes only CPs no level 26+ one has (GIV at level 26+ comes before Transfer): under the species'
+CP at level 26 with 0/0/0 IVs (cp-N). Species are put in CP tiers (TIER: the top cap at most 1.5 x the lowest),
+one search per tier at its lowest cap. Ones over it stay #GIV.
 
 Left as they are, out of every search: ones a rule before the species rules decides (traded, lucky, shadow, shiny,
 costume, background, XXL, XXS, Dynamax, Gigantamax, caught 300+ days ago or in 2016-2020, special trades), ones with
@@ -49,6 +52,8 @@ LEFT_OUT = ("&!favorite&!traded&!lucky&!shadow&!shiny&!costume&!background&!xxl&
             "&!legendary&!mythical&!ultrabeast&!age300-&!year2016-2020"
             "&!#IVC&!#PvpC&!#Old&!#2XL&!#XLX&!#Reroll&!#GuaranteedLucky&!#RT")
 CHUNK = 700  # characters of dex numbers per search: with LEFT_OUT, well under the 1,000 a search keeps to
+TIER = 1.5  # Transfer's CP tiers: a tier's caps are at most this times its lowest (a lower cap leaves more as they are)
+CAP_TAGS = (rules.TRANSFER,)  # the tags verdict.py puts after GIV (level 26+): only CPs under level 26 go in
 
 
 def family(sid):
@@ -90,21 +95,39 @@ def groups(pile):
         else:
             by_dex[p["dex"]][sid] = None
             unsure.append((sid, f"{v.kind} {'+'.join(v.tags)}: {v.why}"))
-    out, n, more = dex_parts(by_dex, pile, CHUNK)
+    out, n, more = dex_parts(by_dex, pile, CHUNK, caps={tag: under26 for tag in CAP_TAGS})
     return out, n, unsure + more
 
 
-def dex_parts(by_dex, pile, size):
+def under26(sids):
+    """the highest CP no level 26+ one of these forms can have: one under the lowest one's CP at level 26, 0/0/0"""
+    return min(pvp.cp(pvp.SPECIES[s]["baseStats"], (0, 0, 0), rules.XLX_LEVEL) for s in sids) - 1
+
+
+def tiers(caps):
+    """{key: CP cap} -> {key: its tier's cap}: caps sorted low to high, a new tier once one is over TIER x the tier's
+    lowest. The tier's cap is its lowest, so no level 26+ one comes in"""
+    out, low = {}, None
+    for k, c in sorted(caps.items(), key=lambda kc: kc[1]):
+        if low is None or c > low * TIER:
+            low = c
+        out[k] = low
+    return out
+
+
+def dex_parts(by_dex, pile, size, caps=None):
     """{dex: {sid: tag or None (not sure)}} -> ({tag: [search part]}, {tag: n species}, [(sid, why) not sure]). A dex
-    whose forms all agree is searched by its number alone; one whose forms disagree, form by form (37&alola)"""
+    whose forms all agree is searched by its number alone; one whose forms disagree, form by form (37&alola).
+    caps {tag: f([sid]) -> CP cap}: that tag's searches go by CP tier, each with &cp-<its cap>"""
+    caps = caps or {}
     unsure = []
-    parts = defaultdict(lambda: defaultdict(list))  # tag -> the form terms ('', '&alola', '&!alola') -> [dex]
+    parts = defaultdict(lambda: defaultdict(list))  # tag -> the form terms ('', '&alola', '&!alola') -> [(dex, sids)]
     n = defaultdict(int)
     for d, forms in sorted(by_dex.items()):
         if len(set(forms.values())) == 1:  # every form agrees: the dex number alone
             tag = next(iter(forms.values()))
             if tag:
-                parts[tag][""].append(d)
+                parts[tag][""].append((d, list(forms)))
                 n[tag] += len(forms)
             continue
         for sid, tag in forms.items():
@@ -113,22 +136,33 @@ def dex_parts(by_dex, pile, size):
                 unsure.append((sid, f"its dex's forms disagree and have no search term"))
                 continue
             if tag:
-                parts[tag][terms].append(d)
+                parts[tag][terms].append((d, [sid]))
                 n[tag] += 1
     out = {}
     for tag, by_terms in parts.items():
         if tag == pile:
             continue
+        groups = defaultdict(list)  # (the form terms, the CP term) -> [dex]
+        if tag in caps:
+            tier = tiers({(terms, d): caps[tag](sids) for terms, ds in by_terms.items() for d, sids in ds if not terms})
+            for terms, ds in by_terms.items():  # the few split by form: one search each, at their lowest cap
+                if terms:
+                    tier.update({(terms, d): caps[tag](sum((sids for _, sids in ds), [])) for d, _ in ds})
+            for (terms, d), cap in tier.items():
+                groups[(terms, f"&cp-{cap}")].append(d)
+        else:
+            for terms, ds in by_terms.items():
+                groups[(terms, "")] = [d for d, _ in ds]
         qs = []
-        for terms, dexes in sorted(by_terms.items()):
+        for (terms, cp), dexes in sorted(groups.items(), key=lambda g: (g[0][0], int(g[0][1][4:] or 0))):
             chunk = []
             for r in search.dex_ranges(dexes):
                 if chunk and len(",".join(chunk + [r])) > size:
-                    qs.append(",".join(chunk) + terms)
+                    qs.append(",".join(chunk) + terms + cp)
                     chunk = []
                 chunk.append(r)
             if chunk:
-                qs.append(",".join(chunk) + terms)
+                qs.append(",".join(chunk) + terms + cp)
         out[tag] = qs
     return out, dict(n), unsure
 

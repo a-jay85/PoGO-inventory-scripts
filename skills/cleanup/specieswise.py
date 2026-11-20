@@ -146,7 +146,7 @@ GIVER_STEPS = (  # (search term, the facts it leaves open: every value is tried,
 )
 GIVER_IVS = ((0, 0, 0), (10, 10, 10), (12, 12, 12))  # 0-2*: on no raid team
 GIVER_LEFT_OUT = ("&!favorite&!traded&!lucky&!shadow&!shiny&!costume&!background&!xxl&!xxs&!gigantamax"
-                  "&!legendary&!mythical&!ultrabeast&0*,1*,2*")
+                  "&!legendary&!mythical&!ultrabeast")
 GIVER_OTHER_TAGS = ("IVC", "PvpC", "Old", "2XL", "XLX", "GIV", "Transfer", "Reroll", "GuaranteedLucky", "RT")
 GIVER_CHUNK = 450
 TOP = 10 ** 5  # a Candy or Candy XL count no family reaches  # the step terms, the Candy terms and the other tags take more room than LEFT_OUT
@@ -243,7 +243,7 @@ def giver_groups(pile, dexes):
 def query(pile, part, who=WHO):
     if who == GIVER:
         others = "".join(f"&!#{t}" for t in GIVER_OTHER_TAGS if t != pile)
-        return f"#{pile}&{part}{GIVER_LEFT_OUT}{others}"
+        return f"#{pile}&0*,1*,2*&{part}{GIVER_LEFT_OUT}{others}"  # (0-2* first: a bar ending in #Reroll reads back short)
     return f"#{pile}&{part}{LEFT_OUT}"
 
 

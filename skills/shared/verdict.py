@@ -487,7 +487,7 @@ def odd_one(f, t, sid, odd, today):
     if sid in t.get("strong", ()):  # never purified: GuaranteedLucky or Old if it fits, else Special (the user, 2026-11-19)
         v = shadow_transfer(f, sid, "shadow in a strong line: never purified", today)
         if v.tags == ("Transfer",):
-            return tag("Special", why=v.why + ": Special, never Transfer", unstar=True)
+            return tag("Special", why=v.why + ": Special, never Transfer")
         return replace(v, unstar=True) if v.tags in (("GuaranteedLucky",), ("Old",)) else v
     if f.candy_xl is None:
         return unsure("shadow: Candy XL not read")

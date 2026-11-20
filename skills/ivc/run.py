@@ -1162,8 +1162,37 @@ def fallen_out(limit, hold=None):
     if not os.path.exists(os.path.join(base.RUN_DIR, "fallen.json")):  # no plan written: an empty pile
         log("fallen out: none (no plan in this run)")
         return
+    drop_dmax()
     fallen.groups(iv_only=True)
     act_fallen(limit, hold)
+
+
+def drop_dmax():
+    """a fallen-out one whose family's Dynamax list this run didn't read was judged as plain. Opened, its page can say
+    Dynamax, and with no list to judge it by, recheck_fallen leaves it (a pool search is missing): opened for nothing,
+    the same tiles run after run (93 opens in 13 runs, up to 28 in one). One search of their dex numbers with
+    dynamax,gigantamax (last: dynamax eats text after it) finds them first, and they leave fallen.json unopened"""
+    results = load("pools.json", {})
+    unread = lambda f: not f["shadow"] and any(q not in results for s in f["species"] for q, _, _ in sort.groups(s, "dmax"))
+    out = load("fallen.json")
+    maybe = [f for f in out if unread(f)]
+    if not maybe:
+        return
+    dexes = sorted({d for f in maybe for d in f["dex"]})
+    hits = Counter()
+    for i in range(0, len(dexes), 40):
+        got, _ = run_search(dex_terms(dexes[i:i + 40]) + "&dynamax,gigantamax", iv_only=True)
+        hits.update((sort.clean_name(n), c) for n, c in got)
+    keep = []
+    for f in out:
+        k = (sort.clean_name(f["name"]), f["cp"])
+        if unread(f) and hits[k]:
+            hits[k] -= 1
+            log(f"  {f['name']} CP{f['cp']}: Dynamax, and its family's Dynamax list wasn't read: left, not opened")
+            continue
+        keep.append(f)
+    if len(keep) < len(out):
+        save("fallen.json", keep)
 
 
 # ---------- re-sort ----------

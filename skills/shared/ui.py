@@ -482,8 +482,9 @@ def tile_cps(texts):
     cps = [t for t in texts if re.fullmatch(r"[CE]P\s*\d+", t[4].upper().replace(" ", ""))]
     # a shiny's sparkles cover the 'CP': '$1636', 'ф1629', '$2256,', ':P393', 'c2554,', or just '2168' (that one only in a
     # row of CPs, or over a name when the screen has no real CP to go by: a list of only shinies). Not a tagged name
-    # ('•96') under a real CP
-    label = r"([^\dA-Z•·\s]{0,2}[CP]?)\d{2,4}[.,]?"
+    # ('•96') under a real CP. After the digits too: 'c2696к' (a sparkle read as a Cyrillic letter, Pixel, raidteam keep
+    # stopped on a 1-tile list it read as 0 tiles, 2026-11-20): one letter outside ASCII, never a Latin one
+    label = r"([^\dA-Z•·\s]{0,2}[CP]?)\d{2,4}[.,]?[^\x00-\x7f•·]?"
     def shiny(t):
         m = re.fullmatch(label, t[4].upper().replace(" ", ""))
         return m and (m.group(1) or any(abs(t[1] - c[1]) < 0.01 for c in cps)

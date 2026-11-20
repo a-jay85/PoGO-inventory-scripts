@@ -155,6 +155,30 @@ case("can't reach the iPhone too many times: stop", (r, n), lambda g: g == (("ex
 (r, n) = run(["ee"], rerun)
 case("Ctrl-C: never healed", (r, n), lambda g: g == (("exit", 130), 0))
 
+
+def bb_runs():
+    return len(os.listdir(os.path.join(T, "bb", "runs")))
+
+
+b = bb_runs()
+(r, n) = run(["aa", "+", "bb"], {"action": "stop", "fixed": False, "why": "a rule for Ajay"})
+case("a step that stays stopped: the next step still runs, the chain ends with its code", (r, bb_runs() - b),
+     lambda g: g == (("exit", 1), 1))
+
+b = bb_runs()
+(r, n) = run(["ee", "+", "bb"], rerun)
+case("Ctrl-C in a chain: the steps after it don't run", (r, bb_runs() - b), lambda g: g == (("exit", 130), 0))
+
+b = bb_runs()
+os.environ.pop("POGO_HEAL_STATE", None)
+code = pogo.main(["--no-heal", "cc", "+", "bb", "+", "bb"])
+case("--no-heal: a stop doesn't stop the chain", (code, bb_runs() - b), lambda g: g == (1, 2))
+
+os.environ[pogo.FAILED] = json.dumps([["aa", 1]])
+(r, n) = run(["bb", "+", "bb"])
+case("a stop before a heal's restart still counts at the end", r, lambda g: g == ("exit", 1))
+case("... and isn't left behind for the next run", os.environ.get(pogo.FAILED), lambda g: g is None)
+
 os.environ["POGO_PHONE"] = "both"
 try:
     os.environ["FAKE_REPLY"] = "HEAL " + json.dumps(dict(rerun, phone="ios"))

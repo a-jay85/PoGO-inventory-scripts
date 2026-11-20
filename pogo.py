@@ -18,15 +18,18 @@ A step that stops or crashes gets healed (heal.py): a headless Claude finds why 
 again with only what's left. Off with --no-heal or POGO_HEAL=0, and off when a Claude session starts pogo.py
 (CLAUDECODE set: that Claude is the one watching). --heal turns it on there too.
 
-The whole chain is checked before step 1 runs: an unknown step or a bad first word stops it with nothing done. The
-chain stops at the first step that doesn't end well (stopped, crashed, interrupted, usage error), with its exit code.
+The whole chain is checked before step 1 runs: an unknown step or a bad first word stops it with nothing done. A step
+that doesn't end well (stopped, crashed, usage error, even after healing) doesn't stop the chain: the steps after it
+still run, and the chain ends with the first bad step's exit code and a line naming every bad step. Ctrl-C (exit 130)
+or a step killed by a signal stops the chain there.
 """
-import os, subprocess, sys, time
+import json, os, subprocess, sys, time
 import heal
 
 HERE = os.path.dirname(os.path.realpath(__file__))  # the repo root
 SKILLS = os.path.join(HERE, "skills")
 SEP = "+"
+FAILED = "POGO_CHAIN_FAILED"  # the bad steps so far, carried over a heal's restart
 
 # step -> (script under skills/, first words it takes (a flag or nothing is always fine), the ones that stay on the Mac)
 STEPS = {
@@ -167,14 +170,18 @@ def main(argv):
     env = dict(os.environ, POGO_KEEP_OPEN="1") if chain else dict(os.environ)  # each step leaves the phone up
     last, code, touched = {}, 0, False
     try:
+        failed = json.loads(os.environ.pop(FAILED, "") or "[]")  # [name, code] of bad steps before a heal's restart
+    except ValueError:
+        failed = []
+    try:
         for i, s in enumerate(steps, 1):
             name = s[0]
             script = STEPS[name][0]
             folder = os.path.dirname(script)
             if "last" in s[1:] and folder not in last:
-                say(f"step {i} ({name}): no earlier step made a run folder in {folder}/ for `last`: stopping")
-                code = 2
-                break
+                say(f"step {i} ({name}): no earlier step made a run folder in {folder}/ for `last`: skipping it")
+                failed.append([name, 2])
+                continue
             args = [last[folder] if a == "last" else a for a in s[1:]]
             if chain:
                 say(f"step {i}/{len(steps)}: {name} {' '.join(args)}".rstrip())
@@ -191,20 +198,28 @@ def main(argv):
             if new:
                 last[folder] = new[-1]
             if code and healing:
+                os.environ[FAILED] = json.dumps(failed)  # (a restart starts pogo.py over: it keeps these)
                 phone = (step_env.get("POGO_PHONE") or "ios").lower()
                 phone = phone if phone in ("android", "both") else "ios"
                 code = heal.handle(steps, i - 1, args, code, lines, out, started,
                                    lambda n: os.path.dirname(STEPS[n][0]), last_before, check, phone)
+                os.environ.pop(FAILED, None)  # (no restart: this run keeps them itself)
                 if code == 0:
                     break  # (Claude found nothing left to do in the last step)
             if code:
-                if chain:
-                    say(f"step {i} ({name}) ended with exit code {code}: the chain stops here")
-                break
+                failed.append([name, code])
+                if code == 130 or code < 0 or not chain:
+                    if chain:
+                        say(f"step {i} ({name}) ended with exit code {code}: the chain stops here")
+                    break
+                if i < len(steps):
+                    say(f"step {i} ({name}) ended with exit code {code}: going on with the rest")
     finally:
         if chain and touched and not keep_open:
             close(phones(steps))
-    return code
+    if failed and chain:
+        say("didn't end well: " + ", ".join(f"{n} (exit {c})" for n, c in failed))
+    return failed[0][1] if failed else 0
 
 
 if __name__ == "__main__":

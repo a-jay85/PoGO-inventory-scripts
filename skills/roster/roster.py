@@ -149,8 +149,9 @@ class Model:
                     break
         return out
 
-    def helps(self, counts):
-        """species -> (best place a new copy would get, the bosses where it gets that place)"""
+    def helps(self, counts, megas=True):
+        """species -> (best place a new copy would get, the bosses where it gets that place). megas=False: a place
+        the copy gets as its mega doesn't count (one 100 of a mega is enough: the user, 2026-11-20)"""
         best = {}
         cands = {s for s in self.sid if s}
         for b in self.bosses:
@@ -159,6 +160,8 @@ class Model:
             for s in cands & on:
                 new = self.team(b, counts, extra=(s, None, False))
                 place = next((k + 1 for k, (x, y) in enumerate(zip(new, base + [None] * TEAM)) if x != y), None)
+                if place and not megas and is_mega(self.A[new[place - 1][0]]):
+                    place = None
                 if place:
                     p, bs = best.get(s, (99, []))
                     if place < p:
@@ -250,12 +253,13 @@ def raid_tops(ok, n, real=False, megas=True, pulls=COUNTERS):
     return tops, plain, first
 
 
-def ideal_firsts(pulls=IDEAL):
+def ideal_firsts(pulls=IDEAL, megas=True):
     """-> {sid: [bosses]}: the ideal raid team against every boss like a 4-star raid's or higher (real_boss), released
     or not, the same for every account (the user, 2026-11-19). Repeats are allowed, so it's DialgaDex's #1 mega (or
     primal) and 5 of its #1 other attacker: those two count, in any of these pulls (Party Power off or a party of 2;
     today, unreleased Pokémon too, unreleased signature moves too). Shadows and legendaries count. A mega counts as
-    its species, a shadow as its species, a form as its own species id (Galarian Zapdos, not Zapdos)"""
+    its species, a shadow as its species, a form as its own species id (Galarian Zapdos, not Zapdos).
+    megas=False: the #1 mega's spot counts for no one (one 100 of a mega is enough: the user, 2026-11-20)"""
     files = [newest(HERE, c) for c in pulls]
     if not all(files):
         sys.exit(f"no DialgaDex counters yet ({' and '.join(p for p, f in zip(pulls, files) if not f)}): "
@@ -274,7 +278,7 @@ def ideal_firsts(pulls=IDEAL):
                 if len(firsts) == 2:
                     break
             boss = boss_name(b) + ("" if b["released"] else " (unreleased)")
-            for s in filter(None, firsts.values()):
+            for s in filter(None, (v for k, v in firsts.items() if megas or not k)):
                 if boss not in out.setdefault(s, []):
                     out[s].append(boss)
     return out
@@ -432,10 +436,12 @@ def report(model, counts, unsure, who, out_dir):
     giv = sorted(s for s, (p, _) in best.items() if 2 <= p <= TEAM and not model.special(s))
     seen = {s for s in model.sid if s and not model.special(s)}
     stop = sorted(seen - set(reroll) - set(giv))
+    plain = model.helps(counts, megas=False)  # (CyrillJan's Reroll: a mega's place needs only one 100)
+    plain_in = lambda lo, hi: sorted(s for s, (p, _) in plain.items() if lo <= p <= hi and not model.special(s))
     name = lambda s: model.by[s]["speciesName"]
     json.dump({"pulled": model.data.get("pulled"), "trainer": who,
                "species": {s: {"place": p, "bosses": bs[:10], "special": model.special(s)} for s, (p, bs) in best.items()},
-               "reroll": reroll, "giv": giv},
+               "reroll": reroll, "giv": giv, "reroll_plain": plain_in(1, 1), "giv_plain": plain_in(2, TEAM)},
               open(os.path.join(out_dir, "roster.json"), "w"), indent=1)
 
     def team_lines(b):

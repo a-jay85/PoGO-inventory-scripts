@@ -3,7 +3,7 @@
 wife's account, which is further behind: good for any account, the user 2026-11-16).
 
   POGO_PHONE=android caffeinate -dimsu python3 leftovers.py [--limit N]   from either account
-  POGO_PHONE=android caffeinate -dimsu python3 leftovers.py again GIV|Transfer [--as CyrillJan] [--and Q] [--limit N]
+  POGO_PHONE=android caffeinate -dimsu python3 leftovers.py again GIV|Transfer|Reroll [--as CyrillJan] [--and Q] [--limit N]
                                           re-judge a tag pile
 
 Signed in as someone else on the Pixel, it switches to HashTagAJay first (../shared/account.py) and goes on.
@@ -22,7 +22,7 @@ Leftovers is the user's: '!4*&!3*&!#&!favorite&!shiny&!lucky&!shadow&!legendary&
 &!xxl&!gigantamax' (read off the iPhone 2026-11-16, !gigantamax added 2026-11-19). Its !# and !favorite drop each
 one judged (a tag or a star) out of it. --limit N stops after N opened.
 
-again GIV|Transfer: HashTagAJay's #GIV or #Transfer pile, each one judged again under today's rules (the user,
+again GIV|Transfer|Reroll: HashTagAJay's #GIV, #Transfer or #Reroll pile (Reroll: the user, 2026-11-20), each one judged again under today's rules (the user,
 2026-11-16). The door takes the pile's tag off and gives the verdict's (GIV again: it stays). Not sure: left as it is.
 Left out: legendary, mythical, Ultra Beast, Gigantamax (special trades: by hand) and ones with IVC or PvpC too (/ivc
 or /pvpc judge those). Each one judged is written to runs/again-done.json under the rules' hash, so a rerun, or the
@@ -65,7 +65,7 @@ def cmd_door(limit):
     log(f"Leftovers, through the door: {dict(got)}")
 
 
-PILES = ("GIV", "Transfer")
+PILES = ("GIV", "Transfer", "Reroll")
 AGAIN_SKIP = "&!legendary&!mythical&!ultrabeasts&!gigantamax&!#IVC&!#PvpC"  # ends in C: no thin last letter
 AGAIN_DONE = os.path.join(HERE, "runs", "again-done.json")
 

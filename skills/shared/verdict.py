@@ -22,7 +22,9 @@ Signed in as HashTagAJay (the pile goes to CyrillJan or the user's wife's accoun
   GIV (evolved, 10/12 km egg family, Smeargle, gym defender line, Dynamax) > GIV (trade evolution) > GIV (far) >
   GIV (can Dynamax, account short of candy) > Transfer
   (Reroll: a strong line (tradeable.strong_lines: on the ideal raid team, or a gym defender's line), DialgaDex top 6
-  vs some 4-star+ boss, Master League top 20. GIV at level 26+ both ways (was XLX, the user 2026-11-19): giver_species())
+  vs some 4-star+ boss, Master League top 20. CyrillJan's Reroll, only for a 100 HashTagAJay still needs (the user,
+  2026-11-20): on the ideal team or HashTagAJay's top 6 only as a mega doesn't count, nor a family HashTagAJay has 5 100s
+  of. GIV at level 26+ both ways (was XLX, the user 2026-11-19): giver_species())
 A Dynamax one (both accounts): 2XL, then GIV (level 26+, then the rest). One that only can Dynamax (or evolves into one that can) gets GIV
 while the account holding it has rules.DMAX_CANDY Candy or less, or XL_CAP + one Max Move's Candy XL or less, of
 the family (dmax_short, the user 2026-11-16). With more of both and no other rule, Transfer

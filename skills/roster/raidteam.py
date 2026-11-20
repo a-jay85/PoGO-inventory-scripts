@@ -467,8 +467,7 @@ def sorted_tiles(c, typed):
     """type the search, sort its list by CP once (a search keeps the list's sort) -> its first tiles [(name, cp)]"""
     import base, search, taps, ui
     from tagsheet import search_exact
-    search_exact(typed)
-    ts = taps.settled_tiles()
+    ts = taps.settled_tiles(search_exact(typed))  # (the results' own look counts as the first of two)
     if ts and (not c.sorted or not by_cp(ts)):
         _, _, _, bounds = base.look()
         search.sort_down("COMBAT POWER", bounds)

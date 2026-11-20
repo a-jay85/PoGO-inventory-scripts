@@ -65,7 +65,7 @@ def screen_of(texts):
 
 
 def rest(wait):
-    time.sleep(wait * random.uniform(0.85, 1.25))
+    time.sleep(wait * 0.85)
 
 
 def thumb(fx, fy, spread=(0.008, 0.004)):

@@ -277,7 +277,7 @@ def drag(p1, p2, ms, hold=None):
         b = bow * 4 * e * (1 - e)
         steps.append(f"input motionevent MOVE {round(x1 + (x2 - x1) * e - (y2 - y1) * b)} "
                      f"{round(y1 + (y2 - y1) * e + (x2 - x1) * b)}")
-    steps += [f"sleep {random.uniform(0.12, 0.2):.2f}", f"input motionevent MOVE {x2} {y2}",
+    steps += ["sleep 0.12", f"input motionevent MOVE {x2} {y2}",
               f"input motionevent UP {x2} {y2}"]
     shell("; ".join(steps))
 
@@ -288,11 +288,11 @@ def hold_drag(fx1, fy1, fx2, fy2):
     W, H = size()
     x1, y1, x2, y2 = round(fx1 * W), round(fy1 * H), round(fx2 * W), round(fy2 * H)
     x2, y2 = x2 + random.randint(-4, 4), y2 + random.randint(-4, 4)
-    steps = [f"input motionevent DOWN {x1} {y1}", f"sleep {random.uniform(0.35, 0.45):.2f}"]
+    steps = [f"input motionevent DOWN {x1} {y1}", "sleep 0.35"]
     n = random.randint(4, 6)
     for i in range(1, n + 1):
         steps.append(f"input motionevent MOVE {round(x1 + (x2 - x1) * i / n)} {round(y1 + (y2 - y1) * i / n)}")
-    steps += [f"sleep {random.uniform(0.12, 0.2):.2f}", f"input motionevent UP {x2} {y2}"]
+    steps += ["sleep 0.12", f"input motionevent UP {x2} {y2}"]
     shell("; ".join(steps))
 
 

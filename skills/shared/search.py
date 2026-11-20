@@ -194,7 +194,7 @@ def off_map():
             return tapped
         log("on the map / main menu: opening the Pokémon list")
         click(fx + random.uniform(-0.01, 0.01), fy + random.uniform(-0.005, 0.005), bounds)
-        time.sleep(random.uniform(1.5, 2.0))
+        time.sleep(1.5)
         tapped = True
     return tapped
 
@@ -209,7 +209,7 @@ def leave_multiselect(texts, bounds):
     if sel:  # Android: a 'SELECT (1)' button near the bottom, with a round X under it
         log("the list went into multi-select: leaving it")
         click(0.5, sel[1] + sel[3] / 2 + 0.077, bounds)
-        time.sleep(random.uniform(0.6, 0.8))
+        time.sleep(0.6)
         return True
     # 'TAG (1)' and 'TRANSFER (1)' at the bottom, X top left. A search that finds the whole storage has no SELECT
     # ALL, so they're the only sign. A tap at the bottom middle (the list's round X) then lands on TRANSFER
@@ -219,7 +219,7 @@ def leave_multiselect(texts, bounds):
     x = next((t for t in texts if t[1] < 0.15 and t[4].strip() in ("X", "x", "×")), None)
     log("the list went into multi-select: leaving it")
     click(x[0] + x[2] / 2 if x else 0.11, x[1] + x[3] / 2 if x else 0.12, bounds)
-    time.sleep(random.uniform(0.6, 0.8))
+    time.sleep(0.6)
     return True
 
 
@@ -268,7 +268,7 @@ def leave_panel(texts, bounds):
         close_panel(bounds)  # the (x) empties the bar and closes it
     else:  # an empty bar has no (x): the < back arrow
         click(0.10, 0.176 if ui.ANDROID else 0.183, bounds)  # (on the bar's line: 0.155 misses it on the Pixel, 0.176 on the iPhone)
-        time.sleep(random.uniform(1.2, 1.5))
+        time.sleep(1.2)
     return True
 
 
@@ -298,7 +298,7 @@ def to_search_list():
         return
     for _ in range(3):
         base.to_tags_tab()
-        time.sleep(random.uniform(0.8, 1.0))  # a tab tap during the tab animation gets ignored
+        time.sleep(0.8)  # a tab tap during the tab animation gets ignored
         if wait_for("list", "tag-tab")[0] == "tag-tab":  # POKÉMON only ever on the Tags tab: on the list it's REFUSED
             if ui.ANDROID:  # (not seen on the Pixel: its own recovery stays)
                 go("POKMON", "list")
@@ -424,7 +424,7 @@ def clear_search():
         if ui.profile_tabs(texts):  # the Friends tab mid-run (a tap on a friend's banner): its X, then the list
             log("  on the profile: closing it")
             base.tap_x(bounds)
-            time.sleep(random.uniform(1.5, 2.0))
+            time.sleep(1.5)
             off_map()
             scrolled = False  # opened from the map: at the top
             continue
@@ -474,7 +474,7 @@ def clear_search():
         if leave_multiselect(texts, bounds):
             continue
         click(0.5 + random.uniform(-0.01, 0.01), 0.93 + random.uniform(-0.004, 0.004), bounds)
-        time.sleep(random.uniform(1.6, 2.0))
+        time.sleep(1.6)
         off_map()
     # the last try's tap (or its off_map) may have just reopened the list with an empty bar: look before giving up
     # (iPhone 2026-11-19: stopped on the list's empty bar, reopened from the main menu 2 s before)
@@ -516,8 +516,14 @@ def panel_text(quick=False):
     """quick: no waiting for the looks' pace (for a loop that goes by the clock, not by how many looks it took)"""
     if quick:
         ui.last_look = None
-    texts = ui.ocr(ui.capture()[0])
+    path, bounds = ui.capture()
+    texts = ui.ocr(path)
+    SHOT[:] = [path, texts, bounds]
     return bar_read(texts), texts
+
+
+SHOT = [None, None, None]  # panel_text's last look (path, texts, bounds): the one that saw the panel close is the
+# results' first look
 
 
 def bar_shows(got, q):
@@ -597,7 +603,7 @@ def type_into_panel(q, bounds, check=None):
             if late_keys(q, check):
                 return True
         if ui.ANDROID:  # adb's input text never loses keys or a shift
-            time.sleep(random.uniform(0.4, 0.5))
+            time.sleep(0.4)
         elif not bar_ready():
             log("  the bar isn't taking keys: tapping it")
             continue
@@ -731,7 +737,7 @@ def close_panel(bounds):
     """the panel's (x) empties the bar and closes the panel"""
     LAST["q"] = None
     click(0.905 + random.uniform(-0.006, 0.006), 0.183 + random.uniform(-0.003, 0.003), bounds, gap=BAR_GAP)
-    time.sleep(random.uniform(1.2, 1.5))
+    time.sleep(1.2)
 
 
 def hp_bar(im, t):
@@ -778,7 +784,7 @@ def small_scroll(bounds):
     dist = bounds[3] * (random.uniform(0.2, 0.22) if ui.ANDROID else random.uniform(0.29, 0.31))
     ms = 500  # (the Pixel's motionevent drag has its own pace)
     ui.sh(ui.HELPER, "drag", f"{x:.1f}", f"{y:.1f}", f"{x + random.uniform(-6, 6):.1f}", f"{y - dist:.1f}", str(ms))
-    time.sleep(random.uniform(*base.LIST_SETTLE) if ui.ANDROID else random.uniform(0.15, 0.25))
+    time.sleep(base.LIST_SETTLE if ui.ANDROID else 0.15)
 
 
 def nameless(texts):
@@ -1007,7 +1013,7 @@ def count_live(q, check):
         c = clear_search()
         if c == "list":
             tap("search")
-            time.sleep(random.uniform(1.0, 1.3))
+            time.sleep(1.0)
         path, bounds = ui.capture()
         if not ui.search_panel(ui.ocr(path)) or not type_into_panel(q, bounds, check):
             return None
@@ -1033,6 +1039,7 @@ def start_search(q, check=None, edit=False, nudges=2, live=False):
     global scrolled
     t0 = time.time()
     typed = False
+    done = None  # the results' texts, off the look that saw the panel close
     if live and ui.ANDROID:
         got = count_live(q, check)
         if got:
@@ -1043,7 +1050,7 @@ def start_search(q, check=None, edit=False, nudges=2, live=False):
     prev, LAST["q"] = LAST["q"], None
     if typed:
         attempts = range(3)
-    elif edit and prev and prev != q and not scrolled and edit_tail(prev, q, check):
+    elif edit and prev and prev != q and not scrolled and (done := edit_tail(prev, q, check)):
         log(f"  timing: edited the end, {time.time() - t0:.1f}s")
         attempts = []  # (no clear, no typing it whole)
     else:
@@ -1055,7 +1062,7 @@ def start_search(q, check=None, edit=False, nudges=2, live=False):
             t1 = time.time()
             if c == "list":
                 tap("search")
-                time.sleep(random.uniform(1.0, 1.3))  # the panel comes up
+                time.sleep(1.0)  # the panel comes up
             path, bounds = ui.capture()
             if not ui.search_panel(ui.ocr(path)):
                 log("search panel didn't open")
@@ -1083,21 +1090,32 @@ def start_search(q, check=None, edit=False, nudges=2, live=False):
                 to_search_list()
                 continue
             log(f"  timing: clear {t1 - t0:.1f}s, type {time.time() - t1:.1f}s ({c})")
+            done = texts
             break
         log(f"search bar says {got!r}, wanted {q!r}: typing it again")
     else:
         if attempts:
             keep_capture("search")
             raise Stop(f"search bar never showed {q!r}")
+    shot = SHOT[:] if done is not None and SHOT[1] is done else None  # the look that saw the panel close, if
+    # nothing looked since: the tick box is read off it, with no new look (~0.5 s a search, Pixel)
     for _ in range(3):  # SHOW EVOLUTIONARY LINE would pull in the whole family
-        path, bounds = ui.capture()
-        texts = ui.ocr(path)
-        ticked = ui.evo_ticked(path, texts)
+        if shot:
+            (path, texts, bounds), shot = shot, None
+            ticked = ui.evo_ticked(path, texts)
+            if ticked is None:  # the tick box not drawn yet on that look: a new one, as before
+                path, bounds = ui.capture()
+                texts = ui.ocr(path)
+                ticked = ui.evo_ticked(path, texts)
+        else:
+            path, bounds = ui.capture()
+            texts = ui.ocr(path)
+            ticked = ui.evo_ticked(path, texts)
         if not ticked:
             break
         log("SHOW EVOLUTIONARY LINE is ticked: unticking it")
         tap("EVOLINE")
-        time.sleep(random.uniform(1.0, 1.4))
+        time.sleep(1.0)
     else:
         keep_capture("evoline")
         raise Stop("SHOW EVOLUTIONARY LINE stays ticked")
@@ -1214,7 +1232,7 @@ def slider_to_top(bounds):
         x2, y2 = base.to_points(random.uniform(0.945, 0.955), random.uniform(0.14, 0.16), bounds)
         ui.sh(ui.HELPER, "drag", f"{x1:.1f}", f"{y1:.1f}", f"{x2:.1f}", f"{y2:.1f}", f"{random.uniform(150, 250):.0f}",
               f"{random.uniform(350, 450):.0f}")
-    time.sleep(random.uniform(0.3, 0.4))
+    time.sleep(0.3)
     path, bounds = ui.capture()
     texts = ui.ocr(path)
     if not at_top(texts) or ui.classify(texts) != "list":

@@ -203,7 +203,7 @@ def wait(*screens, timeout=10):
                          poll=base.poll_gap(POLL), catch=False, capture=False, detail=True)[0]
 
 
-TAP_REST = (0.03, 0.08)  # after a tap: a moment only, as the wait after it looks for the next screen (was 0.25-0.4 s)
+TAP_REST = 0.03  # after a tap: a moment only, as the wait after it looks for the next screen (was 0.25-0.4 s)
 NAME_WAIT = 3.0  # seconds a friend page may take to show its trainer name
 ICON_WAIT = 5.0  # seconds a friend the list shows as able to take a gift may take to colour their SEND GIFT icon
 POLL = 0.1  # iPhone: seconds between two looks while waiting for a screen (a look takes 0.1-0.3 s; was 0.4)
@@ -267,7 +267,7 @@ def undim(*screens, timeout=45):
     raise base.Lost(f"the screen stayed greyed out {timeout}s: {summary()}")
 
 
-def drag(fy1, fy2, ms=500, x=None, settle=(0.7, 1.0)):
+def drag(fy1, fy2, ms=500, x=None, settle=0.7):
     """scroll by dragging from fy1 to fy2. x: where to grab (the gift list: the gap between its two columns, as a
     drag that starts on a card can land as a tap on it)"""
     x = x if x is not None else random.uniform(0.4, 0.6)
@@ -1440,7 +1440,7 @@ def run_searches(limit):
                     # (a scroll leaves top alone: the sort holds below too. 2026-10-31: friends gifted this run sat
                     # unarrowed at the top after the new search, so every re-search scrolled past them to the same
                     # arrow, and searched again, forever)
-                    drag(0.75, 0.4, settle=(0.35, 0.45))  # (a slow drag barely glides on: the list holds still soon)
+                    drag(0.75, 0.4, settle=0.35)  # (a slow drag barely glides on: the list holds still soon)
                     tapped = []
                     look()
                     stale = stale + 1 if [r["name"] for r in rows()] == before else 0

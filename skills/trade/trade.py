@@ -218,7 +218,7 @@ class Phone:
     def tap(self, fx, fy, fuzz=0.008):
         self.trace(f"tap {fx:.3f} {fy:.3f}")
         self.send(op="tap", fx=fx + random.uniform(-fuzz, fuzz), fy=fy + random.uniform(-fuzz / 2, fuzz / 2))
-        time.sleep(random.uniform(0.15, 0.3))
+        time.sleep(0.15)
 
     def tap_text(self, t, dy=0.0):
         x, y, w, h, _ = t

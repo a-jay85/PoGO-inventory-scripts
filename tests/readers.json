@@ -9387,6 +9387,7 @@
   "friend rows": false,
   "opened": true,
   "over the ME tab": true,
+  "received items": true,
   "the list": false,
   "two lines": true
  },
@@ -9401,6 +9402,7 @@
   "friend rows": true,
   "opened": false,
   "over the ME tab": false,
+  "received items": false,
   "the list": false,
   "two lines": false
  },

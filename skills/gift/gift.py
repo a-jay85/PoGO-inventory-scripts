@@ -170,6 +170,8 @@ def classify():
         if w & {"ADD FRIEND", "INVITE", "TRAINER NICKNAME"} or search_line() or count() is not None:
             return "friends"
         return "profile"
+    if ui.gift_banner(texts) and {"ADD FRIEND", "INVITE"} <= w:  # a friend's banner over the tabs: the row under
+        return "friends"  # them still tells it (iPhone, 2026-11-19: read as unknown, the game got reopened)
     from search import pokeball
     from home import splash
     if splash(texts):
@@ -1291,6 +1293,9 @@ def whose():
     global whole_state, trainer
     import home
     me = None
+    if ui.gift_banner(texts):  # a friend's banner hides the tabs: wait for it to go (base.banner_gone)
+        base.banner_gone()
+        look()
     t = label("ME", 0.0, 0.12)
     if t:
         if tap_into(t, "profile", dy=ui.TAB_DY, timeout=6 * LAG) == "profile":

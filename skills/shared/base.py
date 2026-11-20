@@ -522,6 +522,8 @@ def click(fx, fy, bounds, gap=0.0, ms=None, fuzz=0.0, rest=0.0, bring_front=True
     global last_tap
     if bring_front:
         front(planned=True)
+    if fy < ui.BANNER_LOW:
+        banner_gone()
     fuzz = max(fuzz, TAP_WOBBLE)
     x, y = to_points(fx + random.uniform(-fuzz, fuzz), fy + random.uniform(-fuzz / 2, fuzz / 2), bounds)
     if spaced:
@@ -533,6 +535,22 @@ def click(fx, fy, bounds, gap=0.0, ms=None, fuzz=0.0, rest=0.0, bring_front=True
     rest = random.uniform(*rest) if isinstance(rest, tuple) else rest
     if rest:
         time.sleep(rest)
+
+
+BANNER_GONE = 15  # seconds a friend's banner gets to go away before a tap under it goes ahead anyway
+
+
+def banner_gone():
+    """a tap up top waits while the latest look shows a friend's banner over that strip (ui.gift_banner): the banner
+    eats the tap ('ME' didn't land twice under 'X received 12 items from your Gift!', iPhone, 2026-11-19). It goes
+    by itself in a few seconds. Costs nothing when the latest look had no banner"""
+    if not (LAST_LOOK and ui.gift_banner(LAST_LOOK[3])):
+        return
+    log("  a friend's banner covers the top: waiting for it to go before the tap")
+    if ui.gift_banner(settle(lambda: look(remember=False)[1], lambda tx: not ui.gift_banner(tx), BANNER_GONE)):
+        log(f"  the banner stayed {BANNER_GONE}s: tapping anyway")
+    else:
+        time.sleep(0.3)  # (it slides up: let it clear the spot)
 
 
 def tap_box(t, bounds, dy=0.0, spread=0.0, **kw):

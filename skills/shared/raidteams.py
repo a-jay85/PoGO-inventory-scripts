@@ -1,11 +1,13 @@
 """The raid team rule (the user, 2026-11-17): a Pokémon on its holder's own team of 6 against some 4★+ raid boss,
-at its real level and IVs, is a favorite. The door (verdict.final_tag) and /ivc (sort.decide) both ask on_team()
+at its real level and IVs (team A), or with every copy at level 50 (team B, the user 2026-11-19), is a favorite. The door (verdict.final_tag) and /ivc (sort.decide) both ask on_team()
 first. The teams come from the newest whole count (`roster/raidteam.py count`, no --limit) of the signed-in account,
 however old: every script that asks logs its age in days once.
 
 A copy is found in the count by species, shadow, kg and m (a power-up changes CP and HP, never those), else by CP
-and HP. One the count doesn't have, at or over its pile's bar (the lowest CP that could make some team), was caught
-or powered up after the count: not sure. Under the bar it can't make a team. Nor can one whose stars the count's
+and HP. One the count doesn't have, at or over its pile's bar (the lowest CP that could make some team A), was caught
+or powered up after the count: not sure. Under the bar it can still make a team B if its IV sum is at or over the
+pile's bars50 (the lowest IV sum that could make some team B): not sure, and its IV sum unknown is not sure too.
+Under both it can't make a team. Nor can one whose stars the count's
 search left out (stars: its IV sum that low, its CP that low or lower).
 """
 import glob, json, os, time
@@ -59,11 +61,14 @@ def on_team(who, sids, shadow, cp, hp, kg=None, m=None, t=None, iv_sum=None):
     t = t if t is not None else newest(who)[0] if who else None
     if t is None:
         return ()
+    b50s = t.get("bars50", {})  # (an older count has team A only)
     if not sids or len(sids) != 1:
-        return None if sids and any(t["bars"].get(f"{s}{'|shadow' if shadow else ''}") is not None for s in sids) else []
+        return None if sids and any(t["bars"].get(f"{s}{'|shadow' if shadow else ''}") is not None
+                                    or b50s.get(f"{s}{'|shadow' if shadow else ''}") is not None for s in sids) else []
     sid = sids[0]
-    bar = t["bars"].get(f"{sid}{'|shadow' if shadow else ''}")
-    if bar is None:  # on no boss list, or no copy of it could make a team at any CP
+    key = f"{sid}{'|shadow' if shadow else ''}"
+    bar, bar50 = t["bars"].get(key), b50s.get(key)
+    if bar is None and bar50 is None:  # on no boss list, or no copy of it could make a team A or B
         return []
     mine = [c for c in t["copies"] if sid in c["species"] and bool(c["shadow"]) == bool(shadow)]
     same = [c for c in mine if close(c.get("kg"), kg, 0.015) and close(c.get("m"), m, 0.015)] \
@@ -76,6 +81,10 @@ def on_team(who, sids, shadow, cp, hp, kg=None, m=None, t=None, iv_sum=None):
     if cp is None:
         return None
     if iv_sum is not None and any(iv_sum <= smax and (top is None or cp <= top)
-                                  for smax, top in t.get("stars", {}).get(f"{sid}{'|shadow' if shadow else ''}", [])):
+                                  for smax, top in t.get("stars", {}).get(key, [])):
         return []
-    return None if cp >= bar else []
+    if bar is not None and cp >= bar:  # could make a team A
+        return None
+    if bar50 is not None and (iv_sum is None or iv_sum >= bar50):  # could make a team B
+        return None
+    return []

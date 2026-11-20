@@ -84,6 +84,7 @@ Before writing a helper, grep `skills/MAP.md` (every function, its arguments and
 ## skills/roster
 - `skills/roster/raidteam.py`: /raidteam: the signed-in account's best 6 raid attackers against every released raid boss like a 4-star raid's or higher, at the level and IVs its copies have today (the …
 - `skills/roster/roster.py`: /roster: HashTagAJay's best 6 raid attackers against every raid boss, and which species a new traded copy would still help with
+- `skills/roster/sigmoves.py`: Signature moves not in GO yet (the user, 2026-11-19: future-proofing counts mainline moves too): a damaging move (not Z, not Max) that only one family learns in the main …
 
 ## skills/trade
 - `skills/trade/phone.py`: One phone for /trade, run as its own process: trade.py starts one for the iPhone and one for the Android phone

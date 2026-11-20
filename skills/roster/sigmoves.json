@@ -1,0 +1,698 @@
+[
+{
+"num": 745,
+"forme": "",
+"type": "Rock",
+"move": "Accelerock"
+},
+{
+"num": 745,
+"forme": "dusk",
+"type": "Rock",
+"move": "Accelerock"
+},
+{
+"num": 781,
+"forme": "",
+"type": "Steel",
+"move": "Anchor Shot"
+},
+{
+"num": 842,
+"forme": "",
+"type": "Grass",
+"move": "Apple Acid"
+},
+{
+"num": 936,
+"forme": "",
+"type": "Fire",
+"move": "Armor Cannon"
+},
+{
+"num": 898,
+"forme": "shadow",
+"type": "Ghost",
+"move": "Astral Barrage"
+},
+{
+"num": 416,
+"forme": "",
+"type": "Bug",
+"move": "Attack Order"
+},
+{
+"num": 904,
+"forme": "",
+"type": "Poison",
+"move": "Barb Barrage"
+},
+{
+"num": 211,
+"forme": "",
+"type": "Poison",
+"move": "Barb Barrage"
+},
+{
+"num": 211,
+"forme": "hisui",
+"type": "Poison",
+"move": "Barb Barrage"
+},
+{
+"num": 102,
+"forme": "",
+"type": "Normal",
+"move": "Barrage"
+},
+{
+"num": 103,
+"forme": "",
+"type": "Normal",
+"move": "Barrage"
+},
+{
+"num": 103,
+"forme": "alola",
+"type": "Normal",
+"move": "Barrage"
+},
+{
+"num": 937,
+"forme": "",
+"type": "Fire",
+"move": "Bitter Blade"
+},
+{
+"num": 571,
+"forme": "hisui",
+"type": "Ghost",
+"move": "Bitter Malice"
+},
+{
+"num": 570,
+"forme": "hisui",
+"type": "Ghost",
+"move": "Bitter Malice"
+},
+{
+"num": 901,
+"forme": "bloodmoon",
+"type": "Normal",
+"move": "Blood Moon"
+},
+{
+"num": 104,
+"forme": "",
+"type": "Ground",
+"move": "Bonemerang"
+},
+{
+"num": 105,
+"forme": "",
+"type": "Ground",
+"move": "Bonemerang"
+},
+{
+"num": 105,
+"forme": "alola",
+"type": "Ground",
+"move": "Bonemerang"
+},
+{
+"num": 105,
+"forme": "alolatotem",
+"type": "Ground",
+"move": "Bonemerang"
+},
+{
+"num": 503,
+"forme": "hisui",
+"type": "Dark",
+"move": "Ceaseless Edge"
+},
+{
+"num": 441,
+"forme": "",
+"type": "Flying",
+"move": "Chatter"
+},
+{
+"num": 101,
+"forme": "hisui",
+"type": "Grass",
+"move": "Chloroblast"
+},
+{
+"num": 1007,
+"forme": "",
+"type": "Fighting",
+"move": "Collision Course"
+},
+{
+"num": 718,
+"forme": "",
+"type": "Dragon",
+"move": "Core Enforcer"
+},
+{
+"num": 719,
+"forme": "",
+"type": "Rock",
+"move": "Diamond Storm"
+},
+{
+"num": 903,
+"forme": "",
+"type": "Poison",
+"move": "Dire Claw"
+},
+{
+"num": 923,
+"forme": "",
+"type": "Electric",
+"move": "Double Shock"
+},
+{
+"num": 887,
+"forme": "",
+"type": "Dragon",
+"move": "Dragon Darts"
+},
+{
+"num": 199,
+"forme": "galar",
+"type": "Psychic",
+"move": "Eerie Spell"
+},
+{
+"num": 1008,
+"forme": "",
+"type": "Electric",
+"move": "Electro Drift"
+},
+{
+"num": 1018,
+"forme": "",
+"type": "Electric",
+"move": "Electro Shot"
+},
+{
+"num": 628,
+"forme": "hisui",
+"type": "Psychic",
+"move": "Esper Wing"
+},
+{
+"num": 890,
+"forme": "",
+"type": "Dragon",
+"move": "Eternabeam"
+},
+{
+"num": 861,
+"forme": "",
+"type": "Dark",
+"move": "False Surrender"
+},
+{
+"num": 860,
+"forme": "",
+"type": "Dark",
+"move": "False Surrender"
+},
+{
+"num": 1019,
+"forme": "",
+"type": "Dragon",
+"move": "Fickle Beam"
+},
+{
+"num": 146,
+"forme": "galar",
+"type": "Dark",
+"move": "Fiery Wrath"
+},
+{
+"num": 801,
+"forme": "",
+"type": "Fairy",
+"move": "Fleur Cannon"
+},
+{
+"num": 801,
+"forme": "original",
+"type": "Fairy",
+"move": "Fleur Cannon"
+},
+{
+"num": 144,
+"forme": "galar",
+"type": "Psychic",
+"move": "Freezing Glare"
+},
+{
+"num": 600,
+"forme": "",
+"type": "Steel",
+"move": "Gear Grind"
+},
+{
+"num": 599,
+"forme": "",
+"type": "Steel",
+"move": "Gear Grind"
+},
+{
+"num": 601,
+"forme": "",
+"type": "Steel",
+"move": "Gear Grind"
+},
+{
+"num": 898,
+"forme": "ice",
+"type": "Ice",
+"move": "Glacial Lance"
+},
+{
+"num": 841,
+"forme": "",
+"type": "Grass",
+"move": "Grav Apple"
+},
+{
+"num": 626,
+"forme": "",
+"type": "Normal",
+"move": "Head Charge"
+},
+{
+"num": 1009,
+"forme": "",
+"type": "Water",
+"move": "Hydro Steam"
+},
+{
+"num": 982,
+"forme": "",
+"type": "Normal",
+"move": "Hyper Drill"
+},
+{
+"num": 206,
+"forme": "",
+"type": "Normal",
+"move": "Hyper Drill"
+},
+{
+"num": 720,
+"forme": "",
+"type": "Dark",
+"move": "Hyperspace Fury"
+},
+{
+"num": 720,
+"forme": "",
+"type": "Psychic",
+"move": "Hyperspace Hole"
+},
+{
+"num": 157,
+"forme": "hisui",
+"type": "Ghost",
+"move": "Infernal Parade"
+},
+{
+"num": 1017,
+"forme": "",
+"type": "Grass",
+"move": "Ivy Cudgel"
+},
+{
+"num": 964,
+"forme": "",
+"type": "Water",
+"move": "Jet Punch"
+},
+{
+"num": 493,
+"forme": "",
+"type": "Normal",
+"move": "Judgment"
+},
+{
+"num": 983,
+"forme": "",
+"type": "Dark",
+"move": "Kowtow Cleave"
+},
+{
+"num": 718,
+"forme": "",
+"type": "Ground",
+"move": "Land's Wrath"
+},
+{
+"num": 718,
+"forme": "10",
+"type": "Ground",
+"move": "Land's Wrath"
+},
+{
+"num": 670,
+"forme": "eternal",
+"type": "Fairy",
+"move": "Light of Ruin"
+},
+{
+"num": 956,
+"forme": "",
+"type": "Psychic",
+"move": "Lumina Crash"
+},
+{
+"num": 1000,
+"forme": "",
+"type": "Steel",
+"move": "Make It Rain"
+},
+{
+"num": 1025,
+"forme": "",
+"type": "Poison",
+"move": "Malignant Chain"
+},
+{
+"num": 1013,
+"forme": "",
+"type": "Grass",
+"move": "Matcha Gotcha"
+},
+{
+"num": 1013,
+"forme": "masterpiece",
+"type": "Grass",
+"move": "Matcha Gotcha"
+},
+{
+"num": 865,
+"forme": "",
+"type": "Fighting",
+"move": "Meteor Assault"
+},
+{
+"num": 1022,
+"forme": "",
+"type": "Rock",
+"move": "Mighty Cleave"
+},
+{
+"num": 970,
+"forme": "",
+"type": "Poison",
+"move": "Mortal Spin"
+},
+{
+"num": 713,
+"forme": "hisui",
+"type": "Ice",
+"move": "Mountain Gale"
+},
+{
+"num": 773,
+"forme": "",
+"type": "Normal",
+"move": "Multi-Attack"
+},
+{
+"num": 977,
+"forme": "",
+"type": "Dragon",
+"move": "Order Up"
+},
+{
+"num": 849,
+"forme": "",
+"type": "Electric",
+"move": "Overdrive"
+},
+{
+"num": 849,
+"forme": "lowkey",
+"type": "Electric",
+"move": "Overdrive"
+},
+{
+"num": 800,
+"forme": "",
+"type": "Psychic",
+"move": "Photon Geyser"
+},
+{
+"num": 925,
+"forme": "",
+"type": "Normal",
+"move": "Population Bomb"
+},
+{
+"num": 924,
+"forme": "",
+"type": "Normal",
+"move": "Population Bomb"
+},
+{
+"num": 800,
+"forme": "",
+"type": "Psychic",
+"move": "Prismatic Laser"
+},
+{
+"num": 1010,
+"forme": "",
+"type": "Psychic",
+"move": "Psyblade"
+},
+{
+"num": 234,
+"forme": "",
+"type": "Psychic",
+"move": "Psyshield Bash"
+},
+{
+"num": 899,
+"forme": "",
+"type": "Psychic",
+"move": "Psyshield Bash"
+},
+{
+"num": 128,
+"forme": "",
+"type": "Normal",
+"move": "Raging Bull"
+},
+{
+"num": 128,
+"forme": "paldeaaqua",
+"type": "Normal",
+"move": "Raging Bull"
+},
+{
+"num": 128,
+"forme": "paldeablaze",
+"type": "Normal",
+"move": "Raging Bull"
+},
+{
+"num": 128,
+"forme": "paldeacombat",
+"type": "Normal",
+"move": "Raging Bull"
+},
+{
+"num": 648,
+"forme": "",
+"type": "Normal",
+"move": "Relic Song"
+},
+{
+"num": 741,
+"forme": "",
+"type": "Normal",
+"move": "Revelation Dance"
+},
+{
+"num": 934,
+"forme": "",
+"type": "Rock",
+"move": "Salt Cure"
+},
+{
+"num": 933,
+"forme": "",
+"type": "Rock",
+"move": "Salt Cure"
+},
+{
+"num": 494,
+"forme": "",
+"type": "Fire",
+"move": "Searing Shot"
+},
+{
+"num": 80,
+"forme": "galar",
+"type": "Poison",
+"move": "Shell Side Arm"
+},
+{
+"num": 776,
+"forme": "",
+"type": "Fire",
+"move": "Shell Trap"
+},
+{
+"num": 618,
+"forme": "galar",
+"type": "Grass",
+"move": "Snap Trap"
+},
+{
+"num": 802,
+"forme": "",
+"type": "Ghost",
+"move": "Spectral Thief"
+},
+{
+"num": 966,
+"forme": "",
+"type": "Steel",
+"move": "Spin Out"
+},
+{
+"num": 965,
+"forme": "",
+"type": "Steel",
+"move": "Spin Out"
+},
+{
+"num": 721,
+"forme": "",
+"type": "Water",
+"move": "Steam Eruption"
+},
+{
+"num": 900,
+"forme": "",
+"type": "Rock",
+"move": "Stone Axe"
+},
+{
+"num": 110,
+"forme": "galar",
+"type": "Fairy",
+"move": "Strange Steam"
+},
+{
+"num": 892,
+"forme": "rapidstrike",
+"type": "Water",
+"move": "Surging Strikes"
+},
+{
+"num": 1011,
+"forme": "",
+"type": "Grass",
+"move": "Syrup Bomb"
+},
+{
+"num": 1019,
+"forme": "",
+"type": "Grass",
+"move": "Syrup Bomb"
+},
+{
+"num": 1023,
+"forme": "",
+"type": "Steel",
+"move": "Tachyon Cutter"
+},
+{
+"num": 649,
+"forme": "",
+"type": "Normal",
+"move": "Techno Blast"
+},
+{
+"num": 1024,
+"forme": "",
+"type": "Normal",
+"move": "Tera Starstorm"
+},
+{
+"num": 718,
+"forme": "",
+"type": "Ground",
+"move": "Thousand Arrows"
+},
+{
+"num": 718,
+"forme": "10",
+"type": "Ground",
+"move": "Thousand Arrows"
+},
+{
+"num": 718,
+"forme": "",
+"type": "Ground",
+"move": "Thousand Waves"
+},
+{
+"num": 1021,
+"forme": "",
+"type": "Electric",
+"move": "Thunderclap"
+},
+{
+"num": 145,
+"forme": "galar",
+"type": "Fighting",
+"move": "Thunderous Kick"
+},
+{
+"num": 724,
+"forme": "hisui",
+"type": "Fighting",
+"move": "Triple Arrows"
+},
+{
+"num": 961,
+"forme": "",
+"type": "Water",
+"move": "Triple Dive"
+},
+{
+"num": 763,
+"forme": "",
+"type": "Grass",
+"move": "Trop Kick"
+},
+{
+"num": 981,
+"forme": "",
+"type": "Psychic",
+"move": "Twin Beam"
+},
+{
+"num": 203,
+"forme": "",
+"type": "Psychic",
+"move": "Twin Beam"
+},
+{
+"num": 892,
+"forme": "",
+"type": "Dark",
+"move": "Wicked Blow"
+}
+]

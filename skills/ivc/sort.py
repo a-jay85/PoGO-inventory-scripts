@@ -16,24 +16,25 @@ Keep if ANY of these passes (ties with the last place keep):
   shadow      a shadow spot: top 5 per final (shadows can't mega)
   not shadow  a non-shadow spot: top N per final (normal, lucky, purified, Dynamax all together)
   purified    a shadow with no shadow spot, whose purified IV (84/96 -> 96) gets a non-shadow spot
-  lucky       a lucky spot: 1 per final
   Dynamax     a Dynamax/Gigantamax spot: 3 per final
+A lucky one has no spot of its own: it falls out like any other (the user, 2026-11-19).
   gym         top 20 CP or top 20 IV among all of that species (GYM_DEFENDERS; Chansey and Blissey apart).
               IV ties: more of HP and Defense at 15 wins
 N = 6 if any species in that final's line can mega evolve (released in GO or not), else 5.
 Always keep: on its holder's own raid team (skills/shared/raidteams.py; not in the count but its CP could make one: LEAVE).
 Always keep: 98% or 100% (a shadow's own IV, or its purified IV). Armored Mewtwo (no search can split it out).
-Strong lines (the user, 2026-11-17): some species in the line (or its mega) is DialgaDex's #1 non-special, tradeable,
-non-shadow attacker against a boss like a 4-star raid's or higher, today or once unreleased megas come out
-(raid_firsts). Also strong: gym defenders, COLLECT, legendary/mythical/Ultra Beast.
-Weak lines: 1 spot per final (ties keep), lucky or not, and no lucky spot; the top 3 Dynamax still keep; an Elite TM
-name (*) keeps.
+Strong lines (the user, 2026-11-19): some species in the line (or its mega, or a shadow of it) is on the ideal raid
+team against a boss like a 4-star raid's or higher, released or not: DialgaDex's #1 mega or its #1 other attacker,
+legendary and shadow too (roster.ideal_firsts: today, once unreleased Pokémon come out, or once a signature move not in
+GO yet does). Forms split: Galarian Zapdos is strong, Zapdos isn't. Also strong: gym defenders, COLLECT. A legendary,
+mythical or Ultra Beast line is strong only that way.
+Weak families: their weak lines share 1 spot (ties keep), lucky or not; shadows 1 and Dynamax 1 of their own (the
+user, 2026-11-19: the top IV per family, its 98% and 100% always); an Elite TM name (*) keeps.
   meta-overrides.txt can mark a species strong or weak by hand.
 COLLECT lines (Vivillon patterns): a DOOR becomes LEAVE so the user picks.
 Fails: XXL/xxs in the name -> leave for the user. Otherwise -> DOOR. No IV and no size (FP*, *) -> DOOR.
 
-DialgaDex counters (../roster/dialgadex-counters-[future-][pp2-]<date>.json) come from ../roster/pull.mjs.
-The old type lists (dialgadex-20261007.json) only give the legendary dex numbers now.
+DialgaDex counters (../roster/dialgadex-counters-[future-|sig-][pp2-]<date>.json) come from ../roster/pull.mjs.
 """
 import difflib, json, os, re, sys
 from collections import Counter, namedtuple
@@ -50,9 +51,9 @@ from ui import tile_name as clean_name
 from ivc import GYM_DEFENDERS, make_name
 from rules import ALWAYS_KEEP
 
-TOP, TOP_MEGA, TOP_LUCKY, TOP_DMAX, TOP_GYM_CP, TOP_GYM_IV = 5, 6, 1, 3, 20, 20
+TOP, TOP_MEGA, TOP_DMAX, TOP_GYM_CP, TOP_GYM_IV = 5, 6, 3, 20, 20
 ALWAYS = ALWAYS_KEEP  # 98% and 100% always keep
-WEAK_DMAX = True  # weak lines: also keep the top 3 Dynamax (the user, 2026-11-17: yes; the best-lucky spot is gone)
+WEAK = "weak"  # the one spot a family's weak lines share (spots, to_spots)
 COLLECT = {"scatterbug", "spewpa", "vivillon"}  # pattern collections: the user picks by hand
 OWN_FORM = {"mewtwo_armored"}  # a form the searches can't split from the rest of its dex number
 
@@ -107,7 +108,7 @@ GENDER = {"gallade": "male", "froslass": "female", "vespiquen": "female", "salaz
           "meowstic": "male", "meowstic_female": "female", "oinkologne": "male", "oinkologne_female": "female",
           "basculegion_male": "male", "basculegion_female": "female",
           "indeedee_male": "male", "indeedee_female": "female"}
-POOLS = ("plain", "shadow", "lucky", "dmax")
+POOLS = ("plain", "shadow", "dmax")
 
 
 def kids(sid):
@@ -224,15 +225,8 @@ def top_n(line):
 
 # ---------- strong lines (DialgaDex) ----------
 
-SPECIAL = ("legendary", "mythical", "ultrabeast")
-
-
 def load_meta():
-    """the legendary/mythical/Ultra Beast dex numbers (the old DialgaDex type lists' class, plus the game data's tags:
-    Cosmog's line is only in the first); and the hand overrides"""
-    with open(os.path.join(HERE, "dialgadex-20261007.json")) as f:
-        legend = {e["id"] for rows in json.load(f).values() for e in rows if e["cls"]}
-    legend |= {p["dex"] for p in SPECIES.values() if any(t in (p.get("tags") or []) for t in SPECIAL)}
+    """the hand overrides (meta-overrides.txt: 'strong <sid>' or 'weak <sid>')"""
     over = {}
     path = os.path.join(HERE, "meta-overrides.txt")
     if os.path.exists(path):
@@ -240,30 +234,24 @@ def load_meta():
             w = row.split("#")[0].split()
             if len(w) == 2 and w[0] in ("strong", "weak"):
                 over[w[1]] = w[0] == "strong"
-    return legend, over
+    return over
 
 
-LEGEND, META_OVER = load_meta()
+META_OVER = load_meta()
 
 
 @lru_cache(None)
 def raid_firsts():
-    """{sid: [bosses]}: the species that are DialgaDex's #1 non-special, tradeable, non-shadow attacker against some
-    boss like a 4-star raid's or higher, with Party Power off or a party of 2, released Pokémon only or unreleased too
-    (the user, 2026-11-17: #1 today or once future megas come out). A mega counts as its species"""
+    """{sid: [bosses]}: the species on the ideal raid team against some boss like a 4-star raid's or higher
+    (roster.ideal_firsts, the user 2026-11-19). A mega or a shadow counts as its species"""
     sys.path.append(os.path.join(HERE, "..", "roster"))
     import roster
-    ok = lambda s: s in SPECIES and SPECIES[s]["dex"] not in dex.NEVER_TRADED
-    out = {}
-    for pulls in (roster.COUNTERS, roster.FUTURE):
-        for s, bosses in roster.raid_tops(ok, 1, real=True, pulls=pulls)[0].items():
-            out.setdefault(s, []).extend(b for b in bosses if b not in out.get(s, []))
-    return out
+    return {s: bs for s, bs in roster.ideal_firsts().items() if s in SPECIES}
 
 
 def strong(line):
-    """-> (strong?, why). Strong: some species in the line is a raid_firsts #1 (the user, 2026-11-17). Also strong:
-    gym defenders, pattern collections, legendary/mythical/Ultra Beast lines, and meta-overrides.txt's strong ones"""
+    """-> (strong?, why). Strong: some species in the line is a raid_firsts one (the user, 2026-11-19). Also strong:
+    gym defenders, pattern collections, and meta-overrides.txt's strong ones"""
     for s in line:
         if s in META_OVER:
             return META_OVER[s], f"{s} marked {'strong' if META_OVER[s] else 'weak'} by hand"
@@ -272,13 +260,11 @@ def strong(line):
             return True, f"{s} is a gym defender"
         if any(s.startswith(c) for c in COLLECT):
             return True, "pattern collection"
-        if SPECIES[s]["dex"] in LEGEND:
-            return True, f"{s} is legendary/mythical/Ultra Beast"
     for s in line:
         if s in raid_firsts():
             bs = raid_firsts()[s]
-            return True, f"{s} #1 vs {', '.join(bs[:3])}" + (f" +{len(bs) - 3}" if len(bs) > 3 else "")
-    return False, "no one in the line is the #1 attacker against a 4-star raid boss or higher"
+            return True, f"{s} on the ideal team vs {', '.join(bs[:3])}" + (f" +{len(bs) - 3}" if len(bs) > 3 else "")
+    return False, "no one in the line is on the ideal team against a 4-star raid boss or higher"
 
 
 # ---------- which species it is ----------
@@ -355,19 +341,41 @@ def pct(v):
     return f"{round(v * 100 / 45)}%"
 
 
+def final_name(f):
+    return base_name(f).title() + (f" ({region(f)})" if region(f) else "") + (f" {GENDER[f]}" if gender_term(f) else "")
+
+
+@lru_cache(None)
+def weak_slots(sid):
+    """the finals of this species' family whose every line is weak: they share one spot (WEAK)"""
+    big = {}
+    for line in family(sid):
+        big[slot(line[-1])] = big.get(slot(line[-1]), False) or strong(line)[0]
+    return frozenset(k for k, b in big.items() if not b)
+
+
+def to_spots(sid, r):
+    """finals it can become -> the spots it can take: a weak final's is the family's one WEAK spot"""
+    w = weak_slots(sid)
+    return frozenset(WEAK if k in w else k for k in r)
+
+
 def spots(sid, pool):
-    """final -> (how many of them to keep, its name, weak-line note) for this species' family"""
-    out = {}
+    """spot -> (how many of them to keep, its name, weak-line note) for this species' family. A strong final has its
+    own spots; the weak ones share one, WEAK (the user, 2026-11-19: a weak family keeps its top IV)"""
+    out, weak, meta = {}, [], None
     for line in family(sid):
         f = line[-1]
-        big, meta = strong(line)
-        n = {"plain": top_n(line) if big else 1, "shadow": TOP if big else 1,  # shadows can't mega: top 5
-             "lucky": TOP_LUCKY if big else 0, "dmax": TOP_DMAX if big or WEAK_DMAX else 0}[pool]
-        name = base_name(f).title() + (f" ({region(f)})" if region(f) else "") + \
-            (f" {GENDER[f]}" if gender_term(f) else "")
+        if slot(f) in weak_slots(sid):
+            meta = meta or strong(line)[1]
+            weak.append(final_name(f))
+            continue
+        n = {"plain": top_n(line), "shadow": TOP, "dmax": TOP_DMAX}[pool]  # shadows can't mega: top 5
         old = out.get(slot(f))
         if not old or n > old[0]:
-            out[slot(f)] = (n, name, "" if big else f" (weak line, best: {meta})")
+            out[slot(f)] = (n, final_name(f), "")
+    if weak:
+        out[WEAK] = (1, " / ".join(dict.fromkeys(weak)), f" (weak family, best: {meta})")
     return out
 
 
@@ -410,7 +418,7 @@ def spotless_shadows(sid, results, me):
     """the family's other shadows that get no shadow spot, at their purified IV (84/96 -> 96): they could be
     purified too, so a shadow kept for its purified IV competes with them"""
     items, _ = pool_items(sid, "shadow", results, True, me)
-    items.sort(key=lambda o: -o[0])
+    items = sorted(((v, to_spots(sid, r), t) for v, r, t in items), key=lambda o: -o[0])
     caps = {k: c[0] for k, c in spots(sid, "shadow").items()}
     ok, _ = fill([r for _, r, _ in items], caps)
     return [(parse_name(t[0]).purified, r, t) for (v, r, t), got in zip(items, ok)
@@ -447,7 +455,8 @@ def judge_pool(m, results, pool, what, mine, r, me_in_pool=True, extra=()):
     caps = spots(sid, pool)
     shadow = m["shadow"] and pool == "shadow"
     items, found = pool_items(sid, pool, results, shadow, (mine, m["cp"]) if me_in_pool else None)
-    items += extra
+    items = [(v, to_spots(sid, x), t) for v, x, t in items + list(extra)]
+    r = to_spots(sid, r)
     ok, got, held = fits(items, {k: c[0] for k, c in caps.items()}, mine, r)
     total = f"{len(items) + 1} in the {' / '.join(dict.fromkeys(c[1] for c in caps.values()))} family"
     notes = [] if found else [f"not seen in its own {what} search"]
@@ -560,8 +569,7 @@ def decide(m, results):
     mr = by_iv(sid, m["name"], r, m["shadow"])  # the purified check below keeps r: purifying can make a tie
     if not r:
         why.append(f"a {base_name(sid).title()} that can't evolve into anything (wrong gender): no spot")
-    checks = [(main, "shadow" if m["shadow"] else "not shadow")] + \
-        ([("lucky", "lucky")] if m["lucky"] else []) + ([("dmax", "Dynamax")] if m["dynamax"] else [])
+    checks = [(main, "shadow" if m["shadow"] else "not shadow")] + ([("dmax", "Dynamax")] if m["dynamax"] else [])
     for pool, what in checks if r else []:
         ok, reason, more = judge_pool(m, results, pool, what, mine, mr)
         notes += more
@@ -600,7 +608,7 @@ def searches_for(m):
     if value(m.get("name") or m["tile"], m["shadow"]) is None and not m.get("unrenamed"):
         return out
     pools = (["shadow"] + (["plain"] if p.purified is not None or m.get("unrenamed") else [])) if m["shadow"] else \
-        ["plain"] + (["lucky"] if m["lucky"] else []) + (["dmax"] if m["dynamax"] else [])
+        ["plain"] + (["dmax"] if m["dynamax"] else [])
     out += [q for pool in pools for q, _, _ in groups(sid, pool)]
     return list(dict.fromkeys(out))
 
@@ -702,8 +710,7 @@ def test():
     check("purified ranks by 2nd number",
           decide(me, res(charizard__plain=[("87/100", 1)] * 6 + [("93", 2000)]))[0], "DOOR")
     lk = dict(me, lucky=True)
-    check("best lucky keeps", decide(lk, res(charizard__plain=six_better, charizard__lucky=[("93", 2000), ("91", 5)]))[0], "KEEP")
-    check("2nd lucky nopes", decide(lk, res(charizard__plain=six_better, charizard__lucky=[("96", 5)]))[0], "DOOR")
+    check("a lucky has no spot of its own", decide(lk, res(charizard__plain=six_better))[0], "DOOR")
     dm = dict(me, dynamax=True)
     check("top 3 dmax keeps", decide(dm, res(charizard__plain=six_better, charizard__dmax=[("96", 1), ("96", 2)]))[0], "KEEP")
     check("4th dmax nopes", decide(dm, res(charizard__plain=six_better, charizard__dmax=[("96", 1)] * 3))[0], "DOOR")
@@ -773,10 +780,9 @@ def test():
           gallade__plain=[("93", 2500)], gardevoir__plain=six_better))[0], "DOOR")
     ev = dict(kl, species="eevee", cp=500)
     full = {f"{x}__plain": six_better for x in ("flareon", "espeon", "umbreon", "leafeon", "glaceon", "sylveon")}
-    check("eevee: no eeveelution is a #1 raid attacker, top 1 each", [spots("eevee", "plain")[slot(x)][0]
-          for x in ("vaporeon", "jolteon", "espeon")], [1, 1, 1])
-    check("one eevee can't fill two spots", decide(ev, resf("eevee", eevee__plain=[("96", 1), ("93", 500)], **full))[0],
-          "KEEP")
+    check("eevee: the weak eeveelutions share one spot", spots("eevee", "plain")[WEAK][0], 1)
+    check("weak family: a 2nd eevee nopes", decide(ev, resf("eevee", eevee__plain=[("96", 1), ("93", 500)]))[0],
+          "DOOR")
     check("eevee: every spot taken", decide(ev, resf("eevee", jolteon__plain=[("100", 1)],
           eevee__plain=[("96", 1), ("93", 500)], **full))[0], "DOOR")
     tg = dict(kl, species="tyrogue", cp=400, name="93 a")
@@ -789,12 +795,10 @@ def test():
           [True] * 6)
     check("tyrogue (Attack highest) only wants a Hitmonlee spot", decide(tg, resf("tyrogue",
           tyrogue__plain=[("93 a", 400)], hitmonlee__plain=six_better))[0], "DOOR")
-    check("tyrogue (Attack highest) ignores full Hitmonchan/top", decide(tg, resf("tyrogue",
-          tyrogue__plain=[("93 a", 400)], hitmonchan__plain=six_better, hitmontop__plain=six_better))[0], "KEEP")
-    check("other tyrogues only take their own branch", decide(tg, resf("tyrogue",
-          tyrogue__plain=[("93 a", 400)] + [("96 d", 1)] * 6))[0], "KEEP")
-    check("tyrogue with no letters can be any of them", decide(dict(tg, name="93"), resf("tyrogue",
-          tyrogue__plain=[("93", 400)], hitmonlee__plain=six_better))[0], "KEEP")
+    check("weak family: a better Hitmonchan takes the one spot", decide(tg, resf("tyrogue",
+          tyrogue__plain=[("93 a", 400)], hitmonchan__plain=[("96", 1)]))[0], "DOOR")
+    check("weak family: the best tyrogue keeps", decide(tg, resf("tyrogue", tyrogue__plain=[("93 a", 400)],
+          hitmonchan__plain=[("91", 1)]))[0], "KEEP")
     cb = dict(kl, species="combee", cp=300)
     check("male combee: no spot", decide(cb, resf("combee", combee__plain__male=[("93", 300)]))[0], "DOOR")
     check("female combee keeps", decide(cb, resf("combee", combee__plain__female=[("93", 300)]))[0], "KEEP")
@@ -805,8 +809,8 @@ def test():
     check("armored mewtwo keeps", decide(dict(me, species="mewtwo_armored", name="80 a"), {})[0], "KEEP")
     rat = ("bidoof", "bibarel")
     check("bidoof line is weak", strong(rat)[0], False)
-    check("no #1 vs a 4-star raid boss: weak", strong(("rhyhorn", "rhydon", "rhyperior"))[0], False)
-    check("#1 only once its future mega is out: strong", strong(("drilbur", "excadrill"))[0], True)
+    check("on the ideal team as the #1 other attacker: strong", strong(("rhyhorn", "rhydon", "rhyperior"))[0], True)
+    check("beaten by shadows and legendaries: weak", strong(("drilbur", "excadrill"))[0], False)
     check("#1 today, beaten by a future mega: strong", strong(("dratini", "dragonair", "dragonite"))[0], True)
     rt = dict(me, species="bibarel", name="91")
     rr = lambda tiles, pool="plain": by_fam({search("bibarel", pool): tiles}, "bibarel")
@@ -815,16 +819,9 @@ def test():
     check("weak line, 96 under a 98 nopes", decide(dict(rt, name="96"), rr([("98", 1), ("96", 2000)]))[0], "DOOR")
     check("weak line, a lucky 2nd nopes (no lucky spot)", decide(dict(rt, lucky=True), rr([("93", 1)]))[0], "DOOR")
     check("weak line, a lucky top IV keeps", decide(dict(rt, lucky=True, name="93"), rr([("91", 1)]))[0], "KEEP")
-    wl = lambda plain, lucky: by_fam({search("bibarel", "plain"): plain, search("bibarel", "lucky"): lucky}, "bibarel")
-    better_lucky = [("96", 5), ("91", 2000)]
-    check("weak line, lucky 4th of its line nopes", decide(dict(rt, lucky=True), wl(
-        [("98", 1), ("96", 2), ("93", 3), ("91", 2000)], better_lucky))[0], "DOOR")
-    check("weak line, lucky 6th of its line nopes", decide(dict(rt, lucky=True), wl(
-        [("98", 1), ("96", 2), ("96", 3), ("93", 4), ("93", 6), ("91", 2000)], better_lucky))[0], "DOOR")
-    check("weak line, 4th not lucky nopes", decide(rt, wl([("98", 1), ("96", 2), ("93", 3), ("91", 2000)], []))[0],
-          "DOOR")
+    check("weak line, 4th nopes", decide(rt, rr([("98", 1), ("96", 2), ("93", 3), ("91", 2000)]))[0], "DOOR")
     check("weak line, Elite TM keeps", decide(dict(rt, name="91 C*"), rr([("93", 1)]))[0], "KEEP")
-    check("legendary line never weak", strong(("regice",))[0], True)
+    check("legendary line off the ideal team: weak", strong(("regice",))[0], False)
     check("gym defender line never weak", strong(("wynaut", "wobbuffet"))[0], True)
     vv = dict(me, species="vivillon", name="80")
     vl = ("scatterbug", "spewpa", "vivillon")
@@ -851,7 +848,7 @@ if __name__ == "__main__":
         for pool in POOLS:
             print(f"{pool}: " + ", ".join(f"{n} top {k}{w}" for k, n, w in spots(a[1], pool).values()))
             for q, r, ss in groups(a[1], pool):
-                print(f"    {q:40} {'/'.join(ss)} -> {', '.join(spots(a[1], pool)[k][1] for k in r) or 'nothing'}")
+                print(f"    {q:40} {'/'.join(ss)} -> {', '.join(spots(a[1], pool)[k][1] for k in to_spots(a[1], r)) or 'nothing'}")
     elif a[0] == "megas":
         print(" ".join(sorted(MEGA_BASES)))
     else:

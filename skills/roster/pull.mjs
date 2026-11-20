@@ -9,13 +9,16 @@
 // (dialgadex-counters-pp2-<date>.json). Plus each type's best 40 attackers both ways (dialgadex-types-<date>.json,
 // DialgaDex's ?strongest&t=<type>): tradeable.py's best mega of each type. Then the counters both ways again with
 // DialgaDex's "unreleased" box ticked (dialgadex-counters-future-[pp2-]<date>.json): future megas and forms count,
-// for /ivc's strong lines (sort.py).
+// for /ivc's strong lines (sort.py). And a third time, unreleased too, with every signature move not in GO yet
+// (sigmoves.json, from sigmoves.py) as strong as GO's best charged move of its type: each learner gets every charged
+// move of that type some Pokémon has (dialgadex-counters-sig-[pp2-]<date>.json, the user 2026-11-19).
 // Needs Playwright: it's loaded from the IBL5 checkout (PW below), its browsers from ~/Library/Caches/ms-playwright.
 import fs from 'fs';
 import path from 'path';
 const PW = process.env.PLAYWRIGHT || '/Users/ajaynicolas/GitHub/IBL5/ibl5/node_modules/playwright/index.mjs';
 const { chromium } = await import(PW);
 const HERE = path.dirname(new URL(import.meta.url).pathname);
+const SIG = JSON.parse(fs.readFileSync(path.join(HERE, 'sigmoves.json')));
 const limit = +(process.argv[2] || 0), DEPTH = 80;
 const t0 = Date.now();
 const log = msg => console.log(`[${((Date.now() - t0) / 1000).toFixed(0).padStart(4)}s] ${msg}`);
@@ -30,10 +33,28 @@ log(`page ready, ${await p.evaluate(() => jb_pkm.length)} entries to check${limi
 // in either. The no-Party-Power pull keeps its old name (roster.py reads it); the other is dialgadex-counters-pp2-.
 const pulled = new Date().toLocaleDateString('sv').replaceAll('-', '');  // the local date, YYYYMMDD
 const types = {};
-for (const future of [false, true]) {
+for (const mode of ['now', 'future', 'sig']) {
+const future = mode != 'now';
+if (mode == 'sig') log(`signature moves: ${await p.evaluate(SIG => {
+  // each learner (dex number, Showdown's form: '' is the plain one, never a regional) gets every charged move of the
+  // signature move's type that some Pokémon has (jb_cm also holds moves no one learns, like the OHKO ones)
+  const key = s => (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const REG = ['alola', 'galarian', 'hisuian', 'paldea'];
+  const used = new Set(jb_pkm.flatMap(x => [...(x.cm || []), ...(x.elite_cm || [])]));
+  const byType = {};
+  for (const m of Object.values(jb_cm)) if (used.has(m.name)) (byType[m.type] ||= []).push(m.name);
+  let n = 0;
+  for (const l of SIG) {
+    const es = jb_pkm.filter(x => x.id == l.num && (l.forme
+      ? (key(x.form).startsWith(l.forme.slice(0, 5)) || l.forme.startsWith(key(x.form).slice(0, 5)) && key(x.form).length >= 3)
+      : !REG.some(r => key(x.form).startsWith(r))));
+    for (const e of es) { e.elite_cm = [...new Set([...(e.elite_cm || []), ...(byType[l.type] || [])])]; n++; }
+  }
+  return n;
+}, SIG)} entries given their move's type`);
 for (const party of [1, 2]) {
 await p.evaluate(n => SetPartySize(n), party);
-log(`Party Power ${party == 1 ? 'off' : `with a party of ${party}`}${future ? ', unreleased too' : ''}`);
+log(`Party Power ${party == 1 ? 'off' : `with a party of ${party}`}${future ? ', unreleased too' : ''}${mode == 'sig' ? ', signature moves' : ''}`);
 // the best of each type (DialgaDex's ?strongest&t=<type> list): tradeable.py's top mega of each type
 if (!future) types[party] = await p.evaluate(async () => {
   const out = {};
@@ -87,8 +108,9 @@ log(`pulled ${r.bosses.length} bosses, writing the file`);
 r.pulled = new Date().toLocaleDateString('sv');  // the local date, YYYY-MM-DD
 r.party = party;
 r.future = future;
+r.sig = mode == 'sig';
 // (a cut-down test pull gets its own name: roster.py takes the newest dialgadex-counters-<date>.json)
-const out = path.join(HERE, `dialgadex-counters-${future ? 'future-' : ''}${party == 1 ? '' : `pp${party}-`}${pulled}${limit ? `-test${limit}` : ''}.json`);
+const out = path.join(HERE, `dialgadex-counters-${mode == 'now' ? '' : mode + '-'}${party == 1 ? '' : `pp${party}-`}${pulled}${limit ? `-test${limit}` : ''}.json`);
 fs.writeFileSync(out, JSON.stringify(r));
 console.log(`${r.bosses.length} bosses, ${r.attackers.length} attackers -> ${out}`);
 }

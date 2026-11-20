@@ -23,14 +23,14 @@ door's too, on HashTagAJay.
 
 One tag each, the first that fits:
  1. Luckydex: HashTagAJay's newest lucky /dex run misses it, or an evolution of it (dex's gender and form rules).
- 2. Reroll: the best mega of a type, legendaries left out (mega_tops, the same rule as HashTagAJay's pile), or a new
-    copy would be #1 against some raid boss (/roster's roster.json).
+ 2. Reroll: a strong line (strong_lines: on the ideal raid team against some 4-star+ boss, /ivc's sort.strong, or a
+    gym defender's line), or a new copy would be in HashTagAJay's own top 6 against some raid boss (/roster's
+    roster.json: #1 or #2-#6, the user 2026-11-19).
  3. GIV: any of
     - a new 100 would fill a hole on HashTagAJay's ★100% page, itself or by evolving (dex.hundred_useful: a later
       stage on the page counts for the earlier ones, each missing branch wants its own copy, and only a 100 still in
       storage counts as a copy: the /dex run's owned-100.json)
     - PvPoke top 100 in Great, Ultra or Master League, with every rank 1 IV 5 or more (pvp-giv-<date>.json)
-    - a new copy would be #2-#6 against some raid boss
     - HashTagAJay has a lucky one of the family and under 348 candy (read)
  4. XLX: a power-up costs 4 Candy or more (level 26+: 4,000 Stardust with 4 Candy, or 4,500+). Read one by one in the power-up dialog.
  5. GIV (evolved): a stage 2 (a baby isn't a stage), or a stage 1 that takes 100+ candy, a quest or an item to
@@ -82,7 +82,7 @@ import sizes
 from taps import Pass, owned, details
 from ivc import GYM_DEFENDERS
 from rules import (GIVER, TAKER, TAGS, XLX, TRANSFER, LUCKY_CANDY, XL_CAP, XLX_LEVEL, GIV_FOR_TAKER, XLX_FOR,
-    PVE_TOP, REROLL_PVE, REROLL_ML, HARD_EGGS, HARD_TO_FARM, BY_HAND, PVP_FLOOR, HARD_CANDY, BABIES, SPECIAL, NO_SPECIAL, DYNAMAX, UNDER_360_XL, TAG_SKIP, GUARANTEED,
+    PVE_TOP, REROLL_ML, HARD_EGGS, HARD_TO_FARM, BY_HAND, PVP_FLOOR, HARD_CANDY, BABIES, SPECIAL, NO_SPECIAL, DYNAMAX, UNDER_360_XL, TAG_SKIP, GUARANTEED,
     LUCKY_YEAR, OLD, OLD_AGE)
 
 if ui.ANDROID:  # a look's shrink, save and OCR take 0.3-0.6 s, so at 0.3 most head-start shots were thrown away. The
@@ -349,29 +349,24 @@ def raid_tops(m, n=PVE_TOP, real=False, megas=True):
     return roster.raid_tops(m.tradeable, n, real=real, megas=megas)
 
 
-def mega_tops(m, ok):
-    """-> {sid: why}: the best mega of each type in DialgaDex's type rankings (?strongest&t=<type>), Party Power off
-    or with a party of 2, as its base species. The best one of the ok species (legendary ones are traded by hand), and
-    only a mega whose best moves have one of that type (the rankings put off-type megas like Gardevoir under Ice).
-    The user's rule (2026-11-16): only the top mega of a type is worth a Reroll (Mega Sceptile beats Venusaur)"""
-    sys.path.append(os.path.join(HERE, "..", "roster"))
-    import roster
-    f = base.newest(HERE, os.path.join("..", "roster", "dialgadex-types-[0-9]*[0-9].json"))
-    if not f:
-        raise NoData("no DialgaDex type rankings yet: node ../roster/pull.mjs")
-    sid_of = roster.Model.__new__(roster.Model)
-    sid_of.by = m.by
-    out = {}
-    for party, by_type in sorted(json.load(open(f)).items()):
-        for t, ranked in by_type.items():
-            for a in ranked:
-                if not roster.is_mega(a) or t not in (a.get("fm_type"), a.get("cm_type")):
-                    continue
-                s = sid_of.sid_of(a)
-                if s in ok:
-                    out.setdefault(s, []).append(f"{a['name']}: best {t} mega" + ("" if party == "1" else " (party of 2)"))
+_STRONG = {}
+
+
+def strong_lines(m):
+    """-> {sid: why}: every species of m in a strong line (/ivc's sort.strong, the one copy of the rule: on the ideal
+    raid team against some 4-star+ boss, released or not, or a gym defender's line). Not kept and not a special trade:
+    Reroll, on both accounts' piles (the user, 2026-11-19). verdict.py's strong-line shadows read it too"""
+    if not _STRONG:
+        sys.path.append(os.path.join(HERE, "..", "ivc"))
+        import sort
+        for s in m.by:
+            if s not in sort.SPECIES:
+                continue
+            for line in sort.family(s):
+                if s in line and (got := sort.strong(tuple(line)))[0]:
+                    _STRONG[s] = "strong line: " + got[1]
                     break
-    return {s: "; ".join(dict.fromkeys(ws)) for s, ws in out.items()}
+    return _STRONG
 
 
 def pve(m, enough=lambda s, mega_only: False, n=PVE_TOP, **kw):
@@ -432,8 +427,8 @@ class NoData(Exception):
 
 
 def taker_species(m):
-    """CyrillJan's pile, judged for HashTagAJay. Reroll: the best mega of a type (mega_tops, the same rule as
-    HashTagAJay's pile), or a new copy would be #1 against some raid boss in HashTagAJay's own team (roster.json)
+    """CyrillJan's pile, judged for HashTagAJay. Reroll: a strong line (strong_lines, the same rule as HashTagAJay's
+    pile), or a new copy would be in HashTagAJay's own top 6 against some raid boss (roster.json: #1 or #2-#6)
     -> {"why": {sid: (tag, why)}, "lucky": {sid: gender term},
     "evolved": {sid: why}, "xl_full": {dex}, "from": {what: file}}. Shared by plan and ../shared/verdict.py"""
     lucky_missing, lucky_run = dex.latest("lucky", TAKER)  # (an evolve-lucky run counts too)
@@ -458,13 +453,14 @@ def taker_species(m):
     for s in ok:
         if s in lucky:
             why.setdefault(s, ("Luckydex", "lucky dex hole"))
-    for s, r in mega_tops(m, set(ok)).items():  # the same mega rule as HashTagAJay's pile (the user, 2026-11-16)
-        for x in [s, *dex.ancestors(s, m.parent)]:
-            if x in ok:
-                why.setdefault(x, ("Reroll", r))
+    strong = strong_lines(m)
     for s in ok:
-        if s in reroll:
+        if s in strong:
+            why.setdefault(s, ("Reroll", strong[s]))
+        elif s in reroll:
             why.setdefault(s, ("Reroll", "#1 raid attacker: " + ", ".join(roster["species"][s]["bosses"][:3])))
+        elif s in roster["giv"]:  # (was GIV: #2-#6 is a Reroll too, the user 2026-11-19)
+            why.setdefault(s, ("Reroll", "#2-#6 raid attacker"))
     hund_owned = dex.owned_100(hund_run)
     if hund_owned is None:  # (the page alone would count 100s gone since as copies: the Magnemite of 2026-11-19)
         raise NoData(f"the newest ★100% /dex run of {TAKER} has no count of its 100s yet: "
@@ -476,8 +472,6 @@ def taker_species(m):
             why.setdefault(s, ("GIV", "★100% hole"))
         elif s in pvp_giv:
             why.setdefault(s, ("GIV", "PvP " + " ".join(pvp_giv[s])))
-        elif s in roster["giv"]:
-            why.setdefault(s, ("GIV", "#2-#6 raid attacker"))
         elif m.root(s) in low:
             why.setdefault(s, ("GIV", f"lucky family under {LUCKY_CANDY} candy"))
     evolved = evolved_giv(m, ok, why, json.load(open(hard_f)))
@@ -562,10 +556,9 @@ def giver_species(m):
     """HashTagAJay's pile (Leftovers), judged for CyrillJan or the user's wife's account: what's good for any account
     (the user, 2026-11-16) -> {"why": {sid: (tag, why)}, "evolved": {sid: why}, "hard": {sid: why}, "by_hand": {sid},
     "xl_full": {dex}, "from": {what: file}}. Read by ../shared/verdict.py
-      Reroll: a new 100 is worth having: the best mega of a type (mega_tops), DialgaDex's top REROLL_PVE against a boss
-        like a 4-star raid's or higher (real_boss; a mega in that spot counts for no one), or PvPoke's Master League top REROLL_ML (each with the earlier stages that evolve into it)
-      GIV: more Candy XL is worth having: DialgaDex's top PVE_TOP against some raid boss (more than one spot in a
-        team)
+      Reroll: a new 100 is worth having: a strong line (strong_lines), DialgaDex's top PVE_TOP against a boss like a
+        4-star raid's or higher (real_boss; #2-#6 was GIV, the user 2026-11-19), or PvPoke's Master League top REROLL_ML
+        (each with the earlier stages that evolve into it)
       hard (GIV, after 2XL and XLX): the family of a 10 or 12 km egg hatch (refresh's eggs-<date>.json), Smeargle, and
         a gym defender's line (/ivc's GYM_DEFENDERS and what evolves into them: a potential top gym defender for an
         account with fewer, the user 2026-11-16)
@@ -588,11 +581,10 @@ def giver_species(m):
             for x in [s, *dex.ancestors(s, m.parent)]:
                 if x in ok:
                     why.setdefault(x, (tag, r))
-    add("Reroll", mega_tops(m, ok))
-    add("Reroll", pve(m, n=REROLL_PVE, real=True, megas=False)[0])  # (pve's list already has the earlier stages)
+    add("Reroll", strong_lines(m))
+    add("Reroll", pve(m, real=True)[0])  # (pve's list already has the earlier stages)
     ml = {s: int(r.split("#")[1]) for s, rs in json.load(open(pvp_f)).items() for r in rs if r.startswith("10000:")}
     add("Reroll", {s: f"Master League #{r}" for s, r in ml.items() if r <= REROLL_ML and s in m.by})
-    add("GIV", pve(m)[0])
     eggs = json.load(open(eggs_f))
     hard = {}
     for km in HARD_EGGS:

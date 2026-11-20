@@ -21,15 +21,21 @@ Signed in as HashTagAJay (the pile goes to CyrillJan or the user's wife's accoun
   regional or Spinda: unsure (by hand) > GuaranteedLucky > Old > GIV (medal) > 2XL > Reroll > GIV > xxs > XLX >
   GIV (evolved, 10/12 km egg family, Smeargle, gym defender line, Dynamax) > GIV (trade evolution) > GIV (far) >
   GIV (can Dynamax, account short of candy) > Transfer
-  (Reroll: the best mega of a type, DialgaDex #1 vs some boss, Master League top 20. GIV: DialgaDex top 6 vs some boss. A gym
-  defender's line is a GIV (evolved) one: after 2XL and XLX. XLX at level 26+ both ways: giver_species())
+  (Reroll: a strong line (tradeable.strong_lines: on the ideal raid team, or a gym defender's line), DialgaDex top 6
+  vs some 4-star+ boss, Master League top 20. XLX at level 26+ both ways: giver_species())
 A Dynamax one (both accounts): 2XL, XLX, then GIV. One that only can Dynamax (or evolves into one that can) gets GIV
 while the account holding it has rules.DMAX_CANDY Candy or less, or XL_CAP + all three Max Moves' Candy XL or less, of
 the family (dmax_short, the user 2026-11-16). With more of both and no other rule, Transfer
-Before all of them: a special trade (trades.py's legendary rules, else unsure), a traded one (Transfer), an untraded
+Before all of them: a special trade (special(): the user, 2026-11-19), a traded one (Transfer), an untraded
 shadow, costume or background one (odd_one: the user's rules for each; a shadow's Transfer becomes GuaranteedLucky or
-Old when its catch date fits, no purify: shadow_transfer), and a lucky one, traded or not (lucky(); a lucky costume or
-background one that would be Transfer gets its name cleared and a favorite instead).
+Old when its catch date fits, no purify: shadow_transfer; a strong line's shadow is never purified, and gets Special
+where it would get Transfer), and a lucky one, traded or not (lucky(); a lucky costume or background one that would
+be Transfer gets its name cleared and a favorite instead).
+A special trade not kept (the user, 2026-11-19), its star off and its name back to the default:
+  untraded legendary or Ultra Beast: Remote Trade + RT. Traded: Spot Transfer
+  mythical: caught in a raid (the door's one `mythical&raid` search) can't be traded: Spot Transfer. Else a one- or
+  two-time one (Mew, Celebi, ...): a favorite, kept. Meltan and Melmetal: the legendary rules
+  shiny (any): untraded Remote Trade + RT; traded, a favorite with no tags
 A costume one (the user, 2026-11-02): 93%+ is named and a favorite, traded or not. Else the usual rules, but if its plain
 form evolves and it can't (no Evolve button: dead_end), only as its own species: CyrillJan's raid list and 2XL go by
 its own place in DialgaDex's tops (raid_self), and no trade-evolution GIV.
@@ -113,6 +119,7 @@ class Facts:
     ivc_judged: bool = False  # /ivc or /ivc is judging it: IVC is the tag coming off
     other_tags: list = field(default_factory=list)  # the user's tags besides the one this script works on
     raid_team: object = ()  # raidteams.on_team: the bosses whose team it's on ([] none, () no count), None not sure
+    raid: bool = None  # caught in a raid (the door's `mythical&raid` search: mythicals only)
 
 
 @dataclass
@@ -125,10 +132,11 @@ class Verdict:
     purify: bool = False  # purify it first
     clear: bool = False  # clear its name too
     star: bool = False  # a tag answer: star on too (a shiny one)
+    unstar: bool = False  # a tag answer: star off too (a special trade not kept)
 
 
-def tag(*tags, why, name=None, off=(), purify=False, clear=False):
-    return Verdict("tag", tags, why, name, off, purify, clear)
+def tag(*tags, why, name=None, off=(), purify=False, clear=False, unstar=False):
+    return Verdict("tag", tags, why, name, off, purify, clear, unstar=unstar)
 
 
 def unsure(why):
@@ -155,6 +163,7 @@ def tables(to):
                        "no_dmax": set(sp.get("no_dmax", ())), "xl_full": sp["xl_full"], "dmax": sp.get("dmax", {}),
                        "giv_for_taker": set(rules.GIV_FOR_TAKER), "from": sp["from"],
                        "raid": set(tr.pve(m)[0]),  # in DialgaDex's top PVE_TOP vs some boss, or evolves into one
+                       "strong": set(tr.strong_lines(m)),  # a strong line's species (its shadows: never purified)
                        "raid_self": {s for s in tr.raid_tops(m)[0] if s in m.by}}  # in some top as itself
     return _TABLES[to]
 
@@ -195,7 +204,7 @@ def shiny(f, v):
     why = f"shiny, doesn't qualify ({v.why})"
     if f.traded:
         return Verdict("tag", (), why, off=tuple(canon(x) for x in f.other_tags), clear=True, star=True)
-    return Verdict("tag", ("Remote Trade", "RT"), why, clear=True, star=True)
+    return tag("Remote Trade", "RT", why=why, clear=True, unstar=True)  # (star off: the user, 2026-11-19)
 
 
 def usual(f, t, today=None):
@@ -247,19 +256,11 @@ def usual(f, t, today=None):
         return unsure("catch date not read")
     old = (today - f.caught).days >= OLD_DAYS
 
-    # special trades: trades.py's rules for legendaries, Ultra Beasts, Meltan and Melmetal. The rest by hand
+    # special trades (the user, 2026-11-19): star off, name back to the default
     if f.gigantamax:
         return unsure("Gigantamax: a special trade, by hand")
     if "legendary" in kinds or "ultrabeast" in kinds or "mythical" in kinds:
-        if "mythical" in kinds and sid not in TRADE_BY_HAND:
-            return unsure("mythical: can't be traded, by hand")
-        if f.size is None or f.size in SIZE_NAMES:  # trades.py passes over an xxs one
-            return unsure(f"special trade, size {f.size or 'not read'}: by hand")
-        if f.traded:
-            return tag("Spot Transfer", why="traded special trade: a spot transfer", off=strip)
-        if sid in FUSED:
-            return unsure("fused: can't be traded")
-        return tag("Remote Trade", "RT", *(("Old",) if old else ()), why="untraded special trade: a remote trade")
+        return special(f, sid, kinds, strip)
 
     # a gym defender may still be top 20 CP or IV of its species (/ivc's gym rule), traded or not
     if sid in GYM_DEFENDERS:
@@ -346,6 +347,26 @@ def usual(f, t, today=None):
     return transfer(f, sid, "no rule wants it")
 
 
+def special(f, sid, kinds, strip):
+    """a legendary, mythical or Ultra Beast one not kept (the user, 2026-11-19): star off, name back to the default.
+    A mythical caught in a raid can't be traded: Spot Transfer. Any other mythical (Mew, Celebi, ...: one- or
+    two-time ones) is a favorite, kept. A legendary or Ultra Beast (and Meltan, Melmetal): untraded Remote Trade + RT,
+    traded Spot Transfer"""
+    if "mythical" in kinds and sid not in TRADE_BY_HAND:
+        if f.raid is None:
+            return unsure("mythical: caught in a raid or not, not read")
+        if not f.raid:
+            return Verdict("keep", (), "mythical, not from a raid: a one- or two-time one, kept")
+        return tag("Spot Transfer", why="mythical from a raid: can't be traded", off=strip, clear=True, unstar=True)
+    if f.size is None or f.size in SIZE_NAMES:  # trades.py passes over an xxs one
+        return unsure(f"special trade, size {f.size or 'not read'}: by hand")
+    if f.traded:
+        return tag("Spot Transfer", why="traded special trade: a spot transfer", off=strip, clear=True, unstar=True)
+    if sid in FUSED:
+        return unsure("fused: can't be traded")
+    return tag("Remote Trade", "RT", why="untraded special trade: a remote trade", clear=True, unstar=True)
+
+
 def dmax_short(f, t, sid):
     """one that can Dynamax (or evolves into one that can), but isn't a Dynamax one: GIV while the account holding it
     is short of that family's Candy (DMAX_CANDY or less) or Candy XL (XL_CAP + all three Max Moves' XL, or less). With
@@ -402,8 +423,8 @@ def transfer(f, sid, why, off=(), purify=False, clear=False):
 
 def lucky(f, sid, dexn, strip):
     """a lucky one, traded or not (the user's rule, 2026-10-30): in /ivc's spots for its line it stays: on a strong
-    line the top 5 IV of its non-shadow ones (6 if the line can mega evolve) or its best lucky, on a weak line only its
-    top IV (the user, 2026-11-17: strong = a #1 raid attacker, sort.strong), ties keep. Out of that, one with a PvP
+    line the top 5 IV of its non-shadow ones (6 if the line can mega evolve), on a weak family only its top IV (the
+    user, 2026-11-19: strong = on the ideal raid team, sort.strong; no lucky spot of its own), ties keep. Out of that, one with a PvP
     top-100 IV goes to /pvpc, which compares it with the ones you own. The rest: name cleared, Transfer (door.py checks
     the power-up first). A costume or background one never gets that Transfer: name cleared and a favorite (the user,
     2026-11-18). A traded one that evolves for free gets Evo instead. Only /ivc ranks it: from anywhere else it goes to IVC, name cleared, and
@@ -463,6 +484,11 @@ def odd_one(f, t, sid, odd, today):
         return Verdict("keep", (), "shadow raid attacker, a top IV once purified: a favorite")
     if sid in t["raid"] and f.pure_top is None:
         return unsure("shadow raid attacker: top 6 IV once purified? not checked")
+    if sid in t.get("strong", ()):  # never purified: GuaranteedLucky or Old if it fits, else Special (the user, 2026-11-19)
+        v = shadow_transfer(f, sid, "shadow in a strong line: never purified", today)
+        if v.tags == ("Transfer",):
+            return tag("Special", why=v.why + ": Special, never Transfer", unstar=True)
+        return replace(v, unstar=True) if v.tags in (("GuaranteedLucky",), ("Old",)) else v
     if f.candy_xl is None:
         return unsure("shadow: Candy XL not read")
     if f.candy_xl < XL_CAP:

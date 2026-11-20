@@ -214,7 +214,8 @@
    "IVC"
   ],
   null,
-  "lucky: /ivc ranks it against its line"
+  "lucky: /ivc ranks it against its line",
+  "clear"
  ],
  "costume": [
   "unsure",
@@ -236,7 +237,8 @@
   ],
   null,
   "shiny, doesn't qualify (no rule wants it)",
-  "star"
+  "clear",
+  "unstar"
  ],
  "shiny, untraded, already has Remote Trade and RT": [
   "tag",
@@ -246,7 +248,8 @@
   ],
   null,
   "shiny, doesn't qualify (no rule wants it)",
-  "star"
+  "clear",
+  "unstar"
  ],
  "shiny, 98%, already has Remote Trade and RT": [
   "keep",
@@ -271,7 +274,8 @@
     "SOMETHING"
    ]
   },
-  "star"
+  "star",
+  "clear"
  ],
  "shiny, 98%": [
   "keep",
@@ -290,7 +294,8 @@
   [],
   null,
   "shiny, doesn't qualify (lucky: out of the top IV and PvP)",
-  "star"
+  "star",
+  "clear"
  ],
  "shiny lucky, not ranked yet: to /ivc first": [
   "tag",
@@ -298,7 +303,8 @@
    "IVC"
   ],
   null,
-  "lucky: /ivc ranks it against its line"
+  "lucky: /ivc ranks it against its line",
+  "clear"
  ],
  "shiny and Gigantamax": [
   "unsure",
@@ -314,7 +320,8 @@
   ],
   null,
   "shiny, doesn't qualify (shadow, 360+ Candy XL: transfer, no purify)",
-  "star"
+  "clear",
+  "unstar"
  ],
  "shiny search failed": [
   "unsure",
@@ -398,6 +405,33 @@
   "shadow, under 360 Candy XL: purify and transfer",
   "purify"
  ],
+ "strong-line shadow": [
+  "tag",
+  [
+   "Special"
+  ],
+  null,
+  "shadow in a strong line: never purified: Special, never Transfer",
+  "unstar"
+ ],
+ "strong-line shadow, old": [
+  "tag",
+  [
+   "Old"
+  ],
+  null,
+  "shadow, caught 515 days ago (else shadow in a strong line: never purified)",
+  "unstar"
+ ],
+ "strong-line shadow, 2019 catch": [
+  "tag",
+  [
+   "GuaranteedLucky"
+  ],
+  null,
+  "shadow, caught 2019: lucky once purified and traded (else shadow in a strong line: never purified)",
+  "unstar"
+ ],
  "shadow, 360+ XL": [
   "tag",
   [
@@ -468,7 +502,8 @@
   ],
   null,
   "shiny, doesn't qualify (shadow, caught 2019: lucky once purified and traded (else shadow, 360+ Candy XL: transfer, no purify))",
-  "star"
+  "clear",
+  "unstar"
  ],
  "shadow, no species lists": [
   "unsure",
@@ -570,7 +605,8 @@
    "IVC"
   ],
   null,
-  "lucky: /ivc ranks it against its line"
+  "lucky: /ivc ranks it against its line",
+  "clear"
  ],
  "lucky traded 93%": [
   "tag",
@@ -578,7 +614,8 @@
    "IVC"
   ],
   null,
-  "lucky: /ivc ranks it against its line"
+  "lucky: /ivc ranks it against its line",
+  "clear"
  ],
  "lucky, /ivc couldn't rank it": [
   "unsure",
@@ -592,7 +629,8 @@
    "IVC"
   ],
   null,
-  "lucky: /ivc ranks it against its line"
+  "lucky: /ivc ranks it against its line",
+  "clear"
  ],
  "lucky top IV": [
   "keep",
@@ -606,7 +644,8 @@
    "Transfer"
   ],
   null,
-  "lucky: out of the top IV and PvP"
+  "lucky: out of the top IV and PvP",
+  "clear"
  ],
  "lucky out, /pvpc said no": [
   "tag",
@@ -614,28 +653,32 @@
    "Transfer"
   ],
   null,
-  "lucky: out of the top IV and PvP"
+  "lucky: out of the top IV and PvP",
+  "clear"
  ],
  "lucky costume out, /pvpc said no": [
   "tag",
   [],
   null,
   "lucky costume, out of the top IV and PvP: a favorite, name cleared",
-  "star"
+  "star",
+  "clear"
  ],
  "lucky background out, /pvpc said no": [
   "tag",
   [],
   null,
   "lucky background, out of the top IV and PvP: a favorite, name cleared",
-  "star"
+  "star",
+  "clear"
  ],
  "lucky costume traded out, /pvpc said no": [
   "tag",
   [],
   null,
   "lucky costume, out of the top IV and PvP: a favorite, name cleared",
-  "star"
+  "star",
+  "clear"
  ],
  "H shadow, under 360 XL": [
   "tag",
@@ -656,7 +699,23 @@
   "unsure",
   [],
   null,
-  "mythical: can't be traded, by hand"
+  "mythical: caught in a raid or not, not read"
+ ],
+ "mythical from a raid": [
+  "tag",
+  [
+   "Spot Transfer"
+  ],
+  null,
+  "mythical from a raid: can't be traded",
+  "clear",
+  "unstar"
+ ],
+ "mythical not from a raid": [
+  "keep",
+  [],
+  null,
+  "mythical, not from a raid: a one- or two-time one, kept"
  ],
  "legendary untraded": [
   "tag",
@@ -665,17 +724,20 @@
    "RT"
   ],
   null,
-  "untraded special trade: a remote trade"
+  "untraded special trade: a remote trade",
+  "clear",
+  "unstar"
  ],
  "legendary untraded old": [
   "tag",
   [
    "Remote Trade",
-   "RT",
-   "Old"
+   "RT"
   ],
   null,
-  "untraded special trade: a remote trade"
+  "untraded special trade: a remote trade",
+  "clear",
+  "unstar"
  ],
  "legendary traded": [
   "tag",
@@ -683,7 +745,9 @@
    "Spot Transfer"
   ],
   null,
-  "traded special trade: a spot transfer"
+  "traded special trade: a spot transfer",
+  "clear",
+  "unstar"
  ],
  "legendary fused": [
   "unsure",
@@ -698,7 +762,9 @@
    "RT"
   ],
   null,
-  "untraded special trade: a remote trade"
+  "untraded special trade: a remote trade",
+  "clear",
+  "unstar"
  ],
  "ultra beast": [
   "tag",
@@ -707,7 +773,9 @@
    "RT"
   ],
   null,
-  "untraded special trade: a remote trade"
+  "untraded special trade: a remote trade",
+  "clear",
+  "unstar"
  ],
  "gym not checked": [
   "unsure",

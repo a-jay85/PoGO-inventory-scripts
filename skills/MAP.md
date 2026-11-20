@@ -747,7 +747,7 @@ The final tag for a Pokémon that just fell short of a keeper, judged right wher
 
 - `class Facts`: what the script read
 - `class Verdict`
-- `tag(*tags, why, name=None, off=(), purify=False, clear=False)`
+- `tag(*tags, why, name=None, off=(), purify=False, clear=False, unstar=False)`
 - `unsure(why)`
 - `tables(to)`: the species lists for judging a pile that goes to `to`, loaded once a run
 - `canon(t)`: a tag as read ('GUARANTEEDLUCKY') -> its name ('GuaranteedLucky'), when it's one the rules know
@@ -755,6 +755,7 @@ The final tag for a Pokémon that just fell short of a keeper, judged right wher
 - `xxl(f)`: an XXL one, traded or not (the user's rule, 2026-11-04): never traded or transferred, it has value in showcases
 - `shiny(f, v)`: a shiny one (the user's rule, 2026-11-03): judged like any other first
 - `usual(f, t, today=None)`: final_tag's rules, for all but what a shiny one gets in the end
+- `special(f, sid, kinds, strip)`: a legendary, mythical or Ultra Beast one not kept (the user, 2026-11-19): star off, name back to the default
 - `dmax_short(f, t, sid)`: one that can Dynamax (or evolves into one that can), but isn't a Dynamax one: GIV while the account holding it is short of that family's Candy (DMAX_CANDY or less) or …
 - `two_xl(f, t, sid)`: 2XL (a Friendship Friday trade: a sure 2 Candy XL) when this account has under XL_CAP Candy XL of the family
 - `transfer(f, sid, why, off=(), purify=False, clear=False)`: Transfer, unless it's untraded and (the user's rules, 2026-10-31, for every Transfer): an xxs one -> IVC, named xxs (/ivc counts that name as done) one that evolves free …
@@ -853,7 +854,7 @@ Tag CyrillJan's Tradeable saved search by what a trade to HashTagAJay is worth, 
 - `cmd_read(resume=None)`: resume: a stopped run's searches.json, so its searches aren't typed again
 - `newest_for(pattern, who, key='trainer', default=None)`: the newest runs/<pattern> json whose key is who (one without the key counts as default's)
 - `raid_tops(m, n=PVE_TOP, real=False, megas=True)`: -> ({sid: [bosses]}, {sid in some top as itself}, roster.Model): roster.raid_tops over the tradeable species (real: 4-star raid bosses or higher; megas=False: a mega …
-- `mega_tops(m, ok)`: -> {sid: why}: the best mega of each type in DialgaDex's type rankings (?strongest&t=<type>), Party Power off or with a party of 2, as its base species
+- `strong_lines(m)`: -> {sid: why}: every species of m in a strong line (/ivc's sort.strong, the one copy of the rule: on the ideal raid team against some 4-star+ boss, released or not, or a …
 - `pve(m, enough=lambda s, mega_only: False, n=PVE_TOP, **kw)`: -> ({sid: why}, {sid: why dropped}): a traded copy (never shadow) would be in DialgaDex's top n against some raid boss, or evolve into one that is
 - `queries(m, sids, gender=None, room=40)`: species forms -> ['&<dexes><form terms>', ...], each under MAX_SUFFIX characters with room left for the tag terms
 - `evolved_giv(m, ok, why, hard)`: -> {sid: why} for the GIV (evolved) rule: stage 2, a hard stage 1 (hard: giv-evolved-<date>.json) or a gym defender, of the ok ones not in why

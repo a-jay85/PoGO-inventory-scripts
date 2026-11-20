@@ -476,6 +476,14 @@ def clear_search():
         click(0.5 + random.uniform(-0.01, 0.01), 0.93 + random.uniform(-0.004, 0.004), bounds)
         time.sleep(random.uniform(1.6, 2.0))
         off_map()
+    # the last try's tap (or its off_map) may have just reopened the list with an empty bar: look before giving up
+    # (iPhone 2026-11-19: stopped on the list's empty bar, reopened from the main menu 2 s before)
+    try:
+        screen, texts, path, bounds = wait_for("list", timeout=4, capture=False)
+    except Stop:
+        screen = None
+    if screen == "list" and ui.search_box(texts) and not ui.search_text(ui.search_box(texts)):
+        return "list"
     keep_capture("clear")
     raise Stop("couldn't get an empty search bar")
 

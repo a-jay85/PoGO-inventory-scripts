@@ -815,7 +815,9 @@ def member_key(x):
 
 
 def cmd_keep(t, path, limit=None):
-    """every copy on a team in teams dict t (from path): a favorite, rules.RAID_OFF off. -> how many made favorites"""
+    """every copy on a team in teams dict t (from path): a favorite, rules.RAID_OFF off. -> how many made favorites.
+    One search per pile (dex, shadow or not) with all its copies' CPs (`384&!shadow&cp2186,cp2675`), walked once: a
+    search costs about 8 s, so the 309 copies in 101 piles of 2026-11-20 take 101 searches instead of 309"""
     import base, search, verdict
     from rules import RAID_OFF
     from savedsearch import results
@@ -826,39 +828,51 @@ def cmd_keep(t, path, limit=None):
     todo = [x for x in t["copies"] if x["on"] and x.get("cp") and member_key(x) not in done]
     log(f"keep: {len(todo)} copies on a team to make favorites ({len(done)} done before)")
     own = {ui_key(x) for x in verdict.OWN_TAGS}
-    made = 0
+    piles = {}
     for x in todo:
-        if limit is not None and made >= limit:
-            log(f"--limit {limit} reached")
-            break
-        q = f"{pvp.SPECIES[x['species'][0]]['dex']}&{'shadow' if x['shadow'] else '!shadow'}&cp{x['cp']}"
-        search.to_search_list()
-        search_exact(q)
-        if not results():
-            log(f"  {x['name']} CP{x['cp']} ({q}): none: powered up since the count, or gone")
-            continue
-        want = (x["cp"], x["hp"], x["kg"], x["m"])
-        hit = False
-        for info, texts, bounds, seen in details(key=lambda i: (i["cp"], i["hp"], i["name"])):
-            base.OPENED["who"] = base.who(info)  # (the swipe moved here on purpose: the star and tags check this one)
-            if not base.same_pokemon(base.who(info), want):
+        piles.setdefault((pvp.SPECIES[x["species"][0]]["dex"], x["shadow"]), []).append(x)
+
+    def is_it(info, x):
+        if not base.same_pokemon(base.who(info), (x["cp"], x["hp"], x["kg"], x["m"])):
+            return False
+        # counted by its /ivc name (no HP, weight or height): the name tells twins apart
+        return x["hp"] is not None or bare(info["name"]) == bare(x["name"]) or search.looks_same(x["name"], info["name"])
+
+    made = 0
+    for (dex, shadow), xs in piles.items():
+        for i in range(0, len(xs), 60):  # (60 CPs: about 450 characters, well under the 1,000 a search holds)
+            if limit is not None and made >= limit:
+                log(f"--limit {limit} reached")
+                log(f"keep: {made} made favorites")
+                return made
+            left = xs[i:i + 60]
+            cps = ",".join(f"cp{c}" for c in sorted({x["cp"] for x in left}))
+            q = f"{dex}&{'shadow' if shadow else '!shadow'}&{cps}"
+            search.to_search_list()
+            search_exact(q)
+            if not results():
+                for x in left:
+                    log(f"  {x['name']} CP{x['cp']} ({q}): none: powered up since the count, or gone")
                 continue
-            if x["hp"] is None and not (bare(info["name"]) == bare(x["name"]) or search.looks_same(x["name"], info["name"])):
-                continue  # counted by its /ivc name (no HP, weight or height): the name tells twins apart
-            hit = True
-            mine = [c for c in tag_chips(texts) if ui_key(c) in own]
-            if mine:
-                log(f"  {x['name']} CP{x['cp']}: has your tag {', '.join(mine)}: passed over (the door judges it)")
-            else:
-                favorite(info, texts, RAID_OFF)
-                made += 1
-            break
-        base.go("close", "list")
-        if not hit:
-            log(f"  {x['name']} CP{x['cp']} ({q}): no copy with its HP, weight and height: passed over")
-            continue
-        done.add(member_key(x))
-        json.dump(sorted(done), open(done_path, "w"), indent=0)
+            for info, texts, bounds, seen in details(key=lambda i: (i["cp"], i["hp"], i["name"])):
+                base.OPENED["who"] = base.who(info)  # (the swipe moved here on purpose: the star and tags check this one)
+                x = next((x for x in left if is_it(info, x)), None)
+                if x is None:
+                    continue
+                left.remove(x)
+                mine = [c for c in tag_chips(texts) if ui_key(c) in own]
+                if mine:
+                    log(f"  {x['name']} CP{x['cp']}: has your tag {', '.join(mine)}: passed over (the door judges it)")
+                else:
+                    favorite(info, texts, RAID_OFF)
+                    made += 1
+                done.add(member_key(x))
+                json.dump(sorted(done), open(done_path, "w"), indent=0)
+                if not left or (limit is not None and made >= limit):
+                    break
+            base.go("close", "list")
+            for x in left if limit is None or made < limit else []:  # (cut short by --limit: not looked at yet)
+                log(f"  {x['name']} CP{x['cp']} ({q}): no copy with its HP, weight and height: passed over")
     log(f"keep: {made} made favorites")
     return made
 

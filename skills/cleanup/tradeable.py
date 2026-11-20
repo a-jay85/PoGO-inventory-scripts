@@ -27,6 +27,7 @@ One tag each, the first that fits:
     gym defender's line), or a new copy would be in HashTagAJay's own top 6 against some raid boss (/roster's
     roster.json: #1 or #2-#6, the user 2026-11-19). Only for a 100 HashTagAJay still needs (the user, 2026-11-20): a
     place won only as a mega doesn't count (one 100 of it is enough), nor a family HashTagAJay has 5 100s of.
+    A pattern collection (Vivillon's line) is GIV instead: the patterns aren't told apart yet (the user, 2026-11-20).
  3. GIV: any of
     - a new 100 would fill a hole on HashTagAJay's ★100% page, itself or by evolving (dex.hundred_useful: a later
       stage on the page counts for the earlier ones, each missing branch wants its own copy, and only a 100 still in
@@ -472,7 +473,11 @@ def taker_species(m):
         if s in lucky:
             why.setdefault(s, ("Luckydex", "lucky dex hole"))
     strong = strong_lines(m, megas=False)
+    import sort  # (strong_lines put /ivc on the path)
     for s in ok:
+        if any(s.startswith(c) for c in sort.COLLECT):  # never Reroll; GIV till the patterns are told apart (a pattern
+            why.setdefault(s, ("GIV", "pattern collection"))  # HashTagAJay has no 100 of is wanted: the user, 2026-11-20)
+            continue
         if fam_100[m.root(s)] >= REROLL_ENOUGH:
             continue  # (HashTagAJay has enough 100s of the family: no Reroll)
         if s in strong:

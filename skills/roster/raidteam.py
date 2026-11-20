@@ -795,7 +795,8 @@ def report(c, who, out_dir):
     json.dump(t, open(os.path.join(out_dir, "teams.json"), "w"), indent=1)
     keep = [x for x in t["copies"] if x["on"]]
     lines = [f"# /raidteam: {who}'s 6 per raid boss: team A at today's levels, team B at level 50", "",
-             f"Counted {t['counted']}. {len(t['copies'])} copies opened, {len(keep)} on some team.", "",
+             f"Counted {t['counted']}. {len(t['copies'])} copies counted ({sum(not x.get('from') for x in c.copies)} opened), "
+             f"{len(keep)} on some team.", "",
              "## On a team", ""]
     for x in sorted(keep, key=lambda x: -len(x["on"])):
         lines.append(f"- {x['name']} CP{x['cp']} ({'/'.join(x['species'])}, level {'/'.join(map(str, x['levels']))}): "

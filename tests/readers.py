@@ -253,6 +253,7 @@ LISTS = {  # the list's tiles: normal ones count once, and a list of only shinie
                                                box(.45, .4, "• Gardevoir"), box(.15, .5, "€2050,"), box(.15, .6, "• Kartana")],
     "shiny labels": [box(.15, .3, "c2554,"), box(.45, .3, "-2050"), box(.15, .4, "80 def"), box(.45, .4, "• Kartana")],
     "a sparkle after the CP, from the Pixel 2026-11-20": [box(.15, .3, "c2696к"), box(.15, .4, "RayAreaaaaaa")],
+    "a favorite's star after the CP, from the Pixel 2026-11-20": [box(.15, .3, "CP 2186K"), box(.15, .4, "98 AD")],
     "a number with no name": [box(.15, .3, "2554"), box(.8, .1, "9/12")],
 }
 

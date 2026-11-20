@@ -832,9 +832,17 @@ Re-judge HashTagAJay's #GIV or #Transfer pile by species alone, with no Pokémon
 - `family(sid)`: the family's Candy name, as the page reads it ('ARON')
 - `species_tag(sid, t, counts, vd)`: -> verdict.Verdict for a plain one of this species on HashTagAJay
 - `groups(pile)`: -> ({tag: [search part]}, {tag: n species}, [(sid, why) not sure])
-- `query(pile, part)`
-- `cmd_plan(pile)`
-- `cmd_tag(pile)`
+- `dex_parts(by_dex, pile, size)`: {dex: {sid: tag or None (not sure)}} -> ({tag: [search part]}, {tag: n species}, [(sid, why) not sure])
+- `candy_grid(sid, t)`: -> ([Candy range], [Candy XL range]): where the rules cut for this species (XL_CAP for 2XL; DMAX_CANDY and one Max Move's XL for a Dynamax line)
+- `count_term(name, lo, hi)`
+- `runs(cells)`: [((lo, hi), tag)] in order -> the same with neighbours of one tag joined
+- `giver_tag(sid, t, open_facts, counts, vd, today)`: -> the one tag every value of the open facts gives a plain 0-2* untraded one of this species, or None
+- `giver_groups(pile, dexes)`: CyrillJan's pile, for these dex numbers -> [(tag, search part)] in the order to tag them, and [(sid, why)] left for the walk (leftovers.py again)
+- `query(pile, part, who=WHO)`
+- `plan_of(pile, who, dexes)`: -> ([(tag, search part)] in the order to tag them, [(sid, why) not sure], {tag: n species} or None)
+- `cmd_plan(pile, who, dexes)`
+- `cmd_tag(pile, who, dexes)`
+- `args(a)`: -> (plan?, pile, who, dexes or None) from [plan] PILE [--as CyrillJan] [--and DEXES], or None
 
 ## skills/cleanup/tradeable.py
 Tag CyrillJan's Tradeable saved search by what a trade to HashTagAJay is worth, and power them up for Candy XL.

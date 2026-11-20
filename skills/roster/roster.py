@@ -200,6 +200,9 @@ def boss_name(b):
 COUNTERS = ("dialgadex-counters-[0-9]*[0-9].json", "dialgadex-counters-pp2-[0-9]*[0-9].json")  # Party Power off, 2
 # the same pulls with DialgaDex's "unreleased" box ticked: future megas and forms count (/ivc's strong lines)
 FUTURE = ("dialgadex-counters-future-[0-9]*[0-9].json", "dialgadex-counters-future-pp2-[0-9]*[0-9].json")
+# unreleased too, and every signature move not in GO yet as strong as its type's best (sigmoves.py, the user 2026-11-19)
+SIG = ("dialgadex-counters-sig-[0-9]*[0-9].json", "dialgadex-counters-sig-pp2-[0-9]*[0-9].json")
+IDEAL = COUNTERS + FUTURE + SIG  # the strong lines' pulls: today, unreleased Pokémon, unreleased moves
 
 
 def real_boss(b):
@@ -245,6 +248,36 @@ def raid_tops(ok, n, real=False, megas=True, pulls=COUNTERS):
                 if boss not in tops.setdefault(s, []):
                     tops[s].append(boss)
     return tops, plain, first
+
+
+def ideal_firsts(pulls=IDEAL):
+    """-> {sid: [bosses]}: the ideal raid team against every boss like a 4-star raid's or higher (real_boss), released
+    or not, the same for every account (the user, 2026-11-19). Repeats are allowed, so it's DialgaDex's #1 mega (or
+    primal) and 5 of its #1 other attacker: those two count, in any of these pulls (Party Power off or a party of 2;
+    today, unreleased Pokémon too, unreleased signature moves too). Shadows and legendaries count. A mega counts as
+    its species, a shadow as its species, a form as its own species id (Galarian Zapdos, not Zapdos)"""
+    files = [newest(HERE, c) for c in pulls]
+    if not all(files):
+        sys.exit(f"no DialgaDex counters yet ({' and '.join(p for p, f in zip(pulls, files) if not f)}): "
+                 f"node {os.path.join(HERE, 'pull.mjs')}")
+    out = {}
+    for data_f in files:
+        rm = Model(json.load(open(data_f)))
+        for b in rm.bosses:
+            if not real_boss(b):
+                continue
+            firsts = {}
+            for i, *_ in b["list"]:
+                k = is_mega(rm.A[i])
+                if k not in firsts:  # (one not in the game data yet still takes its #1: no one moves up)
+                    firsts[k] = rm.sid[i]
+                if len(firsts) == 2:
+                    break
+            boss = boss_name(b) + ("" if b["released"] else " (unreleased)")
+            for s in filter(None, firsts.values()):
+                if boss not in out.setdefault(s, []):
+                    out[s].append(boss)
+    return out
 
 
 def attacker_name(a):

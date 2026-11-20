@@ -1255,15 +1255,18 @@ Rules for /ivc: which IVC Pokémon to keep (favorite + untag) and which to send 
 - `groups(sid, pool)`: the searches for this species' whole family in one pool -> ((search, finals it can become, species), ...)
 - `can_mega(sid)`
 - `top_n(line)`
-- `load_meta()`: the legendary/mythical/Ultra Beast dex numbers (the old DialgaDex type lists' class, plus the game data's tags: Cosmog's line is only in the first); and the hand …
-- `raid_firsts()`: {sid: [bosses]}: the species that are DialgaDex's #1 non-special, tradeable, non-shadow attacker against some boss like a 4-star raid's or higher, with Party Power off …
+- `load_meta()`: the hand overrides (meta-overrides.txt: 'strong <sid>' or 'weak <sid>')
+- `raid_firsts()`: {sid: [bosses]}: the species on the ideal raid team against some boss like a 4-star raid's or higher (roster.ideal_firsts, the user 2026-11-19)
 - `strong(line)`: -> (strong?, why)
 - `identify(candy, type_words, cp, hp, iv)`: renamed Pokémon: candidates from the candy's family, then the type line, then which ones CP and HP fit with that IV sum
 - `beaten(mine, others, n)`: keep when fewer than n others are strictly better (so a tie with last place keeps)
 - `pool_values(entries, shadow)`: (value, name, cp) for every tile in a search that has an IV name
 - `without_me(vals, mine, cp)`: the member shows up in its own pool: take one matching tile out (same value and CP)
 - `pct(v)`
-- `spots(sid, pool)`: final -> (how many of them to keep, its name, weak-line note) for this species' family
+- `final_name(f)`
+- `weak_slots(sid)`: the finals of this species' family whose every line is weak: they share one spot (WEAK)
+- `to_spots(sid, r)`: finals it can become -> the spots it can take: a weak final's is the family's one WEAK spot
+- `spots(sid, pool)`: spot -> (how many of them to keep, its name, weak-line note) for this species' family
 - `fill(order, caps)`: order: finals each Pokémon can become, best first
 - `fits(others, caps, mine, my_reach)`: others: (value, finals it can become, tile)
 - `spotless_shadows(sid, results, me)`: the family's other shadows that get no shadow spot, at their purified IV (84/96 -> 96): they could be purified too, so a shadow kept for its purified IV competes with …
@@ -1423,6 +1426,7 @@ Unattended /pvpc: works through the PvpC-tagged list in iPhone Mirroring with no
 - `boss_name(b)`
 - `real_boss(b)`: a boss like a 4-star raid's or higher (the user, 2026-11-16, for Reroll): legendary, mythical, Ultra Beast, mega or primal (no Tropius)
 - `raid_tops(ok, n, real=False, megas=True, pulls=COUNTERS)`: -> ({sid: [bosses]}, {sid in some top as itself}, Model): each non-special species ok(sid) lets in (tradeable.py: tradeable ones) in DialgaDex's top n against some raid …
+- `ideal_firsts(pulls=IDEAL)`: -> {sid: [bosses]}: the ideal raid team against every boss like a 4-star raid's or higher (real_boss), released or not, the same for every account (the user, 2026-11-19)
 - `attacker_name(a)`
 - `move_term(m)`
 - `family(model, t)`: -> [t, its earlier stages one search can count with it] (t first): the earlier stages whose copies all count for t and for nothing else (no attacker of their own, no …
@@ -1434,6 +1438,14 @@ Unattended /pvpc: works through the PvpC-tagged list in iPhone Mirroring with no
 - `cmd_count(model, resume)`
 - `report(model, counts, unsure, who, out_dir)`
 - `script(a, model)`
+- `main()`
+
+## skills/roster/sigmoves.py
+Signature moves not in GO yet (the user, 2026-11-19: future-proofing counts mainline moves too): a damaging move (not Z, not Max) that only one family learns in the main …
+
+- `key(s)`
+- `fetch(name, into)`
+- `build(moves, learnsets, dex, gm)`: -> [{num, forme, type, move}]: every learner of every signature move GO doesn't have
 - `main()`
 
 ## skills/trade/phone.py

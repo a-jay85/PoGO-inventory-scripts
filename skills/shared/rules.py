@@ -40,6 +40,7 @@ XLX_FOR = {TAKER: XLX_LEVEL, GIVER: XLX_LEVEL}  # by who'd get it: 4 Candy+ a po
 PVE_TOP = 6  # verdict.py's "raid" list: a traded copy would be this high against some raid boss in DialgaDex
 # HashTagAJay's pile (Leftovers), judged for CyrillJan or the user's wife's account, which is behind CyrillJan: "good
 # for any account" (the user, 2026-11-16). giver_species() in tradeable.py
+REROLL_ENOUGH = 5  # CyrillJan's Reroll: HashTagAJay holding this many 100s of a family needs no more (the user, 2026-11-20)
 REROLL_ML = 20  # Reroll: PvPoke's Master League top this many (or evolves into one)
 HARD_EGGS = ("10 km", "12 km")  # GIV: a family that hatches from these eggs (refresh keeps every one it has seen)
 HARD_TO_FARM = ("smeargle",)  # GIV: hard to farm too

@@ -241,17 +241,18 @@ META_OVER = load_meta()
 
 
 @lru_cache(None)
-def raid_firsts():
+def raid_firsts(megas=True):
     """{sid: [bosses]}: the species on the ideal raid team against some boss like a 4-star raid's or higher
-    (roster.ideal_firsts, the user 2026-11-19). A mega or a shadow counts as its species"""
+    (roster.ideal_firsts, the user 2026-11-19). A mega or a shadow counts as its species (megas=False: a mega doesn't)"""
     sys.path.append(os.path.join(HERE, "..", "roster"))
     import roster
-    return {s: bs for s, bs in roster.ideal_firsts().items() if s in SPECIES}
+    return {s: bs for s, bs in roster.ideal_firsts(megas=megas).items() if s in SPECIES}
 
 
-def strong(line):
+def strong(line, megas=True):
     """-> (strong?, why). Strong: some species in the line is a raid_firsts one (the user, 2026-11-19). Also strong:
-    gym defenders, pattern collections, and meta-overrides.txt's strong ones"""
+    gym defenders, pattern collections, and meta-overrides.txt's strong ones. megas=False: on the ideal team only as
+    its mega doesn't count (CyrillJan's Reroll: one 100 of a mega is enough, the user 2026-11-20)"""
     for s in line:
         if s in META_OVER:
             return META_OVER[s], f"{s} marked {'strong' if META_OVER[s] else 'weak'} by hand"
@@ -260,9 +261,10 @@ def strong(line):
             return True, f"{s} is a gym defender"
         if any(s.startswith(c) for c in COLLECT):
             return True, "pattern collection"
+    firsts = raid_firsts(megas)
     for s in line:
-        if s in raid_firsts():
-            bs = raid_firsts()[s]
+        if s in firsts:
+            bs = firsts[s]
             return True, f"{s} on the ideal team vs {', '.join(bs[:3])}" + (f" +{len(bs) - 3}" if len(bs) > 3 else "")
     return False, "no one in the line is on the ideal team against a 4-star raid boss or higher"
 

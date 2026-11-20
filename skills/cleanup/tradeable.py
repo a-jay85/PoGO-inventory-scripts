@@ -25,7 +25,8 @@ One tag each, the first that fits:
  1. Luckydex: HashTagAJay's newest lucky /dex run misses it, or an evolution of it (dex's gender and form rules).
  2. Reroll: a strong line (strong_lines: on the ideal raid team against some 4-star+ boss, /ivc's sort.strong, or a
     gym defender's line), or a new copy would be in HashTagAJay's own top 6 against some raid boss (/roster's
-    roster.json: #1 or #2-#6, the user 2026-11-19).
+    roster.json: #1 or #2-#6, the user 2026-11-19). Only for a 100 HashTagAJay still needs (the user, 2026-11-20): a
+    place won only as a mega doesn't count (one 100 of it is enough), nor a family HashTagAJay has 5 100s of.
  3. GIV: any of
     - a new 100 would fill a hole on HashTagAJay's ★100% page, itself or by evolving (dex.hundred_useful: a later
       stage on the page counts for the earlier ones, each missing branch wants its own copy, and only a 100 still in
@@ -82,7 +83,7 @@ import sizes
 from taps import Pass, owned, details
 from ivc import GYM_DEFENDERS
 from rules import (GIVER, TAKER, TAGS, XLX, OLD_XLX, TRANSFER, LUCKY_CANDY, XL_CAP, XLX_LEVEL, GIV_FOR_TAKER, XLX_FOR,
-    PVE_TOP, REROLL_ML, HARD_EGGS, HARD_TO_FARM, BY_HAND, SF_NATIVE, PVP_FLOOR, HARD_CANDY, BABIES, SPECIAL, NO_SPECIAL, DYNAMAX, UNDER_360_XL, TAG_SKIP, GUARANTEED,
+    PVE_TOP, REROLL_ML, REROLL_ENOUGH, HARD_EGGS, HARD_TO_FARM, BY_HAND, SF_NATIVE, PVP_FLOOR, HARD_CANDY, BABIES, SPECIAL, NO_SPECIAL, DYNAMAX, UNDER_360_XL, TAG_SKIP, GUARANTEED,
     LUCKY_YEAR, OLD, OLD_AGE)
 
 if ui.ANDROID:  # a look's shrink, save and OCR take 0.3-0.6 s, so at 0.3 most head-start shots were thrown away. The
@@ -350,24 +351,26 @@ def raid_tops(m, n=PVE_TOP, real=False, megas=True):
     return roster.raid_tops(m.tradeable, n, real=real, megas=megas)
 
 
-_STRONG = {}
+_STRONG = {}  # {megas: {sid: why}}
 
 
-def strong_lines(m):
+def strong_lines(m, megas=True):
     """-> {sid: why}: every species of m in a strong line (/ivc's sort.strong, the one copy of the rule: on the ideal
     raid team against some 4-star+ boss, released or not, or a gym defender's line). Not kept and not a special trade:
-    Reroll, on both accounts' piles (the user, 2026-11-19). verdict.py's strong-line shadows read it too"""
-    if not _STRONG:
+    Reroll, on both accounts' piles (the user, 2026-11-19). verdict.py's strong-line shadows read it too.
+    megas=False: a line on the ideal team only as a mega isn't strong (CyrillJan's Reroll, the user 2026-11-20)"""
+    if megas not in _STRONG:
         sys.path.append(os.path.join(HERE, "..", "ivc"))
         import sort
+        got_ = _STRONG[megas] = {}
         for s in m.by:
             if s not in sort.SPECIES:
                 continue
             for line in sort.family(s):
-                if s in line and (got := sort.strong(tuple(line)))[0]:
-                    _STRONG[s] = "strong line: " + got[1]
+                if s in line and (got := sort.strong(tuple(line), megas))[0]:
+                    got_[s] = "strong line: " + got[1]
                     break
-    return _STRONG
+    return _STRONG[megas]
 
 
 def pve(m, enough=lambda s, mega_only: False, n=PVE_TOP, **kw):
@@ -429,7 +432,10 @@ class NoData(Exception):
 
 def taker_species(m):
     """CyrillJan's pile, judged for HashTagAJay. Reroll: a strong line (strong_lines, the same rule as HashTagAJay's
-    pile), or a new copy would be in HashTagAJay's own top 6 against some raid boss (roster.json: #1 or #2-#6)
+    pile), or a new copy would be in HashTagAJay's own top 6 against some raid boss (roster.json: #1 or #2-#6).
+    CyrillJan trades only to HashTagAJay, so a Reroll is only for a 100 HashTagAJay still needs (the user, 2026-11-20):
+    a place won only as a mega counts for nothing (one 100 is enough there: the ★100% hole rule's GIV), and a family
+    HashTagAJay holds REROLL_ENOUGH 100s of gets none. Either can still get 2XL or GIV (candy, distance, ...)
     -> {"why": {sid: (tag, why)}, "lucky": {sid: gender term},
     "evolved": {sid: why}, "xl_full": {dex}, "from": {what: file}}. Shared by plan and ../shared/verdict.py"""
     lucky_missing, lucky_run = dex.latest("lucky", TAKER)  # (an evolve-lucky run counts too)
@@ -449,23 +455,32 @@ def taker_species(m):
 
     ok = [s for s in m.by if m.tradeable(s) and not m.special(s)]
     lucky = luckydex(m, set(lucky_missing))
-    reroll = {s for s in roster["reroll"] if s in m.by}
-    why = {}
-    for s in ok:
-        if s in lucky:
-            why.setdefault(s, ("Luckydex", "lucky dex hole"))
-    strong = strong_lines(m)
-    for s in ok:
-        if s in strong:
-            why.setdefault(s, ("Reroll", strong[s]))
-        elif s in reroll:
-            why.setdefault(s, ("Reroll", "#1 raid attacker: " + ", ".join(roster["species"][s]["bosses"][:3])))
-        elif s in roster["giv"]:  # (was GIV: #2-#6 is a Reroll too, the user 2026-11-19)
-            why.setdefault(s, ("Reroll", "#2-#6 raid attacker"))
+    if "reroll_plain" not in roster:
+        raise NoData(f"{roster_f} is from before megas were split out: python3 ../roster/roster.py report "
+                     f"{os.path.join(os.path.dirname(roster_f), 'counts.json')}")
+    reroll = {s for s in roster["reroll_plain"] if s in m.by}
     hund_owned = dex.owned_100(hund_run)
     if hund_owned is None:  # (the page alone would count 100s gone since as copies: the Magnemite of 2026-11-19)
         raise NoData(f"the newest ★100% /dex run of {TAKER} has no count of its 100s yet: "
                      f"POGO_PHONE=android python3 ../dex/dex.py evolve 100, signed in as {TAKER}")
+    fam_100 = Counter()
+    for s, n in hund_owned.items():
+        if s in m.by:
+            fam_100[m.root(s)] += n
+    why = {}
+    for s in ok:
+        if s in lucky:
+            why.setdefault(s, ("Luckydex", "lucky dex hole"))
+    strong = strong_lines(m, megas=False)
+    for s in ok:
+        if fam_100[m.root(s)] >= REROLL_ENOUGH:
+            continue  # (HashTagAJay has enough 100s of the family: no Reroll)
+        if s in strong:
+            why.setdefault(s, ("Reroll", strong[s]))
+        elif s in reroll:
+            why.setdefault(s, ("Reroll", "#1 raid attacker: " + ", ".join(roster["species"][s]["bosses"][:3])))
+        elif s in roster["giv_plain"]:  # (was GIV: #2-#6 is a Reroll too, the user 2026-11-19)
+            why.setdefault(s, ("Reroll", "#2-#6 raid attacker"))
     hund = dex.hundred_useful(set(hund_missing), hund_owned, m.by, m.parent)
     low = {m.root(s) for s in m.by if m.dex(s) in read["lucky_low_candy"]}
     for s in ok:

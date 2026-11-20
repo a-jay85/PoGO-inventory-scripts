@@ -860,7 +860,7 @@ Tag CyrillJan's Tradeable saved search by what a trade to HashTagAJay is worth, 
 - `cmd_read(resume=None)`: resume: a stopped run's searches.json, so its searches aren't typed again
 - `newest_for(pattern, who, key='trainer', default=None)`: the newest runs/<pattern> json whose key is who (one without the key counts as default's)
 - `raid_tops(m, n=PVE_TOP, real=False, megas=True)`: -> ({sid: [bosses]}, {sid in some top as itself}, roster.Model): roster.raid_tops over the tradeable species (real: 4-star raid bosses or higher; megas=False: a mega …
-- `strong_lines(m)`: -> {sid: why}: every species of m in a strong line (/ivc's sort.strong, the one copy of the rule: on the ideal raid team against some 4-star+ boss, released or not, or a …
+- `strong_lines(m, megas=True)`: -> {sid: why}: every species of m in a strong line (/ivc's sort.strong, the one copy of the rule: on the ideal raid team against some 4-star+ boss, released or not, or a …
 - `pve(m, enough=lambda s, mega_only: False, n=PVE_TOP, **kw)`: -> ({sid: why}, {sid: why dropped}): a traded copy (never shadow) would be in DialgaDex's top n against some raid boss, or evolve into one that is
 - `queries(m, sids, gender=None, room=40)`: species forms -> ['&<dexes><form terms>', ...], each under MAX_SUFFIX characters with room left for the tag terms
 - `evolved_giv(m, ok, why, hard)`: -> {sid: why} for the GIV (evolved) rule: stage 2, a hard stage 1 (hard: giv-evolved-<date>.json) or a gym defender, of the ok ones not in why
@@ -1265,8 +1265,8 @@ Rules for /ivc: which IVC Pokémon to keep (favorite + untag) and which to send 
 - `can_mega(sid)`
 - `top_n(line)`
 - `load_meta()`: the hand overrides (meta-overrides.txt: 'strong <sid>' or 'weak <sid>')
-- `raid_firsts()`: {sid: [bosses]}: the species on the ideal raid team against some boss like a 4-star raid's or higher (roster.ideal_firsts, the user 2026-11-19)
-- `strong(line)`: -> (strong?, why)
+- `raid_firsts(megas=True)`: {sid: [bosses]}: the species on the ideal raid team against some boss like a 4-star raid's or higher (roster.ideal_firsts, the user 2026-11-19)
+- `strong(line, megas=True)`: -> (strong?, why)
 - `identify(candy, type_words, cp, hp, iv)`: renamed Pokémon: candidates from the candy's family, then the type line, then which ones CP and HP fit with that IV sum
 - `beaten(mine, others, n)`: keep when fewer than n others are strictly better (so a tie with last place keeps)
 - `pool_values(entries, shadow)`: (value, name, cp) for every tile in a search that has an IV name
@@ -1434,12 +1434,12 @@ Unattended /pvpc: works through the PvpC-tagged list in iPhone Mirroring with no
   - `branches(self)`: each earlier stage -> the one later stage its copies count for: the one on the most boss lists
   - `pools(self, i)`: the piles of copies attacker i can take a copy from, its own first
   - `team(self, boss, counts, extra=None, need=None)`: -> [(attacker index, rating)] best first
-  - `helps(self, counts)`: species -> (best place a new copy would get, the bosses where it gets that place)
+  - `helps(self, counts, megas=True)`: species -> (best place a new copy would get, the bosses where it gets that place)
   - `worth(self, counts, margin)`: species -> [(boss, why)] where one more copy (never shadow) would matter to these counts' teams: it gets into the 6 (helps), or its own rating comes within `margin` of …
 - `boss_name(b)`
 - `real_boss(b)`: a boss like a 4-star raid's or higher (the user, 2026-11-16, for Reroll): legendary, mythical, Ultra Beast, mega or primal (no Tropius)
 - `raid_tops(ok, n, real=False, megas=True, pulls=COUNTERS)`: -> ({sid: [bosses]}, {sid in some top as itself}, Model): each non-special species ok(sid) lets in (tradeable.py: tradeable ones) in DialgaDex's top n against some raid …
-- `ideal_firsts(pulls=IDEAL)`: -> {sid: [bosses]}: the ideal raid team against every boss like a 4-star raid's or higher (real_boss), released or not, the same for every account (the user, 2026-11-19)
+- `ideal_firsts(pulls=IDEAL, megas=True)`: -> {sid: [bosses]}: the ideal raid team against every boss like a 4-star raid's or higher (real_boss), released or not, the same for every account (the user, 2026-11-19)
 - `attacker_name(a)`
 - `move_term(m)`
 - `family(model, t)`: -> [t, its earlier stages one search can count with it] (t first): the earlier stages whose copies all count for t and for nothing else (no attacker of their own, no …

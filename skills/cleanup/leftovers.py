@@ -3,7 +3,8 @@
 wife's account, which is further behind: good for any account, the user 2026-11-16).
 
   POGO_PHONE=android caffeinate -dimsu python3 leftovers.py [--limit N]   from either account
-  POGO_PHONE=android caffeinate -dimsu python3 leftovers.py again GIV|Transfer [--limit N]   re-judge a tag pile
+  POGO_PHONE=android caffeinate -dimsu python3 leftovers.py again GIV|Transfer [--as CyrillJan] [--and Q] [--limit N]
+                                          re-judge a tag pile
 
 Signed in as someone else on the Pixel, it switches to HashTagAJay first (../shared/account.py) and goes on.
 
@@ -26,6 +27,9 @@ again GIV|Transfer: HashTagAJay's #GIV or #Transfer pile, each one judged again 
 Left out: legendary, mythical, Ultra Beast, Gigantamax (special trades: by hand) and ones with IVC or PvpC too (/ivc
 or /pvpc judge those). Each one judged is written to runs/again-done.json under the rules' hash, so a rerun, or the
 other pile's walk, passes over it (new rules: judged again).
+--as CyrillJan: CyrillJan's pile instead, judged for HashTagAJay (tradeable.py's rules: the user, 2026-11-20). --and Q:
+only the ones that also fit Q ('&'-joined after the pile's search), for a pile too big to walk whole. Q must not end in
+a count term (countcandy...): the door adds its own terms after it, and a count term eats what follows.
 """
 import json, os, sys
 from collections import Counter
@@ -73,19 +77,20 @@ def again_done():
         return {}
 
 
-def cmd_again(tag, limit):
-    """each one in #tag judged again at the door: the pile's tag off, the verdict's on -> Counter of what happened"""
+def cmd_again(tag, limit, owner=TAKER, narrow=""):
+    """each one in owner's #tag (and narrow, when given) judged again at the door: the pile's tag off, the verdict's on
+    -> Counter of what happened"""
     import door, search
     from ivc import GYM_DEFENDERS  # noqa: F401 (verdict, loaded by Door, needs /ivc on the path)
     base.new_run_dir(os.path.join(HERE, "runs"), suffix=f"again-{tag.lower()}")
     who = home.trainer()
-    if who != TAKER:
+    if who != owner:
         if not ui.ANDROID:  # account.py signs in on the Pixel only
-            raise Stop(f"signed in as {who!r}: again is for {TAKER}'s piles")
-        log(f"signed in as {who!r}: switching to {TAKER}")
-        who = account.switch(TAKER)
+            raise Stop(f"signed in as {who!r}: this again is for {owner}'s piles")
+        log(f"signed in as {who!r}: switching to {owner}")
+        who = account.switch(owner)
     home.start()
-    scope = f"#{tag}{AGAIN_SKIP}"
+    scope = f"#{tag}{AGAIN_SKIP}" + (f"&{narrow.lstrip('&')}" if narrow else "")
     gate = door.Door(tag, scope=scope, account=who, rank_gym=True)  # no find: the pile's own tag comes off
     key = f"{who}|{door.RULES}"  # both piles: one GIV just moved to Transfer isn't opened again in the Transfer walk
     memo = again_done()
@@ -129,6 +134,9 @@ if __name__ == "__main__":
     if a and a[0] == "again":
         if len(a) < 2 or a[1] not in PILES:
             sys.exit(__doc__)
-        session.main(cmd_again, a[1], session.limit(a))
+        owner = a[a.index("--as") + 1] if "--as" in a else TAKER
+        if owner not in (GIVER, TAKER):
+            sys.exit(__doc__)
+        session.main(cmd_again, a[1], session.limit(a), owner, a[a.index("--and") + 1] if "--and" in a else "")
     else:
         session.main(cmd_door, session.limit(a))

@@ -9,7 +9,7 @@ no odd size, level 20, caught nearby, its gym top 20 out. HashTagAJay's Candy an
 Pokémon database (../shared/pokedb.py: what the scripts read last); a family it has no count for counts as 360+ XL
 and plenty of Candy (most of HashTagAJay's are). So the species rules decide: Reroll, GIV (raid top 6, stage 2, hard
 evolutions, egg families, gym lines, trade evolutions, costly lines, short of Candy for Dynamax), 2XL (under 360 XL),
-or Transfer. No appraisal, no power-up cost, no page read: the IV and level rules (98%+, XLX) don't run.
+or Transfer. No appraisal, no power-up cost, no page read: the IV and level rules (98%+, GIV at level 26+) don't run.
 
 Left as they are, out of every search: ones a rule before the species rules decides (traded, lucky, shadow, shiny,
 costume, background, XXL, XXS, Dynamax, Gigantamax, caught 300+ days ago or in 2016-2020, special trades), ones with

@@ -25,7 +25,8 @@ ALWAYS_KEEP = 44  # IV sum of 98%: 98% and 100% (a shadow: once purified) never 
 
 GIVER, TAKER = "CyrillJan", "HashTagAJay"  # Tradeable is the giver's; the taker's dex, candy and XL decide
 TAGS = ["Luckydex", "Reroll", "GIV"]  # by species, in this order
-XLX = "XLX"
+XLX = "GIV"  # the tag a level 26+ one gets (XLX_LEVEL). It was its own tag, XLX, till the user folded it into GIV
+OLD_XLX = "XLX"  # (2026-11-19): every #XLX was retagged GIV on both phones. Still taken off wherever it shows up
 LUCKY_CANDY = 348  # under this, a lucky one of the family wants a new copy's candy
 XL_CAP = 360
 DMAX_CANDY = 2500  # one that can Dynamax (not a Dynamax one): GIV while its account has this much Candy or less, or
@@ -55,7 +56,7 @@ SPECIAL = ("legendary", "mythical", "ultrabeast")  # special trades by species: 
 NO_SPECIAL = "&!gigantamax&!shiny&!xxl" + "".join(f"&!{t}" for t in SPECIAL)  # (xxl: kept, tradeable.keep_xxl_ones)
 DYNAMAX = "&dynamax&!traded"  # evolved GIV too
 NEVER_TRADE = "&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&"  # the user's: Luckydex never trades these
-OLD, OLD_AGE = "Old", "&age300-"  # caught 300+ days ago: after Luckydex, before Reroll, GIV and XLX (verdict.py)
+OLD, OLD_AGE = "Old", "&age300-"  # caught 300+ days ago: after Luckydex, before Reroll and GIV (verdict.py)
 # verdict.py, HashTagAJay only, after Old: medal ones (by weight, read on the detail page) -> GIV, for any other account.
 # The Youngster medal counts tiny Rattata (any region), the Fisherman medal big Magikarp
 MEDALS = [("Rattata", "&19&xxs,xs", lambda kg: kg <= 2.41), ("Magikarp", "&129", lambda kg: kg >= 13.13)]

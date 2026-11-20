@@ -17,7 +17,7 @@
 
 The species lists and the order here are also ../shared/verdict.py's: /ivc and /pvpc judge a Pokémon that
 isn't a keeper with them (the door, no Nope). giver_species() is the other side, HashTagAJay's pile (leftovers.py),
-judged for any account: Reroll, GIV, XLX (level 26+), GIV (evolved, 10/12 km eggs, Smeargle); regionals and Spinda
+judged for any account: Reroll, GIV, GIV (level 26+), GIV (evolved, 10/12 km eggs, Smeargle); regionals and Spinda
 by hand (its docstring has the rules). MEDALS (a tiny Rattata, a big Magikarp: GIV for any account's medals) are the
 door's too, on HashTagAJay.
 
@@ -32,10 +32,10 @@ One tag each, the first that fits:
       storage counts as a copy: the /dex run's owned-100.json)
     - PvPoke top 100 in Great, Ultra or Master League, with every rank 1 IV 5 or more (pvp-giv-<date>.json)
     - HashTagAJay has a lucky one of the family and under 348 candy (read)
- 4. XLX: a power-up costs 4 Candy or more (level 26+: 4,000 Stardust with 4 Candy, or 4,500+). Read one by one in the power-up dialog.
+ 4. GIV at level 26+ (was XLX, the user 2026-11-19): a power-up costs 4 Candy or more (level 26+: 4,000 Stardust with 4 Candy, or 4,500+). Read one by one in the power-up dialog.
  5. GIV (evolved): a stage 2 (a baby isn't a stage), or a stage 1 that takes 100+ candy, a quest or an item to
     evolve into, or one GO can't evolve into yet (Kleavor, Alolan Marowak) (giv-evolved-<date>.json). Also gym
-    defenders (/ivc's GYM_DEFENDERS) and untraded Dynamax ones. Tagged after the XLX walk.
+    defenders (/ivc's GYM_DEFENDERS) and untraded Dynamax ones. Tagged after the level 26+ walk.
  6. GIV (far): never traded and caught 100 km or more away ('distance100-'), and no other tag fits.
  7. Transfer: everything else, but a never-traded XXS one gets renamed xxs and tagged IVC (sizes.py)
     (a never-traded trade evolution gets Transfer here: HashTagAJay doesn't need the XP, 2026-11-02).
@@ -55,7 +55,7 @@ read.json and pvp-giv (no plan step; `plan` only shows them). A rerun within 12 
 tag (CyrillJan): the saved search 'Tradeable' + each tag search (bulk_searches, in verdict.py's order: GuaranteedLucky,
 Luckydex, Old, 2XL, Reroll, GIV) -> long press, SELECT ALL, tag. A lucky, costume or background one or a gym defender
 skips the tag searches and goes to the door (rules.TAG_SKIP). tests/taggers.py checks these against verdict.py. Then each one left is
-opened for XLX and power-ups, then the rest go through the door one by one (../shared/door.py: their final tag, or
+opened for GIV (level 26+) and power-ups, then the rest go through the door one by one (../shared/door.py: their final tag, or
 left as they are and listed as not sure). Log in runs/<time>-tag/.
 
 Data first: refresh, then read (HashTagAJay), plus HashTagAJay's newest lucky and ★100% /dex runs and /roster's roster.json.
@@ -81,7 +81,7 @@ import savedsearch
 import sizes
 from taps import Pass, owned, details
 from ivc import GYM_DEFENDERS
-from rules import (GIVER, TAKER, TAGS, XLX, TRANSFER, LUCKY_CANDY, XL_CAP, XLX_LEVEL, GIV_FOR_TAKER, XLX_FOR,
+from rules import (GIVER, TAKER, TAGS, XLX, OLD_XLX, TRANSFER, LUCKY_CANDY, XL_CAP, XLX_LEVEL, GIV_FOR_TAKER, XLX_FOR,
     PVE_TOP, REROLL_ML, HARD_EGGS, HARD_TO_FARM, BY_HAND, PVP_FLOOR, HARD_CANDY, BABIES, SPECIAL, NO_SPECIAL, DYNAMAX, UNDER_360_XL, TAG_SKIP, GUARANTEED,
     LUCKY_YEAR, OLD, OLD_AGE)
 
@@ -409,7 +409,7 @@ def queries(m, sids, gender=None, room=40):
 
 def evolved_giv(m, ok, why, hard):
     """-> {sid: why} for the GIV (evolved) rule: stage 2, a hard stage 1 (hard: giv-evolved-<date>.json) or a gym
-    defender, of the ok ones not in why. Tagged GIV only after the XLX walk: XLX wins over these"""
+    defender, of the ok ones not in why. Tagged GIV only after the level 26+ walk: that one wins over these"""
     out = {}
     for s in ok:
         if s not in why:
@@ -515,9 +515,9 @@ def cmd_plan(to=TAKER):
         lines += [f"- {m.by[s]['speciesName']} (#{m.dex(s)}): {r}"
                   for s, (w, r) in sorted(why.items(), key=lambda x: m.dex(x[0])) if w == t]
         lines += ["", "Searches (after the Tradeable search):", ""] + [f"    {q}" for q in plan["tags"][t]] + [""]
-    lines += [f"## GIV (evolved, only after XLX): {len(evolved)} species forms", "",
+    lines += [f"## GIV (evolved, only after the level 26+ walk): {len(evolved)} species forms", "",
               "Stage 2, a stage 1 that takes 100+ candy, a quest or an item, a gym defender, or (the last search) an "
-              "untraded Dynamax one. Tagged after the XLX walk, so a level 26+ one gets XLX instead. Special trades "
+              "untraded Dynamax one. Tagged after the level 26+ walk, so a level 26+ one gets GIV there first. Special trades "
               "(Legendary, Mythical, Ultra Beast, shiny, Gigantamax) get no tag at all: they're for you to trade.", ""]
     lines += [f"- {m.by[s]['speciesName']} (#{m.dex(s)}): {r}" for s, r in sorted(evolved.items(), key=lambda x: m.dex(x[0]))]
     lines += ["", f"Searches (after the Tradeable search, with {EVOLVED_REST}):", ""]
@@ -559,7 +559,7 @@ def giver_species(m):
       Reroll: a new 100 is worth having: a strong line (strong_lines), DialgaDex's top PVE_TOP against a boss like a
         4-star raid's or higher (real_boss; #2-#6 was GIV, the user 2026-11-19), or PvPoke's Master League top REROLL_ML
         (each with the earlier stages that evolve into it)
-      hard (GIV, after 2XL and XLX): the family of a 10 or 12 km egg hatch (refresh's eggs-<date>.json), Smeargle, and
+      hard (GIV, after 2XL and the level 26+ GIV): the family of a 10 or 12 km egg hatch (refresh's eggs-<date>.json), Smeargle, and
         a gym defender's line (/ivc's GYM_DEFENDERS and what evolves into them: a potential top gym defender for an
         account with fewer, the user 2026-11-16)
       dmax: what dmax_need says (a Dynamax one, or one that can Dynamax while this account is short: verdict.py)
@@ -592,7 +592,7 @@ def giver_species(m):
             hard.update({x: f"{km} egg ({m.by[s]['speciesName']})" for x in m.family(s) if x in ok and x not in hard})
     for s in HARD_TO_FARM:
         hard.update({x: "hard to farm" for x in m.family(s) if x in ok and x not in hard})
-    for s in sorted(GYM_DEFENDERS):  # (after 2XL and XLX, the user 2026-11-16)
+    for s in sorted(GYM_DEFENDERS):  # (after 2XL and the level 26+ GIV, the user 2026-11-16)
         hard.update({x: "a gym defender's line: a top one for an account with fewer" for x in m.family(s)
                      if x in ok and x not in hard})
     by_hand = set()
@@ -610,13 +610,13 @@ def giver_species(m):
 # every tag search and walk leaves special trades out: the user trades them by hand
 NOT_TAGGED = NO_SPECIAL + "".join(f"&!#{t}" for t in TAGS)
 BULK = NOT_TAGGED + TAG_SKIP  # what a tag search may touch: TAG_SKIP's ones wait for the door
-REST = NOT_TAGGED + f"&!#{XLX}&!#{TRANSFER}"  # not tagged yet
+REST = NOT_TAGGED + f"&!#{TRANSFER}"  # not tagged yet (a level 26+ one gets GIV: NOT_TAGGED leaves it out)
 EVOLVED_REST = REST + "&traded,!xxs"  # and not a never-traded XXS one (those get IVC)
 BULK_REST = EVOLVED_REST + TAG_SKIP
 
 
 def size_search(size):
-    """a never-traded XXS one is renamed and tagged IVC, never XLX or Transfer"""
+    """a never-traded XXS one is renamed and tagged IVC, never GIV or Transfer"""
     return REST + TAG_SKIP + f"&!#{sizes.IVC}&!traded&{size}"
 
 
@@ -658,22 +658,22 @@ def level_of(info, texts):
 
 
 def walk(suffix, xlx, power, limit, skip_dex=(), unsure=None):
-    """open each one in the pile + suffix: xlx -> tag it XLX if it's XLX_LEVEL+ (the ones it can't tell go in unsure).
+    """open each one in the pile + suffix: xlx -> tag it GIV if it's XLX_LEVEL+ (the ones it can't tell go in unsure).
     power -> cleantrades' power-up, not for a family in skip_dex. -> power-ups made, or None if --limit stopped it"""
     if not run_pile(suffix):
         return 0
     done = 0
     for info, texts, bounds, seen in details():
         base.OPENED["who"] = base.who(info)  # the swipe moved here on purpose: set_tags checks against this one
-        checked = not xlx  # its level is known to be under 26, or it's tagged XLX
+        checked = not xlx  # its level is known to be under 26, or it's tagged GIV for it
         try:
             if xlx:
                 lvs = level_of(info, texts)
                 if lvs and min(lvs) >= XLX_LEVEL:
-                    base.set_tags(on=(XLX,))
+                    base.set_tags(on=(XLX,), off=(OLD_XLX,))
                     checked = True
-                    log(f"XLX {info['name']} CP{info['cp']}: level {lvs}")
-                    raise Pass("tagged XLX")
+                    log(f"{XLX} {info['name']} CP{info['cp']}: level {lvs}")
+                    raise Pass(f"tagged {XLX} (level {XLX_LEVEL}+)")
                 if not lvs or max(lvs) >= XLX_LEVEL:
                     raise Pass(f"level {lvs or '?'} ({powerup.page_cost(texts)} dust): can't tell if it's {XLX_LEVEL}+, "
                                f"left for a look by hand")
@@ -792,7 +792,7 @@ def cmd_tag(limit):
         sizes.walk(lambda: run_pile(q), size, 10 ** 9)
     rest = BULK_REST  # (one passed over there stays out of Transfer too)
     unsure, power_ok = [], True
-    # power-ups for the tagged ones (the taker transfers them), then XLX and power-ups for the rest
+    # power-ups for the tagged ones (the taker transfers them), then GIV (level 26+) and power-ups for the rest
     walks = [(traded, False, True, set(plan["taker_xl_full"])), (rest + UNDER_360_XL, True, True, ()),
              (rest + f"&countcandyxl{XL_CAP}-", True, False, ())]
     for suffix, xlx, power, skip in walks:
@@ -806,7 +806,7 @@ def cmd_tag(limit):
             except Stop as e:
                 if "Stardust" not in str(e) or not power_ok:
                     raise
-                log(f"stopped powering up: {e}. Going on with XLX only")
+                log(f"stopped powering up: {e}. Going on with the level 26+ GIV only")
                 power_ok = False
                 del unsure[n:]  # this walk starts over
                 if look()[0] != "list":

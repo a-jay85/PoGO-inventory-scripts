@@ -15,15 +15,15 @@ that's missing, gives unsure, never Transfer.
 
 The order is tradeable.py's (its docstring has the reasons), judged for the other account, the one it would be traded
 to. Signed in as CyrillJan (the pile goes to HashTagAJay):
-  GuaranteedLucky > Luckydex > Old > 2XL (a raid attacker's line or a Dynamax one) > Reroll > GIV > xxs > XLX > GIV
+  GuaranteedLucky > Luckydex > Old > 2XL (a raid attacker's line or a Dynamax one) > Reroll > GIV > xxs > GIV (level 26+) > GIV
   (evolved, Dynamax, Tandemaus) > GIV (far) > GIV (can Dynamax, account short of candy) > Transfer
 Signed in as HashTagAJay (the pile goes to CyrillJan or the user's wife's account, judged for any account):
-  regional or Spinda: unsure (by hand) > GuaranteedLucky > Old > GIV (medal) > 2XL > Reroll > GIV > xxs > XLX >
+  regional or Spinda: unsure (by hand) > GuaranteedLucky > Old > GIV (medal) > 2XL > Reroll > GIV > xxs > GIV (level 26+) >
   GIV (evolved, 10/12 km egg family, Smeargle, gym defender line, Dynamax) > GIV (trade evolution) > GIV (far) >
   GIV (can Dynamax, account short of candy) > Transfer
   (Reroll: a strong line (tradeable.strong_lines: on the ideal raid team, or a gym defender's line), DialgaDex top 6
-  vs some 4-star+ boss, Master League top 20. XLX at level 26+ both ways: giver_species())
-A Dynamax one (both accounts): 2XL, XLX, then GIV. One that only can Dynamax (or evolves into one that can) gets GIV
+  vs some 4-star+ boss, Master League top 20. GIV at level 26+ both ways (was XLX, the user 2026-11-19): giver_species())
+A Dynamax one (both accounts): 2XL, then GIV (level 26+, then the rest). One that only can Dynamax (or evolves into one that can) gets GIV
 while the account holding it has rules.DMAX_CANDY Candy or less, or XL_CAP + all three Max Moves' Candy XL or less, of
 the family (dmax_short, the user 2026-11-16). With more of both and no other rule, Transfer
 Before all of them: a special trade (special(): the user, 2026-11-19), a traded one (Transfer), an untraded
@@ -59,7 +59,7 @@ from base import ALWAYS_KEEP  # an IV sum of 98%+ never loses its star
 import tradeable as tr  # builds the species lists
 import rules  # the numbers and lists: one copy, there
 import search  # dexes_of, dex_numbers
-from rules import GIVER, TAKER, XL_CAP, XLX_FOR
+from rules import GIVER, TAKER, XL_CAP, XLX, XLX_FOR, OLD_XLX
 from ivc import GYM_DEFENDERS, make_name as ivc_name
 from rules import NAMES as SIZE_NAMES  # a never-traded XXS one gets this name and IVC
 from rules import xxl_off
@@ -325,7 +325,7 @@ def usual(f, t, today=None):
     if not f.levels or min(f.levels) < XLX_FOR[to] <= max(f.levels):
         return unsure(f"level {f.levels or '?'}: can't tell if it's {XLX_FOR[to]}+")
     if min(f.levels) >= XLX_FOR[to]:
-        return tag("XLX", why=f"level {min(f.levels)}+")
+        return tag(XLX, why=f"level {min(f.levels)}+", off=(OLD_XLX,))
 
     if sid in t["evolved"]:
         return tag("GIV", why=t["evolved"][sid])
@@ -385,7 +385,7 @@ def dmax_short(f, t, sid):
 def two_xl(f, t, sid):
     """2XL (a Friendship Friday trade: a sure 2 Candy XL) when this account has under XL_CAP Candy XL of the family.
     The same rule costume or not (the user, 2026-11-02). On CyrillJan only a raid attacker's line gets it: those need
-    XL for their top levels, and a Dynamax one (Max Moves cost Candy XL: 2XL, then XLX, then GIV, the user 2026-11-16).
+    XL for their top levels, and a Dynamax one (Max Moves cost Candy XL: 2XL, then GIV at level 26+, then GIV, the user 2026-11-16).
     Never an xxs one (an XXL one never gets here). -> Verdict, or None for the next rule"""
     raid = t["raid_self"] if dead_end(f, sid) else t["raid"]
     if f.size in ("xxl", "xxs") or (f.account == GIVER and sid not in raid and not f.dynamax):
@@ -403,7 +403,7 @@ def transfer(f, sid, why, off=(), purify=False, clear=False):
       one that evolves free once traded (TRADE_EVOS) -> GIV, signed in as HashTagAJay only (it goes to EVO_FOR,
       who wants the XP; HashTagAJay doesn't, the user 2026-11-02). A shadow can't be traded: it never is
       one whose family has an evolution over 100 candy (COSTLY_LINES: Magikarp, Snom, Noibat, ...) -> GIV, either
-      account (the user, 2026-11-12). Not a shadow, and not a trade evolution on EVO_FOR (that rule stays). XLX and
+      account (the user, 2026-11-12). Not a shadow, and not a trade evolution on EVO_FOR (that rule stays). GIV at 26+ and
       every other rule come before this, as before
     The size comes first, as in final_tag's order. A size that didn't read gives unsure, never Transfer"""
     if not f.traded:

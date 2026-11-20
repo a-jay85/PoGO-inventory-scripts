@@ -62,7 +62,11 @@ Amend only when fixing the commit just made in this conversation and it isn't pu
 
 ## In-game searches
 
-Before typing or building a storage search, read `skills/shared/SEARCH.md` (live at `~/PoGO-inventory-scripts/skills/shared/SEARCH.md`). It lists every search term, how `&` `,` `!` combine, and the known bugs. Prefer a tighter search over scanning more tiles.
+Any job that touches more than one Pokémon starts with the search that finds them all. Write that search first, before any plan that opens tiles one by one. Then tag the whole result at once with `savedsearch.tag_pile` (long press, SELECT ALL, tag). Open tiles only for what no search term can tell (exact IVs, a read pokedb doesn't have yet), and only the tiles that search found. Prefer a tighter search over scanning more tiles.
+
+Every search term, how `&` `,` `!` combine, and the known bugs are in `skills/shared/SEARCH.md`. It loads into every session from the line below:
+
+@skills/shared/SEARCH.md
 
 ## Seeing the phone
 

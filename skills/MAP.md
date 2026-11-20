@@ -409,7 +409,7 @@ Powering one Pokémon up: its level from the page and the dialog, and the cheap 
 - `fits(c, rows)`: does this (species, IVs, level) give every dialog row (n power-ups, CP after, total dust)?
 - `is_lucky(texts)`
 - `steps(cands, plays=PLAYS)`: power-ups each possible level needs to reach its XL tier (None: not a play)
-- `power_up(info, texts, levels=None, known=None)`: 1-2 power-ups (up to 4 for a lucky one) if this one sits right under an XL tier (PLAYS, LUCKY_PLAYS)
+- `power_up(info, texts, levels=None, known=None)`: 1-2 power-ups (up to 4 for a lucky one) if this one sits right under an XL tier (PLAYS, LUCKY_PLAYS, SHADOW_PLAYS)
 
 ## skills/shared/pvp.py
 The game master (PvPoke's gamemaster.json): base stats, CP and HP, the level from IVs, CP and HP (level_of), evolutions, and PvP ranks and nicknames
@@ -592,6 +592,7 @@ Go through a step's motions on the phone and time them, changing nothing: for sp
 
 - `tags(T, n)`
 - `cost(n, q=None)`
+- `plays(n, q=None)`
 - `appraise(n)`: open_appraisal, the bars read, the tap that closes it, and the detail page steady again: the appraisal steps of /ivc's names.read (C3-C6 in …
 - `listread(q, n, dist=None, settle=None)`
 - `main(a)`

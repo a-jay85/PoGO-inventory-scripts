@@ -203,8 +203,10 @@ def tile_names(texts):
 
 # ---------- search ----------
 
-def settled_tiles():
-    last = None
+def settled_tiles(texts=None):
+    """the list's tiles [(name, cp)] once two looks in a row agree. texts: a look of this list taken just now (a
+    search's results): it counts as the first, so one new look can confirm it (~0.75 s less a search, Pixel)"""
+    last = [(ui.tile_name(n), c) for n, c, _, _ in ui.tiles(texts)] if texts and ui.classify(texts) == "list" else None
     for _ in range(12):
         time.sleep(base.short_wait(0.25))
         screen, texts, path, bounds = look()

@@ -368,7 +368,7 @@ def start(storage=True):
                 return "map"
             # the map can carry too much text to be told apart (a banner): its Poké Ball opens the menu
             search.click(0.5 + random.uniform(-0.01, 0.01), 0.928 + random.uniform(-0.004, 0.004), ui.capture()[1])
-            time.sleep(random.uniform(1.5, 2.0))
+            time.sleep(1.5)
         elif screen == "rename":  # an earlier run cut off mid-name: nothing's saved until OK
             log("a nickname box was left open: canceling it")
             base.go("CANCEL", "detail")

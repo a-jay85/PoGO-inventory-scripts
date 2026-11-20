@@ -264,9 +264,9 @@ def favorite(info, texts, among):
     return off
 
 
-PAGE_SETTLE = (0.25, 0.35)  # Android, seconds after a drag of the detail page (0.7-0.9 by default): adb's drag pauses
+PAGE_SETTLE = 0.25  # Android, seconds after a drag of the detail page (0.7-0.9 by default): adb's drag pauses
 # before it lifts, so the page hardly glides, and each caller reads until it sees the date or the top (2026-11-09)
-IOS_PAGE_SETTLE = (0.4, 0.5)  # iPhone, the same (was 0.7-0.9): helper.swift's drag also holds still before it lifts,
+IOS_PAGE_SETTLE = 0.4  # iPhone, the same (was 0.7-0.9): helper.swift's drag also holds still before it lifts,
 # but the mirrored picture runs a little behind the phone, so a bit more than the Pixel (2026-11-10)
 
 

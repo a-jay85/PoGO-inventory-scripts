@@ -174,7 +174,7 @@ The shared tapper: screen reading, taps, timing, run folders and logging, and th
 - `narrow(sp, ivs, cp, hp)`: the species it could be, once the appraisal's IVs are known: only those where they give this CP and HP (Beldum or Metang)
 - `species_from_candy(texts, cp, hp)`: for a Pokémon whose name isn't its species (a nickname): the line from the candy name, the forms in it with the types shown, and of those the ones that can have this CP …
 - `dynamax(texts)`
-- `drag(fx, fy, tx, ty, bounds, ms=None, settle=(0.7, 0.9), android_settle=None, bring_front=True, …)`: a finger drag from (fx, fy) to (tx, ty), window fractions, then wait for it to stop moving
+- `drag(fx, fy, tx, ty, bounds, ms=None, settle=0.7, android_settle=None, bring_front=True, …)`: a finger drag from (fx, fy) to (tx, ty), window fractions, then wait for it to stop moving
 - `open_tile(i)`: tap the tile. Now and then the detail opens already scrolled down to the moves: drag it back to the top, starting on the weight (no button there). A Pokémon defending a …
 - `open_appraisal(again=True)`: from the detail screen to the appraisal, its bars showing
 - `skip_intro(texts, path, bounds)`: the gym leader's first box ('...check out your Mareep?'): nothing on it the appraisal doesn't show
@@ -635,7 +635,7 @@ Shared taps: the swipe to the next Pokémon, SELECT ALL, an exact search, the St
 - `reopen_top()`: one that was changed drops out of the search, and the swipe stops working: back to the list, open the top one again
 - `select_all(button, n, poll=0.15)`: long press the first tile (multi-select), then SELECT ALL, and wait for '<button> (n)'
 - `tile_names(texts)`: the tiles' name labels when no CP label reads: below SHOW EVOLUTIONARY LINE (or the #... + chip row), above the round buttons, with a letter, not a chip
-- `settled_tiles()`
+- `settled_tiles(texts=None)`: the list's tiles [(name, cp)] once two looks in a row agree
 - `num(s)`
 - `row_of(texts, button, tol=0.015, past=True, middle=True)`: the texts on a button's row, left to right: its cost ('EVOLVE 25', 'MEGA EVOLVE 40', 'PURIFY 5,000 50')
 - `costs(texts)`: -> (stardust owned, candy owned, purify dust cost, purify candy cost) off the detail page
@@ -1011,7 +1011,7 @@ Evolve every free trade evolution tagged Evo, as fast as the game lets it
 - `tap_into(t, *screens, dy=0.0, timeout=8, on='friends')`: tap a word that opens another screen
 - `dimmed()`: the last capture is greyed all over: the game is busy behind a dark veil (2026-11-02: 30 s after a gift, the friend list at grey 198 where it's white)
 - `undim(*screens, timeout=45)`: wait, without tapping, for the grey veil to lift -> the screen then
-- `drag(fy1, fy2, ms=500, x=None, settle=(0.7, 1.0))`: scroll by dragging from fy1 to fy2
+- `drag(fy1, fy2, ms=500, x=None, settle=0.7)`: scroll by dragging from fy1 to fy2
 - `close()`: the X. No pause after it: every caller waits for the screen it opens (to_list won't X twice within 3 LAG)
 - `close_popup(*screens, timeout=6, also=())`: X on a gift or Lucky Trade popup over a friend page -> one of the screens
 - `count()`: the '(N)' under FRIENDS while a search is on

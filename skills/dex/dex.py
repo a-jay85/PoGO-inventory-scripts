@@ -180,13 +180,13 @@ def tap_text(texts, bounds, pred, dy=0.0):
     t = next((t for t in texts if pred(t)), None)
     if not t:
         return False
-    base.tap_box(t, bounds, dy=dy, fuzz=0.006, rest=(1.6, 2.2))
+    base.tap_box(t, bounds, dy=dy, fuzz=0.006, rest=1.6)
     return True
 
 
 def swipe(fx1, fy1, fx2, fy2, bounds):
     """the grid, the chip row and the region list: lists, so on Android they settle as fast as the Pokémon list"""
-    base.drag(fx1, fy1, fx2, fy2, bounds, ms=random.randint(450, 600), settle=(0.8, 1.1),
+    base.drag(fx1, fy1, fx2, fy2, bounds, ms=random.randint(450, 600), settle=0.8,
               android_settle=base.LIST_SETTLE, bring_front=False)
 
 

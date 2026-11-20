@@ -764,7 +764,7 @@ def explore(seen, n, total, limit):
         for i in path:
             x1, y1, x2, y2 = SWIPES[i]
             _, _, _, bounds = look()
-            base.drag(x1, y1, x2, y2, bounds, ms=150, settle=(0.7, 0.8))
+            base.drag(x1, y1, x2, y2, bounds, ms=150, settle=0.7)
             used += 1
             if not wait_feed(3):
                 keep_capture("swipelost")

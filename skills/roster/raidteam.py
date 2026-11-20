@@ -467,8 +467,8 @@ def sorted_tiles(c, typed):
     """type the search, sort its list by CP once (a search keeps the list's sort) -> its first tiles [(name, cp)]"""
     import base, search, taps, ui
     from tagsheet import search_exact
-    search_exact(typed)
-    ts = taps.settled_tiles()
+    ts = taps.settled_tiles(search_exact(typed, edit=True))  # the bar holds the last pile's search: edit it
+    # (search.edit_tail). The results' own look counts as the first of two
     if ts and (not c.sorted or not by_cp(ts)):
         _, _, _, bounds = base.look()
         search.sort_down("COMBAT POWER", bounds)
@@ -704,9 +704,9 @@ def name_pass(c, q, named):
         w["end"] = True
         return named
     if named:
-        ts, _ = search.run_search(q, iv_only=True)
+        ts, _ = search.run_search(q, iv_only=True, edit=True)
     else:
-        search_exact(q)
+        search_exact(q, edit=True)
         path, texts, bounds = search.sort_by_name(base.look()[3])
         ts, _ = search.read_results(q, path, texts, bounds, iv_only=True)
         named = True

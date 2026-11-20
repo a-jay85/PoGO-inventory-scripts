@@ -136,7 +136,7 @@ STARTED = time.time()  # input from before the script started (the keys that sta
 
 def tap_gap():
     """wait until a short random gap has passed since the last tap"""
-    time.sleep(max(0.0, last_tap + (ANDROID_WAIT if ui.ANDROID else random.uniform(0.1, 0.25)) - time.time()))
+    time.sleep(max(0.0, last_tap + (ANDROID_WAIT if ui.ANDROID else 0.1) - time.time()))
 
 
 # ---------- screen ----------
@@ -532,7 +532,6 @@ def click(fx, fy, bounds, gap=0.0, ms=None, fuzz=0.0, rest=0.0, bring_front=True
     ui.sh(ui.HELPER, "click", f"{x:.1f}", f"{y:.1f}", str(ui.tap_ms() if ms is None else ms))
     if counted:
         last_tap = time.time()
-    rest = random.uniform(*rest) if isinstance(rest, tuple) else rest
     if rest:
         time.sleep(rest)
 
@@ -621,7 +620,7 @@ def go(target, *screens):
 def key(name, cmd=False):
     front(planned=True)
     ui.sh(ui.HELPER, "key", name, *(["cmd"] if cmd else []))
-    time.sleep(random.uniform(0.08, 0.18) if ui.ANDROID else 0.03)
+    time.sleep(0.08 if ui.ANDROID else 0.03)
 
 
 # iPhone, ms: after Shift, key held, between keys. 1-1-0 still landed, 0-0-0 lost keys (2026-11-05). The game now shows
@@ -646,7 +645,7 @@ def scroll(bounds, how, up=False):
     else:
         ui.sh(ui.HELPER, "drag", f"{x:.1f}", f"{y:.1f}", f"{x + random.uniform(-8, 8):.1f}", f"{y - dist:.1f}",
               str(random.randint(350, 600)))
-    time.sleep(random.uniform(0.6, 0.9) if not ui.ANDROID else ANDROID_WAIT)  # (LIST_SETTLE before 2026-11-18)  # let the list settle before reading it (adb's drag pauses before lifting, so it glides less)
+    time.sleep(0.6 if not ui.ANDROID else ANDROID_WAIT)  # (LIST_SETTLE before 2026-11-18)  # let the list settle before reading it (adb's drag pauses before lifting, so it glides less)
 
 
 # ---------- one Pokémon ----------
@@ -673,14 +672,14 @@ def appraise():
 
 def back_to_list():
     """from appraisal, detail, menu or a gym defender's screen to the list, by the known-safe path"""
-    screen = wait_for("appraisal", "detail", "menu", "gym", "list")[0]
+    seen = next((s for s in ("appraisal", "detail") if just_seen(s)), None)  # a look from a moment ago will do
+    screen = seen or wait_for("appraisal", "detail", "menu", "gym", "list")[0]
     if screen == "appraisal":
         screen = go("dialog", "detail")[0]
     if screen == "menu":
         screen = go("close", "detail")[0]
-    if screen in ("detail", "gym"):
-        go("close", "list")
-    texts = wait_for("list")[1]
+    texts = go("close", "list")[1] if screen in ("detail", "gym") else wait_for("list")[1]  # (go's own look found
+    # the list: no second one)
     if not ui.tiles(texts):  # the list shows before its tiles redraw (2 lost at ANDROID_WAIT, raidteam, Pixel,
         # 2026-11-18): wait for them, so the next tap finds its tile. A list that's empty for real costs LIST_REDRAW
         settle(lambda: look()[1], ui.tiles, LIST_REDRAW)
@@ -847,11 +846,11 @@ def learn_rows(texts, names):
         TAG_AT.setdefault(n, VIEW[0] + y)
 
 
-SHEET_SETTLE = (0.3, 0.4)  # after a tag sheet drag (was 0.7-0.9 s). A look caught mid-glide is fine: each step
+SHEET_SETTLE = 0.3  # after a tag sheet drag (was 0.7-0.9 s). A look caught mid-glide is fine: each step
 # looks again, and tap_tag_row waits for two looks that agree before it taps (2026-11-17, the user's video: 1.65 s a sheet)
 
 
-FLING_SETTLE = (0.5, 0.6)  # after a fling to the sheet's end: the glide stops there
+FLING_SETTLE = 0.5  # after a fling to the sheet's end: the glide stops there
 
 
 def tag_sheet_step(up=False, big=False, before=None, fling=False):
@@ -974,7 +973,7 @@ def lift_tag_row(T):
     else:  # (seen 2026-10-29: IVC at 28%, faded, two taps didn't untick it)
         y = random.uniform(0.38, 0.41)
         to = min(0.72, y + (mid - row[1]))
-    drag(x, y, x, to, bounds, ms=random.randint(450, 600), android_settle=(0.15, 0.2))
+    drag(x, y, x, to, bounds, ms=random.randint(450, 600), android_settle=0.15)
     return None
 
 
@@ -1222,14 +1221,14 @@ def do_rename(name, same=same_name):
     go("pencil", "rename")
     with changing("renaming"):
         tap("field")
-        time.sleep(random.uniform(0.25, 0.4))  # field taking focus
+        time.sleep(0.25)  # field taking focus
         for attempt in range(2):
             if attempt:  # the field's tap can miss the keyboard: the box stays up with no keys, and nothing types
                 tap("field")  # (iPhone /ivc, 2026-11-10: 'Grookey' stayed through both tries)
-                time.sleep(random.uniform(0.5, 0.7))
+                time.sleep(0.5)
             key("a", cmd=True)
             key("delete")
-            time.sleep(random.uniform(0.15, 0.25))  # typing straight after cmd+a once dropped the first letter
+            time.sleep(0.15)  # typing straight after cmd+a once dropped the first letter
             type_text(name)
             got = settle(field_text, lambda g: same(g, name), timeout=1.5)
             if same(got, name):  # the typing itself is exact keycodes; only the reading is fuzzy
@@ -1437,14 +1436,14 @@ def dynamax(texts):
     return any(ui.norm(t[4]) in ("DYNAMAX", "GIGANTAMAX") and hp[1] < t[1] < hp[1] + 0.3 for t in texts)
 
 
-LIST_SETTLE = (0.35, 0.5)  # Android: a list or grid holds still this soon after a drag (adb's drag pauses before
+LIST_SETTLE = 0.35  # Android: a list or grid holds still this soon after a drag (adb's drag pauses before
 # lifting, so it doesn't glide on). Measured on the Pokémon list (scroll()); /gift and /dex scroll lists the same way
 
 
-def drag(fx, fy, tx, ty, bounds, ms=None, settle=(0.7, 0.9), android_settle=None, bring_front=True, hold=None,
+def drag(fx, fy, tx, ty, bounds, ms=None, settle=0.7, android_settle=None, bring_front=True, hold=None,
          fling=False):
     """a finger drag from (fx, fy) to (tx, ty), window fractions, then wait for it to stop moving.
-    ms: how long the drag takes (default 400-600). settle: (lo, hi) seconds after it. android_settle: on Android
+    ms: how long the drag takes (default 400-600). settle: seconds after it. android_settle: on Android
     that instead (LIST_SETTLE for a list; None keeps settle there too). bring_front: front() first.
     hold: ms the finger holds still before it moves (default a few ms: a long press starts multi-select in the list).
     fling: let go while still moving, so what's under it glides on"""
@@ -1460,7 +1459,7 @@ def drag(fx, fy, tx, ty, bounds, ms=None, settle=(0.7, 0.9), android_settle=None
     else:
         ui.sh(ui.HELPER, "drag", f"{x1:.1f}", f"{y1:.1f}", f"{x2:.1f}", f"{y2:.1f}", str(ms),
               *([str(int(hold or random.randint(20, 40))), "fling"] if fling else [str(int(hold))] if hold else []))
-    time.sleep(random.uniform(*(android_settle if ui.ANDROID and android_settle else settle)))
+    time.sleep(android_settle if ui.ANDROID and android_settle else settle)
 
 
 def open_tile(i):
@@ -1667,7 +1666,7 @@ def to_tags_tab():
         if x_taps < 2:
             x_taps += 1
             log("  a tag's list: its X, back to the Tags tab")
-            tap_x(bounds, fuzz=0.006, rest=(0.8, 1.0))
+            tap_x(bounds, fuzz=0.006, rest=0.8)
             search.off_map()  # (the full list with its header misread: there this X closes the Pokémon screen)
             continue
         scroll(bounds, "drag", up=True)

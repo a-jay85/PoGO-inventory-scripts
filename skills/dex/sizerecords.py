@@ -107,21 +107,21 @@ def caught_tab(texts):
 
 def read_box(bounds):
     """drag the page up and read its box -> ('none' or the 4 values), or None: can't read it"""
-    base.drag(0.5, 0.85, 0.5, 0.45, bounds, ms=500, settle=(0.6, 0.8), bring_front=False)
+    base.drag(0.5, 0.85, 0.5, 0.45, bounds, ms=500, settle=0.6, bring_front=False)
     for _ in range(6):
         screen, texts, path, bounds = base.settle(dex.look, lambda r: box(r[1]) not in (None, "low"), 2)
         got = box(texts)
         if got == "low":  # a long story above it
-            base.drag(0.5, 0.8, 0.5, 0.5, bounds, ms=500, settle=(0.6, 0.8), bring_front=False)
+            base.drag(0.5, 0.8, 0.5, 0.5, bounds, ms=500, settle=0.6, bring_front=False)
             continue
         if got is None and not caught_tab(texts) and not has_label(texts):
             # a BATTLE-ONLY FORM note or a VIVILLON HABITAT box pushes the box further down (2026-11-12)
-            base.drag(0.5, 0.8, 0.5, 0.4, bounds, ms=500, settle=(0.6, 0.8), bring_front=False)
+            base.drag(0.5, 0.8, 0.5, 0.4, bounds, ms=500, settle=0.6, bring_front=False)
             continue
         if got is None and caught_tab(texts) and tabs(texts):  # the page opened on CAUGHT: back to INFO
             log("  on the CAUGHT tab: tapping INFO")
-            base.tap_box(tabs(texts), bounds, fuzz=0.006, rest=(1.2, 1.5))
-            base.drag(0.5, 0.85, 0.5, 0.45, bounds, ms=500, settle=(0.6, 0.8), bring_front=False)
+            base.tap_box(tabs(texts), bounds, fuzz=0.006, rest=1.2)
+            base.drag(0.5, 0.85, 0.5, 0.45, bounds, ms=500, settle=0.6, bring_front=False)
             continue
         return got
     return None
@@ -166,14 +166,14 @@ def to_start(start):
             break
         prev = at[0]
         a, b = (SWIPE_NEXT[:2], SWIPE_NEXT[2:]) if at[0] < start else (SWIPE_NEXT[2:], SWIPE_NEXT[:2])
-        base.drag(*a, *b, bounds, ms=300, settle=(0.8, 1.0), bring_front=False)
+        base.drag(*a, *b, bounds, ms=300, settle=0.8, bring_front=False)
     else:
         raise Stop(f"can't get to #{start}'s page (at #{at[0]})")
     if at[0] != start:
         log(f"#{start} has no page here: starting at #{at[0]}")
     info = tabs(texts)
     if info:
-        base.tap_box(info, bounds, fuzz=0.006, rest=(1.2, 1.5))
+        base.tap_box(info, bounds, fuzz=0.006, rest=1.2)
     return texts, bounds
 
 
@@ -213,7 +213,7 @@ def walk(acct, limit, done, start=1):
                                                f"{got[0]}-{got[1]} kg, {got[2]}-{got[3]} m"))
                 read += 1
             last = n
-        base.drag(*SWIPE_NEXT, bounds, ms=300, settle=(0.8, 1.0), bring_front=False)
+        base.drag(*SWIPE_NEXT, bounds, ms=300, settle=0.8, bring_front=False)
     log(f"read {read} species, {skipped} read in the last {FRESH_HOURS} h passed by, last #{last}"
         + (f"; couldn't read {missed} (run again to try them)" if missed else ""))
 

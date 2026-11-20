@@ -347,7 +347,7 @@ def to_list():
             drag(0.35, 0.8, 350)  # the friend list, scrolled down past its search box: back up to it
         elif s == "profile":
             t = label("FRIENDS")
-            tap_text(t) if t else tap(0.5, 0.09)
+            tap_text(t, dy=ui.TAB_DY) if t else tap(0.5, 0.1 + ui.TAB_DY)  # (under the word, as every tab tap)
         elif s == "map":
             tap(0.13, 0.91)  # the profile picture
         elif s in ("friend", "meter", "picker", "preview", "giftpopup", "luckytrade", "trainercode", "buddy", "raid"):
@@ -1293,7 +1293,7 @@ def whose():
     me = None
     t = label("ME", 0.0, 0.12)
     if t:
-        if tap_into(t, "profile", timeout=6 * LAG) == "profile":
+        if tap_into(t, "profile", dy=ui.TAB_DY, timeout=6 * LAG) == "profile":
             # the name can show a moment after the tab (2026-10-27: one look 0.7 s in read none, so a HashTagAJay
             # run went San Francisco only). OCR mixes up I, l, 1 and |: home.squash, as home.trainer() reads it
             for _ in range(int(4 * LAG)):

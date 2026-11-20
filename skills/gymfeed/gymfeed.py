@@ -461,7 +461,7 @@ def to_badge_list():
                 off_screen(screen)
             elif re.search(r"ADD FRIEND|SENT YOU A GIFT|DAYS AGO|HOURS? AGO|MINUTES? AGO", ui.joined(texts).upper()):
                 # the FRIENDS tab (where /gift leaves it), maybe scrolled past its ADD FRIEND
-                home.press_text(texts, bounds, "ME")  # the profile opens on its last tab
+                home.press_text(texts, bounds, "ME", dy=ui.TAB_DY)  # the profile opens on its last tab (under the word)
                 time.sleep(1.5)
             elif gb or scrolls < 8:
                 scrolls += 1

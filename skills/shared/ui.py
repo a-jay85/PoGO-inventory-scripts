@@ -1073,7 +1073,8 @@ def locate(T, path, texts, screen, aspect):
 
 TABS = ("TAGS", "POKMON", "EGGS")  # the storage's tabs, at the window's top
 TAB_DY = 0.025  # a tab's tap: this much under its word. The iPhone missed its word 6 of 6 times (Mirroring takes
-# taps that high for itself) and landed 6 of 6 this much lower; the Pixel took 6 of 6 both ways (2026-11-19)
+# taps that high for itself) and landed 6 of 6 this much lower; the Pixel took 6 of 6 both ways (2026-11-19).
+# The profile's ME / FRIENDS / SOCIAL tabs too (gift, trade, home, gymfeed): ME stopped landing on the iPhone
 
 RESTED = {}  # (target, screen, bounds) -> (x, y): where a button stood when two looks agreed it was still
 

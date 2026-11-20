@@ -256,7 +256,7 @@ Start from anywhere: every script calls start() first, so the phone can be on an
 - `where(path, texts)`: the screens start() cares about: a storage screen, tags/rename, map, mainmenu, exit, signin, anr, ios-home, mirroring, blank, unknown
 - `look()`
 - `note_storage(texts)`
-- `press_text(texts, bounds, word)`: tap a button by its label (exit dialog's CANCEL: not a target ui.plan knows)
+- `press_text(texts, bounds, word, dy=0.0)`: tap a button by its label (exit dialog's CANCEL: not a target ui.plan knows), dy under its middle
 - `android_launch()`: Pokémon GO the app in front (opened if it wasn't)
 - `android_restart()`: force-stop the Pixel's game and open it again
 - `keyboard_up()`

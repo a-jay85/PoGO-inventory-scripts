@@ -549,11 +549,11 @@ def cmd_plan(to=TAKER):
 
 
 def can_dynamax():
-    """dex numbers that can Dynamax (refresh's dynamax-<date>.json)"""
-    f = base.newest(HERE, "dynamax-[0-9]*[0-9].json")
-    if not f:
+    """dex numbers that can Dynamax (refresh's dynamax-<date>.json: pvp.can_dynamax)"""
+    got = pvp.can_dynamax()
+    if got is None:
         sys.exit("no dynamax-<date>.json yet: python3 tradeable.py refresh")
-    return set(json.load(open(f)))
+    return got
 
 
 def cmd_dynamax():

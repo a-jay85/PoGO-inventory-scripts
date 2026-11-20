@@ -53,6 +53,14 @@ CPMS = [float(x) for x in re.search(r"var cpms = \[([^\]]*)\]", open(os.path.joi
 LEVELS = [1 + i * 0.5 for i in range(int((MAX_LEVEL - 1) * 2) + 1)]
 
 
+def can_dynamax():
+    """dex numbers that can Dynamax (tradeable.py refresh's ../cleanup/dynamax-<date>.json, from the game master), or
+    None when there's no such file yet"""
+    folder = os.path.join(HERE, "..", "cleanup")
+    got = sorted(f for f in os.listdir(folder) if re.fullmatch(r"dynamax-[0-9].*[0-9]\.json", f))
+    return set(json.load(open(os.path.join(folder, got[-1])))) if got else None
+
+
 def cpm(level):
     return CPMS[int((level - 1) * 2)]
 

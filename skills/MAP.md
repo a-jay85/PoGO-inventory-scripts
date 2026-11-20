@@ -415,6 +415,7 @@ Powering one Pokémon up: its level from the page and the dialog, and the cheap 
 The game master (PvPoke's gamemaster.json): base stats, CP and HP, the level from IVs, CP and HP (level_of), evolutions, and PvP ranks and nicknames
 
 - `update()`
+- `can_dynamax()`: dex numbers that can Dynamax (tradeable.py refresh's ../cleanup/dynamax-<date>.json, from the game master), or None when there's no such file yet
 - `cpm(level)`
 - `cp(base, ivs, level)`
 - `hp(base, ivs, level)`
@@ -876,7 +877,7 @@ Tag CyrillJan's Tradeable saved search by what a trade to HashTagAJay is worth, 
 - `taker_species(m)`: CyrillJan's pile, judged for HashTagAJay
 - `build_plan(m)`: every search tag runs, from the newest /dex, /roster and read data (made fresh each run: no plan step)
 - `cmd_plan(to=TAKER)`: only a preview (plan.md) of the searches tag would run: tag makes its own, nothing reads this
-- `can_dynamax()`: dex numbers that can Dynamax (refresh's dynamax-<date>.json)
+- `can_dynamax()`: dex numbers that can Dynamax (refresh's dynamax-<date>.json: pvp.can_dynamax)
 - `cmd_dynamax()`: either account signed in: how many Dynamax ones it has of each family that can Dynamax (only searches)
 - `giver_species(m)`: HashTagAJay's pile (Leftovers), judged for CyrillJan or the user's wife's account: what's good for any account (the user, 2026-11-16) -> {"why": {sid: (tag, why)}, …
 - `size_search(size)`: a never-traded XXS one is renamed and tagged IVC, never GIV or Transfer
@@ -1245,7 +1246,7 @@ Unattended /ivc: keep the best IVC Pokémon (favorite + untick IVC)
 - `plain_pile()`: one search for two: none of #IVC is XXL or a costume, as most runs find
 - `names(limit, dry=False)`: the names pass: an XXL one in #IVC is kept (the user, 2026-11-04)
 - `fallen_out(limit, hold=None)`: the fallen-out ones of this sort run: grouped (searches only), then each one opened and sent to the door
-- `can_dynamax()`: dex numbers that can Dynamax (tradeable.py refresh's dynamax-<date>.json, from the game master)
+- `can_dynamax()`: dex numbers that can Dynamax (pvp.can_dynamax)
 - `drop_dmax()`: a fallen-out one whose family's Dynamax list this run didn't read was judged as plain
 - `resort_members(dexes=None)`: stand-in members for every species in a family with a weak line (dexes: only families with a dex number in it)
 - `pool_of(q)`: '111,112,464&lucky&' -> ('111,112,464', 'lucky')

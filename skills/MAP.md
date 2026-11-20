@@ -865,13 +865,13 @@ Tag CyrillJan's Tradeable saved search by what a trade to HashTagAJay is worth, 
 - `can_dynamax()`: dex numbers that can Dynamax (refresh's dynamax-<date>.json)
 - `cmd_dynamax()`: either account signed in: how many Dynamax ones it has of each family that can Dynamax (only searches)
 - `giver_species(m)`: HashTagAJay's pile (Leftovers), judged for CyrillJan or the user's wife's account: what's good for any account (the user, 2026-11-16) -> {"why": {sid: (tag, why)}, …
-- `size_search(size)`: a never-traded XXS one is renamed and tagged IVC, never XLX or Transfer
+- `size_search(size)`: a never-traded XXS one is renamed and tagged IVC, never GIV or Transfer
 - `bulk_searches(plan)`: the tag searches, in verdict.py's order -> [(tag, the species part, the rest of the suffix)]
 - `keep_xxl_ones(limit)`: an XXL one in the pile is no trade: a favorite, before any tag search
 - `run_pile(suffix)`: the pile's search + suffix -> its count, or None if this account has no Tradeable shortcut
 - `tag_pile(tag, suffix)`
 - `level_of(info, texts)`: -> the levels this one can be at, from the power-up cost on the detail page
-- `walk(suffix, xlx, power, limit, skip_dex=(), unsure=None)`: open each one in the pile + suffix: xlx -> tag it XLX if it's XLX_LEVEL+ (the ones it can't tell go in unsure)
+- `walk(suffix, xlx, power, limit, skip_dex=(), unsure=None)`: open each one in the pile + suffix: xlx -> tag it GIV if it's XLX_LEVEL+ (the ones it can't tell go in unsure)
 - `survey()`: -> the dex numbers in the pile, opening each one once
 - `tagged_before(plan)`: the tag searches an earlier run already did with these same searches, in the last DONE_HOURS (a rerun skips them: 14 s each, even at 0)
 - `bulk_tag(plan, wanted=lambda q: True)`: bulk_searches' tag searches, each one SELECT ALL + tag (Tradeable's !# drops the tagged ones from the rest) -> (set of searches done, save()), for more tag searches after

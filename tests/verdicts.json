@@ -1010,18 +1010,28 @@
  "XLX": [
   "tag",
   [
-   "XLX"
+   "GIV"
   ],
   null,
-  "level 26+"
+  "level 26+",
+  {
+   "off": [
+    "XLX"
+   ]
+  }
  ],
  "XLX beats evolved": [
   "tag",
   [
-   "XLX"
+   "GIV"
   ],
   null,
-  "level 27+"
+  "level 27+",
+  {
+   "off": [
+    "XLX"
+   ]
+  }
  ],
  "evolved": [
   "tag",
@@ -1266,18 +1276,28 @@
  "H XLX at 29": [
   "tag",
   [
-   "XLX"
+   "GIV"
   ],
   null,
-  "level 29+"
+  "level 29+",
+  {
+   "off": [
+    "XLX"
+   ]
+  }
  ],
  "H not XLX at 27": [
   "tag",
   [
-   "XLX"
+   "GIV"
   ],
   null,
-  "level 27+"
+  "level 27+",
+  {
+   "off": [
+    "XLX"
+   ]
+  }
  ],
  "H Dynamax, has one": [
   "tag",
@@ -1354,18 +1374,28 @@
  "Snom at 30: XLX first": [
   "tag",
   [
-   "XLX"
+   "GIV"
   ],
   null,
-  "level 30+"
+  "level 30+",
+  {
+   "off": [
+    "XLX"
+   ]
+  }
  ],
  "H Snom at 29: XLX first": [
   "tag",
   [
-   "XLX"
+   "GIV"
   ],
   null,
-  "level 29+"
+  "level 29+",
+  {
+   "off": [
+    "XLX"
+   ]
+  }
  ],
  "traded Snom: Transfer": [
   "tag",
@@ -1426,10 +1456,15 @@
  "H XLX at 26": [
   "tag",
   [
-   "XLX"
+   "GIV"
   ],
   null,
-  "level 26+"
+  "level 26+",
+  {
+   "off": [
+    "XLX"
+   ]
+  }
  ],
  "H level 25 or 26": [
   "unsure",
@@ -1510,10 +1545,15 @@
  "H can Dynamax, enough but 26: XLX": [
   "tag",
   [
-   "XLX"
+   "GIV"
   ],
   null,
-  "level 26+"
+  "level 26+",
+  {
+   "off": [
+    "XLX"
+   ]
+  }
  ],
  "H can Dynamax, short but 2XL first": [
   "tag",
@@ -1572,10 +1612,15 @@
  "H XLX beats the egg GIV": [
   "tag",
   [
-   "XLX"
+   "GIV"
   ],
   null,
-  "level 26+"
+  "level 26+",
+  {
+   "off": [
+    "XLX"
+   ]
+  }
  ],
  "H Smeargle: GIV": [
   "tag",

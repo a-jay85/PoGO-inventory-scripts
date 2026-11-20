@@ -776,7 +776,7 @@ Cleanup after trading: tag the saved searches, power up the Clean Trades ones th
 
 - `power_walk(limit, query=None)`: open each Clean Trades one (query: each one in this typed search) with under 360 XL and power up those right under a tier
 - `power_pile(query, limit)`: power_walk for a pile about to be tagged Transfer
-- `untraded(who)`: the user's rules: an XXL one in Clean Trades, traded or not, is a favorite (2026-11-04)
+- `keep_xxl()`: the user's rules: an XXL one in Clean Trades, traded or not, is a favorite (2026-11-04); it drops out of Clean Trades (!favorite)
 - `door_ones(limit, who)`: the ones verdict.py has its own rules for (rules.DOOR_PICK: shiny, lucky, legendary, costume, gym defender...) never get a bulk tag: each gets its final tag at the door, …
 - `script(a)`
 

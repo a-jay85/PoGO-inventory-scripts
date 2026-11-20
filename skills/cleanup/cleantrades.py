@@ -24,7 +24,8 @@ Start with Pokémon GO on the Pokémon screen. Four steps, always in this order:
 Before step 2, the ones that must not get Transfer leave the pile: Clean Trades &xxl, traded or not -> favorite, and no
 step here touches an XXL one (&!xxl). The ones with rules of their own in verdict.py (shiny, lucky, legendary, costume,
 gym defender...: rules.DOOR_PICK) each get their final tag at the door or stay on its not-sure list, and steps 2-4 leave
-them out (rules.BULK_GUARD). Clean Trades &!traded&xxs -> renamed xxs, tagged IVC (sizes.py); Clean Trades &!traded&!shadow + a trade evolution -> tag GIV.
+them out (rules.BULK_GUARD). Clean Trades only holds traded ones, so the never-traded rules (xxs, trade evolutions) are
+tradeable.py's and the door's.
 Tagging: the shortcut's search + &!#<tag> (PvpC1, PvpC2 and Clean Trades as they are: they already exclude tagged ones), long press, SELECT ALL, TAG (n). n must equal the search's count, and
 afterwards the same search must come back empty.
 --limit N powers up at most N Pokémon (the tagging still runs). Log in runs/<time>/.
@@ -118,16 +119,13 @@ def power_pile(query, limit):
     return True
 
 
-def untraded(who):
-    """the user's rules: an XXL one in Clean Trades, traded or not, is a favorite (2026-11-04). A never-traded one
-    never gets Transfer (2026-10-31). xxs: renamed and tagged IVC (sizes.py). A trade evolution (not a shadow: it can't be traded): GIV, on HashTagAJay only (it goes
-    to EVO_FOR, who wants the XP; HashTagAJay doesn't, 2026-11-02). Both drop out of Clean Trades (!#)"""
+def keep_xxl():
+    """the user's rules: an XXL one in Clean Trades, traded or not, is a favorite (2026-11-04); it drops out of Clean
+    Trades (!favorite). Clean Trades only holds traded ones (rules.SAVED), so the never-traded rules (xxs: IVC, a trade
+    evolution: GIV) never come up here: tradeable.py and the door have them. Searching Clean Trades &!traded found 0 in
+    every run, at about 10 s a search (2026-11-20)"""
     import sizes  # (sizes imports this file)
     sizes.walk(lambda: run_shortcut(CLEAN, "&xxl&!favorite"), "xxl", 10 ** 9)
-    for size in sizes.NAMES:
-        sizes.walk(lambda: run_shortcut(CLEAN, f"&!traded&{size}"), size, 10 ** 9)
-    if who != EVO_FOR:
-        tag_pile(CLEAN, "GIV", f"&!traded&!shadow&!xxl&{TRADE_EVOS}")
 
 
 def door_ones(limit, who):
@@ -161,7 +159,7 @@ def script(a):
         return
     for name, tag in TAGGING:  # first: Clean Trades (!#) must only see what's left untagged after these
         tag_pile(name, tag)
-    untraded(who)  # before the power-ups: these won't be transferred
+    keep_xxl()  # before the power-ups: these won't be transferred
     door_ones(limit, who)  # (any left by --limit stay out of the steps below too)
     try:
         if power_walk(limit) is None:

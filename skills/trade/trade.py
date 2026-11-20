@@ -397,7 +397,7 @@ def to_friend(p, ours=False):
             return
         if s == "profile" and not p.friend:
             if friends := label(p, "FRIENDS"):  # (not read yet: the next look tries again)
-                p.tap_text(friends)
+                p.tap_text(friends, dy=ui.TAB_DY)  # (under the word, as every tab tap)
         elif s == "friend":
             name = friend_name(p)
             if name and p.friend and same_name(name, p.friend):
@@ -464,7 +464,7 @@ def to_friend(p, ours=False):
                 p.key("return")
             elif s == "profile":
                 if friends := label(p, "FRIENDS"):  # (not read yet: the next look tries again)
-                    p.tap_text(friends)
+                    p.tap_text(friends, dy=ui.TAB_DY)  # (under the word, as every tab tap)
             else:
                 search = label(p, "SEARCH")
                 if not search:

@@ -110,12 +110,12 @@ def note_storage(texts):
             pokedb.set_account(by_storage(limit), sure=False)
 
 
-def press_text(texts, bounds, word):
-    """tap a button by its label (exit dialog's CANCEL: not a target ui.plan knows)"""
+def press_text(texts, bounds, word, dy=0.0):
+    """tap a button by its label (exit dialog's CANCEL: not a target ui.plan knows), dy under its middle"""
     hit = ui.label(texts, word)
     if not hit:
         return False
-    base.tap_box(hit, bounds)
+    base.tap_box(hit, bounds, dy=dy)
     return True
 
 
@@ -567,7 +567,7 @@ def trainer(fast=True):
             base.tap_x(bounds)
             time.sleep(1.5)
             return got[0]
-        if "FRIENDS" in j and "ADD FRIEND" in j and press_text(texts, bounds, "ME"):  # the profile opens on its
+        if "FRIENDS" in j and "ADD FRIEND" in j and press_text(texts, bounds, "ME", dy=ui.TAB_DY):  # the profile opens on its
             time.sleep(1.5)  # last tab: Friends after /gift
         elif ui.ANDROID and {"OK", "?123"} <= {t[4].strip().upper() for t in texts}:  # a run stopped while typing
             ui.android.key("back")  # (the keyboard and its own text box are up)

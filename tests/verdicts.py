@@ -264,9 +264,9 @@ CASES = {
     "H Reroll beats XLX": plain(account=TAKER, sids=["bulbasaur"], levels=[30]),
     "H can Dynamax, counts not read": plain(account=TAKER, sids=["wooloo"]),
     # one that can Dynamax but isn't one: GIV while the account is short of Candy or Candy XL (the user, 2026-11-16)
-    "H can Dynamax, few candy: GIV": plain(account=TAKER, sids=["wooloo"], candy=2500, xl=900),
+    "H can Dynamax, few candy: GIV": plain(account=TAKER, sids=["wooloo"], candy=1000, xl=900),
     "H can Dynamax, few XL: GIV": plain(account=TAKER, sids=["wooloo"], candy=3000, xl=480),
-    "H can Dynamax, enough: Transfer": plain(account=TAKER, sids=["wooloo"], candy=2501, xl=481),
+    "H can Dynamax, enough: Transfer": plain(account=TAKER, sids=["wooloo"], candy=1001, xl=481),
     "H can Dynamax, enough but far: GIV": plain(account=TAKER, sids=["wooloo"], candy=3000, xl=900, far=True),
     "H can Dynamax, enough but 26: XLX": plain(account=TAKER, sids=["wooloo"], candy=3000, xl=900, levels=[26]),
     "H can Dynamax, short but 2XL first": plain(account=TAKER, sids=["wooloo"], candy=100, xl=100, candy_xl=0),

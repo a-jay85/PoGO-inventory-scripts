@@ -802,7 +802,7 @@ Tag HashTagAJay's Leftovers saved search by what a trade to another account is w
 - `gone(got, gate)`: did the door's answer take this one out of Leftovers? Any tag (!#) or a star (!favorite) does
 - `cmd_door(limit)`
 - `again_done()`
-- `cmd_again(tag, limit)`: each one in #tag judged again at the door: the pile's tag off, the verdict's on -> Counter of what happened
+- `cmd_again(tag, limit, owner=TAKER, narrow='')`: each one in owner's #tag (and narrow, when given) judged again at the door: the pile's tag off, the verdict's on -> Counter of what happened
 
 ## skills/cleanup/savedsearches.py
 Read the saved searches off the phone and check they hold the terms in rules.SAVED. It only reads: it tags nothing

@@ -23,6 +23,8 @@ DUST = [(1, 200), (3, 400), (5, 600), (7, 800), (9, 1000), (11, 1300), (13, 1600
         (19, 2500), (21, 3000), (23, 3500), (25, 4000), (27, 4500), (29, 5000), (31, 6000), (33, 7000),
         (35, 8000), (37, 9000), (39, 10000)]  # (from level, Stardust a power-up)
 DUST_RATE = (1, 0.5, 0.9, 0.45)  # normal, lucky, purified, both
+SHADOW_RATE = 1.2  # a shadow's power-up costs 1.2x the Stardust (never lucky or purified). Read as a normal one's cost,
+# a level 20 shadow's 3,000 said level 21-22 and gave wrong IVs (shadow Heatran '84 A' as 7/11/4, raidteam 2026-11-19)
 
 
 def dust_at(lv):
@@ -162,8 +164,9 @@ def cost_levels(texts, cp):
         CP_UNREAD_KEPT = base.keep_capture("cost-cp-unread")  # one a run: why that page's CP doesn't read
     if cost is None:
         return None, []
-    rate, purified = DUST_RATE[1::2] if is_lucky(texts) else DUST_RATE[0::2]
-    if cost == round(dust_at(PURIFIED_AT) * purified):
+    shadow = base.is_shadow(texts)
+    rate, purified = (SHADOW_RATE, None) if shadow else DUST_RATE[1::2] if is_lucky(texts) else DUST_RATE[0::2]
+    if purified and cost == round(dust_at(PURIFIED_AT) * purified):
         return cost, [PURIFIED_AT]
     if cost > round(DUST[-1][1] * rate):  # past the table: an XL Candy power-up, level 40+
         return cost, [lv / 2 for lv in range(80, 100)]
@@ -173,7 +176,9 @@ def cost_levels(texts, cp):
         if round(c * rate) == cost:
             lvs.update(first + k / 2 for k in range(int((last - first) * 2)))
     candy = page_candy(texts)  # splits a cost that spans a candy step: 4,000 is 3 Candy at 25-25.5, 4 at 26-26.5
-    if candy is None and ui.ANDROID and len({candy_at(lv) for lv in lvs if lv < 40}) > 1:
+    if shadow:  # (a shadow's Candy isn't candy_at()'s either: no split for it)
+        candy = None
+    elif candy is None and ui.ANDROID and len({candy_at(lv) for lv in lvs if lv < 40}) > 1:
         candy = page_candy(ui.ocr(ui.android.sharp()))  # the small digit mostly reads only at full size
     if candy and {lv for lv in lvs if candy_at(lv) == candy}:
         lvs = {lv for lv in lvs if candy_at(lv) == candy}
@@ -266,7 +271,7 @@ def fits(c, rows):
     if any(pvp.cp(st, iv, lv + 0.5 * n) != b for n, b, _ in rows):
         return False
     return any(all(t is None or t == sum(round(m * dust_at(lv + 0.5 * k)) for k in range(n)) for n, _, t in rows)
-               for m in DUST_RATE)
+               for m in DUST_RATE + (SHADOW_RATE,))
 
 
 def is_lucky(texts):

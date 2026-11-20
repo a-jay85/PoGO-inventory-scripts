@@ -5,8 +5,9 @@ what's tested (the user, 2026-11-17). Each round opens a tile of the full list, 
   POGO_PHONE=android caffeinate -dimsu python3 speedtest.py tags [<tag>] [--n 3]
         menu, TAG, scroll the sheet to the <tag> row (default Fallen) and get it ready to tap, then out by the X
         (nothing saved). The rounds after the first find the row the way a run does: from where it was seen
-  POGO_PHONE=android caffeinate -dimsu python3 speedtest.py cost [--n 3]
-        the door's page bottom and back (caught date, Candy XL), then its power-up cost read, as door.facts() does
+  POGO_PHONE=android caffeinate -dimsu python3 speedtest.py cost [<search>] [--n 3]
+        the door's page bottom and back (caught date, Candy XL), then its power-up cost read, as door.facts() does.
+        <search>: that search's tiles (485&shadow: shadows, whose cost is 1.2x)
   POGO_PHONE=android caffeinate -dimsu python3 speedtest.py appraise [--n 3]
         open the appraisal, read its bars, close it, and the detail page steady again
   POGO_PHONE=android caffeinate -dimsu python3 speedtest.py list <search> [--n 1] [--dist 0.4] [--settle 0.3]
@@ -42,9 +43,11 @@ def tags(T, n):
     log(f"tags: {', '.join(f'{t:.1f}' for t in took)} s (first round finds the row from scratch)")
 
 
-def cost(n):
+def cost(n, q=None):
     import door, powerup, tagsheet
     door.powerup, door.tagsheet = powerup, tagsheet  # (Door() sets these; its page_bottom needs no Door)
+    if q:
+        tagsheet.search_exact(q)
     took = []
     for i in range(n):
         base.open_tile(i + 1)
@@ -143,7 +146,7 @@ def main(a):
     elif a[0] == "tags":
         tags(words[0] if words else "Fallen", n)
     elif a[0] == "cost":
-        cost(n)
+        cost(n, words[0] if words else None)
     elif a[0] == "appraise":
         appraise(n)
     else:

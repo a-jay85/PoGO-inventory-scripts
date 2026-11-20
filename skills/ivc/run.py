@@ -1181,7 +1181,8 @@ def drop_dmax():
     dynamax,gigantamax (last: dynamax eats text after it) finds them first, and they leave fallen.json unopened"""
     results = load("pools.json", {})
     can = can_dynamax()  # (most fallen-out ones can't: then no search)
-    unread = lambda f: not f["shadow"] and set(f["dex"]) & can and         any(q not in results for s in f["species"] for q, _, _ in sort.groups(s, "dmax"))
+    unread = lambda f: not f["shadow"] and set(f["dex"]) & can and \
+        any(q not in results for s in f["species"] for q, _, _ in sort.groups(s, "dmax"))
     out = load("fallen.json")
     maybe = [f for f in out if unread(f)]
     if not maybe:

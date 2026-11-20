@@ -29,8 +29,8 @@ XLX = "GIV"  # the tag a level 26+ one gets (XLX_LEVEL). It was its own tag, XLX
 OLD_XLX = "XLX"  # (2026-11-19): every #XLX was retagged GIV on both phones. Still taken off wherever it shows up
 LUCKY_CANDY = 348  # under this, a lucky one of the family wants a new copy's candy
 XL_CAP = 360
-DMAX_CANDY = 2500  # one that can Dynamax (not a Dynamax one): GIV while its account has this much Candy or less, or
-# XL_CAP + what one Max Move costs in Candy XL or less (the user, 2026-11-16; one, not three: 2026-11-19). Over both: no rule wants it
+DMAX_CANDY = 1000  # one that can Dynamax (not a Dynamax one): GIV while its account has this much Candy or less, or
+# XL_CAP + what one Max Move costs in Candy XL or less (the user, 2026-11-16; one, not three: 2026-11-19; 1,000 Candy, was 2,500: 2026-11-20). Over both: no rule wants it
 UNDER_360_XL = f"&countcandyxl0-{XL_CAP - 1}"  # a count term eats what follows it: always last
 XLX_LEVEL = 26  # from here a power-up costs 4 Candy or more (4,000 Stardust at 26-26.5, 4,500+ after)
 # CyrillJan's pile only: GIV where it would get Transfer (tagged after XLX, like the evolved GIV ones)

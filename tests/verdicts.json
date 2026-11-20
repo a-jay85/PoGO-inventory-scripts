@@ -1596,7 +1596,7 @@
    "GIV"
   ],
   null,
-  "can Dynamax: 2500 Candy, 900 Candy XL (wants over 2500 and 480)"
+  "can Dynamax: 1000 Candy, 900 Candy XL (wants over 1000 and 480)"
  ],
  "H can Dynamax, few XL: GIV": [
   "tag",
@@ -1604,7 +1604,7 @@
    "GIV"
   ],
   null,
-  "can Dynamax: 3000 Candy, 480 Candy XL (wants over 2500 and 480)"
+  "can Dynamax: 3000 Candy, 480 Candy XL (wants over 1000 and 480)"
  ],
  "H can Dynamax, enough: Transfer": [
   "tag",
@@ -1657,7 +1657,7 @@
    "GIV"
   ],
   null,
-  "can Dynamax: 40 Candy, 0 Candy XL (wants over 2500 and 480)"
+  "can Dynamax: 40 Candy, 0 Candy XL (wants over 1000 and 480)"
  ],
  "C can Dynamax, enough: Transfer": [
   "tag",

@@ -1237,6 +1237,7 @@ Unattended /ivc: keep the best IVC Pokémon (favorite + untick IVC)
 - `plain_pile()`: one search for two: none of #IVC is XXL or a costume, as most runs find
 - `names(limit, dry=False)`: the names pass: an XXL one in #IVC is kept (the user, 2026-11-04)
 - `fallen_out(limit, hold=None)`: the fallen-out ones of this sort run: grouped (searches only), then each one opened and sent to the door
+- `can_dynamax()`: dex numbers that can Dynamax (tradeable.py refresh's dynamax-<date>.json, from the game master)
 - `drop_dmax()`: a fallen-out one whose family's Dynamax list this run didn't read was judged as plain
 - `resort_members(dexes=None)`: stand-in members for every species in a family with a weak line (dexes: only families with a dex number in it)
 - `pool_of(q)`: '111,112,464&lucky&' -> ('111,112,464', 'lucky')

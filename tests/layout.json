@@ -921,6 +921,7 @@
    "act_fallen",
    "act_query",
    "back_to_list",
+   "can_dynamax",
    "candy",
    "chunk_of",
    "chunk_query",

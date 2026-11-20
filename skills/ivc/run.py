@@ -1167,13 +1167,21 @@ def fallen_out(limit, hold=None):
     act_fallen(limit, hold)
 
 
+def can_dynamax():
+    """dex numbers that can Dynamax (tradeable.py refresh's dynamax-<date>.json, from the game master). None saved:
+    every one"""
+    f = base.newest(os.path.join(HERE, "..", "cleanup"), "dynamax-[0-9]*[0-9].json")
+    return set(json.load(open(f))) if f else set(sort.SPECIES[s]["dex"] for s in sort.SPECIES)
+
+
 def drop_dmax():
     """a fallen-out one whose family's Dynamax list this run didn't read was judged as plain. Opened, its page can say
     Dynamax, and with no list to judge it by, recheck_fallen leaves it (a pool search is missing): opened for nothing,
     the same tiles run after run (93 opens in 13 runs, up to 28 in one). One search of their dex numbers with
     dynamax,gigantamax (last: dynamax eats text after it) finds them first, and they leave fallen.json unopened"""
     results = load("pools.json", {})
-    unread = lambda f: not f["shadow"] and any(q not in results for s in f["species"] for q, _, _ in sort.groups(s, "dmax"))
+    can = can_dynamax()  # (most fallen-out ones can't: then no search)
+    unread = lambda f: not f["shadow"] and set(f["dex"]) & can and         any(q not in results for s in f["species"] for q, _, _ in sort.groups(s, "dmax"))
     out = load("fallen.json")
     maybe = [f for f in out if unread(f)]
     if not maybe:

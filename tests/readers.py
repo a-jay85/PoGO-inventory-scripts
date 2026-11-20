@@ -128,6 +128,9 @@ COUNTS = {
     "words": texts((0.12, "POKEMON (7)")),
     "none": texts((0.5, "CP 1234")),
     "two": texts((0.12, "Q (3)"), (0.13, "(9)")),
+    "battery over the tabs": texts((0.065, "(100)"), (0.087, "POKÉMON"), (0.09, "TAGS"), (0.115, "Q (0)")),
+    "battery, no count": texts((0.065, "(100)"), (0.087, "POKÉMON")),
+    "battery by the clock, no tabs": texts((0.064, "19:39 1"), (0.065, "(100)"), (0.12, "Q (4)")),
 }
 
 TITLE, CANCEL = (0.3842, 0.382, 0.2315, 0.0157, "Set Nickname"), (0.4235, 0.611, 0.153, 0.0185, "CANCEL")

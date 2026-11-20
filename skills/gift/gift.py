@@ -505,6 +505,9 @@ def commit_search():
         base.key("return")
     time.sleep(0.8)  # (then the result count is polled)
     n = base.settle(lambda: count() if look() == "friends" else None, lambda n: n is not None, 6)  # (8 looks 0.5 s apart)
+    if n is None and ui.gift_banner(texts):  # a friend's banner over the '(N)': wait it out, then read again
+        base.banner_gone()
+        n = base.settle(lambda: count() if look() == "friends" else None, lambda n: n is not None, 3)
     if n is not None:
         return n
     box = search_line()

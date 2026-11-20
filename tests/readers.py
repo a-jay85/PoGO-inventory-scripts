@@ -177,6 +177,8 @@ BANNERS = {  # OCR from run captures: the banner over the ME tab, and the same w
     "friend rows": texts((0.09, "ME"), (0.09, "FRIENDS"), (0.09, "SOCIAL"), (0.31, "1738Sanmiggz"),
                          (0.36, "1738Sanmiggz sent you a"), (0.38, "Gift!"), (0.52, "1D13GOD sent you a Gift!")),
     "the list": texts((0.18, "Q Search"), (0.3, "CP 1234")),
+    "friendship level": texts((0.04, "14:41 1"), (0.10, "Friendship level with"), (0.13, "TheHighDude increased!"),
+                              (0.20, "Hash TagAJay"), (0.59, "LEVEL"), (0.59, "BUDDY")),
     "received items": texts((0.07, "21:52 1"), (0.12, "StealthShampoo received 5 items"), (0.14, "from your Gift!"),
                             (0.24, "HashTagAJay"), (0.24, "ADD FRIEND"), (0.24, "INVITE"), (0.36, "1738Sanmiggz sent you a")),
 }

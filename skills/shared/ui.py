@@ -363,14 +363,14 @@ def profile_tabs(texts):
     return {"ME", "FRIENDS", "SOCIAL"} <= {norm(t[4]) for t in texts if t[1] < 0.2}
 
 
-BANNER_WORDS = ("SENT YOU A", "OPENED YOUR", "FROM YOUR GIFT")
+BANNER_WORDS = ("SENT YOU A", "OPENED YOUR", "FROM YOUR GIFT", "FRIENDSHIP LEVEL WITH")
 BANNER_LOW = 0.2  # the banner's box ends above this (iPhone, 2026-11-19: to 0.17)
 
 
 def gift_banner(texts):
     """a friend's banner across the top of any screen for a few seconds: 'X sent you a Gift!', 'X and 3 other friends
     have opened your Gifts!', 'X received 5 items / from your Gift!' (iPhone, 2026-11-19: /gift read the friend list
-    under it as unknown and reopened the game). It hides what's under it (the
+    under it as unknown and reopened the game), 'Friendship level with X / increased!' (over the profile). It hides what's under it (the
     profile's tabs). The same words in the Friends tab's rows sit lower down, under the tabs and the search box"""
     return any(t[1] < BANNER_LOW and (any(w in t[4].upper() for w in BANNER_WORDS)
                                       or re.search(r"\bRECEIVED \d+ ITEMS?\b", t[4].upper())) for t in texts)

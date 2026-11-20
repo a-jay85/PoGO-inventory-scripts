@@ -1148,6 +1148,8 @@ IV% nickname maker for the /ivc skill
 - `shows_iv(ivs, shadow=False, lucky=False, legendary=False, gym=False)`
 - `candidates(ivs, shadow=False, size=None, moves=(), lucky=False, legendary=False, gym=False)`: every form of the name, best first
 - `make_name(ivs, shadow=False, size=None, moves=(), lucky=False, legendary=False, gym=False)`: the nickname, or None when there's nothing to say (-> Nope tag)
+- `name_letters(rest)`: the stat letters after a name's IV%: its first word, or one-letter H/A/D words in a row joined (OCR splits them: '96 H A DBDC*' is HA)
+- `read_name(name, shadow=False)`: an /ivc name back to the IVs it allows: [(a, d, h)], None with no IV% in it
 - `elite_moves(species)`
 - `test()`
 
@@ -1402,8 +1404,9 @@ Unattended /pvpc: works through the PvpC-tagged list in iPhone Mirroring with no
 - `top(ts, key, n=TEAM)`: the tiles [(name, cp)] whose key is among the n highest, and every one tied with the nth
 - `piles_in_order(c)`: the piles, best first: by their best place on any boss's list (so the 6ths fill early, and later piles need fewer opens)
 - `known_copy(c, q, name, cp)`: pokedb's record of this tile: its nickname, CP and the pile's species, shadow or not, with its IVs -> a copy dict like read_copy's, or None (not known, more than one …
+- `name_copy(c, q, name, cp)`: the tile's /ivc name and CP in place of an open: the IVs the name allows (ivc.read_name), at every species and level of the pile that gives exactly this CP -> a copy …
 - `open_tiles(c, q, todo, past)`: open these tiles [(name, cp)] of pile q, in its list's order: the first from the list, then on from page to page by the hidden next button (taps.tap_next), no close and …
-- `take(c, q, tiles, past, to_top=None)`: these tiles of pile q count: the ones counted before are passed, pokedb's known ones are added without an open, and the rest are opened if a copy at their CP could still …
+- `take(c, q, tiles, past, to_top=None)`: these tiles of pile q count: the ones counted before are passed, pokedb's known ones and the ones whose /ivc name fits their CP (name_copy) are added without an open, …
 - `cp_pass(c, q)`: pile q's top 6 by CP (and ties): the list sorted by CP, highest first
 - `name_pass(c, q, named)`: pile q's top 6 by IV% (and ties), from its /ivc names: the list sorted by Name, where they come first
 - `read_copy(c, q, p, info, texts, name, tile_cp)`: the opened page -> a copy dict, or None (not this pile's, or nothing fits its CP and HP)

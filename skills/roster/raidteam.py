@@ -30,11 +30,13 @@ a tile's IV name (its IV sum at most) decides if it could make one, whatever its
 best place on any boss's list), so the 6ths fill early. Each pile is searched sorted by CP first, all of them, then
 again sorted by Name, where the IV names come first. A pile whose best copy at its top CP can't beat any boss's 6th
 needs neither. A tile pokedb knows (its nickname, CP and the pile's species, shadow or not) counts without an open.
+So does a tile whose /ivc name gives IVs that hit its CP exactly at some level (name_copy; a misread name misses it
+and is opened). One IV set, or none of its IV sets could make a team: no open.
 The rest open in the list's order: the first from the list, then on from page to page by the hidden next button
 under the CP arc (taps.tap_next), no close between, and only while a copy at its CP could beat some boss's 6th.
 An opened copy: CP, HP and the power-up cost on the page's top (no drag) give the level and the IVs that fit
 (powerup.cost_levels). The database (pokedb) may know its IVs. Still more than one fit, and the best of them could beat
-some boss's 6th: the appraisal gives them.
+some boss's 6th: the appraisal gives them. Sure IVs go into pokedb.
 
 Output in runs/<time>-raidteam/: copies.json (every copy opened, saved after each pile: a stopped count carries on
 from it), teams.json (../shared/raidteams.py reads it, for the door and /ivc) and report.md. teams.json: per boss its 6; every copy opened, with the
@@ -45,7 +47,7 @@ any team. One over it that isn't among the opened ones came or grew after the co
 Keep: the bulk taggers (cleantrades, tradeable tag, specieswise) tag whole searches without opening a page, so they can't
 ask raidteams.py. Every one of their searches leaves out favorites: a team member made a favorite is safe from all of
 them. Each one is found by its dex number, shadow or not and its exact CP, and told apart by HP, weight and height.
-Favorite on, rules.RAID_OFF off. One with the user's own tag (verdict.OWN_TAGS: Old, Evo, GuaranteedLucky, Remote
+A copy counted by its name has no HP, weight or height: its name tells it apart. Favorite on, rules.RAID_OFF off. One with the user's own tag (verdict.OWN_TAGS: Old, Evo, GuaranteedLucky, Remote
 Trade, RT) is passed over, traded or not: the door judges those. One powered up since the count isn't found: passed
 over too (the door and /ivc still keep it). Done ones go in kept.json beside teams.json, so a rerun skips them.
 """
@@ -55,7 +57,8 @@ from collections import Counter
 HERE = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 sys.path.insert(0, os.path.join(HERE, "..", "dex"))
-import dex, pvp
+sys.path.insert(0, os.path.join(HERE, "..", "ivc"))
+import dex, ivc, pvp
 import roster
 from roster import COUNTERS, is_mega, real_boss, boss_name, attacker_name
 from base import Stop, Skip, log, newest
@@ -542,6 +545,24 @@ def known_copy(c, q, name, cp):
             "ivs_sure": True, "from": "pokedb"}
 
 
+def name_copy(c, q, name, cp):
+    """the tile's /ivc name and CP in place of an open: the IVs the name allows (ivc.read_name), at every species and
+    level of the pile that gives exactly this CP -> a copy dict like read_copy's, with no HP, weight or height. None:
+    no IV name, or the name misses the CP (a misread: open it), or more than one IV set fits and the best could make
+    a team (open it: the appraisal tells)"""
+    p = c.piles[q]
+    ivs = ivc.read_name(name, p["shadow"])
+    if not ivs or not cp:
+        return None
+    got = [(s, lv, v) for s in p["sids"] if s in pvp.SPECIES for b in (stats(s),)
+           for lv in pvp.LEVELS for v in ivs if pvp.cp(b, v, lv) == cp]
+    sure = len({f[2] for f in got}) == 1
+    if not got or not sure and c.could_help(q, got):
+        return None
+    return {"q": q, "name": name, "tile_cp": cp, "cp": cp, "hp": None, "kg": None, "m": None, "fits": got,
+            "ivs_sure": sure, "from": "name"}
+
+
 PAGE_MISSES = 4  # paging on past this many tiles not wanted in a row: back to the list instead (its walk skips them)
 
 
@@ -621,10 +642,11 @@ def open_tiles(c, q, todo, past):
 
 
 def take(c, q, tiles, past, to_top=None):
-    """these tiles of pile q count: the ones counted before are passed, pokedb's known ones are added without an
-    open, and the rest are opened if a copy at their CP could still beat some boss's 6th"""
+    """these tiles of pile q count: the ones counted before are passed, pokedb's known ones and the ones whose /ivc
+    name fits their CP (name_copy) are added without an open, and the rest are opened if a copy at their CP could
+    still beat some boss's 6th"""
     have = [(x["name"], x["tile_cp"]) for x in c.copies if x["q"] == q]
-    todo, known = [], 0
+    todo, known, named = [], 0, 0
     for name, cp in tiles:
         # counted before: the same CP and name ('98 AD C* X' by CP, '98 ADC*X ^' by name: one Mewtwo, 2026-11-18)
         k = next((h for h in have if h[1] == cp and squash(h[0]) == squash(name)), None) or \
@@ -637,9 +659,14 @@ def take(c, q, tiles, past, to_top=None):
             c.copies.append(one)
             known += 1
             continue
+        one = name_copy(c, q, name, cp)
+        if one:
+            c.copies.append(one)
+            named += 1
+            continue
         todo.append((name, cp))
     todo = [t for t in todo if c.beats(q, t[1], smax=iv_smax(t[0]))]  # (team B: its IV name caps its IV sum)
-    log(f"  {len(tiles)} tiles: {known} known in pokedb, {len(todo)} to open")
+    log(f"  {len(tiles)} tiles: {known} known in pokedb, {named} by their IV name and CP, {len(todo)} to open")
     if todo:
         if to_top:
             to_top()
@@ -725,6 +752,10 @@ def read_copy(c, q, p, info, texts, name, tile_cp):
             got = [f for f in got if f[2] == tuple(ivs)] or got
         except Skip as e:
             log(f"  appraisal: {e}: its best fit counts")
+    if len({f[2] for f in got}) == 1 and got[0][2] in (ivc.read_name(name, p["shadow"]) or ()):
+        base.learn_ivs(sorted({s for s, *_ in got}), cp, hp, got[0][2])  # sure IVs its name agrees with: pokedb
+        # learns them, so the next count needn't open it (a misread cost can pin a wrong level: the name checks it.
+        # An appraisal teaches pokedb itself)
     return {"q": q, "name": name, "tile_cp": tile_cp, "cp": cp, "hp": hp, "kg": kg, "m": m, "fits": got,
             "ivs_sure": len({f[2] for f in got}) == 1}
 
@@ -764,7 +795,8 @@ def report(c, who, out_dir):
     json.dump(t, open(os.path.join(out_dir, "teams.json"), "w"), indent=1)
     keep = [x for x in t["copies"] if x["on"]]
     lines = [f"# /raidteam: {who}'s 6 per raid boss: team A at today's levels, team B at level 50", "",
-             f"Counted {t['counted']}. {len(t['copies'])} copies opened, {len(keep)} on some team.", "",
+             f"Counted {t['counted']}. {len(t['copies'])} copies counted ({sum(not x.get('from') for x in c.copies)} opened), "
+             f"{len(keep)} on some team.", "",
              "## On a team", ""]
     for x in sorted(keep, key=lambda x: -len(x["on"])):
         lines.append(f"- {x['name']} CP{x['cp']} ({'/'.join(x['species'])}, level {'/'.join(map(str, x['levels']))}): "
@@ -811,6 +843,8 @@ def cmd_keep(t, path, limit=None):
             base.OPENED["who"] = base.who(info)  # (the swipe moved here on purpose: the star and tags check this one)
             if not base.same_pokemon(base.who(info), want):
                 continue
+            if x["hp"] is None and not (bare(info["name"]) == bare(x["name"]) or search.looks_same(x["name"], info["name"])):
+                continue  # counted by its /ivc name (no HP, weight or height): the name tells twins apart
             hit = True
             mine = [c for c in tag_chips(texts) if ui_key(c) in own]
             if mine:

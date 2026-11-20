@@ -72,7 +72,9 @@ def on_team(who, sids, shadow, cp, hp, kg=None, m=None, t=None, iv_sum=None):
         return []
     mine = [c for c in t["copies"] if sid in c["species"] and bool(c["shadow"]) == bool(shadow)]
     same = [c for c in mine if close(c.get("kg"), kg, 0.015) and close(c.get("m"), m, 0.015)] \
-        or [c for c in mine if c["cp"] == cp and hp in (c.get("hp"), None)]  # (a list read has no HP)
+        or [c for c in mine if c["cp"] == cp and hp in (c.get("hp"), None)] \
+        or [c for c in mine if c["cp"] == cp and c.get("hp") is None and iv_sum is not None  # counted from its /ivc
+            and iv_sum in {sum(v) for v in c.get("ivs") or ()}]  # name, never opened: no HP, so its IV sum too
     if len(same) == 1:
         return list(same[0]["on"])
     if same:  # twins: the same on every team, or not sure

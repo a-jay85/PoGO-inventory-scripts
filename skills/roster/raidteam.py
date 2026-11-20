@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""/raidteam: the signed-in account's best 6 raid attackers against every released raid boss like a 4-star raid's
-or higher, at the level and IVs its copies have today (the user, 2026-11-17). Both phones (the iPhone since 2026-11-19).
+"""/raidteam: the signed-in account's best 6 raid attackers against every raid boss like a 4-star raid's or higher,
+released or not, two teams each (the user, 2026-11-19): team A at the level and IVs its copies have today, team B with
+every copy powered up to level 50 (by its IVs). Ties with a 6th stay on. Both phones (the iPhone since 2026-11-19).
 
   POGO_PHONE=android caffeinate -dimsu python3 raidteam.py count [copies.json] [--limit N]
                                        count whoever is signed in; with a copies.json, carry on from it.
@@ -12,18 +13,20 @@ or higher, at the level and IVs its copies have today (the user, 2026-11-17). Bo
                                        count (no --limit) runs this at its end
   pogo.py raidteam count                     the same, through the front door
 
-What it's for: a Pokémon on some team is a favorite, whatever its IVs (a Mighty one, a traded one powered up long
-ago). One that falls off every team, because something better got powered up, is judged again and can be traded or
-transferred. A better copy that isn't powered up yet doesn't push anything out: only what each copy is today counts.
+What it's for: a Pokémon on some team, A or B, is a favorite, whatever its IVs (a Mighty one, a traded one powered
+up long ago). One that falls off every team (A and B, every boss) is judged again and can be traded or transferred.
+On team A a better copy that isn't powered up yet doesn't push anything out; on team B it does.
 
-Bosses: roster.real_boss() and released, in both DialgaDex pulls (Party Power off, a party of 2: a team in either
+Bosses: roster.real_boss(), released or not (DialgaDex's counter pulls list unreleased bosses too; the attackers are
+the account's own copies, so released ones), in both DialgaDex pulls (Party Power off, a party of 2: a team in either
 counts). Every attacker on a boss's list counts, legendary, shadow and mega too: these are the account's own teams. A
 mega is a copy of its species, at that copy's level and IVs, one mega per team. Ratings are DialgaDex's own (rate.mjs):
 best moves with Elite TMs, so a copy's real moves don't count. Only the attackers on DialgaDex's lists (80 deep) count.
 
 How it counts (the user, 2026-11-18). A pile is one storage search: the species' dex number, its form terms, and
 shadow or !shadow. Per pile only its top 6 by CP and its top 6 by IV% (the /ivc names, '96 D GGBI', '100 RT*') count,
-ties too: overall IV% counts a little over a 15 attack, so there's no walk down the list. Piles go best first (their
+ties too: overall IV% counts a little over a 15 attack, so there's no walk down the list. Team B needs only IVs:
+a tile's IV name (its IV sum at most) decides if it could make one, whatever its CP. Piles go best first (their
 best place on any boss's list), so the 6ths fill early. Each pile is searched sorted by CP first, all of them, then
 again sorted by Name, where the IV names come first. A pile whose best copy at its top CP can't beat any boss's 6th
 needs neither. A tile pokedb knows (its nickname, CP and the pile's species, shadow or not) counts without an open.
@@ -35,8 +38,8 @@ some boss's 6th: the appraisal gives them.
 
 Output in runs/<time>-raidteam/: copies.json (every copy opened, saved after each pile: a stopped count carries on
 from it), teams.json (../shared/raidteams.py reads it, for the door and /ivc) and report.md. teams.json: per boss its 6; every copy opened, with the
-bosses it's on; per pile, the lowest CP a copy could make some team at (bar). stars: empty since 2026-11-18 (no star term
-searches). A copy under its pile's bar can't be on
+bosses it's on; per pile, the lowest CP a copy could make some team A at (bar) and the lowest IV sum a copy could make
+some team B at (bars50). stars: empty since 2026-11-18 (no star term searches). A copy under both bars can't be on
 any team. One over it that isn't among the opened ones came or grew after the count.
 
 Keep: the bulk taggers (cleantrades, tradeable tag, specieswise) tag whole searches without opening a page, so they can't
@@ -58,6 +61,8 @@ from roster import COUNTERS, is_mega, real_boss, boss_name, attacker_name
 from base import Stop, Skip, log, newest
 
 TEAM = roster.TEAM
+TOP = pvp.LEVELS[-1]  # team B: every copy powered up to here (the user, 2026-11-19)
+TIE = 1e-6  # a rating this close to the 6th's is a tie: it stays on the team (twins rate the same)
 HUNDO = (15, 15, 15)
 FULL = 45  # the highest IV sum
 STEPS = ((0, 3), (4, 7), (8, 11), (12, 15))  # ceiling(): defense and HP IVs, 4 at a time
@@ -171,6 +176,17 @@ def ceiling(sid, cp, smax=FULL):
     return _CEIL[k]
 
 
+def tops(x, r):
+    """a rating x makes a team whose 6th rates r: over it, or tied with it (ties stay). r 0: the team isn't full"""
+    return x > r or (r > 0 and x >= r - TIE)
+
+
+def iv_smax(name):
+    """the highest IV sum an /ivc name's IV% allows (its % rounded: one more for safety), FULL with no IV name"""
+    pct = iv_pct(name)
+    return FULL if pct is None else min(FULL, math.ceil((pct + 1) * FULL / 100))
+
+
 def below(x, y):
     """(level, ivs) x rates no higher than y: no higher a level, no higher an IV"""
     return x[0] <= y[0] and all(i <= j for i, j in zip(x[1], y[1]))
@@ -197,7 +213,7 @@ class Count:
         self.limit = limit
         self.pairs = []  # (model, boss): a boss in one pull
         for m in models:
-            bs = [b for b in m.bosses if b["released"] and real_boss(b)]
+            bs = [b for b in m.bosses if real_boss(b)]  # released or not (the user, 2026-11-19)
             self.pairs += [(m, b) for b in bs[:limit]]
         self.piles = {}  # query -> {"sids", "shadow", "dex"}: one storage search
         self.of = {}  # (id(model), attacker index) -> query
@@ -246,39 +262,41 @@ class Count:
     def over(self, m, b, q, cp, r, smax=FULL):
         """could a copy of pile q with this CP or less (IV sum smax or less) rate over r against this boss? A
         15/15/15 at the 0/0/0's level first (one ask), then ceiling()'s (a few hundred)"""
-        return self.best(m, b, self.loose_asks(m, b, q, cp)) > r and self.best(m, b, self.cap_asks(m, b, q, cp, smax)) > r
+        return tops(self.best(m, b, self.loose_asks(m, b, q, cp)), r) and tops(self.best(m, b, self.cap_asks(m, b, q, cp, smax)), r)
 
     def warm_over(self, wants):
         """[(m, b, q, cp, r, smax)]: everything over() will ask for these, in two lines to rate.mjs"""
         self.rater.warm([(m.data["party"], b, self.loose_asks(m, b, q, cp)) for m, b, q, cp, r, smax in wants])
         self.rater.warm([(m.data["party"], b, self.cap_asks(m, b, q, cp, smax)) for m, b, q, cp, r, smax in wants
-                         if self.best(m, b, self.loose_asks(m, b, q, cp)) > r])
+                         if tops(self.best(m, b, self.loose_asks(m, b, q, cp)), r)])
 
-    def option_asks(self, m, b):
+    def option_asks(self, m, b, b50=False):
+        """b50: team B, every copy at level TOP (its IVs, not its level)"""
         asks, who = [], []
         for k, c in enumerate(self.copies):
             for i in self.entries(m, b, c["q"]):
                 s = m.sid[i]
                 for fs, lv, ivs in c["fits"]:
                     if fs == s:
-                        asks.append((m.A[i], lv, ivs))
+                        asks.append((m.A[i], max(lv, TOP) if b50 else lv, ivs))
                         who.append((k, i))
         return asks, who
 
-    def options(self, m, b):
+    def options(self, m, b, b50=False):
         """[(rating, copy index, attacker index)] for every opened copy that fits an attacker on this list"""
-        asks, who = self.option_asks(m, b)
+        asks, who = self.option_asks(m, b, b50)
         best = {}
         for (k, i), r in zip(who, self.rater.rate(m.data["party"], b, asks)):
             if r is not None and r > best.get((k, i), -1):  # IVs not sure: its best fit (the side that keeps)
                 best[(k, i)] = r
         return sorted(((r, k, i) for (k, i), r in best.items()), reverse=True)
 
-    def team(self, m, b):
-        """-> [(rating, copy index, attacker index)]: the 6, best first. A copy takes one spot, one mega a team"""
+    def team(self, m, b, b50=False):
+        """-> [(rating, copy index, attacker index)]: the 6, best first, and every copy tied with the 6th (ties stay,
+        the user 2026-11-19). A copy takes one spot, one mega a team. b50: team B (every copy at level TOP)"""
         out, used, mega = [], set(), False
-        for r, k, i in self.options(m, b):
-            if len(out) >= TEAM:
+        for r, k, i in self.options(m, b, b50):
+            if len(out) >= TEAM and not tops(r, out[TEAM - 1][0]):
                 break
             if k in used or (is_mega(m.A[i]) and mega):
                 continue
@@ -287,38 +305,43 @@ class Count:
             out.append((r, k, i))
         return out
 
-    def sixth(self, m, b):
-        k = (id(m), id(b))
+    def sixth(self, m, b, b50=False):
+        """the team's 6th's rating, 0 while it has fewer than 6. b50: team B's"""
+        k = (id(m), id(b), b50)
         if self._sixth.get(k, (None,))[0] != len(self.copies):
-            t = self.team(m, b)
-            self._sixth[k] = (len(self.copies), t[-1][0] if len(t) >= TEAM else 0)
+            t = self.team(m, b, b50)
+            self._sixth[k] = (len(self.copies), t[TEAM - 1][0] if len(t) >= TEAM else 0)
         return self._sixth[k][1]
 
     def warm_sixths(self, pairs=None):
-        """every pair's 6th, in one line to rate.mjs"""
-        todo = [(m, b) for m, b in pairs or self.pairs if self._sixth.get((id(m), id(b)), (None,))[0] != len(self.copies)]
-        self.rater.warm([(m.data["party"], b, self.option_asks(m, b)[0]) for m, b in todo])
+        """every pair's 6th, A and B, in one line to rate.mjs"""
+        todo = [(m, b, b50) for m, b in pairs or self.pairs for b50 in (False, True)
+                if self._sixth.get((id(m), id(b), b50), (None,))[0] != len(self.copies)]
+        self.rater.warm([(m.data["party"], b, self.option_asks(m, b, b50)[0]) for m, b, b50 in todo])
 
     def listing(self, q):
         return [(m, b) for m, b in self.pairs if self.entries(m, b, q)]
 
     def beats(self, q, cp, pairs=None, smax=FULL):
         """the pairs (of these, else all listing q) whose 6th a copy of pile q with this CP (and an IV sum of smax or
-        less) could still beat"""
+        less) could still beat or tie: team A at that CP, or team B at level TOP (any CP)"""
         pairs = self.listing(q) if pairs is None else pairs
         self.warm_sixths(pairs)
-        self.warm_over([(m, b, q, cp, self.sixth(m, b), smax) for m, b in pairs])
-        return [(m, b) for m, b in pairs if self.over(m, b, q, cp, self.sixth(m, b), smax)]
+        self.warm_over([(m, b, q, cp, self.sixth(m, b), smax) for m, b in pairs]
+                       + [(m, b, q, None, self.sixth(m, b, True), smax) for m, b in pairs])
+        return [(m, b) for m, b in pairs if self.over(m, b, q, cp, self.sixth(m, b), smax)
+                or self.over(m, b, q, None, self.sixth(m, b, True), smax)]
 
     def could_help(self, q, fits_):
-        """the best of these fits could beat some listing boss's 6th"""
+        """the best of these fits could beat or tie some listing boss's 6th: team A as they are, team B at TOP"""
         pairs = self.listing(q)
         self.warm_sixths(pairs)
-        groups = [(m, b, [(m.A[i], lv, ivs) for i in self.entries(m, b, q) for s, lv, ivs in fits_ if s == m.sid[i]])
-                  for m, b in pairs]
-        self.rater.warm([(m.data["party"], b, asks) for m, b, asks in groups])
-        return any(asks and max(r or 0 for r in self.rater.rate(m.data["party"], b, asks)) > self.sixth(m, b)
-                   for m, b, asks in groups)
+        groups = [(m, b, b50, [(m.A[i], max(lv, TOP) if b50 else lv, ivs) for i in self.entries(m, b, q)
+                               for s, lv, ivs in fits_ if s == m.sid[i]])
+                  for m, b in pairs for b50 in (False, True)]
+        self.rater.warm([(m.data["party"], b, asks) for m, b, _, asks in groups])
+        return any(asks and tops(max(r or 0 for r in self.rater.rate(m.data["party"], b, asks)), self.sixth(m, b, b50))
+                   for m, b, b50, asks in groups)
 
     def bars(self):
         """pile -> the lowest CP a copy of it could make some team at today (None: none could). Two answers, the higher
@@ -331,7 +354,7 @@ class Count:
                for q, p in self.piles.items()}
         lst = {q: self.listing(q) for q in self.piles}
         loose = lambda qcs: self.rater.warm([(m.data["party"], b, self.loose_asks(m, b, q, cp)) for q, cp in qcs for m, b in lst[q]])
-        hit = lambda q, cp: any(self.best(m, b, self.loose_asks(m, b, q, cp)) > self.sixth(m, b) for m, b in lst[q])
+        hit = lambda q, cp: any(tops(self.best(m, b, self.loose_asks(m, b, q, cp)), self.sixth(m, b)) for m, b in lst[q])
         loose([(q, cps[q][-1]) for q in self.piles if cps[q]])
         span = {q: [0, len(cps[q]) - 1] for q in self.piles if cps[q] and hit(q, cps[q][-1])}
         while any(lo < hi for lo, hi in span.values()):
@@ -346,6 +369,25 @@ class Count:
             if out[q] is not None and not w["end"] and w["next_cp"]:
                 out[q] = max(out[q], w["next_cp"] + 1)
         return out
+
+    def bars50(self):
+        """pile -> the lowest IV sum a copy of it could make some team B at (level TOP, so any CP), None: not even a
+        15/15/15 could. A copy with a lower IV sum can't be on any team B. Every pile's halving search a step at a
+        time together, one line to rate.mjs a step"""
+        self.warm_sixths()
+        lst = {q: self.listing(q) for q in self.piles}
+        wants = lambda qss: [(m, b, q, None, self.sixth(m, b, True), smax) for q, smax in qss for m, b in lst[q]]
+        hit = lambda q, smax: any(self.over(m, b, q, None, self.sixth(m, b, True), smax) for m, b in lst[q])
+        self.warm_over(wants([(q, FULL) for q in self.piles]))
+        span = {q: [0, FULL] for q in self.piles if hit(q, FULL)}
+        while any(lo < hi for lo, hi in span.values()):
+            self.warm_over(wants([(q, (lo + hi) // 2) for q, (lo, hi) in span.items() if lo < hi]))
+            for q, sp in span.items():
+                lo, hi = sp
+                if lo < hi:
+                    mid = (lo + hi) // 2
+                    sp[:] = [lo, mid] if hit(q, mid) else [mid + 1, hi]
+        return {q: span[q][0] if q in span else None for q in self.piles}
 
     # ---------- saving ----------
 
@@ -362,15 +404,18 @@ class Count:
 
     def teams(self, who):
         """teams.json: what ../shared/raidteams.py reads"""
-        out = {"trainer": who, "counted": self.counted, "limit": self.limit, "bosses": {}, "copies": [], "bars": {}}
+        out = {"trainer": who, "counted": self.counted, "limit": self.limit, "bosses": {}, "copies": [], "bars": {},
+               "bars50": {}}
         on = {}
         self.warm_sixths()
         for m, b in self.pairs:
-            key = f"{boss_name(b)} (party {m.data['party']})"
-            t = self.team(m, b)
-            out["bosses"][key] = [{"attacker": attacker_name(m.A[i]), "rating": round(r, 2), "copy": k} for r, k, i in t]
-            for r, k, i in t:
-                on.setdefault(k, []).append(key)
+            for b50 in (False, True):  # team A today, team B at level TOP
+                key = (f"{boss_name(b)}{'' if b['released'] else ' (unreleased)'} (party {m.data['party']}"
+                       f"{', level 50' if b50 else ''})")
+                t = self.team(m, b, b50)
+                out["bosses"][key] = [{"attacker": attacker_name(m.A[i]), "rating": round(r, 2), "copy": k} for r, k, i in t]
+                for r, k, i in t:
+                    on.setdefault(k, []).append(key)
         def shadow_of(q):  # a carried-on copy's pile can be gone from this run's piles (iPhone 2026-11-19: KeyError
             return self.piles[q]["shadow"] if q in self.piles else "&shadow" in q  # '36&!shadow' at the report)
 
@@ -381,13 +426,14 @@ class Count:
                                   "levels": sorted({lv for _, lv, _ in c["fits"]}),
                                   "ivs": sorted({v for *_, v in c["fits"]}) if len({v for *_, v in c["fits"]}) <= 4 else None,
                                   "on": on.get(k, []), "skip": c.get("skip")})
-        bars = self.bars()
+        bars, bars50 = self.bars(), self.bars50()
         out["stars"] = {}  # [[smax, cp]]: a pile walked with a star term from that CP down: no copy at that CP or
         # under with an IV sum of smax or less can make a team (it was left out of the search)
         for q, p in self.piles.items():
             for x in p["sids"]:
                 key = f"{x}{'|shadow' if p['shadow'] else ''}"
                 out["bars"][key] = bars[q]
+                out["bars50"][key] = bars50[q]
                 if self.walk[q].get("stars"):
                     out["stars"][key] = self.walk[q]["stars"]
         return out
@@ -592,7 +638,7 @@ def take(c, q, tiles, past, to_top=None):
             known += 1
             continue
         todo.append((name, cp))
-    todo = [t for t in todo if c.beats(q, t[1])]
+    todo = [t for t in todo if c.beats(q, t[1], smax=iv_smax(t[0]))]  # (team B: its IV name caps its IV sum)
     log(f"  {len(tiles)} tiles: {known} known in pokedb, {len(todo)} to open")
     if todo:
         if to_top:
@@ -717,7 +763,7 @@ def report(c, who, out_dir):
     t = c.teams(who)
     json.dump(t, open(os.path.join(out_dir, "teams.json"), "w"), indent=1)
     keep = [x for x in t["copies"] if x["on"]]
-    lines = [f"# /raidteam: {who}'s 6 per raid boss, at today's levels", "",
+    lines = [f"# /raidteam: {who}'s 6 per raid boss: team A at today's levels, team B at level 50", "",
              f"Counted {t['counted']}. {len(t['copies'])} copies opened, {len(keep)} on some team.", "",
              "## On a team", ""]
     for x in sorted(keep, key=lambda x: -len(x["on"])):

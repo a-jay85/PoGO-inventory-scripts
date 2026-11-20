@@ -1252,6 +1252,8 @@
    "Skip",
    "Stop",
    "TEAM",
+   "TIE",
+   "TOP",
    "_CEIL",
    "attacker_name",
    "bare",
@@ -1265,6 +1267,7 @@
    "fits",
    "is_mega",
    "iv_pct",
+   "iv_smax",
    "keep_script",
    "known_copy",
    "log",
@@ -1286,6 +1289,7 @@
    "top",
    "top_at",
    "top_level",
+   "tops",
    "ui_key"
   ],
   "runs": [

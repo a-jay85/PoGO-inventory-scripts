@@ -27,7 +27,7 @@ Before writing a helper, grep `skills/MAP.md` (every function, its arguments and
 - `skills/shared/popups.py`: Boxes the game pops up over any screen, by itself or left over from another script, that one safe tap closes
 - `skills/shared/powerup.py`: Powering one Pokémon up: its level from the page and the dialog, and the cheap jumps to the next Candy XL tier
 - `skills/shared/pvp.py`: The game master (PvPoke's gamemaster.json): base stats, CP and HP, the level from IVs, CP and HP (level_of), evolutions, and PvP ranks and nicknames
-- `skills/shared/raidteams.py`: The raid team rule (the user, 2026-11-17): a Pokémon on its holder's own team of 6 against some 4★+ raid boss, at its real level and IVs, is a favorite
+- `skills/shared/raidteams.py`: The raid team rule (the user, 2026-11-17): a Pokémon on its holder's own team of 6 against some 4★+ raid boss, at its real level and IVs (team A), or with every copy at …
 - `skills/shared/rules.py`: Tag names, rule numbers and species lists that skills and verdict.py (the rule book) use: one copy, here
 - `skills/shared/savedsearch.py`: The search list's saved searches: read their labels, run one, add to it, type a long search, and tag everything a search finds (tag_pile: long press, SELECT ALL, tag)
 - `skills/shared/search.py`: In-game searches and list walking, shared by /ivc and /pvpc's fallen-out step
@@ -82,7 +82,7 @@ Before writing a helper, grep `skills/MAP.md` (every function, its arguments and
 - `skills/pvpc/run.py`: Unattended /pvpc: works through the PvpC-tagged list in iPhone Mirroring with no Claude
 
 ## skills/roster
-- `skills/roster/raidteam.py`: /raidteam: the signed-in account's best 6 raid attackers against every released raid boss like a 4-star raid's or higher, at the level and IVs its copies have today (the …
+- `skills/roster/raidteam.py`: /raidteam: the signed-in account's best 6 raid attackers against every raid boss like a 4-star raid's or higher, released or not, two teams each (the user, 2026-11-19): …
 - `skills/roster/roster.py`: /roster: HashTagAJay's best 6 raid attackers against every raid boss, and which species a new traded copy would still help with
 - `skills/roster/sigmoves.py`: Signature moves not in GO yet (the user, 2026-11-19: future-proofing counts mainline moves too): a damaging move (not Z, not Max) that only one family learns in the main …
 

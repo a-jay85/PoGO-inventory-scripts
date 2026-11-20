@@ -460,7 +460,7 @@ The game master (PvPoke's gamemaster.json): base stats, CP and HP, the level fro
 - `test()`: every name make_name gives must read back (name_slots) as the ranks it was made from
 
 ## skills/shared/raidteams.py
-The raid team rule (the user, 2026-11-17): a Pokémon on its holder's own team of 6 against some 4★+ raid boss, at its real level and IVs, is a favorite
+The raid team rule (the user, 2026-11-17): a Pokémon on its holder's own team of 6 against some 4★+ raid boss, at its real level and IVs (team A), or with every copy at …
 
 - `newest(who)`: -> (teams dict, days since its count) for this account, or (None, None): the newest whole count (no --limit), however old
 - `path_of(who)`: the teams.json newest(who) read, or None
@@ -1351,7 +1351,7 @@ Unattended /pvpc: works through the PvpC-tagged list in iPhone Mirroring with no
 - `script(cmd, limit, dry)`
 
 ## skills/roster/raidteam.py
-/raidteam: the signed-in account's best 6 raid attackers against every released raid boss like a 4-star raid's or higher, at the level and IVs its copies have today (the …
+/raidteam: the signed-in account's best 6 raid attackers against every raid boss like a 4-star raid's or higher, released or not, two teams each (the user, 2026-11-19): …
 
 - `class Rater`: one rate.mjs for the whole run: a line of JSON in, a line out
   - `start(self)`
@@ -1363,6 +1363,8 @@ Unattended /pvpc: works through the PvpC-tagged list in iPhone Mirroring with no
 - `top_level(sid, cp)`: the highest level any IVs give this species a CP of cp or less at (0/0/0 there)
 - `top_at(b, ivs, cp)`: the highest level these IVs give a CP of cp or less at, or None
 - `ceiling(sid, cp, smax=FULL)`: [(level, ivs)]: the best of their ratings is at least what any copy of sid with a CP of cp or less and an IV sum of smax or less rates
+- `tops(x, r)`: a rating x makes a team whose 6th rates r: over it, or tied with it (ties stay)
+- `iv_smax(name)`: the highest IV sum an /ivc name's IV% allows (its % rounded: one more for safety), FULL with no IV name
 - `below(x, y)`: (level, ivs) x rates no higher than y: no higher a level, no higher an IV
 - `fits(sids, cp, hp, levels=None)`: [(sid, level, ivs)] that give exactly this CP and HP, at these levels (None: any)
 - `class Count`: the counting state for one account: the two pulls' bosses, the piles, the copies opened so far
@@ -1373,15 +1375,16 @@ Unattended /pvpc: works through the PvpC-tagged list in iPhone Mirroring with no
   - `best(self, m, b, asks)`
   - `over(self, m, b, q, cp, r, smax=FULL)`: could a copy of pile q with this CP or less (IV sum smax or less) rate over r against this boss? A 15/15/15 at the 0/0/0's level first (one ask), then ceiling()'s (a few …
   - `warm_over(self, wants)`: [(m, b, q, cp, r, smax)]: everything over() will ask for these, in two lines to rate.mjs
-  - `option_asks(self, m, b)`
-  - `options(self, m, b)`: [(rating, copy index, attacker index)] for every opened copy that fits an attacker on this list
-  - `team(self, m, b)`: -> [(rating, copy index, attacker index)]: the 6, best first
-  - `sixth(self, m, b)`
-  - `warm_sixths(self, pairs=None)`: every pair's 6th, in one line to rate.mjs
+  - `option_asks(self, m, b, b50=False)`: b50: team B, every copy at level TOP (its IVs, not its level)
+  - `options(self, m, b, b50=False)`: [(rating, copy index, attacker index)] for every opened copy that fits an attacker on this list
+  - `team(self, m, b, b50=False)`: -> [(rating, copy index, attacker index)]: the 6, best first, and every copy tied with the 6th (ties stay, the user 2026-11-19)
+  - `sixth(self, m, b, b50=False)`: the team's 6th's rating, 0 while it has fewer than 6
+  - `warm_sixths(self, pairs=None)`: every pair's 6th, A and B, in one line to rate.mjs
   - `listing(self, q)`
-  - `beats(self, q, cp, pairs=None, smax=FULL)`: the pairs (of these, else all listing q) whose 6th a copy of pile q with this CP (and an IV sum of smax or less) could still beat
-  - `could_help(self, q, fits_)`: the best of these fits could beat some listing boss's 6th
+  - `beats(self, q, cp, pairs=None, smax=FULL)`: the pairs (of these, else all listing q) whose 6th a copy of pile q with this CP (and an IV sum of smax or less) could still beat or tie: team A at that CP, or team B at …
+  - `could_help(self, q, fits_)`: the best of these fits could beat or tie some listing boss's 6th: team A as they are, team B at TOP
   - `bars(self)`: pile -> the lowest CP a copy of it could make some team at today (None: none could)
+  - `bars50(self)`: pile -> the lowest IV sum a copy of it could make some team B at (level TOP, so any CP), None: not even a 15/15/15 could
   - `state(self, who)`
   - `load(self, j)`
   - `teams(self, who)`: teams.json: what ../shared/raidteams.py reads

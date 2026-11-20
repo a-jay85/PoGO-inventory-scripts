@@ -24,7 +24,7 @@ Signed in as HashTagAJay (the pile goes to CyrillJan or the user's wife's accoun
   (Reroll: a strong line (tradeable.strong_lines: on the ideal raid team, or a gym defender's line), DialgaDex top 6
   vs some 4-star+ boss, Master League top 20. GIV at level 26+ both ways (was XLX, the user 2026-11-19): giver_species())
 A Dynamax one (both accounts): 2XL, then GIV (level 26+, then the rest). One that only can Dynamax (or evolves into one that can) gets GIV
-while the account holding it has rules.DMAX_CANDY Candy or less, or XL_CAP + all three Max Moves' Candy XL or less, of
+while the account holding it has rules.DMAX_CANDY Candy or less, or XL_CAP + one Max Move's Candy XL or less, of
 the family (dmax_short, the user 2026-11-16). With more of both and no other rule, Transfer
 Before all of them: a special trade (special(): the user, 2026-11-19), a traded one (Transfer), an untraded
 shadow, costume or background one (odd_one: the user's rules for each; a shadow's Transfer becomes GuaranteedLucky or
@@ -371,7 +371,7 @@ def special(f, sid, kinds, strip):
 
 def dmax_short(f, t, sid):
     """one that can Dynamax (or evolves into one that can), but isn't a Dynamax one: GIV while the account holding it
-    is short of that family's Candy (DMAX_CANDY or less) or Candy XL (XL_CAP + all three Max Moves' XL, or less). With
+    is short of that family's Candy (DMAX_CANDY or less) or Candy XL (XL_CAP + one Max Move's XL, or less). With
     both over, no rule wants it for this and it goes on to the rest (the user, 2026-11-16). None: not one of these"""
     need = t.get("dmax", {}).get(sid)
     if need is None:

@@ -3,7 +3,7 @@
 
   python3 tradeable.py refresh            the Mac: PvPoke's rankings -> pvp-giv-<date>.json, PokeMiners' game master
                                           -> giv-evolved-<date>.json, dynamax-<date>.json and maxmove-xl-<date>.json
-                                          (all three Max Moves' Candy XL per dex number), LeekDuck's egg pools
+                                          (one Max Move's Candy XL per dex number), LeekDuck's egg pools
                                           -> eggs-<date>.json (adds to the last one: a species stays once seen)
   POGO_PHONE=android caffeinate -dimsu python3 tradeable.py dynamax   either account: only searches, counts the
                                           signed-in one's (no rule reads its count since 2026-11-16)
@@ -158,14 +158,15 @@ def dynamax_species(gm):
 
 
 def max_move_xl(gm):
-    """PokeMiners' game master -> {dex: the Candy XL that takes all three Max Moves to level 3}, the most of its
-    forms. Each species has a cost group (breadTierGroup); a group's three moves each cost XL on their last level"""
+    """PokeMiners' game master -> {dex: the Candy XL that takes one Max Move to level 3 (the user, 2026-11-19: was all
+    three)}, the most of its forms. Each species has a cost group (breadTierGroup); a group's three moves each cost XL
+    on their last level, the costliest one counted"""
     cost = {}
     for x in gm:
         g = x["data"].get("breadMoveLevelSettings")
         if g and x["templateId"].startswith("BREAD_MOVE_LEVEL_SETTINGS_"):
-            cost[x["templateId"].removeprefix("BREAD_MOVE_LEVEL_SETTINGS_")] = sum(
-                lv.get("xlCandyCost", 0) for k in ("aSettings", "bSettings", "cSettings") for lv in g[k])
+            cost[x["templateId"].removeprefix("BREAD_MOVE_LEVEL_SETTINGS_")] = max(
+                sum(lv.get("xlCandyCost", 0) for lv in g[k]) for k in ("aSettings", "bSettings", "cSettings"))
     out = {}
     for x in gm:
         grp = (x["data"].get("pokemonSettings") or {}).get("breadTierGroup")
@@ -177,7 +178,7 @@ def max_move_xl(gm):
 
 def dmax_need(m, ok):
     """{sid: Candy XL the account wants for it} for each ok one that can Dynamax, or evolves into one that can: XL_CAP
-    plus what all three Max Moves cost (the most of the ones it can become). Read by verdict.py's Dynamax rule"""
+    plus what one Max Move costs (the most of the ones it can become). Read by verdict.py's Dynamax rule"""
     can = set(can_dynamax())
     f = base.newest(HERE, "maxmove-xl-[0-9]*[0-9].json")
     if not f:

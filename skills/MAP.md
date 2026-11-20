@@ -114,6 +114,7 @@ The shared tapper: screen reading, taps, timing, run folders and logging, and th
 - `tap_x(bounds, **how)`: tap the round X at the bottom middle
 - `back_or_x(bounds)`: close a box or menu that has its round X at the bottom middle: Back on Android, that X on the iPhone (no Back key there)
 - `click(fx, fy, bounds, gap=0.0, ms=None, fuzz=0.0, rest=0.0, bring_front=True, spaced=True, …)`: a tap at a spot (window fractions), not a named button: every skill's taps go through here
+- `banner_gone()`: a tap up top waits while the latest look shows a friend's banner over that strip (ui.gift_banner): the banner eats the tap ('ME' didn't land twice under 'X received 12 …
 - `tap_box(t, bounds, dy=0.0, spread=0.0, **kw)`: click() an OCR box (x, y, w, h, text): its middle (dy lower), or with spread anywhere within that much of the middle (0.15: 35-65% across and down)
 - `tap(target, dry=False, rested=False)`: rested: ui.plan's rested (go() only: it taps again if a tap is lost)
 - `go(target, *screens)`: a tap that moves to another screen: if it doesn't land, tap again (never used for tick boxes)
@@ -693,7 +694,7 @@ Screen reader + tap planner for /pvpc
 - `is_label(s, label)`: OCR sometimes tacks a stray letter onto a bar label (Duskull's read 'Attack l'), or glues the cursor on ('Defensel')
 - `full_list(texts)`: the Pokémon screen's TAGS or EGGS tab shows: the full list (or its Tags tab), no tag's list (a tag's list has neither)
 - `profile_tabs(texts)`: any tab of the profile (ME, FRIENDS or SOCIAL): its three tab names across the top
-- `gift_banner(texts)`: a friend's banner across the top of any screen for a few seconds: 'X sent you a Gift!', 'X and 3 other friends have opened your Gifts!'
+- `gift_banner(texts)`: a friend's banner across the top of any screen for a few seconds: 'X sent you a Gift!', 'X and 3 other friends have opened your Gifts!', 'X received 5 items / from your …
 - `profile_page(texts)`: the profile (ME / FRIENDS / SOCIAL tabs across the top) or the Scopely Explore page its EXPLORE button opens
 - `scopely(texts)`: the Scopely Explore page (a web page over the game): 'Return to Pokémon GO' at the top
 - `classify(texts)`

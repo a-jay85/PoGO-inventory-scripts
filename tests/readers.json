@@ -9385,8 +9385,10 @@
  },
  "ui.gift_banner": {
   "friend rows": false,
+  "friendship level": true,
   "opened": true,
   "over the ME tab": true,
+  "received items": true,
   "the list": false,
   "two lines": true
  },
@@ -9399,8 +9401,10 @@
  },
  "ui.profile_tabs": {
   "friend rows": true,
+  "friendship level": false,
   "opened": false,
   "over the ME tab": false,
+  "received items": false,
   "the list": false,
   "two lines": false
  },

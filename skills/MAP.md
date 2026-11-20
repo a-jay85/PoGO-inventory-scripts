@@ -833,7 +833,9 @@ Re-judge HashTagAJay's #GIV or #Transfer pile by species alone, with no Pokémon
 - `family(sid)`: the family's Candy name, as the page reads it ('ARON')
 - `species_tag(sid, t, counts, vd)`: -> verdict.Verdict for a plain one of this species on HashTagAJay
 - `groups(pile)`: -> ({tag: [search part]}, {tag: n species}, [(sid, why) not sure])
-- `dex_parts(by_dex, pile, size)`: {dex: {sid: tag or None (not sure)}} -> ({tag: [search part]}, {tag: n species}, [(sid, why) not sure])
+- `under26(sids)`: the highest CP no level 26+ one of these forms can have: one under the lowest one's CP at level 26, 0/0/0
+- `tiers(caps)`: {key: CP cap} -> {key: its tier's cap}: caps sorted low to high, a new tier once one is over TIER x the tier's lowest
+- `dex_parts(by_dex, pile, size, caps=None)`: {dex: {sid: tag or None (not sure)}} -> ({tag: [search part]}, {tag: n species}, [(sid, why) not sure])
 - `candy_grid(sid, t)`: -> ([Candy range], [Candy XL range]): where the rules cut for this species (XL_CAP for 2XL; DMAX_CANDY and one Max Move's XL for a Dynamax line)
 - `count_term(name, lo, hi)`
 - `runs(cells)`: [((lo, hi), tag)] in order -> the same with neighbours of one tag joined

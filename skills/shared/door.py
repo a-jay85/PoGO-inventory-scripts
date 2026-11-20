@@ -32,6 +32,8 @@ LUCKY_OUT_DAYS = 7  # an older entry is dropped: by then the line may have chang
 RULES = hashlib.md5(b"".join(open(os.path.join(HERE, f), "rb").read() for f in ("verdict.py", "door.py", "rules.py"))
                     ).hexdigest()[:8]  # new rules or a new reader: judge again
 SEARCHES = {"costume": "costume"}  # the one fact the page and tile can't show. The rest come from pagefacts
+RAID = "mythical&raid"  # a mythical caught in a raid can't be traded (verdict.special): typed only when the scope could
+# hold a mythical (a scope of dex numbers with none, like /ivc's #IVC&13, skips it)
 # (2026-10-31: traded and the catch place off the page's bottom, Candy XL off its top, shiny and background off the tile)
 SAID = {"traded": "traded", "shiny": "shiny", "background": "background", "far": "distance100-",
         "xl_under": UNDER_360_XL[1:]}  # a scope that already says one of these (#Nope&traded) is believed over the page
@@ -97,10 +99,14 @@ class Door:
         said = set(self.scope.lower().split("&"))  # '#Nope&traded': every one is traded, so no search can misread it
         self.said = {k: term in said for k, term in SAID.items() if term in said or "!" + term in said}
         empty = lambda term: self.source and any(a == self.account and t == term and wide <= said for a, wide, t in EMPTY)
-        self.typed = not all(empty(term) for term in SEARCHES.values())  # False: the screen wasn't touched
+        searches = dict(SEARCHES)
+        dexes = search.dexes_of(self.scope)
+        if dexes is None or dexes & {x["dex"] for x in vd.pvp.SPECIES.values() if "mythical" in (x.get("tags") or [])}:
+            searches["raid"] = RAID
+        self.typed = not all(empty(term) for term in searches.values())  # False: the screen wasn't touched
         if self.typed:
             search.to_search_list()
-        for k, term in SEARCHES.items():
+        for k, term in searches.items():
             if empty(term):
                 self.sets[k] = Counter()
                 log(f"door: {self.scope}&{term}: a wider search already found none, not typed")
@@ -211,7 +217,7 @@ class Door:
             base.do_rename(v.name, lambda got, want: (got or "").strip().upper() == want.upper())
         if v.kind == "keep" or v.star:
             base.set_star(True)
-        elif unstar and v.kind == "tag":
+        elif (unstar or v.unstar) and v.kind == "tag":
             base.set_star(False)
         on = {ui.norm(t) for t in v.tags}
         off = [t for t in (*([self.tag] if self.source else ()), *v.off) if ui.norm(t) not in on]  # (GIV judged GIV again)
@@ -252,6 +258,7 @@ class Door:
                      levels=self.levels(texts, info, sp, ivs, tile_cp), far=said("far", None if page["california"] is None else not page["california"]), gym_top20=gym_top20,
                      raid_team=raidteams.on_team(self.account, list(sp), base.is_shadow(texts), info["cp"] or tile_cp,
                                                  info["hp"], *base.who(info)[2:], iv_sum=sum(ivs) if ivs else None),
+                     raid=self.has("raid", tile) if "raid" in self.sets else None,
                      iv_top=iv_top, pure_top=pure_top, pvp_judged=self.tag.upper() == "PVPC", ivc_judged=self.tag.upper() == "IVC",
                      other_tags=[t for t in tagsheet.tag_chips(texts)
                                  if t not in (self.tag.upper(), *((self.other.upper(),) if self.source else ()))])

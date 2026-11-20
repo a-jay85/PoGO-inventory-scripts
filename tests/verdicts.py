@@ -25,11 +25,11 @@ TABLES = {  # made up
                                  "rhyhorn": ("Reroll", "#1 raid attacker"), "geodude": ("GIV", "PvP"),
                                  "magikarp": ("GIV", "★100% hole")},
             "lucky": {"nidoran_female": "female"}, "evolved": {"golem": "stage 2"}, "no_dmax": set(),
-            "xl_full": set(), "giv_for_taker": {"tandemaus"}, "raid": {"rhyhorn", "rhydon"}, "raid_self": {"rhydon"},
+            "xl_full": set(), "giv_for_taker": {"tandemaus"}, "raid": {"rhyhorn", "rhydon"}, "raid_self": {"rhydon"}, "strong": {"drilbur"},
             "hard": {}, "by_hand": set(), "dmax": {"wooloo": 480, "dubwool": 480}},
     GIVER: {"to": GIVER, "why": {"rhyhorn": ("GIV", "top 6 vs a boss"),
                                  "bulbasaur": ("Reroll", "Venusaur can mega")}, "lucky": {}, "evolved": {"golem": "stage 2"},
-            "no_dmax": set(), "xl_full": set(), "giv_for_taker": {"tandemaus"}, "raid": {"rhyhorn", "rhydon"}, "raid_self": {"rhydon"},
+            "no_dmax": set(), "xl_full": set(), "giv_for_taker": {"tandemaus"}, "raid": {"rhyhorn", "rhydon"}, "raid_self": {"rhydon"}, "strong": {"drilbur"},
             "hard": {"gible": "10 km egg (Gible)", "smeargle": "hard to farm"}, "by_hand": {"spinda", "tauros"},
             "dmax": {"wooloo": 480, "dubwool": 480}},
 }
@@ -103,6 +103,9 @@ CASES = {
     "shadow raid attacker, ranked out, under 360 XL": plain(shadow=True, sids=["rhyhorn"], ivs=(10, 10, 10), pure_top=False, candy_xl=0),
     "shadow raid attacker, top once purified": plain(shadow=True, sids=["rhyhorn"], ivs=(10, 10, 10), pure_top=True),
     "shadow, under 360 XL": plain(shadow=True, ivs=(10, 10, 10), candy_xl=0),
+    "strong-line shadow": plain(shadow=True, sids=["drilbur"], ivs=(10, 10, 10)),
+    "strong-line shadow, old": plain(shadow=True, sids=["drilbur"], ivs=(10, 10, 10), pure_top=False, caught=OLD),
+    "strong-line shadow, 2019 catch": plain(shadow=True, sids=["drilbur"], ivs=(10, 10, 10), pure_top=False, caught=LUCKY),
     "shadow, 360+ XL": plain(shadow=True, ivs=(10, 10, 10)),
     "shadow, XL not read": plain(shadow=True, ivs=(10, 10, 10), candy_xl=None),
     "shadow, under 360 XL, 2019 catch": plain(shadow=True, ivs=(10, 10, 10), candy_xl=0, caught=LUCKY),
@@ -143,6 +146,8 @@ CASES = {
     "H shadow, under 360 XL": plain(account=TAKER, shadow=True, ivs=(10, 10, 10), candy_xl=0),
     "gigantamax": plain(gigantamax=True),
     "mythical": plain(sids=["mew"]),
+    "mythical from a raid": plain(sids=["mew"], raid=True),
+    "mythical not from a raid": plain(sids=["mew"], raid=False),
     # trades.py's legendary rules
     "legendary untraded": plain(sids=["entei"]),
     "legendary untraded old": plain(sids=["entei"], caught=OLD),
@@ -275,7 +280,8 @@ def answer(f):
     f, t = f if isinstance(f, tuple) else (f, TABLES[v.TO.get(f.account, TAKER)])
     r = v.final_tag(f, t, TODAY)
     return [r.kind, list(r.tags), r.name, r.why] + ([{"off": list(r.off)}] if r.off else []) \
-        + (["purify"] if r.purify else []) + (["star"] if r.star else [])
+        + (["purify"] if r.purify else []) + (["star"] if r.star else []) \
+        + (["clear"] if r.clear else []) + (["unstar"] if r.unstar else [])
 
 
 import raidteams  # noqa: E402

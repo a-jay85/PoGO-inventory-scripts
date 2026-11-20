@@ -246,6 +246,8 @@ class Door:
             # account asks, and only for a light one: a heavy one is no medal at any size (2026-11-02)
         hp = next(t for t in texts if re.search(r"\d+\s*/\s*\d+\s*HP", t[4]))
         near = [ui.norm(t[4]) for t in texts if hp[1] < t[1] < hp[1] + 0.3]
+        chips = tagsheet.tag_chips_sure(texts, (*vd.OWN_TAGS, *vd.TRADE_TAGS, *vd.REMOTE_TAGS, *vd.IGNORED_TAGS,
+                                                self.tag, self.other or ""))  # before page_bottom scrolls down
         page = self.page_bottom(info)
         xl = self.said["xl_under"] if "xl_under" in self.said else self.xl_under(info)
         icons = tile_icons(info)
@@ -266,7 +268,7 @@ class Door:
                                                  info["hp"], *base.who(info)[2:], iv_sum=sum(ivs) if ivs else None),
                      raid=self.has("raid", tile) if "raid" in self.sets else None,
                      iv_top=iv_top, pure_top=pure_top, pvp_judged=self.tag.upper() == "PVPC", ivc_judged=self.tag.upper() == "IVC",
-                     other_tags=[t for t in tagsheet.tag_chips(texts)
+                     other_tags=[t for t in chips
                                  if t not in (self.tag.upper(), *((self.other.upper(),) if self.source else ()))])
         if f.lucky and f.iv_top is None and was_ranked_out(self.account, sp, ivs):
             f.iv_top = False

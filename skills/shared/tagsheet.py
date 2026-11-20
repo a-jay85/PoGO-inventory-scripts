@@ -235,6 +235,24 @@ def tag_chips(texts):
                   and n not in ("DYNAMAX", "GIGANTAMAX") and not n.startswith("LUCKY POK"))
 
 
+def tag_chips_sure(texts, known):
+    """tag_chips, but a chip that isn't one of the known tag names gets the chips read again from a fresh look, 3x
+    bigger (Android): the plain read gave GIV as GIVI, GIN or GI (CyrillJan's GIV pile, 2026-11-20: 7 of 160 left
+    not sure), the sharp read GIV all 3 times. The page must still be at its top, as when texts was read.
+    known: tag names, matched on letters only"""
+    chips = tag_chips(texts)
+    key = lambda s: re.sub(r"[^A-Z]", "", s.upper())
+    if not ui.ANDROID or all(key(c) in {key(k) for k in known} for c in chips):
+        return chips
+    look()
+    try:
+        again = tag_chips(base.sharp_again())
+    except StopIteration:  # no HP line in the sharp read: keep the plain one
+        return chips
+    log(f"  tags read again, sharp: {chips} -> {again}")
+    return again
+
+
 def favorite(info, texts, among):
     """the open detail page: favorite on, and the tags in among that it has off (sizes.py's XXL ones, raidteam.py's
     team members). -> the tags taken off"""

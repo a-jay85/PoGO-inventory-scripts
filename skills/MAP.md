@@ -610,6 +610,7 @@ Shared reads and taps: a search typed until the bar reads back exactly, who's on
 - `group_hits(fams, prefix, count, n, seen)`: group test (/cleanup read, /dex ★100%): fams [(key, its dex numbers)] -> the keys where prefix&<their dexes>&count finds something
 - `who(texts)`: name, CP, HP, weight, height: twins with the same name and CP still differ in weight and height
 - `tag_chips(texts)`: the tags under the name: between the HP line and the weight row (they can wrap onto two lines)
+- `tag_chips_sure(texts, known)`: tag_chips, but a chip that isn't one of the known tag names gets the chips read again from a fresh look, 3x bigger (Android): the plain read gave GIV as GIVI, GIN or GI …
 - `favorite(info, texts, among)`: the open detail page: favorite on, and the tags in among that it has off (sizes.py's XXL ones, raidteam.py's team members)
 - `scrolled_bottom(bounds, drags=2)`: drag the detail page up to its bottom (caught date) -> texts seen there, both reads
 - `same_at_top(me, now)`: two who() reads with a CP label at the top of the screen: the same one? The CP itself can't vote: sparkles or a moving part can cover it, in either read (Castform's …

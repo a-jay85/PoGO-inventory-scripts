@@ -105,7 +105,8 @@ def to_eggs():
     the EGGS tab"""
     home.start()
     for _ in range(3):
-        screen, texts, path, bounds = look()
+        # a friend's banner ('Friendship level with X increased!') can sit over the tabs for a few seconds: wait it out
+        screen, texts, path, bounds = base.settle(look, lambda g: label(g[1], "EGGS"), timeout=10)
         if eggs_tab(texts):
             return
         tab = ui.label(texts, "EGGS")

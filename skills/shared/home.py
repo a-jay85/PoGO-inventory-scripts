@@ -496,9 +496,10 @@ def profile(texts):
 def clipped_names(texts, below):
     """OCR can drop the last letters of a name that's all there ('HashTagAJa' for HashTagAJay, iPhone, 2026-11-10,
     on the profile under a gift banner and on /gift's ME tab; 'HashTagA' with the buddy's art over 'Jay', Pixel,
-    2026-11-19): the trainers one line above `below` is the start of, all but up to CLIP letters"""
-    return [n for n in TRAINERS if any(len(n) - CLIP <= len(w := squash(t[4])) < len(n) and squash(n).startswith(w)
-                                       for t in texts if t[1] < below)]
+    2026-11-19; 'HashTagA®' the same day, the art read as a mark): the trainers one line above `below` is the start
+    of, all but up to CLIP letters. Marks that aren't letters or digits are dropped first"""
+    return [n for n in TRAINERS if any(len(n) - CLIP <= len(w := re.sub(r"[^A-Z0-9]", "", squash(t[4]))) < len(n)
+                                       and squash(n).startswith(w) for t in texts if t[1] < below)]
 
 
 def to_map():

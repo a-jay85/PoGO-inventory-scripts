@@ -148,9 +148,10 @@
   ",777,926,927,979&pvp&costume": "777926927979pvpcostume",
   ",927,979&pvp&costume": "927979pvpcostume",
   ",PvpC": "pvpc",
+  ",giv&distance0-100&countcandy0-2499": "glvdlstance0l00countcandy02499",
   ",giv&distance0-100&countcandy2500-": "glvdlstance0l00countcandy2500",
+  ",giv&distance100-": "glvdlstancel00",
   ",giv&distance100-&countcandy0-2499": "glvdlstancel00countcandy02499",
-  ",giv,xlx&distance0-100&countcandy0-2499": "glvxlxdlstance0l00countcandy02499",
   ",lucky&320&!costume": "lucky320costume",
   "-100&countcandy2500-": "l00countcandy2500",
   "-151&countcandyxl0-359": "l5lcountcandyxl0359",
@@ -254,9 +255,10 @@
   "950,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "9505l56572092l030373l732733777926927979pvpcostume",
   "9530&3*,4*&shadow": "953034shadow",
   "9PvpC": "9pvpc",
+  "9giv&distance0-100&countcandy0-2499": "9glvdlstance0l00countcandy02499",
   "9giv&distance0-100&countcandy2500-": "9glvdlstance0l00countcandy2500",
+  "9giv&distance100-": "9glvdlstancel00",
   "9giv&distance100-&countcandy0-2499": "9glvdlstancel00countcandy02499",
-  "9giv,xlx&distance0-100&countcandy0-2499": "9glvxlxdlstance0l00countcandy02499",
   "9lucky&320&!costume": "9lucky320costume",
   "<#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "nopeshadow4attack4defense4attack4hp4defense4hp",
   "<#Nope&!traded&!shiny&!costume&793-806,808,809": "nopetradedshlnycostume793806808809",
@@ -274,15 +276,17 @@
   "<50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "505l56572092l030373l732733777926927979pvpcostume",
   "<530&3*,4*&shadow": "53034shadow",
   "<PvpC": "pvpc",
+  "<giv&distance0-100&countcandy0-2499": "glvdlstance0l00countcandy02499",
   "<giv&distance0-100&countcandy2500-": "glvdlstance0l00countcandy2500",
+  "<giv&distance100-": "glvdlstancel00",
   "<giv&distance100-&countcandy0-2499": "glvdlstancel00countcandy02499",
-  "<giv,xlx&distance0-100&countcandy0-2499": "glvxlxdlstance0l00countcandy02499",
   "<lucky&320&!costume": "lucky320costume",
   "Clean Trades": "cleantrades",
   "CleanTrades": "cleantrades",
+  "GIV&DISTANCE0-100&COUNTCANDY0-2499": "glvdlstance0l00countcandy02499",
   "GIV&DISTANCE0-100&COUNTCANDY2500-": "glvdlstance0l00countcandy2500",
+  "GIV&DISTANCE100-": "glvdlstancel00",
   "GIV&DISTANCE100-&COUNTCANDY0-2499": "glvdlstancel00countcandy02499",
-  "GIV,XLX&DISTANCE0-100&COUNTCANDY0-2499": "glvxlxdlstance0l00countcandy02499",
   "Ishiny&!XXL&!4*&!3*&": "lshlnyxxl43",
   "LUCKY&320&!COSTUME": "lucky320costume",
   "Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "nopeshadow4attack4defense4attack4hp4defense4hp",
@@ -320,11 +324,11 @@
   "Q530&3*,4*&shadow": "q53034shadow",
   "QPvpC": "qpvpc",
   "Qgiv&distance0-100&countcandy": "qglvdlstance0l00countcandy",
+  "Qgiv&distance0-100&countcandy0-2499": "qglvdlstance0l00countcandy02499",
   "Qgiv&distance0-100&countcandy2500-": "qglvdlstance0l00countcandy2500",
+  "Qgiv&distance100-": "qglvdlstancel00",
   "Qgiv&distance100-&countcandy0": "qglvdlstancel00countcandy0",
   "Qgiv&distance100-&countcandy0-2499": "qglvdlstancel00countcandy02499",
-  "Qgiv,xlx&distance0-100&countc": "qglvxlxdlstance0l00countc",
-  "Qgiv,xlx&distance0-100&countcandy0-2499": "qglvxlxdlstance0l00countcandy02499",
   "Qlucky&320&!costume": "qlucky320costume",
   "Transfer,#Nope&!traded&xxl": "transfernopetradedxxl",
   "a:b": "ab",
@@ -337,38 +341,43 @@
   "er,#Nope&Itraded&xxl": "ernopeltradedxxl",
   "giv&distance0-100&co": "glvdlstance0l00co",
   "giv&distance0-100&countcandy": "glvdlstance0l00countcandy",
+  "giv&distance0-100&countcandy0-249": "glvdlstance0l00countcandy0249",
+  "giv&distance0-100&countcandy0-2499": "glvdlstance0l00countcandy02499",
+  "giv&distance0-100&countcandy0-2499x": "glvdlstance0l00countcandy02499x",
   "giv&distance0-100&countcandy2500": "glvdlstance0l00countcandy2500",
   "giv&distance0-100&countcandy2500-": "glvdlstance0l00countcandy2500",
   "giv&distance0-100&countcandy2500-x": "glvdlstance0l00countcandy2500x",
+  "giv&distance0-1008countcandy0-2499": "glvdlstance0l008countcandy02499",
   "giv&distance0-1008countcandy2500-": "glvdlstance0l008countcandy2500",
+  "giv&distance0100&countcandy02499": "glvdlstance0l00countcandy02499",
   "giv&distance0100&countcandy2500": "glvdlstance0l00countcandy2500",
+  "giv&distance100": "glvdlstancel00",
   "giv&distance100&countcandy02499": "glvdlstancel00countcandy02499",
+  "giv&distance100-": "glvdlstancel00",
   "giv&distance100-&cou": "glvdlstancel00cou",
   "giv&distance100-&countcandy0": "glvdlstancel00countcandy0",
   "giv&distance100-&countcandy0-249": "glvdlstancel00countcandy0249",
   "giv&distance100-&countcandy0-2499": "glvdlstancel00countcandy02499",
   "giv&distance100-&countcandy0-2499x": "glvdlstancel00countcandy02499x",
+  "giv&distance100-x": "glvdlstancel00x",
+  "giv&distance1oo-": "glvdlstanceloo",
   "giv&distance1oo-&countcandyo-2499": "glvdlstanceloocountcandyo2499",
   "giv&distanceo-1oo&countcandy25oo-": "glvdlstanceoloocountcandy25oo",
-  "giv,x1x&distance0-100&countcandy0-2499": "glvxlxdlstance0l00countcandy02499",
+  "giv&distanceo-1oo&countcandyo-2499": "glvdlstanceoloocountcandyo2499",
   "giv,xl&distanceo-1i0&conntcandy": "glvxldlstanceoll0conntcandy",
-  "giv,xlx&distance0-10": "glvxlxdlstance0l0",
-  "giv,xlx&distance0-100&countc": "glvxlxdlstance0l00countc",
-  "giv,xlx&distance0-100&countcandy0-249": "glvxlxdlstance0l00countcandy0249",
   "giv,xlx&distance0-100&countcandy0-2499": "glvxlxdlstance0l00countcandy02499",
-  "giv,xlx&distance0-100&countcandy0-2499x": "glvxlxdlstance0l00countcandy02499x",
-  "giv,xlx&distance0-1008countcandy0-2499": "glvxlxdlstance0l008countcandy02499",
-  "giv,xlx&distance0100&countcandy02499": "glvxlxdlstance0l00countcandy02499",
-  "giv,xlx&distanceo-1oo&countcandyo-2499": "glvxlxdlstanceoloocountcandyo2499",
-  "giv,xlx8distance0-1008countcandy0-2499": "glvxlx8dlstance0l008countcandy02499",
+  "giv,xlx&distance100-": "glvxlxdlstancel00",
+  "giv8distance0-1008countcandy0-2499": "glv8dlstance0l008countcandy02499",
   "giv8distance0-1008countcandy2500-": "glv8dlstance0l008countcandy2500",
+  "giv8distance100-": "glv8dlstancel00",
   "giv8distance100-8countcandy0-2499": "glv8dlstancel008countcandy02499",
   "iny&!costume&793-806,808,809": "lnycostume793806808809",
   "istance0-100&countcandy2500-": "lstance0l00countcandy2500",
   "istance100-&countcandy0-2499": "lstancel00countcandy02499",
+  "iv&distance0-100&countcandy0-2499": "lvdlstance0l00countcandy02499",
   "iv&distance0-100&countcandy2500-": "lvdlstance0l00countcandy2500",
+  "iv&distance100-": "lvdlstancel00",
   "iv&distance100-&countcandy0-2499": "lvdlstancel00countcandy02499",
-  "iv,xlx&distance0-100&countcandy0-2499": "lvxlxdlstance0l00countcandy02499",
   "lucky&320&!costum": "lucky320costum",
   "lucky&320&!costume": "lucky320costume",
   "lucky&320&!costumex": "lucky320costumex",
@@ -505,9 +514,10 @@
   ",777,926,927,979&pvp&costume": ",777,926,927,979&pvp&costume",
   ",927,979&pvp&costume": ",927,979&pvp&costume",
   ",PvpC": ",pvpc",
+  ",giv&distance0-100&countcandy0-2499": ",glv&dlstance0-l00&countcandy0-2499",
   ",giv&distance0-100&countcandy2500-": ",glv&dlstance0-l00&countcandy2500-",
+  ",giv&distance100-": ",glv&dlstancel00-",
   ",giv&distance100-&countcandy0-2499": ",glv&dlstancel00-&countcandy0-2499",
-  ",giv,xlx&distance0-100&countcandy0-2499": ",glv,xlx&dlstance0-l00&countcandy0-2499",
   ",lucky&320&!costume": ",lucky&320&lcostume",
   "-100&countcandy2500-": "-l00&countcandy2500-",
   "-151&countcandyxl0-359": "-l5l&countcandyxl0-359",
@@ -611,9 +621,10 @@
   "950,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "950,5l,56,57,209,2l0,303,73l,732,733,777,926,927,979&pvp&costume",
   "9530&3*,4*&shadow": "9530&3*,4*&shadow",
   "9PvpC": "9pvpc",
+  "9giv&distance0-100&countcandy0-2499": "9glv&dlstance0-l00&countcandy0-2499",
   "9giv&distance0-100&countcandy2500-": "9glv&dlstance0-l00&countcandy2500-",
+  "9giv&distance100-": "9glv&dlstancel00-",
   "9giv&distance100-&countcandy0-2499": "9glv&dlstancel00-&countcandy0-2499",
-  "9giv,xlx&distance0-100&countcandy0-2499": "9glv,xlx&dlstance0-l00&countcandy0-2499",
   "9lucky&320&!costume": "9lucky&320&lcostume",
   "<#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "<#nope&lshadow&4attack,4defense&4attack,4hp&4defense,4hp",
   "<#Nope&!traded&!shiny&!costume&793-806,808,809": "<#nope&ltraded&lshlny&lcostume&793-806,808,809",
@@ -631,15 +642,17 @@
   "<50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "<50,5l,56,57,209,2l0,303,73l,732,733,777,926,927,979&pvp&costume",
   "<530&3*,4*&shadow": "<530&3*,4*&shadow",
   "<PvpC": "<pvpc",
+  "<giv&distance0-100&countcandy0-2499": "<glv&dlstance0-l00&countcandy0-2499",
   "<giv&distance0-100&countcandy2500-": "<glv&dlstance0-l00&countcandy2500-",
+  "<giv&distance100-": "<glv&dlstancel00-",
   "<giv&distance100-&countcandy0-2499": "<glv&dlstancel00-&countcandy0-2499",
-  "<giv,xlx&distance0-100&countcandy0-2499": "<glv,xlx&dlstance0-l00&countcandy0-2499",
   "<lucky&320&!costume": "<lucky&320&lcostume",
   "Clean Trades": "cleantrades",
   "CleanTrades": "cleantrades",
+  "GIV&DISTANCE0-100&COUNTCANDY0-2499": "glv&dlstance0-l00&countcandy0-2499",
   "GIV&DISTANCE0-100&COUNTCANDY2500-": "glv&dlstance0-l00&countcandy2500-",
+  "GIV&DISTANCE100-": "glv&dlstancel00-",
   "GIV&DISTANCE100-&COUNTCANDY0-2499": "glv&dlstancel00-&countcandy0-2499",
-  "GIV,XLX&DISTANCE0-100&COUNTCANDY0-2499": "glv,xlx&dlstance0-l00&countcandy0-2499",
   "Ishiny&!XXL&!4*&!3*&": "lshlny&lxxl&l4*&l3*&",
   "LUCKY&320&!COSTUME": "lucky&320&lcostume",
   "Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "nope&lshadow&4attack,4defense&4attack,4hp&4defense,4hp",
@@ -677,11 +690,11 @@
   "Q530&3*,4*&shadow": "q530&3*,4*&shadow",
   "QPvpC": "qpvpc",
   "Qgiv&distance0-100&countcandy": "qglv&dlstance0-l00&countcandy",
+  "Qgiv&distance0-100&countcandy0-2499": "qglv&dlstance0-l00&countcandy0-2499",
   "Qgiv&distance0-100&countcandy2500-": "qglv&dlstance0-l00&countcandy2500-",
+  "Qgiv&distance100-": "qglv&dlstancel00-",
   "Qgiv&distance100-&countcandy0": "qglv&dlstancel00-&countcandy0",
   "Qgiv&distance100-&countcandy0-2499": "qglv&dlstancel00-&countcandy0-2499",
-  "Qgiv,xlx&distance0-100&countc": "qglv,xlx&dlstance0-l00&countc",
-  "Qgiv,xlx&distance0-100&countcandy0-2499": "qglv,xlx&dlstance0-l00&countcandy0-2499",
   "Qlucky&320&!costume": "qlucky&320&lcostume",
   "Transfer,#Nope&!traded&xxl": "transfer,#nope&ltraded&xxl",
   "a:b": "alb",
@@ -694,38 +707,43 @@
   "er,#Nope&Itraded&xxl": "er,#nope&ltraded&xxl",
   "giv&distance0-100&co": "glv&dlstance0-l00&co",
   "giv&distance0-100&countcandy": "glv&dlstance0-l00&countcandy",
+  "giv&distance0-100&countcandy0-249": "glv&dlstance0-l00&countcandy0-249",
+  "giv&distance0-100&countcandy0-2499": "glv&dlstance0-l00&countcandy0-2499",
+  "giv&distance0-100&countcandy0-2499x": "glv&dlstance0-l00&countcandy0-2499x",
   "giv&distance0-100&countcandy2500": "glv&dlstance0-l00&countcandy2500",
   "giv&distance0-100&countcandy2500-": "glv&dlstance0-l00&countcandy2500-",
   "giv&distance0-100&countcandy2500-x": "glv&dlstance0-l00&countcandy2500-x",
+  "giv&distance0-1008countcandy0-2499": "glv&dlstance0-l008countcandy0-2499",
   "giv&distance0-1008countcandy2500-": "glv&dlstance0-l008countcandy2500-",
+  "giv&distance0100&countcandy02499": "glv&dlstance0l00&countcandy02499",
   "giv&distance0100&countcandy2500": "glv&dlstance0l00&countcandy2500",
+  "giv&distance100": "glv&dlstancel00",
   "giv&distance100&countcandy02499": "glv&dlstancel00&countcandy02499",
+  "giv&distance100-": "glv&dlstancel00-",
   "giv&distance100-&cou": "glv&dlstancel00-&cou",
   "giv&distance100-&countcandy0": "glv&dlstancel00-&countcandy0",
   "giv&distance100-&countcandy0-249": "glv&dlstancel00-&countcandy0-249",
   "giv&distance100-&countcandy0-2499": "glv&dlstancel00-&countcandy0-2499",
   "giv&distance100-&countcandy0-2499x": "glv&dlstancel00-&countcandy0-2499x",
+  "giv&distance100-x": "glv&dlstancel00-x",
+  "giv&distance1oo-": "glv&dlstanceloo-",
   "giv&distance1oo-&countcandyo-2499": "glv&dlstanceloo-&countcandyo-2499",
   "giv&distanceo-1oo&countcandy25oo-": "glv&dlstanceo-loo&countcandy25oo-",
-  "giv,x1x&distance0-100&countcandy0-2499": "glv,xlx&dlstance0-l00&countcandy0-2499",
+  "giv&distanceo-1oo&countcandyo-2499": "glv&dlstanceo-loo&countcandyo-2499",
   "giv,xl&distanceo-1i0&conntcandy": "glv,xl&dlstanceo-ll0&conntcandy",
-  "giv,xlx&distance0-10": "glv,xlx&dlstance0-l0",
-  "giv,xlx&distance0-100&countc": "glv,xlx&dlstance0-l00&countc",
-  "giv,xlx&distance0-100&countcandy0-249": "glv,xlx&dlstance0-l00&countcandy0-249",
   "giv,xlx&distance0-100&countcandy0-2499": "glv,xlx&dlstance0-l00&countcandy0-2499",
-  "giv,xlx&distance0-100&countcandy0-2499x": "glv,xlx&dlstance0-l00&countcandy0-2499x",
-  "giv,xlx&distance0-1008countcandy0-2499": "glv,xlx&dlstance0-l008countcandy0-2499",
-  "giv,xlx&distance0100&countcandy02499": "glv,xlx&dlstance0l00&countcandy02499",
-  "giv,xlx&distanceo-1oo&countcandyo-2499": "glv,xlx&dlstanceo-loo&countcandyo-2499",
-  "giv,xlx8distance0-1008countcandy0-2499": "glv,xlx8dlstance0-l008countcandy0-2499",
+  "giv,xlx&distance100-": "glv,xlx&dlstancel00-",
+  "giv8distance0-1008countcandy0-2499": "glv8dlstance0-l008countcandy0-2499",
   "giv8distance0-1008countcandy2500-": "glv8dlstance0-l008countcandy2500-",
+  "giv8distance100-": "glv8dlstancel00-",
   "giv8distance100-8countcandy0-2499": "glv8dlstancel00-8countcandy0-2499",
   "iny&!costume&793-806,808,809": "lny&lcostume&793-806,808,809",
   "istance0-100&countcandy2500-": "lstance0-l00&countcandy2500-",
   "istance100-&countcandy0-2499": "lstancel00-&countcandy0-2499",
+  "iv&distance0-100&countcandy0-2499": "lv&dlstance0-l00&countcandy0-2499",
   "iv&distance0-100&countcandy2500-": "lv&dlstance0-l00&countcandy2500-",
+  "iv&distance100-": "lv&dlstancel00-",
   "iv&distance100-&countcandy0-2499": "lv&dlstancel00-&countcandy0-2499",
-  "iv,xlx&distance0-100&countcandy0-2499": "lv,xlx&dlstance0-l00&countcandy0-2499",
   "lucky&320&!costum": "lucky&320&lcostum",
   "lucky&320&!costume": "lucky&320&lcostume",
   "lucky&320&!costumex": "lucky&320&lcostumex",
@@ -988,9 +1006,10 @@
   ",777,926,927,979&pvp&costume": ",777,926,927,979&pvp&costume",
   ",927,979&pvp&costume": ",927,979&pvp&costume",
   ",PvpC": ",pvpc",
+  ",giv&distance0-100&countcandy0-2499": ",giv&distanceo-1oo&countcandyo-2499",
   ",giv&distance0-100&countcandy2500-": ",giv&distanceo-1oo&countcandy25oo-",
+  ",giv&distance100-": ",giv&distance1oo-",
   ",giv&distance100-&countcandy0-2499": ",giv&distance1oo-&countcandyo-2499",
-  ",giv,xlx&distance0-100&countcandy0-2499": ",giv,xlx&distanceo-1oo&countcandyo-2499",
   ",lucky&320&!costume": ",lucky&32o&!costume",
   "-100&countcandy2500-": "-1oo&countcandy25oo-",
   "-151&countcandyxl0-359": "-151&countcandyxlo-359",
@@ -1094,9 +1113,10 @@
   "950,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "95o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,979&pvp&costume",
   "9530&3*,4*&shadow": "953o&3*,4*&shadow",
   "9PvpC": "9pvpc",
+  "9giv&distance0-100&countcandy0-2499": "9giv&distanceo-1oo&countcandyo-2499",
   "9giv&distance0-100&countcandy2500-": "9giv&distanceo-1oo&countcandy25oo-",
+  "9giv&distance100-": "9giv&distance1oo-",
   "9giv&distance100-&countcandy0-2499": "9giv&distance1oo-&countcandyo-2499",
-  "9giv,xlx&distance0-100&countcandy0-2499": "9giv,xlx&distanceo-1oo&countcandyo-2499",
   "9lucky&320&!costume": "9lucky&32o&!costume",
   "<#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "<#nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp",
   "<#Nope&!traded&!shiny&!costume&793-806,808,809": "<#nope&!traded&!shiny&!costume&793-8o6,8o8,8o9",
@@ -1114,15 +1134,17 @@
   "<50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "<5o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,979&pvp&costume",
   "<530&3*,4*&shadow": "<53o&3*,4*&shadow",
   "<PvpC": "<pvpc",
+  "<giv&distance0-100&countcandy0-2499": "<giv&distanceo-1oo&countcandyo-2499",
   "<giv&distance0-100&countcandy2500-": "<giv&distanceo-1oo&countcandy25oo-",
+  "<giv&distance100-": "<giv&distance1oo-",
   "<giv&distance100-&countcandy0-2499": "<giv&distance1oo-&countcandyo-2499",
-  "<giv,xlx&distance0-100&countcandy0-2499": "<giv,xlx&distanceo-1oo&countcandyo-2499",
   "<lucky&320&!costume": "<lucky&32o&!costume",
   "Clean Trades": "cleantrades",
   "CleanTrades": "cleantrades",
+  "GIV&DISTANCE0-100&COUNTCANDY0-2499": "giv&distanceo-1oo&countcandyo-2499",
   "GIV&DISTANCE0-100&COUNTCANDY2500-": "giv&distanceo-1oo&countcandy25oo-",
+  "GIV&DISTANCE100-": "giv&distance1oo-",
   "GIV&DISTANCE100-&COUNTCANDY0-2499": "giv&distance1oo-&countcandyo-2499",
-  "GIV,XLX&DISTANCE0-100&COUNTCANDY0-2499": "giv,xlx&distanceo-1oo&countcandyo-2499",
   "Ishiny&!XXL&!4*&!3*&": "ishiny&!xxl&!4*&!3*&",
   "LUCKY&320&!COSTUME": "lucky&32o&!costume",
   "Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp",
@@ -1160,11 +1182,11 @@
   "Q530&3*,4*&shadow": "q53o&3*,4*&shadow",
   "QPvpC": "qpvpc",
   "Qgiv&distance0-100&countcandy": "qgiv&distanceo-1oo&countcandy",
+  "Qgiv&distance0-100&countcandy0-2499": "qgiv&distanceo-1oo&countcandyo-2499",
   "Qgiv&distance0-100&countcandy2500-": "qgiv&distanceo-1oo&countcandy25oo-",
+  "Qgiv&distance100-": "qgiv&distance1oo-",
   "Qgiv&distance100-&countcandy0": "qgiv&distance1oo-&countcandyo",
   "Qgiv&distance100-&countcandy0-2499": "qgiv&distance1oo-&countcandyo-2499",
-  "Qgiv,xlx&distance0-100&countc": "qgiv,xlx&distanceo-1oo&countc",
-  "Qgiv,xlx&distance0-100&countcandy0-2499": "qgiv,xlx&distanceo-1oo&countcandyo-2499",
   "Qlucky&320&!costume": "qlucky&32o&!costume",
   "Transfer,#Nope&!traded&xxl": "transfer,#nope&!traded&xxl",
   "a:b": "a:b",
@@ -1177,38 +1199,43 @@
   "er,#Nope&Itraded&xxl": "er,#nope&itraded&xxl",
   "giv&distance0-100&co": "giv&distanceo-1oo&co",
   "giv&distance0-100&countcandy": "giv&distanceo-1oo&countcandy",
+  "giv&distance0-100&countcandy0-249": "giv&distanceo-1oo&countcandyo-249",
+  "giv&distance0-100&countcandy0-2499": "giv&distanceo-1oo&countcandyo-2499",
+  "giv&distance0-100&countcandy0-2499x": "giv&distanceo-1oo&countcandyo-2499x",
   "giv&distance0-100&countcandy2500": "giv&distanceo-1oo&countcandy25oo",
   "giv&distance0-100&countcandy2500-": "giv&distanceo-1oo&countcandy25oo-",
   "giv&distance0-100&countcandy2500-x": "giv&distanceo-1oo&countcandy25oo-x",
+  "giv&distance0-1008countcandy0-2499": "giv&distanceo-1oo8countcandyo-2499",
   "giv&distance0-1008countcandy2500-": "giv&distanceo-1oo8countcandy25oo-",
+  "giv&distance0100&countcandy02499": "giv&distanceo1oo&countcandyo2499",
   "giv&distance0100&countcandy2500": "giv&distanceo1oo&countcandy25oo",
+  "giv&distance100": "giv&distance1oo",
   "giv&distance100&countcandy02499": "giv&distance1oo&countcandyo2499",
+  "giv&distance100-": "giv&distance1oo-",
   "giv&distance100-&cou": "giv&distance1oo-&cou",
   "giv&distance100-&countcandy0": "giv&distance1oo-&countcandyo",
   "giv&distance100-&countcandy0-249": "giv&distance1oo-&countcandyo-249",
   "giv&distance100-&countcandy0-2499": "giv&distance1oo-&countcandyo-2499",
   "giv&distance100-&countcandy0-2499x": "giv&distance1oo-&countcandyo-2499x",
+  "giv&distance100-x": "giv&distance1oo-x",
+  "giv&distance1oo-": "giv&distance1oo-",
   "giv&distance1oo-&countcandyo-2499": "giv&distance1oo-&countcandyo-2499",
   "giv&distanceo-1oo&countcandy25oo-": "giv&distanceo-1oo&countcandy25oo-",
-  "giv,x1x&distance0-100&countcandy0-2499": "giv,x1x&distanceo-1oo&countcandyo-2499",
+  "giv&distanceo-1oo&countcandyo-2499": "giv&distanceo-1oo&countcandyo-2499",
   "giv,xl&distanceo-1i0&conntcandy": "giv,xl&distanceo-1io&conntcandy",
-  "giv,xlx&distance0-10": "giv,xlx&distanceo-1o",
-  "giv,xlx&distance0-100&countc": "giv,xlx&distanceo-1oo&countc",
-  "giv,xlx&distance0-100&countcandy0-249": "giv,xlx&distanceo-1oo&countcandyo-249",
   "giv,xlx&distance0-100&countcandy0-2499": "giv,xlx&distanceo-1oo&countcandyo-2499",
-  "giv,xlx&distance0-100&countcandy0-2499x": "giv,xlx&distanceo-1oo&countcandyo-2499x",
-  "giv,xlx&distance0-1008countcandy0-2499": "giv,xlx&distanceo-1oo8countcandyo-2499",
-  "giv,xlx&distance0100&countcandy02499": "giv,xlx&distanceo1oo&countcandyo2499",
-  "giv,xlx&distanceo-1oo&countcandyo-2499": "giv,xlx&distanceo-1oo&countcandyo-2499",
-  "giv,xlx8distance0-1008countcandy0-2499": "giv,xlx8distanceo-1oo8countcandyo-2499",
+  "giv,xlx&distance100-": "giv,xlx&distance1oo-",
+  "giv8distance0-1008countcandy0-2499": "giv8distanceo-1oo8countcandyo-2499",
   "giv8distance0-1008countcandy2500-": "giv8distanceo-1oo8countcandy25oo-",
+  "giv8distance100-": "giv8distance1oo-",
   "giv8distance100-8countcandy0-2499": "giv8distance1oo-8countcandyo-2499",
   "iny&!costume&793-806,808,809": "iny&!costume&793-8o6,8o8,8o9",
   "istance0-100&countcandy2500-": "istanceo-1oo&countcandy25oo-",
   "istance100-&countcandy0-2499": "istance1oo-&countcandyo-2499",
+  "iv&distance0-100&countcandy0-2499": "iv&distanceo-1oo&countcandyo-2499",
   "iv&distance0-100&countcandy2500-": "iv&distanceo-1oo&countcandy25oo-",
+  "iv&distance100-": "iv&distance1oo-",
   "iv&distance100-&countcandy0-2499": "iv&distance1oo-&countcandyo-2499",
-  "iv,xlx&distance0-100&countcandy0-2499": "iv,xlx&distanceo-1oo&countcandyo-2499",
   "lucky&320&!costum": "lucky&32o&!costum",
   "lucky&320&!costume": "lucky&32o&!costume",
   "lucky&320&!costumex": "lucky&32o&!costumex",
@@ -1799,9 +1826,10 @@
   ",777,926,927,979&pvp&costume": ",777,926,927,979&pvp&costume",
   ",927,979&pvp&costume": ",927,979&pvp&costume",
   ",PvpC": ",pvpc",
+  ",giv&distance0-100&countcandy0-2499": ",giv&distanceo-1oo&countcandyo-2499",
   ",giv&distance0-100&countcandy2500-": ",giv&distanceo-1oo&countcandy25oo-",
+  ",giv&distance100-": ",giv&distance1oo-",
   ",giv&distance100-&countcandy0-2499": ",giv&distance1oo-&countcandyo-2499",
-  ",giv,xlx&distance0-100&countcandy0-2499": ",giv,xlx&distanceo-1oo&countcandyo-2499",
   ",lucky&320&!costume": ",lucky&32o&!costume",
   "-100&countcandy2500-": "-1oo&countcandy25oo-",
   "-151&countcandyxl0-359": "-151&countcandyxlo-359",
@@ -1905,9 +1933,10 @@
   "950,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "95o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,979&pvp&costume",
   "9530&3*,4*&shadow": "953o&3*,4*&shadow",
   "9PvpC": "9pvpc",
+  "9giv&distance0-100&countcandy0-2499": "9giv&distanceo-1oo&countcandyo-2499",
   "9giv&distance0-100&countcandy2500-": "9giv&distanceo-1oo&countcandy25oo-",
+  "9giv&distance100-": "9giv&distance1oo-",
   "9giv&distance100-&countcandy0-2499": "9giv&distance1oo-&countcandyo-2499",
-  "9giv,xlx&distance0-100&countcandy0-2499": "9giv,xlx&distanceo-1oo&countcandyo-2499",
   "9lucky&320&!costume": "9lucky&32o&!costume",
   "<#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "<#nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp",
   "<#Nope&!traded&!shiny&!costume&793-806,808,809": "<#nope&!traded&!shiny&!costume&793-8o6,8o8,8o9",
@@ -1925,15 +1954,17 @@
   "<50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "<5o,51,56,57,2o9,21o,3o3,731,732,733,777,926,927,979&pvp&costume",
   "<530&3*,4*&shadow": "<53o&3*,4*&shadow",
   "<PvpC": "<pvpc",
+  "<giv&distance0-100&countcandy0-2499": "<giv&distanceo-1oo&countcandyo-2499",
   "<giv&distance0-100&countcandy2500-": "<giv&distanceo-1oo&countcandy25oo-",
+  "<giv&distance100-": "<giv&distance1oo-",
   "<giv&distance100-&countcandy0-2499": "<giv&distance1oo-&countcandyo-2499",
-  "<giv,xlx&distance0-100&countcandy0-2499": "<giv,xlx&distanceo-1oo&countcandyo-2499",
   "<lucky&320&!costume": "<lucky&32o&!costume",
   "Clean Trades": "cleantrades",
   "CleanTrades": "cleantrades",
+  "GIV&DISTANCE0-100&COUNTCANDY0-2499": "giv&distanceo-1oo&countcandyo-2499",
   "GIV&DISTANCE0-100&COUNTCANDY2500-": "giv&distanceo-1oo&countcandy25oo-",
+  "GIV&DISTANCE100-": "giv&distance1oo-",
   "GIV&DISTANCE100-&COUNTCANDY0-2499": "giv&distance1oo-&countcandyo-2499",
-  "GIV,XLX&DISTANCE0-100&COUNTCANDY0-2499": "giv,xlx&distanceo-1oo&countcandyo-2499",
   "Ishiny&!XXL&!4*&!3*&": "ishiny&!xxl&!4*&!3*&",
   "LUCKY&320&!COSTUME": "lucky&32o&!costume",
   "Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp",
@@ -1971,11 +2002,11 @@
   "Q530&3*,4*&shadow": "q53o&3*,4*&shadow",
   "QPvpC": "qpvpc",
   "Qgiv&distance0-100&countcandy": "qgiv&distanceo-1oo&countcandy",
+  "Qgiv&distance0-100&countcandy0-2499": "qgiv&distanceo-1oo&countcandyo-2499",
   "Qgiv&distance0-100&countcandy2500-": "qgiv&distanceo-1oo&countcandy25oo-",
+  "Qgiv&distance100-": "qgiv&distance1oo-",
   "Qgiv&distance100-&countcandy0": "qgiv&distance1oo-&countcandyo",
   "Qgiv&distance100-&countcandy0-2499": "qgiv&distance1oo-&countcandyo-2499",
-  "Qgiv,xlx&distance0-100&countc": "qgiv,xlx&distanceo-1oo&countc",
-  "Qgiv,xlx&distance0-100&countcandy0-2499": "qgiv,xlx&distanceo-1oo&countcandyo-2499",
   "Qlucky&320&!costume": "qlucky&32o&!costume",
   "Transfer,#Nope&!traded&xxl": "transfer,#nope&!traded&xxl",
   "a:b": "a:b",
@@ -1988,38 +2019,43 @@
   "er,#Nope&Itraded&xxl": "er,#nope&itraded&xxl",
   "giv&distance0-100&co": "giv&distanceo-1oo&co",
   "giv&distance0-100&countcandy": "giv&distanceo-1oo&countcandy",
+  "giv&distance0-100&countcandy0-249": "giv&distanceo-1oo&countcandyo-249",
+  "giv&distance0-100&countcandy0-2499": "giv&distanceo-1oo&countcandyo-2499",
+  "giv&distance0-100&countcandy0-2499x": "giv&distanceo-1oo&countcandyo-2499x",
   "giv&distance0-100&countcandy2500": "giv&distanceo-1oo&countcandy25oo",
   "giv&distance0-100&countcandy2500-": "giv&distanceo-1oo&countcandy25oo-",
   "giv&distance0-100&countcandy2500-x": "giv&distanceo-1oo&countcandy25oo-x",
+  "giv&distance0-1008countcandy0-2499": "giv&distanceo-1oo8countcandyo-2499",
   "giv&distance0-1008countcandy2500-": "giv&distanceo-1oo8countcandy25oo-",
+  "giv&distance0100&countcandy02499": "giv&distanceo1oo&countcandyo2499",
   "giv&distance0100&countcandy2500": "giv&distanceo1oo&countcandy25oo",
+  "giv&distance100": "giv&distance1oo",
   "giv&distance100&countcandy02499": "giv&distance1oo&countcandyo2499",
+  "giv&distance100-": "giv&distance1oo-",
   "giv&distance100-&cou": "giv&distance1oo-&cou",
   "giv&distance100-&countcandy0": "giv&distance1oo-&countcandyo",
   "giv&distance100-&countcandy0-249": "giv&distance1oo-&countcandyo-249",
   "giv&distance100-&countcandy0-2499": "giv&distance1oo-&countcandyo-2499",
   "giv&distance100-&countcandy0-2499x": "giv&distance1oo-&countcandyo-2499x",
+  "giv&distance100-x": "giv&distance1oo-x",
+  "giv&distance1oo-": "giv&distance1oo-",
   "giv&distance1oo-&countcandyo-2499": "giv&distance1oo-&countcandyo-2499",
   "giv&distanceo-1oo&countcandy25oo-": "giv&distanceo-1oo&countcandy25oo-",
-  "giv,x1x&distance0-100&countcandy0-2499": "giv,x1x&distanceo-1oo&countcandyo-2499",
+  "giv&distanceo-1oo&countcandyo-2499": "giv&distanceo-1oo&countcandyo-2499",
   "giv,xl&distanceo-1i0&conntcandy": "giv,xl&distanceo-1io&conntcandy",
-  "giv,xlx&distance0-10": "giv,xlx&distanceo-1o",
-  "giv,xlx&distance0-100&countc": "giv,xlx&distanceo-1oo&countc",
-  "giv,xlx&distance0-100&countcandy0-249": "giv,xlx&distanceo-1oo&countcandyo-249",
   "giv,xlx&distance0-100&countcandy0-2499": "giv,xlx&distanceo-1oo&countcandyo-2499",
-  "giv,xlx&distance0-100&countcandy0-2499x": "giv,xlx&distanceo-1oo&countcandyo-2499x",
-  "giv,xlx&distance0-1008countcandy0-2499": "giv,xlx&distanceo-1oo8countcandyo-2499",
-  "giv,xlx&distance0100&countcandy02499": "giv,xlx&distanceo1oo&countcandyo2499",
-  "giv,xlx&distanceo-1oo&countcandyo-2499": "giv,xlx&distanceo-1oo&countcandyo-2499",
-  "giv,xlx8distance0-1008countcandy0-2499": "giv,xlx8distanceo-1oo8countcandyo-2499",
+  "giv,xlx&distance100-": "giv,xlx&distance1oo-",
+  "giv8distance0-1008countcandy0-2499": "giv8distanceo-1oo8countcandyo-2499",
   "giv8distance0-1008countcandy2500-": "giv8distanceo-1oo8countcandy25oo-",
+  "giv8distance100-": "giv8distance1oo-",
   "giv8distance100-8countcandy0-2499": "giv8distance1oo-8countcandyo-2499",
   "iny&!costume&793-806,808,809": "iny&!costume&793-8o6,8o8,8o9",
   "istance0-100&countcandy2500-": "istanceo-1oo&countcandy25oo-",
   "istance100-&countcandy0-2499": "istance1oo-&countcandyo-2499",
+  "iv&distance0-100&countcandy0-2499": "iv&distanceo-1oo&countcandyo-2499",
   "iv&distance0-100&countcandy2500-": "iv&distanceo-1oo&countcandy25oo-",
+  "iv&distance100-": "iv&distance1oo-",
   "iv&distance100-&countcandy0-2499": "iv&distance1oo-&countcandyo-2499",
-  "iv,xlx&distance0-100&countcandy0-2499": "iv,xlx&distanceo-1oo&countcandyo-2499",
   "lucky&320&!costum": "lucky&32o&!costum",
   "lucky&320&!costume": "lucky&32o&!costume",
   "lucky&320&!costumex": "lucky&32o&!costumex",
@@ -2060,9 +2096,10 @@
   "\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
   "\t530&3*,4*&shadow": "",
   "\tPvpC": "",
+  "\tgiv&distance0-100&countcandy0-2499": "",
   "\tgiv&distance0-100&countcandy2500-": "",
+  "\tgiv&distance100-": "",
   "\tgiv&distance100-&countcandy0-2499": "",
-  "\tgiv,xlx&distance0-100&countcandy0-2499": "",
   "\tlucky&320&!costume": "",
   "!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&",
   "!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "!shadow&!shiny&!XXL&!4*&!3*&",
@@ -2185,9 +2222,10 @@
   ",777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": ",777,926,927,979&pvp&costume",
   ",927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": ",927,979&pvp&costume",
   ",PvpC\tPvpC": ",PvpC",
+  ",giv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": ",giv&distance0-100&countcandy0-2499",
   ",giv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": ",giv&distance0-100&countcandy2500-",
+  ",giv&distance100-\tgiv&distance100-": ",giv&distance100-",
   ",giv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": ",giv&distance100-&countcandy0-2499",
-  ",giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": ",giv,xlx&distance0-100&countcandy0-2499",
   ",lucky&320&!costume\tlucky&320&!costume": ",lucky&320&!costume",
   "-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": "-100&countcandy2500-",
   "-151&countcandyxl0-359\t1-151&countcandyxl0-359": "-151&countcandyxl0-359",
@@ -2214,7 +2252,7 @@
   "1-26,172&countcandyxl36o-\t1-26,172&countcandyxl360-": "1-26,172&countcandyxl360-",
   "1-26,172&countcandyx|360-\t1-26,172&countcandyxl360-": "1-26,172&countcandyxl360-",
   "1-26,1728countcandyxl360-\t1-26,172&countcandyxl360-": "1-26,172&countcandyxl360-",
-  "100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "100&countcandy0-2499",
+  "100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": "100&countcandy0-2499",
   "1151&countcandyxl0359\t1-151&countcandyxl0-359": "1151&countcandyxl0359",
   "126,172&countcandyxl360\t1-26,172&countcandyxl360-": "126,172&countcandyxl360",
   "144&3\",4\"&!galar\t144&3*,4*&!galar": "144&3\",4\"&!galar",
@@ -2275,7 +2313,7 @@
   "530&3*,4*&SHADOW\t530&3*,4*&shadow": "530&3*,4*&SHADOW",
   "530&3*,4*&shado\t530&3*,4*&shadow": "530&3*,4*&shado",
   "530&3*,4*&shadow\t530&3*,4*&shadow": "530&3*,4*&shadow",
-  "530&3*,4*&shadow\tgiv,xlx&distance0-100&countcandy0-2499": "530&3*,4*&shadow",
+  "530&3*,4*&shadow\tgiv&distance0-100&countcandy0-2499": "530&3*,4*&shadow",
   "530&3*,4*&shadowx\t530&3*,4*&shadow": "530&3*,4*&shadowx",
   "53083*,4*&shadow\t530&3*,4*&shadow": "530&3*,4*&shadow",
   "53083*,4*8shadow\t530&3*,4*&shadow": "530&3*,4*&shadow",
@@ -2298,9 +2336,10 @@
   "950,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "950,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume",
   "9530&3*,4*&shadow\t530&3*,4*&shadow": "9530&3*,4*&shadow",
   "9PvpC\tPvpC": "9PvpC",
+  "9giv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": "9giv&distance0-100&countcandy0-2499",
   "9giv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": "9giv&distance0-100&countcandy2500-",
+  "9giv&distance100-\tgiv&distance100-": "9giv&distance100-",
   "9giv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": "9giv&distance100-&countcandy0-2499",
-  "9giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "9giv,xlx&distance0-100&countcandy0-2499",
   "9lucky&320&!costume\tlucky&320&!costume": "9lucky&320&!costume",
   "<#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "<#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp",
   "<#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "<#Nope&!traded&!shiny&!costume&793-806,808,809",
@@ -2318,13 +2357,15 @@
   "<50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "<50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume",
   "<530&3*,4*&shadow\t530&3*,4*&shadow": "<530&3*,4*&shadow",
   "<PvpC\tPvpC": "<PvpC",
+  "<giv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": "<giv&distance0-100&countcandy0-2499",
   "<giv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": "<giv&distance0-100&countcandy2500-",
+  "<giv&distance100-\tgiv&distance100-": "<giv&distance100-",
   "<giv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": "<giv&distance100-&countcandy0-2499",
-  "<giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "<giv,xlx&distance0-100&countcandy0-2499",
   "<lucky&320&!costume\tlucky&320&!costume": "<lucky&320&!costume",
+  "GIV&DISTANCE0-100&COUNTCANDY0-2499\tgiv&distance0-100&countcandy0-2499": "GIV&DISTANCE0-100&COUNTCANDY0-2499",
   "GIV&DISTANCE0-100&COUNTCANDY2500-\tgiv&distance0-100&countcandy2500-": "GIV&DISTANCE0-100&COUNTCANDY2500-",
+  "GIV&DISTANCE100-\tgiv&distance100-": "GIV&DISTANCE100-",
   "GIV&DISTANCE100-&COUNTCANDY0-2499\tgiv&distance100-&countcandy0-2499": "GIV&DISTANCE100-&COUNTCANDY0-2499",
-  "GIV,XLX&DISTANCE0-100&COUNTCANDY0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "GIV,XLX&DISTANCE0-100&COUNTCANDY0-2499",
   "Ishiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "Ishiny&!XXL&!4*&!3*&",
   "LUCKY&320&!COSTUME\tlucky&320&!costume": "LUCKY&320&!COSTUME",
   "Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp",
@@ -2360,12 +2401,13 @@
   "Q50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "Q50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume",
   "Q530&3*,4*&shadow\t530&3*,4*&shadow": "Q530&3*,4*&shadow",
   "QPvpC\tPvpC": "QPvpC",
+  "Qgiv&distance0-100&countcandy\tgiv&distance0-100&countcandy0-2499": "Qgiv&distance0-100&countcandy",
   "Qgiv&distance0-100&countcandy\tgiv&distance0-100&countcandy2500-": "Qgiv&distance0-100&countcandy",
+  "Qgiv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": "Qgiv&distance0-100&countcandy0-2499",
   "Qgiv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": "Qgiv&distance0-100&countcandy2500-",
+  "Qgiv&distance100-\tgiv&distance100-": "Qgiv&distance100-",
   "Qgiv&distance100-&countcandy0\tgiv&distance100-&countcandy0-2499": "Qgiv&distance100-&countcandy0",
   "Qgiv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": "Qgiv&distance100-&countcandy0-2499",
-  "Qgiv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": "Qgiv,xlx&distance0-100&countc",
-  "Qgiv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "Qgiv,xlx&distance0-100&countcandy0-2499",
   "Qlucky&320&!costume\tlucky&320&!costume": "Qlucky&320&!costume",
   "Transfer,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": "Transfer,#Nope&!traded&xxl",
   "ack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "ack,4hp&4defense,4hp",
@@ -2374,43 +2416,51 @@
   "ed&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": "ed&!shiny&!costume&legendary",
   "er,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": "er,#Nope&!traded&xxl",
   "er,#Nope&Itraded&xxl\t#Transfer,#Nope&!traded&xxl": "er,#Nope&Itraded&xxl",
+  "giv&distance0-100&co\tgiv&distance0-100&countcandy0-2499": "giv&distance0-100&co",
   "giv&distance0-100&co\tgiv&distance0-100&countcandy2500-": "giv&distance0-100&co",
+  "giv&distance0-100&countcandy\tgiv&distance0-100&countcandy0-2499": "giv&distance0-100&countcandy",
   "giv&distance0-100&countcandy\tgiv&distance0-100&countcandy2500-": "giv&distance0-100&countcandy",
+  "giv&distance0-100&countcandy0-249\tgiv&distance0-100&countcandy0-2499": "giv&distance0-100&countcandy0-249",
+  "giv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": "giv&distance0-100&countcandy0-2499",
+  "giv&distance0-100&countcandy0-2499\tgiv&distance100-": "giv&distance0-100&countcandy0-2499",
+  "giv&distance0-100&countcandy0-2499x\tgiv&distance0-100&countcandy0-2499": "giv&distance0-100&countcandy0-2499x",
   "giv&distance0-100&countcandy2500\tgiv&distance0-100&countcandy2500-": "giv&distance0-100&countcandy2500",
   "giv&distance0-100&countcandy2500-\t1-151&countcandyxl0-359": "giv&distance0-100&countcandy2500-",
   "giv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": "giv&distance0-100&countcandy2500-",
   "giv&distance0-100&countcandy2500-x\tgiv&distance0-100&countcandy2500-": "giv&distance0-100&countcandy2500-x",
+  "giv&distance0-1008countcandy0-2499\tgiv&distance0-100&countcandy0-2499": "giv&distance0-100&countcandy0-2499",
   "giv&distance0-1008countcandy2500-\tgiv&distance0-100&countcandy2500-": "giv&distance0-100&countcandy2500-",
+  "giv&distance0100&countcandy02499\tgiv&distance0-100&countcandy0-2499": "giv&distance0100&countcandy02499",
   "giv&distance0100&countcandy2500\tgiv&distance0-100&countcandy2500-": "giv&distance0100&countcandy2500",
+  "giv&distance100\tgiv&distance100-": "giv&distance100",
   "giv&distance100&countcandy02499\tgiv&distance100-&countcandy0-2499": "giv&distance100&countcandy02499",
+  "giv&distance100-\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "giv&distance100-",
+  "giv&distance100-\tgiv&distance100-": "giv&distance100-",
   "giv&distance100-&cou\tgiv&distance100-&countcandy0-2499": "giv&distance100-&cou",
   "giv&distance100-&countcandy0\tgiv&distance100-&countcandy0-2499": "giv&distance100-&countcandy0",
   "giv&distance100-&countcandy0-249\tgiv&distance100-&countcandy0-2499": "giv&distance100-&countcandy0-249",
   "giv&distance100-&countcandy0-2499\tgiv&distance0-100&countcandy2500-": "giv&distance100-&countcandy0-2499",
   "giv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": "giv&distance100-&countcandy0-2499",
   "giv&distance100-&countcandy0-2499x\tgiv&distance100-&countcandy0-2499": "giv&distance100-&countcandy0-2499x",
+  "giv&distance100-x\tgiv&distance100-": "giv&distance100-x",
+  "giv&distance1oo-\tgiv&distance100-": "giv&distance100-",
   "giv&distance1oo-&countcandyo-2499\tgiv&distance100-&countcandy0-2499": "giv&distance100-&countcandy0-2499",
   "giv&distanceo-1oo&countcandy25oo-\tgiv&distance0-100&countcandy2500-": "giv&distance0-100&countcandy2500-",
-  "giv,x1x&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "giv,xlx&distance0-100&countcandy0-2499",
-  "giv,xl&distanceo-1i0&conntcandy\tgiv,xlx&distance0-100&countcandy0-2499": "giv,xl&distance0-1i0&conntcandy",
-  "giv,xlx&distance0-10\tgiv,xlx&distance0-100&countcandy0-2499": "giv,xlx&distance0-10",
-  "giv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": "giv,xlx&distance0-100&countc",
-  "giv,xlx&distance0-100&countcandy0-249\tgiv,xlx&distance0-100&countcandy0-2499": "giv,xlx&distance0-100&countcandy0-249",
-  "giv,xlx&distance0-100&countcandy0-2499\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "giv,xlx&distance0-100&countcandy0-2499",
-  "giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "giv,xlx&distance0-100&countcandy0-2499",
-  "giv,xlx&distance0-100&countcandy0-2499x\tgiv,xlx&distance0-100&countcandy0-2499": "giv,xlx&distance0-100&countcandy0-2499x",
-  "giv,xlx&distance0-1008countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "giv,xlx&distance0-100&countcandy0-2499",
-  "giv,xlx&distance0100&countcandy02499\tgiv,xlx&distance0-100&countcandy0-2499": "giv,xlx&distance0100&countcandy02499",
-  "giv,xlx&distanceo-1oo&countcandyo-2499\tgiv,xlx&distance0-100&countcandy0-2499": "giv,xlx&distance0-100&countcandy0-2499",
-  "giv,xlx8distance0-1008countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "giv,xlx&distance0-100&countcandy0-2499",
+  "giv&distanceo-1oo&countcandyo-2499\tgiv&distance0-100&countcandy0-2499": "giv&distance0-100&countcandy0-2499",
+  "giv,xl&distanceo-1i0&conntcandy\tgiv&distance0-100&countcandy0-2499": "giv,xl&distance0-1i0&conntcandy",
+  "giv,xlx&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": "giv,xlx&distance0-100&countcandy0-2499",
+  "giv,xlx&distance100-\tgiv&distance100-": "giv,xlx&distance100-",
+  "giv8distance0-1008countcandy0-2499\tgiv&distance0-100&countcandy0-2499": "giv&distance0-100&countcandy0-2499",
   "giv8distance0-1008countcandy2500-\tgiv&distance0-100&countcandy2500-": "giv&distance0-100&countcandy2500-",
+  "giv8distance100-\tgiv&distance100-": "giv&distance100-",
   "giv8distance100-8countcandy0-2499\tgiv&distance100-&countcandy0-2499": "giv&distance100-&countcandy0-2499",
   "iny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "iny&!costume&793-806,808,809",
   "istance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": "istance0-100&countcandy2500-",
   "istance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": "istance100-&countcandy0-2499",
+  "iv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": "iv&distance0-100&countcandy0-2499",
   "iv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": "iv&distance0-100&countcandy2500-",
+  "iv&distance100-\tgiv&distance100-": "iv&distance100-",
   "iv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": "iv&distance100-&countcandy0-2499",
-  "iv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "iv,xlx&distance0-100&countcandy0-2499",
   "lucky&320&!costum\tlucky&320&!costume": "lucky&320&!costum",
   "lucky&320&!costume\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "lucky&320&!costume",
   "lucky&320&!costume\tlucky&320&!costume": "lucky&320&!costume",
@@ -2425,7 +2475,7 @@
   "lucky83208!costume\tlucky&320&!costume": "lucky&320&!costume",
   "nse&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "nse&4attack,4hp&4defense,4hp",
   "ow&!shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "ow&!shiny&!costume&!xxl&!xxs",
-  "stance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "stance0-100&countcandy0-2499",
+  "stance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": "stance0-100&countcandy0-2499",
   "tume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "tume&793-806,808,809",
   "ucky&320&!costume\tlucky&320&!costume": "ucky&320&!costume",
   "vpC\tPvpC": "vpC",
@@ -2451,9 +2501,10 @@
   "\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
   "\t530&3*,4*&shadow": "",
   "\tPvpC": "",
+  "\tgiv&distance0-100&countcandy0-2499": "",
   "\tgiv&distance0-100&countcandy2500-": "",
+  "\tgiv&distance100-": "",
   "\tgiv&distance100-&countcandy0-2499": "",
-  "\tgiv,xlx&distance0-100&countcandy0-2499": "",
   "\tlucky&320&!costume": "",
   "!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
   "!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
@@ -2576,9 +2627,10 @@
   ",777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
   ",927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
   ",PvpC\tPvpC": "",
+  ",giv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": "",
   ",giv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": "",
+  ",giv&distance100-\tgiv&distance100-": "",
   ",giv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": "",
-  ",giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
   ",lucky&320&!costume\tlucky&320&!costume": "",
   "-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": "",
   "-151&countcandyxl0-359\t1-151&countcandyxl0-359": "",
@@ -2605,7 +2657,7 @@
   "1-26,172&countcandyxl36o-\t1-26,172&countcandyxl360-": "",
   "1-26,172&countcandyx|360-\t1-26,172&countcandyxl360-": "",
   "1-26,1728countcandyxl360-\t1-26,172&countcandyxl360-": "",
-  "100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
+  "100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": "",
   "1151&countcandyxl0359\t1-151&countcandyxl0-359": "",
   "126,172&countcandyxl360\t1-26,172&countcandyxl360-": "",
   "144&3\",4\"&!galar\t144&3*,4*&!galar": "",
@@ -2666,7 +2718,7 @@
   "530&3*,4*&SHADOW\t530&3*,4*&shadow": "",
   "530&3*,4*&shado\t530&3*,4*&shadow": "",
   "530&3*,4*&shadow\t530&3*,4*&shadow": "",
-  "530&3*,4*&shadow\tgiv,xlx&distance0-100&countcandy0-2499": "",
+  "530&3*,4*&shadow\tgiv&distance0-100&countcandy0-2499": "",
   "530&3*,4*&shadowx\t530&3*,4*&shadow": "",
   "53083*,4*&shadow\t530&3*,4*&shadow": "",
   "53083*,4*8shadow\t530&3*,4*&shadow": "",
@@ -2689,9 +2741,10 @@
   "950,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
   "9530&3*,4*&shadow\t530&3*,4*&shadow": "",
   "9PvpC\tPvpC": "",
+  "9giv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": "",
   "9giv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": "",
+  "9giv&distance100-\tgiv&distance100-": "",
   "9giv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": "",
-  "9giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
   "9lucky&320&!costume\tlucky&320&!costume": "",
   "<#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
   "<#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
@@ -2709,13 +2762,15 @@
   "<50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
   "<530&3*,4*&shadow\t530&3*,4*&shadow": "",
   "<PvpC\tPvpC": "",
+  "<giv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": "",
   "<giv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": "",
+  "<giv&distance100-\tgiv&distance100-": "",
   "<giv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": "",
-  "<giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
   "<lucky&320&!costume\tlucky&320&!costume": "",
+  "GIV&DISTANCE0-100&COUNTCANDY0-2499\tgiv&distance0-100&countcandy0-2499": "",
   "GIV&DISTANCE0-100&COUNTCANDY2500-\tgiv&distance0-100&countcandy2500-": "",
+  "GIV&DISTANCE100-\tgiv&distance100-": "",
   "GIV&DISTANCE100-&COUNTCANDY0-2499\tgiv&distance100-&countcandy0-2499": "",
-  "GIV,XLX&DISTANCE0-100&COUNTCANDY0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
   "Ishiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
   "LUCKY&320&!COSTUME\tlucky&320&!costume": "",
   "Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
@@ -2751,12 +2806,13 @@
   "Q50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
   "Q530&3*,4*&shadow\t530&3*,4*&shadow": "",
   "QPvpC\tPvpC": "",
+  "Qgiv&distance0-100&countcandy\tgiv&distance0-100&countcandy0-2499": "",
   "Qgiv&distance0-100&countcandy\tgiv&distance0-100&countcandy2500-": "",
+  "Qgiv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": "",
   "Qgiv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": "",
+  "Qgiv&distance100-\tgiv&distance100-": "",
   "Qgiv&distance100-&countcandy0\tgiv&distance100-&countcandy0-2499": "",
   "Qgiv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": "",
-  "Qgiv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "Qgiv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
   "Qlucky&320&!costume\tlucky&320&!costume": "",
   "Transfer,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": "",
   "ack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
@@ -2765,43 +2821,51 @@
   "ed&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": "",
   "er,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": "",
   "er,#Nope&Itraded&xxl\t#Transfer,#Nope&!traded&xxl": "",
+  "giv&distance0-100&co\tgiv&distance0-100&countcandy0-2499": "",
   "giv&distance0-100&co\tgiv&distance0-100&countcandy2500-": "",
+  "giv&distance0-100&countcandy\tgiv&distance0-100&countcandy0-2499": "",
   "giv&distance0-100&countcandy\tgiv&distance0-100&countcandy2500-": "",
+  "giv&distance0-100&countcandy0-249\tgiv&distance0-100&countcandy0-2499": "",
+  "giv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": "",
+  "giv&distance0-100&countcandy0-2499\tgiv&distance100-": "",
+  "giv&distance0-100&countcandy0-2499x\tgiv&distance0-100&countcandy0-2499": "",
   "giv&distance0-100&countcandy2500\tgiv&distance0-100&countcandy2500-": "",
   "giv&distance0-100&countcandy2500-\t1-151&countcandyxl0-359": "",
   "giv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": "",
   "giv&distance0-100&countcandy2500-x\tgiv&distance0-100&countcandy2500-": "",
+  "giv&distance0-1008countcandy0-2499\tgiv&distance0-100&countcandy0-2499": "",
   "giv&distance0-1008countcandy2500-\tgiv&distance0-100&countcandy2500-": "",
+  "giv&distance0100&countcandy02499\tgiv&distance0-100&countcandy0-2499": "",
   "giv&distance0100&countcandy2500\tgiv&distance0-100&countcandy2500-": "",
+  "giv&distance100\tgiv&distance100-": "",
   "giv&distance100&countcandy02499\tgiv&distance100-&countcandy0-2499": "",
+  "giv&distance100-\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
+  "giv&distance100-\tgiv&distance100-": "",
   "giv&distance100-&cou\tgiv&distance100-&countcandy0-2499": "",
   "giv&distance100-&countcandy0\tgiv&distance100-&countcandy0-2499": "",
   "giv&distance100-&countcandy0-249\tgiv&distance100-&countcandy0-2499": "",
   "giv&distance100-&countcandy0-2499\tgiv&distance0-100&countcandy2500-": "",
   "giv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": "",
   "giv&distance100-&countcandy0-2499x\tgiv&distance100-&countcandy0-2499": "",
+  "giv&distance100-x\tgiv&distance100-": "",
+  "giv&distance1oo-\tgiv&distance100-": "",
   "giv&distance1oo-&countcandyo-2499\tgiv&distance100-&countcandy0-2499": "",
   "giv&distanceo-1oo&countcandy25oo-\tgiv&distance0-100&countcandy2500-": "",
-  "giv,x1x&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "giv,xl&distanceo-1i0&conntcandy\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "giv,xlx&distance0-10\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "giv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "giv,xlx&distance0-100&countcandy0-249\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "giv,xlx&distance0-100&countcandy0-2499\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
-  "giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "giv,xlx&distance0-100&countcandy0-2499x\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "giv,xlx&distance0-1008countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "giv,xlx&distance0100&countcandy02499\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "giv,xlx&distanceo-1oo&countcandyo-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "giv,xlx8distance0-1008countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
+  "giv&distanceo-1oo&countcandyo-2499\tgiv&distance0-100&countcandy0-2499": "",
+  "giv,xl&distanceo-1i0&conntcandy\tgiv&distance0-100&countcandy0-2499": "",
+  "giv,xlx&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": "",
+  "giv,xlx&distance100-\tgiv&distance100-": "",
+  "giv8distance0-1008countcandy0-2499\tgiv&distance0-100&countcandy0-2499": "",
   "giv8distance0-1008countcandy2500-\tgiv&distance0-100&countcandy2500-": "",
+  "giv8distance100-\tgiv&distance100-": "",
   "giv8distance100-8countcandy0-2499\tgiv&distance100-&countcandy0-2499": "",
   "iny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
   "istance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": "",
   "istance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": "",
+  "iv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": "",
   "iv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": "",
+  "iv&distance100-\tgiv&distance100-": "",
   "iv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": "",
-  "iv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
   "lucky&320&!costum\tlucky&320&!costume": "",
   "lucky&320&!costume\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
   "lucky&320&!costume\tlucky&320&!costume": "",
@@ -2816,7 +2880,7 @@
   "lucky83208!costume\tlucky&320&!costume": "",
   "nse&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
   "ow&!shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
-  "stance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
+  "stance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": "",
   "tume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
   "ucky&320&!costume\tlucky&320&!costume": "",
   "vpC\tPvpC": "",
@@ -2842,9 +2906,10 @@
   "\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   "\t530&3*,4*&shadow": false,
   "\tPvpC": false,
+  "\tgiv&distance0-100&countcandy0-2499": false,
   "\tgiv&distance0-100&countcandy2500-": false,
+  "\tgiv&distance100-": false,
   "\tgiv&distance100-&countcandy0-2499": false,
-  "\tgiv,xlx&distance0-100&countcandy0-2499": false,
   "\tlucky&320&!costume": false,
   "!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": true,
   "!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": true,
@@ -2967,9 +3032,10 @@
   ",777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
   ",927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
   ",PvpC\tPvpC": true,
+  ",giv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   ",giv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
+  ",giv&distance100-\tgiv&distance100-": true,
   ",giv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": true,
-  ",giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
   ",lucky&320&!costume\tlucky&320&!costume": true,
   "-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
   "-151&countcandyxl0-359\t1-151&countcandyxl0-359": true,
@@ -2996,7 +3062,7 @@
   "1-26,172&countcandyxl36o-\t1-26,172&countcandyxl360-": true,
   "1-26,172&countcandyx|360-\t1-26,172&countcandyxl360-": true,
   "1-26,1728countcandyxl360-\t1-26,172&countcandyxl360-": true,
-  "100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
+  "100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "1151&countcandyxl0359\t1-151&countcandyxl0-359": false,
   "126,172&countcandyxl360\t1-26,172&countcandyxl360-": false,
   "144&3\",4\"&!galar\t144&3*,4*&!galar": true,
@@ -3057,7 +3123,7 @@
   "530&3*,4*&SHADOW\t530&3*,4*&shadow": true,
   "530&3*,4*&shado\t530&3*,4*&shadow": true,
   "530&3*,4*&shadow\t530&3*,4*&shadow": true,
-  "530&3*,4*&shadow\tgiv,xlx&distance0-100&countcandy0-2499": false,
+  "530&3*,4*&shadow\tgiv&distance0-100&countcandy0-2499": false,
   "530&3*,4*&shadowx\t530&3*,4*&shadow": true,
   "53083*,4*&shadow\t530&3*,4*&shadow": true,
   "53083*,4*8shadow\t530&3*,4*&shadow": true,
@@ -3080,9 +3146,10 @@
   "950,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
   "9530&3*,4*&shadow\t530&3*,4*&shadow": true,
   "9PvpC\tPvpC": true,
+  "9giv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "9giv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
+  "9giv&distance100-\tgiv&distance100-": true,
   "9giv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": true,
-  "9giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
   "9lucky&320&!costume\tlucky&320&!costume": true,
   "<#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": true,
   "<#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": true,
@@ -3100,13 +3167,15 @@
   "<50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
   "<530&3*,4*&shadow\t530&3*,4*&shadow": true,
   "<PvpC\tPvpC": true,
+  "<giv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "<giv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
+  "<giv&distance100-\tgiv&distance100-": true,
   "<giv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": true,
-  "<giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
   "<lucky&320&!costume\tlucky&320&!costume": true,
+  "GIV&DISTANCE0-100&COUNTCANDY0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "GIV&DISTANCE0-100&COUNTCANDY2500-\tgiv&distance0-100&countcandy2500-": true,
+  "GIV&DISTANCE100-\tgiv&distance100-": true,
   "GIV&DISTANCE100-&COUNTCANDY0-2499\tgiv&distance100-&countcandy0-2499": true,
-  "GIV,XLX&DISTANCE0-100&COUNTCANDY0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
   "Ishiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": true,
   "LUCKY&320&!COSTUME\tlucky&320&!costume": true,
   "Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": true,
@@ -3142,12 +3211,13 @@
   "Q50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
   "Q530&3*,4*&shadow\t530&3*,4*&shadow": true,
   "QPvpC\tPvpC": true,
+  "Qgiv&distance0-100&countcandy\tgiv&distance0-100&countcandy0-2499": true,
   "Qgiv&distance0-100&countcandy\tgiv&distance0-100&countcandy2500-": true,
+  "Qgiv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "Qgiv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
+  "Qgiv&distance100-\tgiv&distance100-": true,
   "Qgiv&distance100-&countcandy0\tgiv&distance100-&countcandy0-2499": true,
   "Qgiv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": true,
-  "Qgiv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "Qgiv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
   "Qlucky&320&!costume\tlucky&320&!costume": true,
   "Transfer,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": true,
   "ack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": true,
@@ -3156,43 +3226,51 @@
   "ed&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": true,
   "er,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": true,
   "er,#Nope&Itraded&xxl\t#Transfer,#Nope&!traded&xxl": true,
+  "giv&distance0-100&co\tgiv&distance0-100&countcandy0-2499": true,
   "giv&distance0-100&co\tgiv&distance0-100&countcandy2500-": true,
+  "giv&distance0-100&countcandy\tgiv&distance0-100&countcandy0-2499": true,
   "giv&distance0-100&countcandy\tgiv&distance0-100&countcandy2500-": true,
+  "giv&distance0-100&countcandy0-249\tgiv&distance0-100&countcandy0-2499": true,
+  "giv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
+  "giv&distance0-100&countcandy0-2499\tgiv&distance100-": false,
+  "giv&distance0-100&countcandy0-2499x\tgiv&distance0-100&countcandy0-2499": true,
   "giv&distance0-100&countcandy2500\tgiv&distance0-100&countcandy2500-": true,
   "giv&distance0-100&countcandy2500-\t1-151&countcandyxl0-359": false,
   "giv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
   "giv&distance0-100&countcandy2500-x\tgiv&distance0-100&countcandy2500-": true,
+  "giv&distance0-1008countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "giv&distance0-1008countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
+  "giv&distance0100&countcandy02499\tgiv&distance0-100&countcandy0-2499": true,
   "giv&distance0100&countcandy2500\tgiv&distance0-100&countcandy2500-": true,
+  "giv&distance100\tgiv&distance100-": true,
   "giv&distance100&countcandy02499\tgiv&distance100-&countcandy0-2499": true,
+  "giv&distance100-\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
+  "giv&distance100-\tgiv&distance100-": true,
   "giv&distance100-&cou\tgiv&distance100-&countcandy0-2499": true,
   "giv&distance100-&countcandy0\tgiv&distance100-&countcandy0-2499": true,
   "giv&distance100-&countcandy0-249\tgiv&distance100-&countcandy0-2499": true,
   "giv&distance100-&countcandy0-2499\tgiv&distance0-100&countcandy2500-": false,
   "giv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": true,
   "giv&distance100-&countcandy0-2499x\tgiv&distance100-&countcandy0-2499": true,
+  "giv&distance100-x\tgiv&distance100-": true,
+  "giv&distance1oo-\tgiv&distance100-": true,
   "giv&distance1oo-&countcandyo-2499\tgiv&distance100-&countcandy0-2499": true,
   "giv&distanceo-1oo&countcandy25oo-\tgiv&distance0-100&countcandy2500-": true,
-  "giv,x1x&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xl&distanceo-1i0&conntcandy\tgiv,xlx&distance0-100&countcandy0-2499": false,
-  "giv,xlx&distance0-10\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distance0-100&countcandy0-249\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distance0-100&countcandy0-2499\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
-  "giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distance0-100&countcandy0-2499x\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distance0-1008countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distance0100&countcandy02499\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distanceo-1oo&countcandyo-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx8distance0-1008countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
+  "giv&distanceo-1oo&countcandyo-2499\tgiv&distance0-100&countcandy0-2499": true,
+  "giv,xl&distanceo-1i0&conntcandy\tgiv&distance0-100&countcandy0-2499": false,
+  "giv,xlx&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": false,
+  "giv,xlx&distance100-\tgiv&distance100-": false,
+  "giv8distance0-1008countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "giv8distance0-1008countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
+  "giv8distance100-\tgiv&distance100-": true,
   "giv8distance100-8countcandy0-2499\tgiv&distance100-&countcandy0-2499": true,
   "iny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": true,
   "istance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
   "istance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": true,
+  "iv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "iv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
+  "iv&distance100-\tgiv&distance100-": true,
   "iv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": true,
-  "iv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
   "lucky&320&!costum\tlucky&320&!costume": true,
   "lucky&320&!costume\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": false,
   "lucky&320&!costume\tlucky&320&!costume": true,
@@ -3207,7 +3285,7 @@
   "lucky83208!costume\tlucky&320&!costume": true,
   "nse&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": true,
   "ow&!shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": true,
-  "stance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
+  "stance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "tume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": true,
   "ucky&320&!costume\tlucky&320&!costume": true,
   "vpC\tPvpC": true,
@@ -3401,9 +3479,10 @@
   "\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
   "\t530&3*,4*&shadow": "",
   "\tPvpC": "",
+  "\tgiv&distance0-100&countcandy0-2499": "",
   "\tgiv&distance0-100&countcandy2500-": "",
+  "\tgiv&distance100-": "",
   "\tgiv&distance100-&countcandy0-2499": "",
-  "\tgiv,xlx&distance0-100&countcandy0-2499": "",
   "\tlucky&320&!costume": "",
   "!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
   "!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
@@ -3526,9 +3605,10 @@
   ",777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
   ",927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
   ",PvpC\tPvpC": "",
+  ",giv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": "",
   ",giv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": "",
+  ",giv&distance100-\tgiv&distance100-": "",
   ",giv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": "",
-  ",giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
   ",lucky&320&!costume\tlucky&320&!costume": "",
   "-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": "",
   "-151&countcandyxl0-359\t1-151&countcandyxl0-359": "",
@@ -3555,7 +3635,7 @@
   "1-26,172&countcandyxl36o-\t1-26,172&countcandyxl360-": "",
   "1-26,172&countcandyx|360-\t1-26,172&countcandyxl360-": "",
   "1-26,1728countcandyxl360-\t1-26,172&countcandyxl360-": "",
-  "100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
+  "100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": "",
   "1151&countcandyxl0359\t1-151&countcandyxl0-359": "",
   "126,172&countcandyxl360\t1-26,172&countcandyxl360-": "",
   "144&3\",4\"&!galar\t144&3*,4*&!galar": "",
@@ -3616,7 +3696,7 @@
   "530&3*,4*&SHADOW\t530&3*,4*&shadow": "",
   "530&3*,4*&shado\t530&3*,4*&shadow": "",
   "530&3*,4*&shadow\t530&3*,4*&shadow": "",
-  "530&3*,4*&shadow\tgiv,xlx&distance0-100&countcandy0-2499": "",
+  "530&3*,4*&shadow\tgiv&distance0-100&countcandy0-2499": "",
   "530&3*,4*&shadowx\t530&3*,4*&shadow": "",
   "53083*,4*&shadow\t530&3*,4*&shadow": "",
   "53083*,4*8shadow\t530&3*,4*&shadow": "",
@@ -3639,9 +3719,10 @@
   "950,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
   "9530&3*,4*&shadow\t530&3*,4*&shadow": "",
   "9PvpC\tPvpC": "",
+  "9giv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": "",
   "9giv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": "",
+  "9giv&distance100-\tgiv&distance100-": "",
   "9giv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": "",
-  "9giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
   "9lucky&320&!costume\tlucky&320&!costume": "",
   "<#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
   "<#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
@@ -3659,13 +3740,15 @@
   "<50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
   "<530&3*,4*&shadow\t530&3*,4*&shadow": "",
   "<PvpC\tPvpC": "",
+  "<giv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": "",
   "<giv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": "",
+  "<giv&distance100-\tgiv&distance100-": "",
   "<giv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": "",
-  "<giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
   "<lucky&320&!costume\tlucky&320&!costume": "",
+  "GIV&DISTANCE0-100&COUNTCANDY0-2499\tgiv&distance0-100&countcandy0-2499": "",
   "GIV&DISTANCE0-100&COUNTCANDY2500-\tgiv&distance0-100&countcandy2500-": "",
+  "GIV&DISTANCE100-\tgiv&distance100-": "",
   "GIV&DISTANCE100-&COUNTCANDY0-2499\tgiv&distance100-&countcandy0-2499": "",
-  "GIV,XLX&DISTANCE0-100&COUNTCANDY0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
   "Ishiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": "",
   "LUCKY&320&!COSTUME\tlucky&320&!costume": "",
   "Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
@@ -3701,12 +3784,13 @@
   "Q50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
   "Q530&3*,4*&shadow\t530&3*,4*&shadow": "",
   "QPvpC\tPvpC": "",
+  "Qgiv&distance0-100&countcandy\tgiv&distance0-100&countcandy0-2499": "",
   "Qgiv&distance0-100&countcandy\tgiv&distance0-100&countcandy2500-": "",
+  "Qgiv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": "",
   "Qgiv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": "",
+  "Qgiv&distance100-\tgiv&distance100-": "",
   "Qgiv&distance100-&countcandy0\tgiv&distance100-&countcandy0-2499": "",
   "Qgiv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": "",
-  "Qgiv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "Qgiv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
   "Qlucky&320&!costume\tlucky&320&!costume": "",
   "Transfer,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": "",
   "ack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
@@ -3715,43 +3799,51 @@
   "ed&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": "",
   "er,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": "",
   "er,#Nope&Itraded&xxl\t#Transfer,#Nope&!traded&xxl": "",
+  "giv&distance0-100&co\tgiv&distance0-100&countcandy0-2499": "",
   "giv&distance0-100&co\tgiv&distance0-100&countcandy2500-": "",
+  "giv&distance0-100&countcandy\tgiv&distance0-100&countcandy0-2499": "",
   "giv&distance0-100&countcandy\tgiv&distance0-100&countcandy2500-": "",
+  "giv&distance0-100&countcandy0-249\tgiv&distance0-100&countcandy0-2499": "9",
+  "giv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": "",
+  "giv&distance0-100&countcandy0-2499\tgiv&distance100-": "",
+  "giv&distance0-100&countcandy0-2499x\tgiv&distance0-100&countcandy0-2499": "",
   "giv&distance0-100&countcandy2500\tgiv&distance0-100&countcandy2500-": "",
   "giv&distance0-100&countcandy2500-\t1-151&countcandyxl0-359": "",
   "giv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": "",
   "giv&distance0-100&countcandy2500-x\tgiv&distance0-100&countcandy2500-": "",
+  "giv&distance0-1008countcandy0-2499\tgiv&distance0-100&countcandy0-2499": "",
   "giv&distance0-1008countcandy2500-\tgiv&distance0-100&countcandy2500-": "",
+  "giv&distance0100&countcandy02499\tgiv&distance0-100&countcandy0-2499": "",
   "giv&distance0100&countcandy2500\tgiv&distance0-100&countcandy2500-": "",
+  "giv&distance100\tgiv&distance100-": "",
   "giv&distance100&countcandy02499\tgiv&distance100-&countcandy0-2499": "",
+  "giv&distance100-\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
+  "giv&distance100-\tgiv&distance100-": "",
   "giv&distance100-&cou\tgiv&distance100-&countcandy0-2499": "",
   "giv&distance100-&countcandy0\tgiv&distance100-&countcandy0-2499": "",
   "giv&distance100-&countcandy0-249\tgiv&distance100-&countcandy0-2499": "9",
   "giv&distance100-&countcandy0-2499\tgiv&distance0-100&countcandy2500-": "",
   "giv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": "",
   "giv&distance100-&countcandy0-2499x\tgiv&distance100-&countcandy0-2499": "",
+  "giv&distance100-x\tgiv&distance100-": "",
+  "giv&distance1oo-\tgiv&distance100-": "",
   "giv&distance1oo-&countcandyo-2499\tgiv&distance100-&countcandy0-2499": "",
   "giv&distanceo-1oo&countcandy25oo-\tgiv&distance0-100&countcandy2500-": "",
-  "giv,x1x&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "giv,xl&distanceo-1i0&conntcandy\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "giv,xlx&distance0-10\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "giv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "giv,xlx&distance0-100&countcandy0-249\tgiv,xlx&distance0-100&countcandy0-2499": "9",
-  "giv,xlx&distance0-100&countcandy0-2499\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "",
-  "giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "giv,xlx&distance0-100&countcandy0-2499x\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "giv,xlx&distance0-1008countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "giv,xlx&distance0100&countcandy02499\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "giv,xlx&distanceo-1oo&countcandyo-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
-  "giv,xlx8distance0-1008countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
+  "giv&distanceo-1oo&countcandyo-2499\tgiv&distance0-100&countcandy0-2499": "",
+  "giv,xl&distanceo-1i0&conntcandy\tgiv&distance0-100&countcandy0-2499": "",
+  "giv,xlx&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": "",
+  "giv,xlx&distance100-\tgiv&distance100-": "",
+  "giv8distance0-1008countcandy0-2499\tgiv&distance0-100&countcandy0-2499": "",
   "giv8distance0-1008countcandy2500-\tgiv&distance0-100&countcandy2500-": "",
+  "giv8distance100-\tgiv&distance100-": "",
   "giv8distance100-8countcandy0-2499\tgiv&distance100-&countcandy0-2499": "",
   "iny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
   "istance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": "",
   "istance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": "",
+  "iv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": "",
   "iv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": "",
+  "iv&distance100-\tgiv&distance100-": "",
   "iv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": "",
-  "iv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
   "lucky&320&!costum\tlucky&320&!costume": "",
   "lucky&320&!costume\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
   "lucky&320&!costume\tlucky&320&!costume": "",
@@ -3766,7 +3858,7 @@
   "lucky83208!costume\tlucky&320&!costume": "",
   "nse&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "",
   "ow&!shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": "",
-  "stance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": "",
+  "stance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": "",
   "tume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": "",
   "ucky&320&!costume\tlucky&320&!costume": "",
   "vpC\tPvpC": "",
@@ -3807,9 +3899,10 @@
   "\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   "\t530&3*,4*&shadow": false,
   "\tPvpC": false,
+  "\tgiv&distance0-100&countcandy0-2499": false,
   "\tgiv&distance0-100&countcandy2500-": false,
+  "\tgiv&distance100-": false,
   "\tgiv&distance100-&countcandy0-2499": false,
-  "\tgiv,xlx&distance0-100&countcandy0-2499": false,
   "\tlucky&320&!costume": false,
   "!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": true,
   "!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": true,
@@ -3932,9 +4025,10 @@
   ",777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
   ",927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
   ",PvpC\tPvpC": true,
+  ",giv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   ",giv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
+  ",giv&distance100-\tgiv&distance100-": true,
   ",giv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": true,
-  ",giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
   ",lucky&320&!costume\tlucky&320&!costume": true,
   "-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
   "-151&countcandyxl0-359\t1-151&countcandyxl0-359": true,
@@ -3961,7 +4055,7 @@
   "1-26,172&countcandyxl36o-\t1-26,172&countcandyxl360-": true,
   "1-26,172&countcandyx|360-\t1-26,172&countcandyxl360-": true,
   "1-26,1728countcandyxl360-\t1-26,172&countcandyxl360-": true,
-  "100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
+  "100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "1151&countcandyxl0359\t1-151&countcandyxl0-359": false,
   "126,172&countcandyxl360\t1-26,172&countcandyxl360-": false,
   "144&3\",4\"&!galar\t144&3*,4*&!galar": true,
@@ -4022,7 +4116,7 @@
   "530&3*,4*&SHADOW\t530&3*,4*&shadow": true,
   "530&3*,4*&shado\t530&3*,4*&shadow": true,
   "530&3*,4*&shadow\t530&3*,4*&shadow": true,
-  "530&3*,4*&shadow\tgiv,xlx&distance0-100&countcandy0-2499": false,
+  "530&3*,4*&shadow\tgiv&distance0-100&countcandy0-2499": false,
   "530&3*,4*&shadowx\t530&3*,4*&shadow": true,
   "53083*,4*&shadow\t530&3*,4*&shadow": true,
   "53083*,4*8shadow\t530&3*,4*&shadow": true,
@@ -4045,9 +4139,10 @@
   "950,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
   "9530&3*,4*&shadow\t530&3*,4*&shadow": true,
   "9PvpC\tPvpC": true,
+  "9giv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "9giv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
+  "9giv&distance100-\tgiv&distance100-": true,
   "9giv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": true,
-  "9giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
   "9lucky&320&!costume\tlucky&320&!costume": true,
   "<#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": true,
   "<#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": true,
@@ -4065,13 +4160,15 @@
   "<50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
   "<530&3*,4*&shadow\t530&3*,4*&shadow": true,
   "<PvpC\tPvpC": true,
+  "<giv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "<giv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
+  "<giv&distance100-\tgiv&distance100-": true,
   "<giv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": true,
-  "<giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
   "<lucky&320&!costume\tlucky&320&!costume": true,
+  "GIV&DISTANCE0-100&COUNTCANDY0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "GIV&DISTANCE0-100&COUNTCANDY2500-\tgiv&distance0-100&countcandy2500-": true,
+  "GIV&DISTANCE100-\tgiv&distance100-": true,
   "GIV&DISTANCE100-&COUNTCANDY0-2499\tgiv&distance100-&countcandy0-2499": true,
-  "GIV,XLX&DISTANCE0-100&COUNTCANDY0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
   "Ishiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": true,
   "LUCKY&320&!COSTUME\tlucky&320&!costume": true,
   "Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": true,
@@ -4107,12 +4204,13 @@
   "Q50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
   "Q530&3*,4*&shadow\t530&3*,4*&shadow": true,
   "QPvpC\tPvpC": true,
+  "Qgiv&distance0-100&countcandy\tgiv&distance0-100&countcandy0-2499": true,
   "Qgiv&distance0-100&countcandy\tgiv&distance0-100&countcandy2500-": true,
+  "Qgiv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "Qgiv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
+  "Qgiv&distance100-\tgiv&distance100-": true,
   "Qgiv&distance100-&countcandy0\tgiv&distance100-&countcandy0-2499": true,
   "Qgiv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": true,
-  "Qgiv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "Qgiv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
   "Qlucky&320&!costume\tlucky&320&!costume": true,
   "Transfer,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": true,
   "ack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": true,
@@ -4121,43 +4219,51 @@
   "ed&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": true,
   "er,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": true,
   "er,#Nope&Itraded&xxl\t#Transfer,#Nope&!traded&xxl": true,
+  "giv&distance0-100&co\tgiv&distance0-100&countcandy0-2499": true,
   "giv&distance0-100&co\tgiv&distance0-100&countcandy2500-": true,
+  "giv&distance0-100&countcandy\tgiv&distance0-100&countcandy0-2499": true,
   "giv&distance0-100&countcandy\tgiv&distance0-100&countcandy2500-": true,
+  "giv&distance0-100&countcandy0-249\tgiv&distance0-100&countcandy0-2499": true,
+  "giv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
+  "giv&distance0-100&countcandy0-2499\tgiv&distance100-": false,
+  "giv&distance0-100&countcandy0-2499x\tgiv&distance0-100&countcandy0-2499": true,
   "giv&distance0-100&countcandy2500\tgiv&distance0-100&countcandy2500-": true,
   "giv&distance0-100&countcandy2500-\t1-151&countcandyxl0-359": false,
   "giv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
   "giv&distance0-100&countcandy2500-x\tgiv&distance0-100&countcandy2500-": true,
+  "giv&distance0-1008countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "giv&distance0-1008countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
+  "giv&distance0100&countcandy02499\tgiv&distance0-100&countcandy0-2499": true,
   "giv&distance0100&countcandy2500\tgiv&distance0-100&countcandy2500-": true,
+  "giv&distance100\tgiv&distance100-": true,
   "giv&distance100&countcandy02499\tgiv&distance100-&countcandy0-2499": true,
+  "giv&distance100-\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
+  "giv&distance100-\tgiv&distance100-": true,
   "giv&distance100-&cou\tgiv&distance100-&countcandy0-2499": true,
   "giv&distance100-&countcandy0\tgiv&distance100-&countcandy0-2499": true,
   "giv&distance100-&countcandy0-249\tgiv&distance100-&countcandy0-2499": true,
   "giv&distance100-&countcandy0-2499\tgiv&distance0-100&countcandy2500-": false,
   "giv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": true,
   "giv&distance100-&countcandy0-2499x\tgiv&distance100-&countcandy0-2499": true,
+  "giv&distance100-x\tgiv&distance100-": true,
+  "giv&distance1oo-\tgiv&distance100-": true,
   "giv&distance1oo-&countcandyo-2499\tgiv&distance100-&countcandy0-2499": true,
   "giv&distanceo-1oo&countcandy25oo-\tgiv&distance0-100&countcandy2500-": true,
-  "giv,x1x&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xl&distanceo-1i0&conntcandy\tgiv,xlx&distance0-100&countcandy0-2499": false,
-  "giv,xlx&distance0-10\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distance0-100&countcandy0-249\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distance0-100&countcandy0-2499\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
-  "giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distance0-100&countcandy0-2499x\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distance0-1008countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distance0100&countcandy02499\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distanceo-1oo&countcandyo-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx8distance0-1008countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
+  "giv&distanceo-1oo&countcandyo-2499\tgiv&distance0-100&countcandy0-2499": true,
+  "giv,xl&distanceo-1i0&conntcandy\tgiv&distance0-100&countcandy0-2499": false,
+  "giv,xlx&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": false,
+  "giv,xlx&distance100-\tgiv&distance100-": false,
+  "giv8distance0-1008countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "giv8distance0-1008countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
+  "giv8distance100-\tgiv&distance100-": true,
   "giv8distance100-8countcandy0-2499\tgiv&distance100-&countcandy0-2499": true,
   "iny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": true,
   "istance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
   "istance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": true,
+  "iv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "iv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
+  "iv&distance100-\tgiv&distance100-": true,
   "iv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": true,
-  "iv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
   "lucky&320&!costum\tlucky&320&!costume": true,
   "lucky&320&!costume\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": false,
   "lucky&320&!costume\tlucky&320&!costume": true,
@@ -4172,7 +4278,7 @@
   "lucky83208!costume\tlucky&320&!costume": true,
   "nse&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": true,
   "ow&!shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": true,
-  "stance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
+  "stance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "tume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": true,
   "ucky&320&!costume\tlucky&320&!costume": true,
   "vpC\tPvpC": true,
@@ -4198,9 +4304,10 @@
   "\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   "\t530&3*,4*&shadow": false,
   "\tPvpC": false,
+  "\tgiv&distance0-100&countcandy0-2499": false,
   "\tgiv&distance0-100&countcandy2500-": false,
+  "\tgiv&distance100-": false,
   "\tgiv&distance100-&countcandy0-2499": false,
-  "\tgiv,xlx&distance0-100&countcandy0-2499": false,
   "\tlucky&320&!costume": false,
   "!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": false,
   "!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": false,
@@ -4323,9 +4430,10 @@
   ",777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   ",927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   ",PvpC\tPvpC": true,
+  ",giv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   ",giv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
+  ",giv&distance100-\tgiv&distance100-": true,
   ",giv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": true,
-  ",giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
   ",lucky&320&!costume\tlucky&320&!costume": true,
   "-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": false,
   "-151&countcandyxl0-359\t1-151&countcandyxl0-359": false,
@@ -4352,7 +4460,7 @@
   "1-26,172&countcandyxl36o-\t1-26,172&countcandyxl360-": true,
   "1-26,172&countcandyx|360-\t1-26,172&countcandyxl360-": true,
   "1-26,1728countcandyxl360-\t1-26,172&countcandyxl360-": true,
-  "100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": false,
+  "100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": false,
   "1151&countcandyxl0359\t1-151&countcandyxl0-359": false,
   "126,172&countcandyxl360\t1-26,172&countcandyxl360-": false,
   "144&3\",4\"&!galar\t144&3*,4*&!galar": true,
@@ -4413,7 +4521,7 @@
   "530&3*,4*&SHADOW\t530&3*,4*&shadow": true,
   "530&3*,4*&shado\t530&3*,4*&shadow": false,
   "530&3*,4*&shadow\t530&3*,4*&shadow": true,
-  "530&3*,4*&shadow\tgiv,xlx&distance0-100&countcandy0-2499": false,
+  "530&3*,4*&shadow\tgiv&distance0-100&countcandy0-2499": false,
   "530&3*,4*&shadowx\t530&3*,4*&shadow": true,
   "53083*,4*&shadow\t530&3*,4*&shadow": true,
   "53083*,4*8shadow\t530&3*,4*&shadow": true,
@@ -4436,9 +4544,10 @@
   "950,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
   "9530&3*,4*&shadow\t530&3*,4*&shadow": true,
   "9PvpC\tPvpC": true,
+  "9giv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "9giv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
+  "9giv&distance100-\tgiv&distance100-": true,
   "9giv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": true,
-  "9giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
   "9lucky&320&!costume\tlucky&320&!costume": true,
   "<#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": true,
   "<#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": true,
@@ -4456,13 +4565,15 @@
   "<50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
   "<530&3*,4*&shadow\t530&3*,4*&shadow": true,
   "<PvpC\tPvpC": true,
+  "<giv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "<giv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
+  "<giv&distance100-\tgiv&distance100-": true,
   "<giv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": true,
-  "<giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
   "<lucky&320&!costume\tlucky&320&!costume": true,
+  "GIV&DISTANCE0-100&COUNTCANDY0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "GIV&DISTANCE0-100&COUNTCANDY2500-\tgiv&distance0-100&countcandy2500-": true,
+  "GIV&DISTANCE100-\tgiv&distance100-": true,
   "GIV&DISTANCE100-&COUNTCANDY0-2499\tgiv&distance100-&countcandy0-2499": true,
-  "GIV,XLX&DISTANCE0-100&COUNTCANDY0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
   "Ishiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": false,
   "LUCKY&320&!COSTUME\tlucky&320&!costume": true,
   "Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
@@ -4498,12 +4609,13 @@
   "Q50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": true,
   "Q530&3*,4*&shadow\t530&3*,4*&shadow": true,
   "QPvpC\tPvpC": true,
+  "Qgiv&distance0-100&countcandy\tgiv&distance0-100&countcandy0-2499": false,
   "Qgiv&distance0-100&countcandy\tgiv&distance0-100&countcandy2500-": false,
+  "Qgiv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "Qgiv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
+  "Qgiv&distance100-\tgiv&distance100-": true,
   "Qgiv&distance100-&countcandy0\tgiv&distance100-&countcandy0-2499": false,
   "Qgiv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": true,
-  "Qgiv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": false,
-  "Qgiv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
   "Qlucky&320&!costume\tlucky&320&!costume": true,
   "Transfer,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": false,
   "ack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
@@ -4512,43 +4624,51 @@
   "ed&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": false,
   "er,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": false,
   "er,#Nope&Itraded&xxl\t#Transfer,#Nope&!traded&xxl": false,
+  "giv&distance0-100&co\tgiv&distance0-100&countcandy0-2499": false,
   "giv&distance0-100&co\tgiv&distance0-100&countcandy2500-": false,
+  "giv&distance0-100&countcandy\tgiv&distance0-100&countcandy0-2499": false,
   "giv&distance0-100&countcandy\tgiv&distance0-100&countcandy2500-": false,
+  "giv&distance0-100&countcandy0-249\tgiv&distance0-100&countcandy0-2499": false,
+  "giv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
+  "giv&distance0-100&countcandy0-2499\tgiv&distance100-": false,
+  "giv&distance0-100&countcandy0-2499x\tgiv&distance0-100&countcandy0-2499": true,
   "giv&distance0-100&countcandy2500\tgiv&distance0-100&countcandy2500-": false,
   "giv&distance0-100&countcandy2500-\t1-151&countcandyxl0-359": false,
   "giv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
   "giv&distance0-100&countcandy2500-x\tgiv&distance0-100&countcandy2500-": true,
+  "giv&distance0-1008countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "giv&distance0-1008countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
+  "giv&distance0100&countcandy02499\tgiv&distance0-100&countcandy0-2499": false,
   "giv&distance0100&countcandy2500\tgiv&distance0-100&countcandy2500-": false,
+  "giv&distance100\tgiv&distance100-": false,
   "giv&distance100&countcandy02499\tgiv&distance100-&countcandy0-2499": false,
+  "giv&distance100-\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
+  "giv&distance100-\tgiv&distance100-": true,
   "giv&distance100-&cou\tgiv&distance100-&countcandy0-2499": false,
   "giv&distance100-&countcandy0\tgiv&distance100-&countcandy0-2499": false,
   "giv&distance100-&countcandy0-249\tgiv&distance100-&countcandy0-2499": false,
   "giv&distance100-&countcandy0-2499\tgiv&distance0-100&countcandy2500-": false,
   "giv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": true,
   "giv&distance100-&countcandy0-2499x\tgiv&distance100-&countcandy0-2499": true,
+  "giv&distance100-x\tgiv&distance100-": true,
+  "giv&distance1oo-\tgiv&distance100-": true,
   "giv&distance1oo-&countcandyo-2499\tgiv&distance100-&countcandy0-2499": true,
   "giv&distanceo-1oo&countcandy25oo-\tgiv&distance0-100&countcandy2500-": true,
-  "giv,x1x&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xl&distanceo-1i0&conntcandy\tgiv,xlx&distance0-100&countcandy0-2499": false,
-  "giv,xlx&distance0-10\tgiv,xlx&distance0-100&countcandy0-2499": false,
-  "giv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": false,
-  "giv,xlx&distance0-100&countcandy0-249\tgiv,xlx&distance0-100&countcandy0-2499": false,
-  "giv,xlx&distance0-100&countcandy0-2499\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
-  "giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distance0-100&countcandy0-2499x\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distance0-1008countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distance0100&countcandy02499\tgiv,xlx&distance0-100&countcandy0-2499": false,
-  "giv,xlx&distanceo-1oo&countcandyo-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx8distance0-1008countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
+  "giv&distanceo-1oo&countcandyo-2499\tgiv&distance0-100&countcandy0-2499": true,
+  "giv,xl&distanceo-1i0&conntcandy\tgiv&distance0-100&countcandy0-2499": false,
+  "giv,xlx&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": false,
+  "giv,xlx&distance100-\tgiv&distance100-": false,
+  "giv8distance0-1008countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "giv8distance0-1008countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
+  "giv8distance100-\tgiv&distance100-": true,
   "giv8distance100-8countcandy0-2499\tgiv&distance100-&countcandy0-2499": true,
   "iny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": false,
   "istance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": false,
   "istance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": false,
+  "iv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": false,
   "iv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": false,
+  "iv&distance100-\tgiv&distance100-": false,
   "iv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": false,
-  "iv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": false,
   "lucky&320&!costum\tlucky&320&!costume": false,
   "lucky&320&!costume\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": false,
   "lucky&320&!costume\tlucky&320&!costume": true,
@@ -4563,7 +4683,7 @@
   "lucky83208!costume\tlucky&320&!costume": true,
   "nse&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
   "ow&!shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": false,
-  "stance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": false,
+  "stance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": false,
   "tume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": false,
   "ucky&320&!costume\tlucky&320&!costume": false,
   "vpC\tPvpC": false,
@@ -4637,9 +4757,10 @@
   "\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   "\t530&3*,4*&shadow": false,
   "\tPvpC": false,
+  "\tgiv&distance0-100&countcandy0-2499": false,
   "\tgiv&distance0-100&countcandy2500-": false,
+  "\tgiv&distance100-": false,
   "\tgiv&distance100-&countcandy0-2499": false,
-  "\tgiv,xlx&distance0-100&countcandy0-2499": false,
   "\tlucky&320&!costume": false,
   "!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": false,
   "!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": false,
@@ -4762,9 +4883,10 @@
   ",777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   ",927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   ",PvpC\tPvpC": false,
+  ",giv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   ",giv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
+  ",giv&distance100-\tgiv&distance100-": true,
   ",giv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": true,
-  ",giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
   ",lucky&320&!costume\tlucky&320&!costume": false,
   "-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": false,
   "-151&countcandyxl0-359\t1-151&countcandyxl0-359": false,
@@ -4791,7 +4913,7 @@
   "1-26,172&countcandyxl36o-\t1-26,172&countcandyxl360-": true,
   "1-26,172&countcandyx|360-\t1-26,172&countcandyxl360-": true,
   "1-26,1728countcandyxl360-\t1-26,172&countcandyxl360-": true,
-  "100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": false,
+  "100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": false,
   "1151&countcandyxl0359\t1-151&countcandyxl0-359": true,
   "126,172&countcandyxl360\t1-26,172&countcandyxl360-": true,
   "144&3\",4\"&!galar\t144&3*,4*&!galar": false,
@@ -4852,7 +4974,7 @@
   "530&3*,4*&SHADOW\t530&3*,4*&shadow": false,
   "530&3*,4*&shado\t530&3*,4*&shadow": false,
   "530&3*,4*&shadow\t530&3*,4*&shadow": false,
-  "530&3*,4*&shadow\tgiv,xlx&distance0-100&countcandy0-2499": false,
+  "530&3*,4*&shadow\tgiv&distance0-100&countcandy0-2499": false,
   "530&3*,4*&shadowx\t530&3*,4*&shadow": false,
   "53083*,4*&shadow\t530&3*,4*&shadow": false,
   "53083*,4*8shadow\t530&3*,4*&shadow": false,
@@ -4875,9 +4997,10 @@
   "950,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   "9530&3*,4*&shadow\t530&3*,4*&shadow": false,
   "9PvpC\tPvpC": false,
+  "9giv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "9giv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
+  "9giv&distance100-\tgiv&distance100-": true,
   "9giv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": true,
-  "9giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
   "9lucky&320&!costume\tlucky&320&!costume": false,
   "<#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
   "<#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": false,
@@ -4895,13 +5018,15 @@
   "<50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   "<530&3*,4*&shadow\t530&3*,4*&shadow": false,
   "<PvpC\tPvpC": false,
+  "<giv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "<giv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
+  "<giv&distance100-\tgiv&distance100-": true,
   "<giv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": true,
-  "<giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
   "<lucky&320&!costume\tlucky&320&!costume": false,
+  "GIV&DISTANCE0-100&COUNTCANDY0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "GIV&DISTANCE0-100&COUNTCANDY2500-\tgiv&distance0-100&countcandy2500-": true,
+  "GIV&DISTANCE100-\tgiv&distance100-": true,
   "GIV&DISTANCE100-&COUNTCANDY0-2499\tgiv&distance100-&countcandy0-2499": true,
-  "GIV,XLX&DISTANCE0-100&COUNTCANDY0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
   "Ishiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": false,
   "LUCKY&320&!COSTUME\tlucky&320&!costume": false,
   "Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
@@ -4937,12 +5062,13 @@
   "Q50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   "Q530&3*,4*&shadow\t530&3*,4*&shadow": false,
   "QPvpC\tPvpC": false,
+  "Qgiv&distance0-100&countcandy\tgiv&distance0-100&countcandy0-2499": true,
   "Qgiv&distance0-100&countcandy\tgiv&distance0-100&countcandy2500-": true,
+  "Qgiv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "Qgiv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
+  "Qgiv&distance100-\tgiv&distance100-": true,
   "Qgiv&distance100-&countcandy0\tgiv&distance100-&countcandy0-2499": true,
   "Qgiv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": true,
-  "Qgiv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "Qgiv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
   "Qlucky&320&!costume\tlucky&320&!costume": false,
   "Transfer,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": false,
   "ack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
@@ -4951,43 +5077,51 @@
   "ed&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": false,
   "er,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": false,
   "er,#Nope&Itraded&xxl\t#Transfer,#Nope&!traded&xxl": false,
+  "giv&distance0-100&co\tgiv&distance0-100&countcandy0-2499": true,
   "giv&distance0-100&co\tgiv&distance0-100&countcandy2500-": false,
+  "giv&distance0-100&countcandy\tgiv&distance0-100&countcandy0-2499": true,
   "giv&distance0-100&countcandy\tgiv&distance0-100&countcandy2500-": true,
+  "giv&distance0-100&countcandy0-249\tgiv&distance0-100&countcandy0-2499": true,
+  "giv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
+  "giv&distance0-100&countcandy0-2499\tgiv&distance100-": false,
+  "giv&distance0-100&countcandy0-2499x\tgiv&distance0-100&countcandy0-2499": true,
   "giv&distance0-100&countcandy2500\tgiv&distance0-100&countcandy2500-": true,
   "giv&distance0-100&countcandy2500-\t1-151&countcandyxl0-359": false,
   "giv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
   "giv&distance0-100&countcandy2500-x\tgiv&distance0-100&countcandy2500-": true,
+  "giv&distance0-1008countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "giv&distance0-1008countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
+  "giv&distance0100&countcandy02499\tgiv&distance0-100&countcandy0-2499": true,
   "giv&distance0100&countcandy2500\tgiv&distance0-100&countcandy2500-": true,
+  "giv&distance100\tgiv&distance100-": true,
   "giv&distance100&countcandy02499\tgiv&distance100-&countcandy0-2499": true,
+  "giv&distance100-\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
+  "giv&distance100-\tgiv&distance100-": true,
   "giv&distance100-&cou\tgiv&distance100-&countcandy0-2499": true,
   "giv&distance100-&countcandy0\tgiv&distance100-&countcandy0-2499": true,
   "giv&distance100-&countcandy0-249\tgiv&distance100-&countcandy0-2499": true,
   "giv&distance100-&countcandy0-2499\tgiv&distance0-100&countcandy2500-": false,
   "giv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": true,
   "giv&distance100-&countcandy0-2499x\tgiv&distance100-&countcandy0-2499": true,
+  "giv&distance100-x\tgiv&distance100-": false,
+  "giv&distance1oo-\tgiv&distance100-": true,
   "giv&distance1oo-&countcandyo-2499\tgiv&distance100-&countcandy0-2499": true,
   "giv&distanceo-1oo&countcandy25oo-\tgiv&distance0-100&countcandy2500-": true,
-  "giv,x1x&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xl&distanceo-1i0&conntcandy\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distance0-10\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distance0-100&countcandy0-249\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distance0-100&countcandy0-2499\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
-  "giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distance0-100&countcandy0-2499x\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distance0-1008countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distance0100&countcandy02499\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distanceo-1oo&countcandyo-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx8distance0-1008countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
+  "giv&distanceo-1oo&countcandyo-2499\tgiv&distance0-100&countcandy0-2499": true,
+  "giv,xl&distanceo-1i0&conntcandy\tgiv&distance0-100&countcandy0-2499": true,
+  "giv,xlx&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
+  "giv,xlx&distance100-\tgiv&distance100-": true,
+  "giv8distance0-1008countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "giv8distance0-1008countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
+  "giv8distance100-\tgiv&distance100-": true,
   "giv8distance100-8countcandy0-2499\tgiv&distance100-&countcandy0-2499": true,
   "iny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": false,
   "istance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
   "istance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": true,
+  "iv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "iv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
+  "iv&distance100-\tgiv&distance100-": false,
   "iv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": true,
-  "iv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
   "lucky&320&!costum\tlucky&320&!costume": false,
   "lucky&320&!costume\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": false,
   "lucky&320&!costume\tlucky&320&!costume": false,
@@ -5002,7 +5136,7 @@
   "lucky83208!costume\tlucky&320&!costume": false,
   "nse&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
   "ow&!shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": false,
-  "stance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
+  "stance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "tume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": false,
   "ucky&320&!costume\tlucky&320&!costume": false,
   "vpC\tPvpC": false,
@@ -5028,9 +5162,10 @@
   "\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   "\t530&3*,4*&shadow": false,
   "\tPvpC": false,
+  "\tgiv&distance0-100&countcandy0-2499": false,
   "\tgiv&distance0-100&countcandy2500-": false,
+  "\tgiv&distance100-": false,
   "\tgiv&distance100-&countcandy0-2499": false,
-  "\tgiv,xlx&distance0-100&countcandy0-2499": false,
   "\tlucky&320&!costume": false,
   "!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": false,
   "!shadow&!shiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": false,
@@ -5153,9 +5288,10 @@
   ",777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   ",927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   ",PvpC\tPvpC": false,
+  ",giv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   ",giv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
+  ",giv&distance100-\tgiv&distance100-": true,
   ",giv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": true,
-  ",giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
   ",lucky&320&!costume\tlucky&320&!costume": false,
   "-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": false,
   "-151&countcandyxl0-359\t1-151&countcandyxl0-359": false,
@@ -5182,7 +5318,7 @@
   "1-26,172&countcandyxl36o-\t1-26,172&countcandyxl360-": true,
   "1-26,172&countcandyx|360-\t1-26,172&countcandyxl360-": true,
   "1-26,1728countcandyxl360-\t1-26,172&countcandyxl360-": true,
-  "100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": false,
+  "100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": false,
   "1151&countcandyxl0359\t1-151&countcandyxl0-359": true,
   "126,172&countcandyxl360\t1-26,172&countcandyxl360-": true,
   "144&3\",4\"&!galar\t144&3*,4*&!galar": false,
@@ -5243,7 +5379,7 @@
   "530&3*,4*&SHADOW\t530&3*,4*&shadow": false,
   "530&3*,4*&shado\t530&3*,4*&shadow": false,
   "530&3*,4*&shadow\t530&3*,4*&shadow": false,
-  "530&3*,4*&shadow\tgiv,xlx&distance0-100&countcandy0-2499": false,
+  "530&3*,4*&shadow\tgiv&distance0-100&countcandy0-2499": false,
   "530&3*,4*&shadowx\t530&3*,4*&shadow": false,
   "53083*,4*&shadow\t530&3*,4*&shadow": false,
   "53083*,4*8shadow\t530&3*,4*&shadow": false,
@@ -5266,9 +5402,10 @@
   "950,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   "9530&3*,4*&shadow\t530&3*,4*&shadow": false,
   "9PvpC\tPvpC": false,
+  "9giv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "9giv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
+  "9giv&distance100-\tgiv&distance100-": true,
   "9giv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": true,
-  "9giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
   "9lucky&320&!costume\tlucky&320&!costume": false,
   "<#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
   "<#Nope&!traded&!shiny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": false,
@@ -5286,13 +5423,15 @@
   "<50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   "<530&3*,4*&shadow\t530&3*,4*&shadow": false,
   "<PvpC\tPvpC": false,
+  "<giv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "<giv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
+  "<giv&distance100-\tgiv&distance100-": true,
   "<giv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": true,
-  "<giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
   "<lucky&320&!costume\tlucky&320&!costume": false,
+  "GIV&DISTANCE0-100&COUNTCANDY0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "GIV&DISTANCE0-100&COUNTCANDY2500-\tgiv&distance0-100&countcandy2500-": true,
+  "GIV&DISTANCE100-\tgiv&distance100-": true,
   "GIV&DISTANCE100-&COUNTCANDY0-2499\tgiv&distance100-&countcandy0-2499": true,
-  "GIV,XLX&DISTANCE0-100&COUNTCANDY0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
   "Ishiny&!XXL&!4*&!3*&\t&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&": false,
   "LUCKY&320&!COSTUME\tlucky&320&!costume": false,
   "Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
@@ -5328,12 +5467,13 @@
   "Q50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
   "Q530&3*,4*&shadow\t530&3*,4*&shadow": false,
   "QPvpC\tPvpC": false,
+  "Qgiv&distance0-100&countcandy\tgiv&distance0-100&countcandy0-2499": true,
   "Qgiv&distance0-100&countcandy\tgiv&distance0-100&countcandy2500-": true,
+  "Qgiv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "Qgiv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
+  "Qgiv&distance100-\tgiv&distance100-": true,
   "Qgiv&distance100-&countcandy0\tgiv&distance100-&countcandy0-2499": true,
   "Qgiv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": true,
-  "Qgiv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "Qgiv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
   "Qlucky&320&!costume\tlucky&320&!costume": false,
   "Transfer,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": false,
   "ack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
@@ -5342,43 +5482,51 @@
   "ed&!shiny&!costume&legendary\t#Nope&!traded&!shiny&!costume&legendary": false,
   "er,#Nope&!traded&xxl\t#Transfer,#Nope&!traded&xxl": false,
   "er,#Nope&Itraded&xxl\t#Transfer,#Nope&!traded&xxl": false,
+  "giv&distance0-100&co\tgiv&distance0-100&countcandy0-2499": false,
   "giv&distance0-100&co\tgiv&distance0-100&countcandy2500-": false,
+  "giv&distance0-100&countcandy\tgiv&distance0-100&countcandy0-2499": true,
   "giv&distance0-100&countcandy\tgiv&distance0-100&countcandy2500-": true,
+  "giv&distance0-100&countcandy0-249\tgiv&distance0-100&countcandy0-2499": true,
+  "giv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
+  "giv&distance0-100&countcandy0-2499\tgiv&distance100-": false,
+  "giv&distance0-100&countcandy0-2499x\tgiv&distance0-100&countcandy0-2499": true,
   "giv&distance0-100&countcandy2500\tgiv&distance0-100&countcandy2500-": true,
   "giv&distance0-100&countcandy2500-\t1-151&countcandyxl0-359": false,
   "giv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
   "giv&distance0-100&countcandy2500-x\tgiv&distance0-100&countcandy2500-": true,
+  "giv&distance0-1008countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "giv&distance0-1008countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
+  "giv&distance0100&countcandy02499\tgiv&distance0-100&countcandy0-2499": true,
   "giv&distance0100&countcandy2500\tgiv&distance0-100&countcandy2500-": true,
+  "giv&distance100\tgiv&distance100-": true,
   "giv&distance100&countcandy02499\tgiv&distance100-&countcandy0-2499": true,
+  "giv&distance100-\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
+  "giv&distance100-\tgiv&distance100-": true,
   "giv&distance100-&cou\tgiv&distance100-&countcandy0-2499": false,
   "giv&distance100-&countcandy0\tgiv&distance100-&countcandy0-2499": true,
   "giv&distance100-&countcandy0-249\tgiv&distance100-&countcandy0-2499": true,
   "giv&distance100-&countcandy0-2499\tgiv&distance0-100&countcandy2500-": false,
   "giv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": true,
   "giv&distance100-&countcandy0-2499x\tgiv&distance100-&countcandy0-2499": true,
+  "giv&distance100-x\tgiv&distance100-": true,
+  "giv&distance1oo-\tgiv&distance100-": true,
   "giv&distance1oo-&countcandyo-2499\tgiv&distance100-&countcandy0-2499": true,
   "giv&distanceo-1oo&countcandy25oo-\tgiv&distance0-100&countcandy2500-": true,
-  "giv,x1x&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xl&distanceo-1i0&conntcandy\tgiv,xlx&distance0-100&countcandy0-2499": false,
-  "giv,xlx&distance0-10\tgiv,xlx&distance0-100&countcandy0-2499": false,
-  "giv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distance0-100&countcandy0-249\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distance0-100&countcandy0-2499\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": false,
-  "giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distance0-100&countcandy0-2499x\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distance0-1008countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distance0100&countcandy02499\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx&distanceo-1oo&countcandyo-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
-  "giv,xlx8distance0-1008countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
+  "giv&distanceo-1oo&countcandyo-2499\tgiv&distance0-100&countcandy0-2499": true,
+  "giv,xl&distanceo-1i0&conntcandy\tgiv&distance0-100&countcandy0-2499": false,
+  "giv,xlx&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
+  "giv,xlx&distance100-\tgiv&distance100-": true,
+  "giv8distance0-1008countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "giv8distance0-1008countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
+  "giv8distance100-\tgiv&distance100-": true,
   "giv8distance100-8countcandy0-2499\tgiv&distance100-&countcandy0-2499": true,
   "iny&!costume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": false,
   "istance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
   "istance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": true,
+  "iv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "iv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": true,
+  "iv&distance100-\tgiv&distance100-": true,
   "iv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": true,
-  "iv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
   "lucky&320&!costum\tlucky&320&!costume": false,
   "lucky&320&!costume\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": false,
   "lucky&320&!costume\tlucky&320&!costume": false,
@@ -5393,7 +5541,7 @@
   "lucky83208!costume\tlucky&320&!costume": false,
   "nse&4attack,4hp&4defense,4hp\t#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": false,
   "ow&!shiny&!costume&!xxl&!xxs\t#Nope&shadow&!shiny&!costume&!xxl&!xxs": false,
-  "stance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": true,
+  "stance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": true,
   "tume&793-806,808,809\t#Nope&!traded&!shiny&!costume&793-806,808,809": false,
   "ucky&320&!costume\tlucky&320&!costume": false,
   "vpC\tPvpC": false,
@@ -5526,9 +5674,10 @@
   ",777,926,927,979&pvp&costume": null,
   ",927,979&pvp&costume": null,
   ",PvpC": null,
+  ",giv&distance0-100&countcandy0-2499": "giv&distance0-100",
   ",giv&distance0-100&countcandy2500-": "giv&distance0-100",
+  ",giv&distance100-": "giv&distance100-",
   ",giv&distance100-&countcandy0-2499": "giv&distance100-",
-  ",giv,xlx&distance0-100&countcandy0-2499": "giv&distance0-100",
   ",lucky&320&!costume": null,
   "-100&countcandy2500-": null,
   "-151&countcandyxl0-359": null,
@@ -5632,9 +5781,10 @@
   "950,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": null,
   "9530&3*,4*&shadow": null,
   "9PvpC": null,
+  "9giv&distance0-100&countcandy0-2499": "giv&distance0-100",
   "9giv&distance0-100&countcandy2500-": "giv&distance0-100",
+  "9giv&distance100-": "giv&distance100-",
   "9giv&distance100-&countcandy0-2499": "giv&distance100-",
-  "9giv,xlx&distance0-100&countcandy0-2499": "giv&distance0-100",
   "9lucky&320&!costume": null,
   "<#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": null,
   "<#Nope&!traded&!shiny&!costume&793-806,808,809": null,
@@ -5652,15 +5802,17 @@
   "<50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": null,
   "<530&3*,4*&shadow": null,
   "<PvpC": null,
+  "<giv&distance0-100&countcandy0-2499": "giv&distance0-100",
   "<giv&distance0-100&countcandy2500-": "giv&distance0-100",
+  "<giv&distance100-": "giv&distance100-",
   "<giv&distance100-&countcandy0-2499": "giv&distance100-",
-  "<giv,xlx&distance0-100&countcandy0-2499": "giv&distance0-100",
   "<lucky&320&!costume": null,
   "Clean Trades": null,
   "CleanTrades": null,
+  "GIV&DISTANCE0-100&COUNTCANDY0-2499": null,
   "GIV&DISTANCE0-100&COUNTCANDY2500-": null,
+  "GIV&DISTANCE100-": null,
   "GIV&DISTANCE100-&COUNTCANDY0-2499": null,
-  "GIV,XLX&DISTANCE0-100&COUNTCANDY0-2499": null,
   "Ishiny&!XXL&!4*&!3*&": null,
   "LUCKY&320&!COSTUME": null,
   "Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": null,
@@ -5698,11 +5850,11 @@
   "Q530&3*,4*&shadow": null,
   "QPvpC": null,
   "Qgiv&distance0-100&countcandy": "giv&distance0-100",
+  "Qgiv&distance0-100&countcandy0-2499": "giv&distance0-100",
   "Qgiv&distance0-100&countcandy2500-": "giv&distance0-100",
+  "Qgiv&distance100-": "giv&distance100-",
   "Qgiv&distance100-&countcandy0": "giv&distance100-",
   "Qgiv&distance100-&countcandy0-2499": "giv&distance100-",
-  "Qgiv,xlx&distance0-100&countc": "giv&distance0-100",
-  "Qgiv,xlx&distance0-100&countcandy0-2499": "giv&distance0-100",
   "Qlucky&320&!costume": null,
   "Transfer,#Nope&!traded&xxl": null,
   "a:b": null,
@@ -5715,38 +5867,43 @@
   "er,#Nope&Itraded&xxl": null,
   "giv&distance0-100&co": "giv&distance0-100",
   "giv&distance0-100&countcandy": "giv&distance0-100",
+  "giv&distance0-100&countcandy0-249": "giv&distance0-100",
+  "giv&distance0-100&countcandy0-2499": "giv&distance0-100",
+  "giv&distance0-100&countcandy0-2499x": "giv&distance0-100",
   "giv&distance0-100&countcandy2500": "giv&distance0-100",
   "giv&distance0-100&countcandy2500-": "giv&distance0-100",
   "giv&distance0-100&countcandy2500-x": "giv&distance0-100",
+  "giv&distance0-1008countcandy0-2499": "giv&distance0-100",
   "giv&distance0-1008countcandy2500-": "giv&distance0-100",
+  "giv&distance0100&countcandy02499": null,
   "giv&distance0100&countcandy2500": null,
+  "giv&distance100": null,
   "giv&distance100&countcandy02499": null,
+  "giv&distance100-": "giv&distance100-",
   "giv&distance100-&cou": "giv&distance100-",
   "giv&distance100-&countcandy0": "giv&distance100-",
   "giv&distance100-&countcandy0-249": "giv&distance100-",
   "giv&distance100-&countcandy0-2499": "giv&distance100-",
   "giv&distance100-&countcandy0-2499x": "giv&distance100-",
+  "giv&distance100-x": "giv&distance100-",
+  "giv&distance1oo-": "giv&distance100-",
   "giv&distance1oo-&countcandyo-2499": "giv&distance100-",
   "giv&distanceo-1oo&countcandy25oo-": "giv&distance0-100",
-  "giv,x1x&distance0-100&countcandy0-2499": "giv&distance0-100",
+  "giv&distanceo-1oo&countcandyo-2499": "giv&distance0-100",
   "giv,xl&distanceo-1i0&conntcandy": "giv&distance0-100",
-  "giv,xlx&distance0-10": "giv&distance0-100",
-  "giv,xlx&distance0-100&countc": "giv&distance0-100",
-  "giv,xlx&distance0-100&countcandy0-249": "giv&distance0-100",
   "giv,xlx&distance0-100&countcandy0-2499": "giv&distance0-100",
-  "giv,xlx&distance0-100&countcandy0-2499x": "giv&distance0-100",
-  "giv,xlx&distance0-1008countcandy0-2499": "giv&distance0-100",
-  "giv,xlx&distance0100&countcandy02499": null,
-  "giv,xlx&distanceo-1oo&countcandyo-2499": "giv&distance0-100",
-  "giv,xlx8distance0-1008countcandy0-2499": "giv&distance0-100",
+  "giv,xlx&distance100-": "giv&distance100-",
+  "giv8distance0-1008countcandy0-2499": "giv&distance0-100",
   "giv8distance0-1008countcandy2500-": "giv&distance0-100",
+  "giv8distance100-": "giv&distance100-",
   "giv8distance100-8countcandy0-2499": "giv&distance100-",
   "iny&!costume&793-806,808,809": null,
   "istance0-100&countcandy2500-": "giv&distance0-100",
   "istance100-&countcandy0-2499": "giv&distance100-",
+  "iv&distance0-100&countcandy0-2499": "giv&distance0-100",
   "iv&distance0-100&countcandy2500-": "giv&distance0-100",
+  "iv&distance100-": "giv&distance100-",
   "iv&distance100-&countcandy0-2499": "giv&distance100-",
-  "iv,xlx&distance0-100&countcandy0-2499": "giv&distance0-100",
   "lucky&320&!costum": null,
   "lucky&320&!costume": null,
   "lucky&320&!costumex": null,
@@ -5898,9 +6055,10 @@
   ",777,926,927,979&pvp&costume": ",777,926,927,979&pvp&costume",
   ",927,979&pvp&costume": ",927,979&pvp&costume",
   ",PvpC": ",pvpc",
+  ",giv&distance0-100&countcandy0-2499": ",glv&dlstance0-l00&countcandy0-2499",
   ",giv&distance0-100&countcandy2500-": ",glv&dlstance0-l00&countcandy2500-",
+  ",giv&distance100-": ",glv&dlstancel00-",
   ",giv&distance100-&countcandy0-2499": ",glv&dlstancel00-&countcandy0-2499",
-  ",giv,xlx&distance0-100&countcandy0-2499": ",glv,xlx&dlstance0-l00&countcandy0-2499",
   ",lucky&320&!costume": ",lucky&320&!costume",
   "-100&countcandy2500-": "-l00&countcandy2500-",
   "-151&countcandyxl0-359": "-l5l&countcandyxl0-359",
@@ -6004,9 +6162,10 @@
   "950,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "950,5l,56,57,209,2l0,303,73l,732,733,777,926,927,979&pvp&costume",
   "9530&3*,4*&shadow": "9530&3*,4*&shadow",
   "9PvpC": "9pvpc",
+  "9giv&distance0-100&countcandy0-2499": "9glv&dlstance0-l00&countcandy0-2499",
   "9giv&distance0-100&countcandy2500-": "9glv&dlstance0-l00&countcandy2500-",
+  "9giv&distance100-": "9glv&dlstancel00-",
   "9giv&distance100-&countcandy0-2499": "9glv&dlstancel00-&countcandy0-2499",
-  "9giv,xlx&distance0-100&countcandy0-2499": "9glv,xlx&dlstance0-l00&countcandy0-2499",
   "9lucky&320&!costume": "9lucky&320&!costume",
   "<#Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "<#nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp",
   "<#Nope&!traded&!shiny&!costume&793-806,808,809": "<#nope&!traded&!shlny&!costume&793-806,808,809",
@@ -6024,15 +6183,17 @@
   "<50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": "<50,5l,56,57,209,2l0,303,73l,732,733,777,926,927,979&pvp&costume",
   "<530&3*,4*&shadow": "<530&3*,4*&shadow",
   "<PvpC": "<pvpc",
+  "<giv&distance0-100&countcandy0-2499": "<glv&dlstance0-l00&countcandy0-2499",
   "<giv&distance0-100&countcandy2500-": "<glv&dlstance0-l00&countcandy2500-",
+  "<giv&distance100-": "<glv&dlstancel00-",
   "<giv&distance100-&countcandy0-2499": "<glv&dlstancel00-&countcandy0-2499",
-  "<giv,xlx&distance0-100&countcandy0-2499": "<glv,xlx&dlstance0-l00&countcandy0-2499",
   "<lucky&320&!costume": "<lucky&320&!costume",
   "Clean Trades": "clean trades",
   "CleanTrades": "cleantrades",
+  "GIV&DISTANCE0-100&COUNTCANDY0-2499": "glv&dlstance0-l00&countcandy0-2499",
   "GIV&DISTANCE0-100&COUNTCANDY2500-": "glv&dlstance0-l00&countcandy2500-",
+  "GIV&DISTANCE100-": "glv&dlstancel00-",
   "GIV&DISTANCE100-&COUNTCANDY0-2499": "glv&dlstancel00-&countcandy0-2499",
-  "GIV,XLX&DISTANCE0-100&COUNTCANDY0-2499": "glv,xlx&dlstance0-l00&countcandy0-2499",
   "Ishiny&!XXL&!4*&!3*&": "lshlny&!xxl&!4*&!3*&",
   "LUCKY&320&!COSTUME": "lucky&320&!costume",
   "Nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp": "nope&!shadow&4attack,4defense&4attack,4hp&4defense,4hp",
@@ -6070,11 +6231,11 @@
   "Q530&3*,4*&shadow": "q530&3*,4*&shadow",
   "QPvpC": "qpvpc",
   "Qgiv&distance0-100&countcandy": "qglv&dlstance0-l00&countcandy",
+  "Qgiv&distance0-100&countcandy0-2499": "qglv&dlstance0-l00&countcandy0-2499",
   "Qgiv&distance0-100&countcandy2500-": "qglv&dlstance0-l00&countcandy2500-",
+  "Qgiv&distance100-": "qglv&dlstancel00-",
   "Qgiv&distance100-&countcandy0": "qglv&dlstancel00-&countcandy0",
   "Qgiv&distance100-&countcandy0-2499": "qglv&dlstancel00-&countcandy0-2499",
-  "Qgiv,xlx&distance0-100&countc": "qglv,xlx&dlstance0-l00&countc",
-  "Qgiv,xlx&distance0-100&countcandy0-2499": "qglv,xlx&dlstance0-l00&countcandy0-2499",
   "Qlucky&320&!costume": "qlucky&320&!costume",
   "Transfer,#Nope&!traded&xxl": "transfer,#nope&!traded&xxl",
   "a:b": "a:b",
@@ -6087,38 +6248,43 @@
   "er,#Nope&Itraded&xxl": "er,#nope&ltraded&xxl",
   "giv&distance0-100&co": "glv&dlstance0-l00&co",
   "giv&distance0-100&countcandy": "glv&dlstance0-l00&countcandy",
+  "giv&distance0-100&countcandy0-249": "glv&dlstance0-l00&countcandy0-249",
+  "giv&distance0-100&countcandy0-2499": "glv&dlstance0-l00&countcandy0-2499",
+  "giv&distance0-100&countcandy0-2499x": "glv&dlstance0-l00&countcandy0-2499x",
   "giv&distance0-100&countcandy2500": "glv&dlstance0-l00&countcandy2500",
   "giv&distance0-100&countcandy2500-": "glv&dlstance0-l00&countcandy2500-",
   "giv&distance0-100&countcandy2500-x": "glv&dlstance0-l00&countcandy2500-x",
+  "giv&distance0-1008countcandy0-2499": "glv&dlstance0-l008countcandy0-2499",
   "giv&distance0-1008countcandy2500-": "glv&dlstance0-l008countcandy2500-",
+  "giv&distance0100&countcandy02499": "glv&dlstance0l00&countcandy02499",
   "giv&distance0100&countcandy2500": "glv&dlstance0l00&countcandy2500",
+  "giv&distance100": "glv&dlstancel00",
   "giv&distance100&countcandy02499": "glv&dlstancel00&countcandy02499",
+  "giv&distance100-": "glv&dlstancel00-",
   "giv&distance100-&cou": "glv&dlstancel00-&cou",
   "giv&distance100-&countcandy0": "glv&dlstancel00-&countcandy0",
   "giv&distance100-&countcandy0-249": "glv&dlstancel00-&countcandy0-249",
   "giv&distance100-&countcandy0-2499": "glv&dlstancel00-&countcandy0-2499",
   "giv&distance100-&countcandy0-2499x": "glv&dlstancel00-&countcandy0-2499x",
+  "giv&distance100-x": "glv&dlstancel00-x",
+  "giv&distance1oo-": "glv&dlstanceloo-",
   "giv&distance1oo-&countcandyo-2499": "glv&dlstanceloo-&countcandyo-2499",
   "giv&distanceo-1oo&countcandy25oo-": "glv&dlstanceo-loo&countcandy25oo-",
-  "giv,x1x&distance0-100&countcandy0-2499": "glv,xlx&dlstance0-l00&countcandy0-2499",
+  "giv&distanceo-1oo&countcandyo-2499": "glv&dlstanceo-loo&countcandyo-2499",
   "giv,xl&distanceo-1i0&conntcandy": "glv,xl&dlstanceo-ll0&conntcandy",
-  "giv,xlx&distance0-10": "glv,xlx&dlstance0-l0",
-  "giv,xlx&distance0-100&countc": "glv,xlx&dlstance0-l00&countc",
-  "giv,xlx&distance0-100&countcandy0-249": "glv,xlx&dlstance0-l00&countcandy0-249",
   "giv,xlx&distance0-100&countcandy0-2499": "glv,xlx&dlstance0-l00&countcandy0-2499",
-  "giv,xlx&distance0-100&countcandy0-2499x": "glv,xlx&dlstance0-l00&countcandy0-2499x",
-  "giv,xlx&distance0-1008countcandy0-2499": "glv,xlx&dlstance0-l008countcandy0-2499",
-  "giv,xlx&distance0100&countcandy02499": "glv,xlx&dlstance0l00&countcandy02499",
-  "giv,xlx&distanceo-1oo&countcandyo-2499": "glv,xlx&dlstanceo-loo&countcandyo-2499",
-  "giv,xlx8distance0-1008countcandy0-2499": "glv,xlx8dlstance0-l008countcandy0-2499",
+  "giv,xlx&distance100-": "glv,xlx&dlstancel00-",
+  "giv8distance0-1008countcandy0-2499": "glv8dlstance0-l008countcandy0-2499",
   "giv8distance0-1008countcandy2500-": "glv8dlstance0-l008countcandy2500-",
+  "giv8distance100-": "glv8dlstancel00-",
   "giv8distance100-8countcandy0-2499": "glv8dlstancel00-8countcandy0-2499",
   "iny&!costume&793-806,808,809": "lny&!costume&793-806,808,809",
   "istance0-100&countcandy2500-": "lstance0-l00&countcandy2500-",
   "istance100-&countcandy0-2499": "lstancel00-&countcandy0-2499",
+  "iv&distance0-100&countcandy0-2499": "lv&dlstance0-l00&countcandy0-2499",
   "iv&distance0-100&countcandy2500-": "lv&dlstance0-l00&countcandy2500-",
+  "iv&distance100-": "lv&dlstancel00-",
   "iv&distance100-&countcandy0-2499": "lv&dlstancel00-&countcandy0-2499",
-  "iv,xlx&distance0-100&countcandy0-2499": "lv,xlx&dlstance0-l00&countcandy0-2499",
   "lucky&320&!costum": "lucky&320&!costum",
   "lucky&320&!costume": "lucky&320&!costume",
   "lucky&320&!costumex": "lucky&320&!costumex",
@@ -6250,15 +6416,19 @@
    false,
    []
   ],
+  "\tgiv&distance0-100&countcandy0-2499": [
+   false,
+   []
+  ],
   "\tgiv&distance0-100&countcandy2500-": [
    false,
    []
   ],
-  "\tgiv&distance100-&countcandy0-2499": [
+  "\tgiv&distance100-": [
    false,
    []
   ],
-  "\tgiv,xlx&distance0-100&countcandy0-2499": [
+  "\tgiv&distance100-&countcandy0-2499": [
    false,
    []
   ],
@@ -7225,6 +7395,15 @@
     ]
    ]
   ],
+  ",giv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": [
+   true,
+   [
+    [
+     "all",
+     35
+    ]
+   ]
+  ],
   ",giv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": [
    true,
    [
@@ -7234,21 +7413,21 @@
     ]
    ]
   ],
+  ",giv&distance100-\tgiv&distance100-": [
+   true,
+   [
+    [
+     "all",
+     17
+    ]
+   ]
+  ],
   ",giv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": [
    true,
    [
     [
      "all",
      34
-    ]
-   ]
-  ],
-  ",giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": [
-   true,
-   [
-    [
-     "all",
-     39
     ]
    ]
   ],
@@ -7471,7 +7650,7 @@
     ]
    ]
   ],
-  "100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": [
+  "100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": [
    true,
    [
     [
@@ -7975,7 +8154,7 @@
     ]
    ]
   ],
-  "530&3*,4*&shadow\tgiv,xlx&distance0-100&countcandy0-2499": [
+  "530&3*,4*&shadow\tgiv&distance0-100&countcandy0-2499": [
    false,
    []
   ],
@@ -8177,6 +8356,15 @@
     ]
    ]
   ],
+  "9giv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": [
+   true,
+   [
+    [
+     "all",
+     35
+    ]
+   ]
+  ],
   "9giv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": [
    true,
    [
@@ -8186,21 +8374,21 @@
     ]
    ]
   ],
+  "9giv&distance100-\tgiv&distance100-": [
+   true,
+   [
+    [
+     "all",
+     17
+    ]
+   ]
+  ],
   "9giv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": [
    true,
    [
     [
      "all",
      34
-    ]
-   ]
-  ],
-  "9giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": [
-   true,
-   [
-    [
-     "all",
-     39
     ]
    ]
   ],
@@ -8357,12 +8545,30 @@
     ]
    ]
   ],
+  "<giv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": [
+   true,
+   [
+    [
+     "all",
+     35
+    ]
+   ]
+  ],
   "<giv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": [
    true,
    [
     [
      "all",
      34
+    ]
+   ]
+  ],
+  "<giv&distance100-\tgiv&distance100-": [
+   true,
+   [
+    [
+     "all",
+     17
     ]
    ]
   ],
@@ -8375,21 +8581,21 @@
     ]
    ]
   ],
-  "<giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": [
-   true,
-   [
-    [
-     "all",
-     39
-    ]
-   ]
-  ],
   "<lucky&320&!costume\tlucky&320&!costume": [
    true,
    [
     [
      "all",
      19
+    ]
+   ]
+  ],
+  "GIV&DISTANCE0-100&COUNTCANDY0-2499\tgiv&distance0-100&countcandy0-2499": [
+   true,
+   [
+    [
+     "all",
+     34
     ]
    ]
   ],
@@ -8402,21 +8608,21 @@
     ]
    ]
   ],
+  "GIV&DISTANCE100-\tgiv&distance100-": [
+   true,
+   [
+    [
+     "all",
+     16
+    ]
+   ]
+  ],
   "GIV&DISTANCE100-&COUNTCANDY0-2499\tgiv&distance100-&countcandy0-2499": [
    true,
    [
     [
      "all",
      33
-    ]
-   ]
-  ],
-  "GIV,XLX&DISTANCE0-100&COUNTCANDY0-2499\tgiv,xlx&distance0-100&countcandy0-2499": [
-   true,
-   [
-    [
-     "all",
-     38
     ]
    ]
   ],
@@ -8725,6 +8931,15 @@
     ]
    ]
   ],
+  "Qgiv&distance0-100&countcandy\tgiv&distance0-100&countcandy0-2499": [
+   true,
+   [
+    [
+     "start",
+     28
+    ]
+   ]
+  ],
   "Qgiv&distance0-100&countcandy\tgiv&distance0-100&countcandy2500-": [
    true,
    [
@@ -8734,12 +8949,30 @@
     ]
    ]
   ],
+  "Qgiv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": [
+   true,
+   [
+    [
+     "all",
+     35
+    ]
+   ]
+  ],
   "Qgiv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": [
    true,
    [
     [
      "all",
      34
+    ]
+   ]
+  ],
+  "Qgiv&distance100-\tgiv&distance100-": [
+   true,
+   [
+    [
+     "all",
+     17
     ]
    ]
   ],
@@ -8758,24 +8991,6 @@
     [
      "all",
      34
-    ]
-   ]
-  ],
-  "Qgiv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": [
-   true,
-   [
-    [
-     "start",
-     28
-    ]
-   ]
-  ],
-  "Qgiv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": [
-   true,
-   [
-    [
-     "all",
-     39
     ]
    ]
   ],
@@ -8851,6 +9066,15 @@
     ]
    ]
   ],
+  "giv&distance0-100&co\tgiv&distance0-100&countcandy0-2499": [
+   true,
+   [
+    [
+     "start",
+     20
+    ]
+   ]
+  ],
   "giv&distance0-100&co\tgiv&distance0-100&countcandy2500-": [
    true,
    [
@@ -8860,12 +9084,52 @@
     ]
    ]
   ],
+  "giv&distance0-100&countcandy\tgiv&distance0-100&countcandy0-2499": [
+   true,
+   [
+    [
+     "start",
+     28
+    ]
+   ]
+  ],
   "giv&distance0-100&countcandy\tgiv&distance0-100&countcandy2500-": [
    true,
    [
     [
      "start",
      28
+    ]
+   ]
+  ],
+  "giv&distance0-100&countcandy0-249\tgiv&distance0-100&countcandy0-2499": [
+   true,
+   [
+    [
+     "start",
+     33
+    ]
+   ]
+  ],
+  "giv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": [
+   true,
+   [
+    [
+     "all",
+     34
+    ]
+   ]
+  ],
+  "giv&distance0-100&countcandy0-2499\tgiv&distance100-": [
+   false,
+   []
+  ],
+  "giv&distance0-100&countcandy0-2499x\tgiv&distance0-100&countcandy0-2499": [
+   true,
+   [
+    [
+     "all",
+     35
     ]
    ]
   ],
@@ -8900,6 +9164,15 @@
     ]
    ]
   ],
+  "giv&distance0-1008countcandy0-2499\tgiv&distance0-100&countcandy0-2499": [
+   true,
+   [
+    [
+     "all",
+     34
+    ]
+   ]
+  ],
   "giv&distance0-1008countcandy2500-\tgiv&distance0-100&countcandy2500-": [
    true,
    [
@@ -8909,13 +9182,39 @@
     ]
    ]
   ],
+  "giv&distance0100&countcandy02499\tgiv&distance0-100&countcandy0-2499": [
+   false,
+   []
+  ],
   "giv&distance0100&countcandy2500\tgiv&distance0-100&countcandy2500-": [
    false,
    []
   ],
+  "giv&distance100\tgiv&distance100-": [
+   true,
+   [
+    [
+     "start",
+     15
+    ]
+   ]
+  ],
   "giv&distance100&countcandy02499\tgiv&distance100-&countcandy0-2499": [
    false,
    []
+  ],
+  "giv&distance100-\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": [
+   false,
+   []
+  ],
+  "giv&distance100-\tgiv&distance100-": [
+   true,
+   [
+    [
+     "all",
+     16
+    ]
+   ]
   ],
   "giv&distance100-&cou\tgiv&distance100-&countcandy0-2499": [
    true,
@@ -8966,6 +9265,24 @@
     ]
    ]
   ],
+  "giv&distance100-x\tgiv&distance100-": [
+   true,
+   [
+    [
+     "all",
+     17
+    ]
+   ]
+  ],
+  "giv&distance1oo-\tgiv&distance100-": [
+   true,
+   [
+    [
+     "all",
+     16
+    ]
+   ]
+  ],
   "giv&distance1oo-&countcandyo-2499\tgiv&distance100-&countcandy0-2499": [
    true,
    [
@@ -8984,96 +9301,33 @@
     ]
    ]
   ],
-  "giv,x1x&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": [
+  "giv&distanceo-1oo&countcandyo-2499\tgiv&distance0-100&countcandy0-2499": [
    true,
    [
     [
      "all",
-     38
+     34
     ]
    ]
   ],
-  "giv,xl&distanceo-1i0&conntcandy\tgiv,xlx&distance0-100&countcandy0-2499": [
+  "giv,xl&distanceo-1i0&conntcandy\tgiv&distance0-100&countcandy0-2499": [
    false,
    []
   ],
-  "giv,xlx&distance0-10\tgiv,xlx&distance0-100&countcandy0-2499": [
-   true,
-   [
-    [
-     "start",
-     20
-    ]
-   ]
-  ],
-  "giv,xlx&distance0-100&countc\tgiv,xlx&distance0-100&countcandy0-2499": [
-   true,
-   [
-    [
-     "start",
-     28
-    ]
-   ]
-  ],
-  "giv,xlx&distance0-100&countcandy0-249\tgiv,xlx&distance0-100&countcandy0-2499": [
-   true,
-   [
-    [
-     "start",
-     37
-    ]
-   ]
-  ],
-  "giv,xlx&distance0-100&countcandy0-2499\t50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume": [
+  "giv,xlx&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": [
    false,
    []
   ],
-  "giv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": [
-   true,
-   [
-    [
-     "all",
-     38
-    ]
-   ]
-  ],
-  "giv,xlx&distance0-100&countcandy0-2499x\tgiv,xlx&distance0-100&countcandy0-2499": [
-   true,
-   [
-    [
-     "all",
-     39
-    ]
-   ]
-  ],
-  "giv,xlx&distance0-1008countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": [
-   true,
-   [
-    [
-     "all",
-     38
-    ]
-   ]
-  ],
-  "giv,xlx&distance0100&countcandy02499\tgiv,xlx&distance0-100&countcandy0-2499": [
+  "giv,xlx&distance100-\tgiv&distance100-": [
    false,
    []
   ],
-  "giv,xlx&distanceo-1oo&countcandyo-2499\tgiv,xlx&distance0-100&countcandy0-2499": [
+  "giv8distance0-1008countcandy0-2499\tgiv&distance0-100&countcandy0-2499": [
    true,
    [
     [
      "all",
-     38
-    ]
-   ]
-  ],
-  "giv,xlx8distance0-1008countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": [
-   true,
-   [
-    [
-     "all",
-     38
+     34
     ]
    ]
   ],
@@ -9083,6 +9337,15 @@
     [
      "all",
      33
+    ]
+   ]
+  ],
+  "giv8distance100-\tgiv&distance100-": [
+   true,
+   [
+    [
+     "all",
+     16
     ]
    ]
   ],
@@ -9122,6 +9385,15 @@
     ]
    ]
   ],
+  "iv&distance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": [
+   true,
+   [
+    [
+     "end",
+     33
+    ]
+   ]
+  ],
   "iv&distance0-100&countcandy2500-\tgiv&distance0-100&countcandy2500-": [
    true,
    [
@@ -9131,21 +9403,21 @@
     ]
    ]
   ],
+  "iv&distance100-\tgiv&distance100-": [
+   true,
+   [
+    [
+     "end",
+     15
+    ]
+   ]
+  ],
   "iv&distance100-&countcandy0-2499\tgiv&distance100-&countcandy0-2499": [
    true,
    [
     [
      "end",
      32
-    ]
-   ]
-  ],
-  "iv,xlx&distance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": [
-   true,
-   [
-    [
-     "end",
-     37
     ]
    ]
   ],
@@ -9265,7 +9537,7 @@
     ]
    ]
   ],
-  "stance0-100&countcandy0-2499\tgiv,xlx&distance0-100&countcandy0-2499": [
+  "stance0-100&countcandy0-2499\tgiv&distance0-100&countcandy0-2499": [
    true,
    [
     [

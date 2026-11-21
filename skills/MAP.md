@@ -1534,6 +1534,7 @@ One phone for /trade, run as its own process: trade.py starts one for the iPhone
 - `bar(p)`
 - `results(p)`: the picker's 'Q (7)' count, or None (the shared reader: Q read as 9, (0) as (O))
 - `same_l(s)`: OCR mixes up l, i, I, 1 and | in the bar ('xix' for 'xlx'): the searches differ elsewhere
+- `bar_read(p)`: the bar, through same_l, with an old saved search's ',xlx' after giv dropped: XLX became GIV (PR 495), and one account's 0-100km and 100+km may still say giv,xlx
 - `in_bar(p, q)`: the bar shows exactly this search
 - `pile(s)`: which distance a search or a bar read is, by where the '-' sits after 'distance': NEAR ('0-100'), FAR ('100-'), or None (no '-' read, or 'distance' cut off)
 - `edits(a, b)`: how many letters added, dropped or changed turn a into b

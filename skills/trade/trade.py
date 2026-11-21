@@ -684,12 +684,18 @@ def same_l(s):
     return re.sub(r"[il1|]", "l", s.lower())
 
 
+def bar_read(p):
+    """the bar, through same_l, with an old saved search's ',xlx' after giv dropped: XLX became GIV (PR 495), and
+    one account's 0-100km and 100+km may still say giv,xlx. No Pokémon has XLX, so both find the same ones"""
+    return re.sub(r"glv,?xlx?", "glv", same_l(bar(p) or ""))
+
+
 def in_bar(p, q):
     """the bar shows exactly this search. OCR can miss a '-' (the piles still differ without: 'distance0100',
     'distance100'), and reads a '&' after a digit as an 8 or a 0 as an o. A long search doesn't fit in the bar: the
     Pixel shows its first ~30 characters, the iPhone its last. Either counts once it's past where they all differ.
     A worse read still counts when it's clearly closest to q of this phone's searches (near_bar)"""
-    got, want = same_l(bar(p) or "").replace("-", ""), same_l(q).replace("-", "").lstrip("#")  # (a '#' can read as a 9)
+    got, want = bar_read(p).replace("-", ""), same_l(q).replace("-", "").lstrip("#")  # (a '#' can read as a 9)
     if 0 < got.find(want[:3]) <= 2:
         got = got[got.find(want[:3]):]  # (the magnifier can read as a letter or two in front)
     for g in (got, got[1:]):
@@ -724,7 +730,7 @@ def near_bar(p, q):
     still shows q when the '-' puts it in q's pile and, of this phone's searches in that pile, q is the closest by 2+
     edits. Keeps a search already on (from the last run, or a Return the OCR misread) from being cleared and typed
     again"""
-    got = same_l(bar(p) or "")
+    got = bar_read(p)
     if not got or pile(got) is None or pile(same_l(q)) != pile(got):
         return False
     col = 0 if p.name == "ios" else 1

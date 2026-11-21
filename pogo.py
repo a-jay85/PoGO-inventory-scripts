@@ -13,6 +13,7 @@ an earlier step of the same skill folder made in this chain (pvpc, then `pvpc fa
 Every step runs as its own python3 process, so each one starts clean: its own run folder, its own state. The phone
 stays unlocked (iPhone Mirroring stays open) between steps and is closed once at the end, the same way a single
 script closes it. POGO_KEEP_OPEN=1 leaves it open at the end too.
+Under POGO_PHONE=both, a Pixel-only step (PIXEL: goplus, hatch, evo, account, advsync) runs on the Pixel.
 
 A step that stops or crashes gets healed (heal.py): a headless Claude finds why and fixes it, then the step runs
 again with only what's left. Off with --no-heal or POGO_HEAL=0, and off when a Claude session starts pogo.py
@@ -59,6 +60,7 @@ STEPS = {
 }
 NEEDS_WORD = {"dex", "raidteam", "roster", "sizerecords", "specieswise"}  # these have no default: the first word is a must
 BOTH = {"trade"}  # drives the iPhone and the Pixel, unless POGO_PHONE names one (android, ios): then that one alone
+PIXEL = {"goplus", "hatch", "evo", "account", "advsync"}  # Pixel only: under POGO_PHONE=both they run on the Pixel
 
 
 def usage(msg=None):
@@ -189,6 +191,8 @@ def main(argv):
             touched |= on_phone(s)
             cmd = [sys.executable, os.path.join(SKILLS, script), *args]
             step_env = dict(env, POGO_PHONE=phone_first) if phone_first and i == 1 else env
+            if name in PIXEL and step_env.get("POGO_PHONE", "").lower() == "both":  # (ui reads both as the iPhone)
+                step_env = dict(step_env, POGO_PHONE="android")
             if healing:
                 last_before, started, out = dict(last), time.time(), heal.out_file()
                 code, lines = heal.tee(cmd, step_env, out)

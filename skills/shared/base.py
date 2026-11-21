@@ -947,6 +947,8 @@ def tap_tag_row(T, name, first=None):
     # a glide stops in ~1 s. The time is for slow looks: over Wi-Fi a look took 1.5-2.5 s, so 2 s held only two looks
     # and a glide caught by the first stopped the run (2026-11-13). A still sheet ends it at the first two that agree
     settle(read, lambda s: len(s) > 1 and (still(s) or len(rows(s[-1])) != 1), timeout=6)
+    if not rows(seen[-1]) and not any(map(rows, seen[-2:-1])):  # gone from sight: the lift drag carried it off
+        return False  # (Transfer above the top, Evo first, Pixel load 7.2, 2026-11-20): set_tick scrolls back to it
     if len(rows(seen[-1])) != 1:
         raise Stop(f"tag sheet: {len(rows(seen[-1]))} rows read {name!r}, wanted 1")
     if not still(seen):
@@ -1084,7 +1086,12 @@ def set_tick(T, v, name, ticks):
     ASKED.add(T)  # (a row seen earlier this run skips show_tag)
     for wait in (3, 3, 6):  # a tick only gets tapped again once a slow read has shown it didn't change
         if ticks.get(T) is not v:
-            tap_tag_row(T, name, lift_tag_row(T) if ui.ANDROID else None)
+            if tap_tag_row(T, name, lift_tag_row(T) if ui.ANDROID else None) is False:
+                log(f"  the {T} row slid out of sight: back to it")
+                ticks = show_tag(T)  # the row was there a moment ago: scroll back to it, then try again
+                if ticks is None:
+                    return {}
+                continue
             ticks = settle(tick_tags, lambda t: t.get(T) is v, timeout=wait)
     return ticks
 

@@ -239,6 +239,9 @@ def unstick(texts):
         return False
     if popups.clear(texts, bounds):  # a box another script knows (a trade's late 'expired'...): its button
         return False
+    if search.leave_multiselect(texts, bounds):  # a list left in multi-select (TAG (1), TRANSFER (1)), read half
+        return False  # upside down: it looked like a gym, and the gym's way out (bottom middle) hit TRANSFER (1).
+        # Pixel 2026-11-20, after tradeable stopped in multi-select; the game's 'transfer 1?' box was backed out of
     if pages.step_out(texts, bounds):  # a whole screen another script knows (a trade's lobby, a gym...): its way out
         return False
     if not ui.ANDROID and ui.search_panel(texts) and backs < MAX_BACKS:  # the search panel a stopped search left

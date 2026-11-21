@@ -60,9 +60,18 @@ def dim():
     0-255 setting: Android turns 1 into the lowest the screen goes (0.0), and quietly drops a 0, so a run that
     wrote 0 kept the old brightness (the Pixel, 2026-11-15: setting 0, screen still at 10). The old brightness goes
     in BRIGHT_FILE first, and a file already there is kept: a run that ended before restore() left the phone dim,
-    and the file still holds the real one"""
+    and the file still holds the real one. Right after the PIN goes in, `settings get` can answer nothing (the
+    Pixel, 2026-11-16 and 2026-11-20): it is read again for a few seconds, and still nothing leaves the
+    brightness as it is for this run"""
     if not os.path.exists(BRIGHT_FILE):
-        mode, level = shell("settings get system screen_brightness_mode; settings get system screen_brightness").split()
+        import base
+        cmd = "settings get system screen_brightness_mode; settings get system screen_brightness"
+        got = base.settle(lambda: shell(cmd).split(), lambda v: len(v) == 2 and all(x.isdigit() for x in v),
+                          timeout=5)
+        if not (len(got) == 2 and all(x.isdigit() for x in got)):
+            base.log(f"couldn't read the phone's brightness ({' '.join(got) or 'no answer'}): it stays as it is")
+            return
+        mode, level = got
         os.makedirs(os.path.dirname(BRIGHT_FILE), exist_ok=True)
         with open(BRIGHT_FILE, "w") as f:
             f.write(f"{mode} {level}\n")

@@ -8,7 +8,7 @@ Claude watching it fixes it, and a heal's own phone test never starts another he
 A script run on its own (python3 skills/<x>/<y>.py, the gymfeed timer) never heals.
 
 When a step ends STOPPED (exit 1) or CRASHED (exit 2):
-- A stop only you can clear (phone in use, not plugged in, locked, PIN, Screen Recording) ends the run with a note.
+- A stop only you can clear (phone in use, not plugged in, locked, the Mac locked, PIN, Screen Recording) ends the run with a note.
 - iPhone Mirroring can't reach the iPhone, early in a step: wait WAIT_S, run the step again, WAITS times at most.
 - Anything else: a headless Claude (`claude -p`, CLAUDE_HEADLESS=1) reads the output and the run folder. It fixes the
   code the usual way (worktree, tests, a phone test, PR, squash-merge, pull of the main checkout), or decides there
@@ -37,7 +37,7 @@ TAIL = 80  # lines of output Claude gets in its prompt (the whole file is there 
 
 END = re.compile(r"\b(STOPPED|CRASHED): (.*)")
 HUMAN = ("is using the Pixel", "is using the iPhone", "phone not connected", "PIN", "the phone is locked",
-         "unlock it by hand", "won't let this terminal take pictures")
+         "unlock it by hand", "won't let this terminal take pictures", "the Mac is locked")
 CANT_REACH = "iPhone Mirroring can't reach the iPhone"
 
 

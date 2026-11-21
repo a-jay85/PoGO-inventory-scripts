@@ -7,7 +7,7 @@
 Each species is judged once by ../shared/verdict.py, the one rule book, as a plain one: untraded, caught 30 days ago,
 no odd size, level 20, caught nearby, its gym top 20 out. HashTagAJay's Candy and Candy XL per family come from the
 Pokémon database (../shared/pokedb.py: what the scripts read last); a family it has no count for counts as 360+ XL
-and plenty of Candy (most of HashTagAJay's are). So the species rules decide: Reroll, GIV (raid top 6, stage 2, hard
+and plenty of Candy (most of HashTagAJay's are). So the species rules decide: Reroll (raid top 6, the user 2026-11-19), GIV (stage 2, hard
 evolutions, egg families, gym lines, trade evolutions, costly lines, short of Candy for Dynamax), 2XL (under 360 XL),
 or Transfer. No appraisal, no power-up cost, no page read: the IV rule (98%+) doesn't run. Level isn't searchable, so a
 Transfer search takes only CPs no level 26+ one has (GIV at level 26+ comes before Transfer): under the species'

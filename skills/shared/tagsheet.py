@@ -231,7 +231,7 @@ def tag_chips(texts):
     # "O" (Mankey, Zamazenta, 2026-11-13: 0.007 above). A tag row sits ~0.07 above the weight, even wrapped onto two
     low = min(kg) - 0.02 if kg else hp[1] + 0.06
     return sorted(n for t in texts if hp[1] + 0.005 < t[1] < low - 0.005
-                  and (n := re.sub(r"^[A-Z] (?=[A-Z]{2})", "", ui.norm(t[4])))  # Remote Trade's icon: "c Remote Trade"
+                  and (n := re.sub(base.ICON, "", ui.norm(t[4])))  # Remote Trade's icon: "c Remote Trade"
                   and n not in ("DYNAMAX", "GIGANTAMAX") and not n.startswith("LUCKY POK"))
 
 

@@ -142,7 +142,7 @@ The shared tapper: screen reading, taps, timing, run folders and logging, and th
 - `tag_sheet_step(up=False, big=False, before=None, fling=False)`: scroll the tag sheet a small step (a big one skips rows: big only when the rows to stop at are known, and it still keeps some of the rows in sight)
 - `seek_tag(T, seen=None)`: a row seen before this run: scroll straight to it, big steps while it's far, or one fling when it's near the sheet's end (iPhone: 2 big drags, 2.9 s, to Fallen near the …
 - `show_tag(T, seen=None)`: scroll the tag sheet until row T shows: straight there when this run has seen it, else down first, then back up
-- `row_name(s)`: a tag sheet row's text -> its name, upper case (the icon by Remote Trade reads as a stray letter)
+- `row_name(s)`: a tag sheet row's text -> its name, upper case (the icon by Remote Trade dropped: ICON)
 - `tap_tag_row(T, name, first=None)`: tap a row of the open tag sheet
 - `lift_tag_row(T)`: Android: a tap on the last row showing, or the first one of a scrolled list (under the list's fades), doesn't take
 - `high_iv(ivs=None, raws=None)`: on the detail screen: 98%+ (a shadow: 98%+ once purified)? Appraises first unless the bars are given, and comes back to the detail screen

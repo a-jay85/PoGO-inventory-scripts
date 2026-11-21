@@ -495,7 +495,8 @@ def result_count(texts):
     tabs = [t[1] for t in texts if t[4].strip().upper() in ("POKÉMON", "POKEMON", "EGGS", "TAGS") and t[1] < 0.15]
     clock = [t[1] for t in texts if t[1] < 0.1 and re.match(r"\d{1,2}:\d{2}\b", t[4].strip())]
     for t in texts:
-        m = re.match(r"[Q9]?\s*\((\d[\d,]*|O)\)", t[4])  # the Q icon can read as 9, and (0) as (O)
+        m = re.match(r"[Q9a]?\s*\((\d[\d,]*|O)\)", t[4])  # the Q icon can read as 9 or a (Pixel 2026-11-21:
+        # 'a (O)', and /trade stopped on 'the search bar doesn't show'), and (0) as (O)
         if t[1] < 0.15 and m and not (tabs and t[1] < min(tabs)) and not any(abs(t[1] - c) < 0.012 for c in clock):
             if m.group(1) == "O":  # trust it only with no tiles: a misread (8) must never skip a search
                 return None if ui.tiles(texts) else 0

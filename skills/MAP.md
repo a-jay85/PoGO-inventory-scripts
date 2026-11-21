@@ -1026,6 +1026,7 @@ Evolve every free trade evolution tagged Evo, as fast as the game lets it
 - `to_top()`
 - `whole(box, q)`: False when the box clearly holds less than the search: the box shows the last ~40 letters of a long search, so a short read (no '&' in it) is all there is
 - `box_end(box)`: the search box's read, squeezed, without the clear X it can end with
+- `ends_like(t, want)`: t (box_end) ends with want, one misread allowed
 - `ends_zone(t, z)`: t (box_end) ends with the short zone z
 - `ends_query(t, q)`: t (box_end) ends with the last letters of q: its short zone and the 3 letters before it ('EGG' + 'EA'), one misread allowed
 - `commit_search()`: the search is typed: commit it -> its result count, or None when none shows

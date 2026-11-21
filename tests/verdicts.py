@@ -27,7 +27,7 @@ TABLES = {  # made up
             "lucky": {"nidoran_female": "female"}, "evolved": {"golem": "stage 2"}, "no_dmax": set(),
             "xl_full": set(), "giv_for_taker": {"tandemaus"}, "raid": {"rhyhorn", "rhydon"}, "raid_self": {"rhydon"}, "strong": {"drilbur"},
             "hard": {}, "by_hand": set(), "dmax": {"wooloo": 480, "dubwool": 480}},
-    GIVER: {"to": GIVER, "why": {"rhyhorn": ("GIV", "top 6 vs a boss"),
+    GIVER: {"to": GIVER, "why": {"rhyhorn": ("GIV", "PvP"),
                                  "bulbasaur": ("Reroll", "Venusaur can mega")}, "lucky": {}, "evolved": {"golem": "stage 2"},
             "no_dmax": set(), "xl_full": set(), "giv_for_taker": {"tandemaus"}, "raid": {"rhyhorn", "rhydon"}, "raid_self": {"rhydon"}, "strong": {"drilbur"},
             "hard": {"gible": "10 km egg (Gible)", "smeargle": "hard to farm"}, "by_hand": {"spinda", "tauros"},

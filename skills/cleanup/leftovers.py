@@ -12,8 +12,8 @@ HashTagAJay has 360+ Candy XL of most families, so only a trade worth something 
 opened once and gets its final tag at the door (../shared/door.py, ../shared/verdict.py's rules for HashTagAJay):
   regional or Spinda: left as it is, on the not-sure list (a likely special trade: the user tags it by hand)
   GuaranteedLucky > Old > GIV (medal) > 2XL (HashTagAJay has under 360 Candy XL) > Reroll (a new 100 is worth having:
-  the best mega of a type, DialgaDex #1 against some raid boss, Master League top 20) > GIV (DialgaDex top 6 against some raid
-  boss) > IVC (xxs) > GIV (level 26+: a power-up costs 4 Candy+) > GIV (stage 2 or a hard
+  the best mega of a type, DialgaDex top 6 against some 4-star+ raid boss (#2-#6 was GIV, the user 2026-11-19), Master
+  League top 20) > IVC (xxs) > GIV (level 26+: a power-up costs 4 Candy+) > GIV (stage 2 or a hard
   evolution, a 10 or 12 km egg's family, Smeargle, a gym defender's line (Slakoth, Wynaut...), a Dynamax one, a trade evolution, caught 100 km+ away, a costly line)
   > GIV (one that can Dynamax, while this account has 1,000 Candy or less, or 360 + one Max Move's Candy XL or less) > Transfer
 The species lists are tradeable.py's giver_species() (data: tradeable.py refresh).

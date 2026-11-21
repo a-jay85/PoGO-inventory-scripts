@@ -16,8 +16,9 @@ boss's 6 aren't filled yet by the time the walk gets to it. Then it walks again,
 runs out.
 
 Each boss's 6: down its list, a slot per owned copy, at most one mega (or primal) and only with a copy of its base
-species. A new traded copy of a species (never shadow) helps against a boss if it would get into those 6. #1 is
-Reroll, #2-#6 is GIV. Legendary, Mythical and Ultra Beast species are never tagged (traded by hand).
+species. A new traded copy of a species (never shadow) helps against a boss if it would get into those 6. #1 and
+#2-#6 are both Reroll (#2-#6 was GIV till the user, 2026-11-19). tradeable.py gives them Reroll only for a 100
+HashTagAJay still needs (taker_species). Legendary, Mythical and Ultra Beast species are never tagged (traded by hand).
 Output in runs/<time>-count/: counts.json, roster.json (for /cleanup's tradeable.py) and report.md.
 
 pull.mjs takes about 2 minutes and needs Playwright (loaded from the IBL5 checkout; PLAYWRIGHT= points elsewhere). It
@@ -463,10 +464,10 @@ def report(model, counts, unsure, who, out_dir):
         b = next((b for b in model.bosses if b["id"] == d and b["form"] == f), None)
         if b:
             lines.append(f"- **{boss_name(b)}**: {team_lines(b)}")
-    lines += ["", f"Reroll (a new copy would be #1 somewhere): {len(reroll)}. "
-              f"GIV-PvE (#2-#6): {len(giv)}. On a list but helps nowhere: {len(stop)}.", ""]
+    lines += ["", f"Reroll (#1: a new copy would be #1 somewhere): {len(reroll)}. "
+              f"Reroll (#2-#6): {len(giv)}. On a list but helps nowhere: {len(stop)}.", ""]
     lines += ["## Reroll", ""] + [f"- {name(s)}: #1 vs {', '.join(best[s][1][:6])}" for s in reroll]
-    lines += ["", "## GIV-PvE", ""] + [f"- {name(s)}: #{best[s][0]} vs {', '.join(best[s][1][:6])}" for s in giv]
+    lines += ["", "## Reroll (#2-#6)", ""] + [f"- {name(s)}: #{best[s][0]} vs {', '.join(best[s][1][:6])}" for s in giv]
     lines += ["", "## Stop trading for (on a boss list, but a new copy gets into no top 6)", "",
               ", ".join(name(s) for s in stop)]
     if unsure:

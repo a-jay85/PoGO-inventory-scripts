@@ -170,9 +170,11 @@ def select_all(button, n, poll=0.15):
     pat = rf"{button} \((\d+)\)"
     for _ in range(20):
         time.sleep(poll)
-        _, texts, _, bounds = look()
-        sel = exact(texts, "SELECT ALL")
-        if sel and any(re.fullmatch(pat, t[4].strip()) for t in texts):
+        _, texts, path, bounds = look()
+        if not any(re.fullmatch(pat, t[4].strip()) for t in texts):
+            continue
+        sel = exact(texts, "SELECT ALL") or top_select_all(path)
+        if sel:
             break
     else:
         keep_capture("multiselect")
@@ -187,6 +189,26 @@ def select_all(button, n, poll=0.15):
         if got == n:
             break
     return btn, got, texts, bounds
+
+
+def top_select_all(path):
+    """SELECT ALL read again from the top band alone -> [its box, in whole-screen fractions] or []. A sparse list
+    read the whole frame half upside down at 1x and 2x ('9:21' as 'LZ:6', no SELECT ALL, no search bar) while TAG (1)
+    showed multi-select was on: tradeable stopped on 20 looks of it (Pixel, CyrillJan, 2026-11-20). The band alone
+    read it"""
+    from PIL import Image
+    y0, y1 = 0.05, 0.15
+    with Image.open(path) as im:
+        w, h = im.size
+        im.convert("RGB").crop((0, int(y0 * h), w, int(y1 * h))).save(ZOOM_TOP)
+    got = [(x, y0 + y * (y1 - y0), bw, bh * (y1 - y0), t) for x, y, bw, bh, t in ui.ocr(ZOOM_TOP)
+           if t.strip() == "SELECT ALL"]
+    if got:
+        log("SELECT ALL read again from the top band")
+    return got[:1]
+
+
+ZOOM_TOP = f"/tmp/pogo-selectall-{os.getpid()}.png"
 
 
 def tile_names(texts):

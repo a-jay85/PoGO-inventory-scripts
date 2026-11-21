@@ -233,8 +233,11 @@ def gym_view(texts):
 
 
 def gym_view_alone(texts):
-    """a gym, for the other scripts: a Pokémon list's CP labels look the same, and a gym never has a search bar"""
-    return gym_view(texts) and not any("SEARCH" in ui.up(t) for t in texts)
+    """a gym, for the other scripts: a Pokémon list's CP labels look the same, and a gym never has a search bar, or a
+    multi-select's TAG (n) / TRANSFER (n) (a list read half upside down passed for a gym, and the X tap hit TRANSFER,
+    Pixel 2026-11-20)"""
+    return gym_view(texts) and not any("SEARCH" in ui.up(t) for t in texts) \
+        and not any(re.fullmatch(r"(?:TAG|TRANSFER)\s*\(\d[\d,]*\)\W?", t[4].strip().upper()) for t in texts)
 
 
 # ---------- the ways out ----------

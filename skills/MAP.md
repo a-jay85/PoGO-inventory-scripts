@@ -320,7 +320,7 @@ Whole screens that belong to one script, and the way out of each, for every othe
 - `gym_badgelist(texts)`
 - `gym_feed(texts)`: a gym defender's page, its defending time at the top
 - `gym_view(texts)`: inside a gym: CP labels over its Pokémon, the gym's name across the top
-- `gym_view_alone(texts)`: a gym, for the other scripts: a Pokémon list's CP labels look the same, and a gym never has a search bar
+- `gym_view_alone(texts)`: a gym, for the other scripts: a Pokémon list's CP labels look the same, and a gym never has a search bar, or a multi-select's TAG (n) / TRANSFER (n) (a list read half …
 - `x_button(texts)`
 - `leave_trade_yes(texts)`
 - `warning_no(texts)`
@@ -634,6 +634,7 @@ Shared taps: the swipe to the next Pokémon, SELECT ALL, an exact search, the St
 - `details(key=by_name_cp_hp, read=None, poll=0.12, reswipe=False)`: open the list's tile 1, then yield (info, texts, bounds, seen) for each Pokémon, swiping on, until a swipe goes nowhere or comes back to one already seen
 - `reopen_top()`: one that was changed drops out of the search, and the swipe stops working: back to the list, open the top one again
 - `select_all(button, n, poll=0.15)`: long press the first tile (multi-select), then SELECT ALL, and wait for '<button> (n)'
+- `top_select_all(path)`: SELECT ALL read again from the top band alone -> [its box, in whole-screen fractions] or []
 - `tile_names(texts)`: the tiles' name labels when no CP label reads: below SHOW EVOLUTIONARY LINE (or the #... + chip row), above the round buttons, with a letter, not a chip
 - `settled_tiles(texts=None)`: the list's tiles [(name, cp)] once two looks in a row agree
 - `num(s)`

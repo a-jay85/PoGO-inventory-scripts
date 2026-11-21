@@ -2486,6 +2486,7 @@
    "NEXT_AT_IOS",
    "Pass",
    "Stop",
+   "ZOOM_TOP",
    "by_name_cp_hp",
    "candy",
    "costs",
@@ -2510,6 +2511,7 @@
    "swipe_next",
    "tap_next",
    "tile_names",
+   "top_select_all",
    "wait_for",
    "yes_no"
   ],

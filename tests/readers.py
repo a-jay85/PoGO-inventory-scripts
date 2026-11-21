@@ -451,7 +451,7 @@ def answer(fn, *a):
         return f"raises {type(e).__name__}"
 
 
-ROWS = ["• Transfer", "Transter", "• Transfes", "• Spot Transfer", "Transferl", "Tronster", "GIV", "IVC", "Remote Trade", "L Remote Trade", "Evo"]  # asked: Transfer, GIV, Remote Trade
+ROWS = ["• Transfer", "Transter", "• Transfes", "• Spot Transfer", "Transferl", "Tronster", "GIV", "IVC", "Remote Trade", "L Remote Trade", "Cp Remote Trade", "C Remote Trade", "Evo"]  # asked: Transfer, GIV, Remote Trade
 
 
 def row_name(s):

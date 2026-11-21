@@ -827,7 +827,9 @@ def tick_tags(seen=None):
     _, texts, path, _ = seen or wait_for("tags")
     ticks = {ui.norm(n): on for n, on in ui.ticked_tags(path, texts)}
     learn_rows(texts, set(ticks))
-    return {clean_row(n): on for n, on in ticks.items()}
+    # row_name, so the icon by Remote Trade ('C Remote Trade') is dropped here too: a sought REMOTE TRADE went
+    # unseen for 44 scrolls and only RT got ticked (Pixel /ivc fallen step stopped on it, 2026-11-20)
+    return {row_name(n): on for n, on in ticks.items()}
 
 
 def learn_rows(texts, names):
@@ -836,7 +838,7 @@ def learn_rows(texts, names):
     for t in texts:
         n = ui.norm(t[4].lstrip("•· ").strip())
         if n in names and len(n) > 1:  # (the tick itself can read as a 'V')
-            ys.setdefault(clean_row(n), t[1])
+            ys.setdefault(row_name(n), t[1])
     known = sorted(TAG_AT[n] - y for n, y in ys.items() if n in TAG_AT)
     if not known and TAG_AT:  # no row in common with what's placed: can't tell where this is
         VIEW[0] = None
@@ -917,9 +919,13 @@ def show_tag(T, seen=None):
     return None
 
 
+# the icon by Remote Trade reads as a stray letter ('C Remote Trade'), or two ('Cp Remote Trade', Pixel 2026-11-20)
+ICON = r"^[A-Z]{1,2} (?=REMOTE TRADE$)|^[A-Z] (?=[A-Z]{2})"
+
+
 def row_name(s):
-    """a tag sheet row's text -> its name, upper case (the icon by Remote Trade reads as a stray letter)"""
-    return clean_row(re.sub(r"^[A-Z] (?=[A-Z]{2})", "", ui.norm(s.lstrip("•· "))))
+    """a tag sheet row's text -> its name, upper case (the icon by Remote Trade dropped: ICON)"""
+    return clean_row(re.sub(ICON, "", ui.norm(s.lstrip("•· "))))
 
 
 def tap_tag_row(T, name, first=None):

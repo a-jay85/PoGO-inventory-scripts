@@ -48,7 +48,9 @@ REAL = [  # (bar read, search typed): straight from the run logs
                                          "@shadow ball,@thunderbolt"),
     ("483*,", "4&3*,4*&shadow"),
     ("530&3**,4*&shadowx", "530&3*,4*&shadow"),
-    ("giv,xl&distanceo-1i0&conntcandy", "giv,xlx&distance0-100&countcandy0-2499"),
+    ("giv,xl&distanceo-1i0&conntcandy", "giv&distance0-100&countcandy0-2499"),  # (a saved search from before XLX became GIV)
+    ("giv,xlx&distance0-100&countcandy0-2499", "giv&distance0-100&countcandy0-2499"),
+    ("giv,xlx&distance100-", "giv&distance100-"),
     ("050,51,56,57,209,210,303,731,732,7", "50,51,56,57,209,210,303,731,732,733,777,926,927,979&pvp&costume"),
 ]
 
@@ -60,8 +62,8 @@ QUERIES = [q for _, q in REAL] + [
     "#Nope&purified",
     "#Transfer,#Nope&!traded&xxl",
     "&!#&!favorite&!traded&!shadow&!shiny&!XXL&!4*&!3*&",
-    "giv,xlx&distance100-&countcandy0-2499",
-    "giv,xlx&distance0-100&countcandy2500-",
+    "giv&distance100-&countcandy0-2499",
+    "giv&distance0-100&countcandy2500-",
     "1-151&countcandyxl0-359",
     "PvpC",
 ]

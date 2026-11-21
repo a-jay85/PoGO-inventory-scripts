@@ -28,7 +28,7 @@ When only 0-100km ones are left on both, they're traded with each other, the spe
 for another day. At most 99 trades a day (one is left for a special trade by hand), counted in .state.json;
 --done N says N were already made today. --limit N: at most N trades this run (default 48).
 Fridays are Friendship Fridays: every trade gives 2 Candy XL and double the lucky odds, so a Friday run trades only
-the ones tagged 2XL, on both phones. The rules above stay, with #2xl in place of giv,xlx. No GIV or XLX on a Friday,
+the ones tagged 2XL, on both phones. The rules above stay, with #2xl in place of giv. No GIV on a Friday,
 and no 2XL any other day. A regular trade costs 80 Stardust on a Friday (20% off). A Friday whose confirm screen shows
 100 has no Friendship Friday (Niantic skips one now and then): nothing is traded, and the run (and the rest of the
 day's runs) goes on with the other days' rules. A run stops at midnight if that
@@ -86,7 +86,7 @@ def set_piles(tags, saved):
              (NEAR, NEAR, "0-100km with 0-100km")]  # no far-apart bonus: the 100+km ones are kept for another day
 
 
-set_piles("giv,xlx", saved=True)  # main() switches a Friday run to #2xl, typed
+set_piles("giv", saved=True)  # main() switches a Friday run to #2xl, typed
 
 
 def friendship_friday():
@@ -684,12 +684,18 @@ def same_l(s):
     return re.sub(r"[il1|]", "l", s.lower())
 
 
+def bar_read(p):
+    """the bar, through same_l, with an old saved search's ',xlx' after giv dropped: XLX became GIV (PR 495), and
+    one account's 0-100km and 100+km may still say giv,xlx. No Pokémon has XLX, so both find the same ones"""
+    return re.sub(r"glv,?xlx?", "glv", same_l(bar(p) or ""))
+
+
 def in_bar(p, q):
     """the bar shows exactly this search. OCR can miss a '-' (the piles still differ without: 'distance0100',
     'distance100'), and reads a '&' after a digit as an 8 or a 0 as an o. A long search doesn't fit in the bar: the
     Pixel shows its first ~30 characters, the iPhone its last. Either counts once it's past where they all differ.
     A worse read still counts when it's clearly closest to q of this phone's searches (near_bar)"""
-    got, want = same_l(bar(p) or "").replace("-", ""), same_l(q).replace("-", "").lstrip("#")  # (a '#' can read as a 9)
+    got, want = bar_read(p).replace("-", ""), same_l(q).replace("-", "").lstrip("#")  # (a '#' can read as a 9)
     if 0 < got.find(want[:3]) <= 2:
         got = got[got.find(want[:3]):]  # (the magnifier can read as a letter or two in front)
     for g in (got, got[1:]):
@@ -724,7 +730,7 @@ def near_bar(p, q):
     still shows q when the '-' puts it in q's pile and, of this phone's searches in that pile, q is the closest by 2+
     edits. Keeps a search already on (from the last run, or a Return the OCR misread) from being cleared and typed
     again"""
-    got = same_l(bar(p) or "")
+    got = bar_read(p)
     if not got or pile(got) is None or pile(same_l(q)) != pile(got):
         return False
     col = 0 if p.name == "ios" else 1
@@ -1459,9 +1465,9 @@ def solo_main(a, name, android):
             except NoFriday as e:
                 friday = False
                 base.write_json(STATE, {**state(), "no_friday": today()})
-                set_piles("giv,xlx", saved=True)
+                set_piles("giv", saved=True)
                 COST, COST_READS = REGULAR_COST, REGULAR_READS
-                log(f"{e}: no Friendship Friday this week. Trading GIV and XLX like any other day")
+                log(f"{e}: no Friendship Friday this week. Trading GIV like any other day")
                 to_friend(p, ours=True)
                 continue
             except DailyLimit as e:
@@ -1550,9 +1556,9 @@ def main():
             except NoFriday as e:
                 friday, fresh = False, True  # the next round backs both out of this confirm screen first
                 base.write_json(STATE, {**state(), "no_friday": today()})
-                set_piles("giv,xlx", saved=True)
+                set_piles("giv", saved=True)
                 COST, COST_READS = REGULAR_COST, REGULAR_READS
-                log(f"{e}: no Friendship Friday this week. Trading GIV and XLX like any other day")
+                log(f"{e}: no Friendship Friday this week. Trading GIV like any other day")
                 continue
             except DailyLimit as e:
                 log(f"{e}: done for the day")

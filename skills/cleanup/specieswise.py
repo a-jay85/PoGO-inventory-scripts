@@ -50,7 +50,7 @@ GIVER = rules.GIVER  # CyrillJan: its piles go by the steps below
 # a rule before the species ones decides these (or the user does): never in a search
 LEFT_OUT = ("&!favorite&!traded&!lucky&!shadow&!shiny&!costume&!background&!xxl&!xxs&!dynamax&!gigantamax"
             "&!legendary&!mythical&!ultrabeast&!age300-&!year2016-2020"
-            "&!#IVC&!#PvpC&!#Old&!#2XL&!#XLX&!#Reroll&!#GuaranteedLucky&!#RT")
+            "&!#IVC&!#PvpC&!#Old&!#2XL&!#Reroll&!#GuaranteedLucky&!#RT")
 CHUNK = 700  # characters of dex numbers per search: with LEFT_OUT, well under the 1,000 a search keeps to
 TIER = 1.5  # Transfer's CP tiers: a tier's caps are at most this times its lowest (a lower cap leaves more as they are)
 CAP_TAGS = (rules.TRANSFER,)  # the tags verdict.py puts after GIV (level 26+): only CPs under level 26 go in

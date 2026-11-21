@@ -1034,6 +1034,7 @@ def send_gift():
                 wait("friend", timeout=6)
                 return title
             button = send_button(send)
+            retapped = False
             for tries in range(2):
                 tap_text(send, rest=0)
                 if sent_away(send, button):  # SEND is gone and the gift flies off: an X right now skips the animation
@@ -1053,10 +1054,26 @@ def send_gift():
                             for a, b in zip(u, v)) / (3 * len(button)) <= 20
                 if tries or not untouched:
                     break
+                retapped = True
                 keep_capture("send_again")
                 log(f"  SEND on {title!r} didn't land: the same preview after the full wait, tapping it once more")
                 send = again
             keep_capture("after_send")
+            if retapped and s == "picker":
+                # the first SEND sat untouched, then the second one left the gift list (2026-11-17 iPhone,
+                # 2026-11-20 Pixel). The preview closed without the gift flying off, so most likely nothing went.
+                # run_searches goes back to the list and tries this friend once more: a gift that went after all
+                # reads grey there, and a friend takes one gift a day. On the Pixel a game that sat on a tap is
+                # restarted first, once a run
+                log(f"  SEND twice on {title!r}, then the gift list: back to the friend list to check")
+                if ui.ANDROID and not restarted_game:
+                    restarted_game = True
+                    import home
+                    log("  the game sat on a tap: restarting it")
+                    ui.android.shell(f"am force-stop {ui.android.PKG}")
+                    time.sleep(1.0)
+                    home.start(storage=False)
+                raise base.Lost(f"two SEND taps on {title!r} ended on the gift list")
             if ui.ANDROID and untouched and not restarted_game:
                 # two SEND taps on the Pixel, both untouched: a game up for hours that takes no taps while its page
                 # looks normal (2026-11-10: up 3.5 h, PR #311's dead spell). Nothing went. Restart it once a run, then

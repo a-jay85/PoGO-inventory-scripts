@@ -469,14 +469,33 @@ def whole(box, q):
     return not t or "&" in t or len(t) >= min(len(q), 20)
 
 
+HIDDEN = "?"  # box_end's mark for a last letter the clear X sits on
+
+
 def box_end(box):
-    """the search box's read, squeezed, without the clear X it can end with"""
-    return ui.norm(box[4]).replace(" ", "").rstrip("X") if box else ""
+    """the search box's read, squeezed, without the clear X it can end with. A wide zone ('mo') runs under the X:
+    the X and the letter under it read as one '›' right after a letter (2026-11-21 iPhone: '&!EGG&m›' four times,
+    the list all Mo... friends, and the run stopped). That letter ends in HIDDEN. A bare X with nothing under it
+    reads as '\\' or 'X' and stays out"""
+    if not box:
+        return ""
+    t = ui.norm(box[4]).replace(" ", "").rstrip("X")
+    return t + HIDDEN if re.search(r"[A-Za-z][›>]$", box[4].replace(" ", "")) else t
+
+
+def ends_like(t, want):
+    """t (box_end) ends with want, one misread allowed. A HIDDEN last letter matches any, but then the rest must
+    match exactly"""
+    if t.endswith(HIDDEN):
+        return len(t) >= len(want) and t[-len(want):-1] == want[:-1]
+    return len(t) >= len(want) and sum(a != b for a, b in zip(t[-len(want):], want)) <= 1
 
 
 def ends_zone(t, z):
     """t (box_end) ends with the short zone z. One letter of two may be misread: OCR read 'mo' as 'mg'. One stray
     l, I or | after it is the box's edge or cursor (2026-11-07: '&mo' read '&mol' four times and stopped the run)"""
+    if t.endswith(HIDDEN):
+        return ends_like(t, z.upper())
     same = lambda t: len(t) >= len(z) and sum(a != b for a, b in zip(t[-len(z):], z.upper())) <= len(z) // 2
     return same(t) or (t[-1:] in ("L", "I", "|", "1") and same(t[:-1]))
 
@@ -488,8 +507,7 @@ def ends_query(t, q):
     left '...interactable&ce' with the '!EGG' gone, and that passed too"""
     want = ui.norm(q).replace(" ", "")
     want = want[-(len(ui.norm(q.rstrip("&").split("&")[-1]).replace(" ", "")) + 3):] if want else ""
-    same = lambda t: len(t) >= len(want) and sum(a != b for a, b in zip(t[-len(want):], want)) <= 1
-    return not want or same(t) or (t[-1:] in ("L", "I", "|", "1") and same(t[:-1]))
+    return not want or ends_like(t, want) or (t[-1:] in ("L", "I", "|", "1") and ends_like(t[:-1], want))
 
 
 def commit_search():

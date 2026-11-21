@@ -751,6 +751,15 @@
   "y&Icostume&!xxl&!xxs": "y&lcostume&lxxl&lxxs",
   "y&Icostume&legendary": "y&lcostume&legendary"
  },
+ "gift.ends_query": {
+  "!?&!$&!WAIT&!OPEN&interactable&!EG\t!?&!$&!WAIT&!OPEN&interactable&!EGG&ea": false,
+  "!?&!$&!WAIT&!OPEN&interactable&!EGG&c›\t!?&!$&!WAIT&!OPEN&interactable&!EGG&mo": false,
+  "!?&!$&!WAIT&!OPEN&interactable&!EGG&ea\\\t!?&!$&!WAIT&!OPEN&interactable&!EGG&ea": true,
+  "!?&!$&!WAIT&!OPEN&interactable&!EGG&m\\\t!?&!$&!WAIT&!OPEN&interactable&!EGG&mo": false,
+  "!?&!$&!WAIT&!OPEN&interactable&!EGG&mol\t!?&!$&!WAIT&!OPEN&interactable&!EGG&mo": true,
+  "!?&!$&!WAIT&!OPEN&interactable&!EGG&m›\t!?&!$&!WAIT&!OPEN&interactable&!EGG&mo": true,
+  "!?&!$&!WAIT&!OPEN&interactable&!EGG›\t!?&!$&!WAIT&!OPEN&interactable&!EGG&mo": false
+ },
  "gift.ours, whole_state False": {
   "Hydrant | Raleigh, NC, United": false,
   "Mission Rock | San Francisco, CA, United": true,

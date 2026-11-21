@@ -184,6 +184,15 @@ BANNERS = {  # OCR from run captures: the banner over the ME tab, and the same w
     "received items": texts((0.07, "21:52 1"), (0.12, "StealthShampoo received 5 items"), (0.14, "from your Gift!"),
                             (0.24, "HashTagAJay"), (0.24, "ADD FRIEND"), (0.24, "INVITE"), (0.36, "1738Sanmiggz sent you a")),
 }
+BOX_ENDS = [  # the friend search box's read, and the search typed (gift.ends_query)
+    ("!?&!$&!WAIT&!OPEN&interactable&!EGG&m›", "!?&!$&!WAIT&!OPEN&interactable&!EGG&mo"),  # the X on the o, 2026-11-21
+    ("!?&!$&!WAIT&!OPEN&interactable&!EGG&m\\", "!?&!$&!WAIT&!OPEN&interactable&!EGG&mo"),  # the o really lost
+    ("!?&!$&!WAIT&!OPEN&interactable&!EGG›", "!?&!$&!WAIT&!OPEN&interactable&!EGG&mo"),  # the zone lost
+    ("!?&!$&!WAIT&!OPEN&interactable&!EG", "!?&!$&!WAIT&!OPEN&interactable&!EGG&ea"),  # 2026-11-10
+    ("!?&!$&!WAIT&!OPEN&interactable&!EGG&ea\\", "!?&!$&!WAIT&!OPEN&interactable&!EGG&ea"),
+    ("!?&!$&!WAIT&!OPEN&interactable&!EGG&mol", "!?&!$&!WAIT&!OPEN&interactable&!EGG&mo"),  # 2026-11-07
+    ("!?&!$&!WAIT&!OPEN&interactable&!EGG&c›", "!?&!$&!WAIT&!OPEN&interactable&!EGG&mo"),  # a wrong zone, X on its end
+]
 GIFTS = [("Mission Walk", "San Francisco, California,"), ("Mission Walk", "San Francisco, CA, United"), ("Mural", "Chicago, IL, United States"),
          ("Hydrant", "Raleigh, NC, United"), ("Mural", "Fremont, CA, United"), ("Mural", "Fremont, California,"), ("Mural", "Fremont, Califomia,"),
          ("Park", "Reno, NV, United"), ("Park", "Toronto, Canada"), ("Park", "Charlotte, North Carolina,"), ("Sea Lion", "San Francisco, CA, United"),
@@ -558,6 +567,8 @@ def answers():
     for whole_state in (False, True):
         gift.whole_state = whole_state
         out[f"gift.ours, whole_state {whole_state}"] = {f"{t} | {c}": answer(gift.ours, t, c) for t, c in GIFTS}
+    out["gift.ends_query"] = {f"{g}\t{q}": answer(lambda g, q: gift.ends_query(gift.box_end(box(.1, .2, g)), q), g, q)
+                              for g, q in BOX_ENDS}
     gift.whole_state = False
     return json.loads(json.dumps(out))  # (tuples -> lists, as the file has them)
 

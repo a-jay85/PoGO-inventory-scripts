@@ -1538,7 +1538,7 @@ One phone for /trade, run as its own process: trade.py starts one for the iPhone
 - `in_bar(p, q)`: the bar shows exactly this search
 - `pile(s)`: which distance a search or a bar read is, by where the '-' sits after 'distance': NEAR ('0-100'), FAR ('100-'), or None (no '-' read, or 'distance' cut off)
 - `edits(a, b)`: how many letters added, dropped or changed turn a into b
-- `near_bar(p, q)`: a bar the OCR garbled ('giv,xl&distanceo-1i0&conntcandy' for the Pixel's giv,xlx&distance0-100&countcandy0-2499) still shows q when the '-' puts it in q's pile and, of …
+- `near_bar(p, q)`: a bar the OCR garbled ('giv,xl&distanceo-1i0&conntcandy' for the Pixel's then giv,xlx&distance0-100&countcandy0-2499) still shows q when the '-' puts it in q's pile and, …
 - `shown(p, q)`: the picker shows q's results: -> how many, 0 too (None: not yet)
 - `tap_shortcut(p, q)`: tap q's saved shortcut and wait for the panel to close on its results
 - `pick_pile(p, q)`: tap the saved search and check the bar shows exactly it

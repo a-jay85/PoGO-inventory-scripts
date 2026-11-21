@@ -1599,6 +1599,7 @@ pogo.py heals: a step that stops or crashes gets fixed, then runs again with onl
 - `wanted(first)`: pogo.py's first word -> heal this run?
 - `say(msg)`
 - `state()`
+- `keep(st)`: a heal that ends in a stop doesn't start pogo.py over, and the chain goes on with its next step in this process: that step's heal must still count this one (2026-11-21: …
 - `out_file()`
 - `tee(cmd, env, path)`: run cmd, its output to the pane and to path -> (exit code, its last lines)
 - `signature(lines)`: the step's last STOPPED / CRASHED line, numbers and paths taken out: the same stop again reads the same

@@ -582,7 +582,13 @@ def open_trade(phones):
     try:
         both(lambda p: p.wait("picker", "lobby", "sortmenu", timeout=20), *[(p,) for p in phones])
     except Stop as e:
-        if isinstance(e, Expired) or not any([p.look() in ("waiting", "expired") for p in phones]):
+        if isinstance(e, Expired):
+            raise
+        # 2026-11-21 02:02: a run stopped (Ctrl-C) mid-trade, and LOCAL TRADE took the iPhone back into that half-made
+        # trade, on its confirm screen. Nothing is confirmed here: the next round backs both out of it (fresh)
+        if any(p.screen in ("warning", "confirm") and own_leftover(p) for p in phones):
+            raise Expired(f"LOCAL TRADE went back into a trade left half-made: {e}")
+        if not any([p.look() in ("waiting", "expired") for p in phones]):
             raise
         # the server never joined the two: one waits for the other, or has "Trading service unavailable" up
         raise ServiceDown("the trading service didn't join the two phones")
@@ -1179,7 +1185,14 @@ def trade_once(ios, android, specials, fresh=False, rehearse=False):
             screens = both(lambda p: p.look() if p.screen in ("unknown", "blank") else p.screen,
                            *[(p,) for p in phones])
         if all(s in IN_TRADE for s in screens):
-            both(to_picker, *[(p,) for p in phones])  # both still in a trade from before: carry on in it
+            try:
+                both(to_picker, *[(p,) for p in phones])  # both still in a trade from before: carry on in it
+            except Stop:
+                # 2026-11-21 02:03: that trade ended under it (the Pixel was back on the friend page). Nothing picked
+                # yet, nothing to undo: back both out and open a new one
+                log("the trade from before ended: opening a new one")
+                both(lambda p: to_friend(p, ours=True), *[(p,) for p in phones])
+                open_trade(phones)
         elif all(s in IN_TRADE or s == "waiting" for s in screens):
             open_trade(phones)  # finish() tapped LOCAL TRADE on both: they're joining
         else:

@@ -66,6 +66,12 @@ def state():
     return s
 
 
+def keep(st):
+    """a heal that ends in a stop doesn't start pogo.py over, and the chain goes on with its next step in this
+    process: that step's heal must still count this one (2026-11-21: one chain ran 7 heals, ROUNDS is 4)"""
+    os.environ["POGO_HEAL_STATE"] = json.dumps(st)
+
+
 # ---------- running a step ----------
 
 def out_file():
@@ -210,6 +216,7 @@ def ask_claude(prompt):
            "--dangerously-skip-permissions"]
     env = dict(os.environ, CLAUDE_HEADLESS="1")
     env.pop("POGO_HEAL_STATE", None)
+    env.pop("POGO_CHAIN_FAILED", None)  # (else its own pogo.py phone test ends exit 1 for the parent chain's failures)
     for k in ("POGO_TRACE", "POGO_TRACE_ROOT"):  # (its tests and tools aren't the phone run: keep them out of its trace)
         env.pop(k, None)
     try:
@@ -343,6 +350,7 @@ def handle(steps, i, args, code, lines, out, started, folder_of, last, check, ph
         say(f"{ROUNDS} heals this run already: stopping here")
         return code
     st["rounds"] += 1
+    keep(st)
     if CANT_REACH in end and time.time() - started < EARLY_S:
         if st["waits"] >= WAITS:
             say(f"the iPhone was out of reach {WAITS + 1} times: stopping. Lock it, leave it near the Mac, run again")
@@ -381,6 +389,7 @@ def handle(steps, i, args, code, lines, out, started, folder_of, last, check, ph
         st["fixed"].append(sig)
         if a.get("pr"):
             st["prs"].append(a["pr"])
+        keep(st)
     if a["action"] == "stop":
         return code
     if a.get("fixed") and st["fixes"] > FIXES:

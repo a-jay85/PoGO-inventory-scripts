@@ -165,6 +165,10 @@ b = bb_runs()
 case("a step that stays stopped: the next step still runs, the chain ends with its code", (r, bb_runs() - b),
      lambda g: g == (("exit", 1), 1))
 
+(r, n) = run(["aa", "+", "aa", "+", "aa", "+", "aa", "+", "aa", "+", "aa"],
+             {"action": "stop", "fixed": False, "why": "the Mac is locked"})
+case("heals that end in a stop still count toward ROUNDS for the steps after", n, lambda g: g == heal.ROUNDS)
+
 b = bb_runs()
 (r, n) = run(["ee", "+", "bb"], rerun)
 case("Ctrl-C in a chain: the steps after it don't run", (r, bb_runs() - b), lambda g: g == (("exit", 130), 0))

@@ -1418,7 +1418,8 @@
    "tap",
    "tap_box",
    "tap_text",
-   "thumb"
+   "thumb",
+   "timers_off"
   ],
   "runs": []
  },
@@ -2532,7 +2533,9 @@
   "names": [
    "AWAY",
    "BUSY",
+   "CHARGING_WAITS",
    "CONF",
+   "GOPLUS_FOR",
    "GRACE",
    "HERE",
    "IN_USE",
@@ -2562,6 +2565,7 @@
    "note",
    "notify",
    "off",
+   "pixel_charging",
    "pixel_in_use",
    "skip",
    "stamp",

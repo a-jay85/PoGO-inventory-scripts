@@ -37,7 +37,7 @@ import base
 from base import Stop, log, keep_capture
 import home, session, timer
 
-FOR = "CyrillJan"  # the one account the GO Plus+ is paired with
+FOR = timer.GOPLUS_FOR  # the one account the GO Plus+ is paired with
 AREA = (0.84, 0.05, 1.0, 0.40)  # where the ball can be: the map's right-hand icon column (middle x 0.914), under the
 # weather and a raid timer. Wider took in a pink gym ring over the night map's blues (2026-11-12)
 AGAIN = 60  # minutes from a connect to the next timed run (the user, 2026-11-14)

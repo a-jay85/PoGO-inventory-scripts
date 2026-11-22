@@ -25,6 +25,11 @@ a launchd job runs `timer.py tick` every minute, and tick runs a script whose ti
   An iPhone run goes through iPhone Mirroring, so the Mac must stay awake and unlocked for it.
 - goplus runs again 60 min after it connects (or finds it already on). HashTagAJay signed in: its timer goes off,
   till a CyrillJan run connects again. Any other stop (no ball, didn't connect) turns it off, like every stop.
+- hatch waits while the Pixel is charging (any power: the Mac's cable or a wall charger): eggs don't move on a
+  charger (the user, 2026-11-22). It stays due and runs the first minute the Pixel is off power. The other jobs
+  still run in the meantime.
+- An account switch (account.py) turns hatch and goplus off first: their times were the old account's. Its egg
+  check then sets hatch for the new one, and a switch to CyrillJan (GOPLUS_FOR) sets goplus for the next minute.
 
 Replaces the gymfeed-only timer (gymfeed_cron.sh and gymfeed_timer.sh with their own launchd job, 2026-10-28 to
 2026-11-13). Its rule stays: a gymfeed run is due 30-32 min (random) after the last one ended.
@@ -54,6 +59,8 @@ LOG = os.path.join(CONF, "timer.log")
 LABEL = "pogo.timer"
 PLIST = os.path.expanduser(f"~/Library/LaunchAgents/{LABEL}.plist")
 PATH = "/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+CHARGING_WAITS = {"hatch"}  # jobs that wait while the Pixel charges
+GOPLUS_FOR = "CyrillJan"  # the one account the GO Plus+ is paired with (goplus.py, account.py)
 KEEP = os.path.join(CONF, "gymfeed_keep_on_until")  # (epoch seconds) till then gymfeed's "off" keeps it on (both phones)
 
 
@@ -178,6 +185,12 @@ def pixel_in_use():
     return idle < TOUCHED or ("=true" not in out and idle < TOUCHED_UNLOCKED)
 
 
+def pixel_charging():
+    """-> True while the Pixel is on power (AC, USB or wireless). A read it can't make: not charging"""
+    out = subprocess.run(["adb", "shell", "dumpsys battery"], capture_output=True, text=True).stdout
+    return bool(re.search(r"(AC|USB|Wireless) powered: true", out))
+
+
 def skip(why):
     """a skip line once, not every minute while it waits"""
     try:
@@ -226,6 +239,10 @@ def away_off(phone, why):
 def tick():
     now = time.time()
     ready = sorted((t, n) for n, t in due().items() if n in JOBS and t <= now)
+    if any(n in CHARGING_WAITS for _, n in ready) and pixel_charging():
+        missed("android", False)  # (adb answered: an old away count would turn every Pixel timer off at the next blip)
+        skip(f"the Pixel is charging: {', '.join(n for _, n in ready if n in CHARGING_WAITS)} waits")
+        ready = [r for r in ready if r[1] not in CHARGING_WAITS]  # (left in, it would hold every other job up)
     if not ready:
         return
     name = ready[0][1]

@@ -516,8 +516,13 @@ def clipped_names(texts, below):
     # 2026-11-21): a start of START letters or more that only one trainer has is that trainer
     alone = [n for n in TRAINERS if any(len(w) >= START and squash(n).startswith(w) and
                                         sum(squash(m).startswith(w) for m in TRAINERS) == 1 for w in ws)]
+    # one letter read wrong in a name that's all there ('HashTagi Jay' for HashTagAJay, Pixel, 2026-11-22): the one
+    # trainer that every other letter fits
+    off_by_one = lambda n, w: len(w) == len(n) and sum(a != b for a, b in zip(squash(n), w)) == 1
+    one_off = [n for n in TRAINERS if any(off_by_one(n, w) and sum(off_by_one(m, w) for m in TRAINERS) == 1
+                                          for w in ws)]
     return [n for n in TRAINERS if any(len(n) - CLIP <= len(w) < len(n) and squash(n).startswith(w) for w in ws)
-            or split_name(n, ws + parts) or n in alone]
+            or split_name(n, ws + parts) or n in alone or n in one_off]
 
 
 def split_name(n, ws):

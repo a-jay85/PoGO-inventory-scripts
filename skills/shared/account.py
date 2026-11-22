@@ -10,6 +10,9 @@ bottom -> Sign Out -> YES -> RETURNING PLAYER -> Sign in with Google -> the acco
 Then it reads the trainer name off the profile to be sure. Last, every run (a switch or not) turns Adventure Sync on
 for whoever is signed in (advsync.py), so a signed-in account always has it on. Then the Eggs tab: the mode's egg (eggs.py: shortest unless set) goes
 in the free ∞ incubator and the hatch timer is set by its km (eggs.py; the user, 2026-11-14).
+A real switch (or a sign-in after a half-done one) turns the hatch and goplus timers off before it signs out: their
+times were the old account's (the user, 2026-11-22). The egg check sets hatch again for the new account, and a switch
+to CyrillJan (the GO Plus+ account, timer.GOPLUS_FOR) sets goplus for the next minute. Already signed in: no change.
 
 Which Google account is which trainer lives in ~/.config/pogo/accounts.json (out of the repo, which is public):
   {"HashTagAJay": "...@gmail.com", "CyrillJan": "...@gmail.com"}
@@ -22,7 +25,7 @@ import json, os, random, sys, time
 import ui
 import base
 from base import Stop, log, keep_capture
-import home
+import home, timer
 
 ACCOUNTS = os.path.expanduser("~/.config/pogo/accounts.json")
 POKEBALL = (0.5, 0.928)  # the map's Poké Ball: opens the main menu
@@ -193,23 +196,35 @@ def switch(to=None):
         if not to:  # signed out already (a run stopped half way): no one to switch from
             raise Stop("nobody is signed in: say which account (account.py HashTagAJay or CyrillJan)")
         log(f"signed out already: signing in as {to}")
+        timers_off()
         sign_in(accounts[to])
-        return synced(check(to))
+        return synced(check(to), switched=True)
     who = home.trainer(fast=False)  # (sign_out starts from the map)
     to = to or next(n for n in home.TRAINERS if n != who)
     if who == to:
         log(f"{to} is signed in already")
         return synced(who)
     log(f"switching {who} -> {to}")
+    timers_off()
     sign_out()
     sign_in(accounts[to])
-    return synced(check(to))
+    return synced(check(to), switched=True)
 
 
-def synced(who):
+def timers_off():
+    """hatch and goplus off before a switch: their times were the old account's"""
+    timer.off("hatch")
+    timer.off("goplus")
+    log("hatch and goplus timers off (the account is changing)")
+
+
+def synced(who, switched=False):
     """the last step of every switch: Adventure Sync on for whoever is signed in now (advsync.py), then the egg check
-    (advsync.eggs: the mode's egg into the free ∞ incubator, the hatch timer set from its km). -> who"""
+    (advsync.eggs: the mode's egg into the free ∞ incubator, the hatch timer set from its km). switched: the account
+    just changed, so a switch to the GO Plus+ account sets goplus for the next minute. -> who"""
     import advsync  # (here: advsync imports this file)
+    if switched and who == timer.GOPLUS_FOR:  # (first: a stop in the egg check mustn't leave it off)
+        log(f"next goplus run at {timer.later('goplus', 0)} ({who} has the GO Plus+)")
     advsync.turn_on()
     advsync.eggs()
     return who

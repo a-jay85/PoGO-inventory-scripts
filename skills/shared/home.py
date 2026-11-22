@@ -506,9 +506,13 @@ def clipped_names(texts, below):
     on the profile under a gift banner and on /gift's ME tab; 'HashTagA' with the buddy's art over 'Jay', Pixel,
     2026-11-19; 'HashTagA®' the same day, the art read as a mark): the trainers one line above `below` is the start
     of, all but up to CLIP letters, or split in two (split_name). Marks that aren't letters or digits are dropped first"""
-    ws = [re.sub(r"[^A-Z0-9]", "", squash(t[4])) for t in texts if t[1] < below]
+    raw = [t[4] for t in texts if t[1] < below]
+    ws = [re.sub(r"[^A-Z0-9]", "", squash(r)) for r in raw]
+    # art over a letter can read as a mark inside one text ('HashTag, Jay' for HashTagAJay, Pixel, 2026-11-21):
+    # its pieces count as split words too
+    parts = [p for r in raw for p in (squash(x) for x in re.split(r"[^A-Za-z0-9|!]+", r)) if p]
     return [n for n in TRAINERS if any(len(n) - CLIP <= len(w) < len(n) and squash(n).startswith(w) for w in ws)
-            or split_name(n, ws)]
+            or split_name(n, ws + parts)]
 
 
 def split_name(n, ws):

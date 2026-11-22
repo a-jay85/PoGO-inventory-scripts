@@ -534,7 +534,10 @@ WORDS = [("QSearch", "SEARCH"), ("Q SEARCH", "SEARCH"), ("9 Search", "SEARCH"), 
          ("OKI", "OK"), ("NOT", "NO"), ("NO", "NOT NOW"), ("CANDY XL", "CANDY"), ("CANDY", "CANDY XL"),
          ("WEIGHT", "HEIGHT"), ("HEIGHT", "WEIGHT"), ("REWARDS", "CLAIM REWARD"), ("SENT", "SEND"), ("XXL", "XL"),
          ("CONFIRM", "CANCEL"), ("TRANSFER POKEMON", "TRANSFER"), ("POWER UP", "POWER UPS"), ("MEGA", "MEGA EVOLVE"),
-         ("", "OK"), ("12", "OK")]
+         ("", "OK"), ("12", "OK"), ("10K", "OK"), ("100K", "OK"), ("OK!", "OK"), ("TRADED", "TRADE"),
+         ("FAVORITES", "FAVORITE"), ("CLOSED", "CLOSE"), ("RESEARCH", "SEARCH"), ("MEIGHT", "HEIGHT"),
+         ("MEIGHT", "WEIGHT"), ("HEIGHTI", "HEIGHT"), ("EGGSI", "EGGS"), ("POWER OP", "POWER UP"),
+         ("CLAIM REWAR", "CLAIM REWARD"), ("ADD FRIENDI", "ADD FRIEND")]
 
 def answers():
     out = {}

@@ -89,6 +89,35 @@ def restore():
     return True
 
 
+GPS_FILE = os.path.expanduser("~/.config/pogo/android-gps")  # there: a run turned location off, and it goes back on
+
+
+def gps_on():
+    """the phone's location switch -> True on, False off, None (no answer)"""
+    out = shell("cmd location is-location-enabled").strip().lower()
+    return {"true": True, "false": False}.get(out)
+
+
+def gps_off():
+    """location off for the run, once the game is up (most scripts never need it; the user, 2026-11-22). Only if it
+    was on: GPS_FILE marks that, so gps_back() puts it on again, even after a run that ended before it could"""
+    if os.path.exists(GPS_FILE) or gps_on() is not True:
+        return False
+    os.makedirs(os.path.dirname(GPS_FILE), exist_ok=True)
+    open(GPS_FILE, "w").write("on\n")
+    shell("cmd location set-location-enabled false")
+    return True
+
+
+def gps_back():
+    """location on again if a run turned it off. -> True if it did"""
+    if not os.path.exists(GPS_FILE):
+        return False
+    shell("cmd location set-location-enabled true")
+    os.remove(GPS_FILE)
+    return True
+
+
 _size = None
 
 

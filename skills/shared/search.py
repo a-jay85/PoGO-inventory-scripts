@@ -285,7 +285,7 @@ def to_search_list():
     leave_panel(texts, bounds)
     if base.look()[0] == "tags":  # cut off with the tag sheet open
         if any(base.tick_tags().values()):
-            go("DONE", "detail")
+            base.tags_done()  # (a Remote Trade tag asks first: a plain go(DONE) stopped on that box, Pixel 2026-11-21)
         else:  # ticks may be half changed (IVC off, the next tag not on yet): DONE would save that, the X saves nothing
             log("  left on the tag sheet with nothing ticked: out by its X, that Pokémon stays as it was")
             base.cancel_tags()

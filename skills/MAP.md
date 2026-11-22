@@ -147,7 +147,7 @@ The shared tapper: screen reading, taps, timing, run folders and logging, and th
 - `lift_tag_row(T)`: Android: a tap on the last row showing, or the first one of a scrolled list (under the list's fades), doesn't take
 - `high_iv(ivs=None, raws=None)`: on the detail screen: 98%+ (a shadow: 98%+ once purified)? Appraises first unless the bars are given, and comes back to the detail screen
 - `remote_trade_box(texts)`: the 'Cannot Trade Recently Caught Pokémon Remotely' box ('This Pokémon will keep the Remote Trade tag')
-- `remote_trade_ok(texts, bounds)`
+- `remote_trade_ok(texts, bounds, again=True)`: OK on that box. The game once put the tag sheet back after it, not the detail (ivc, Pixel 2026-11-21): DONE once more (the ticks are the ones wanted, and the detail's …
 - `tags_done()`: DONE on the tag sheet
 - `cancel_tags()`: leave the open tag sheet by the round X under DONE: nothing on it is saved
 - `back_out_of_tags(T, ticks)`: a tick wouldn't take after every try (seen on the iPhone 2026-11-05: taps lost for a while, then fine again)

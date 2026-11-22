@@ -19,7 +19,7 @@ os.environ.pop("POGO_PHONE", None)  # the iPhone path: every reader stays on the
 for d in ("shared", "cleanup", "dex", "trade", "gift", "mega", "ivc"):
     sys.path.append(os.path.join(SKILLS, d))
 
-import base, search, ui  # noqa: E402
+import base, home, search, ui  # noqa: E402
 import pagefacts, tagsheet, savedsearch, dex, trade, gift, mega, popups, pages, taps  # noqa: E402
 
 
@@ -348,6 +348,14 @@ AT_TOP = {  # tagsheet.same_at_top: the first read, then a later one, with a CP 
     "other HP": (_ME, ("Castform", 639, 95, "0.84kg", "0.31m")),
     "other weight": (_ME, ("Castform", 639, 94, "0.85kg", "0.31m")),
 }
+NAME_READS = {  # home.clipped_names: the profile's texts over the name line, from Pixel run captures
+    "art over the end": ["10:43", "ME", "+ F64%", "SOCIAL", "FRIENDS", "613", "HashTag", "& 91 AD DA"],
+    "start too short": ["ME", "FRIENDS", "HashTa", "& 91 AD DA"],
+    "the other trainer's start": ["ME", "FRIENDS", "CyrillJ"],
+    "start of nobody": ["ME", "FRIENDS", "HashTig"],
+}
+
+
 SAME = {  # base.same_pokemon: two who() reads
     "same": ((639, 94, 0.84, 0.31), (639, 94, 0.84, 0.31)),
     "dropped digit, size unread": ((63, 94, None, None), (639, 94, None, None)),
@@ -549,6 +557,7 @@ def answers():
     out["search.grid_tiles"] = {k: answer(places, v) for k, v in GRIDS.items()}
     out["pagefacts.caught_read"] = {k: answer(pagefacts.caught_read, v) for k, v in CAUGHT_READ.items()}
     out["tagsheet.same_at_top"] = {k: answer(tagsheet.same_at_top, *v) for k, v in AT_TOP.items()}
+    out["home.clipped_names"] = {k: home.clipped_names([(0, 0.1, 0, 0, t) for t in v], 0.3) for k, v in NAME_READS.items()}
     out["base.same_pokemon"] = {k: answer(base.same_pokemon, *v) for k, v in SAME.items()}
     out["ui.classify"] = {k: answer(ui.classify, ts) for k, ts in SCREENS.items()}
     out["base.screen_changed"] = {k: answer(base.screen_changed, *v) for k, v in CHANGES.items()}

@@ -373,6 +373,11 @@ def start(storage=True):
             search.click(0.5 + random.uniform(-0.01, 0.01), 0.928 + random.uniform(-0.004, 0.004), ui.capture()[1])
             time.sleep(1.5)
         elif screen == "rename":  # an earlier run cut off mid-name: nothing's saved until OK
+            if ui.ANDROID and keyboard_up():  # the keyboard hides CANCEL (a stop mid-typing, 2026-11-21): Back hides
+                log("a nickname box was left open with its keyboard up: hiding the keyboard")  # only the keyboard
+                ui.android.key("back")
+                time.sleep(1.0)
+                continue
             log("a nickname box was left open: canceling it")
             base.go("CANCEL", "detail")
         elif screen == "tags":

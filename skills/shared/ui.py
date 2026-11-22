@@ -290,8 +290,9 @@ def top_clock(texts):
     return any(t[1] < 0.1 and re.search(r"\d:\d\d", t[4]) for t in texts)
 
 
-# OCR now and then reads a Latin letter as its Cyrillic twin ('сP 927', 'AТК', 'Pvp Uц46')
-LOOKALIKES = str.maketrans("АВЕКМНОРСТХаеорсухіІц", "ABEKMHOPCTXaeopcyxiIu")
+# OCR now and then reads a Latin letter as its Cyrillic twin ('сP 927', 'AТК', 'Pvp Uц46'), and a 3 as Cyrillic Ze
+# ('Pvp UЗ0' stopped /pvpc's rename, the clock 'З:44', 2026-11-21)
+LOOKALIKES = str.maketrans("АВЕКМНОРСТХаеорсухіІцЗз", "ABEKMHOPCTXaeopcyxiIu33")
 
 
 def find(texts, pred):

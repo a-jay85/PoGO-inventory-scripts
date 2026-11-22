@@ -1391,7 +1391,10 @@ def read_results(q, path, texts, bounds, iv_only=False, resorted=False):
 
 
 def looks_same(a, b):
-    """'98 AD BS*' and '98 ADBS V': one name OCR'd two ways. '96 ATK' and '96 HA' are two Pokémon."""
+    """'98 AD BS*' and '98 ADBS V': one name OCR'd two ways. '96 ATK' and '96 HA' are two Pokémon. A name not read
+    (None: a detail page swiped to before its name drew, raidteam keep 2026-11-22) looks like nothing"""
+    if not a or not b:
+        return False
     a, b = (re.sub(r"[^a-z0-9]", "", x.lower()) for x in (a, b))
     return abs(len(a) - len(b)) <= 1 and difflib.SequenceMatcher(None, a, b).ratio() >= 0.8
 

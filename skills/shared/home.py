@@ -500,9 +500,18 @@ def clipped_names(texts, below):
     """OCR can drop the last letters of a name that's all there ('HashTagAJa' for HashTagAJay, iPhone, 2026-11-10,
     on the profile under a gift banner and on /gift's ME tab; 'HashTagA' with the buddy's art over 'Jay', Pixel,
     2026-11-19; 'HashTagA®' the same day, the art read as a mark): the trainers one line above `below` is the start
-    of, all but up to CLIP letters. Marks that aren't letters or digits are dropped first"""
-    return [n for n in TRAINERS if any(len(n) - CLIP <= len(w := re.sub(r"[^A-Z0-9]", "", squash(t[4]))) < len(n)
-                                       and squash(n).startswith(w) for t in texts if t[1] < below)]
+    of, all but up to CLIP letters, or split in two (split_name). Marks that aren't letters or digits are dropped first"""
+    ws = [re.sub(r"[^A-Z0-9]", "", squash(t[4])) for t in texts if t[1] < below]
+    return [n for n in TRAINERS if any(len(n) - CLIP <= len(w) < len(n) and squash(n).startswith(w) for w in ws)
+            or split_name(n, ws)]
+
+
+def split_name(n, ws):
+    """art over the middle of the name splits it in two ('HashTag', '& 91 AD D', 'Jay', iPhone /gift ME tab,
+    2026-11-21): one word is its start, of 5 letters or more, and another its end, of 3 or more"""
+    sq = squash(n)
+    return any(len(a) >= 5 and sq.startswith(a) and any(len(b) >= 3 and b != a and sq.endswith(b) for b in ws)
+               for a in ws)
 
 
 def to_map():

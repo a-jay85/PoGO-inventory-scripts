@@ -353,6 +353,9 @@ NAME_READS = {  # home.clipped_names: the profile's texts over the name line, fr
     "start too short": ["ME", "FRIENDS", "HashTa", "& 91 AD DA"],
     "the other trainer's start": ["ME", "FRIENDS", "CyrillJ"],
     "start of nobody": ["ME", "FRIENDS", "HashTig"],
+    "one letter wrong (2026-11-22)": ["3:20", "ME", "• + 1 100%", "SOCIAL", "FRIENDS", "613", "HashTagi Jay",
+                                      "& 91 AD Dik"],
+    "two letters wrong": ["ME", "FRIENDS", "HashTigi Jay"],
 }
 
 

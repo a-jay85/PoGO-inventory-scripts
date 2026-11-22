@@ -14,6 +14,9 @@ EVO_FOR = "CyrillJan"  # the account that wants the XP: HashTagAJay transfers th
 # An untraded one gets GIV where it would get Transfer (the user, 2026-11-12), except a trade evolution on EVO_FOR
 COSTLY_LINES = ("129,130,320,321,333,334,524,525,526,532,533,534,588,589,616,617,636,637,708,709,710,711,714,715,"
                 "759,760,767,768,840,841,842,848,849,854,855,872,873,1011,1012,1013,1019")
+# a costly line under level 26 is GIV only if it or a later stage could make the receiver's raid team A or B (the
+# user, 2026-11-21: its candy alone isn't worth a trade). These stay GIV anyway: Snom only hatches, and it's costly
+HATCH_COSTLY = "872,873"
 NAMES = {"xxs": "xxs"}  # search term -> nickname, as ivc.make_name spells them. An XXL one is kept instead: XXL_OFF
 # an XXL one, traded or not, isn't traded (it has value in showcases, the user 2026-11-04): a favorite, these come off
 XXL_OFF = ("GuaranteedLucky", "Old", "GIV", "XLX", "2XL", "Reroll", "Special", "Luckydex", TRANSFER, "IVC")
@@ -27,7 +30,6 @@ GIVER, TAKER = "CyrillJan", "HashTagAJay"  # Tradeable is the giver's; the taker
 TAGS = ["Luckydex", "Reroll", "GIV"]  # by species, in this order
 XLX = "GIV"  # the tag a level 26+ one gets (XLX_LEVEL). It was its own tag, XLX, till the user folded it into GIV
 OLD_XLX = "XLX"  # (2026-11-19): every #XLX was retagged GIV on both phones. Still taken off wherever it shows up
-LUCKY_CANDY = 348  # under this, a lucky one of the family wants a new copy's candy
 XL_CAP = 360
 DMAX_CANDY = 1000  # one that can Dynamax (not a Dynamax one): GIV while its account has this much Candy or less, or
 # XL_CAP + what one Max Move costs in Candy XL or less (the user, 2026-11-16; one, not three: 2026-11-19; 1,000 Candy, was 2,500: 2026-11-20). Over both: no rule wants it

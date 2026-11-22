@@ -48,7 +48,9 @@ Before everything: an XXL one, traded or not, is a favorite and its trade, Trans
 2026-11-04: it has value in showcases). Every Transfer for an untraded one goes through transfer() last: an xxs one gets IVC instead, a trade evolution
 (free to evolve once traded) GIV, signed in as HashTagAJay only (only CyrillJan wants the XP, the user 2026-11-02).
 Then one whose family has an evolution over 100 candy (Magikarp, Snom, Noibat: rules.COSTLY_LINES) GIV, either account
-(the user 2026-11-12; not a shadow, and CyrillJan's untraded trade evolutions still get Transfer). The user's own tags first: untraded with Old, Evo, GuaranteedLucky, Remote Trade or RT,
+(the user 2026-11-12; not a shadow, and CyrillJan's untraded trade evolutions still get Transfer), but only when it or a
+later stage could make the receiver's raid team A or B, or it's Snom's line (team_line, the user 2026-11-21: under
+level 26 its candy alone isn't worth a trade; no whole raid team count for the receiver: unsure). The user's own tags first: untraded with Old, Evo, GuaranteedLucky, Remote Trade or RT,
 those stay and only IVC / PvpC comes off; traded, the "trade it" tags (TRADE_TAGS) come off. The species lists come
 from tradeable.py's taker_species() and giver_species(), the same ones its tag searches use. Neither account's have an age
 limit: the newest saved copy is used, however old (the user, 2026-11-04 and 2026-11-06).
@@ -64,6 +66,7 @@ from base import ALWAYS_KEEP  # an IV sum of 98%+ never loses its star
 import tradeable as tr  # builds the species lists
 import rules  # the numbers and lists: one copy, there
 import search  # dexes_of, dex_numbers
+import raidteams  # newest: the receiver's raid teams, for a costly line
 from rules import GIVER, TAKER, XL_CAP, XLX, XLX_FOR, OLD_XLX
 from ivc import GYM_DEFENDERS, make_name as ivc_name
 from rules import NAMES as SIZE_NAMES  # a never-traded XXS one gets this name and IVC
@@ -90,6 +93,7 @@ IGNORED_TAGS = ("CPD",)  # as if these tags weren't there: no rule reads them, n
 OVER_93 = 42  # a costume one at 93%+ (42 of 45) is named and a favorite (the user, 2026-11-02)
 TRADE_EVO_DEX = search.dex_numbers(TRADE_EVOS)  # evolve free once traded
 COSTLY_DEX = search.dex_numbers(COSTLY_LINES)  # a family with an evolution over 100 candy
+HATCH_COSTLY_DEX = search.dex_numbers(rules.HATCH_COSTLY)  # GIV without the team check
 
 
 @dataclass
@@ -170,7 +174,8 @@ def tables(to):
                        "giv_for_taker": set(rules.GIV_FOR_TAKER), "from": sp["from"],
                        "raid": set(tr.pve(m)[0]),  # in DialgaDex's top PVE_TOP vs some boss, or evolves into one
                        "strong": set(tr.strong_lines(m)),  # a strong line's species (its shadows: never purified)
-                       "raid_self": {s for s in tr.raid_tops(m)[0] if s in m.by}}  # in some top as itself
+                       "raid_self": {s for s in tr.raid_tops(m)[0] if s in m.by},  # in some top as itself
+                       "teams": raidteams.newest(to)[0]}  # the receiver's raid teams (None: no whole count yet)
     return _TABLES[to]
 
 
@@ -348,7 +353,7 @@ def usual(f, t, today=None):
         return tag("GIV", why="caught 100 km+ away")
     if v := dmax_short(f, t, sid):  # (last of the GIVs: the others need no count read)
         return v
-    return transfer(f, sid, "no rule wants it")
+    return transfer(f, sid, "no rule wants it", t=t)
 
 
 def special(f, sid, kinds, strip):
@@ -401,14 +406,16 @@ def two_xl(f, t, sid):
     return None
 
 
-def transfer(f, sid, why, off=(), purify=False, clear=False):
+def transfer(f, sid, why, off=(), purify=False, clear=False, t=None):
     """Transfer, unless it's untraded and (the user's rules, 2026-10-31, for every Transfer):
       an xxs one -> IVC, named xxs (/ivc counts that name as done)
       one that evolves free once traded (TRADE_EVOS) -> GIV, signed in as HashTagAJay only (it goes to EVO_FOR,
       who wants the XP; HashTagAJay doesn't, the user 2026-11-02). A shadow can't be traded: it never is
       one whose family has an evolution over 100 candy (COSTLY_LINES: Magikarp, Snom, Noibat, ...) -> GIV, either
-      account (the user, 2026-11-12). Not a shadow, and not a trade evolution on EVO_FOR (that rule stays). GIV at 26+ and
-      every other rule come before this, as before
+      account (the user, 2026-11-12), only when it or a later stage could make the receiver's raid team A or B
+      (team_line), or it's Snom's line (rules.HATCH_COSTLY). Its candy alone isn't worth a trade under level 26 (the
+      user, 2026-11-21). No whole raid team count for the receiver: unsure. Not a shadow, and not a trade evolution on
+      EVO_FOR (that rule stays). GIV at 26+ and every other rule come before this, as before. t: the tables
     The size comes first, as in final_tag's order. A size that didn't read gives unsure, never Transfer"""
     if not f.traded:
         if f.size is None:
@@ -420,9 +427,40 @@ def transfer(f, sid, why, off=(), purify=False, clear=False):
             return tag("GIV", why=f"untraded, evolves free once traded (else Transfer: {why})", off=off, clear=clear)
         dexn = pvp.SPECIES[sid]["dex"]
         if not f.shadow and dexn in COSTLY_DEX and not (f.account == EVO_FOR and dexn in TRADE_EVO_DEX):
-            return tag("GIV", why=f"untraded, its line has an evolution over 100 candy (else Transfer: {why})", off=off,
-                       clear=clear)
+            if dexn in HATCH_COSTLY_DEX:
+                return tag("GIV", why=f"untraded, Snom's line: hatch only, an evolution over 100 candy (else Transfer:"
+                                      f" {why})", off=off, clear=clear)
+            team = team_line(f, t, sid)
+            if team is None:
+                return unsure(f"{why}, but its line has an evolution over 100 candy: no whole raid team count for "
+                              f"{t['to'] if t else 'the receiver'} (raidteam.py count)")
+            if team:
+                return tag("GIV", why=f"untraded, its line has an evolution over 100 candy and {team} (else Transfer: "
+                                      f"{why})", off=off, clear=clear)
     return tag("Transfer", why=why, off=off, purify=purify, clear=clear)
+
+
+def team_line(f, t, sid):
+    """a costly line's one (the user, 2026-11-21): could it, or a stage it evolves into, make the receiver's raid team
+    A or B? A trade rerolls its IVs, so this goes by species: the receiver's newest whole count has a bar for it (the
+    lowest CP or IV sum that could make some team; no bar: not on any boss's list, or no copy could). -> why (a str)
+    if it could, '' if not, None: no count to ask"""
+    teams = (t or {}).get("teams")
+    if teams is None:
+        return None
+    forms, todo = [], [sid]
+    while todo:  # itself and every later stage (a costume one that can't evolve: itself only)
+        x = todo.pop()
+        forms.append(x)
+        if not dead_end(f, sid):
+            todo += pvp.children(x)
+    for x in forms:
+        bar, bar50 = teams["bars"].get(x), teams.get("bars50", {}).get(x)
+        if bar is not None or bar50 is not None:
+            return (f"{x} could make {t['to']}'s raid team "
+                    + " or ".join(([f"A (CP {bar}+)"] if bar is not None else [])
+                                  + ([f"B (IV sum {bar50}+)"] if bar50 is not None else [])))
+    return ""
 
 
 def costume_93(f, sid, kinds, strip=()):

@@ -1417,7 +1417,15 @@
    "GIV"
   ],
   null,
-  "untraded, its line has an evolution over 100 candy (else Transfer: no rule wants it)"
+  "untraded, Snom's line: hatch only, an evolution over 100 candy (else Transfer: no rule wants it)"
+ ],
+ "Frosmoth: GIV": [
+  "tag",
+  [
+   "GIV"
+  ],
+  null,
+  "untraded, Snom's line: hatch only, an evolution over 100 candy (else Transfer: no rule wants it)"
  ],
  "H Snom: GIV": [
   "tag",
@@ -1425,23 +1433,61 @@
    "GIV"
   ],
   null,
-  "untraded, its line has an evolution over 100 candy (else Transfer: no rule wants it)"
+  "untraded, Snom's line: hatch only, an evolution over 100 candy (else Transfer: no rule wants it)"
  ],
- "Noivern: GIV": [
+ "Noivern, on no team: Transfer": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "no rule wants it"
+ ],
+ "Noibat, on no team: Transfer": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "no rule wants it"
+ ],
+ "Wailmer, Wailord on no team: Transfer": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "no rule wants it"
+ ],
+ "H Noibat, on no team: Transfer": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "no rule wants it"
+ ],
+ "costly, no raid team count: unsure": [
+  "unsure",
+  [],
+  null,
+  "no rule wants it, but its line has an evolution over 100 candy: no whole raid team count for HashTagAJay (raidteam.py count)"
+ ],
+ "costume Roggenrola that can't evolve: Transfer": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "no rule wants it"
+ ],
+ "H Magikarp, no medal, Gyarados on team B: GIV": [
   "tag",
   [
    "GIV"
   ],
   null,
-  "untraded, its line has an evolution over 100 candy (else Transfer: no rule wants it)"
- ],
- "H Magikarp, no medal: GIV": [
-  "tag",
-  [
-   "GIV"
-  ],
-  null,
-  "untraded, its line has an evolution over 100 candy (else Transfer: no rule wants it)"
+  "untraded, its line has an evolution over 100 candy and gyarados could make CyrillJan's raid team B (IV sum 17+) (else Transfer: no rule wants it)"
  ],
  "Snom xxs: IVC": [
   "tag",
@@ -1517,13 +1563,13 @@
   null,
   "untraded: evolves free once traded"
  ],
- "Roggenrola: GIV": [
+ "Roggenrola, Gigalith on team A or B: GIV": [
   "tag",
   [
    "GIV"
   ],
   null,
-  "untraded, its line has an evolution over 100 candy (else Transfer: no rule wants it)"
+  "untraded, its line has an evolution over 100 candy and gigalith could make HashTagAJay's raid team A (CP 2252+) or B (IV sum 29+) (else Transfer: no rule wants it)"
  ],
  "Boldore, trade evolution: Transfer": [
   "tag",

@@ -33,7 +33,8 @@ One tag each, the first that fits:
       stage on the page counts for the earlier ones, each missing branch wants its own copy, and only a 100 still in
       storage counts as a copy: the /dex run's owned-100.json)
     - PvPoke top 100 in Great, Ultra or Master League, with every rank 1 IV 5 or more (pvp-giv-<date>.json)
-    - HashTagAJay has a lucky one of the family and under 348 candy (read)
+    (HashTagAJay low on a lucky family's candy was a GIV too: a candy reason, worth a trade only at level 26+, so
+    the level rule covers it. The user, 2026-11-21)
  4. GIV at level 26+ (was XLX, the user 2026-11-19): a power-up costs 4 Candy or more (level 26+: 4,000 Stardust with 4 Candy, or 4,500+). Read one by one in the power-up dialog.
  5. GIV (evolved): a stage 2 (a baby isn't a stage), or a stage 1 that takes 100+ candy, a quest or an item to
     evolve into, or one GO can't evolve into yet (Kleavor, Alolan Marowak) (giv-evolved-<date>.json). Also gym
@@ -50,8 +51,8 @@ Power-ups: only cleantrades' cheap jumps (14->15, 19->20, 22->23, 30->31), never
 the account that will transfer it has under 360 Candy XL of the family: HashTagAJay (read) for the traded tags,
 CyrillJan for the rest.
 
-read (HashTagAJay): which families have a lucky one and under 348 candy, and which have 360+ Candy XL. Group searches
-('lucky&1-151&countcandy0-347'), halved until each hit is one family. -> runs/<time>-read/read.json
+read (HashTagAJay): which families have 360+ Candy XL. Group searches
+('1-151&countcandyxl360-'), halved until each hit is one family. -> runs/<time>-read/read.json
 tag makes its searches itself, each run, from the newest lucky and ★100% /dex runs of HashTagAJay, roster.json,
 read.json and pvp-giv (no plan step; `plan` only shows them). A rerun within 12 hours skips the ones already done.
 tag (CyrillJan): the saved search 'Tradeable' + each tag search (bulk_searches, in verdict.py's order: GuaranteedLucky,
@@ -83,7 +84,7 @@ import savedsearch
 import sizes
 from taps import Pass, owned, details
 from ivc import GYM_DEFENDERS
-from rules import (GIVER, TAKER, TAGS, XLX, OLD_XLX, TRANSFER, LUCKY_CANDY, XL_CAP, XLX_LEVEL, GIV_FOR_TAKER, XLX_FOR,
+from rules import (GIVER, TAKER, TAGS, XLX, OLD_XLX, TRANSFER, XL_CAP, XLX_LEVEL, GIV_FOR_TAKER, XLX_FOR,
     PVE_TOP, REROLL_ML, REROLL_ENOUGH, HARD_EGGS, HARD_TO_FARM, BY_HAND, SF_NATIVE, PVP_FLOOR, HARD_CANDY, BABIES, SPECIAL, NO_SPECIAL, DYNAMAX, UNDER_360_XL, TAG_SKIP, GUARANTEED,
     LUCKY_YEAR, OLD, OLD_AGE)
 
@@ -324,12 +325,9 @@ def cmd_read(resume=None):
     fams = families_by_dex(m)
     chunks = [fams[i:i + 20] for i in range(0, len(fams), 20)]  # 20 families: a short search, and fewer splits
     seen = [0, 0]
-    lucky = [h for c in chunks for h in tagsheet.group_hits(c, "lucky&", f"countcandy0-{LUCKY_CANDY - 1}", n, seen)]
-    log(f"lucky, under {LUCKY_CANDY} candy: {lucky}")
-    seen = [0, 0]
     xl = [h for c in chunks for h in tagsheet.group_hits(c, "", f"countcandyxl{XL_CAP}-", n, seen)]
     log(f"{XL_CAP}+ Candy XL: {xl}")
-    out = {"trainer": who, "lucky_low_candy": lucky, "xl_full": xl}
+    out = {"trainer": who, "xl_full": xl}
     json.dump(out, open(os.path.join(base.RUN_DIR, "read.json"), "w"), indent=1)
 
 
@@ -487,14 +485,12 @@ def taker_species(m):
         elif s in roster["giv_plain"]:  # (was GIV: #2-#6 is a Reroll too, the user 2026-11-19)
             why.setdefault(s, ("Reroll", "#2-#6 raid attacker"))
     hund = dex.hundred_useful(set(hund_missing), hund_owned, m.by, m.parent)
-    low = {m.root(s) for s in m.by if m.dex(s) in read["lucky_low_candy"]}
-    for s in ok:
+    for s in ok:  # (no "lucky family under 348 candy" GIV: a candy reason, only worth it at level 26+, where the
+        # level rule gives GIV anyway. The user, 2026-11-21)
         if s in hund:
             why.setdefault(s, ("GIV", "★100% hole"))
         elif s in pvp_giv:
             why.setdefault(s, ("GIV", "PvP " + " ".join(pvp_giv[s])))
-        elif m.root(s) in low:
-            why.setdefault(s, ("GIV", f"lucky family under {LUCKY_CANDY} candy"))
     evolved = evolved_giv(m, ok, why, json.load(open(hard_f)))
     evolved.update({s: r for s, r in GIV_FOR_TAKER.items() if s in ok and s not in why})
     return {"why": why, "lucky": lucky, "evolved": evolved, "dmax": dmax_need(m, ok),

@@ -26,12 +26,16 @@ TABLES = {  # made up
                                  "magikarp": ("GIV", "★100% hole")},
             "lucky": {"nidoran_female": "female"}, "evolved": {"golem": "stage 2"}, "no_dmax": set(),
             "xl_full": set(), "giv_for_taker": {"tandemaus"}, "raid": {"rhyhorn", "rhydon"}, "raid_self": {"rhydon"}, "strong": {"drilbur"},
-            "hard": {}, "by_hand": set(), "dmax": {"wooloo": 480, "dubwool": 480}},
+            "hard": {}, "by_hand": set(), "dmax": {"wooloo": 480, "dubwool": 480},
+            # HashTagAJay's raid teams: Gigalith could make one, Noivern and Gyarados can't
+            "teams": {"bars": {"gigalith": 2252, "gyarados": None}, "bars50": {"gigalith": 29}}},
     GIVER: {"to": GIVER, "why": {"rhyhorn": ("GIV", "PvP"),
                                  "bulbasaur": ("Reroll", "Venusaur can mega")}, "lucky": {}, "evolved": {"golem": "stage 2"},
             "no_dmax": set(), "xl_full": set(), "giv_for_taker": {"tandemaus"}, "raid": {"rhyhorn", "rhydon"}, "raid_self": {"rhydon"}, "strong": {"drilbur"},
             "hard": {"gible": "10 km egg (Gible)", "smeargle": "hard to farm"}, "by_hand": {"spinda", "tauros"},
-            "dmax": {"wooloo": 480, "dubwool": 480}},
+            "dmax": {"wooloo": 480, "dubwool": 480},
+            # CyrillJan's raid teams: only a team B for Gyarados
+            "teams": {"bars": {"gyarados": None}, "bars50": {"gyarados": 17}}},
 }
 
 
@@ -241,10 +245,18 @@ CASES = {
     "H Tandemaus": plain(account=TAKER, sids=["tandemaus"]),
     "H far": plain(account=TAKER, far=True),
     # a family with an evolution over 100 candy: GIV where it would get Transfer, untraded (the user, 2026-11-12)
+    # under level 26 only if it or a later stage could make the receiver's raid team A or B, or it's Snom's line
+    # (the user, 2026-11-21)
     "Snom: GIV": plain(sids=["snom"]),
+    "Frosmoth: GIV": plain(sids=["frosmoth"]),
     "H Snom: GIV": plain(account=TAKER, sids=["snom"]),
-    "Noivern: GIV": plain(sids=["noivern"]),
-    "H Magikarp, no medal: GIV": plain(account=TAKER, sids=["magikarp"], kg=5.0),
+    "Noivern, on no team: Transfer": plain(sids=["noivern"]),
+    "Noibat, on no team: Transfer": plain(sids=["noibat"]),
+    "Wailmer, Wailord on no team: Transfer": plain(sids=["wailmer"]),
+    "H Noibat, on no team: Transfer": plain(account=TAKER, sids=["noibat"]),
+    "costly, no raid team count: unsure": (plain(sids=["roggenrola"]), dict(TABLES[TAKER], teams=None)),
+    "costume Roggenrola that can't evolve: Transfer": plain(sids=["roggenrola"], costume=True, evolves=False),
+    "H Magikarp, no medal, Gyarados on team B: GIV": plain(account=TAKER, sids=["magikarp"], kg=5.0),
     "Snom xxs: IVC": plain(sids=["snom"], size="xxs"),
     "Snom at 30: XLX first": plain(sids=["snom"], levels=[30]),
     "H Snom at 29: XLX first": plain(account=TAKER, sids=["snom"], levels=[29]),
@@ -253,7 +265,7 @@ CASES = {
     "Charmander, 100 candy: Transfer": plain(sids=["charmander"]),
     "Karrablast, trade evolution: Transfer": plain(sids=["karrablast"]),
     "H Karrablast, trade evolution: GIV": plain(account=TAKER, sids=["karrablast"]),
-    "Roggenrola: GIV": plain(sids=["roggenrola"]),
+    "Roggenrola, Gigalith on team A or B: GIV": plain(sids=["roggenrola"]),
     "Boldore, trade evolution: Transfer": plain(sids=["boldore"]),
     # HashTagAJay's Leftovers, judged for any account (the user, 2026-11-16)
     "H XLX at 26": plain(account=TAKER, levels=[26]),

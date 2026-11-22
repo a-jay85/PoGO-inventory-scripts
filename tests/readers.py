@@ -526,6 +526,16 @@ CANDY_ROWS = {  # the detail page's candy rows, at the Pixel's heights (a Dratin
 }
 
 
+# ui.is_word: a button or label word read with the misreads seen in runs, and near words it must not take
+WORDS = [("QSearch", "SEARCH"), ("Q SEARCH", "SEARCH"), ("9 Search", "SEARCH"), ("SEND GIFTI", "SEND GIFT"),
+         ("CANCE1", "CANCEL"), ("CANCFL", "CANCEL"), ("0K", "OK"), ("LET'S GO!", "LETS GO"), ("LETSGO", "LETS GO"),
+         ("DISMSS", "DISMISS"), ("CLA|M REWARD", "CLAIM REWARD"), ("Transfer.", "TRANSFER"), ("STARDUST", "STARDUST"),
+         ("STARDUST 1234", "STARDUST"), ("CANCEL 2", "CANCEL"), ("СANCEL", "CANCEL"), ("GYM BADGE", "GYM BADGES"),
+         ("OKI", "OK"), ("NOT", "NO"), ("NO", "NOT NOW"), ("CANDY XL", "CANDY"), ("CANDY", "CANDY XL"),
+         ("WEIGHT", "HEIGHT"), ("HEIGHT", "WEIGHT"), ("REWARDS", "CLAIM REWARD"), ("SENT", "SEND"), ("XXL", "XL"),
+         ("CONFIRM", "CANCEL"), ("TRANSFER POKEMON", "TRANSFER"), ("POWER UP", "POWER UPS"), ("MEGA", "MEGA EVOLVE"),
+         ("", "OK"), ("12", "OK")]
+
 def answers():
     out = {}
     out["pagefacts.mega_energy"] = {k: answer(pagefacts.mega_energy, ts) for k, ts in CANDY_ROWS.items()}
@@ -550,6 +560,7 @@ def answers():
     out["pagefacts.caught_read"] = {k: answer(pagefacts.caught_read, v) for k, v in CAUGHT_READ.items()}
     out["tagsheet.same_at_top"] = {k: answer(tagsheet.same_at_top, *v) for k, v in AT_TOP.items()}
     out["base.same_pokemon"] = {k: answer(base.same_pokemon, *v) for k, v in SAME.items()}
+    out["ui.is_word"] = {f"{g}\t{w}": answer(ui.is_word, g, w) for g, w in WORDS}
     out["ui.classify"] = {k: answer(ui.classify, ts) for k, ts in SCREENS.items()}
     out["base.screen_changed"] = {k: answer(base.screen_changed, *v) for k, v in CHANGES.items()}
     out["mega.ask_cost"] ={k: answer(mega.ask_cost, ts) for k, ts in ASKS.items()}

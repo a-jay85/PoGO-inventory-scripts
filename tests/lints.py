@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Pins three bad patterns that came back after a fix: a search that ends in a thin letter, a label lookup used
-without a None check, and a hand-rolled wait loop. No phone, nothing imported: it reads the code (ast) of
+"""Pins four bad patterns that came back after a fix: a search that ends in a thin letter, a label lookup used
+without a None check, a hand-rolled wait loop, and a button word compared exactly. No phone, nothing imported: it reads the code (ast) of
 skills/**/*.py and the root scripts. Today's offenders are pinned in tests/lints.json, so only a new one fails.
 
   python3 tests/lints.py            check against tests/lints.json
@@ -28,6 +28,10 @@ skills/**/*.py and the root scripts. Today's offenders are pinned in tests/lints
           base.settle(read, ok, timeout), base.steady(read) (two reads that agree) or base.wait_for. Counted per
           function. Not counted: loops over base.tries() (it is the shared wait), and settle/steady/wait_for/tries
           themselves.
+4. exact  a button or label word compared exactly to an OCR read: ui.norm(t[4]) == "CANCEL", or in ("CONFIRM",
+          "CANCEL"). One letter off ('CANCE1', 'QSEARCH') and it misses, and every new misread was its own fix
+          (#160, #213, #439, #529...). Use ui.is_word(t[4], "CANCEL"), ui.has_word(texts, ...), ui.label or
+          pages.words. Words of 4+ letters only: shorter ones stay exact in is_word too.
 LINT_DEBUG=1 lists the searches whose end it couldn't work out.
 Pins: file, function and the expression, never a line number (any edit above would move it). New ones print
 file:line and what to do instead.
@@ -50,6 +54,8 @@ LOOKS = {"look", "capture", "ocr", "sharp", "panel_text", "wait_for", "wait", "n
 SHARED_WAITS = {("base", "settle"), ("base", "steady"), ("base", "wait_for"), ("base", "tries")}
 SAY = {"thin": "put a term that doesn't end in a thin letter last (xxl&#IVC, not #IVC&xxl)",
        "none": "check it first (t = label(...); if t: ...), or use a walrus: if (t := label(...)):",
+       "exact": "use ui.is_word(t[4], WORD), ui.has_word(texts, WORD) or ui.label(texts, WORD): they allow a misread "
+                "letter or a glued icon",
        "waits": "use base.settle(read, ok, timeout), base.steady(read) or base.wait_for; if it really can't, --record and say why in the "
                 "PR body"}
 
@@ -563,14 +569,49 @@ def check_waits(code):
     return counts, lines
 
 
+# ---------- 4. exact ----------
+
+def is_norm_call(e):
+    return isinstance(e, ast.Call) and (isinstance(e.func, ast.Attribute) and e.func.attr == "norm"
+                                       and isinstance(e.func.value, ast.Name) and e.func.value.id == "ui"
+                                       or isinstance(e.func, ast.Name) and e.func.id == "norm")
+
+
+def word_consts(e):
+    """the button words a compare's right side holds: a string, or a tuple / list / set of strings"""
+    if isinstance(e, ast.Constant) and isinstance(e.value, str):
+        return [e.value]
+    if isinstance(e, (ast.Tuple, ast.List, ast.Set)) and all(isinstance(x, ast.Constant) and isinstance(x.value, str)
+                                                            for x in e.elts):
+        return [x.value for x in e.elts]
+    return []
+
+
+def check_exact(code):
+    found = []
+    for m in code.mods.values():
+        if m.rel == "skills/shared/ui.py":  # is_word and label themselves
+            continue
+        for n in ast.walk(m.tree):
+            if not (isinstance(n, ast.Compare) and len(n.ops) == 1 and isinstance(n.ops[0], (ast.Eq, ast.In))
+                    and is_norm_call(n.left)):
+                continue
+            ws = word_consts(n.comparators[0])
+            if any(len(re.sub(r"[^A-Z]", "", w)) >= 4 for w in ws):
+                found.append((f"{m.rel} {qualname(m, enclosing(m, n))}: {ast.unparse(n)[:90]}", f"{m.rel}:{n.lineno}"))
+    return found
+
+
 # ---------- the check ----------
 
 def now(code):
     thin, thin_note = check_thin(code)
     none, none_note = check_none(code)
     waits, wait_lines = check_waits(code)
-    pins = {"thin": sorted(k for k, _ in thin), "none": sorted(k for k, _ in none), "waits": dict(sorted(waits.items()))}
-    where = {"thin": thin, "none": none, "waits": wait_lines}
+    exact = check_exact(code)
+    pins = {"thin": sorted(k for k, _ in thin), "none": sorted(k for k, _ in none), "waits": dict(sorted(waits.items())),
+            "exact": sorted(k for k, _ in exact)}
+    where = {"thin": thin, "none": none, "waits": wait_lines, "exact": exact}
     return pins, where, {"thin": thin_note, "none": none_note}
 
 
@@ -593,7 +634,7 @@ def main(a):
     pins, where, notes = now(code)
     if swap:
         print(f"({notes['thin']}; {notes['none']})")
-        for k in ("thin", "none"):
+        for k in ("thin", "none", "exact"):
             for key, at in where[k]:
                 print(f"{k}: {at}: {key}")
         for key, ls in where["waits"].items():
@@ -603,12 +644,13 @@ def main(a):
         with open(GOLD, "w") as f:
             json.dump(pins, f, indent=1, sort_keys=True, ensure_ascii=False)
             f.write("\n")
-        print(f"recorded {len(pins['thin'])} thin, {len(pins['none'])} none, {sum(pins['waits'].values())} waits "
+        print(f"recorded {len(pins['thin'])} thin, {len(pins['none'])} none, {len(pins['exact'])} exact, "
+              f"{sum(pins['waits'].values())} waits "
               f"-> {GOLD}")
         return 0
     gold = json.load(open(GOLD))
     bad = 0
-    for k in ("thin", "none"):
+    for k in ("thin", "none", "exact"):
         g, n = collections.Counter(gold.get(k, [])), collections.Counter(pins[k])
         for key in sorted(n - g):
             bad += 1
@@ -627,7 +669,7 @@ def main(a):
                   f"({', '.join(where['waits'][key])})\n  -> {SAY['waits']}")
         else:
             print(f"waits: {key}: {g[key]} -> {n.get(key, 0)}: fewer, good (run --record)")
-    total = len(gold.get("thin", [])) + len(gold.get("none", [])) + len(g)
+    total = len(gold.get("thin", [])) + len(gold.get("none", [])) + len(gold.get("exact", [])) + len(g)
     print(f"({notes['thin']}; {notes['none']}; {sum(n.values())} wait loops in {len(per_file(n))} files; "
           f"{time.time() - t0:.1f}s)")
     print(f"{bad} new or changed" if bad else f"all {total} pins the same")

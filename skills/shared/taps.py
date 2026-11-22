@@ -274,7 +274,7 @@ def costs(texts):
 
 def owned(texts):
     """-> (stardust owned, candy owned) off the detail page"""
-    dust_l = [t for t in texts if ui.norm(t[4]) == "STARDUST"]
+    dust_l = [t for t in texts if ui.is_word(t[4], "STARDUST")]
     if len(dust_l) != 1:
         raise Pass("can't find the STARDUST label")
     x, y, w, _ = dust_l[0][:4]
@@ -288,7 +288,7 @@ def owned(texts):
                        for u in texts)  # 'SNORLAX CANDY' / 'XL' wrapped: that's Candy XL
     labs = [t for t in texts if re.search(r"(^|\s)CANDY$", ui.norm(t[4])) and t[1] < 0.8 and not xl(t)]
     labs = [max((u for u in texts if 0 < l[1] - u[1] < 0.025 and u[0] < l[0] + l[2] and l[0] < u[0] + u[2]),
-                key=lambda u: u[1], default=l) if ui.norm(l[4]) == "CANDY" else l for l in labs]
+                key=lambda u: u[1], default=l) if ui.is_word(l[4], "CANDY") else l for l in labs]
     labs = sorted(set(labs), key=lambda t: (round(t[1], 2), t[0]))[:1]  # the candy row is above the XL / mega energy row
     up = [t for l in labs for t in texts if 0 < l[1] - t[1] < 0.045 and t[0] < l[0] + l[2] and l[0] < t[0] + t[2]
           and re.fullmatch(r"[\d,.]+", t[4].strip())]
@@ -334,7 +334,7 @@ def purify(info):
             screen, texts, _, _ = look()
         except ui.Refused:
             continue
-        if screen == "detail" and not exact(texts, "PURIFY") and any(ui.norm(t[4]) == "POWER UP" for t in texts):
+        if screen == "detail" and not exact(texts, "PURIFY") and ui.has_word(texts, "POWER UP"):
             cp = ui.detail_info(texts)["cp"]
             if cp and cp != info["cp"]:
                 log(f"  timing: to dialog {t1 - t0:.1f}s, animation {time.time() - t1:.1f}s")

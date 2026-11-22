@@ -580,7 +580,8 @@ def giver_species(m):
       Reroll: a new 100 is worth having: a strong line (strong_lines), DialgaDex's top PVE_TOP against a boss like a
         4-star raid's or higher (real_boss; #2-#6 was GIV, the user 2026-11-19), or PvPoke's Master League top REROLL_ML
         (each with the earlier stages that evolve into it). The two raid reasons (the ideal team, the top PVE_TOP) only
-        while some copy of the line could still make one of CyrillJan's team Bs (no_team_b: its newest whole count)
+        while some copy of the line could still make one of CyrillJan's team Bs (no_team_b: its newest whole count).
+        One that's in only as a Mega counts only till CyrillJan has a 100 of it (giver_100: one Mega is enough)
       hard (GIV, after 2XL and the level 26+ GIV): the family of a 10 or 12 km egg hatch (refresh's eggs-<date>.json), Smeargle, and
         a gym defender's line (/ivc's GYM_DEFENDERS and what evolves into them: a potential top gym defender for an
         account with fewer, the user 2026-11-16)
@@ -605,8 +606,12 @@ def giver_species(m):
                 if x in ok:
                     why.setdefault(x, (tag, r))
     count_f, gone = no_team_b(m)
-    add("Reroll", {s: r for s, r in strong_lines(m).items() if " on the ideal team " not in r or not gone(s)})
-    add("Reroll", {s: r for s, r in pve(m, real=True)[0].items() if not gone(s)})  # (it has the earlier stages)
+    has_100 = giver_100(m)
+    plain = strong_lines(m, megas=False)
+    add("Reroll", {s: r for s, r in strong_lines(m).items() if " on the ideal team " not in r
+                   or (not gone(s) and (s in plain or not has_100(r.split()[2])))})
+    enough = lambda s, mega_only: f"{GIVER} has a 100" if mega_only and has_100(s) else None
+    add("Reroll", {s: r for s, r in pve(m, enough, real=True)[0].items() if not gone(s)})  # (it has the earlier stages)
     ml = {s: int(r.split("#")[1]) for s, rs in json.load(open(pvp_f)).items() for r in rs if r.startswith("10000:")}
     add("Reroll", {s: f"Master League #{r}" for s, r in ml.items() if r <= REROLL_ML and s in m.by})
     eggs = json.load(open(eggs_f))
@@ -642,6 +647,18 @@ def no_team_b(m):
         xs = [x for x in m.down(sid) if x in b50]
         return bool(xs) and all(b50[x] is None for x in xs)
     return raidteams.path_of(GIVER), gone
+
+
+def giver_100(m):
+    """-> has_100(sid): CyrillJan's newest whole /raidteam count has a 100 (15/15/15, not a shadow) of sid or of a
+    stage that evolves into it. A Mega spot needs one copy: a line that's in only as a Mega (on the ideal team or in
+    the top PVE_TOP) is no Reroll once CyrillJan has a 100 of it (the user, 2026-11-22). A copy whose IVs the count
+    didn't read counts as no 100, so a line stays Reroll till a count reads it. No count: never a 100"""
+    import raidteams
+    copies = (raidteams.newest(GIVER)[0] or {}).get("copies", [])
+    copies = copies.values() if isinstance(copies, dict) else copies
+    got = {s for c in copies if not c["shadow"] and [15, 15, 15] in (c["ivs"] or []) for s in c["species"]}
+    return lambda sid: any(x in got for x in [sid, *dex.ancestors(sid, m.parent)])
 
 
 # ---------- tag (CyrillJan's Tradeable) ----------

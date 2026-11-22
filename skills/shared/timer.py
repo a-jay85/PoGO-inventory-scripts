@@ -240,6 +240,7 @@ def tick():
     now = time.time()
     ready = sorted((t, n) for n, t in due().items() if n in JOBS and t <= now)
     if any(n in CHARGING_WAITS for _, n in ready) and pixel_charging():
+        missed("android", False)  # (adb answered: an old away count would turn every Pixel timer off at the next blip)
         skip(f"the Pixel is charging: {', '.join(n for _, n in ready if n in CHARGING_WAITS)} waits")
         ready = [r for r in ready if r[1] not in CHARGING_WAITS]  # (left in, it would hold every other job up)
     if not ready:

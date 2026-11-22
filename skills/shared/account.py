@@ -223,10 +223,10 @@ def synced(who, switched=False):
     (advsync.eggs: the mode's egg into the free ∞ incubator, the hatch timer set from its km). switched: the account
     just changed, so a switch to the GO Plus+ account sets goplus for the next minute. -> who"""
     import advsync  # (here: advsync imports this file)
+    if switched and who == timer.GOPLUS_FOR:  # (first: a stop in the egg check mustn't leave it off)
+        log(f"next goplus run at {timer.later('goplus', 0)} ({who} has the GO Plus+)")
     advsync.turn_on()
     advsync.eggs()
-    if switched and who == timer.GOPLUS_FOR:
-        log(f"next goplus run at {timer.later('goplus', 0)} ({who} has the GO Plus+)")
     return who
 
 

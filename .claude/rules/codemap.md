@@ -46,7 +46,7 @@ Before writing a helper, grep `skills/MAP.md` (every function, its arguments and
 - `skills/cleanup/leftovers.py`: Tag HashTagAJay's Leftovers saved search by what a trade to another account is worth (CyrillJan, or the user's wife's account, which is further behind: good for any …
 - `skills/cleanup/savedsearches.py`: Read the saved searches off the phone and check they hold the terms in rules.SAVED. It only reads: it tags nothing
 - `skills/cleanup/sizes.py`: An XXL Pokémon, traded or not, is kept: favorite on, its trade, Transfer and IVC tags off (it has value in showcases, the user 2026-11-04)
-- `skills/cleanup/specieswise.py`: Re-judge HashTagAJay's #GIV or #Transfer pile by species alone, with no Pokémon opened (the user, 2026-11-16)
+- `skills/cleanup/specieswise.py`: Re-judge HashTagAJay's #GIV, #Transfer or #Reroll pile by species alone, with no Pokémon opened (the user, 2026-11-16; #Reroll 2026-11-22, after its raid Rerolls began …
 - `skills/cleanup/tradeable.py`: Tag CyrillJan's Tradeable saved search by what a trade to HashTagAJay is worth, and power them up for Candy XL.
 
 ## skills/dex

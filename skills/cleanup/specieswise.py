@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Re-judge HashTagAJay's #GIV or #Transfer pile by species alone, with no Pokémon opened (the user, 2026-11-16).
+"""Re-judge HashTagAJay's #GIV, #Transfer or #Reroll pile by species alone, with no Pokémon opened (the user, 2026-11-16;
+#Reroll 2026-11-22, after its raid Rerolls began to follow CyrillJan's raid team count).
 
-  python3 specieswise.py plan GIV|Transfer                                   the Mac: the searches it would tag
-  POGO_PHONE=android caffeinate -dimsu python3 specieswise.py GIV|Transfer   HashTagAJay on the Pixel: tag them
+  python3 specieswise.py plan GIV|Transfer|Reroll                                   the Mac: the searches it would tag
+  POGO_PHONE=android caffeinate -dimsu python3 specieswise.py GIV|Transfer|Reroll   HashTagAJay on the Pixel: tag them
 
 Each species is judged once by ../shared/verdict.py, the one rule book, as a plain one: untraded, caught 30 days ago,
 no odd size, level 20, caught nearby, its gym top 20 out. HashTagAJay's Candy and Candy XL per family come from the
@@ -12,7 +13,8 @@ evolutions, egg families, gym lines, trade evolutions, costly lines, short of Ca
 or Transfer. No appraisal, no power-up cost, no page read: the IV rule (98%+) doesn't run. Level isn't searchable, so a
 Transfer search takes only CPs no level 26+ one has (GIV at level 26+ comes before Transfer): under the species'
 CP at level 26 with 0/0/0 IVs (cp-N). Species are put in CP tiers (TIER: the top cap at most 1.5 x the lowest),
-one search per tier at its lowest cap. Ones over it stay #GIV.
+one search per tier at its lowest cap. Ones over it stay in the pile. Each species is judged as caught nearby, so
+before each Transfer search the same one with distance100- gets GIV (far, which comes before Transfer).
 
 Left as they are, out of every search: ones a rule before the species rules decides (traded, lucky, shadow, shiny,
 costume, background, XXL, XXS, Dynamax, Gigantamax, caught 300+ days ago or in 2016-2020, special trades), ones with
@@ -43,7 +45,8 @@ from base import Stop, log
 import ui
 import pvp, rules, search
 
-PILES = ("GIV", "Transfer")
+PILES = ("GIV", "Transfer", "Reroll")  # (Reroll: after a raid Reroll rule change, the user 2026-11-22)
+FAR = "&distance100-"  # caught 100 km+ away: GIV (far), which comes before Transfer
 GIVER_PILES = ("Reroll",)
 WHO = rules.TAKER  # HashTagAJay
 GIVER = rules.GIVER  # CyrillJan: its piles go by the steps below
@@ -278,7 +281,7 @@ def query(pile, part, who=WHO):
     if who == GIVER:
         others = "".join(f"&!#{t}" for t in GIVER_OTHER_TAGS if t != pile)
         return f"#{pile}&0*,1*,2*&{part}{GIVER_LEFT_OUT}{others}"  # (0-2* first: a bar ending in #Reroll reads back short)
-    return f"#{pile}&{part}{LEFT_OUT}"
+    return f"#{pile}&{part}{LEFT_OUT.replace(f'&!#{pile}', '')}"  # (the pile's own tag would leave out all of it)
 
 
 def plan_of(pile, who, dexes):
@@ -287,7 +290,11 @@ def plan_of(pile, who, dexes):
         got, unsure = giver_groups(pile, dexes)
         return got, unsure, None
     got, n, unsure = groups(pile)
-    return [(tag, q) for tag, qs in got.items() for q in qs], unsure, n
+    out = []
+    for tag, qs in got.items():
+        for q in qs:  # a species judged Transfer was judged as caught nearby: its far ones get GIV first
+            out += ([("GIV", q + FAR)] if tag == rules.TRANSFER and pile != "GIV" else []) + [(tag, q)]
+    return out, unsure, n
 
 
 def cmd_plan(pile, who, dexes):

@@ -244,7 +244,7 @@ class Door:
         if not size and medal and vd.TO[self.account] == vd.GIVER and medal[1](base.who(info)[2] or 0):
             size = None  # an XS Rattata has no badge to read: XS or not is a medal GIV or not. Only the medal rule's
             # account asks, and only for a light one: a heavy one is no medal at any size (2026-11-02)
-        hp = next(t for t in texts if re.search(r"\d+\s*/\s*\d+\s*HP", t[4]))
+        hp = ui.hp_line(texts)
         near = [ui.norm(t[4]) for t in texts if hp[1] < t[1] < hp[1] + 0.3]
         chips = tagsheet.tag_chips_sure(texts, (*vd.OWN_TAGS, *vd.TRADE_TAGS, *vd.REMOTE_TAGS, *vd.IGNORED_TAGS,
                                                 self.tag, self.other or ""))  # before page_bottom scrolls down

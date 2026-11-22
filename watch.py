@@ -11,6 +11,9 @@ the script's git checkout, its HEAD, its files' state as a tree, POGO_PHONE, sta
 reads it to find a PR's phone test. Every python3 the run starts records which lines of that checkout ran
 (linetrace/sitecustomize.py): <stamp>.lines.<pid>-<n>, one per process. merge_gate.py reads those too.
 
+Run from a worktree, it links in the main checkout's LINKED runs folders (the species lists and saved reads) the
+worktree lacks, for the run only: it takes them off after, so tests/layout.py and merge_gate.py see none.
+
 The summary is the exit code, the STOPPED / CRASHED / interrupted / error lines, and the last few lines.
 """
 import json, os, re, subprocess, sys, tempfile, time
@@ -19,6 +22,7 @@ DIR = "/tmp/pogo-watch"
 TRACER = os.path.join(os.path.dirname(os.path.realpath(__file__)), "linetrace")  # (its sitecustomize.py)
 ALARM = re.compile(r"STOPPED|CRASHED|interrupted|Error")
 TAIL = 4
+LINKED = ("dex", "roster", "cleanup")  # skills whose runs folders a worktree's phone run needs from the main checkout
 
 
 def git(top, *args, env=None):
@@ -53,6 +57,21 @@ def trace_env(stamp, top, env=None):
     return env
 
 
+def link_runs(top):
+    """a worktree at top: link the main checkout's LINKED runs folders it lacks -> the links made"""
+    common = top and git(top, "rev-parse", "--path-format=absolute", "--git-common-dir")
+    main = common and os.path.dirname(common)
+    if not main or os.path.realpath(main) == os.path.realpath(top):
+        return []
+    made = []
+    for s in LINKED:
+        src, dst = os.path.join(main, "skills", s, "runs"), os.path.join(top, "skills", s, "runs")
+        if os.path.isdir(src) and os.path.isdir(os.path.dirname(dst)) and not os.path.lexists(dst):
+            os.symlink(src, dst)
+            made.append(dst)
+    return made
+
+
 def run(stamp, cmd):
     """the detached half: run cmd, its output to the log, then its exit code to <stamp>.rc (and <stamp>.json)"""
     info = dict(origin(cmd), start=time.strftime("%Y-%m-%dT%H:%M:%S"), end=None, rc=None)
@@ -61,12 +80,17 @@ def run(stamp, cmd):
     meta = os.path.join(DIR, stamp + ".json")
     with open(meta, "w") as f:
         json.dump(info, f, indent=1)
+    links = link_runs(info.get("toplevel"))  # (after origin: the tree it wrote down has no links in it)
     with open(os.path.join(DIR, stamp + ".log"), "ab") as f:
         try:
             rc = subprocess.call(cmd, stdout=f, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, env=env)
         except OSError as e:
             f.write(f"watch.py: can't start {cmd[0]}: {e}\n".encode())
             rc = 127
+        finally:
+            for l in links:
+                if os.path.islink(l):
+                    os.unlink(l)
     with open(meta, "w") as f:
         json.dump(dict(info, end=time.strftime("%Y-%m-%dT%H:%M:%S"), rc=rc), f, indent=1)
     with open(os.path.join(DIR, stamp + ".rc"), "w") as f:

@@ -18,7 +18,8 @@ When a step ends STOPPED (exit 1) or CRASHED (exit 2):
   those args, then the steps after it, every `last` written out as its folder.
 At most FIXES fixes and ROUNDS heals per run. A stop that comes back after its fix ends the run. Ctrl-C never heals.
 
-The step's output goes to the pane and to /tmp/pogo-heal/<stamp>.out. Ctrl-C while Claude works stops it and the run.
+The step's output goes to the pane and to /tmp/pogo-heal/<stamp>.out, Claude's whole stream (and why it failed, if
+it did) to <stamp>.claude.jsonl. Ctrl-C while Claude works stops it and the run.
 POGO_CLAUDE_BIN: a stand-in for `claude` (tests/heal.py). The gymfeed timer skips itself while pogo.py runs.
 """
 import collections, fcntl, json, os, re, subprocess, sys, threading, time
@@ -181,6 +182,8 @@ Do this:
    A read that found nothing may be a screen still loading: the fix looks again with base.settle, never a tap or
    key to make it show up.
    Earlier heals list the stops already fixed this run. The same one again means the fix didn't work: stop.
+   Before fixing, grep {reports}/*heal-* and git log for this stop's words: a stop fixed before in another spot
+   means the fix missed a path. Fix every path that can hit it.
 3. To fix: a worktree from origin/main, the fix, the tests CLAUDE.md lists for what you changed, then a phone test of
    the fix on the phone that failed, with a small --limit. Run the phone test in the foreground (watch.py, no
    run_in_background: nothing would wake you), and use watch.py --wait if it outlasts the Bash timeout. Before the
@@ -188,6 +191,14 @@ Do this:
    pogo.py pid {pid} (this run, waiting for you). Then commit, push, PR, squash-merge, ExitWorktree keep, pull the
    main checkout, wt_cleanup.py. If the test fails and you can't make it pass, close the PR and stop.
    The merge goes through merge_gate.py (a hook). If it blocks, do what it says (it may ask for a `Siblings:` line).
+   Write the PR body whole at gh pr create: a `Siblings:` line, and an `Unreached: <why>` line if the phone test
+   can't reach the changed lines. A body fixed after a block: `gh pr edit` in one command, `gh pr merge` in the next
+   (the hook checks the merge before an edit in the same command runs).
+   watch.py links the main checkout's dex, roster and cleanup runs folders into a worktree for the run and takes
+   them off after: don't make or remove those links yourself.
+   Shell, in the worktree: after EnterWorktree run commands from there, never `cd` into it. One plain command per
+   test (`python3 tests/readers.py`), no for-loops, no `$var` or `~` next to python3 or git: the worktree guard
+   blocks those. Paths outside the worktree in full (`/Users/...`).
 4. Work out the step's args to run again with only what's left. Read the step's script top comment for how it
    carries on (ivc `sort <run dir>`, trade --done N, a --limit less what got done, a run folder in place of `last`).
    The old args: {args}. A --limit, if any, may only go down. Args for this one step only: the steps after it run
@@ -210,8 +221,8 @@ def show(ev):
         say(f"  claude {c.get('name')}: {str(what).splitlines()[0][:100] if what else ''}")
 
 
-def ask_claude(prompt):
-    """-> (Claude's last text, None) or (None, why it failed)"""
+def ask_claude(prompt, log=os.devnull):
+    """-> (Claude's last text, None) or (None, why it failed). Its whole stream, and why it failed, go to log"""
     cmd = [os.environ.get("POGO_CLAUDE_BIN", "claude"), "-p", prompt, "--output-format", "stream-json", "--verbose",
            "--dangerously-skip-permissions"]
     env = dict(os.environ, CLAUDE_HEADLESS="1")
@@ -224,19 +235,25 @@ def ask_claude(prompt):
                              errors="replace", stdin=subprocess.DEVNULL)
     except OSError as e:
         return None, f"can't start claude: {e}"
-    try:
-        return read_claude(p)
-    except KeyboardInterrupt:
-        p.kill()
-        return None, "Ctrl-C: stopped Claude (a worktree or PR it made may be left: wt_cleanup.py --dry-run shows)"
+    with open(log, "a") as f:
+        try:
+            text, err = read_claude(p, f)
+        except KeyboardInterrupt:
+            p.kill()
+            text, err = None, "Ctrl-C: stopped Claude (a worktree or PR it made may be left: wt_cleanup.py --dry-run shows)"
+        if err:
+            f.write(json.dumps({"type": "heal-error", "why": err}) + "\n")
+    return text, err
 
 
-def read_claude(p):
+def read_claude(p, log):
     late = threading.Timer(CLAUDE_S, p.kill)  # (a long Bash call prints nothing for a while: no check per line)
     late.daemon = True
     late.start()
     result, last_text, other = None, "", collections.deque(maxlen=5)
     for line in p.stdout:
+        log.write(line)
+        log.flush()
         try:
             ev = json.loads(line)
         except ValueError:
@@ -372,7 +389,7 @@ def handle(steps, i, args, code, lines, out, started, folder_of, last, check, ph
                            hhmm=time.strftime("%H%M", now))
     say(f"step {i + 1} ({name}) ended: {end.strip()[:160]}")
     say("asking Claude to find why and fix it (Ctrl-C stops it)")
-    text, err = ask_claude(prompt)
+    text, err = ask_claude(prompt, out[:-4] + ".claude.jsonl")
     if err:
         say(err)
         return code

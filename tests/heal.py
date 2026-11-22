@@ -121,6 +121,9 @@ case("no HEAL line: stop", r, lambda g: g == ("exit", 1))
 
 (r, n) = run(["aa"], "ERROR")
 case("Claude failing (quota): stop", r, lambda g: g == ("exit", 1))
+logs = [os.path.join(heal.DIR, f) for f in sorted(os.listdir(heal.DIR)) if f.endswith(".claude.jsonl")]
+case("Claude's stream and why it failed go to <stamp>.claude.jsonl", open(logs[-1]).read() if logs else "",
+     lambda g: '"tool_use"' in g and '"heal-error"' in g and "quota hit" in g)
 
 (r, n) = run(["aa"], {"action": "stop", "fixed": False, "why": "a rule for Ajay"})
 case("Claude says stop: stop", r, lambda g: g == ("exit", 1))

@@ -1610,8 +1610,8 @@ pogo.py heals: a step that stops or crashes gets fixed, then runs again with onl
 - `wait_free(phones)`
 - `phones_of(phone)`
 - `show(ev)`: one short pane line per tool Claude uses
-- `ask_claude(prompt)`: -> (Claude's last text, None) or (None, why it failed)
-- `read_claude(p)`
+- `ask_claude(prompt, log=os.devnull)`: -> (Claude's last text, None) or (None, why it failed)
+- `read_claude(p, log)`
 - `answer(text)`: the HEAL {...} line -> dict, or None
 - `limit_of(args)`
 - `check_answer(a, old_args, phone)`: -> why it can't be used, or None
@@ -1626,6 +1626,7 @@ Run a phone script quietly: no output while it runs, a short summary when it end
 - `git(top, *args, env=None)`
 - `origin(cmd)`: where cmd's script comes from: its checkout, HEAD, whether it's clean, and the tree of its files as they are now (committed or not), so a later commit of the same files …
 - `trace_env(stamp, top, env=None)`: the run's environment, with line tracing on for the checkout at top (or as it was, with no checkout)
+- `link_runs(top)`: a worktree at top: link the main checkout's LINKED runs folders it lacks -> the links made
 - `run(stamp, cmd)`: the detached half: run cmd, its output to the log, then its exit code to <stamp>.rc (and <stamp>.json)
 - `summary(stamp)`: the alarm lines (a traceback shows as its exception line only), then the last few lines
 - `wait(stamp)`

@@ -1014,13 +1014,28 @@ def remote_trade_box(texts):
     return any("REMOTE TRADE TAG" in ui.norm(t[4]) for t in texts)
 
 
-def remote_trade_ok(texts, bounds):
+def remote_trade_ok(texts, bounds, again=True):
+    """OK on that box. The game once put the tag sheet back after it, not the detail (ivc, Pixel 2026-11-21): DONE
+    once more (the ticks are the ones wanted, and the detail's tags get checked after)"""
     ok = [t for t in texts if ui.norm(t[4]) == "OK"]
     if len(ok) != 1:
         raise Stop(f"the Remote Trade question: {len(ok)} OK buttons read")
     log("  the game: it can trade remotely in a while and keeps the Remote Trade tag: OK")
     tap_box(ok[0], bounds)
-    return wait_for("detail")
+    seen = wait_for("detail", "tags")
+    if seen[0] == "tags" and again:
+        log("  the tag sheet came back after OK: DONE again")
+        tap("DONE")
+        def read():
+            try:
+                return look()
+            except Refused:
+                return "?", [], None, None
+        seen = settle(read, lambda s: s[0] == "detail" or remote_trade_box(s[1]), timeout=6)
+        if remote_trade_box(seen[1]):
+            return remote_trade_ok(seen[1], seen[3], again=False)
+        return wait_for("detail")
+    return wait_for("detail") if seen[0] != "detail" else seen
 
 
 def tags_done():

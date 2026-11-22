@@ -1377,7 +1377,7 @@ def extras(texts):
     """shadow, lucky and XXL/XXS badge from the detail screen"""
     words = [ui.norm(t[4]) for t in texts]
     lucky = any(w.startswith("LUCKY POK") for w in words)
-    hp_line = next(t for t in texts if re.search(r"\d+\s*/\s*\d+\s*HP", t[4]))
+    hp_line = ui.hp_line(texts)
     dust = [t[1] for t in texts if ui.norm(t[4]) == "STARDUST"]
     bottom = min(dust) if dust else hp_line[1] + 0.2
     # the badge sits over the height on the right; "CANDY XL" is lower down, below STARDUST
@@ -1406,7 +1406,7 @@ def candy(texts):
 
 def type_line(texts):
     """the types under the name ('ICE / FLYING'), between the HP line and STARDUST"""
-    hp = next(t for t in texts if re.search(r"\d+\s*/\s*\d+\s*HP", t[4]))
+    hp = ui.hp_line(texts)
     words = lambda t: ui.norm(t[4]).replace("/", " ").split()
     for t in texts:
         if hp[1] < t[1] < hp[1] + 0.2 and words(t) and all(w in TYPES for w in words(t)):
@@ -1460,7 +1460,7 @@ def species_from_candy(texts, cp, hp):
 
 
 def dynamax(texts):
-    hp = next(t for t in texts if re.search(r"\d+\s*/\s*\d+\s*HP", t[4]))
+    hp = ui.hp_line(texts)
     return any(ui.norm(t[4]) in ("DYNAMAX", "GIGANTAMAX") and hp[1] < t[1] < hp[1] + 0.3 for t in texts)
 
 

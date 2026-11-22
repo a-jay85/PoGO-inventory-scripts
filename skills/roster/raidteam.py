@@ -856,7 +856,10 @@ def cmd_keep(t, path, limit=None):
                 for x in left:
                     log(f"  {x['name']} CP{x['cp']} ({q}): none: powered up since the count, or gone")
                 continue
-            for info, texts, bounds, seen in details(key=lambda i: (i["cp"], i["hp"], i["name"])):
+            # weight and height in the key: twins share name, CP and HP (2 Feraligatr '91 HP HC*' CP2777), and a CP
+            # read can fail on all of a pile (Enamorus 'CP1(50'), leaving the name alone. reswipe: a read mid-swipe
+            # looks like the last one (dbfill's walk, the same key). CyrillJan, 2026-11-22: 5 team copies missed
+            for info, texts, bounds, seen in details(key=lambda i: (*base.who(i), i["name"]), reswipe=True):
                 base.OPENED["who"] = base.who(info)  # (the swipe moved here on purpose: the star and tags check this one)
                 x = next((x for x in left if is_it(info, x)), None)
                 if x is None:

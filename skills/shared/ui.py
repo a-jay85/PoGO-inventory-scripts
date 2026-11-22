@@ -464,17 +464,29 @@ def name_box(texts, hp_line):
     return max(above, key=lambda t: t[1]) if above else None
 
 
+def hp_lines(texts):
+    """the detail page's 'n / n HP' lines: the bare ones if any, since a name like '87/93 HP EP*' (a /pvpc name)
+    holds 'n/n HP' too and sits just above (CyrillJan's shadow Garchomp, 2026-11-22: HP 93 read, no name)"""
+    lines = [t for t in texts if re.search(r"\d+\s*/\s*\d+\s*HP", t[4])]
+    return [t for t in lines if re.fullmatch(r"\d+\s*/\s*\d+\s*HP", t[4].strip())] or lines
+
+
+def hp_line(texts):
+    """the detail page's HP line (hp_lines). StopIteration when there is none, as next() gave before"""
+    return next(iter(hp_lines(texts)))
+
+
 def detail_info(texts):
-    hp_line = next(t for t in texts if re.search(r"\d+\s*/\s*\d+\s*HP", t[4]))
-    hp = int(re.search(r"/\s*(\d+)\s*HP", hp_line[4]).group(1))
+    hpl = hp_line(texts)
+    hp = int(re.search(r"/\s*(\d+)\s*HP", hpl[4]).group(1))
     cpt = next((t for t in texts if re.fullmatch(r"CP\s*\d+", t[4].upper().replace(" ", ""))), None)  # "cP1426" (2026-11-13)
     if cpt is None:  # a lucky one's sparkles hide the C: 'P2709' (2026-11-18). Only the CP sits up there, mid-screen
         cpt = next((t for t in texts if t[1] < 0.2 and 0.3 < t[0] + t[2] / 2 < 0.7
                     and re.fullmatch(r"P\d{2,4}", t[4].upper().replace(" ", ""))), None)
     cp = int(re.sub(r"\D", "", cpt[4])) if cpt else None
-    box = name_box(texts, hp_line)
+    box = name_box(texts, hpl)
     name = clean_name(box[4]) if box else None
-    tags = [t[4] for t in texts if hp_line[1] < t[1] < hp_line[1] + 0.06]
+    tags = [t[4] for t in texts if hpl[1] < t[1] < hpl[1] + 0.06]
     return {"name": name, "cp": cp, "hp": hp, "tags": tags, "texts": [t[4] for t in texts]}
 
 
@@ -933,7 +945,7 @@ def star_guess(texts):
         return None
     if ANDROID:
         return ANDROID_STAR
-    hp = next(t for t in texts if re.search(r"\d+\s*/\s*\d+\s*HP", t[4]))
+    hp = hp_line(texts)
     lucky = any(norm(t[4]).startswith("LUCKY POK") for t in texts)
     if abs(hp[1] - (IPHONE_HP_REST_LUCKY if lucky else IPHONE_HP_REST)) > 0.006:
         return None  # scrolled a little, or a LUCKY POKÉMON line went unread: the guess would land off the star
@@ -946,7 +958,7 @@ def star_spot(texts):
 
 def unscrolled(texts):
     """the detail screen sits at the top: its HP line is where it always is"""
-    hp = [t for t in texts if re.search(r"\d+\s*/\s*\d+\s*HP", t[4])]
+    hp = hp_lines(texts)
     return len(hp) == 1 and 0.45 < hp[0][1] < 0.56
 
 
@@ -1032,8 +1044,8 @@ def locate(T, path, texts, screen, aspect):
     if T == "PENCIL":
         if screen != "detail":
             raise Refused(f"REFUSED: not on detail screen ('{screen}')")
-        hp_line = next(t for t in texts if re.search(r"\d+\s*/\s*\d+\s*HP", t[4]))
-        name = name_box(texts, hp_line)
+        hpl = hp_line(texts)
+        name = name_box(texts, hpl)
         if not name:
             raise Refused("REFUSED: can't find the name above HP")
         if clean_name(name[4]) != name[4].strip():  # pencil read as '/': it's the right end of the box
@@ -1054,7 +1066,7 @@ def locate(T, path, texts, screen, aspect):
         cx, cy = c
         return cx, cy, lambda: (cx + random.uniform(-0.006, 0.006), cy + random.uniform(-0.003, 0.003))
     if T == "STAR":
-        hp = [t for t in texts if re.search(r"\d+\s*/\s*\d+\s*HP", t[4])]
+        hp = hp_lines(texts)
         spot = star_spot(texts) if screen == "detail" and hp and hp[0][1] > 0.3 else None
         if not spot:
             raise Refused(f"REFUSED: no favorite star on screen '{screen}' (or detail scrolled)")

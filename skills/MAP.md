@@ -706,6 +706,8 @@ Screen reader + tap planner for /pvpc
 - `clean_name(s)`: OCR sometimes reads the pencil icon after the name as ' /', a dot ('Shinx.') or a Cyrillic letter ('Raltsр')
 - `tile_name(name)`: a tile name without the tag icon in front, which OCR reads as •, $, or a 9 ('996 HD' is icon + '96 HD')
 - `name_box(texts, hp_line)`: nickname = the lowest text right above the HP line that spans its centre (not stray icons at the side)
+- `hp_lines(texts)`: the detail page's 'n / n HP' lines: the bare ones if any, since a name like '87/93 HP EP*' (a /pvpc name) holds 'n/n HP' too and sits just above (CyrillJan's shadow …
+- `hp_line(texts)`: the detail page's HP line (hp_lines)
 - `detail_info(texts)`
 - `tile_cps(texts)`: the CP labels of the list's tiles
 - `under(t, c)`: text t is the name under CP label c: its middle under c's, or a row's names run into one box over c

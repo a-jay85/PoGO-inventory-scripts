@@ -134,7 +134,7 @@ def read_moves():
     else:
         kg = weight()
     _, texts, _, _ = wait_for("detail")
-    hp_line = [t for t in texts if re.search(r"\d+\s*/\s*\d+\s*HP", t[4])]
+    hp_line = ui.hp_lines(texts)
     if not home(kg) or not hp_line or hp_line[0][1] < 0.3:
         keep_capture("scroll-back")
         raise Stop("detail screen didn't scroll back to where it was")

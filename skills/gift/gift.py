@@ -16,8 +16,9 @@ today). Inside each, the time zones farthest ahead first: lasia, leuro, latam, e
 is sorted "Can receive a gift", arrow down: friends who can take a gift come first, so the first row with the grey
 already-sent badge ends that search. A friend with a Remote Trade sits on top whatever the sort (their row says Remote Trade, or shows its countdown), so their badge doesn't count.
 
-Before each gift the friendship screen is checked. When the next heart is the 3rd, 4th or 5th, or it's the Forever
-Friends bar: 1 point to go -> no gift, nickname "WAIT <old>"; 2 points -> gift, nickname "SENT <old>".
+Before each gift the friendship screen is checked (not on an account in NO_LEVELUP: HashTagAJay needs no level-up XP).
+When the next heart is the 3rd, 4th or 5th, or it's the Forever Friends bar: 1 point to go -> no gift, nickname
+"WAIT <old>"; 2 points -> gift, nickname "SENT <old>".
 Only gifts from San Francisco are sent (the city line under the title), or from anywhere in California on an account in
 CALIFORNIA. Never one with "lion", "tree" or "rock" in its title, and never with a sticker. When a phone has none left it stops; the other phone carries on. At the end the iPhone quits iPhone Mirroring and the Pixel locks.
 Log and captures go in runs/<time>-<phone>/.
@@ -53,6 +54,8 @@ from search import nudge_bar
 CITY = "SAN FRANCISCO"  # the only gifts sent: the rest (Chicago, North Carolina ...) are kept for sending by hand
 KEEP = re.compile(r"\b(lion|tree|(?<!mission )rock)", re.I)  # San Francisco gifts that are kept anyway (Lions, Trees, Rocky too; Mission Rock is sent)
 CALIFORNIA = {"HashTagAJay"}  # these accounts send any California gift. The rest send San Francisco gifts only
+NO_LEVELUP = {"HashTagAJay"}  # these accounts never check how close a friend is to a level-up (no WAIT or SENT tags).
+# An unread account still checks
 whole_state = False  # this phone's, picked once the friend list shows whose account it is
 trainer = None  # this phone's account, read by whose(). None: unread, so no "iii" memory
 NEVER = ("CHICAGO", "RALEIGH", "NORTH CAROLINA")  # cities never sent
@@ -1293,7 +1296,7 @@ def one_friend(row, check=False, done=None):
         t = send_gift_label()
     if not t or not gift_icon(t):
         if WALK:  # (a speed test: the friendship screen as for a gift, then back. Never the gift list)
-            n = meter()
+            n = meter() if trainer not in NO_LEVELUP else None
             log(f"{name} ({nick}): walked, {n if n is not None else '-'} points ({time.time() - t0:.1f}s)")
             return "walked"
         keep_capture("grey")
@@ -1304,7 +1307,7 @@ def one_friend(row, check=False, done=None):
             log(f"{name} ({nick}): their SEND GIFT is grey: skipped")
             return "grey"
         log(f"{name} ({nick}): SEND GIFT read grey, but the gift list opened: going on")
-    n = meter()
+    n = meter() if trainer not in NO_LEVELUP else None  # (None: no WAIT, no SENT)
     if n == 1:
         if is_tagged("WAIT", nick):
             log(f"{name} ({nick}): 1 point to level up: no gift, already tagged WAIT")

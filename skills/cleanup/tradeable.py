@@ -579,7 +579,8 @@ def giver_species(m):
     "xl_full": {dex}, "from": {what: file}}. Read by ../shared/verdict.py
       Reroll: a new 100 is worth having: a strong line (strong_lines), DialgaDex's top PVE_TOP against a boss like a
         4-star raid's or higher (real_boss; #2-#6 was GIV, the user 2026-11-19), or PvPoke's Master League top REROLL_ML
-        (each with the earlier stages that evolve into it)
+        (each with the earlier stages that evolve into it). The two raid reasons (the ideal team, the top PVE_TOP) only
+        while some copy of the line could still make one of CyrillJan's team Bs (no_team_b: its newest whole count)
       hard (GIV, after 2XL and the level 26+ GIV): the family of a 10 or 12 km egg hatch (refresh's eggs-<date>.json), Smeargle, and
         a gym defender's line (/ivc's GYM_DEFENDERS and what evolves into them: a potential top gym defender for an
         account with fewer, the user 2026-11-16)
@@ -603,8 +604,9 @@ def giver_species(m):
             for x in [s, *dex.ancestors(s, m.parent)]:
                 if x in ok:
                     why.setdefault(x, (tag, r))
-    add("Reroll", strong_lines(m))
-    add("Reroll", pve(m, real=True)[0])  # (pve's list already has the earlier stages)
+    count_f, gone = no_team_b(m)
+    add("Reroll", {s: r for s, r in strong_lines(m).items() if " on the ideal team " not in r or not gone(s)})
+    add("Reroll", {s: r for s, r in pve(m, real=True)[0].items() if not gone(s)})  # (it has the earlier stages)
     ml = {s: int(r.split("#")[1]) for s, rs in json.load(open(pvp_f)).items() for r in rs if r.startswith("10000:")}
     add("Reroll", {s: f"Master League #{r}" for s, r in ml.items() if r <= REROLL_ML and s in m.by})
     eggs = json.load(open(eggs_f))
@@ -625,7 +627,21 @@ def giver_species(m):
     return {"why": why, "evolved": evolved_giv(m, ok, why, json.load(open(hard_f))), "hard": hard, "by_hand": by_hand,
             "dmax": dmax_need(m, ok),
             "xl_full": {m.dex(x) for s in m.by if m.dex(s) in xl_full for x in m.family(s)},
-            "from": {"read": read_f, "pvp": pvp_f, "evolved": hard_f, "eggs": eggs_f}}
+            "from": {"read": read_f, "pvp": pvp_f, "evolved": hard_f, "eggs": eggs_f, "raidteam": count_f}}
+
+
+def no_team_b(m):
+    """-> (the teams.json of CyrillJan's newest whole /raidteam count or None, gone(sid)). gone: no copy of sid's line
+    from sid on, not even a 100 at level 50, could make any of CyrillJan's team Bs (bars50 None for every one the
+    count has), so a raid reason for a Reroll is gone (the user, 2026-11-22: HashTagAJay's pile goes to CyrillJan).
+    A traded copy is never a shadow: the plain piles only. No count, or a line the count doesn't have: never gone"""
+    import raidteams
+    b50 = (raidteams.newest(GIVER)[0] or {}).get("bars50", {})
+
+    def gone(sid):
+        xs = [x for x in m.down(sid) if x in b50]
+        return bool(xs) and all(b50[x] is None for x in xs)
+    return raidteams.path_of(GIVER), gone
 
 
 # ---------- tag (CyrillJan's Tradeable) ----------

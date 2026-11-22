@@ -833,7 +833,7 @@ An XXL Pokémon, traded or not, is kept: favorite on, its trade, Transfer and IV
 - `script(limit)`
 
 ## skills/cleanup/specieswise.py
-Re-judge HashTagAJay's #GIV or #Transfer pile by species alone, with no Pokémon opened (the user, 2026-11-16)
+Re-judge HashTagAJay's #GIV, #Transfer or #Reroll pile by species alone, with no Pokémon opened (the user, 2026-11-16; #Reroll 2026-11-22, after its raid Rerolls began …
 
 - `family(sid)`: the family's Candy name, as the page reads it ('ARON')
 - `species_tag(sid, t, counts, vd)`: -> verdict.Verdict for a plain one of this species on HashTagAJay

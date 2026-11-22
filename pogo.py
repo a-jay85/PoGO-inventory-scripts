@@ -42,7 +42,7 @@ STEPS = {
     "dbfill":      ("cleanup/dbfill.py", set(), set()),
     "tradeable":   ("cleanup/tradeable.py", {"refresh", "dynamax", "read", "plan", "tag", "door"}, {"refresh", "plan"}),  # door: the default
     "leftovers":   ("cleanup/leftovers.py", {"again"}, set()),
-    "specieswise": ("cleanup/specieswise.py", {"plan", "GIV", "Transfer"}, {"plan"}),
+    "specieswise": ("cleanup/specieswise.py", {"plan", "GIV", "Transfer", "Reroll"}, {"plan"}),
     "dex":         ("dex/dex.py", {"lucky", "100", "xxs", "look", "evolve"}, set()),
     "luckydex":    ("dex/luckydex.py", {"check"}, set()),
     "sizerecords": ("dex/sizerecords.py", {"read", "compare"}, {"compare"}),

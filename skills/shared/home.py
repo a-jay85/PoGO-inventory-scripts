@@ -41,13 +41,13 @@ def home_search(texts):
     """iPhone: the home screen's own 'Q Search' pill, bottom middle just above the dock. The game never has text
     there (its search bar is at the top; the keyboard's search key is at the right). Goes by text, so a new event
     icon for the game (2026-11-01: purple and orange, no red top) doesn't hide the home screen"""
-    return any(ui.norm(t[4]).lstrip("Q ").strip() == "SEARCH" and 0.75 < t[1] < 0.9 and 0.4 < t[0] + t[2] / 2 < 0.6
+    return any(ui.is_word(t[4], "SEARCH") and 0.75 < t[1] < 0.9 and 0.4 < t[0] + t[2] / 2 < 0.6
                for t in texts)
 
 
 def spotlight(texts):
     """iPhone: Spotlight is open (its 'Top Hit' heading). A run left there counts as the home screen"""
-    return any(ui.norm(t[4]) == "TOP HIT" for t in texts)
+    return any(ui.is_word(t[4], "TOP HIT") for t in texts)
 
 
 def top_hit(texts):
@@ -498,8 +498,8 @@ def profile(texts):
         return False
     if "FRIENDS" in j and ("TOTAL ACTIVITY" in j or "SCRAPBOOK" in j or "JOURNAL" in j):
         return True
-    words = {ui.norm(t[4]) for t in texts}
-    return {"LEVEL", "BUDDY"} <= words and any(squash(n) in squash(" ".join(t[4] for t in texts)) for n in TRAINERS)
+    words = ui.Words(texts)
+    return "LEVEL" in words and "BUDDY" in words and any(squash(n) in squash(" ".join(t[4] for t in texts)) for n in TRAINERS)
 
 
 def clipped_names(texts, below):

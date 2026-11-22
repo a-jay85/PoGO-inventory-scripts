@@ -334,9 +334,83 @@ def norm(s):
     return re.sub(r"[^A-Z ]", "", s.translate(LOOKALIKE).upper()).strip()
 
 
+AS_LETTER = {"0": "O", "1": "I", "|": "I", "!": "I"}  # in a word, a digit or bar is OCR's: 'CANCE1', '0K', 'CLA|M'
+# words of the game's screens that are one letter apart or one is the other plus a letter or two: a read that says
+# one of them exactly is never the other (WEIGHT is not a misread HEIGHT)
+KNOWN = {"HEIGHT", "WEIGHT", "CANDY", "CANDY XL", "NO", "NOT NOW", "SEND", "SEND GIFT", "OPEN GIFT", "MEGA",
+         "MEGA EVOLVE", "EVOLVE", "TRADE", "REMOTE TRADE", "DEFENDING", "TIME DEFENDING", "FAVORITE", "REWARDS",
+         "CLAIM REWARD", "INCUBATE", "INCUBATORS", "GIFT", "TAGS", "XL", "XXL", "SEARCH", "RESEARCH"}
+ENDINGS = {"S", "ES", "D", "ED", "R", "ER", "N"}  # a word plus one of these is another word, not a glued icon
+
+
+def _tokens(s):
+    """a button's text as words of bare letters: lookalikes, and digits or bars touching a letter, as letters"""
+    s = s.translate(LOOKALIKE).upper()
+    # (a digit next to another digit is a number: '10K' is not 'OK')
+    s = re.sub(r"(?<=[A-Z])[01|!](?![\d])|(?<![\d])[01|!](?=[A-Z])", lambda m: AS_LETTER[m.group()], s)
+    return [w for w in (re.sub(r"[^A-Z]", "", w) for w in s.split()) if w]
+
+
+def _one_off(a, b):
+    """a and b differ by one letter: one swapped, one extra or one missing"""
+    if abs(len(a) - len(b)) > 1:
+        return False
+    if len(a) == len(b):
+        return sum(x != y for x, y in zip(a, b)) <= 1
+    if len(a) < len(b):
+        a, b = b, a
+    return any(a[:i] + a[i + 1:] == b for i in range(len(a)))
+
+
+def is_word(s, word):
+    """a button or label's OCR text s says word (upper case, as norm gives it), allowing the misreads seen so far,
+    so a new spelling of an old misread doesn't stop a run:
+      - Cyrillic or Greek twins, digits or bars for letters ('CANCE1', '0K', 'CLA|M'), spaces lost ('LETSGO')
+      - an icon glued on as up to 2 letters at either end ('QSEARCH', 'SEND GIFTI'), for words of 4+ letters
+      - one letter off ('CANCFL', 'DISMSS'), for words of 5+ letters
+    Short words (OK, NO, XL) must still read exactly: one letter off is another word. A read that is exactly another
+    KNOWN word is that word, and the glued letters can't be a word of their own ('CANDY XL' is not CANDY).
+    Only for fixed button and label words: searches, counts, numbers and tag names must read exactly (#293)."""
+    if norm(s) == word:
+        return True
+    toks = _tokens(s)
+    got, want = "".join(toks), "".join(_tokens(word))
+    if got == want:
+        return True
+    if " ".join(toks) in KNOWN or got in {k.replace(" ", "") for k in KNOWN}:
+        return False
+    if got.startswith(want) and got[len(want):] in ENDINGS:  # another word: TRADED, FAVORITES, CLOSED
+        return False
+    if len(want) >= 4 and 0 < len(got) - len(want) <= 2:
+        lone = {w for w in toks if len(w) >= 2}  # glued letters that OCR read as a word of their own are a word
+        if got.startswith(want) and got[len(want):] not in lone or got.endswith(want) and got[:-len(want)] not in lone \
+                or got[1:-1] == want:
+            return True
+    # one letter off: unless it's as near another KNOWN word ('MEIGHT' is HEIGHT or WEIGHT: it can't tell)
+    return len(want) >= 5 and _one_off(got, want) and not any(
+        k.replace(" ", "") != want and _one_off(got, k.replace(" ", "")) for k in KNOWN)
+
+
+def has_word(texts, word):
+    """some box on the screen says word (is_word)"""
+    return any(is_word(t[4], word) for t in texts)
+
+
+class Words(set):
+    """the screen's boxes as norm'd words, for 'X in words' checks: 'in' allows what is_word allows ('CANCE1' is
+    in it as CANCEL). Set maths (&, <=) stays exact"""
+
+    def __init__(self, texts):
+        super().__init__(norm(t[4]) for t in texts)
+        self.raw = [t[4] for t in texts]
+
+    def __contains__(self, word):
+        return set.__contains__(self, word) or any(is_word(r, word) for r in self.raw)
+
+
 def label(texts, word):
-    """the text box that reads exactly word, or None"""
-    return next((t for t in texts if norm(t[4]) == word), None)
+    """the text box that says word, or None. A box that reads exactly word wins; else one is_word allows"""
+    return next((t for t in texts if norm(t[4]) == word), None) or next((t for t in texts if is_word(t[4], word)), None)
 
 
 def center(t):

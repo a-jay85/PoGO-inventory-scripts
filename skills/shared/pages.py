@@ -31,7 +31,8 @@ left = {}  # page name -> the times it was left lately
 
 
 def words(texts):
-    return {ui.norm(t[4]) for t in texts}
+    """the screen's words: 'X in words(texts)' allows a misread the way ui.is_word does"""
+    return ui.Words(texts)
 
 
 # ---------- /trade's screens ----------
@@ -49,7 +50,7 @@ def trade_warning(texts):
 def confirm_label(texts):
     """the trade's CONFIRM button (CANCEL once tapped), left of the middle"""
     for t in texts:
-        if t[0] < 0.3 and 0.45 < t[1] < 0.6 and ui.norm(t[4]) in ("CONFIRM", "CANCEL"):
+        if t[0] < 0.3 and 0.45 < t[1] < 0.6 and (ui.is_word(t[4], "CONFIRM") or ui.is_word(t[4], "CANCEL")):
             return t
     return None
 
@@ -220,7 +221,7 @@ def gym_badge(texts):
 
 
 def gym_badgelist(texts):
-    return any(ui.norm(t[4]) == "GYM BADGES" and t[1] < 0.15 for t in texts)
+    return any(ui.is_word(t[4], "GYM BADGES") and t[1] < 0.15 for t in texts)
 
 
 def gym_feed(texts):
@@ -263,7 +264,7 @@ def confirm_out(texts):
     """takes back a CONFIRM that landed (CANCEL), else the exit door. (Change Pokémon went back to the list, and the
     list's X back to this screen while the pick stood: the two went round for minutes)"""
     t = confirm_label(texts)
-    return ui.center(t) if t and ui.norm(t[4]) == "CANCEL" else EXIT_DOOR
+    return ui.center(t) if t and ui.is_word(t[4], "CANCEL") else EXIT_DOOR
 
 
 def recent(texts):

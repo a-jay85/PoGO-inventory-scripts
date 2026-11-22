@@ -291,7 +291,7 @@ What the door needs to know, read off the list tile and the Pokémon's own page 
 ## skills/shared/pages.py
 Whole screens that belong to one script, and the way out of each, for every other script
 
-- `words(texts)`
+- `words(texts)`: the screen's words: 'X in words(texts)' allows a misread the way ui.is_word does
 - `trade_leave(texts)`: 'Do you want to cancel this trade?' after the exit door: YES / NO
 - `trade_warning(texts)`: 'Are you sure you want to trade?' before the confirm screen
 - `confirm_label(texts)`: the trade's CONFIRM button (CANCEL once tapped), left of the middle
@@ -696,7 +696,10 @@ Screen reader + tap planner for /pvpc
 - `summary(texts, n=250)`: the screen's text for a log line
 - `rows(texts, gap=0.012)`: OCR boxes -> [(y, joined text)]: rows top to bottom, each row's words left to right
 - `norm(s)`
-- `label(texts, word)`: the text box that reads exactly word, or None
+- `is_word(s, word)`: a button or label's OCR text s says word (upper case, as norm gives it), allowing the misreads seen so far, so a new spelling of an old misread doesn't stop a run: - …
+- `has_word(texts, word)`: some box on the screen says word (is_word)
+- `class Words`: the screen's boxes as norm'd words, for 'X in words' checks: 'in' allows what is_word allows ('CANCE1' is in it as CANCEL)
+- `label(texts, word)`: the text box that says word, or None
 - `center(t)`: a text box's middle
 - `is_label(s, label)`: OCR sometimes tacks a stray letter onto a bar label (Duskull's read 'Attack l'), or glues the cursor on ('Defensel')
 - `tab(texts, word)`: the storage's tab word at the top (TAGS, POKMON, EGGS), or None

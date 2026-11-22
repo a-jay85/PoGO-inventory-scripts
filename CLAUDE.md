@@ -21,6 +21,8 @@ A speed win found in one script goes to every script that does the same step, in
 
 A read that says something isn't there (no name, a grey icon, no X, 0 results, no date) may be a screen still loading. Look again with `base.settle(read, ok, timeout)` or `base.wait_for` before acting on it. Never tap or type to make it show up: the blank-search nudge did that and turned a real 0 into 1182 (#293).
 
+Check a button or label word with `ui.is_word(t[4], "CANCEL")`, `ui.has_word`, `ui.label` or `pages.words`, never `ui.norm(t[4]) == "CANCEL"`. They allow the misreads seen so far: a lookalike or digit for a letter, an icon glued on, one letter off in a long word. A stop on a new misread of a button word gets a case in `tests/readers.py`'s `WORDS` and a fix in `is_word`, not a one-spelling patch in the script. Searches, counts, numbers and tag names stay exact.
+
 ## Running the scripts
 
 - `POGO_PHONE=android`: the Pixel, over USB. Nothing set: the iPhone, through iPhone Mirroring. `POGO_PHONE=both`: `/gift` and `/mega` run both at once.
@@ -92,7 +94,7 @@ The repo is public. These stay local and are in `.gitignore`:
 
 `python3 tests/layout.py` pins how the scripts find each other and their files: each script's names, the one shared copy of `run.py` (its run folder), where every run folder goes, and that every path and `module.name` the code uses exists. Run it after moving or renaming a file, or moving code between files. It must say "all ... the same". Same `--record` rule.
 
-`python3 tests/lints.py` pins three bad patterns that came back after fixes, from the code alone: a typed search that ends in a thin letter (`#IVC&xxl` reads back as `#IVC&xx`), a label lookup used with no None check (`tap_text(label(...))`), and hand-rolled wait loops per function (use `base.settle` or `base.wait_for`). A new one fails with its file:line and what to do instead. Run it after any change under `skills/`. It must say "all ... the same". Same `--record` rule.
+`python3 tests/lints.py` pins four bad patterns that came back after fixes, from the code alone: a typed search that ends in a thin letter (`#IVC&xxl` reads back as `#IVC&xx`), a label lookup used with no None check (`tap_text(label(...))`), hand-rolled wait loops per function (use `base.settle` or `base.wait_for`), and a button word compared exactly (`ui.norm(t[4]) == "CANCEL"`: use `ui.is_word`). A new one fails with its file:line and what to do instead. Run it after any change under `skills/`. It must say "all ... the same". Same `--record` rule.
 
 `python3 tests/heal.py` checks `pogo.py`'s healing with a made-up failing step and a stand-in Claude. Run it after any change to `heal.py` or `pogo.py`.
 

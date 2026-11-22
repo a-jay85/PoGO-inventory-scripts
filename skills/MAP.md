@@ -17,7 +17,8 @@ Switch the Pixel's Pokémon GO between the user's two accounts: sign out, then b
 - `sign_out()`: from the map to the game's sign-in screen (RETURNING PLAYER)
 - `sign_in(email)`: from RETURNING PLAYER through Google's account picker to the game loading on that account
 - `switch(to=None)`: sign in as `to` (default: the other account)
-- `synced(who)`: the last step of every switch: Adventure Sync on for whoever is signed in now (advsync.py), then the egg check (advsync.eggs: the mode's egg into the free ∞ incubator, …
+- `timers_off()`: hatch and goplus off before a switch: their times were the old account's
+- `synced(who, switched=False)`: the last step of every switch: Adventure Sync on for whoever is signed in now (advsync.py), then the egg check (advsync.eggs: the mode's egg into the free ∞ incubator, …
 - `check(to)`
 
 ## skills/shared/adbwifi.py
@@ -656,6 +657,7 @@ One local timer for the scripts that run by themselves (gymfeed, hatch, goplus)
 - `gymfeed(feedable, phone)`: a gymfeed run's last word, on its phone's timer (phone: "android" or "iphone")
 - `busy()`: -> what's using a phone, or None
 - `pixel_in_use()`: -> True while you look to be using the Pixel
+- `pixel_charging()`: -> True while the Pixel is on power (AC, USB or wireless)
 - `skip(why)`: a skip line once, not every minute while it waits
 - `missed(phone, gone)`: gone: this tick didn't reach the phone
 - `notify(text)`

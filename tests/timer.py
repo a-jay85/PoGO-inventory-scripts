@@ -29,12 +29,13 @@ def stub(name, body):
 stub("osascript", "exit 0")
 
 
-def pixel(there, idle=60, locked=True):
-    """the Pixel on adb or not; idle: minutes since its last touch"""
+def pixel(there, idle=60, locked=True, charging=False):
+    """the Pixel on adb or not; idle: minutes since its last touch; charging: on AC power"""
     if not there:
         return stub("adb", 'echo "error: no devices/emulators found" >&2; exit 1')
     stub("adb", f'if [ "$1" = shell ]; then echo "  lastUserActivityTime=5 ({int(idle * 60000)} ms ago)"; '
-                f'echo "  isKeyguardShowing={str(locked).lower()}"; else echo device; fi')
+                f'echo "  isKeyguardShowing={str(locked).lower()}"; echo "  AC powered: {str(charging).lower()}"; '
+                f'echo "  USB powered: false"; else echo device; fi')
 
 
 def job(name, phone, line, code=0):
@@ -162,6 +163,28 @@ print("a run that only found another script on the phone: tries again")
 fresh(crowded=now - 60)
 timer.tick()
 check("crowded due again", "crowded" in timer.due())
+
+print("Pixel charging, hatch due: hatch waits, the job behind it runs")
+job("hatch", "android", "done: hatched 1")
+pixel(True, charging=True)
+fresh(hatch=now - 600, pix=now - 60)
+timer.tick()
+check("hatch didn't run", "hatch: start" not in log())
+check("hatch still due now", timer.due().get("hatch", 0) <= time.time())
+check("the skip is in the log", "skipped: the Pixel is charging: hatch waits" in log())
+check("pix ran (not held up by hatch)", "pix: start" in log())
+
+print("Pixel charging, only hatch due: nothing runs")
+fresh(hatch=now - 60)
+timer.tick()
+check("hatch didn't run", "hatch: start" not in log())
+
+print("Pixel off power: hatch runs")
+pixel(True, charging=False)
+fresh(hatch=now - 60)
+timer.tick()
+check("hatch ran", "hatch: start" in log())
+del timer.JOBS["hatch"]
 
 print("gymfeed on each phone: each sets its own timer, the other one stays")
 timer.JOBS.update(REAL)

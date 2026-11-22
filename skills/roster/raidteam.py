@@ -849,7 +849,9 @@ def cmd_keep(t, path, limit=None):
             cps = ",".join(f"cp{c}" for c in sorted({x["cp"] for x in left}))
             q = f"{dex}&{'shadow' if shadow else '!shadow'}&{cps}"
             search.to_search_list()
-            search_exact(q)
+            # gap_ok: a pile's CP list is longer than the bar shows (8 CPs: 76 characters, 2026-11-22), and its
+            # middle is only CPs. A mistyped CP finds a tile too many or too few: each tile is checked by is_it below
+            search_exact(q, gap_ok=True)
             if not results():
                 for x in left:
                     log(f"  {x['name']} CP{x['cp']} ({q}): none: powered up since the count, or gone")

@@ -1086,7 +1086,10 @@ def start_search(q, check=None, edit=False, nudges=2, live=False):
             if not ui.full_list(texts):  # the tabs may not be drawn yet: look again before calling it a tag's list
                 # (iPhone 2026-11-19: a full list read too soon got its X, which closed the whole Pokémon screen)
                 texts = base.settle(lambda: ui.ocr(ui.capture()[0]), ui.full_list, timeout=2)
-            if not ui.full_list(texts):  # typed in a tag's list: only searched that tag
+            if not ui.full_list(texts) and ui.ANDROID and ui.full_list(ui.ocr(ui.android.sharp_last())):
+                pass  # the pale TAGS and EGGS tabs over a light list read only 3x bigger (Pixel, CyrillJan's
+                # '150&!shadow&cp…' search, 2026-11-22: 3 plain reads of 3 missed both, 3 sharp ones read both)
+            elif not ui.full_list(texts):  # typed in a tag's list: only searched that tag
                 log("  that searched inside a tag's list: going to the full Pokémon list")
                 to_search_list()
                 continue
@@ -1388,7 +1391,10 @@ def read_results(q, path, texts, bounds, iv_only=False, resorted=False):
 
 
 def looks_same(a, b):
-    """'98 AD BS*' and '98 ADBS V': one name OCR'd two ways. '96 ATK' and '96 HA' are two Pokémon."""
+    """'98 AD BS*' and '98 ADBS V': one name OCR'd two ways. '96 ATK' and '96 HA' are two Pokémon. A name not read
+    (None: a detail page swiped to before its name drew, raidteam keep 2026-11-22) looks like nothing"""
+    if not a or not b:
+        return False
     a, b = (re.sub(r"[^a-z0-9]", "", x.lower()) for x in (a, b))
     return abs(len(a) - len(b)) <= 1 and difflib.SequenceMatcher(None, a, b).ratio() >= 0.8
 

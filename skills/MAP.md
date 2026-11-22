@@ -887,6 +887,7 @@ Tag CyrillJan's Tradeable saved search by what a trade to HashTagAJay is worth, 
 - `can_dynamax()`: dex numbers that can Dynamax (refresh's dynamax-<date>.json: pvp.can_dynamax)
 - `cmd_dynamax()`: either account signed in: how many Dynamax ones it has of each family that can Dynamax (only searches)
 - `giver_species(m)`: HashTagAJay's pile (Leftovers), judged for CyrillJan or the user's wife's account: what's good for any account (the user, 2026-11-16) -> {"why": {sid: (tag, why)}, …
+- `no_team_b(m)`: -> (the teams.json of CyrillJan's newest whole /raidteam count or None, gone(sid))
 - `size_search(size)`: a never-traded XXS one is renamed and tagged IVC, never GIV or Transfer
 - `bulk_searches(plan)`: the tag searches, in verdict.py's order -> [(tag, the species part, the rest of the suffix)]
 - `keep_xxl_ones(limit)`: an XXL one in the pile is no trade: a favorite, before any tag search

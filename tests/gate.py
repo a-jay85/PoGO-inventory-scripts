@@ -299,6 +299,8 @@ case("a speed PR found by the body's timings: blocked too", gate(), lambda o: de
 pr(title="fix(aa): faster pick", body=NPT + SIB + "\nSpeed elsewhere: bb's extra is another thing, nothing to do")
 case("a speed PR with a Speed elsewhere: line: passes, the line and the list in the notes", gate(),
      lambda o: passed(o) and "another thing" in notes(o) and "skills/bb/other.py:8" in notes(o))
+pr(title="fix(aa): pick", body=NPT + SIB + "\nspeedtest.py calls it too, no change")
+case("speedtest.py named in a body isn't a speed PR", gate(), passed)
 pr(title="docs: faster", body="", files=["README.md"])
 case("a speed PR of docs only: no Speed elsewhere: needed", gate(), passed)
 

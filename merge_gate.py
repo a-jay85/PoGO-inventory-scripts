@@ -41,7 +41,7 @@ SHOW_LINES = 40  # unreached lines shown per note
 SIDES = re.compile(r"ANDROID|IOS|IPHONE|\b(ios|android|iphone|pixel)\b|HashTagAJay|CyrillJan", re.I)
 TWINS = [("android", "ios"), ("android", "iphone"), ("pixel", "iphone"), ("hashtagajay", "cyrilljan")]
 SKIP_DIRS = {".git", "__pycache__", "runs", "tests"}
-SPEED = re.compile(r"\b(speed\w*|fast(er|est)?|quick(er|ly)?|slow(er|ly)?|fewer|sooner|less wait\w*"
+SPEED = re.compile(r"\b(speed(?!test)\w*|fast(er|est)?|quick(er|ly)?|slow(er|ly)?|fewer|sooner|less wait\w*"
                    r"|shorter waits?|\d+(\.\d+)? ?s ?(->|→) ?\d)", re.I)
 
 

@@ -517,10 +517,12 @@ def clipped_names(texts, below):
 
 def split_name(n, ws):
     """art over the middle of the name splits it in two ('HashTag', '& 91 AD D', 'Jay', iPhone /gift ME tab,
-    2026-11-21): one word is its start, of 5 letters or more, and another its end, of 3 or more"""
+    2026-11-21): one word is its start, of 5 letters or more, and another its end, of 3 or more. The end can lose
+    letters too ('HashTag', '& 91 AD DA', 'Ja', Pixel, the same day): then 2 or more letters of what's left after
+    the start do"""
     sq = squash(n)
-    return any(len(a) >= 5 and sq.startswith(a) and any(len(b) >= 3 and b != a and sq.endswith(b) for b in ws)
-               for a in ws)
+    return any(len(a) >= 5 and sq.startswith(a) and any(
+        b != a and (len(b) >= 3 and sq.endswith(b) or len(b) >= 2 and b in sq[len(a):]) for b in ws) for a in ws)
 
 
 def to_map():

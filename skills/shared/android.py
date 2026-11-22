@@ -7,7 +7,7 @@ keyboard stay free. ui.py sends its helper calls (click, drag, scroll, key, type
   POGO_PHONE=android python3 android.py type <text>
   POGO_PHONE=android python3 android.py key <delete|return|back|clear|one character>
 """
-import gzip, os, random, re, shlex, struct, subprocess, sys, threading, time
+import gzip, os, random, re, shlex, struct, subprocess, sys, threading, time, zlib
 from PIL import Image
 
 PKG = "com.nianticlabs.pokemongo"
@@ -128,7 +128,9 @@ def raw_shot():
     (2026-10-25), twice on the first look after unlocking the phone (2026-11-01, 2026-11-03), where a second try
     after 0.5 s failed too. So a few tries over about 10 s before giving up, and the last error says what adb said.
     It can also hang with the phone fine (2026-10-27, 2026-11-10, 2026-11-11: no answer in 30 s, the next one took
-    under 1 s), so a try that takes over 10 s is a failed try too (a shot takes 0.3-0.8 s)"""
+    under 1 s), so a try that takes over 10 s is a failed try too (a shot takes 0.3-0.8 s). And it can say yes with
+    a cut-short picture, right after the USB link dropped and adb moved to Wi-Fi (2026-11-21: gzip 'ended before the
+    end-of-stream marker'), so a picture that doesn't unpack whole is a failed try too"""
     for wait in (1, 2, 3, 4, None):  # seconds before the next try
         try:
             if not _picked:
@@ -137,7 +139,15 @@ def raw_shot():
         except subprocess.TimeoutExpired:  # (run has already killed the hung adb)
             r = subprocess.CompletedProcess([], 124, b"", b"no answer in 10 s")
         if not r.returncode:
-            break
+            try:
+                raw = gzip.decompress(r.stdout)
+                w, h = struct.unpack("<2I", raw[:8])
+                if len(raw) >= 8 + w * h * 4:
+                    break
+                why = f"{len(raw)} bytes for {w}x{h}"
+            except (EOFError, OSError, zlib.error, struct.error) as e:  # (gzip.BadGzipFile is an OSError)
+                why = str(e)
+            r = subprocess.CompletedProcess([], 1, b"", f"a cut-short picture: {why}".encode())
         said = r.stderr.decode(errors="replace").strip() or "nothing"
         if wait is None:
             devices = adb("devices", "-l").strip().replace("\n", " | ")
@@ -146,8 +156,6 @@ def raw_shot():
               file=sys.stderr)
         time.sleep(wait)
         pick()  # the link may have changed: unplugged (Wi-Fi now), or Wi-Fi dropped
-    raw = gzip.decompress(r.stdout)
-    w, h = struct.unpack("<2I", raw[:8])
     return Image.frombuffer("RGBA", (w, h), raw[len(raw) - w * h * 4:], "raw", "RGBA", 0, 1).convert("RGB")
 
 

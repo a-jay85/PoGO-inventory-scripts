@@ -451,6 +451,7 @@ def start(storage=True):
 # ---------- who's signed in ----------
 
 TRAINERS = ("HashTagAJay", "CyrillJan")  # the user's two accounts
+START = 7  # a name start this long, one trainer's only, is that trainer (clipped_names)
 CLIP = 3  # letters OCR can drop off the end of a trainer name (clipped_names): each start left is still one trainer's
 
 
@@ -511,8 +512,12 @@ def clipped_names(texts, below):
     # art over a letter can read as a mark inside one text ('HashTag, Jay' for HashTagAJay, Pixel, 2026-11-21):
     # its pieces count as split words too
     parts = [p for r in raw for p in (squash(x) for x in re.split(r"[^A-Za-z0-9|!]+", r)) if p]
+    # the buddy's art can hide the whole end ('HashTag' and the buddy line, Kingambit over 'AJay', Pixel,
+    # 2026-11-21): a start of START letters or more that only one trainer has is that trainer
+    alone = [n for n in TRAINERS if any(len(w) >= START and squash(n).startswith(w) and
+                                        sum(squash(m).startswith(w) for m in TRAINERS) == 1 for w in ws)]
     return [n for n in TRAINERS if any(len(n) - CLIP <= len(w) < len(n) and squash(n).startswith(w) for w in ws)
-            or split_name(n, ws + parts)]
+            or split_name(n, ws + parts) or n in alone]
 
 
 def split_name(n, ws):

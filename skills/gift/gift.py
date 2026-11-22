@@ -1080,13 +1080,15 @@ def send_gift():
                 log(f"  SEND on {title!r} didn't land: the same preview after the full wait, tapping it once more")
                 send = again
             keep_capture("after_send")
-            if retapped and s == "picker":
-                # the first SEND sat untouched, then the second one left the gift list (2026-11-17 iPhone,
-                # 2026-11-20 Pixel). The preview closed without the gift flying off, so most likely nothing went.
+            if s == "picker":
+                # the preview closed back to the gift list without the gift flying off: after a second SEND tap
+                # (2026-11-17 iPhone, 2026-11-20 Pixel), or after the first one, its button changed and the X that
+                # skips the animation closed the preview (2026-11-22 Pixel, game up 3.6 h). Most likely nothing went.
                 # run_searches goes back to the list and tries this friend once more: a gift that went after all
                 # reads grey there, and a friend takes one gift a day. On the Pixel a game that sat on a tap is
                 # restarted first, once a run
-                log(f"  SEND twice on {title!r}, then the gift list: back to the friend list to check")
+                taps = "SEND twice" if retapped else "SEND"
+                log(f"  {taps} on {title!r}, then the gift list: back to the friend list to check")
                 if ui.ANDROID and not restarted_game:
                     restarted_game = True
                     import home
@@ -1094,7 +1096,7 @@ def send_gift():
                     ui.android.shell(f"am force-stop {ui.android.PKG}")
                     time.sleep(1.0)
                     home.start(storage=False)
-                raise base.Lost(f"two SEND taps on {title!r} ended on the gift list")
+                raise base.Lost(f"{taps} on {title!r} ended on the gift list")
             if ui.ANDROID and untouched and not restarted_game:
                 # two SEND taps on the Pixel, both untouched: a game up for hours that takes no taps while its page
                 # looks normal (2026-11-10: up 3.5 h, PR #311's dead spell). Nothing went. Restart it once a run, then

@@ -68,7 +68,7 @@ def oh(texts):
 
 def eggs_tab(texts):
     """the Pokémon screens' EGGS tab, with its eggs: its tab label and at least one 'walked / km'"""
-    return bool(ui.label(texts, "EGGS")) and any(KM_RE.search(t[4]) for t in texts)
+    return bool(ui.tab(texts, "EGGS")) and any(KM_RE.search(t[4]) for t in texts)
 
 
 def teal(path, t):
@@ -108,7 +108,7 @@ def to_eggs():
         screen, texts, path, bounds = look()
         if eggs_tab(texts):
             return
-        tab = ui.label(texts, "EGGS")
+        tab = ui.tab(texts, "EGGS")
         if not tab:
             break
         base.tap_box(tab, bounds, dy=ui.TAB_DY, rest=1.5)  # (under its word, as every tab tap)
@@ -154,15 +154,20 @@ def incubate(egg, bounds):
         return False
     log("  into the ∞ incubator")
     base.click(*INFINITE, bounds, fuzz=0.01, rest=1.5)
-    leave_to_eggs()
+    leave_to_eggs(BACK_BY_ITSELF)
     return True
 
 
-def leave_to_eggs():
-    """the X until the Eggs tab shows (the picker, then the egg's page). An incubated egg's page goes back by itself
-    (in about 2 s): the X waits for that, or it would close the Eggs tab"""
+BACK_BY_ITSELF = 10  # seconds an incubated egg's page may take to go back to the Eggs tab by itself. About 2 s
+# mostly. Pixel 2026-11-22: no Eggs tab read for 5 s after the ∞ tap, then the X closed the Eggs tab to the map (an
+# 'EGGSI' misread, before ui.tab, may have been part of it)
+
+
+def leave_to_eggs(wait=3):
+    """the X until the Eggs tab shows (the picker, then the egg's page). An incubated egg's page goes back by itself:
+    wait is how long the X waits for that first, or it would close the Eggs tab"""
     for i in range(3):
-        screen, texts, path, bounds = base.settle(look, lambda g: eggs_tab(g[1]), timeout=3 if i == 0 else 1)
+        screen, texts, path, bounds = base.settle(look, lambda g: eggs_tab(g[1]), timeout=wait if i == 0 else 1)
         if eggs_tab(texts):
             return
         base.tap_x(bounds, rest=1.5)

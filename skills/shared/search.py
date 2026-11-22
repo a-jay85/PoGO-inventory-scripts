@@ -492,7 +492,7 @@ def result_count(texts):
     """the 'Q (7)' under the POKÉMON tab after a search. Nothing above the tabs counts: the iPhone's status bar shows
     the battery as '(100)' on the clock's line (2026-11-19: read as 100 results when the game said 0). A screen with
     no tabs (the trade picker): nothing on the clock's line"""
-    tabs = [t[1] for t in texts if t[4].strip().upper() in ("POKÉMON", "POKEMON", "EGGS", "TAGS") and t[1] < 0.15]
+    tabs = [t[1] for t in (ui.tab(texts, w) for w in ("POKMON", "EGGS", "TAGS")) if t]
     clock = [t[1] for t in texts if t[1] < 0.1 and re.match(r"\d{1,2}:\d{2}\b", t[4].strip())]
     for t in texts:
         m = re.match(r"[Q9a]?\s*\((\d[\d,]*|O)\)", t[4])  # the Q icon can read as 9 or a (Pixel 2026-11-21:

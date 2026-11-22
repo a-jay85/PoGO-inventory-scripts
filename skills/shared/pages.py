@@ -81,7 +81,9 @@ def trade_picker(texts):
     leave fewer than 3 tiles, or none: then the distance search in the bar vouches for it. (The iPhone can read the
     header POKÉMONI)"""
     raw, w, j = [ui.up(t) for t in texts], words(texts), ui.joined(texts)
-    return "SPECIAL TRADES REMAINING" in j or bool(w & {"POKMON", "POKMONI"}) and not w & {"TAGS", "EGGS"} and (
+    # (storage's tabs can all read with an I: 'TAGSI POKÉMONI EGGSI', Pixel 2026-11-20. ui.tab takes that)
+    return "SPECIAL TRADES REMAINING" in j or bool(w & {"POKMON", "POKMONI"}) and not (
+        ui.tab(texts, "TAGS") or ui.tab(texts, "EGGS")) and (
         sum(bool(re.fullmatch(r"CP\s*\d+", r.replace("С", "C"))) for r in raw) >= 3 or "FAVORITE" in w
         or "DISTANCE" in j or "COUNTCANDY" in j)
 

@@ -1731,6 +1731,7 @@
  "skills/shared/eggs.py": {
   "copies": {},
   "names": [
+   "BACK_BY_ITSELF",
    "EGG_ABOVE",
    "FREE_SLOT_X",
    "INFINITE",
@@ -2680,6 +2681,7 @@
    "star_guess",
    "star_spot",
    "summary",
+   "tab",
    "tap_ms",
    "ticked_tags",
    "tile_cps",

@@ -234,7 +234,7 @@ The Eggs tab: read the eggs, put the mode's one in the free ∞ incubator, and s
 - `to_eggs()`: from the map to the Eggs tab: home.start() to the Pokémon list (a hatch on the way is tapped through), then the EGGS tab
 - `read_eggs()`: the Eggs tab read until its eggs show -> (eggs, bounds)
 - `incubate(egg, bounds)`: open this egg, INCUBATE, and the ∞ incubator if it's free
-- `leave_to_eggs()`: the X until the Eggs tab shows (the picker, then the egg's page)
+- `leave_to_eggs(wait=3)`: the X until the Eggs tab shows (the picker, then the egg's page)
 - `to_map()`: the Eggs tab's X goes to the map
 - `fill_and_time()`: on the Eggs tab: the mode's free egg into the ∞ incubator (if it's free), then the hatch timer (see 1
 - `check()`: from the map: the Eggs tab, fill_and_time, and back to the map
@@ -697,6 +697,7 @@ Screen reader + tap planner for /pvpc
 - `label(texts, word)`: the text box that reads exactly word, or None
 - `center(t)`: a text box's middle
 - `is_label(s, label)`: OCR sometimes tacks a stray letter onto a bar label (Duskull's read 'Attack l'), or glues the cursor on ('Defensel')
+- `tab(texts, word)`: the storage's tab word at the top (TAGS, POKMON, EGGS), or None
 - `full_list(texts)`: the Pokémon screen's TAGS or EGGS tab shows: the full list (or its Tags tab), no tag's list (a tag's list has neither)
 - `profile_tabs(texts)`: any tab of the profile (ME, FRIENDS or SOCIAL): its three tab names across the top
 - `gift_banner(texts)`: a friend's banner across the top of any screen for a few seconds: 'X sent you a Gift!', 'X and 3 other friends have opened your Gifts!', 'X received 5 items / from your …

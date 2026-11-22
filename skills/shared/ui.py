@@ -349,6 +349,13 @@ def is_label(s, label):
     return re.fullmatch(re.escape(label) + r"( [A-Z]|[LI])?", norm(s)) is not None
 
 
+def tab(texts, word):
+    """the storage's tab word at the top (TAGS, POKMON, EGGS), or None. One stray letter is fine: the open tab's
+    underline can read as I ('EGGSI'). Pixel, 2026-11-20 to 11-22: 4 of hatch's last 5 "couldn't open the Eggs tab"
+    stops had the Eggs tab on screen, read 'EGGSI'"""
+    return next((t for t in texts if t[1] < 0.15 and is_label(t[4], word)), None)
+
+
 def full_list(texts):
     """the Pokémon screen's TAGS or EGGS tab shows: the full list (or its Tags tab), no tag's list (a tag's list has
     neither). One stray letter is fine ('EGGSI', Pixel 2026-11-18: an exact match backed out of the list three times
@@ -828,7 +835,7 @@ def search_box(texts):
         if len(hits) == 2 and hits[0][4].strip() in ("a", "< a", "‹ a"):
             hits = hits[1:]
         # a lone number there with no TAGS / EGGS tabs: the map's friend row ('Me' over '10', 2026-11-03), not a bar
-        if not {"TAGS", "EGGS"} & {norm(t[4]) for t in texts}:
+        if not (tab(texts, "TAGS") or tab(texts, "EGGS")):
             hits = [t for t in hits if not t[4].strip().isdigit()]
     return hits[0] if len(hits) == 1 else None
 

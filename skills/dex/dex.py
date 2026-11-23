@@ -209,6 +209,8 @@ def where(path, texts):
     j = ui.joined(texts)
     if numbers(texts) and ("REGIONS" in j or regions_button(texts)):
         return "grid"
+    if flipped(texts) and regions_button(ui.ocr_turned(path)):  # read upside down, REGIONS too: 'SNOI...' (Pixel's
+        return "grid"  # 2x retry on the Lucky page, 2026-11-22: 20 looks in a row 'unknown')
     if "FILTER BY" in j:
         return "dex-search"
     if "POK" in j and "KANTO" in j and caught_total(path, texts) is not None:
@@ -309,8 +311,7 @@ def walk_grid():
     seen, last_max, still, backs = {}, None, 0, 0
     edge = [0.0, 999.0]  # busiest missing tile, plainest caught one: how close the spread alone came to a wrong call
     for i in range(MAX_SCREENS):
-        screen, texts, path, bounds = base.settle(look, lambda r: r[0] == "grid", 8)  # odd reads: look again
-        # (3 s wasn't enough: 6 looks in a row read no grid, then the same capture read as one, Pixel 2026-11-22)
+        screen, texts, path, bounds = base.settle(look, lambda r: r[0] == "grid", 3)  # one odd read: look again
         if screen != "grid":
             keep_capture("grid")
             raise Stop(f"not on the Pokédex grid any more ({screen})")

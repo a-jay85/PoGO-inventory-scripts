@@ -210,7 +210,7 @@ IDEAL = COUNTERS + FUTURE + SIG  # the strong lines' pulls: today, unreleased Po
 # The user's team names (2026-11-22), for the #1 picks per boss (ideal_firsts):
 #   Team Future: ideal_firsts() (pulls=IDEAL): unreleased Pokémon, megas and signature moves too. /ivc's strong lines.
 #   Team Ideal: ideal_firsts(COUNTERS): only what's in GO today, at perfect IVs.
-#   Team Available: one account's own copies at today's levels and IVs (raidteam.py's team A).
+#   Team Available: one account's own copies at today's levels and IVs (raidteam.py). Its Team Potential is the same copies at level 50.
 
 
 def real_boss(b):

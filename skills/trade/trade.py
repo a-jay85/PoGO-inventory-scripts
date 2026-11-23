@@ -988,8 +988,8 @@ def warning(p):
     # (the other player's 'CYRILLJAN HAS CONNECTED!' banner can show over the box: no reason, 2026-11-18)
     reasons = [l for l in lines if l and "ARE YOU SURE" not in l and not l.startswith("THIS POK")
                and not re.search(r"HAS CONNECTED!?$", l)]
-    # (the bullet in front can read as a stray letter: "X MAX MOVE ...")
-    unknown = [r for r in reasons if not any(r.startswith(k) or re.sub(r"^\S\s+", "", r).startswith(k)
+    # (the bullet in front can read as a stray letter or two: "X MAX MOVE ...", "X. MAX MOVE ..." 2026-11-22)
+    unknown = [r for r in reasons if not any(r.startswith(k) or re.sub(r"^\S{1,2}\s+", "", r).startswith(k)
                                              for k in OK_WARNINGS)]
     if not reasons or unknown:
         p.keep("warning")

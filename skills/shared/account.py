@@ -52,6 +52,11 @@ def picker():
     return "AccountPickerActivity" in ui.android.shell("dumpsys activity activities | grep topResumedActivity")
 
 
+SETTINGS_ROWS = {"MUSIC", "SOUND", "VIBRATION", "ACCOUNT", "GENERAL", "NOTIFICATIONS", "AR", "POKÉSTOP CONTRIBUTION",
+                 "UPLOADS", "CONNECTED DEVICES AND SERVICES", "ACCESSIBILITY", "ADVANCED SETTINGS", "ABOUT", "VERSION",
+                 "SIGN OUT"}  # the Settings page's rows, top to bottom
+
+
 def screen_of(texts):
     """the screens on the way: settings, signout, landing, providers, or home.where's"""
     j = ui.joined(texts)
@@ -63,7 +68,7 @@ def screen_of(texts):
         return "landing"
     words = {t[4].strip().upper() for t in texts}
     if "SETTINGS" in words and words & {"MUSIC", "ACCOUNT", "ADVANCED SETTINGS", "ABOUT", "SIGN OUT", "VERSION"} \
-            or len(words & {"MUSIC", "SOUND", "VIBRATION", "ACCOUNT", "GENERAL", "NOTIFICATIONS"}) >= 3:
+            or len(words & SETTINGS_ROWS) >= 3:
         # (its rows alone: the GPS banner hides the SETTINGS title, and evo's switch stopped there, Pixel 2026-11-22)
         return "settings"
     return None

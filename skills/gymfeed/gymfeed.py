@@ -543,14 +543,21 @@ def menu_tap(spot, bounds):
 
 def choose():
     """on a gym Pokémon's page: the BERRIES menu, the first FEEDABLE kind with more than its floor picked
-    -> (kind, its count), or None: none to spare (the menu shut again, out_of_berries set)"""
+    -> (kind, its count), "full": the berry button is grey and opens no menu (a "very happy" Pokémon, iPhone
+    2026-11-23: the run stopped on 'wanted berrymenu, screen is feed'), or None: none to spare (the menu shut again,
+    out_of_berries set)"""
     global out_of_berries, razz_seen
     # the page opens on Razz. With the bag's Razz known (read in the menu earlier this run, less what was fed since)
     # and a magenta berry floating: no menu, 4.5 s saved per Pokémon. A Golden Razz is yellow
     _, texts, path, bounds = look()
     if razz_seen is not None and "RAZZ" not in spent and razz_seen > FEEDABLE["RAZZ"] and razz_up(path):
         return "RAZZ", razz_seen
-    tap_to(BERRY_MENU, bounds, "berrymenu", "feed")
+    try:
+        tap_to(BERRY_MENU, bounds, "berrymenu", "feed")
+    except base.Lost:
+        if look()[0] != "feed":
+            raise
+        return "full"
     seen = []
     while len(seen) < 2 or seen[-1] != seen[-2]:  # it slides up: two reads in a row must agree
         time.sleep(0.4)
@@ -673,6 +680,10 @@ def feed_here(seen, total, limit):
     got = 0
     while total + got < limit:
         picked = choose()
+        if picked == "full":
+            keep_capture(f"full-{me[0]}")
+            log("    the berry button opens no menu: full")
+            break
         if not picked:
             log(f"  no berry to spare: every kind is down to what's kept ("
                 + ", ".join(f"{k} {n}" for k, n in FEEDABLE.items()) + ")")

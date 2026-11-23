@@ -3,6 +3,7 @@ __pycache__/
 .claude/*
 !.claude/rules/
 !.claude/settings.json
+!.claude/skills/
 .DS_Store
 # skill runtime files (stay local, never pushed: the repo is public)
 skills/*/runs/

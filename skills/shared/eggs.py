@@ -104,11 +104,14 @@ def to_eggs():
     """from the map to the Eggs tab: home.start() to the Pokémon list (a hatch on the way is tapped through), then
     the EGGS tab"""
     home.start()
-    for _ in range(3):
+    for _ in range(4):
         screen, texts, path, bounds = look()
         if eggs_tab(texts):
             return
         tab = ui.tab(texts, "EGGS")
+        if not tab and ui.gift_banner(texts):  # a friend's banner hides the tabs for a few seconds ('Friendship
+            base.banner_gone()  # level with X increased!', Pixel 2026-11-22): wait it out, then look again
+            continue
         if not tab:
             break
         base.tap_box(tab, bounds, dy=ui.TAB_DY, rest=1.5)  # (under its word, as every tab tap)

@@ -11,3 +11,4 @@ skills/shared/.state.json
 skills/shared/.calib.json
 skills/trade/.state.json
 skills/shared/helper
+skills/shared/pokedb.sqlite

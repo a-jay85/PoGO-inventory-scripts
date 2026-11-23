@@ -73,7 +73,8 @@ def screen_of(texts):
     if "ADVENTURE SYNC ENABLED" in j:
         return "enabled"
     words = {ui.up(t) for t in texts}
-    if "GENERAL" in words and row(texts):
+    if ("GENERAL" in words or {"LANGUAGE", "BATTERY SAVER"} <= words) and row(texts):  # (its rows: the GPS banner
+        # hides the GENERAL title, and evo's switch stopped there, Pixel 2026-11-22)
         return "general"
     return account.screen_of(texts)
 

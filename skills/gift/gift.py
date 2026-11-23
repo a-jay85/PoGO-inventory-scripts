@@ -541,12 +541,19 @@ def commit_search():
     if n is not None:
         return n
     box = search_line()
+    if ui.gps_banner() and box and ui.norm(box[4]) != "TRAINER NICKNAME" and rows():
+        # (the red 'GPS signal not found. (11)' banner's own text sits right on a short count: '(6)' read from neither
+        # the plain png nor the contrast crop, and 4 typings in a row stopped the run, Pixel 2026-11-23. Its rows and
+        # box are there: go on. The count only tells when a search is done, so such a search is never remembered)
+        log("  the GPS banner hides the result count: going on with the rows")
+        return UNREAD_COUNT
     if box and len(ui.norm(box[4])) > 12 and ui.norm(box[4]) != "TRAINER NICKNAME" \
             and not any(0.26 < t[1] < 0.85 for t in texts):
         return 0  # no one found: the list is empty and FRIENDS shows the total, with no '(0)'
     return None
 
 
+UNREAD_COUNT = float("inf")  # a search's count when the GPS banner hides it: not 0, and never 'all seen' (len(seen) >= n)
 LIST_LOAD = 25  # seconds the friend list gets to show its friends before a search
 
 

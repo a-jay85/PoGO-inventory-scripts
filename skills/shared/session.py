@@ -41,6 +41,7 @@ TROUBLE = ("IPHONE IN USE", "IPHONE IS LOCKED", "UNLOCK YOUR IPHONE",  # Mirrori
 #            it lost the iPhone. Opening Mirroring again reconnects (2026-11-11: /trade stopped on it as an unknown screen)
 
 NEEDS_GPS = {"gymfeed.py", "goplus.py", "trade.py",  # gyms, catching, nearby trades
+             "phone.py",  # /trade's own process per phone: it runs home.start(), which turned location off
              "tradeable.py", "specieswise.py",  # 'distance100-' measures from where the phone is now
              "account.py"}  # a sign-in: the game may want the map
 BOX_WAIT = 3  # seconds the 'No location access' box gets to come up after location goes off (later: android.ready)

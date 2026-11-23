@@ -1148,7 +1148,7 @@ Feed berries to the Pokémon in the gyms you're defending, from the gym badge li
 - `is_heart(p)`: a pixel of the pink motivation heart over a gym Pokémon (iPhone, a red gym, 2026-11-23: about 245,95,125)
 - `hearts(path)`: the gym view's pink hearts, one over each Pokémon -> [(cx, the heart's bottom y)], left to right
 - `berry_colours(path)`: -> (share of warm or green pixels, share of magenta ones) in BERRY_BOX, where the berry floats
-- `berry_up(path, texts)`: a berry floats on this gym Pokémon's page: it's hungry
+- `berry_up(path)`: a berry floats on this gym Pokémon's page: it's hungry
 - `razz_up(path)`: the berry floating is a Razz: magenta, where Nanab, Pinap and Golden Razz are yellow
 - `berry_menu(texts)`: the BERRIES menu -> {kind: (count or None: not read, where to tap its berry)}. kinds: RAZZ NANAB PINAP GOLDEN SILVER, from the names under the berries ('GOLDEN RAZZ' / …
 - `menu_counts(menu, texts, path)`: berry_menu() with each count it missed read again from a close crop of path

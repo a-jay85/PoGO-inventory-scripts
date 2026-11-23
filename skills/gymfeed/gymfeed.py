@@ -74,6 +74,7 @@ GYM_SIZE = 6  # the most a gym holds. The CP labels can't count them: 4 labels, 
 BERRY_SHARE = 0.03  # a floating Razz fills 7-22 % of BERRY_BOX with warm or green pixels and 24-32 % with magenta;
 # no berry is 0 % of each (both phones, 2026-11-08). The Pixel's berry is darker: a test for bright colour missed it
 BERRY_BOX = (0.36, 0.72, 0.64, 0.88)
+WARM_SHARE = 0.1  # yellow with no magenta that makes a berry: Empoleon's feet are 8 %, a Nanab 12-17 %
 MAX_TAPS = 14  # taps on one Pokémon at most: the game takes 10 per 30 min, so more means the taps aren't feeding
 FULL_WAIT = 2.0  # seconds a berry must stay gone to call a Pokémon full
 
@@ -185,12 +186,13 @@ def berry_colours(path):
     return warm / len(px), magenta / len(px)
 
 
-def berry_up(path, texts):
-    """a berry floats on this gym Pokémon's page: it's hungry. A Razz's purple counts as magenta more than warm. The
-    bag count shows under a floating berry: without it, Empoleon's yellow feet read as a berry, 12 taps fed nothing
-    (2026-11-23)"""
-    return max(berry_colours(path)) >= BERRY_SHARE and any(
-        re.fullmatch(r"\d{1,5}", t[4].strip()) and 0.84 < t[1] < 0.92 and 0.4 < t[0] < 0.8 for t in texts)
+def berry_up(path):
+    """a berry floats on this gym Pokémon's page: it's hungry. Some magenta (Razz 22-25 %, Nanab's tips 8-9 %), or
+    WARM_SHARE of yellow alone (a Pinap). Empoleon's yellow feet, 8 % warm and no magenta, read as a berry with
+    BERRY_SHARE alone: 14 taps counted, 2 fed (2026-11-23). The bag count under the berry can't tell: OCR misses a
+    lone '1'"""
+    warm, magenta = berry_colours(path)
+    return magenta >= BERRY_SHARE or warm >= WARM_SHARE
 
 
 def razz_up(path):
@@ -672,7 +674,7 @@ def berry_back(me):
     while True:
         time.sleep(0.6)
         screen, texts, path, bounds = look()
-        up = screen == "feed" and berry_up(path, texts)
+        up = screen == "feed" and berry_up(path)
         if up or time.time() >= end or moved(screen, texts, me):
             return up, screen, texts, path, bounds
 
@@ -689,7 +691,7 @@ def feed(kind, have, left, me):
         # a full Pokémon's berry can still show for a moment. A tap with no berry jumps to the faint Pokémon behind
         # (Blissey and Hitmonchan -> Greninja, 2026-11-06), so no tap before a look BERRY_WAIT after the last one
         screen, texts, path, bounds = steady_look(me)
-        up = screen == "feed" and berry_up(path, texts)
+        up = screen == "feed" and berry_up(path)
         if not up and not moved(screen, texts, me):
             up, screen, texts, path, bounds = berry_back(me)
         if moved(screen, texts, me):
@@ -739,7 +741,7 @@ def feed_here(seen, total, limit):
     seen.add(me)
     if total >= limit or out_of_berries:
         return 0
-    if not berry_up(path, texts) and not berry_back(me)[0]:  # it floats in late
+    if not berry_up(path) and not berry_back(me)[0]:  # it floats in late
         keep_capture(f"full-{me[0]}")
         log(f"  {me[0]} ({me[1]}): full")
         return 0

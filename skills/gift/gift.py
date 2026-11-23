@@ -311,9 +311,10 @@ def close_popup(*screens, timeout=6, also=()):
 # ---------- the friend list ----------
 
 def count():
-    """the '(N)' under FRIENDS while a search is on"""
-    for t in texts:
-        m = re.fullmatch(r"\((\d[\d,]*)\)", t[4].strip())
+    """the '(N)' under FRIENDS while a search is on. Under the GPS banner (location off) it reads only from a
+    contrast-boosted crop"""
+    for t in texts if not ui.gps_banner() else ui.under_gps_banner(path, 0.3, 0.08, 0.7, 0.13):
+        m = re.fullmatch(r"\((\d[\d,]*)\)", re.sub(r"\s", "", t[4]))
         if m and t[1] < 0.14:
             return int(m.group(1).replace(",", ""))
     return None

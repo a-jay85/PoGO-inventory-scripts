@@ -20,6 +20,7 @@
 
   POGO_PHONE=android python3 session.py open     wake and unlock the Pixel (iPhone: open iPhone Mirroring)
   POGO_PHONE=android python3 session.py close    lock the Pixel (iPhone: quit iPhone Mirroring)
+  python3 session.py busy    what's using each phone now, one short line each (touches no phone)
 """
 import fcntl, os, re, subprocess, sys, time, traceback
 
@@ -317,6 +318,31 @@ def claim():
     return None
 
 
+def busy():
+    """what's using each phone now, one short line each, and any other skill script running. Reads the locks claim()
+    takes (a held flock means a live run; the pid in a free one is stale), so it touches no phone. For Claude's check
+    before a phone test: `ps | grep` matched every Claude process and printed 10-15 KB (2026-11-22)"""
+    lines = []
+    for phone, name in (("android", "Pixel"), ("iphone", "iPhone")):
+        path = f"/tmp/pogo-{phone}.lock"
+        if not os.path.exists(path):
+            lines.append(f"{name}: free")
+            continue
+        with open(path) as f:
+            try:
+                fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                fcntl.flock(f, fcntl.LOCK_UN)
+                lines.append(f"{name}: free")
+            except OSError:
+                lines.append(f"{name}: busy, {(f.read().strip() or 'a script')[:150]}")
+    out = subprocess.run(["pgrep", "-fl", r"(skills/[a-z]+/[a-z_]+|pogo)\.py"], capture_output=True, text=True).stdout
+    other = [l.split()[0] + " " + (m.group(0)[:120] if (m := re.search(r"\S*(skills/|pogo\.py).*", l)) else l.split(None, 1)[-1][:120])
+             for l in out.splitlines() if l[:1].isdigit()
+             and l.split()[0] != str(os.getpid()) and "session.py busy" not in l and "pgrep" not in l]
+    lines.append("other skill scripts: " + ("none" if not other else f"{len(other)}\n  " + "\n  ".join(other[:5])))
+    return "\n".join(lines)
+
+
 # ---------- a run ----------
 
 def ready():
@@ -443,6 +469,8 @@ def main(body, *args):
 
 if __name__ == "__main__":
     a = sys.argv[1:]
+    if a == ["busy"]:
+        sys.exit(print(busy()))
     if a not in (["open"], ["close"]):
         sys.exit(__doc__)
     base.RUN_DIR = "/tmp/pogo_session"

@@ -2414,6 +2414,7 @@
    "WORN_UP",
    "adb_ok",
    "awake",
+   "busy",
    "claim",
    "close",
    "close_location_box",

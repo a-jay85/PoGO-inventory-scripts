@@ -40,7 +40,8 @@ TROUBLE = ("IPHONE IN USE", "IPHONE IS LOCKED", "UNLOCK YOUR IPHONE",  # Mirrori
 
 NEEDS_GPS = {"gymfeed.py", "goplus.py", "trade.py",  # gyms, catching, nearby trades
              "tradeable.py", "specieswise.py",  # 'distance100-' measures from where the phone is now
-             "account.py"}  # a sign-in: the game may want the map
+             "account.py",  # a sign-in: the game may want the map
+             "gift.py"}  # the red 'GPS signal not found' banner covers the profile's ME / FRIENDS tabs it taps
 opened = False  # this run opened the phone: main() closes it at the end
 pin_failed = False  # the PIN didn't work once: never typed again this run
 

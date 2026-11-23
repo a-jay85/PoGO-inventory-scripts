@@ -2593,6 +2593,7 @@
    "CANT_CAPTURE",
    "CAP",
    "CONFIRM_SCREENS",
+   "GPS_BANNER",
    "HAZARDS",
    "HAZARD_MARGIN",
    "HELPER",

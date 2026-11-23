@@ -922,6 +922,7 @@ Tag CyrillJan's Tradeable saved search by what a trade to HashTagAJay is worth, 
 /dex: read one Pokédex page and print a storage search of the Pokémon missing from it, for another account to paste
 
 - `numbers(texts)`: the 4-digit Pokédex numbers on screen -> [(n, text box)]
+- `near(texts)`: numbers(texts) without misreads: one screen holds about 30 numbers in a row (0560 read as 0990 among 547-569, Lucky page 2026-11-22)
 - `flipped(texts)`: the OCR read a grid number upside down: a 4-letter label that isn't a number (the Lucky page, Pixel, 2026-11-22: rows 1-12 as 'T000 2000 £000 +000'..., and once only …
 - `more_numbers(texts, more)`: texts, plus the numbers in more that texts don't have, from spots where texts read no number (a turned read of a label already read upright gives a wrong number on it: a …
 - `upright(path, texts)`: texts, plus the numbers a turned copy reads that these miss, when rows read upside down

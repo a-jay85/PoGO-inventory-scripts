@@ -441,12 +441,16 @@ def yield_to_user(tapping=False, force=False):
 
 
 PHONE_WAIT = 30 * 60  # seconds a run waits for an iPhone in use (a call) before it stops
-PHONE_LOOK = 10.0  # seconds between looks meanwhile: only captures, no taps or keys
+PHONE_LOOK = 10.0  # seconds between looks meanwhile
+PHONE_CONNECT = 30.0  # seconds between taps on Mirroring's Connect meanwhile (only with the Mac left alone)
 
 
 def wait_for_phone(texts):
     """iPhone Mirroring says iPhone in Use (a call came in, or the iPhone was picked up, 2026-11-23): wait here till
-    it shows the iPhone again, then go on. Mirroring connects by itself once the iPhone is locked, so this only looks.
+    it shows the iPhone again, then go on. Mirroring doesn't connect by itself once the iPhone is locked: its Connect
+    button does it (seen 2026-11-23: still "in Use" 5 min after the lock, one click and the run went on). So every
+    PHONE_CONNECT s, with the Mac left alone USER_IDLE s, it clicks Connect; while the iPhone is still in use that
+    only shows the same page again.
     Every deadline in the run stands still meanwhile, as in yield_to_user. -> the text of a fresh capture (ui.CAP).
     The game on another screen than before (a reload after the call): Lost, as after a Mac pause. Still in use after
     PHONE_WAIT: Stop, in the words timer.py tries again on"""
@@ -454,10 +458,16 @@ def wait_for_phone(texts):
     before = ui.last_read
     keep_capture("inuse")
     log("the iPhone is in use (a call, or someone picked it up): paused until iPhone Mirroring shows it again")
-    t0 = tick = _real_time()
+    t0 = tick = tried = _real_time()
+    bounds = None  # the window's, from the first look below (the page in `texts` came with no bounds)
     was, _pausing = _pausing, True  # (the looks below mustn't wait for the Mac too)
     try:
         while ui.in_use(texts) or "CONNECTING" in ui.joined(texts):
+            button = next((t for t in texts if t[4].strip().upper() == "CONNECT"), None)
+            if button and bounds and _real_time() - tried >= PHONE_CONNECT and idle_seconds() >= USER_IDLE:
+                tried = _real_time()
+                bring_forward()
+                click(*ui.center(button), bounds, bring_front=False, spaced=False, counted=False)
             if _real_time() - t0 > PHONE_WAIT:
                 raise Stop(f"you're using the iPhone (iPhone Mirroring says iPhone in Use) for over "
                            f"{PHONE_WAIT // 60} min: run this after you lock it")
@@ -467,7 +477,8 @@ def wait_for_phone(texts):
             with open(ui.PAUSE_FILE, "w") as f:
                 f.write(f"{paused:.1f}")
             try:
-                texts = ui.ocr_once(ui.capture()[0])
+                path, bounds = ui.capture()
+                texts = ui.ocr_once(path)
             except Refused:
                 pass  # the window gone for a moment: look again
     finally:

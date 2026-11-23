@@ -388,8 +388,8 @@ def up(t):
 
 
 def in_use(texts):
-    """iPhone Mirroring's "iPhone in Use" page: the iPhone itself is being used (a call, or picked up). Mirroring
-    connects again by itself once it's locked ("iPhone Mirroring will connect when iPhone is no longer in use")"""
+    """iPhone Mirroring's "iPhone in Use" page: the iPhone itself is being used (a call, or picked up). Once it's
+    locked, the page's Connect button brings it back (base.wait_for_phone)"""
     return "IPHONE IN USE" in joined(texts)
 
 

@@ -157,13 +157,26 @@ def regions_button(texts):
     return any(difflib.SequenceMatcher(None, t[4].upper().strip(), "REGIONS").ratio() >= 0.8 for t in texts)
 
 
+def caught(path, texts):
+    """the region list's 'Caught: 935' at the top right -> 935, or None. The red 'GPS signal not found' banner
+    (location off for the run) covers it: its own text runs into the line there ('(11) ght: 935'), so under it only
+    the number after the colon counts, read from a contrast-boosted crop (Pixel, 2026-11-22)"""
+    if ui.gps_banner():
+        texts = ui.under_gps_banner(path, 0.5, 0.06, 1.0, 0.12)
+        pat = r"GHT\s*[:;]\s*(\d[\d,]*)\s*$"
+    else:
+        pat = r"CAUGHT\D*(\d[\d,]*)"
+    m = next((m for t in texts if t[1] < 0.1 for m in [re.search(pat, t[4].upper())] if m), None)
+    return int(m.group(1).replace(",", "")) if m else None
+
+
 def where(path, texts):
     j = ui.joined(texts)
     if numbers(texts) and ("REGIONS" in j or regions_button(texts)):
         return "grid"
     if "FILTER BY" in j:
         return "dex-search"
-    if "POK" in j and any(t[1] < 0.1 and t[4].upper().startswith("CAUGHT") for t in texts) and "KANTO" in j:
+    if "POK" in j and "KANTO" in j and caught(path, texts) is not None:
         return "regions"
     return home.where(path, texts)
 
@@ -238,11 +251,10 @@ def pick_page(label):
             raise Stop(f"left the Pokédex's region list ({screen})")
         t = chip(texts, label)
         if t and chip_on(path, t):
-            m = next((re.search(r"(\d[\d,]*)", t2[4]) for t2 in texts
-                      if t2[1] < 0.1 and t2[4].upper().startswith("CAUGHT")), None)
-            if not m:
+            n = caught(path, texts)
+            if n is None:
                 raise Stop("can't read the page's Caught total")
-            return int(m.group(1).replace(",", "")), texts, bounds
+            return n, texts, bounds
         if t:
             log(f"tapping the {label} chip")
             tap_at(*ui.center(t), bounds)

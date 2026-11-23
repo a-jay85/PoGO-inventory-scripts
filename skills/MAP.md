@@ -589,6 +589,7 @@ A run's phone from start to end
 - `fit()`: the iPhone Mirroring window at the size the scripts read (ui.SIZE): macOS 27 opens it smaller
 - `connect()`: iPhone Mirroring open and showing the iPhone
 - `claim()`: this phone for this process
+- `busy()`: what's using each phone now, one short line each, and any other skill script running
 - `ready()`: the phone ready to be seen and tapped
 - `needs_gps()`
 - `gps_off()`: the Pixel's location off for the rest of the run, unless this script needs it

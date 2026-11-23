@@ -31,7 +31,7 @@ Something that needs a look on a phone but can't be done now (the phone is busy,
 - iPhone runs pause when the Mac's keyboard or mouse is touched, and go on after 5 seconds idle. The pointer goes back after each tap. Pixel taps go through adb, so the Mac stays free.
 - Every script starts from any screen (`home.start()`). At the end it quits iPhone Mirroring or locks the Pixel. `POGO_KEEP_OPEN=1` leaves it open. `python3 skills/shared/session.py open|close` does just that part.
 - Pixel setup, once: USB debugging on, tap Allow on the phone, and put the PIN in `~/.config/pogo/android-pin` (digits only, `chmod 600`). `POGO_PHONE=android python3 skills/shared/android.py check` checks it.
-- One script per phone. `session.ready()` takes a lock for the whole run (`/tmp/pogo-android.lock`, `/tmp/pogo-iphone.lock`). A second script stops and says what's using the phone. A test script must go through `session.ready()` too.
+- One script per phone. `session.ready()` takes a lock for the whole run (`/tmp/pogo-android.lock`, `/tmp/pogo-iphone.lock`). A second script stops and says what's using the phone. A test script must go through `session.ready()` too. `python3 skills/shared/session.py busy` says what's using each phone now, without touching one (a hook blocks the old `ps | grep` check).
 - `~/.config/pogo/accounts.json` says which Google account is which trainer (`skills/shared/account.py`).
 
 ## Every change goes in a worktree, a PR and a squash-merge

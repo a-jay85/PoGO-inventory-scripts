@@ -206,8 +206,22 @@ def like(a, b, enough):
 def page_name(texts):
     """the name at the top of a gym Pokémon's page"""
     top = [t for t in texts if (0.05 if ui.ANDROID else 0.08) < t[1] < 0.13 and not re.fullmatch(r"\W*[cC][pP]?\s*\d+\W*", t[4].strip())]
-    words = " ".join(t[4].strip() for t in sorted(top, key=lambda t: t[0])).split()
-    return " ".join(w for w in words if not dust(w))
+    words = [w for w in " ".join(t[4].strip() for t in sorted(top, key=lambda t: t[0])).split() if not dust(w)]
+    keep = []
+    for w in words:
+        if candy(w):
+            if keep and keep[-1].isupper():  # the family's name in capitals before CANDY
+                keep.pop()
+            continue
+        keep.append(w)
+    return " ".join(keep)
+
+
+def candy(word):
+    """the 'CANDY' of the 'PIPLUP CANDY' a berry can give, floating over the name with the family's name before it.
+    Left in, it made Empoleon's page read as another's and stopped its feeding at 7 (2026-11-23)"""
+    letters = re.sub(r"[^A-Z]", "", word.upper())
+    return word.upper() == word and len(letters) >= 4 and like(letters, "CANDY", 0.75)
 
 
 def dust(word):

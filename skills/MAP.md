@@ -1152,6 +1152,7 @@ Feed berries to the Pokémon in the gyms you're defending, from the gym badge li
 - `menu_counts(menu, texts, path)`: berry_menu() with each count it missed read again from a close crop of path
 - `like(a, b, enough)`
 - `page_name(texts)`: the name at the top of a gym Pokémon's page
+- `candy(word)`: the 'CANDY' of the 'PIPLUP CANDY' a berry can give, floating over the name with the family's name before it
 - `dust(word)`: a word of the '+10 STARDUST' that floats over the name after each berry: 'STABEUST', 'STARNUST•', '+10'
 - `gym_view(texts)`: pages.gym_view, or the same with the looser CP labels OCR reads over a busy gym ('GP2008,', 'c*1677'): the gym's name across the top, a label in the middle
 - `who(texts)`: one gym Pokémon's page -> (its name, its trainer): the name at the top, the trainer beside its CP. OCR reads the trainer over the busy gym differently each time …

@@ -1835,6 +1835,7 @@
    "banner_seen",
    "by_storage",
    "clipped_names",
+   "close_profile",
    "forget_storage",
    "hatched_at",
    "home_search",
@@ -2059,6 +2060,7 @@
    "trade_limit_ok",
    "trade_ok",
    "walk_reward",
+   "weather",
    "which"
   ],
   "runs": []

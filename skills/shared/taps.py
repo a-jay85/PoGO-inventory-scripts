@@ -300,8 +300,9 @@ def owned(texts):
     return have_dust, have_candy
 
 
-def purify(info):
-    """PURIFY once, YES once, wait for the animation to finish. -> the new CP"""
+def purify(info, species=None):
+    """PURIFY once, YES once, wait for the animation to finish. species: the speciesIds it is: a YES/NO naming one of
+    them is this one too, when the page's name misread (Machop's reads 'doyew'). -> the new CP"""
     t0 = time.time()
     _, texts, _, bounds = look()
     now = ui.detail_info(texts) if ui.classify(texts) == "detail" else {}
@@ -321,7 +322,10 @@ def purify(info):
         keep_capture("nopurifydialog")
         raise Stop("no purify YES/NO after tapping PURIFY")
     t1 = time.time()
-    if flat(info["name"]) not in flat(ask):
+    named = re.search(r"purify\s+(.+?)\s*\?", ask, re.I)
+    if flat(info["name"]) not in flat(ask) and named and ui.names_species(named.group(1), species):
+        log(f"  name read {info['name']!r}, the purify box says {named.group(1)}: the same species")
+    elif flat(info["name"]) not in flat(ask):
         no = exact(texts, "NO")
         if len(no) == 1:
             press(no[0], bounds)

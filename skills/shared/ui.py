@@ -694,6 +694,14 @@ def letters(s):
     return re.sub(r"[^a-z]", "", unicodedata.normalize("NFKD", s).lower())
 
 
+def names_species(name, species):
+    """a dialog's species name ('MACHOP', 'RAICHU') is one of these speciesIds' (forms too: raichu_alolan). For a page
+    whose big name OCR misreads: Machop's reads 'doyew' (upside down) on the Pixel, run after run (2026-11-20 to 23)"""
+    gm = {p["speciesId"]: p for p in json.load(open(os.path.join(HERE, "gamemaster.json")))["pokemon"]}
+    return bool(letters(name or "")) and any(
+        s in gm and letters(gm[s]["speciesName"].split(" (")[0]) == letters(name) for s in species or ())
+
+
 def loose_match(name, texts, gm):
     """no exact name match. Try the letters only (Flabébé, Type: Null, Mime Jr.).
     Then the gender sign after the name, which can read as one stray letter ('Raltsр', cleaned to 'Raltsp'):

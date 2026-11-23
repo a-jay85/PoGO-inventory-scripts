@@ -206,7 +206,7 @@ class Door:
             base.set_tags(on=[hold])
             return "held"
         if v.purify:
-            v = self.purify(info, v)
+            v = self.purify(info, v, sp)
         if v.kind == "tag" and "Transfer" in v.tags:
             v = self.power_up(info, v, tile[1], None if v.purify else f.levels)
         self.last = v
@@ -342,10 +342,10 @@ class Door:
             base.log(f"  not California: {[[t[4] for t in r if t[1] > 0.5] for r in reads]}")
         return base.OPENED["page"]
 
-    def purify(self, info, v):
-        """purify it (the verdict's tags go on after). Can't purify -> unsure, left as it is"""
+    def purify(self, info, v, sp=None):
+        """purify it (the verdict's tags go on after). sp: its speciesIds. Can't purify -> unsure, left as it is"""
         try:
-            cp = taps.purify(info)
+            cp = taps.purify(info, sp)
         except taps.Again as e:
             return vd.unsure(f"purify: the page showed someone else ({e})")
         except Stop as e:

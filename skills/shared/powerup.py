@@ -216,26 +216,30 @@ def read_dialog(cp, after=None, can_be=None):
 LAST_FROM = [None]  # the first CP of read_dialog's last read ('CP 3085 → 3120': 3085)
 
 
-def dialog(info, can_be=None):
-    """tap POWER UP on the detail page. can_be: read_dialog's, for a page whose CP didn't read. -> read_dialog() without
-    the title"""
+def dialog(info, can_be=None, species=None):
+    """tap POWER UP on the detail page. can_be: read_dialog's, for a page whose CP didn't read. species: the speciesIds
+    it is (the candy line's): a title naming one of them is this one too, when the page's name misread (Machop's big
+    name reads 'doyew') or is a nickname. -> read_dialog() without the title"""
     _, texts, _, bounds = look()
     btn = [t for t in texts if ui.norm(t[4]) == "POWER UP" and t[1] > 0.6]
     if len(btn) != 1:
         raise Pass("can't find POWER UP")
     press(btn[0], bounds)
     *got, head = read_dialog(info["cp"], can_be=can_be)
-    if ui.letters(head.split(":", 1)[1]) != ui.letters(info["name"]):
+    title = head.split(":", 1)[1]
+    if ui.letters(title) != ui.letters(info["name"]) and ui.names_species(title, species):
+        log(f"  name read {info['name']!r}, the dialog says {title.strip()}: the same species and CP")
+    elif ui.letters(title) != ui.letters(info["name"]):
         press(got[3], got[5])
         raise Stop(f"the power-up dialog names someone else: {head!r} (wanted {info['name']})")
     return got
 
 
-def dialog_cp(info, can_be):
+def dialog_cp(info, can_be, species=None):
     """the CP of a page whose own CP won't read (event art or the Pokémon over it): the power-up dialog shows it on
     plain white ('CP 3085 → 3120'). Opened and cancelled: nothing is spent. can_be(cp): a CP this one can have.
     Pass: no POWER UP (level 50, or the trainer's cap)"""
-    d = dialog(info, can_be=can_be)
+    d = dialog(info, can_be=can_be, species=species)
     cancel(d[3], d[5])
     log(f"  CP{LAST_FROM[0]} from the power-up dialog")
     return LAST_FROM[0]
@@ -307,8 +311,8 @@ def power_up(info, texts, levels=None, known=None):
     if have_dust < DUST_FLOOR:
         raise Stop(f"Stardust {have_dust:,} is under {DUST_FLOOR:,}: no more power-ups")
     cp = info["cp"]
-    d = dialog(info)
-    rows = [(1, d[0], d[1])]
+    d = dialog(info, species=species)
+    rows =[(1, d[0], d[1])]
     cands = [c for c in candidates(species, info["hp"], cp, d[0]) if fits(c, rows)]
     cands = [c for c in cands if c[2] in lvs] or cands  # (a level already known needs no + to find it)
     while len(steps(cands, plays)) > 1 and len(rows) < MAX_PLUS + 1:  # a play for some levels only: one more +
@@ -325,7 +329,7 @@ def power_up(info, texts, levels=None, known=None):
     target = plays[math.floor(lvs[0])]
     if n != len(rows):  # the dialog shows more power-ups than it needs: open it again and count up
         cancel(d[3], d[5])
-        d = dialog(info)
+        d = dialog(info, species=species)
         for _ in range(n - 1):
             d = more(cp, d)
     after, total = d[0], d[1]

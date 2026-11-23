@@ -1145,6 +1145,8 @@ Feed berries to the Pokémon in the gyms you're defending, from the gym badge li
 - `look()`
 - `cp_labels(texts)`: the gym view's CP labels over its Pokémon -> [(cx, cy)]
 - `all_labels()`: the gym view's CP labels from two looks (OCR misses one now and then: the Pokémon bob) -> [(cx, cy)]
+- `is_heart(p)`: a pixel of the pink motivation heart over a gym Pokémon (iPhone, a red gym, 2026-11-23: about 245,95,125)
+- `hearts(path)`: the gym view's pink hearts, one over each Pokémon -> [(cx, the heart's bottom y)], left to right
 - `berry_colours(path)`: -> (share of warm or green pixels, share of magenta ones) in BERRY_BOX, where the berry floats
 - `berry_up(path)`: a berry floats on this gym Pokémon's page: it's hungry
 - `razz_up(path)`: the berry floating is a Razz: magenta, where Nanab, Pinap and Golden Razz are yellow
@@ -1179,7 +1181,7 @@ Feed berries to the Pokémon in the gyms you're defending, from the gym badge li
 - `feed(kind, have, left, me)`: on `me`'s page with `kind` picked (`have` in the bag): tap the berry while one floats, the bag keeps more than FEEDABLE[kind] and fewer than `left` are fed -> (berries …
 - `wait_feed(timeout=4)`
 - `feed_here(seen, total, limit)`: on a gym Pokémon's page: feed it if it's new -> berries fed
-- `open_at(cx, cy, bounds, seen)`: in the gym view: tap a Pokémon at TAP_DROPS under its CP label until one not seen yet opens -> the drop that opened it, on its page
+- `open_at(cx, cy, bounds, seen, drops=TAP_DROPS)`: in the gym view: tap a Pokémon at `drops` under its CP label (or heart) until one not seen yet opens -> the drop that opened it, on its page
 - `gym(total, limit)`: in a gym's view: feed every Pokémon in it -> berries fed here
 - `explore(seen, n, total, limit)`: on a gym Pokémon's page: try SWIPES from each page reached until n are seen or nothing's left to try
 - `untried(edges, stays, page)`: -> the swipes still to try from a page, the ones that stayed least first

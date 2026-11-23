@@ -694,6 +694,7 @@ Screen reader + tap planner for /pvpc
 - `gps_banner()`: the last read (this thread's) had the red 'GPS signal not found' banner, which ocr_once drops
 - `under_gps_banner(path, x0, y0, x1, y1)`: the text under the GPS banner in the box x0,y0-x1,y1 (screen fractions), as ocr() gives it: the box in grey, stretched to full contrast, at 3x
 - `ocr_once(path)`: the png's text, less the game's red 'GPS signal not found
+- `ocr_turned(path)`: the png's text read from a copy turned upside down, each box put back where it is on the png
 - `ocr_2x(path)`: OCR a 2x copy: it reads white on green (a GIV chip, YES) and upside-down lines the 1x read misses
 - `ocr(path)`: the png's text. A list with more tile CPs than names read: once more from a 2x copy, kept if it finds more tiles. A list with no TAGS or EGGS tab read: at 2x, kept if …
 - `size_lost(texts)`: the units ('kg', 'm') whose value didn't read while the other's value or a WEIGHT / HEIGHT label did (the size row is on screen)
@@ -921,11 +922,13 @@ Tag CyrillJan's Tradeable saved search by what a trade to HashTagAJay is worth, 
 /dex: read one Pokédex page and print a storage search of the Pokémon missing from it, for another account to paste
 
 - `numbers(texts)`: the 4-digit Pokédex numbers on screen -> [(n, text box)]
+- `flipped(texts)`: the OCR read grid rows upside down: two or more 4-letter labels that aren't numbers (the Lucky page, Pixel, 2026-11-22: rows 1-12 as 'T000 2000 £000 +000'...)
+- `upright(path, texts)`: texts, plus the numbers a turned copy reads that these miss, when rows read upside down
 - `band(texts)`: the part of the grid nothing covers -> (top, bottom)
 - `spread(im, t, top)`: how busy the tile is just above its number: a picture, or plain tile
 - `read_grid(path, texts)`: -> ({n: True if missing}, [(n, y, spread, missing)] for the log)
 - `regions_button(texts)`: the grid's REGIONS button label, also when OCR drops a letter ("REIONS", 2026-11-11)
-- `caught(path, texts)`: the region list's 'Caught: 935' at the top right -> 935, or None
+- `caught_total(path, texts)`: the region list's 'Caught: 935' at the top right -> 935, or None
 - `where(path, texts)`
 - `look()`
 - `tap_at(fx, fy, bounds, wait=1.6)`

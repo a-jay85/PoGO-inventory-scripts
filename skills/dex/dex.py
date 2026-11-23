@@ -76,6 +76,24 @@ def numbers(texts):
     return out
 
 
+FLIPPED = re.compile(r"[0-9OoIlTZEL£+S]{4}")  # a grid number read upside down: 'T000' 0001, 'ZIOO' 0012
+
+
+def flipped(texts):
+    """the OCR read grid rows upside down: two or more 4-letter labels that aren't numbers (the Lucky page, Pixel,
+    2026-11-22: rows 1-12 as 'T000 2000 £000 +000'...)"""
+    return sum(bool(FLIPPED.fullmatch(t[4].strip())) and not numbers([t]) for t in texts) >= 2
+
+
+def upright(path, texts):
+    """texts, plus the numbers a turned copy reads that these miss, when rows read upside down. Neither read gets
+    them all: the ★100% grid read 17 numbers plain and 10 turned (2026-11-11), the Lucky one 4 plain, 16 turned"""
+    if not flipped(texts):
+        return texts
+    have = {n for n, _ in numbers(texts)}
+    return texts + [t for n, t in numbers(ui.ocr_turned(path)) if n not in have]
+
+
 def band(texts):
     """the part of the grid nothing covers -> (top, bottom). The region header grows at the top and bottom of the
     grid, and the chips sit over the bottom rows."""
@@ -157,7 +175,7 @@ def regions_button(texts):
     return any(difflib.SequenceMatcher(None, t[4].upper().strip(), "REGIONS").ratio() >= 0.8 for t in texts)
 
 
-def caught(path, texts):
+def caught_total(path, texts):
     """the region list's 'Caught: 935' at the top right -> 935, or None. The red 'GPS signal not found' banner
     (location off for the run) covers it: its own text runs into the line there ('(11) ght: 935'), so under it only
     the number after the colon counts, read from a contrast-boosted crop (Pixel, 2026-11-22)"""
@@ -176,7 +194,7 @@ def where(path, texts):
         return "grid"
     if "FILTER BY" in j:
         return "dex-search"
-    if "POK" in j and "KANTO" in j and caught(path, texts) is not None:
+    if "POK" in j and "KANTO" in j and caught_total(path, texts) is not None:
         return "regions"
     return home.where(path, texts)
 
@@ -251,7 +269,7 @@ def pick_page(label):
             raise Stop(f"left the Pokédex's region list ({screen})")
         t = chip(texts, label)
         if t and chip_on(path, t):
-            n = caught(path, texts)
+            n = caught_total(path, texts)
             if n is None:
                 raise Stop("can't read the page's Caught total")
             return n, texts, bounds
@@ -278,6 +296,7 @@ def walk_grid():
         if screen != "grid":
             keep_capture("grid")
             raise Stop(f"not on the Pokédex grid any more ({screen})")
+        texts = upright(path, texts)
         got, rows = read_grid(path, texts)
         def holes():
             """skipped numbers in the rows between the top and bottom ones read: those can be half in (a missing
@@ -294,7 +313,8 @@ def walk_grid():
                     if n not in got and n not in NOT_LISTED]
         if holes():  # the OCR skipped a number: read the phone's own screenshot at 3x
             log(f"  didn't read {holes()}: reading a sharper screenshot")
-            got, rows = read_grid(path, ui.ocr(ui.android.sharp()))
+            sharp = ui.android.sharp()
+            got, rows = read_grid(path, upright(sharp, ui.ocr(sharp)))
             if holes():
                 keep_capture("holes")
                 raise Stop(f"can't read {holes()} on this screen")

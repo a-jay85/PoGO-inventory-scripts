@@ -250,6 +250,22 @@ def ocr_once(path):
     return out
 
 
+def ocr_turned(path):
+    """the png's text read from a copy turned upside down, each box put back where it is on the png. The Pokédex's
+    Lucky grid (orange numbers on gold) read most rows upside down ('T000' for 0001), and turned, every number read
+    right (Pixel, 2026-11-22). The GPS banner is dropped, as ocr_once does"""
+    turned = f"/tmp/pogo-turned-{os.getpid()}-{threading.get_ident()}.png"
+    Image.open(path).rotate(180).save(turned, compress_level=1)
+    out = []
+    for line in ocr_lines(turned):
+        box, _, text = line.partition("\t")
+        x, y, w, h = map(float, box.split())
+        x, y = 1 - x - w, 1 - y - h
+        if not (y < 0.15 and GPS_BANNER.search(text)):
+            out.append((x, y, w, h, text.strip().translate(LOOKALIKES)))
+    return out
+
+
 def ocr_2x(path):
     """OCR a 2x copy: it reads white on green (a GIV chip, YES) and upside-down lines the 1x read misses"""
     im = Image.open(path)

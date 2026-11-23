@@ -24,7 +24,7 @@ Signed in as HashTagAJay (the pile goes to CyrillJan or the user's wife's accoun
   (Reroll: a strong line (tradeable.strong_lines: on the ideal raid team, or a gym defender's line), DialgaDex top 6
   vs some 4-star+ boss, Master League top 20. CyrillJan's Reroll, only for a 100 HashTagAJay still needs (the user,
   2026-11-20): on the ideal team or HashTagAJay's top 6 only as a mega doesn't count, nor a family HashTagAJay has 5 100s
-  of. HashTagAJay's Reroll for a raid reason, only while the line could make one of CyrillJan's team Bs (the user,
+  of. HashTagAJay's Reroll for a raid reason, only while the line could make one of CyrillJan's Team Potentials (the user,
   2026-11-22: tradeable.no_team_b), and one in only as a mega only till CyrillJan has a 100 of it (tradeable.giver_100).
   GIV at level 26+ both ways (was XLX, the user 2026-11-19): giver_species())
 A Dynamax one (both accounts): 2XL, then GIV (level 26+, then the rest). One that only can Dynamax (or evolves into one that can) gets GIV

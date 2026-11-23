@@ -580,7 +580,7 @@ def giver_species(m):
       Reroll: a new 100 is worth having: a strong line (strong_lines), DialgaDex's top PVE_TOP against a boss like a
         4-star raid's or higher (real_boss; #2-#6 was GIV, the user 2026-11-19), or PvPoke's Master League top REROLL_ML
         (each with the earlier stages that evolve into it). The two raid reasons (the ideal team, the top PVE_TOP) only
-        while some copy of the line could still make one of CyrillJan's team Bs (no_team_b: its newest whole count).
+        while some copy of the line could still make one of CyrillJan's Team Potentials (no_team_b: its newest whole count).
         One that's in only as a Mega counts only till CyrillJan has a 100 of it (giver_100: one Mega is enough)
       hard (GIV, after 2XL and the level 26+ GIV): the family of a 10 or 12 km egg hatch (refresh's eggs-<date>.json), Smeargle, and
         a gym defender's line (/ivc's GYM_DEFENDERS and what evolves into them: a potential top gym defender for an
@@ -637,7 +637,7 @@ def giver_species(m):
 
 def no_team_b(m):
     """-> (the teams.json of CyrillJan's newest whole /raidteam count or None, gone(sid)). gone: no copy of sid's line
-    from sid on, not even a 100 at level 50, could make any of CyrillJan's team Bs (bars50 None for every one the
+    from sid on, not even a 100 at level 50, could make any of CyrillJan's Team Potentials (bars50 None for every one the
     count has), so a raid reason for a Reroll is gone (the user, 2026-11-22: HashTagAJay's pile goes to CyrillJan).
     A traded copy is never a shadow: the plain piles only. No count, or a line the count doesn't have: never gone"""
     import raidteams

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """/raidteam: the signed-in account's best 6 raid attackers against every raid boss like a 4-star raid's or higher,
-released or not, two teams each (the user, 2026-11-19): team A at the level and IVs its copies have today, team B with
+released or not, two teams each (the user, 2026-11-19): Team Available at the level and IVs its copies have today, Team Potential with
 every copy powered up to level 50 (by its IVs). Ties with a 6th stay on. Both phones (the iPhone since 2026-11-19).
 
   POGO_PHONE=android caffeinate -dimsu python3 raidteam.py count [copies.json] [--limit N]
@@ -13,12 +13,12 @@ every copy powered up to level 50 (by its IVs). Ties with a 6th stay on. Both ph
                                        count (no --limit) runs this at its end
   pogo.py raidteam count                     the same, through the front door
 
-What it's for: a Pokémon on some team, A or B, is a favorite, whatever its IVs (a Mighty one, a traded one powered
-up long ago). One that falls off every team (A and B, every boss) is judged again and can be traded or transferred.
-On team A a better copy that isn't powered up yet doesn't push anything out; on team B it does.
-Team A is the user's Team Available (2026-11-22). Team Future and Team Ideal are roster.ideal_firsts: the #1 picks
-at perfect IVs, the same for every account (roster.py, by IDEAL). Team B is this account's own copies, so it isn't
-any of those three.
+What it's for: a Pokémon on some team, Available or Potential, is a favorite, whatever its IVs (a Mighty one, a traded one powered
+up long ago). One that falls off every team (Available and Potential, every boss) is judged again and can be traded or transferred.
+On Team Available a better copy that isn't powered up yet doesn't push anything out; on Team Potential it does.
+The user's names (2026-11-22): Team Available (today's levels) and Team Potential (every copy at level 50). Team
+Future and Team Ideal are roster.ideal_firsts: the #1 picks at perfect IVs, the same for every account (roster.py,
+by IDEAL). The code still calls Team Potential b50 and bars50.
 
 Bosses: roster.real_boss(), released or not (DialgaDex's counter pulls list unreleased bosses too; the attackers are
 the account's own copies, so released ones), in both DialgaDex pulls (Party Power off, a party of 2: a team in either
@@ -28,7 +28,7 @@ best moves with Elite TMs, so a copy's real moves don't count. Only the attacker
 
 How it counts (the user, 2026-11-18). A pile is one storage search: the species' dex number, its form terms, and
 shadow or !shadow. Per pile only its top 6 by CP and its top 6 by IV% (the /ivc names, '96 D GGBI', '100 RT*') count,
-ties too: overall IV% counts a little over a 15 attack, so there's no walk down the list. Team B needs only IVs:
+ties too: overall IV% counts a little over a 15 attack, so there's no walk down the list. Team Potential needs only IVs:
 a tile's IV name (its IV sum at most) decides if it could make one, whatever its CP. Piles go best first (their
 best place on any boss's list), so the 6ths fill early. Each pile is searched sorted by CP first, all of them, then
 again sorted by Name, where the IV names come first. A pile whose best copy at its top CP can't beat any boss's 6th
@@ -43,8 +43,8 @@ some boss's 6th: the appraisal gives them. Sure IVs go into pokedb.
 
 Output in runs/<time>-raidteam/: copies.json (every copy opened, saved after each pile: a stopped count carries on
 from it), teams.json (../shared/raidteams.py reads it, for the door and /ivc) and report.md. teams.json: per boss its 6; every copy opened, with the
-bosses it's on; per pile, the lowest CP a copy could make some team A at (bar) and the lowest IV sum a copy could make
-some team B at (bars50). stars: empty since 2026-11-18 (no star term searches). A copy under both bars can't be on
+bosses it's on; per pile, the lowest CP a copy could make some Team Available at (bar) and the lowest IV sum a copy could make
+some Team Potential at (bars50). stars: empty since 2026-11-18 (no star term searches). A copy under both bars can't be on
 any team. One over it that isn't among the opened ones came or grew after the count.
 
 Keep: the bulk taggers (cleantrades, tradeable tag, specieswise) tag whole searches without opening a page, so they can't
@@ -67,7 +67,7 @@ from roster import COUNTERS, is_mega, real_boss, boss_name, attacker_name
 from base import Stop, Skip, log, newest
 
 TEAM = roster.TEAM
-TOP = pvp.LEVELS[-1]  # team B: every copy powered up to here (the user, 2026-11-19)
+TOP = pvp.LEVELS[-1]  # Team Potential: every copy powered up to here (the user, 2026-11-19)
 TIE = 1e-6  # a rating this close to the 6th's is a tie: it stays on the team (twins rate the same)
 HUNDO = (15, 15, 15)
 FULL = 45  # the highest IV sum
@@ -277,7 +277,7 @@ class Count:
                          if tops(self.best(m, b, self.loose_asks(m, b, q, cp)), r)])
 
     def option_asks(self, m, b, b50=False):
-        """b50: team B, every copy at level TOP (its IVs, not its level)"""
+        """b50: Team Potential, every copy at level TOP (its IVs, not its level)"""
         asks, who = [], []
         for k, c in enumerate(self.copies):
             for i in self.entries(m, b, c["q"]):
@@ -299,7 +299,7 @@ class Count:
 
     def team(self, m, b, b50=False):
         """-> [(rating, copy index, attacker index)]: the 6, best first, and every copy tied with the 6th (ties stay,
-        the user 2026-11-19). A copy takes one spot, one mega a team. b50: team B (every copy at level TOP)"""
+        the user 2026-11-19). A copy takes one spot, one mega a team. b50: Team Potential (every copy at level TOP)"""
         out, used, mega = [], set(), False
         for r, k, i in self.options(m, b, b50):
             if len(out) >= TEAM and not tops(r, out[TEAM - 1][0]):
@@ -312,7 +312,7 @@ class Count:
         return out
 
     def sixth(self, m, b, b50=False):
-        """the team's 6th's rating, 0 while it has fewer than 6. b50: team B's"""
+        """the team's 6th's rating, 0 while it has fewer than 6. b50: Team Potential's"""
         k = (id(m), id(b), b50)
         if self._sixth.get(k, (None,))[0] != len(self.copies):
             t = self.team(m, b, b50)
@@ -320,7 +320,7 @@ class Count:
         return self._sixth[k][1]
 
     def warm_sixths(self, pairs=None):
-        """every pair's 6th, A and B, in one line to rate.mjs"""
+        """every pair's 6th, Available and Potential, in one line to rate.mjs"""
         todo = [(m, b, b50) for m, b in pairs or self.pairs for b50 in (False, True)
                 if self._sixth.get((id(m), id(b), b50), (None,))[0] != len(self.copies)]
         self.rater.warm([(m.data["party"], b, self.option_asks(m, b, b50)[0]) for m, b, b50 in todo])
@@ -330,7 +330,7 @@ class Count:
 
     def beats(self, q, cp, pairs=None, smax=FULL):
         """the pairs (of these, else all listing q) whose 6th a copy of pile q with this CP (and an IV sum of smax or
-        less) could still beat or tie: team A at that CP, or team B at level TOP (any CP)"""
+        less) could still beat or tie: Team Available at that CP, or Team Potential at level TOP (any CP)"""
         pairs = self.listing(q) if pairs is None else pairs
         self.warm_sixths(pairs)
         self.warm_over([(m, b, q, cp, self.sixth(m, b), smax) for m, b in pairs]
@@ -339,7 +339,7 @@ class Count:
                 or self.over(m, b, q, None, self.sixth(m, b, True), smax)]
 
     def could_help(self, q, fits_):
-        """the best of these fits could beat or tie some listing boss's 6th: team A as they are, team B at TOP"""
+        """the best of these fits could beat or tie some listing boss's 6th: Team Available as they are, Team Potential at TOP"""
         pairs = self.listing(q)
         self.warm_sixths(pairs)
         groups = [(m, b, b50, [(m.A[i], max(lv, TOP) if b50 else lv, ivs) for i in self.entries(m, b, q)
@@ -377,8 +377,8 @@ class Count:
         return out
 
     def bars50(self):
-        """pile -> the lowest IV sum a copy of it could make some team B at (level TOP, so any CP), None: not even a
-        15/15/15 could. A copy with a lower IV sum can't be on any team B. Every pile's halving search a step at a
+        """pile -> the lowest IV sum a copy of it could make some Team Potential at (level TOP, so any CP), None: not even a
+        15/15/15 could. A copy with a lower IV sum can't be on any Team Potential. Every pile's halving search a step at a
         time together, one line to rate.mjs a step"""
         self.warm_sixths()
         lst = {q: self.listing(q) for q in self.piles}
@@ -415,7 +415,7 @@ class Count:
         on = {}
         self.warm_sixths()
         for m, b in self.pairs:
-            for b50 in (False, True):  # team A today, team B at level TOP
+            for b50 in (False, True):  # Team Available today, Team Potential at level TOP
                 key = (f"{boss_name(b)}{'' if b['released'] else ' (unreleased)'} (party {m.data['party']}"
                        f"{', level 50' if b50 else ''})")
                 t = self.team(m, b, b50)
@@ -668,7 +668,7 @@ def take(c, q, tiles, past, to_top=None):
             named += 1
             continue
         todo.append((name, cp))
-    todo = [t for t in todo if c.beats(q, t[1], smax=iv_smax(t[0]))]  # (team B: its IV name caps its IV sum)
+    todo = [t for t in todo if c.beats(q, t[1], smax=iv_smax(t[0]))]  # (Team Potential: its IV name caps its IV sum)
     log(f"  {len(tiles)} tiles: {known} known in pokedb, {named} by their IV name and CP, {len(todo)} to open")
     if todo:
         if to_top:
@@ -797,7 +797,7 @@ def report(c, who, out_dir):
     t = c.teams(who)
     json.dump(t, open(os.path.join(out_dir, "teams.json"), "w"), indent=1)
     keep = [x for x in t["copies"] if x["on"]]
-    lines = [f"# /raidteam: {who}'s 6 per raid boss: team A at today's levels, team B at level 50", "",
+    lines = [f"# /raidteam: {who}'s 6 per raid boss: Team Available at today's levels, Team Potential at level 50", "",
              f"Counted {t['counted']}. {len(t['copies'])} copies counted ({sum(not x.get('from') for x in c.copies)} opened), "
              f"{len(keep)} on some team.", "",
              "## On a team", ""]

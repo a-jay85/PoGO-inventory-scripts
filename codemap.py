@@ -17,7 +17,7 @@ ROOT = os.path.dirname(os.path.realpath(__file__))
 SKILLS = os.path.join(ROOT, "skills")
 SHORT = os.path.join(ROOT, ".claude", "rules", "codemap.md")
 FULL = os.path.join(SKILLS, "MAP.md")
-ROOT_FILES = ["pogo.py", "heal.py", "watch.py", "merge_gate.py", "wt_cleanup.py", "codemap.py"]
+ROOT_FILES = ["pogo.py", "heal.py", "watch.py", "merge_gate.py", "wt_cleanup.py", "codemap.py", "backlog.py"]
 SIG_LEN = 90
 DOC_LEN = 170
 

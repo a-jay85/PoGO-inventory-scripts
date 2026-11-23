@@ -97,3 +97,4 @@ Before writing a helper, grep `skills/MAP.md` (every function, its arguments and
 - `merge_gate.py`: The merge gate: a PR of this repo merges only when its tests pass, its phone test ran its own code, and its body says which sibling code was checked
 - `wt_cleanup.py`: Remove every worktree whose PR has merged
 - `codemap.py`: Writes the maps of what every script and shared file can do, from the code alone, so Claude finds a helper that already exists (pvp.level_of, the level from IVs, CP and …
+- `backlog.py`: The phone backlog: things to check, verify or fix on a phone that can't be done now (the phone is busy, or the user is using it)

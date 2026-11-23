@@ -1713,3 +1713,14 @@ Writes the maps of what every script and shared file can do, from the code alone
 - `entries(tree)`: (indent, label, doc) for each public top-level def and class, and each class's public methods
 - `build()`
 - `main()`
+
+## backlog.py
+The phone backlog: things to check, verify or fix on a phone that can't be done now (the phone is busy, or the user is using it)
+
+- `gh(*args, capture=True)`: -> gh's stdout; a failed gh stops with its error
+- `body_problem(body)`: -> the first rule a new issue's body breaks, or None
+- `issues(state='open', label=None, search=None)`
+- `show(found)`
+- `lock_holder(path)`: -> what holds a phone's lock, or None (no lock, or its process is gone: a stale lock)
+- `phone_busy()`: -> {phone: why it's busy, or None}
+- `main(a)`

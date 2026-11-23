@@ -1,6 +1,6 @@
 # PoGO-inventory-scripts
 
-Scripts that sort a Pokémon GO storage: `pvpc`, `ivc`, `cleanup`, `trade`, `gift`, `mega`, `evo`, `dex`, `roster`, `gymfeed` and `goplus`. Each one lives in `skills/<name>/`. The scripts are the source of truth: each script's top comment says how to run it, and the code says the rules. There are no `SKILL.md` files. `/pvpc` or `/ivc` in chat means run that step through `pogo.py`.
+Scripts that sort a Pokémon GO storage: `pvpc`, `ivc`, `cleanup`, `trade`, `gift`, `mega`, `evo`, `dex`, `roster`, `gymfeed` and `goplus`. Each one lives in `skills/<name>/`. The scripts are the source of truth: each script's top comment says how to run it, and the code says the rules. The skills under `skills/` have no `SKILL.md` files (the one Claude skill is `.claude/skills/backlog/`). `/pvpc` or `/ivc` in chat means run that step through `pogo.py`.
 
 ## The live scripts run from the main checkout
 
@@ -20,6 +20,10 @@ What every file can do is mapped from the code by `codemap.py` (repo root): `.cl
 A speed win found in one script goes to every script that does the same step, in the same PR or the next one, without the user asking. Before opening the PR, grep `skills/` for the same wait, read, search or loop. Best: move that step into `skills/shared/`, so one change reaches every script. If another script can't take the win, the PR body says why.
 
 A read that says something isn't there (no name, a grey icon, no X, 0 results, no date) may be a screen still loading. Look again with `base.settle(read, ok, timeout)` or `base.wait_for` before acting on it. Never tap or type to make it show up: the blank-search nudge did that and turned a real 0 into 1182 (#293).
+
+## The phone backlog
+
+Something that needs a look on a phone but can't be done now (the phone is busy, the user is using it, a run left a Pokémon unsure) goes in the phone backlog: GitHub Issues in the private repo `a-jay85/PoGO-inventory-scripts-backlog`, through `backlog.py` (repo root). Search before filing. When both phones are free, `python3 backlog.py ready` says so and lists what's waiting. `.claude/skills/backlog/SKILL.md` has how to file and work it.
 
 ## Running the scripts
 

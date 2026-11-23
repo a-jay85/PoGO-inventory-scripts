@@ -80,18 +80,21 @@ FLIPPED = re.compile(r"[0-9OoIlTZEL£+S]{4}")  # a grid number read upside down:
 
 
 def flipped(texts):
-    """the OCR read grid rows upside down: two or more 4-letter labels that aren't numbers (the Lucky page, Pixel,
-    2026-11-22: rows 1-12 as 'T000 2000 £000 +000'...)"""
-    return sum(bool(FLIPPED.fullmatch(t[4].strip())) and not numbers([t]) for t in texts) >= 2
+    """the OCR read a grid number upside down: a 4-letter label that isn't a number (the Lucky page, Pixel,
+    2026-11-22: rows 1-12 as 'T000 2000 £000 +000'..., and once only 0481 as '18+0')"""
+    return any(FLIPPED.fullmatch(t[4].strip()) and not numbers([t]) for t in texts)
+
+
+def more_numbers(texts, more):
+    """texts, plus the numbers in more that texts don't have"""
+    have = {n for n, _ in numbers(texts)}
+    return texts + [t for n, t in numbers(more) if n not in have]
 
 
 def upright(path, texts):
     """texts, plus the numbers a turned copy reads that these miss, when rows read upside down. Neither read gets
     them all: the ★100% grid read 17 numbers plain and 10 turned (2026-11-11), the Lucky one 4 plain, 16 turned"""
-    if not flipped(texts):
-        return texts
-    have = {n for n, _ in numbers(texts)}
-    return texts + [t for n, t in numbers(ui.ocr_turned(path)) if n not in have]
+    return more_numbers(texts, ui.ocr_turned(path)) if flipped(texts) else texts
 
 
 def band(texts):
@@ -314,7 +317,9 @@ def walk_grid():
         if holes():  # the OCR skipped a number: read the phone's own screenshot at 3x
             log(f"  didn't read {holes()}: reading a sharper screenshot")
             sharp = ui.android.sharp()
-            got, rows = read_grid(path, upright(sharp, ui.ocr(sharp)))
+            # (it adds to what's read: alone, it lost 480 and 482 that the first read had, Lucky page 2026-11-22)
+            texts = more_numbers(texts, upright(sharp, ui.ocr(sharp)))
+            got, rows = read_grid(path, texts)
             if holes():
                 keep_capture("holes")
                 raise Stop(f"can't read {holes()} on this screen")

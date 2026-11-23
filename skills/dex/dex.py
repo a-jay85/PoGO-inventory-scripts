@@ -86,9 +86,13 @@ def flipped(texts):
 
 
 def more_numbers(texts, more):
-    """texts, plus the numbers in more that texts don't have"""
-    have = {n for n, _ in numbers(texts)}
-    return texts + [t for n, t in numbers(more) if n not in have]
+    """texts, plus the numbers in more that texts don't have, from spots where texts read no number (a turned read
+    of a label already read upright gives a wrong number on it: a jump to #979 stopped the Lucky page at #367,
+    2026-11-22)"""
+    have = numbers(texts)
+    mid = lambda t: (t[0] + t[2] / 2, t[1] + t[3] / 2)
+    taken = lambda t: any(abs(mid(t)[0] - mid(h)[0]) < 0.06 and abs(mid(t)[1] - mid(h)[1]) < 0.02 for _, h in have)
+    return texts + [t for n, t in numbers(more) if n not in {m for m, _ in have} and not taken(t)]
 
 
 def upright(path, texts):

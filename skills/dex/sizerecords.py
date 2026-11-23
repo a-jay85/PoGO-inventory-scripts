@@ -154,7 +154,7 @@ def to_start(start):
         base.keep_capture("grid")
         raise Stop(f"didn't get to {region}'s grid")
     n, tile = min(tiles, key=lambda nt: abs(nt[0] - start))
-    dex.tap_at(tile[0] + tile[2] / 2, tile[1] - 0.04, bounds, wait=(2.0, 2.5))
+    dex.tap_at(tile[0] + tile[2] / 2, tile[1] - 0.04, bounds, wait=2.0)
     prev = None
     for _ in range(abs(n - start) + 6):  # the tap can land a tile off: walk to #start by the title
         screen, texts, path, bounds = base.settle(dex.look, lambda r: title(r[1]), 3)

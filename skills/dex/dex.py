@@ -52,10 +52,12 @@ SURE_PIC, SURE_PLAIN = 20, 5  # a tile this busy or this plain pins down the row
 BUSY_MIN, PLAIN_MAX = 17, 8  # with no heights to measure against, only a spread this clear decides
 DROP = 0.047  # a missing tile's number sits this much higher than a caught one's in the same row
 PITCH = 0.1415  # rows are this far apart
+COL = 0.233  # and tiles in a row this far
 TITLE_GAP = 0.137  # a region's title sits this far above the caught height of the first row under it
 FIT = 0.015  # a number this close to a row height sits at it
 SCROLL = 0.25  # of the screen per swipe, ~1.7 rows: the clear band shows ~4.5, so each screen repeats ~2 rows
 MAX_SCREENS = 400
+SURE_ROOM = 0.15  # a number this far inside the clear band, top or bottom, sits among enough rows to read it right
 LAST_DEX = 1025  # Pecharunt, the highest number in gamemaster.json: any higher read is an OCR slip
 REGION_NAMES = {"KANTO", "JOHTO", "HOENN", "SINNOH", "UNOVA", "KALOS", "ALOLA", "GALAR", "HISUI", "PALDEA"}
 # not on the Lucky or the 100% page at all: the species that can't be traded (Mew, Celebi, Jirachi, Deoxys,
@@ -76,6 +78,61 @@ def numbers(texts):
     return out
 
 
+FAR = 40  # further than this from a screen's middle number is a misread
+
+
+def near(texts):
+    """numbers(texts) without misreads: one screen holds about 30 numbers in a row (0560 read as 0990 among 547-569,
+    Lucky page 2026-11-22)"""
+    got = numbers(texts)
+    mid = statistics.median([n for n, _ in got] or [0])
+    return [(n, t) for n, t in got if abs(n - mid) <= FAR]
+
+FLIPPED = re.compile(r"[0-9OoIlTZEL£+S]{4}")  # a grid number read upside down: 'T000' 0001, 'ZIOO' 0012
+
+
+def flipped(texts):
+    """the OCR read a grid number upside down: a 4-letter label that isn't a number (the Lucky page, Pixel,
+    2026-11-22: rows 1-12 as 'T000 2000 £000 +000'..., and once only 0481 as '18+0')"""
+    return any(FLIPPED.fullmatch(t[4].strip()) and not numbers([t]) for t in texts)
+
+
+def more_numbers(texts, more):
+    """texts, plus the numbers in more that texts don't have. Where both read a number on one spot, the one that fits
+    its row better stays: a turned read of a label already read upright gives a wrong number on it (a jump to #979
+    stopped the Lucky page at #367), and the plain read took 0820 for 0780 between 0819 and 0821 (2026-11-22)"""
+    top, bottom = band(texts)
+    # (a number read under the chips doesn't count: 0698 half under them read as 0693, and kept the sharp read's
+    # real #693 out, Lucky page 2026-11-22. read_grid skips those spots anyway)
+    have = [(n, t) for n, t in near(texts) if not hidden(t, top, bottom)]
+    extra = [(n, t) for n, t in near(more) if not hidden(t, top, bottom)]
+    mid = lambda t: (t[0] + t[2] / 2, t[1] + t[3] / 2)
+    same = lambda a, b: abs(mid(a)[0] - mid(b)[0]) < 0.06 and abs(mid(a)[1] - mid(b)[1]) < 0.02
+
+    def fit(n, t):
+        """how many numbers in its row, from either read, agree with n: one more for each tile to the right"""
+        return sum(abs(mid(u)[1] - mid(t)[1]) < 0.02 and not same(u, t) and m - n == round((mid(u)[0] - mid(t)[0]) / COL)
+                   for m, u in have + extra)
+    known = {m for m, _ in have}
+    drop, add = [], []
+    for n, t in extra:
+        if n in known:
+            continue
+        here = [(m, u) for m, u in have if same(u, t)]
+        if not here:
+            add.append(t)
+        elif here[0][0] != n and fit(n, t) > fit(*here[0]):
+            drop.append(here[0][1])
+            add.append(t)
+    return [t for t in texts if not any(t is d for d in drop)] + add
+
+
+def upright(path, texts):
+    """texts, plus the numbers a turned copy reads that these miss, when rows read upside down. Neither read gets
+    them all: the ★100% grid read 17 numbers plain and 10 turned (2026-11-11), the Lucky one 4 plain, 16 turned"""
+    return more_numbers(texts, ui.ocr_turned(path)) if flipped(texts) else texts
+
+
 def band(texts):
     """the part of the grid nothing covers -> (top, bottom). The region header grows at the top and bottom of the
     grid, and the chips sit over the bottom rows."""
@@ -83,6 +140,11 @@ def band(texts):
     chips = [t[1] for t in texts if t[1] > 0.78 and re.search(r"SHINY|LUCKY|XXL|XXS|SHADOW|PURIFIED|100%|POK",
                                                               t[4].upper())]
     return top, (min(chips) if chips else CHIP_Y) - 0.025
+
+
+def hidden(t, top, bottom):
+    """a number's box under the header or the chips (top, bottom from band): the next screen has it whole"""
+    return t[1] - ABOVE[1] - MIN_BOX < top or t[1] + t[3] > bottom
 
 
 def spread(im, t, top):
@@ -94,8 +156,10 @@ def spread(im, t, top):
     return statistics.pstdev(box.convert("L").getdata())
 
 
-def read_grid(path, texts):
-    """-> ({n: True if missing}, [(n, y, spread, missing)] for the log). Raises Stop when it can't tell.
+def read_grid(path, texts, known=None):
+    """-> ({n: True if missing}, [(n, y, spread, missing)] for the log). Raises Stop when it can't tell, unless
+    known ({n: missing}, from earlier screens) has it: the page's end scrolls #1023 and #1024, read before, up under
+    the header, with nothing to measure them by (Lucky page, 2026-11-22).
 
     The number's height decides. Rows are PITCH apart, a caught number at the bottom of its tile and a missing one
     DROP higher. The sure tiles on the screen pin those heights down: a busy picture (caught), a plain tile (missing),
@@ -106,8 +170,8 @@ def read_grid(path, texts):
     # name: the header's own count can read as CLIO there (2026-11-11)
     title_boxes = [t for t in texts if top < t[1] + t[3] and t[1] < bottom and t[4].strip() in REGION_NAMES]
     tiles = []
-    for n, t in numbers(texts):
-        if t[1] - ABOVE[1] - MIN_BOX < top or t[1] + t[3] > bottom:
+    for n, t in near(texts):
+        if hidden(t, top, bottom):
             continue  # under the header or the chips: the next screen has it whole
         # the box stops at a region's title too: ALOLA's letters sit in the box over a missing #722 (2026-11-11)
         cut = max([top] + [b[1] + b[3] for b in title_boxes if b[1] < t[1]])
@@ -142,6 +206,8 @@ def read_grid(path, texts):
                 missing = False
             elif s <= PLAIN_MAX:
                 missing = True
+            elif known and n in known:
+                missing = known[n]
             else:
                 raise Stop(f"can't tell #{n} (height {y:.3f}, spread {s:.1f}): {tiles}")
         if (missing and s >= BUSY_MIN) or (not missing and s <= SURE_PLAIN):
@@ -157,13 +223,28 @@ def regions_button(texts):
     return any(difflib.SequenceMatcher(None, t[4].upper().strip(), "REGIONS").ratio() >= 0.8 for t in texts)
 
 
+def caught_total(path, texts):
+    """the region list's 'Caught: 935' at the top right -> 935, or None. The red 'GPS signal not found' banner
+    (location off for the run) covers it: its own text runs into the line there ('(11) ght: 935'), so under it only
+    the number after the colon counts, read from a contrast-boosted crop (Pixel, 2026-11-22)"""
+    if ui.gps_banner():
+        texts = ui.under_gps_banner(path, 0.5, 0.06, 1.0, 0.12)
+        pat = r"GHT\s*[:;]\s*(\d[\d,]*)\s*$"
+    else:
+        pat = r"CAUGHT\D*(\d[\d,]*)"
+    m = next((m for t in texts if t[1] < 0.1 for m in [re.search(pat, t[4].upper())] if m), None)
+    return int(m.group(1).replace(",", "")) if m else None
+
+
 def where(path, texts):
     j = ui.joined(texts)
     if numbers(texts) and ("REGIONS" in j or regions_button(texts)):
         return "grid"
+    if flipped(texts) and regions_button(ui.ocr_turned(path)):  # read upside down, REGIONS too: 'SNOI...' (Pixel's
+        return "grid"  # 2x retry on the Lucky page, 2026-11-22: 20 looks in a row 'unknown')
     if "FILTER BY" in j:
         return "dex-search"
-    if "POK" in j and any(t[1] < 0.1 and t[4].upper().startswith("CAUGHT") for t in texts) and "KANTO" in j:
+    if "POK" in j and "KANTO" in j and caught_total(path, texts) is not None:
         return "regions"
     return home.where(path, texts)
 
@@ -172,8 +253,8 @@ def look():
     return base.look(where)
 
 
-def tap_at(fx, fy, bounds, wait=(1.6, 2.2)):
-    base.click(fx, fy, bounds, fuzz=0.006, rest=tuple(wait))
+def tap_at(fx, fy, bounds, wait=1.6):
+    base.click(fx, fy, bounds, fuzz=0.006, rest=wait)
 
 
 def tap_text(texts, bounds, pred, dy=0.0):
@@ -238,11 +319,10 @@ def pick_page(label):
             raise Stop(f"left the Pokédex's region list ({screen})")
         t = chip(texts, label)
         if t and chip_on(path, t):
-            m = next((re.search(r"(\d[\d,]*)", t2[4]) for t2 in texts
-                      if t2[1] < 0.1 and t2[4].upper().startswith("CAUGHT")), None)
-            if not m:
+            n = caught_total(path, texts)
+            if n is None:
                 raise Stop("can't read the page's Caught total")
-            return int(m.group(1).replace(",", "")), texts, bounds
+            return n, texts, bounds
         if t:
             log(f"tapping the {label} chip")
             tap_at(*ui.center(t), bounds)
@@ -259,14 +339,16 @@ def pick_page(label):
 
 def walk_grid():
     """from KANTO's grid at the top, scroll to the end -> {n: missing}"""
-    seen, last_max, still = {}, None, 0
+    seen, last_max, still, backs = {}, None, 0, 0
+    room = {}  # n -> how far from the band's edge it was when read: a read nearer the middle is surer
     edge = [0.0, 999.0]  # busiest missing tile, plainest caught one: how close the spread alone came to a wrong call
     for i in range(MAX_SCREENS):
         screen, texts, path, bounds = base.settle(look, lambda r: r[0] == "grid", 3)  # one odd read: look again
         if screen != "grid":
             keep_capture("grid")
             raise Stop(f"not on the Pokédex grid any more ({screen})")
-        got, rows = read_grid(path, texts)
+        texts = upright(path, texts)
+        got, rows = read_grid(path, texts, seen)
         def holes():
             """skipped numbers in the rows between the top and bottom ones read: those can be half in (a missing
             number sits higher than a caught one)"""
@@ -282,7 +364,12 @@ def walk_grid():
                     if n not in got and n not in NOT_LISTED]
         if holes():  # the OCR skipped a number: read the phone's own screenshot at 3x
             log(f"  didn't read {holes()}: reading a sharper screenshot")
-            got, rows = read_grid(path, ui.ocr(ui.android.sharp()))
+            # the same screenshot, sharper: a new one can catch the list a bit further on, and its numbers then sit
+            # at other heights than the first read's (#463 at 0.789 among rows at 0.808, Lucky page 2026-11-22)
+            sharp = ui.android.sharp_last()
+            # (it adds to what's read: alone, it lost 480 and 482 that the first read had, Lucky page 2026-11-22)
+            texts = more_numbers(texts, upright(sharp, ui.ocr(sharp)))
+            got, rows = read_grid(path, texts, seen)
             if holes():
                 keep_capture("holes")
                 raise Stop(f"can't read {holes()} on this screen")
@@ -292,18 +379,37 @@ def walk_grid():
         if i == 0 and 1 not in got:
             keep_capture("grid")
             raise Stop(f"the grid didn't open at #1 (first number read: {min(got)})")
+        hi, lo = band(texts)
+        here = {n: min(y - hi, lo - y) for n, y, *_ in rows}
+        clash = [n for n in got if n in seen and seen[n] != got[n]]
+        for n in clash:  # the read nearer the middle wins: #960 (a pale Wiglett) read missing at the bottom edge,
+            # caught a row up the next screen (Lucky page, 2026-11-22). Both well inside the band: can't tell
+            if min(here[n], room[n]) < SURE_ROOM and here[n] != room[n]:
+                if here[n] < room[n]:
+                    got[n] = seen[n]
+                log(f"  #{n} read both ways: {'missing' if got[n] else 'caught'}, from the read further from the edge")
         clash = [n for n in got if n in seen and seen[n] != got[n]]
         if clash:
             keep_capture("clash")
             raise Stop(f"read these both ways on two screens: {clash}")
         # no number shared is fine when only numbers the page never shows sit between: 646 then 650 (2026-11-11)
         if seen and not set(got) & set(seen) and set(range(max(seen) + 1, min(got))) - NOT_LISTED:
+            # the list was still moving when the last screen was read, so this swipe went further: go back a bit
+            # (531 read, then 535-550, Lucky page, Pixel under load, 2026-11-22)
+            if backs < 2:
+                backs += 1
+                log(f"  skipped past {max(seen) + 1}-{min(got) - 1}: scrolling back")
+                x, y = random.uniform(0.3, 0.7), random.uniform(0.3, 0.36)
+                swipe(x, y, x + random.uniform(-0.02, 0.02), y + SCROLL, bounds)
+                continue
             keep_capture("gap")
             raise Stop(f"this screen shares no number with the last one: rows may be skipped ({min(got)}-{max(got)})")
+        backs = 0
         new = sorted(n for n in got if n not in seen)
         for n, y, s, m in rows:
             edge[0 if m else 1] = max(edge[0], s) if m else min(edge[1], s)
         seen.update(got)
+        room.update({n: max(here[n], room.get(n, -1)) for n in got})
         if new:
             log(f"  {new[0]:4}-{new[-1]:4}: missing {[n for n in new if got[n]] or 'none'}")
         top = max(got)

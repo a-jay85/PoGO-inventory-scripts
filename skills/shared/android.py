@@ -268,6 +268,13 @@ def ready(force=False):
         time.sleep(1.5)
     if not awake:
         raise NotReady("phone screen is off")
+    if PKG not in out and os.path.exists(GPS_FILE):  # this run turned location off: Android's 'No location access'
+        shell("input keyevent KEYCODE_BACK")  # box can come up over the game, once in a while (the Pixel, 2026-11-22:
+        time.sleep(1.0)  # once in 4 turns). Back closes it, as its Close does
+        out = shell("dumpsys activity activities | grep -E 'ResumedActivity'")
+        if PKG in out:
+            import base
+            base.log("  closed a box over the game (Android's 'No location access', most likely) with Back")
     if PKG not in out:
         raise NotReady("Pokémon GO isn't on the phone screen (locked, or another app is in front)")
     _checked = time.time()

@@ -592,6 +592,8 @@ A run's phone from start to end
 - `ready()`: the phone ready to be seen and tapped
 - `needs_gps()`
 - `gps_off()`: the Pixel's location off for the rest of the run, unless this script needs it
+- `game_in_front()`
+- `close_location_box()`: Android's own 'No location access' box (Close / Turn on location) comes up over the game right after location goes off, and taps meant for the game stop on it ('Pokémon …
 - `close()`: the end of a run: the Pixel's brightness and location back (every run dims it), then lock it; or quit iPhone Mirroring
 - `limit(a, default=10 ** 9)`: --limit N from a script's arguments
 - `main(body, *args)`: run a script's body(*args), then close the phone if the run opened it

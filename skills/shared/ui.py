@@ -286,7 +286,9 @@ def ocr(path):
     tabs, count = [], []  # the full list's TAGS and EGGS tabs and its '(7)' count, when the GPS banner hides them:
     # read from the contrast crop (the banner comes along from the map. A list read as a tag's list got its X, which
     # closed the whole Pokémon screen, over and over, and no search's count read: Pixel /dex, 2026-11-22)
-    if kind == "list" and gps_banner():
+    eggs_page = kind == "unknown" and any(re.search(r"/\s*\d+\s*km", t[4], re.I) for t in out)  # (the Eggs tab
+    # under the banner reads as unknown: advsync's egg check stopped on 'couldn't open the Eggs tab', Pixel 2026-11-22)
+    if (kind == "list" or eggs_page) and gps_banner():
         for word, box in (("TAGS", (0.0, 0.05, 0.5, 0.13)), ("EGGS", (0.55, 0.05, 1.0, 0.13))):
             if not tab(out, word):  # (EGGS reads glued to the banner's own words: 'ound. (11) EGGS'. The word's box is
                 # its share of the line's, from the end: hatch's egg check stopped on 'couldn't open the Eggs tab')

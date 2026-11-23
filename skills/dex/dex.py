@@ -156,8 +156,10 @@ def spread(im, t, top):
     return statistics.pstdev(box.convert("L").getdata())
 
 
-def read_grid(path, texts):
-    """-> ({n: True if missing}, [(n, y, spread, missing)] for the log). Raises Stop when it can't tell.
+def read_grid(path, texts, known=None):
+    """-> ({n: True if missing}, [(n, y, spread, missing)] for the log). Raises Stop when it can't tell, unless
+    known ({n: missing}, from earlier screens) has it: the page's end scrolls #1023 and #1024, read before, up under
+    the header, with nothing to measure them by (Lucky page, 2026-11-22).
 
     The number's height decides. Rows are PITCH apart, a caught number at the bottom of its tile and a missing one
     DROP higher. The sure tiles on the screen pin those heights down: a busy picture (caught), a plain tile (missing),
@@ -204,6 +206,8 @@ def read_grid(path, texts):
                 missing = False
             elif s <= PLAIN_MAX:
                 missing = True
+            elif known and n in known:
+                missing = known[n]
             else:
                 raise Stop(f"can't tell #{n} (height {y:.3f}, spread {s:.1f}): {tiles}")
         if (missing and s >= BUSY_MIN) or (not missing and s <= SURE_PLAIN):
@@ -344,7 +348,7 @@ def walk_grid():
             keep_capture("grid")
             raise Stop(f"not on the Pokédex grid any more ({screen})")
         texts = upright(path, texts)
-        got, rows = read_grid(path, texts)
+        got, rows = read_grid(path, texts, seen)
         def holes():
             """skipped numbers in the rows between the top and bottom ones read: those can be half in (a missing
             number sits higher than a caught one)"""
@@ -365,7 +369,7 @@ def walk_grid():
             sharp = ui.android.sharp_last()
             # (it adds to what's read: alone, it lost 480 and 482 that the first read had, Lucky page 2026-11-22)
             texts = more_numbers(texts, upright(sharp, ui.ocr(sharp)))
-            got, rows = read_grid(path, texts)
+            got, rows = read_grid(path, texts, seen)
             if holes():
                 keep_capture("holes")
                 raise Stop(f"can't read {holes()} on this screen")

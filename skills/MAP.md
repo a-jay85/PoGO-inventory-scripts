@@ -929,7 +929,7 @@ Tag CyrillJan's Tradeable saved search by what a trade to HashTagAJay is worth, 
 - `band(texts)`: the part of the grid nothing covers -> (top, bottom)
 - `hidden(t, top, bottom)`: a number's box under the header or the chips (top, bottom from band): the next screen has it whole
 - `spread(im, t, top)`: how busy the tile is just above its number: a picture, or plain tile
-- `read_grid(path, texts)`: -> ({n: True if missing}, [(n, y, spread, missing)] for the log)
+- `read_grid(path, texts, known=None)`: -> ({n: True if missing}, [(n, y, spread, missing)] for the log)
 - `regions_button(texts)`: the grid's REGIONS button label, also when OCR drops a letter ("REIONS", 2026-11-11)
 - `caught_total(path, texts)`: the region list's 'Caught: 935' at the top right -> 935, or None
 - `where(path, texts)`

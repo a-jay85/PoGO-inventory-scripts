@@ -56,6 +56,7 @@ TITLE_GAP = 0.137  # a region's title sits this far above the caught height of t
 FIT = 0.015  # a number this close to a row height sits at it
 SCROLL = 0.25  # of the screen per swipe, ~1.7 rows: the clear band shows ~4.5, so each screen repeats ~2 rows
 MAX_SCREENS = 400
+SURE_ROOM = 0.15  # a number this far inside the clear band, top or bottom, sits among enough rows to read it right
 LAST_DEX = 1025  # Pecharunt, the highest number in gamemaster.json: any higher read is an OCR slip
 REGION_NAMES = {"KANTO", "JOHTO", "HOENN", "SINNOH", "UNOVA", "KALOS", "ALOLA", "GALAR", "HISUI", "PALDEA"}
 # not on the Lucky or the 100% page at all: the species that can't be traded (Mew, Celebi, Jirachi, Deoxys,
@@ -309,6 +310,7 @@ def pick_page(label):
 def walk_grid():
     """from KANTO's grid at the top, scroll to the end -> {n: missing}"""
     seen, last_max, still, backs = {}, None, 0, 0
+    room = {}  # n -> how far from the band's edge it was when read: a read nearer the middle is surer
     edge = [0.0, 999.0]  # busiest missing tile, plainest caught one: how close the spread alone came to a wrong call
     for i in range(MAX_SCREENS):
         screen, texts, path, bounds = base.settle(look, lambda r: r[0] == "grid", 3)  # one odd read: look again
@@ -347,6 +349,15 @@ def walk_grid():
         if i == 0 and 1 not in got:
             keep_capture("grid")
             raise Stop(f"the grid didn't open at #1 (first number read: {min(got)})")
+        hi, lo = band(texts)
+        here = {n: min(y - hi, lo - y) for n, y, *_ in rows}
+        clash = [n for n in got if n in seen and seen[n] != got[n]]
+        for n in clash:  # the read nearer the middle wins: #960 (a pale Wiglett) read missing at the bottom edge,
+            # caught a row up the next screen (Lucky page, 2026-11-22). Both well inside the band: can't tell
+            if min(here[n], room[n]) < SURE_ROOM and here[n] != room[n]:
+                if here[n] < room[n]:
+                    got[n] = seen[n]
+                log(f"  #{n} read both ways: {'missing' if got[n] else 'caught'}, from the read further from the edge")
         clash = [n for n in got if n in seen and seen[n] != got[n]]
         if clash:
             keep_capture("clash")
@@ -368,6 +379,7 @@ def walk_grid():
         for n, y, s, m in rows:
             edge[0 if m else 1] = max(edge[0], s) if m else min(edge[1], s)
         seen.update(got)
+        room.update({n: max(here[n], room.get(n, -1)) for n in got})
         if new:
             log(f"  {new[0]:4}-{new[-1]:4}: missing {[n for n in new if got[n]] or 'none'}")
         top = max(got)

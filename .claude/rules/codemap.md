@@ -20,6 +20,7 @@ Before writing a helper, grep `skills/MAP.md` (every function, its arguments and
 - `skills/shared/eggs.py`: The Eggs tab: read the eggs, put the mode's one in the free ∞ incubator, and set the hatch timer
 - `skills/shared/fallen.py`: Fallen out: older Pokémon that newer, better ones push out of the top
 - `skills/shared/home.py`: Start from anywhere: every script calls start() first, so the phone can be on any screen, or Pokémon GO not open
+- `skills/shared/locks.py`: The phone locks: one file per phone that session.claim() holds (flock) for a whole run
 - `skills/shared/pagefacts.py`: What the door needs to know, read off the list tile and the Pokémon's own page instead of searches
 - `skills/shared/pages.py`: Whole screens that belong to one script, and the way out of each, for every other script
 - `skills/shared/peek.py`: Look at the phone (or a saved png) for as few tokens as possible

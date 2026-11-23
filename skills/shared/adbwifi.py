@@ -16,12 +16,13 @@ Privacy & Security > Local Network > adb on). Without it, adb started from launc
   python3 adbwifi.py tick        one check (what the job runs); says what it did
   python3 adbwifi.py status      the links adb has, and the saved address
 """
-import fcntl, os, re, subprocess, sys, time
+import os, re, subprocess, sys, time
 from pathlib import Path
+
+import locks
 
 PORT = 5555
 ADDR_FILE = Path.home() / ".config/pogo/android-wifi"  # "ip:port", written on each USB check
-LOCK = "/tmp/pogo-android.lock"  # session.claim() holds it for a whole run
 LABEL = "com.ajaynicolas.adbwifi"
 PLIST = Path.home() / f"Library/LaunchAgents/{LABEL}.plist"
 LOG = Path.home() / "claude-plans/_scripts/adbwifi.log"
@@ -55,19 +56,8 @@ def saved():
 
 
 def busy():
-    """a script holds the phone lock (tried and let go at once)"""
-    try:
-        f = open(LOCK, "a+")
-    except OSError:
-        return False
-    try:
-        fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        fcntl.flock(f, fcntl.LOCK_UN)
-        return False
-    except OSError:
-        return True
-    finally:
-        f.close()
+    """a script holds the phone lock (locks.holder)"""
+    return locks.holder("android") is not None
 
 
 def connect():

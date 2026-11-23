@@ -28,7 +28,7 @@ The Pixel over Wi-Fi, so the scripts reach it unplugged
 - `adb(*a, timeout=10)`
 - `devices()`: -> (usb serials, wifi serials) adb has as 'device' (not offline or unauthorized)
 - `saved()`
-- `busy()`: a script holds the phone lock (tried and let go at once)
+- `busy()`: a script holds the phone lock (locks.holder)
 - `connect()`: the saved address connected -> its serial, or None
 - `tick()`
 - `install()`
@@ -280,6 +280,12 @@ Start from anywhere: every script calls start() first, so the phone can be on an
 - `split_name(n, ws)`: art over the middle of the name splits it in two ('HashTag', '& 91 AD D', 'Jay', iPhone /gift ME tab, 2026-11-21): one word is its start, of 5 letters or more, and …
 - `to_map()`: from anywhere to the map -> its texts
 - `trainer(fast=True)`: the signed-in trainer's name
+
+## skills/shared/locks.py
+The phone locks: one file per phone that session.claim() holds (flock) for a whole run
+
+- `path(phone)`: the lock file of 'android' or 'iphone'
+- `holder(phone)`: -> the lock's line ('pid N (script args)') while a run holds the phone, or None when it's free
 
 ## skills/shared/pagefacts.py
 What the door needs to know, read off the list tile and the Pokémon's own page instead of searches
@@ -1624,7 +1630,6 @@ pogo.py heals: a step that stops or crashes gets fixed, then runs again with onl
 - `signature(lines)`: the step's last STOPPED / CRASHED line, numbers and paths taken out: the same stop again reads the same
 - `end_line(lines)`
 - `needs_you(line)`
-- `lock_free(phone)`
 - `wait_free(phones)`
 - `phones_of(phone)`
 - `show(ev)`: one short pane line per tool Claude uses
@@ -1722,6 +1727,5 @@ The phone backlog: things to check, verify or fix on a phone that can't be done 
 - `body_problem(body)`: -> the first rule a new issue's body breaks, or None
 - `issues(state='open', label=None, search=None)`
 - `show(found)`
-- `lock_holder(path)`: -> what holds a phone's lock, or None (no lock, or its process is gone: a stale lock)
 - `phone_busy()`: -> {phone: why it's busy, or None}
 - `main(a)`

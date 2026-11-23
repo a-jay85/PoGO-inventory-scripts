@@ -1146,6 +1146,8 @@ Feed berries to the Pokémon in the gyms you're defending, from the gym badge li
 - `look()`
 - `cp_labels(texts)`: the gym view's CP labels over its Pokémon -> [(cx, cy)]
 - `all_labels()`: the gym view's CP labels from two looks (OCR misses one now and then: the Pokémon bob) -> [(cx, cy)]
+- `is_heart(p)`: a pixel of the pink motivation heart over a gym Pokémon (iPhone, a red gym, 2026-11-23: about 245,95,125)
+- `hearts(path)`: the gym view's pink hearts, one over each Pokémon -> [(cx, the heart's bottom y)], left to right
 - `berry_colours(path)`: -> (share of warm or green pixels, share of magenta ones) in BERRY_BOX, where the berry floats
 - `berry_up(path)`: a berry floats on this gym Pokémon's page: it's hungry
 - `razz_up(path)`: the berry floating is a Razz: magenta, where Nanab, Pinap and Golden Razz are yellow
@@ -1153,6 +1155,7 @@ Feed berries to the Pokémon in the gyms you're defending, from the gym badge li
 - `menu_counts(menu, texts, path)`: berry_menu() with each count it missed read again from a close crop of path
 - `like(a, b, enough)`
 - `page_name(texts)`: the name at the top of a gym Pokémon's page
+- `candy(word)`: the 'CANDY' of the 'PIPLUP CANDY' a berry can give, floating over the name with the family's name before it
 - `dust(word)`: a word of the '+10 STARDUST' that floats over the name after each berry: 'STABEUST', 'STARNUST•', '+10'
 - `gym_view(texts)`: pages.gym_view, or the same with the looser CP labels OCR reads over a busy gym ('GP2008,', 'c*1677'): the gym's name across the top, a label in the middle
 - `who(texts)`: one gym Pokémon's page -> (its name, its trainer): the name at the top, the trainer beside its CP. OCR reads the trainer over the busy gym differently each time …
@@ -1174,12 +1177,13 @@ Feed berries to the Pokémon in the gyms you're defending, from the gym badge li
 - `menu_tap(spot, bounds)`: a tap in the BERRIES menu that shuts it: a berry, or above it
 - `choose()`: on a gym Pokémon's page: the BERRIES menu, the first FEEDABLE kind with more than its floor picked -> (kind, its count), "full": the berry button is grey and opens no …
 - `moved(screen, texts, me)`: a page that reads as a gym Pokémon's, with another name than me's
+- `same_chars(a, b)`: the same letters and digits in another order: OCR read the nickname '84 H' as 'H ₺8' for 8 s, and its feeding stopped (2026-11-23)
 - `steady_look(me)`: look(), again if the page seems to have changed: the stardust a berry gives floats over the name ('+10', 'Scizor STARGUSTO') and goes in a moment
 - `berry_back(me)`: no berry showing: look for FULL_WAIT s (it's gone while the last one is eaten, and floats in late on a page just opened) -> (a berry floats, the last look: screen, …
 - `feed(kind, have, left, me)`: on `me`'s page with `kind` picked (`have` in the bag): tap the berry while one floats, the bag keeps more than FEEDABLE[kind] and fewer than `left` are fed -> (berries …
 - `wait_feed(timeout=4)`
 - `feed_here(seen, total, limit)`: on a gym Pokémon's page: feed it if it's new -> berries fed
-- `open_at(cx, cy, bounds, seen)`: in the gym view: tap a Pokémon at TAP_DROPS under its CP label until one not seen yet opens -> the drop that opened it, on its page
+- `open_at(cx, cy, bounds, seen, drops=TAP_DROPS)`: in the gym view: tap a Pokémon at `drops` under its CP label (or heart) until one not seen yet opens -> the drop that opened it, on its page
 - `gym(total, limit)`: in a gym's view: feed every Pokémon in it -> berries fed here
 - `explore(seen, n, total, limit)`: on a gym Pokémon's page: try SWIPES from each page reached until n are seen or nothing's left to try
 - `untried(edges, stays, page)`: -> the swipes still to try from a page, the ones that stayed least first

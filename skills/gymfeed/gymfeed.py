@@ -56,7 +56,11 @@ OFF_MENU = (0.5, 0.30)  # a tap above the BERRIES menu shuts it with nothing pic
 FEEDABLE = {"RAZZ": 1, "NANAB": 1, "PINAP": 30}
 # how far below its CP label to tap a Pokémon in the gym view. A back-row one shows only a bit between the ones in
 # front: the Dragonite behind a Blissey opened at 0.125, not at 0.08 (2026-10-28)
-TAP_DROPS = (0.08, 0.125, 0.165)
+TAP_DROPS = (0.08, 0.125, 0.165)  # under a CP label
+# under a heart's bottom: 0.045 opened each of 6 every time, 3 rounds (Oracle Park, iPhone, 2026-11-23). 0.06 missed
+# Jigglypuff (small, in front); 0.02 opened the one behind
+HEART_DROPS = (0.045, 0.03, 0.065)
+HEART_PX = (80, 1200)  # a heart's size in pixels, on the capture made 406 px wide
 BERRY_WAIT = 1.1  # seconds from a berry tap to the look before the next. The screenshot must come about 2 s after the
 # tap: at 1.3 s the number still showed on a full Pokémon, then the next tap hit no berry and jumped (2026-11-06)
 LIMIT = 100
@@ -70,6 +74,7 @@ GYM_SIZE = 6  # the most a gym holds. The CP labels can't count them: 4 labels, 
 BERRY_SHARE = 0.03  # a floating Razz fills 7-22 % of BERRY_BOX with warm or green pixels and 24-32 % with magenta;
 # no berry is 0 % of each (both phones, 2026-11-08). The Pixel's berry is darker: a test for bright colour missed it
 BERRY_BOX = (0.36, 0.72, 0.64, 0.88)
+WARM_SHARE = 0.1  # yellow with no magenta that makes a berry: Empoleon's feet are 8 %, a Nanab 12-17 %
 MAX_TAPS = 14  # taps on one Pokémon at most: the game takes 10 per 30 min, so more means the taps aren't feeding
 FULL_WAIT = 2.0  # seconds a berry must stay gone to call a Pokémon full
 
@@ -134,6 +139,39 @@ def all_labels():
     return labels
 
 
+def is_heart(p):
+    """a pixel of the pink motivation heart over a gym Pokémon (iPhone, a red gym, 2026-11-23: about 245,95,125)"""
+    r, g, b = p[:3]
+    return r > 200 and 60 < g < 130 and 90 < b < 160 and r - b > 80
+
+
+def hearts(path):
+    """the gym view's pink hearts, one over each Pokémon -> [(cx, the heart's bottom y)], left to right. OCR missed 2 of
+    6 CP labels in a crowded gym, where the hearts showed all 6, even one half hidden (Oracle Park, 2026-11-23)"""
+    from PIL import Image
+    im = Image.open(path).convert("RGB")
+    im = im.resize((406, round(406 * im.height / im.width)))  # the Pixel's full-size capture: same work as the iPhone's
+    w, h = im.size
+    px = im.load()
+    pts = {(x, y) for y in range(int(0.3 * h), int(0.75 * h)) for x in range(w) if is_heart(px[x, y])}
+    out, done = [], set()
+    for p in pts:
+        if p in done:
+            continue
+        stack, blob = [p], []
+        done.add(p)
+        while stack:
+            x, y = stack.pop()
+            blob.append((x, y))
+            for q in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+                if q in pts and q not in done:
+                    done.add(q)
+                    stack.append(q)
+        if HEART_PX[0] <= len(blob) <= HEART_PX[1]:  # a whole heart is about 410 px, a half-hidden one 240
+            out.append((sum(x for x, _ in blob) / len(blob) / w, max(y for _, y in blob) / h))
+    return sorted(out)
+
+
 def berry_colours(path):
     """-> (share of warm or green pixels, share of magenta ones) in BERRY_BOX, where the berry floats. The gym floor
     behind is blue-grey"""
@@ -149,8 +187,12 @@ def berry_colours(path):
 
 
 def berry_up(path):
-    """a berry floats on this gym Pokémon's page: it's hungry. A Razz's purple counts as magenta more than warm"""
-    return max(berry_colours(path)) >= BERRY_SHARE
+    """a berry floats on this gym Pokémon's page: it's hungry. Some magenta (Razz 22-25 %, Nanab's tips 8-9 %), or
+    WARM_SHARE of yellow alone (a Pinap). Empoleon's yellow feet, 8 % warm and no magenta, read as a berry with
+    BERRY_SHARE alone: 14 taps counted, 2 fed (2026-11-23). The bag count under the berry can't tell: OCR misses a
+    lone '1'"""
+    warm, magenta = berry_colours(path)
+    return magenta >= BERRY_SHARE or warm >= WARM_SHARE
 
 
 def razz_up(path):
@@ -206,8 +248,22 @@ def like(a, b, enough):
 def page_name(texts):
     """the name at the top of a gym Pokémon's page"""
     top = [t for t in texts if (0.05 if ui.ANDROID else 0.08) < t[1] < 0.13 and not re.fullmatch(r"\W*[cC][pP]?\s*\d+\W*", t[4].strip())]
-    words = " ".join(t[4].strip() for t in sorted(top, key=lambda t: t[0])).split()
-    return " ".join(w for w in words if not dust(w))
+    words = [w for w in " ".join(t[4].strip() for t in sorted(top, key=lambda t: t[0])).split() if not dust(w)]
+    keep = []
+    for w in words:
+        if candy(w):
+            if keep and keep[-1].isupper():  # the family's name in capitals before CANDY
+                keep.pop()
+            continue
+        keep.append(w)
+    return " ".join(keep)
+
+
+def candy(word):
+    """the 'CANDY' of the 'PIPLUP CANDY' a berry can give, floating over the name with the family's name before it.
+    Left in, it made Empoleon's page read as another's and stopped its feeding at 7 (2026-11-23)"""
+    letters = re.sub(r"[^A-Z]", "", word.upper())
+    return word.upper() == word and len(letters) >= 4 and like(letters, "CANDY", 0.75)
 
 
 def dust(word):
@@ -587,14 +643,23 @@ def choose():
 def moved(screen, texts, me):
     """a page that reads as a gym Pokémon's, with another name than me's. The feeding can hide the name: not moved"""
     name, mine = (re.sub(r"\s", "", n.upper()) for n in (page_name(texts), me[0]))
-    return screen == "feed" and name and not like(name, mine, 0.6)
+    return screen == "feed" and name and not like(name, mine, 0.6) and not same_chars(name, mine)
+
+
+def same_chars(a, b):
+    """the same letters and digits in another order: OCR read the nickname '84 H' as 'H ₺8' for 8 s, and its feeding
+    stopped (2026-11-23)"""
+    a, b = ("".join(sorted(re.sub(r"[^A-Z0-9]", "", x))) for x in (a, b))
+    return bool(a) and like(a, b, 0.75)
 
 
 def steady_look(me):
     """look(), again if the page seems to have changed: the stardust a berry gives floats over the name ('+10',
-    'Scizor STARGUSTO') and goes in a moment. It stopped Blissey at 3 berries (2026-11-06). A real change stays"""
+    'Scizor STARGUSTO') and goes in a moment. It stopped Blissey at 3 berries (2026-11-06). The gym's badge icon can
+    float over it longer ('Em IANT eort 10': Empoleon stopped at 8, 2026-11-23), so about 8 s of looks. A real change
+    stays"""
     got = look()
-    for _ in range(4):
+    for _ in range(8):
         if not moved(got[0], got[1], me):
             break
         time.sleep(0.7)
@@ -699,11 +764,11 @@ def feed_here(seen, total, limit):
     return got
 
 
-def open_at(cx, cy, bounds, seen):
-    """in the gym view: tap a Pokémon at TAP_DROPS under its CP label until one not seen yet opens -> the drop that
-    opened it, on its page. None: back in the gym view, nothing new opened"""
-    for drop in TAP_DROPS:
-        base.click(cx, cy + drop, bounds, fuzz=0.01)
+def open_at(cx, cy, bounds, seen, drops=TAP_DROPS):
+    """in the gym view: tap a Pokémon at `drops` under its CP label (or heart) until one not seen yet opens -> the drop
+    that opened it, on its page. None: back in the gym view, nothing new opened"""
+    for drop in drops:
+        base.click(cx, cy + drop, bounds, fuzz=0.01 if drops is TAP_DROPS else 0.004)  # a heart's spot is tight
         if not wait_feed():
             log(f"    tap {cx:.2f},{cy + drop:.2f}: nothing opened")
             continue
@@ -721,8 +786,15 @@ def gym(total, limit):
     """in a gym's view: feed every Pokémon in it -> berries fed here"""
     known.clear()
     labels = sorted(all_labels(), key=lambda c: -c[0])
-    _, _, _, bounds = look()
-    log(f"  {len(labels)} CP labels in the gym view")
+    _, _, path, bounds = look()
+    pinks = hearts(path)
+    log(f"  {len(labels)} CP labels and {len(pinks)} hearts in the gym view")
+    # the hearts count the gym and show where each one stands. Fewer hearts than labels: they misread, use the labels
+    by_heart = len(pinks) >= max(len(labels), 1)
+    size = len(pinks) if by_heart else GYM_SIZE
+    drops = HEART_DROPS if by_heart else TAP_DROPS
+    if by_heart:
+        labels = sorted(pinks, key=lambda c: -c[0])
     seen, fed, todo = set(), 0, labels
     # right-most first. A label whose first tap opened nothing new may have opened the one in front of it (not seen
     # yet then): a 2nd pass over those, with the front ones seen, reaches the one behind
@@ -731,20 +803,20 @@ def gym(total, limit):
         for cx, cy in todo:
             if total + fed >= limit or out_of_berries:
                 return fed
-            drop = open_at(cx, cy, bounds, seen)
+            drop = open_at(cx, cy, bounds, seen, drops)
             if drop is None:
                 missed.append((cx, cy))
                 continue
-            if drop != TAP_DROPS[0]:
+            if drop != drops[0]:
                 missed.append((cx, cy))  # unsure it's this label's one
             fed += feed_here(seen, total + fed, limit)
             base.tap_x(look()[3], fuzz=0.006)
             _, _, _, bounds = base.wait_for("gymview", look=look, timeout=8)
             time.sleep(0.8)
-        if len(seen) >= GYM_SIZE or not missed:
+        if len(seen) >= size or not missed:
             break
         todo = missed
-    if len(seen) >= GYM_SIZE or total + fed >= limit or out_of_berries:
+    if len(seen) >= size or total + fed >= limit or out_of_berries:
         return fed
     log(f"  {len(seen)} opened on a tap: looking for more by swiping")
     # into the front Pokémon nearest the first one missed, then try each swipe from every page reached
@@ -752,14 +824,14 @@ def gym(total, limit):
         mx, my = missed[0] if missed else (0.5, 0.45)
         opened = [c for c in labels if c not in missed] or labels
         cx, cy = min(opened, key=lambda c: abs(c[0] - mx) + (0 if c[1] > my else 0.5))
-        base.click(cx, cy + TAP_DROPS[0], bounds, fuzz=0.01)
+        base.click(cx, cy + drops[0], bounds, fuzz=0.01 if drops is TAP_DROPS else 0.004)
         if not wait_feed():
             log("  couldn't open a Pokémon to swipe from")
             return fed
     else:
         return fed
     used = len(seen)
-    fed += explore(seen, GYM_SIZE, total + fed, limit)
+    fed += explore(seen, size, total + fed, limit)
     log(f"  {len(seen) - used} more by swiping, {len(seen)} in all: " + ", ".join(k[0] for k in seen))
     base.tap_x(look()[3], fuzz=0.006)
     base.wait_for("gymview", look=look, timeout=8)

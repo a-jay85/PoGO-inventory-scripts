@@ -76,6 +76,8 @@ def numbers(texts):
     return out
 
 
+FAR = 40  # further than this from a screen's middle number is a misread
+
 FLIPPED = re.compile(r"[0-9OoIlTZEL£+S]{4}")  # a grid number read upside down: 'T000' 0001, 'ZIOO' 0012
 
 
@@ -131,7 +133,10 @@ def read_grid(path, texts):
     # name: the header's own count can read as CLIO there (2026-11-11)
     title_boxes = [t for t in texts if top < t[1] + t[3] and t[1] < bottom and t[4].strip() in REGION_NAMES]
     tiles = []
+    mid = statistics.median([n for n, _ in numbers(texts)] or [0])
     for n, t in numbers(texts):
+        if abs(n - mid) > FAR:
+            continue  # a misread: one screen holds about 30 numbers in a row (#989 among 547-569, Lucky page 2026-11-22)
         if t[1] - ABOVE[1] - MIN_BOX < top or t[1] + t[3] > bottom:
             continue  # under the header or the chips: the next screen has it whole
         # the box stops at a region's title too: ALOLA's letters sit in the box over a missing #722 (2026-11-11)

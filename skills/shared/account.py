@@ -62,7 +62,9 @@ def screen_of(texts):
     if "RETURNING PLAYER" in j:
         return "landing"
     words = {t[4].strip().upper() for t in texts}
-    if "SETTINGS" in words and words & {"MUSIC", "ACCOUNT", "ADVANCED SETTINGS", "ABOUT", "SIGN OUT", "VERSION"}:
+    if "SETTINGS" in words and words & {"MUSIC", "ACCOUNT", "ADVANCED SETTINGS", "ABOUT", "SIGN OUT", "VERSION"} \
+            or len(words & {"MUSIC", "SOUND", "VIBRATION", "ACCOUNT", "GENERAL", "NOTIFICATIONS"}) >= 3:
+        # (its rows alone: the GPS banner hides the SETTINGS title, and evo's switch stopped there, Pixel 2026-11-22)
         return "settings"
     return None
 

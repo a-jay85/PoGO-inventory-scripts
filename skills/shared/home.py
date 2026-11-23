@@ -418,14 +418,8 @@ def reach(storage):
             raise Stop("the phone says Pokémon GO isn't responding: close it by hand")
         elif screen == "unknown" and popups.clear(texts, bounds):  # a box any script may meet (popups.py)
             pass
-        elif screen == "unknown" and storage and "SEND GIFT" in ui.joined(texts):  # /trade and /gift can end here, and
-            log("  on a friend's page: closing it")  # the iPhone has no Back key: the X, then the profile's X below
-            base.tap_x(bounds)
-            time.sleep(1.5)
-        elif screen == "unknown" and storage and (profile(texts) or ui.profile_tabs(texts)):  # a stop or a reopen left
-            log("  on the profile: closing it")  # the profile up (any of its tabs): its X
-            base.tap_x(bounds)
-            time.sleep(1.5)
+        elif screen == "unknown" and storage and close_profile(texts, bounds):
+            pass
         elif screen == "unknown" and not storage and (profile(texts) or ui.profile_tabs(texts)
                                                       or pages.friend_page(texts)):
             return screen  # /trade goes on from the profile or a friend's page itself (2026-11-12: a game reopened
@@ -497,6 +491,21 @@ def storage_limit(texts):
         if m := re.search(r"\b\d[\d,]*\s*/\s*(\d{1,2},?\d{3})\b", t[4]):
             return int(m.group(1).replace(",", ""))
     return None
+
+
+def close_profile(texts, bounds):
+    """-> True after closing a friend's page or the profile (any of its tabs) with its X. /trade and /gift can end on
+    a friend's page (the iPhone has no Back key: its X, then the profile's X on the next look). A stop or a reopen can
+    leave the profile up (Pixel 2026-11-23: /goplus stopped there, then /hatch waited 150 s on it and stopped)"""
+    if "SEND GIFT" in ui.joined(texts):
+        log("  on a friend's page: closing it")
+    elif profile(texts) or ui.profile_tabs(texts):
+        log("  on the profile: closing it")
+    else:
+        return False
+    base.tap_x(bounds)
+    time.sleep(1.5)
+    return True
 
 
 def profile(texts):

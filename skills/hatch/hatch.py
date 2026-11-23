@@ -66,6 +66,8 @@ def through_hatches():
             continue
         if popups.clear(texts, bounds):
             continue
+        if screen == "unknown" and home.close_profile(texts, bounds):  # a stop left it up: its words change (the
+            continue  # clock), so the still-screen unstick below never came (2026-11-23: stopped after 150 s)
         if screen == "detail":  # the hatched Pokémon: its X opens the Eggs tab
             log(f"  {'hatched' if hatched else 'a Pokémon page is open, closing it'}: "
                 f"{ui.summary([t for t in texts if 0.07 < t[1] < 0.3], 60)}")

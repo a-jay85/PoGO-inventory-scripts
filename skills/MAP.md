@@ -113,6 +113,7 @@ The shared tapper: screen reading, taps, timing, run folders and logging, and th
 - `texts_now()`: what's on the screen right now, or None if it can't be seen
 - `screen_changed(before, after)`: is this another screen, or a popup over it, by the OCR of two looks? Counts words, since ui.classify calls every popup and every /trade screen "unknown"
 - `yield_to_user(tapping=False, force=False)`: the user is at the Mac: stop here until it's been idle USER_IDLE seconds, then bring iPhone Mirroring back and go on
+- `wait_for_phone(texts)`: iPhone Mirroring says iPhone in Use (a call came in, or the iPhone was picked up, 2026-11-23): wait here till it shows the iPhone again, then go on
 - `bring_forward()`
 - `front(planned=False)`: bring iPhone Mirroring forward
 - `to_points(fx, fy, bounds)`
@@ -711,6 +712,7 @@ Screen reader + tap planner for /pvpc
 - `top_clock(texts)`: the phone's clock read at the top
 - `find(texts, pred)`
 - `up(t)`
+- `in_use(texts)`: iPhone Mirroring's "iPhone in Use" page: the iPhone itself is being used (a call, or picked up)
 - `joined(texts)`: all the screen's text in one upper-case line
 - `summary(texts, n=250)`: the screen's text for a log line
 - `rows(texts, gap=0.012)`: OCR boxes -> [(y, joined text)]: rows top to bottom, each row's words left to right

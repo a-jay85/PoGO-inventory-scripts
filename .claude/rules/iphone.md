@@ -20,3 +20,4 @@ paths:
 - The "Cannot Trade Recently Caught Pokémon Remotely" box after tag DONE cost about 25 s each time before the fix. Not yet seen live after it: check a /pvpc log with Meltans for "keeps the Remote Trade tag" with no "tap DONE didn't land" before it.
 - iPhone OCR reads "!" as ":" in the search bar.
 - Open: home.start stops on an iPhone left on a friend page (where /trade leaves it). Two taps missed right after a resume; maybe add a short settle after bring_forward(). Untested: a pause during /trade, pauses over 78 s.
+- A call (or the iPhone picked up) mid-run: Mirroring shows "iPhone in Use" and connects again by itself once the iPhone is locked. `ui.ocr` hands that page to `base.wait_for_phone`, so no reader ever sees it (it read as "no berry": gymfeed called Garchomp full, 2026-11-23). Not yet seen live: whether the game is still on the same screen after a call.

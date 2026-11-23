@@ -13,6 +13,8 @@ a launchd job runs `timer.py tick` every minute, and tick runs a script whose ti
   in the last 3 min, or unlocked and touched in the last 10 min (pixel_in_use). Its screen being on says nothing:
   it stays on while plugged in. The iPhone: iPhone Mirroring says "iPhone in Use" (session.connect stops on it at
   once); that run tries again in 5 min, since each try opens Mirroring and takes the Mac's keyboard.
+  Mid-run, a run waits for it (base.wait_for_phone, up to 30 min: a call) and stops in the same words if it's still
+  in use, or if the game came back on another screen.
 - A phone out of reach turns its timers off, so a run never starts by itself the moment the phone is back in range
   (coming home with it, 2026-11-15). The Pixel: off once it has been off adb for 5 min in a row while a job is due
   (a shorter miss is a Wi-Fi blip: adbwifi.py reconnects within a minute). The iPhone: off when a run stops on

@@ -100,7 +100,10 @@ def more_numbers(texts, more):
     """texts, plus the numbers in more that texts don't have, from spots where texts read no number (a turned read
     of a label already read upright gives a wrong number on it: a jump to #979 stopped the Lucky page at #367,
     2026-11-22)"""
-    have = near(texts)
+    top, bottom = band(texts)
+    # (a number read under the chips doesn't count: 0698 half under them read as 0693, and kept the sharp read's
+    # real #693 out, Lucky page 2026-11-22. read_grid skips those spots anyway)
+    have = [(n, t) for n, t in near(texts) if not hidden(t, top, bottom)]
     mid = lambda t: (t[0] + t[2] / 2, t[1] + t[3] / 2)
     taken = lambda t: any(abs(mid(t)[0] - mid(h)[0]) < 0.06 and abs(mid(t)[1] - mid(h)[1]) < 0.02 for _, h in have)
     return texts + [t for n, t in numbers(more) if n not in {m for m, _ in have} and not taken(t)]
@@ -119,6 +122,11 @@ def band(texts):
     chips = [t[1] for t in texts if t[1] > 0.78 and re.search(r"SHINY|LUCKY|XXL|XXS|SHADOW|PURIFIED|100%|POK",
                                                               t[4].upper())]
     return top, (min(chips) if chips else CHIP_Y) - 0.025
+
+
+def hidden(t, top, bottom):
+    """a number's box under the header or the chips (top, bottom from band): the next screen has it whole"""
+    return t[1] - ABOVE[1] - MIN_BOX < top or t[1] + t[3] > bottom
 
 
 def spread(im, t, top):
@@ -143,7 +151,7 @@ def read_grid(path, texts):
     title_boxes = [t for t in texts if top < t[1] + t[3] and t[1] < bottom and t[4].strip() in REGION_NAMES]
     tiles = []
     for n, t in near(texts):
-        if t[1] - ABOVE[1] - MIN_BOX < top or t[1] + t[3] > bottom:
+        if hidden(t, top, bottom):
             continue  # under the header or the chips: the next screen has it whole
         # the box stops at a region's title too: ALOLA's letters sit in the box over a missing #722 (2026-11-11)
         cut = max([top] + [b[1] + b[3] for b in title_boxes if b[1] < t[1]])

@@ -309,7 +309,8 @@ def walk_grid():
     seen, last_max, still, backs = {}, None, 0, 0
     edge = [0.0, 999.0]  # busiest missing tile, plainest caught one: how close the spread alone came to a wrong call
     for i in range(MAX_SCREENS):
-        screen, texts, path, bounds = base.settle(look, lambda r: r[0] == "grid", 3)  # one odd read: look again
+        screen, texts, path, bounds = base.settle(look, lambda r: r[0] == "grid", 8)  # odd reads: look again
+        # (3 s wasn't enough: 6 looks in a row read no grid, then the same capture read as one, Pixel 2026-11-22)
         if screen != "grid":
             keep_capture("grid")
             raise Stop(f"not on the Pokédex grid any more ({screen})")

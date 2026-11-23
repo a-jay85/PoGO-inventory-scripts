@@ -301,7 +301,7 @@ def pick_page(label):
 
 def walk_grid():
     """from KANTO's grid at the top, scroll to the end -> {n: missing}"""
-    seen, last_max, still = {}, None, 0
+    seen, last_max, still, backs = {}, None, 0, 0
     edge = [0.0, 999.0]  # busiest missing tile, plainest caught one: how close the spread alone came to a wrong call
     for i in range(MAX_SCREENS):
         screen, texts, path, bounds = base.settle(look, lambda r: r[0] == "grid", 3)  # one odd read: look again
@@ -344,8 +344,17 @@ def walk_grid():
             raise Stop(f"read these both ways on two screens: {clash}")
         # no number shared is fine when only numbers the page never shows sit between: 646 then 650 (2026-11-11)
         if seen and not set(got) & set(seen) and set(range(max(seen) + 1, min(got))) - NOT_LISTED:
+            # the list was still moving when the last screen was read, so this swipe went further: go back a bit
+            # (531 read, then 535-550, Lucky page, Pixel under load, 2026-11-22)
+            if backs < 2:
+                backs += 1
+                log(f"  skipped past {max(seen) + 1}-{min(got) - 1}: scrolling back")
+                x, y = random.uniform(0.3, 0.7), random.uniform(0.3, 0.36)
+                swipe(x, y, x + random.uniform(-0.02, 0.02), y + SCROLL, bounds)
+                continue
             keep_capture("gap")
             raise Stop(f"this screen shares no number with the last one: rows may be skipped ({min(got)}-{max(got)})")
+        backs = 0
         new = sorted(n for n in got if n not in seen)
         for n, y, s, m in rows:
             edge[0 if m else 1] = max(edge[0], s) if m else min(edge[1], s)

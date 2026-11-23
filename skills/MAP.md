@@ -927,7 +927,7 @@ Tag CyrillJan's Tradeable saved search by what a trade to HashTagAJay is worth, 
 - `regions_button(texts)`: the grid's REGIONS button label, also when OCR drops a letter ("REIONS", 2026-11-11)
 - `where(path, texts)`
 - `look()`
-- `tap_at(fx, fy, bounds, wait=(1.6, 2.2))`
+- `tap_at(fx, fy, bounds, wait=1.6)`
 - `tap_text(texts, bounds, pred, dy=0.0)`
 - `swipe(fx1, fy1, fx2, fy2, bounds)`: the grid, the chip row and the region list: lists, so on Android they settle as fast as the Pokémon list
 - `to_regions()`: from anywhere to the Pokédex's region list

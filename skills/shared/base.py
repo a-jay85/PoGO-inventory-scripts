@@ -516,7 +516,7 @@ def click(fx, fy, bounds, gap=0.0, ms=None, fuzz=0.0, rest=0.0, bring_front=True
     gap: at least this long since the last tap (two quick taps on the search bar would make a double-tap).
     ms: how long it holds (default ui.tap_ms(); 900 is a long press). fuzz: up to this much off in x, half that in y,
     on top of TAP_WOBBLE, which every tap gets so no two land on the same pixel.
-    rest: seconds to wait after it, or a (lo, hi) range.
+    rest: seconds to wait after it.
     bring_front: front() first (iPhone: a click while another app is in front only brings the window forward, and
     is lost). spaced: wait out tap_gap() and gap first. counted: it counts as the last tap for the next one's gap."""
     global last_tap

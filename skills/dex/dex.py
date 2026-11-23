@@ -172,8 +172,8 @@ def look():
     return base.look(where)
 
 
-def tap_at(fx, fy, bounds, wait=(1.6, 2.2)):
-    base.click(fx, fy, bounds, fuzz=0.006, rest=tuple(wait))
+def tap_at(fx, fy, bounds, wait=1.6):
+    base.click(fx, fy, bounds, fuzz=0.006, rest=wait)
 
 
 def tap_text(texts, bounds, pred, dy=0.0):

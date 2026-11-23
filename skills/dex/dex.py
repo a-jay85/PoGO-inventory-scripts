@@ -52,6 +52,7 @@ SURE_PIC, SURE_PLAIN = 20, 5  # a tile this busy or this plain pins down the row
 BUSY_MIN, PLAIN_MAX = 17, 8  # with no heights to measure against, only a spread this clear decides
 DROP = 0.047  # a missing tile's number sits this much higher than a caught one's in the same row
 PITCH = 0.1415  # rows are this far apart
+COL = 0.233  # and tiles in a row this far
 TITLE_GAP = 0.137  # a region's title sits this far above the caught height of the first row under it
 FIT = 0.015  # a number this close to a row height sits at it
 SCROLL = 0.25  # of the screen per swipe, ~1.7 rows: the clear band shows ~4.5, so each screen repeats ~2 rows
@@ -97,16 +98,33 @@ def flipped(texts):
 
 
 def more_numbers(texts, more):
-    """texts, plus the numbers in more that texts don't have, from spots where texts read no number (a turned read
-    of a label already read upright gives a wrong number on it: a jump to #979 stopped the Lucky page at #367,
-    2026-11-22)"""
+    """texts, plus the numbers in more that texts don't have. Where both read a number on one spot, the one that fits
+    its row better stays: a turned read of a label already read upright gives a wrong number on it (a jump to #979
+    stopped the Lucky page at #367), and the plain read took 0820 for 0780 between 0819 and 0821 (2026-11-22)"""
     top, bottom = band(texts)
     # (a number read under the chips doesn't count: 0698 half under them read as 0693, and kept the sharp read's
     # real #693 out, Lucky page 2026-11-22. read_grid skips those spots anyway)
     have = [(n, t) for n, t in near(texts) if not hidden(t, top, bottom)]
+    extra = [(n, t) for n, t in near(more) if not hidden(t, top, bottom)]
     mid = lambda t: (t[0] + t[2] / 2, t[1] + t[3] / 2)
-    taken = lambda t: any(abs(mid(t)[0] - mid(h)[0]) < 0.06 and abs(mid(t)[1] - mid(h)[1]) < 0.02 for _, h in have)
-    return texts + [t for n, t in numbers(more) if n not in {m for m, _ in have} and not taken(t)]
+    same = lambda a, b: abs(mid(a)[0] - mid(b)[0]) < 0.06 and abs(mid(a)[1] - mid(b)[1]) < 0.02
+
+    def fit(n, t):
+        """how many numbers in its row, from either read, agree with n: one more for each tile to the right"""
+        return sum(abs(mid(u)[1] - mid(t)[1]) < 0.02 and not same(u, t) and m - n == round((mid(u)[0] - mid(t)[0]) / COL)
+                   for m, u in have + extra)
+    known = {m for m, _ in have}
+    drop, add = [], []
+    for n, t in extra:
+        if n in known:
+            continue
+        here = [(m, u) for m, u in have if same(u, t)]
+        if not here:
+            add.append(t)
+        elif here[0][0] != n and fit(n, t) > fit(*here[0]):
+            drop.append(here[0][1])
+            add.append(t)
+    return [t for t in texts if not any(t is d for d in drop)] + add
 
 
 def upright(path, texts):

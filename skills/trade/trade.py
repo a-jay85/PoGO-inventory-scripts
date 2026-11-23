@@ -962,6 +962,10 @@ def choose(p, i=0):
     log(f"{p.name}: {name.strip()} {cp.split('>')[0].strip()}")
     for attempt in range(3):
         nxt = label(p, "NEXT")
+        if not nxt and attempt and p.screen in ("select", "detail"):
+            # (a select look can drop NEXT and read as "detail": the retry then never tapped, 2026-11-22 Swablu)
+            base.settle(p.look, lambda s: label(p, "NEXT") or s not in ("select", "detail"), timeout=3)
+            nxt = label(p, "NEXT")
         if nxt:
             p.tap_text(nxt)
         s = p.wait("select", "warning", "confirm", "lobby", timeout=6)

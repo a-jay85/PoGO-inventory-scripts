@@ -1677,11 +1677,14 @@ def to_tags_tab():
         screen = wait_for("list", "tag-tab", "detail", "menu", "appraisal", "gym")[0]
     if screen not in ("list", "tag-tab"):
         back_to_list()  # a run that was cut off left a Pokémon open
-    x_taps = 0
+    x_taps, lost_once = 0, False
     for _ in range(150):  # (the fallback: a stop deep in a 700+ list needs 60+ pulls to get back up)
         try:
             screen, texts, _, bounds = wait_for("list", "tag-tab", "detail", "gym")
         except Lost as e:  # the X closed a list the Pokédex opened, onto the Pokédex (Pixel, /dex reopened, 2026-11-22)
+            if lost_once:  # (only once: a full list misread as a tag's list gets the X every time, 2026-11-22)
+                raise
+            lost_once = True
             log(f"  that X left the Pokémon screens ({str(e)[:60]}): back to them from wherever this is")
             home.start()
             continue

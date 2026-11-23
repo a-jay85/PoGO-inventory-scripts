@@ -283,6 +283,11 @@ def ocr(path):
     (2x for every look: worse now and then, a half-hidden top row lost.) The boxes are fractions: the same at 2x"""
     out = ocr_once(path)
     kind = classify(out)
+    tabs = []  # the full list's TAGS and EGGS tabs, when the GPS banner hides them: read from the contrast crop
+    if kind == "list" and gps_banner() and not full_list(out):  # (the banner comes along from the map. A list read as
+        # a tag's list got its X, which closed the whole Pokémon screen, over and over: Pixel /dex, 2026-11-22)
+        tabs = [t for t in under_gps_banner(path, 0.0, 0.05, 1.0, 0.13) if is_label(t[4], "TAGS") or is_label(t[4], "EGGS")]
+        out = out + tabs
     thin = kind == "list" and (len(tiles(out)) < len(tile_cps(out)) or not tiles(out))  # (no tiles at all on a
     # list: an iPhone list's one tile read its CP and name upside down, 'GIZE' for CP 3219, and /raidteam tapped a tile
     # it couldn't see, 2026-11-19. The Pixel too: a favorite's star read 'CP 2186K' and raidteam keep stopped on a
@@ -306,7 +311,7 @@ def ocr(path):
                 or flipped and (top_clock(again) or classify(again) != kind or kind == "unknown" and len(again) > len(out)):
             # (an unknown screen keeps the read that saw more: the Pixel's 'Do you really want to power up' box read
             # no YES or NO, its clock read 'З:44', and /cleantrades stopped on 'the power-up didn't show', 2026-11-19)
-            return again
+            return again + (tabs if not full_list(again) else [])
     return out
 
 

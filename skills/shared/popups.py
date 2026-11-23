@@ -197,7 +197,7 @@ def weather(texts):
     service'), I AM SAFE its only button (Pixel, 2026-11-23: /hatch waited 150 s under it and stopped)"""
     if "WEATHER WARNING" not in ui.joined(texts):
         return None
-    hit = ui.label(texts, "I AM SAFE")
+    hit = next((t for t in texts if ui.norm(t[4]).endswith("AM SAFE")), None)  # OCR: 'I AM SAFE' or 'LAM SAFE'
     return ui.center(hit) if hit else None
 
 

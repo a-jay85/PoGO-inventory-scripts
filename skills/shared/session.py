@@ -27,6 +27,7 @@ import fcntl, os, re, subprocess, sys, time, traceback
 HERE = os.path.dirname(os.path.realpath(__file__))
 import ui
 import base
+import locks
 from base import Stop, log, keep_capture
 
 PIN_FILE = os.path.expanduser("~/.config/pogo/android-pin")
@@ -303,7 +304,7 @@ def claim():
     global held
     if held:
         return None
-    f = open(f"/tmp/pogo-{'android' if ui.ANDROID else 'iphone'}.lock", "a+")
+    f = open(locks.path("android" if ui.ANDROID else "iphone"), "a+")
     try:
         fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
     except OSError:
@@ -324,20 +325,12 @@ def busy():
     before a phone test: `ps | grep` matched every Claude process and printed 10-15 KB (2026-11-22)"""
     lines = []
     for phone, name in (("android", "Pixel"), ("iphone", "iPhone")):
-        path = f"/tmp/pogo-{phone}.lock"
-        if not os.path.exists(path):
-            lines.append(f"{name}: free")
-            continue
-        with open(path) as f:
-            try:
-                fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                fcntl.flock(f, fcntl.LOCK_UN)
-                lines.append(f"{name}: free")
-            except OSError:
-                lines.append(f"{name}: busy, {(f.read().strip() or 'a script')[:150]}")
+        who = locks.holder(phone)
+        lines.append(f"{name}: busy, {who[:150]}" if who else f"{name}: free")
     out = subprocess.run(["pgrep", "-fl", r"(skills/[a-z]+/[a-z_]+|pogo)\.py"], capture_output=True, text=True).stdout
     other = [l.split()[0] + " " + (m.group(0)[:120] if (m := re.search(r"\S*(skills/|pogo\.py).*", l)) else l.split(None, 1)[-1][:120])
              for l in out.splitlines() if l[:1].isdigit()
+             and not re.match(r"\d+ (\S*/)?(zsh|bash|sh) ", l)  # a shell running a command line that names a script
              and l.split()[0] != str(os.getpid()) and "session.py busy" not in l and "pgrep" not in l]
     lines.append("other skill scripts: " + ("none" if not other else f"{len(other)}\n  " + "\n  ".join(other[:5])))
     return "\n".join(lines)

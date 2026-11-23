@@ -43,6 +43,8 @@ Replaces the gymfeed-only timer (gymfeed_cron.sh and gymfeed_timer.sh with their
 """
 import fcntl, json, os, random, re, subprocess, sys, time
 
+import locks
+
 HERE = os.path.dirname(os.path.realpath(__file__))
 SKILLS = os.path.dirname(HERE)
 CONF = os.path.expanduser(os.environ.get("POGO_TIMER_CONF", "~/.config/pogo"))  # (the env: a test's own folder)
@@ -144,17 +146,9 @@ def gymfeed(feedable, phone):
 def busy():
     """-> what's using a phone, or None. The phone locks (session.claim), then any python running a script of
     this repo (by its command line, or the folder it runs in: `cd skills/gift && python3 gift.py`)"""
-    import fcntl as f
-    for phone in ("android", "iphone"):
-        try:
-            with open(f"/tmp/pogo-{phone}.lock", "a+") as fh:
-                try:
-                    f.flock(fh, f.LOCK_EX | f.LOCK_NB)
-                except OSError:
-                    fh.seek(0)
-                    return fh.read().strip() or f"a script on the {phone}"
-        except OSError:
-            pass
+    for phone in locks.PHONES:
+        if who := locks.holder(phone):
+            return who
     me = {os.getpid(), os.getppid()}
     out = subprocess.run(["pgrep", "-fl", r"PoGO-inventory-scripts.*\.py"], capture_output=True, text=True).stdout
     for line in out.splitlines():

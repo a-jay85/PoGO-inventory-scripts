@@ -16,18 +16,21 @@ wrong if nobody does: over 100 characters. A title that's already open isn't fil
 Kinds: verify (look at the phone and confirm what a script read or did), fix (a script bug seen on the phone: fix it,
 phone-test, merge), by-hand (the user's own call, like a special trade: Claude reads and reports, never tags).
 
-ready: a phone is free when its lock (/tmp/pogo-android.lock, /tmp/pogo-iphone.lock) names no live process and
+ready: a phone is free when no run holds its lock (skills/shared/locks.py) and
 no skills/ script is running; the Pixel must also show in adb devices. The iPhone's Mirroring isn't opened to check
 (it connects when a run starts). Exit 0 when both are free, 1 when not (and what's using each).
 Scripts never call this: Claude files issues after reading a run, so a phone run never waits on the network.
 """
 import json, os, re, subprocess, sys
 
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "skills", "shared"))
+import locks  # (stdlib only)
+
 REPO = "a-jay85/PoGO-inventory-scripts-backlog"
 GH = os.environ.get("BACKLOG_GH", "gh")
 PHONES = ("pixel", "iphone", "both")
 KINDS = ("verify", "fix", "by-hand")
-LOCKS = {"pixel": "/tmp/pogo-android.lock", "iphone": "/tmp/pogo-iphone.lock"}
+LOCKS = {"pixel": "android", "iphone": "iphone"}  # backlog phone name -> locks.py phone name
 ORIGIN = re.compile(r"^(https://github\.com/a-jay85/PoGO-inventory-scripts/pull/\d+|\S*(/runs/|/tmp/pogo-watch/)\S+)")
 FILE_LINE = re.compile(r"[\w./-]+\.\w+:\d+")
 BODY_MIN = 101
@@ -69,29 +72,11 @@ def show(found):
         print("none")
 
 
-def lock_holder(path):
-    """-> what holds a phone's lock, or None (no lock, or its process is gone: a stale lock)"""
-    try:
-        text = open(path).read().strip()
-    except OSError:
-        return None
-    m = re.match(r"pid (\d+)", text)
-    if not m:
-        return text or None
-    try:
-        os.kill(int(m.group(1)), 0)
-    except ProcessLookupError:
-        return None
-    except PermissionError:
-        pass
-    return text
-
-
 def phone_busy():
     """-> {phone: why it's busy, or None}"""
     ps = subprocess.run(["pgrep", "-fl", r"skills/.*\.py"], capture_output=True, text=True).stdout
     running = [l for l in ps.splitlines() if "tests/" not in l]
-    busy = {p: lock_holder(f) for p, f in LOCKS.items()}
+    busy = {p: locks.holder(lp) for p, lp in LOCKS.items()}
     if not busy["pixel"]:
         adb = subprocess.run(["adb", "devices"], capture_output=True, text=True).stdout if _has("adb") else ""
         if not re.search(r"\tdevice$", adb, re.M):

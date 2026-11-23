@@ -1430,7 +1430,6 @@
    "ADDR_FILE",
    "BRIGHT_FILE",
    "LABEL",
-   "LOCK",
    "LOG",
    "MAIN",
    "PLIST",
@@ -1848,6 +1847,15 @@
    "trainer",
    "unstick",
    "where"
+  ],
+  "runs": []
+ },
+ "skills/shared/locks.py": {
+  "copies": {},
+  "names": [
+   "PHONES",
+   "holder",
+   "path"
   ],
   "runs": []
  },

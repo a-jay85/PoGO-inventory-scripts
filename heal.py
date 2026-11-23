@@ -22,9 +22,11 @@ The step's output goes to the pane and to /tmp/pogo-heal/<stamp>.out, Claude's w
 it did) to <stamp>.claude.jsonl. Ctrl-C while Claude works stops it and the run.
 POGO_CLAUDE_BIN: a stand-in for `claude` (tests/heal.py). The gymfeed timer skips itself while pogo.py runs.
 """
-import collections, fcntl, json, os, re, subprocess, sys, threading, time
+import collections, json, os, re, subprocess, sys, threading, time
 
 HERE = os.path.dirname(os.path.realpath(__file__))  # the repo root: the main checkout when run live
+sys.path.append(os.path.join(HERE, "skills", "shared"))
+import locks  # (stdlib only)
 DIR = "/tmp/pogo-heal"
 REPORTS = os.path.expanduser("~/claude-plans/_reports")
 FIXES = 2  # code fixes per run
@@ -123,21 +125,11 @@ def needs_you(line):
 
 # ---------- the phone free again ----------
 
-def lock_free(phone):
-    try:
-        with open(f"/tmp/pogo-{phone}.lock", "a+") as f:
-            fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            fcntl.flock(f, fcntl.LOCK_UN)
-        return True
-    except OSError:
-        return False
-
-
 def wait_free(phones):
     end = time.time() + FREE_S
     said = False
     while True:
-        busy = [p for p in phones if not lock_free(p)]
+        busy = [p for p in phones if locks.holder(p)]
         if not busy:
             return True
         if time.time() > end:

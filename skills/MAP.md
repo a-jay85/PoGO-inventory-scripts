@@ -910,6 +910,8 @@ Tag CyrillJan's Tradeable saved search by what a trade to HashTagAJay is worth, 
 - `cmd_dynamax()`: either account signed in: how many Dynamax ones it has of each family that can Dynamax (only searches)
 - `giver_species(m)`: HashTagAJay's pile (Leftovers), judged for CyrillJan or the user's wife's account: what's good for any account (the user, 2026-11-16) -> {"why": {sid: (tag, why)}, …
 - `no_team_b(m)`: -> (the teams.json of CyrillJan's newest whole /raidteam count or None, gone(sid))
+- `giver_team(m)`: -> {sid: (the lowest IV sum that could make it, mega only)}: species a traded copy of could make one of CyrillJan's Team Potentials (bars50 not None in its newest whole …
+- `mega_sids()`: species that can Mega or Primal Evolve (DialgaDex's attackers)
 - `giver_100(m)`: -> has_100(sid): CyrillJan's newest whole /raidteam count has a 100 (15/15/15, not a shadow) of sid or of a stage that evolves into it
 - `size_search(size)`: a never-traded XXS one is renamed and tagged IVC, never GIV or Transfer
 - `bulk_searches(plan)`: the tag searches, in verdict.py's order -> [(tag, the species part, the rest of the suffix)]

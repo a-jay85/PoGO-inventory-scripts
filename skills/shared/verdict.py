@@ -26,6 +26,8 @@ Signed in as HashTagAJay (the pile goes to CyrillJan or the user's wife's accoun
   2026-11-20): on the ideal team or HashTagAJay's top 6 only as a mega doesn't count, nor a family HashTagAJay has 5 100s
   of. HashTagAJay's Reroll for a raid reason, only while the line could make one of CyrillJan's Team Potentials (the user,
   2026-11-22: tradeable.no_team_b), and one in only as a mega only till CyrillJan has a 100 of it (tradeable.giver_100).
+  HashTagAJay's Reroll too for a line that could make one of CyrillJan's own Team Potentials, IVs rolled new by the
+  trade (the user, 2026-11-23: tradeable.giver_team).
   GIV at level 26+ both ways (was XLX, the user 2026-11-19): giver_species())
 A Dynamax one (both accounts): 2XL, then GIV (level 26+, then the rest). One that only can Dynamax (or evolves into one that can) gets GIV
 while the account holding it has rules.DMAX_CANDY Candy or less, or XL_CAP + one Max Move's Candy XL or less, of
@@ -172,7 +174,8 @@ def tables(to):
                        "giv_for_taker": set(rules.GIV_FOR_TAKER), "from": sp["from"],
                        "raid": set(tr.pve(m)[0]),  # in DialgaDex's top PVE_TOP vs some boss, or evolves into one
                        "strong": set(tr.strong_lines(m)),  # a strong line's species (its shadows: never purified)
-                       "raid_self": {s for s in tr.raid_tops(m)[0] if s in m.by}}  # in some top as itself
+                       "raid_self": {s for s in tr.raid_tops(m)[0] if s in m.by}  # in some top as itself
+                       | (set(tr.giver_team(m)) if to == GIVER else set())}  # or on a CyrillJan Team Potential
     return _TABLES[to]
 
 

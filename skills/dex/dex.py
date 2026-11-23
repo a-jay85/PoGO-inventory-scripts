@@ -330,7 +330,9 @@ def walk_grid():
                     if n not in got and n not in NOT_LISTED]
         if holes():  # the OCR skipped a number: read the phone's own screenshot at 3x
             log(f"  didn't read {holes()}: reading a sharper screenshot")
-            sharp = ui.android.sharp()
+            # the same screenshot, sharper: a new one can catch the list a bit further on, and its numbers then sit
+            # at other heights than the first read's (#463 at 0.789 among rows at 0.808, Lucky page 2026-11-22)
+            sharp = ui.android.sharp_last()
             # (it adds to what's read: alone, it lost 480 and 482 that the first read had, Lucky page 2026-11-22)
             texts = more_numbers(texts, upright(sharp, ui.ocr(sharp)))
             got, rows = read_grid(path, texts)

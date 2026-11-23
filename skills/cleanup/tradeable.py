@@ -582,6 +582,9 @@ def giver_species(m):
         (each with the earlier stages that evolve into it). The two raid reasons (the ideal team, the top PVE_TOP) only
         while some copy of the line could still make one of CyrillJan's Team Potentials (no_team_b: its newest whole count).
         One that's in only as a Mega counts only till CyrillJan has a 100 of it (giver_100: one Mega is enough)
+        Also a line that could make one of CyrillJan's own Team Potentials (giver_team: a trade rolls new IVs, so the
+        species decides, the user 2026-11-23), even when it's in no DialgaDex top; one in only as a Mega, only till
+        CyrillJan has a 100 of it
       hard (GIV, after 2XL and the level 26+ GIV): the family of a 10 or 12 km egg hatch (refresh's eggs-<date>.json), Smeargle, and
         a gym defender's line (/ivc's GYM_DEFENDERS and what evolves into them: a potential top gym defender for an
         account with fewer, the user 2026-11-16)
@@ -612,6 +615,8 @@ def giver_species(m):
                    or (not gone(s) and (s in plain or not has_100(r.split()[2])))})
     enough = lambda s, mega_only: f"{GIVER} has a 100" if mega_only and has_100(s) else None
     add("Reroll", {s: r for s, r in pve(m, enough, real=True)[0].items() if not gone(s)})  # (it has the earlier stages)
+    add("Reroll", {s: f"could make {GIVER}'s Team Potential (IV sum {b}+ at level 50)"
+                   for s, (b, mega_only) in giver_team(m).items() if not (mega_only and has_100(s))})
     ml = {s: int(r.split("#")[1]) for s, rs in json.load(open(pvp_f)).items() for r in rs if r.startswith("10000:")}
     add("Reroll", {s: f"Master League #{r}" for s, r in ml.items() if r <= REROLL_ML and s in m.by})
     eggs = json.load(open(eggs_f))
@@ -647,6 +652,36 @@ def no_team_b(m):
         xs = [x for x in m.down(sid) if x in b50]
         return bool(xs) and all(b50[x] is None for x in xs)
     return raidteams.path_of(GIVER), gone
+
+
+def giver_team(m):
+    """-> {sid: (the lowest IV sum that could make it, mega only)}: species a traded copy of could make one of
+    CyrillJan's Team Potentials (bars50 not None in its newest whole /raidteam count; not a shadow pile: a shadow can't
+    be traded). A trade rolls new IVs, so the species decides, not the copy's IVs (the user, 2026-11-23: HashTagAJay's
+    Transfer pile held some). mega only: it can Mega Evolve (mega_sids) and no copy holds a Team Potential spot as
+    itself, so one 100 is enough there (giver_100, the user 2026-11-22). No count: none"""
+    import raidteams
+    t = raidteams.newest(GIVER)[0] or {}
+    copies = t.get("copies", [])
+    plain_on, mega_on = set(), set()
+    for boss, team in t.get("bosses", {}).items():
+        if boss.endswith(", level 50)"):
+            for e in team:
+                for x in copies[e["copy"]]["species"] if e["copy"] < len(copies) else ():
+                    if not e["attacker"].startswith("Shadow "):  # (a shadow's spot: a trade gives no shadow)
+                        (mega_on if e["attacker"].startswith(("Mega ", "Primal ")) else plain_on).add(x)
+    megas = mega_sids() if t else set()
+    return {k: (b, k in (megas | mega_on) and k not in plain_on) for k, b in t.get("bars50", {}).items()
+            if b is not None and "|" not in k and k in m.by}
+
+
+def mega_sids():
+    """species that can Mega or Primal Evolve (DialgaDex's attackers). A pile's bars50 doesn't hold to the one mega a
+    team: a mega species' bar can be a spot only its mega wins"""
+    sys.path.append(os.path.join(HERE, "..", "roster"))
+    import roster
+    rm = roster.Model(json.load(open(roster.newest(roster.HERE, roster.COUNTERS[0]))))
+    return {s for a, s in zip(rm.A, rm.sid) if s and roster.is_mega(a)}
 
 
 def giver_100(m):

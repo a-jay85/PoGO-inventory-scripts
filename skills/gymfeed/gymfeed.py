@@ -60,6 +60,9 @@ TAP_DROPS = (0.08, 0.125, 0.165)
 BERRY_WAIT = 1.1  # seconds from a berry tap to the look before the next. The screenshot must come about 2 s after the
 # tap: at 1.3 s the number still showed on a full Pokémon, then the next tap hit no berry and jumped (2026-11-06)
 LIMIT = 100
+PROFILE_DRAG_LOW = 0.65  # the low end of a profile scroll. A friend level card can come up over the profile between a
+# look and the drag, and its USE LUCKY EGG sits at 0.85 (2026-11-23: a drag from 0.85 almost used an egg). 0.9 is on
+# the bottom banner and doesn't scroll
 MAX_SWIPES = 40  # per gym. Each swipe is about 3 s
 SWIPE_STAYS = 4  # a swipe that stayed on the page this often isn't tried from there again. Most stays end with a retry:
 # Chansey's left to right stayed twice in a row, then a run gave up on it and never found Scizor (2026-11-06)
@@ -463,12 +466,12 @@ def to_badge_list():
                 # the FRIENDS tab (where /gift leaves it), maybe scrolled past its ADD FRIEND
                 home.press_text(texts, bounds, "ME", dy=ui.TAB_DY)  # the profile opens on its last tab (under the word)
                 time.sleep(1.5)
-            elif gb or scrolls < 8:
+            elif gb or scrolls < 11:
                 scrolls += 1
-                base.drag(0.5, 0.85, 0.5, 0.45 if gb else 0.12, bounds, android_settle=base.LIST_SETTLE)  # 0.9 starts on the bottom banner: no scroll
-            elif scrolls < 20:  # the profile keeps its scroll: /gift can leave it down in the medals, past the badges
+                base.drag(0.5, PROFILE_DRAG_LOW, 0.5, 0.25 if gb else 0.12, bounds, android_settle=base.LIST_SETTLE)
+            elif scrolls < 23:  # the profile keeps its scroll: /gift can leave it down in the medals, past the badges
                 scrolls += 1
-                base.drag(0.5, 0.3, 0.5, 0.85, bounds)
+                base.drag(0.5, 0.3, 0.5, PROFILE_DRAG_LOW, bounds)
             else:
                 keep_capture("nobadges")
                 raise Stop("scrolled the profile and found no GYM BADGES ... LIST")

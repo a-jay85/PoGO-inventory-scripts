@@ -1,5 +1,5 @@
 """The raid team rule (the user, 2026-11-17): a Pokémon on its holder's own team of 6 against some 4★+ raid boss,
-at its real level and IVs (team A), or with every copy at level 50 (team B, the user 2026-11-19), is a favorite. The door (verdict.final_tag) and /ivc (sort.decide) both ask on_team()
+at its real level and IVs (team A, the user's Team Available), or with every copy at level 50 (team B, the user 2026-11-19), is a favorite. The door (verdict.final_tag) and /ivc (sort.decide) both ask on_team()
 first. The teams come from the newest whole count (`roster/raidteam.py count`, no --limit) of the signed-in account,
 however old: every script that asks logs its age in days once.
 

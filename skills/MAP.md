@@ -465,7 +465,7 @@ The game master (PvPoke's gamemaster.json): base stats, CP and HP, the level fro
 - `test()`: every name make_name gives must read back (name_slots) as the ranks it was made from
 
 ## skills/shared/raidteams.py
-The raid team rule (the user, 2026-11-17): a Pokémon on its holder's own team of 6 against some 4★+ raid boss, at its real level and IVs (team A), or with every copy at …
+The raid team rule (the user, 2026-11-17): a Pokémon on its holder's own team of 6 against some 4★+ raid boss, at its real level and IVs (team A, the user's Team …
 
 - `newest(who)`: -> (teams dict, days since its count) for this account, or (None, None): the newest whole count (no --limit), however old
 - `path_of(who)`: the teams.json newest(who) read, or None
@@ -1461,7 +1461,7 @@ Unattended /pvpc: works through the PvpC-tagged list in iPhone Mirroring with no
 - `boss_name(b)`
 - `real_boss(b)`: a boss like a 4-star raid's or higher (the user, 2026-11-16, for Reroll): legendary, mythical, Ultra Beast, mega or primal (no Tropius)
 - `raid_tops(ok, n, real=False, megas=True, pulls=COUNTERS)`: -> ({sid: [bosses]}, {sid in some top as itself}, Model): each non-special species ok(sid) lets in (tradeable.py: tradeable ones) in DialgaDex's top n against some raid …
-- `ideal_firsts(pulls=IDEAL, megas=True)`: -> {sid: [bosses]}: the ideal raid team against every boss like a 4-star raid's or higher (real_boss), released or not, the same for every account (the user, 2026-11-19)
+- `ideal_firsts(pulls=IDEAL, megas=True)`: -> {sid: [bosses]}: Team Future (pulls=IDEAL) or Team Ideal (pulls=COUNTERS), the user's names (2026-11-22)
 - `attacker_name(a)`
 - `move_term(m)`
 - `family(model, t)`: -> [t, its earlier stages one search can count with it] (t first): the earlier stages whose copies all count for t and for nothing else (no attacker of their own, no …

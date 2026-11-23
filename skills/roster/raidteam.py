@@ -16,6 +16,9 @@ every copy powered up to level 50 (by its IVs). Ties with a 6th stay on. Both ph
 What it's for: a Pokémon on some team, A or B, is a favorite, whatever its IVs (a Mighty one, a traded one powered
 up long ago). One that falls off every team (A and B, every boss) is judged again and can be traded or transferred.
 On team A a better copy that isn't powered up yet doesn't push anything out; on team B it does.
+Team A is the user's Team Available (2026-11-22). Team Future and Team Ideal are roster.ideal_firsts: the #1 picks
+at perfect IVs, the same for every account (roster.py, by IDEAL). Team B is this account's own copies, so it isn't
+any of those three.
 
 Bosses: roster.real_boss(), released or not (DialgaDex's counter pulls list unreleased bosses too; the attackers are
 the account's own copies, so released ones), in both DialgaDex pulls (Party Power off, a party of 2: a team in either

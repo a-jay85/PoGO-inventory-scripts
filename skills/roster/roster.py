@@ -207,6 +207,10 @@ FUTURE = ("dialgadex-counters-future-[0-9]*[0-9].json", "dialgadex-counters-futu
 # unreleased too, and every signature move not in GO yet as strong as its type's best (sigmoves.py, the user 2026-11-19)
 SIG = ("dialgadex-counters-sig-[0-9]*[0-9].json", "dialgadex-counters-sig-pp2-[0-9]*[0-9].json")
 IDEAL = COUNTERS + FUTURE + SIG  # the strong lines' pulls: today, unreleased Pokémon, unreleased moves
+# The user's team names (2026-11-22), for the #1 picks per boss (ideal_firsts):
+#   Team Future: ideal_firsts() (pulls=IDEAL): unreleased Pokémon, megas and signature moves too. /ivc's strong lines.
+#   Team Ideal: ideal_firsts(COUNTERS): only what's in GO today, at perfect IVs.
+#   Team Available: one account's own copies at today's levels and IVs (raidteam.py's team A).
 
 
 def real_boss(b):
@@ -255,7 +259,8 @@ def raid_tops(ok, n, real=False, megas=True, pulls=COUNTERS):
 
 
 def ideal_firsts(pulls=IDEAL, megas=True):
-    """-> {sid: [bosses]}: the ideal raid team against every boss like a 4-star raid's or higher (real_boss), released
+    """-> {sid: [bosses]}: Team Future (pulls=IDEAL) or Team Ideal (pulls=COUNTERS), the user's names (2026-11-22).
+    The ideal raid team against every boss like a 4-star raid's or higher (real_boss), released
     or not, the same for every account (the user, 2026-11-19). Repeats are allowed, so it's DialgaDex's #1 mega (or
     primal) and 5 of its #1 other attacker: those two count, in any of these pulls (Party Power off or a party of 2;
     today, unreleased Pokémon too, unreleased signature moves too). Shadows and legendaries count. A mega counts as

@@ -24,7 +24,7 @@ N = 6 if any species in that final's line can mega evolve (released in GO or not
 Always keep: on its holder's own raid team (skills/shared/raidteams.py; not in the count but its CP could make one: LEAVE).
 Always keep: 98% or 100% (a shadow's own IV, or its purified IV). Armored Mewtwo (no search can split it out).
 Strong lines (the user, 2026-11-19): some species in the line (or its mega, or a shadow of it) is on the ideal raid
-team against a boss like a 4-star raid's or higher, released or not: DialgaDex's #1 mega or its #1 other attacker,
+team (Team Future) against a boss like a 4-star raid's or higher, released or not: DialgaDex's #1 mega or its #1 other attacker,
 legendary and shadow too (roster.ideal_firsts: today, once unreleased Pokémon come out, or once a signature move not in
 GO yet does). Forms split: Galarian Zapdos is strong, Zapdos isn't. Also strong: gym defenders, COLLECT. A legendary,
 mythical or Ultra Beast line is strong only that way.

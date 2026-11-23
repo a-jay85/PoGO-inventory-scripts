@@ -21,6 +21,8 @@ judged for any account: Reroll, GIV, GIV (level 26+), GIV (evolved, 10/12 km egg
 San Francisco (rules.SF_NATIVE) and Spinda by hand (its docstring has the rules). MEDALS (a tiny Rattata, a big Magikarp: GIV for any account's medals) are the
 door's too, on HashTagAJay.
 
+Reroll means HashTagAJay needs it. GIV means CyrillJan needs the trade's candy (the sender gets 2-4 Candy and a
+Candy XL: rules.TRADE_SENDER_CANDY), or the trade is worth it for some other reason below (the user, 2026-11-23).
 One tag each, the first that fits:
  1. Luckydex: HashTagAJay's newest lucky /dex run misses it, or an evolution of it (dex's gender and form rules).
  2. Reroll: a strong line (strong_lines: on the ideal raid team against some 4-star+ boss, /ivc's sort.strong, or a
@@ -28,18 +30,21 @@ One tag each, the first that fits:
     roster.json: #1 or #2-#6, the user 2026-11-19). Only for a 100 HashTagAJay still needs (the user, 2026-11-20): a
     place won only as a mega doesn't count (one 100 of it is enough), nor a family HashTagAJay has 5 100s of.
     A pattern collection (Vivillon's line) is GIV instead: the patterns aren't told apart yet (the user, 2026-11-20).
- 3. GIV: any of
+ 3. Reroll too (GIV till 2026-11-23), any of
     - a new 100 would fill a hole on HashTagAJay's ★100% page, itself or by evolving (dex.hundred_useful: a later
       stage on the page counts for the earlier ones, each missing branch wants its own copy, and only a 100 still in
       storage counts as a copy: the /dex run's owned-100.json)
     - PvPoke top 100 in Great, Ultra or Master League, with every rank 1 IV 5 or more (pvp-giv-<date>.json)
     - HashTagAJay has a lucky one of the family and under 348 candy (read)
+    - Tandemaus (rules.REROLL_FOR_TAKER)
  4. GIV at level 26+ (was XLX, the user 2026-11-19): a power-up costs 4 Candy or more (level 26+: 4,000 Stardust with 4 Candy, or 4,500+). Read one by one in the power-up dialog.
  5. GIV (evolved): a stage 2 (a baby isn't a stage), or a stage 1 that takes 100+ candy, a quest or an item to
     evolve into, or one GO can't evolve into yet (Kleavor, Alolan Marowak) (giv-evolved-<date>.json). Also gym
     defenders (/ivc's GYM_DEFENDERS) and untraded Dynamax ones. Tagged after the level 26+ walk.
  6. GIV (far): never traded and caught 100 km or more away ('distance100-'), and no other tag fits.
- 7. Transfer: everything else, but a never-traded XXS one gets renamed xxs and tagged IVC (sizes.py)
+ 7. GIV (CyrillJan short of candy): never traded, and CyrillJan has under 360 Candy XL or under 348 Candy of the
+    family (giver_short_searches, verdict.giver_short).
+ 8. Transfer: everything else, but a never-traded XXS one gets renamed xxs and tagged IVC (sizes.py)
     (a never-traded trade evolution gets Transfer here: HashTagAJay doesn't need the XP, 2026-11-02).
 An XXL one gets no tag at all and is never powered up: it's made a favorite first (sizes.py, the user 2026-11-04).
 Special trades get no tag at all and are never powered up: Legendary, Mythical, Ultra Beast, shiny and Gigantamax. The
@@ -83,8 +88,8 @@ import savedsearch
 import sizes
 from taps import Pass, owned, details
 from ivc import GYM_DEFENDERS
-from rules import (GIVER, TAKER, TAGS, XLX, OLD_XLX, TRANSFER, LUCKY_CANDY, XL_CAP, XLX_LEVEL, GIV_FOR_TAKER, XLX_FOR,
-    PVE_TOP, REROLL_ML, REROLL_ENOUGH, HARD_EGGS, HARD_TO_FARM, BY_HAND, SF_NATIVE, PVP_FLOOR, HARD_CANDY, BABIES, SPECIAL, NO_SPECIAL, DYNAMAX, UNDER_360_XL, TAG_SKIP, GUARANTEED,
+from rules import (GIVER, TAKER, TAGS, XLX, OLD_XLX, TRANSFER, LUCKY_CANDY, XL_CAP, XLX_LEVEL, REROLL_FOR_TAKER, XLX_FOR,
+    PVE_TOP, REROLL_ML, REROLL_ENOUGH, HARD_EGGS, HARD_TO_FARM, BY_HAND, SF_NATIVE, PVP_FLOOR, HARD_CANDY, BABIES, SPECIAL, NO_SPECIAL, DYNAMAX, UNDER_360_XL, UNDER_348_CANDY, TAG_SKIP, GUARANTEED,
     LUCKY_YEAR, OLD, OLD_AGE)
 
 if ui.ANDROID:  # a look's shrink, save and OCR take 0.3-0.6 s, so at 0.3 most head-start shots were thrown away. The
@@ -490,15 +495,16 @@ def taker_species(m):
             why.setdefault(s, ("Reroll", "#2-#6 raid attacker"))
     hund = dex.hundred_useful(set(hund_missing), hund_owned, m.by, m.parent)
     low = {m.root(s) for s in m.by if m.dex(s) in read["lucky_low_candy"]}
-    for s in ok:
-        if s in hund:
-            why.setdefault(s, ("GIV", "★100% hole"))
+    for s in ok:  # (all three were GIV till 2026-11-23: HashTagAJay needs them, so Reroll. GIV is now what CyrillJan
+        if s in hund:  # needs the trade's candy for: verdict.giver_short. The user)
+            why.setdefault(s, ("Reroll", "★100% hole"))
         elif s in pvp_giv:
-            why.setdefault(s, ("GIV", "PvP " + " ".join(pvp_giv[s])))
+            why.setdefault(s, ("Reroll", "PvP " + " ".join(pvp_giv[s])))
         elif m.root(s) in low:
-            why.setdefault(s, ("GIV", f"lucky family under {LUCKY_CANDY} candy"))
+            why.setdefault(s, ("Reroll", f"lucky family under {LUCKY_CANDY} candy"))
+        elif s in REROLL_FOR_TAKER:
+            why.setdefault(s, ("Reroll", REROLL_FOR_TAKER[s]))
     evolved = evolved_giv(m, ok, why, json.load(open(hard_f)))
-    evolved.update({s: r for s, r in GIV_FOR_TAKER.items() if s in ok and s not in why})
     return {"why": why, "lucky": lucky, "evolved": evolved, "dmax": dmax_need(m, ok),
             "xl_full": {m.dex(x) for s in m.by if m.dex(s) in read["xl_full"] for x in m.family(s)},
             "from": {"lucky": lucky_run, "100": hund_run, "roster": roster_f, "read": read_f, "pvp": pvp_f,
@@ -718,6 +724,12 @@ EVOLVED_REST = REST + "&traded,!xxs"  # and not a never-traded XXS one (those ge
 BULK_REST = EVOLVED_REST + TAG_SKIP
 
 
+def giver_short_searches():
+    """the last GIV searches, after the far one: never traded, and CyrillJan has under XL_CAP Candy XL or under
+    LUCKY_CANDY Candy of the family (verdict.giver_short). Two searches: one count term each, last"""
+    return ["&!traded" + UNDER_360_XL, "&!traded" + UNDER_348_CANDY]
+
+
 def size_search(size):
     """a never-traded XXS one is renamed and tagged IVC, never GIV or Transfer"""
     return REST + TAG_SKIP + f"&!#{sizes.IVC}&!traded&{size}"
@@ -924,6 +936,8 @@ def cmd_tag(limit):
         done.add(rest + q)
         save_done()
     tag_pile("GIV", rest + "&!traded&distance100-")  # fits nothing else, but a far trade: GIV
+    for q in giver_short_searches():  # then CyrillJan short of the family's candy: the trade's candy (verdict.giver_short)
+        tag_pile("GIV", rest + q)
     got = door_walk(EVOLVED_REST, limit, who)  # (it leaves out #GIV. TAG_SKIP's ones are judged here)
     log(f"the rest, through the door: {dict(got)}")
 

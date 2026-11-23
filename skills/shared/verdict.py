@@ -15,8 +15,10 @@ that's missing, gives unsure, never Transfer.
 
 The order is tradeable.py's (its docstring has the reasons), judged for the other account, the one it would be traded
 to. Signed in as CyrillJan (the pile goes to HashTagAJay):
-  GuaranteedLucky > Luckydex > Old > 2XL (a raid attacker's line or a Dynamax one) > Reroll > GIV > xxs > GIV (level 26+) > GIV
-  (evolved, Dynamax, Tandemaus) > GIV (far) > GIV (can Dynamax, account short of candy) > Transfer
+  GuaranteedLucky > Luckydex > Old > 2XL (a raid attacker's line or a Dynamax one) > Reroll (HashTagAJay needs it: a
+  strong line or raid attacker, a ★100% hole, PvP, a lucky family under 348 candy, Tandemaus) > GIV (pattern
+  collection) > xxs > GIV (level 26+) > GIV (evolved, Dynamax) > GIV (far) > GIV (can Dynamax, account short of candy)
+  > GIV (CyrillJan has under 360 Candy XL or under 348 Candy of the family: the trade's candy, giver_short) > Transfer
 Signed in as HashTagAJay (the pile goes to CyrillJan or the user's wife's account, judged for any account):
   regional (not from San Francisco) or Spinda: unsure (by hand) > GuaranteedLucky > Old > GIV (medal) > 2XL > Reroll > GIV > xxs > GIV (level 26+) >
   GIV (evolved, 10/12 km egg family, Smeargle, gym defender line, Dynamax) > GIV (trade evolution) > GIV (far) >
@@ -171,7 +173,7 @@ def tables(to):
         _TABLES[to] = {"to": to, "why": sp["why"], "lucky": sp.get("lucky", {}), "evolved": sp["evolved"],
                        "hard": sp.get("hard", {}), "by_hand": set(sp.get("by_hand", ())),
                        "no_dmax": set(sp.get("no_dmax", ())), "xl_full": sp["xl_full"], "dmax": sp.get("dmax", {}),
-                       "giv_for_taker": set(rules.GIV_FOR_TAKER), "from": sp["from"],
+                       "from": sp["from"],
                        "raid": set(tr.pve(m)[0]),  # in DialgaDex's top PVE_TOP vs some boss, or evolves into one
                        "strong": set(tr.strong_lines(m)),  # a strong line's species (its shadows: never purified)
                        "raid_self": {s for s in tr.raid_tops(m)[0] if s in m.by}  # in some top as itself
@@ -344,8 +346,6 @@ def usual(f, t, today=None):
         return tag("GIV", why=t["hard"][sid])
     if f.dynamax:  # a real Dynamax one, either account (the user, 2026-11-16)
         return tag("GIV", why="untraded Dynamax")
-    if to == TAKER and sid in t["giv_for_taker"]:
-        return tag("GIV", why=f"{sid}: wanted by {TAKER}")
     if f.account != EVO_FOR and dexn in TRADE_EVO_DEX and not dead:  # (before the distance, so a failed distance
         # search doesn't matter). Only toward EVO_FOR: HashTagAJay doesn't need the XP (the user, 2026-11-02)
         return tag("GIV", why="untraded: evolves free once traded")
@@ -353,9 +353,26 @@ def usual(f, t, today=None):
         return unsure("distance not checked")
     if f.far:
         return tag("GIV", why="caught 100 km+ away")
-    if v := dmax_short(f, t, sid):  # (last of the GIVs: the others need no count read)
+    if v := dmax_short(f, t, sid):  # (after the GIVs that need no count read)
+        return v
+    if to == TAKER and (v := giver_short(f)):
         return v
     return transfer(f, sid, "no rule wants it")
+
+
+def giver_short(f):
+    """CyrillJan's pile (untraded: a traded one never gets here): GIV while CyrillJan has under XL_CAP Candy XL or
+    under LUCKY_CANDY Candy of the family. The trade pays the sender 2-4 Candy and a Candy XL, a transfer 1 Candy
+    (rules.TRADE_SENDER_CANDY; the user, 2026-11-23). The XL read alone settles it when it's under. None: not short"""
+    if f.candy_xl is None:
+        return unsure("Candy XL not read")
+    if f.candy_xl < XL_CAP:
+        return tag("GIV", why=f"{f.account} has under {XL_CAP} Candy XL of the family: the trade's XL")
+    if f.candy is None:
+        return unsure("Candy not read")
+    if f.candy < rules.LUCKY_CANDY:
+        return tag("GIV", why=f"{f.account} has {f.candy} Candy of the family, under {rules.LUCKY_CANDY}: the trade's candy")
+    return None
 
 
 def special(f, sid, kinds, strip):

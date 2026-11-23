@@ -1082,7 +1082,7 @@
  "GIV": [
   "tag",
   [
-   "GIV"
+   "Reroll"
   ],
   null,
   "PvP"
@@ -1146,10 +1146,10 @@
  "Tandemaus": [
   "tag",
   [
-   "GIV"
+   "Reroll"
   ],
   null,
-  "tandemaus: wanted by HashTagAJay"
+  "family of 3"
  ],
  "far": [
   "tag",
@@ -1158,6 +1158,74 @@
   ],
   null,
   "caught 100 km+ away"
+ ],
+ "C under 360 XL: GIV": [
+  "tag",
+  [
+   "GIV"
+  ],
+  null,
+  "CyrillJan has under 360 Candy XL of the family: the trade's XL"
+ ],
+ "C under 348 Candy: GIV": [
+  "tag",
+  [
+   "GIV"
+  ],
+  null,
+  "CyrillJan has 347 Candy of the family, under 348: the trade's candy"
+ ],
+ "C 348 Candy, 360+ XL: Transfer": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "no rule wants it"
+ ],
+ "C Candy not read: unsure": [
+  "unsure",
+  [],
+  null,
+  "Candy not read"
+ ],
+ "C Candy XL not read: unsure": [
+  "unsure",
+  [],
+  null,
+  "Candy XL not read"
+ ],
+ "C short, traded: Transfer": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "traded: can't trade again"
+ ],
+ "C short, xxs: IVC": [
+  "tag",
+  [
+   "IVC"
+  ],
+  "xxs",
+  "never traded XXS"
+ ],
+ "C short, Reroll first": [
+  "tag",
+  [
+   "Reroll"
+  ],
+  null,
+  "PvP"
+ ],
+ "H short of candy: Transfer": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "no rule wants it"
  ],
  "H plain": [
   "tag",

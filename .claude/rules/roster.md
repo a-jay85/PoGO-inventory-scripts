@@ -4,6 +4,12 @@ paths:
 ---
 # /roster notes
 
+- The user's three raid team names (2026-11-22). Use them in chat and code:
+  - **Team Future**: `roster.ideal_firsts()` (pulls `IDEAL`). DialgaDex's #1 mega and #1 other attacker per 4★+ boss, unreleased Pokémon, megas and signature moves too. Same for every account. /ivc's strong lines use it.
+  - **Team Ideal**: the same, but only what's in GO today: `roster.ideal_firsts(roster.COUNTERS)`. Same for every account.
+  - **Team Available**: one account's own copies at today's levels and IVs: `raidteam.py`'s team A. Different per account.
+  - `raidteam.py`'s team B (own copies, every one at level 50) is none of the three. It keeps its name.
+
 - Don't trust roster.py's form split by @move. DialgaDex lists only the best moves, so the split found 18 Hero Zacian when the user owns 2. The user's tells:
   - Armored Mewtwo has no Mega Evolve button. For Mewtwo, the gap from the `150` search is the Armored count.
   - Fused Necrozma and Kyurem have a "Separate" button.

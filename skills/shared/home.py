@@ -426,9 +426,11 @@ def reach(storage):
             log("  on the profile: closing it")  # the profile up (any of its tabs): its X
             base.tap_x(bounds)
             time.sleep(1.5)
-        elif screen == "unknown" and not storage and (profile(texts) or ui.profile_tabs(texts)):
-            return screen  # /trade goes on from the profile itself (2026-11-12: a game reopened there got reopened
-            # again and stopped)
+        elif screen == "unknown" and not storage and (profile(texts) or ui.profile_tabs(texts)
+                                                      or pages.friend_page(texts)):
+            return screen  # /trade goes on from the profile or a friend's page itself (2026-11-12: a game reopened
+            # on the profile got reopened again and stopped. Pixel 2026-11-22: the game, brought back to the front,
+            # was on a friend's page; its words changed between looks, so it waited there 150 s and stopped)
         elif screen == "unknown" and (step := through_hatch(texts, bounds, hatched)) is not None:
             hatched = step
         elif screen == "unknown" and storage and search.sort_menu(texts):  # a stop left the sort menu up (a slow

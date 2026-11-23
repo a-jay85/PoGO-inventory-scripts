@@ -58,6 +58,9 @@ Android phone for the /pvpc and /ivc scripts
 - `shell(cmd, timeout=60)`
 - `dim()`: every run, on USB or Wi-Fi: screen brightness to the lowest the phone goes for the run
 - `restore()`: the brightness dim() saved back on the phone
+- `gps_on()`: the phone's location switch -> True on, False off, None (no answer)
+- `gps_off()`: location off for the run, once the game is up (most scripts never need it; the user, 2026-11-22)
+- `gps_back()`: location on again if a run turned it off
 - `size()`: phone screen in pixels, the space adb input works in ('Override size' wins if set)
 - `shape(im, scale=1)`: shrink to WIDTH, then add the strips (top one in the top row's colour, bottom one in the bottom row's)
 - `raw_shot()`: the phone's own screenshot (~0.3 s)
@@ -267,6 +270,7 @@ Start from anywhere: every script calls start() first, so the phone can be on an
 - `unstick(texts)`: one step out of a screen the scripts don't know
 - `through_hatch(texts, bounds, hatched)`: one step through an egg hatching (on the way to the map): its 'Oh?' gets a tap, the screens after it (its Pokémon's page, the eggs) an X. hatched: when the last 'Oh?' …
 - `start(storage=True)`: from wherever the phone is to the Pokémon screens
+- `reach(storage)`: start()'s walk to the screens it wants, from wherever the phone is
 - `squash(s)`: OCR mixes up I, l, 1 and | in names: one letter for all of them, spaces out
 - `by_storage(limit)`: the trainer a storage limit belongs to, or None if it can't be either's
 - `forget_storage()`: the account is changing
@@ -586,7 +590,11 @@ A run's phone from start to end
 - `connect()`: iPhone Mirroring open and showing the iPhone
 - `claim()`: this phone for this process
 - `ready()`: the phone ready to be seen and tapped
-- `close()`: the end of a run: the Pixel's brightness back (every run dims it), then lock it; or quit iPhone Mirroring
+- `needs_gps()`
+- `gps_off()`: the Pixel's location off for the rest of the run, unless this script needs it
+- `game_in_front()`
+- `close_location_box()`: Android's own 'No location access' box (Close / Turn on location) comes up over the game right after location goes off, and taps meant for the game stop on it ('Pokémon …
+- `close()`: the end of a run: the Pixel's brightness and location back (every run dims it), then lock it; or quit iPhone Mirroring
 - `limit(a, default=10 ** 9)`: --limit N from a script's arguments
 - `main(body, *args)`: run a script's body(*args), then close the phone if the run opened it
 
@@ -683,7 +691,7 @@ Screen reader + tap planner for /pvpc
 - `capture()`
 - `ask_helper(line)`: one line to the kept-running helper (started again if it went away) -> its answer's lines, or None
 - `ocr_lines(path)`: the helper's OCR lines for a png
-- `ocr_once(path)`
+- `ocr_once(path)`: the png's text, less the game's red 'GPS signal not found
 - `ocr_2x(path)`: OCR a 2x copy: it reads white on green (a GIV chip, YES) and upside-down lines the 1x read misses
 - `ocr(path)`: the png's text. A list with more tile CPs than names read: once more from a 2x copy, kept if it finds more tiles. A list with no TAGS or EGGS tab read: at 2x, kept if …
 - `size_lost(texts)`: the units ('kg', 'm') whose value didn't read while the other's value or a WEIGHT / HEIGHT label did (the size row is on screen)

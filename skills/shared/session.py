@@ -11,6 +11,9 @@
   phone's 'on, MB free, load, battery' line at its start and at its end, with the battery used and a row in
   BATTERY_LOG (to see the battery use over time when it's unplugged).
   close() goes to the home screen (the game to the back), then locks the phone.
+  Location: once the game is up, home.start() turns the Pixel's location off for the run (gps_off), and close()
+  turns it on again. Scripts that need it (NEEDS_GPS: gyms, catching, trades and the distance100- search) keep it
+  on, and turn it on again if a killed run left it off. POGO_GPS=1 keeps it on for any script.
 - main(body) runs a script's body: STOPPED / interrupted / CRASHED lines and exit codes 1 / 130 / 2, the run folder
   at the end, and close() if the run opened the phone. A run that never touched the phone (a usage error, a plan step)
   leaves it alone. POGO_KEEP_OPEN=1 leaves the phone as it is at the end.
@@ -35,6 +38,11 @@ TROUBLE = ("IPHONE IN USE", "IPHONE IS LOCKED", "UNLOCK YOUR IPHONE",  # Mirrori
            "AN ERROR OCCURRED. PLEASE TRY AGAIN")  # Mirroring's own grey "Error" page with a phone icon and Try Again:
 #            it lost the iPhone. Opening Mirroring again reconnects (2026-11-11: /trade stopped on it as an unknown screen)
 
+NEEDS_GPS = {"gymfeed.py", "goplus.py", "trade.py",  # gyms, catching, nearby trades
+             "tradeable.py", "specieswise.py",  # 'distance100-' measures from where the phone is now
+             "account.py",  # a sign-in: the game may want the map
+             "gift.py"}  # the red 'GPS signal not found' banner covers the profile's ME / FRIENDS tabs it taps
+BOX_WAIT = 3  # seconds the 'No location access' box gets to come up after location goes off (later: android.ready)
 opened = False  # this run opened the phone: main() closes it at the end
 pin_failed = False  # the PIN didn't work once: never typed again this run
 
@@ -324,15 +332,58 @@ def ready():
             restart_if_worn()
         unlock()
         ui.android.dim()  # USB or Wi-Fi
+        if not opened and needs_gps() and ui.android.gps_back():
+            log("turned the phone's location on again (an earlier run left it off)")
     elif not opened or not mirroring_running():
         connect()
     opened = True
 
 
+def needs_gps():
+    return flag("POGO_GPS") or os.path.basename(sys.argv[0]) in NEEDS_GPS
+
+
+def gps_off():
+    """the Pixel's location off for the rest of the run, unless this script needs it. home.start() calls it once
+    the game is up: the game wants a fix while it loads"""
+    if not ui.ANDROID or needs_gps():
+        return
+    try:
+        if ui.android.gps_off():
+            log("turned the phone's location off for the run")
+            close_location_box()
+    except Exception as e:  # (never in the way of the run)
+        log(f"couldn't turn the phone's location off: {type(e).__name__}: {e}")
+
+
+def game_in_front():
+    return ui.android.PKG in ui.android.shell("dumpsys activity activities | grep -E 'ResumedActivity'")
+
+
+def close_location_box():
+    """Android's own 'No location access' box (Close / Turn on location) comes up over the game right after location
+    goes off, and taps meant for the game stop on it ('Pokémon GO isn't on the phone screen', Pixel 2026-11-22).
+    Back closes it, the same as its Close"""
+    t0 = time.time()
+    if base.settle(game_in_front, lambda up: not up, timeout=BOX_WAIT):
+        return  # it never came: the game stayed in front
+    texts = ui.ocr(ui.capture()[0])
+    if "NO LOCATION ACCESS" not in ui.joined(texts):
+        log(f"something else is over the game after location went off: {ui.summary(texts, 80)}")
+        return  # (no Back: it might be the game's own screen. home.start's checks deal with what it is)
+    ui.android.key("back")
+    if base.settle(game_in_front, bool, timeout=3):
+        log(f"  closed Android's 'No location access' box ({time.time() - t0:.1f}s)")
+    else:
+        log("  Android's 'No location access' box didn't close with Back")
+
+
 def close():
-    """the end of a run: the Pixel's brightness back (every run dims it), then lock it; or quit iPhone Mirroring"""
+    """the end of a run: the Pixel's brightness and location back (every run dims it), then lock it; or quit iPhone Mirroring"""
     if ui.ANDROID and held and ui.android.restore():
         log("put the phone's brightness back")
+    if ui.ANDROID and held and ui.android.gps_back():
+        log("turned the phone's location on again")
     if ui.ANDROID and held and started:
         try:  # (never in the way of the lock)
             end_health()

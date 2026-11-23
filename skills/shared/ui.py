@@ -202,12 +202,20 @@ def ocr_lines(path):
     return sh(HELPER, "ocr", path).splitlines() if lines is None else lines
 
 
+GPS_BANNER = re.compile(r"SIGNAL\s*NOT\s*FOUND", re.I)
+
+
 def ocr_once(path):
+    """the png's text, less the game's red 'GPS signal not found. (11)' banner at the top (the Pixel's location is
+    off for most runs, session.gps_off; the iPhone shows it too, right after Mirroring opens): one more text there
+    tipped text-count checks like the map's"""
     ensure_helper()
     out = []
     for line in ocr_lines(path):
         box, _, text = line.partition("\t")
         x, y, w, h = map(float, box.split())
+        if y < 0.15 and GPS_BANNER.search(text):
+            continue
         out.append((x, y, w, h, text.strip().translate(LOOKALIKES)))
     return out
 

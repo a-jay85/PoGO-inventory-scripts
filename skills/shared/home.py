@@ -298,7 +298,15 @@ def through_hatch(texts, bounds, hatched):
 
 def start(storage=True):
     """from wherever the phone is to the Pokémon screens. storage=False (/trade): the game open and loaded, on any
-    screen it knows or trade.py might (friend page, trade lobby...). -> the screen it ended on"""
+    screen it knows or trade.py might (friend page, trade lobby...). -> the screen it ended on. Then the Pixel's
+    location goes off for the run (session.gps_off), unless the script needs it"""
+    screen = reach(storage)
+    session.gps_off()
+    return screen
+
+
+def reach(storage):
+    """start()'s walk to the screens it wants, from wherever the phone is"""
     session.ready()  # iPhone Mirroring open and connected, or the Pixel awake and unlocked
     opened = android_launch() if ui.ANDROID else False
     if ui.ANDROID:

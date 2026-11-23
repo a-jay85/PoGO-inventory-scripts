@@ -175,6 +175,13 @@ def classify():
         return "profile"
     if ui.gift_banner(texts) and {"ADD FRIEND", "INVITE"} <= w:  # a friend's banner over the tabs: the row under
         return "friends"  # them still tells it (iPhone, 2026-11-19: read as unknown, the game got reopened)
+    if ui.gps_banner():  # the red 'GPS signal not found' banner over the tabs (location off for the run): FRIENDS
+        # doesn't read, so the rows under the tabs tell the two apart (Pixel, 2026-11-22)
+        if "TOTAL ACTIVITY" in j or w & {"SCRAPBOOK", "JOURNAL", "GYM BADGES"} or {"LEVEL", "BUDDY"} <= w:
+            return "profile"  # (first: its '& 91 AD' line reads as a search. Its FRIENDS tap falls back to where
+            # the tab is, and that goes through the banner)
+        if w & {"ADD FRIEND", "INVITE", "TRAINER NICKNAME"} or search_line():
+            return "friends"
     from search import pokeball
     from home import splash
     if splash(texts):
@@ -1582,6 +1589,7 @@ def script(limit):
         s = "unknown"
     if s in ("unknown", "blank", "map"):  # (home.start reads a scrolled friend page, SET NICKNAME, as a rename box)
         s = home.start(storage=False)
+    session.gps_off()  # (home.start does it too, but a run that starts on the friend list skips home.start)
     log(f"Pokémon GO up, on {s}")
     try:
         sent, why = run_searches(limit)

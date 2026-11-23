@@ -691,6 +691,7 @@ Screen reader + tap planner for /pvpc
 - `capture()`
 - `ask_helper(line)`: one line to the kept-running helper (started again if it went away) -> its answer's lines, or None
 - `ocr_lines(path)`: the helper's OCR lines for a png
+- `gps_banner()`: the last read (this thread's) had the red 'GPS signal not found' banner, which ocr_once drops
 - `ocr_once(path)`: the png's text, less the game's red 'GPS signal not found
 - `ocr_2x(path)`: OCR a 2x copy: it reads white on green (a GIV chip, YES) and upside-down lines the 1x read misses
 - `ocr(path)`: the png's text. A list with more tile CPs than names read: once more from a 2x copy, kept if it finds more tiles. A list with no TAGS or EGGS tab read: at 2x, kept if …

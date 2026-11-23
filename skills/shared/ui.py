@@ -203,6 +203,14 @@ def ocr_lines(path):
 
 
 GPS_BANNER = re.compile(r"SIGNAL\s*NOT\s*FOUND", re.I)
+_banner = threading.local()  # .up: the last ocr_once on this thread dropped the GPS banner
+
+
+def gps_banner():
+    """the last read (this thread's) had the red 'GPS signal not found' banner, which ocr_once drops. It covers the
+    profile's tabs: FRIENDS doesn't read under it, ME mostly does, and a tap where a tab is goes through to the tab
+    (Pixel, 2026-11-22)"""
+    return getattr(_banner, "up", False)
 
 
 def ocr_once(path):
@@ -211,10 +219,12 @@ def ocr_once(path):
     tipped text-count checks like the map's"""
     ensure_helper()
     out = []
+    _banner.up = False
     for line in ocr_lines(path):
         box, _, text = line.partition("\t")
         x, y, w, h = map(float, box.split())
         if y < 0.15 and GPS_BANNER.search(text):
+            _banner.up = True
             continue
         out.append((x, y, w, h, text.strip().translate(LOOKALIKES)))
     return out

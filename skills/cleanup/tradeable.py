@@ -468,6 +468,8 @@ def taker_species(m):
     for s, n in hund_owned.items():
         if s in m.by:
             fam_100[m.root(s)] += n
+    for r, n in team_100s(TAKER, m).items():  # (the ★100% run counts only lines with a hole: 6 Rhyperior read as 0,
+        fam_100[r] = max(fam_100[r], n)  # the user 2026-11-23. Both are counts of real copies, so the bigger one)
     why = {}
     for s in ok:
         if s in lucky:
@@ -682,6 +684,16 @@ def mega_sids():
     import roster
     rm = roster.Model(json.load(open(roster.newest(roster.HERE, roster.COUNTERS[0]))))
     return {s for a, s in zip(rm.A, rm.sid) if s and roster.is_mega(a)}
+
+
+def team_100s(who, m):
+    """-> Counter {family root: copies}: the 100s (15/15/15 its only IV read, not a shadow) in who's newest whole
+    /raidteam count. It reads every copy of a raid attacker's line, hole or not. No count: empty"""
+    import raidteams
+    copies = (raidteams.newest(who)[0] or {}).get("copies", [])
+    copies = copies.values() if isinstance(copies, dict) else copies
+    return Counter(m.root(c["species"][0]) for c in copies
+                   if not c["shadow"] and c["ivs"] == [[15, 15, 15]] and c["species"] and c["species"][0] in m.by)
 
 
 def giver_100(m):

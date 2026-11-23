@@ -917,6 +917,7 @@ Tag CyrillJan's Tradeable saved search by what a trade to HashTagAJay is worth, 
 - `no_team_b(m)`: -> (the teams.json of CyrillJan's newest whole /raidteam count or None, gone(sid))
 - `giver_team(m)`: -> {sid: (the lowest IV sum that could make it, mega only)}: species a traded copy of could make one of CyrillJan's Team Potentials (bars50 not None in its newest whole …
 - `mega_sids()`: species that can Mega or Primal Evolve (DialgaDex's attackers)
+- `team_100s(who, m)`: -> Counter {family root: copies}: the 100s (15/15/15 its only IV read, not a shadow) in who's newest whole /raidteam count
 - `giver_100(m)`: -> has_100(sid): CyrillJan's newest whole /raidteam count has a 100 (15/15/15, not a shadow) of sid or of a stage that evolves into it
 - `size_search(size)`: a never-traded XXS one is renamed and tagged IVC, never GIV or Transfer
 - `bulk_searches(plan)`: the tag searches, in verdict.py's order -> [(tag, the species part, the rest of the suffix)]

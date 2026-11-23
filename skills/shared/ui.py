@@ -202,7 +202,8 @@ def ocr_lines(path):
     return sh(HELPER, "ocr", path).splitlines() if lines is None else lines
 
 
-GPS_BANNER = re.compile(r"SIGNAL\s*NOT\s*FOUND", re.I)
+GPS_BANNER = re.compile(r"SIGNAL\s*NOT\s*FOUND|FAILED\s*TO\s*DETECT\s*LOCATION", re.I)  # (the 2nd: same red banner, other
+# words, seen once over the friend list, Pixel 2026-11-23)
 _banner = threading.local()  # .up: the last ocr_once on this thread dropped the GPS banner
 
 

@@ -11,6 +11,8 @@ Reads one JSON request a line on stdin, answers one JSON line on stdout:
                                     these three -> {"stale": "..."} if the screen changed during a pause: nothing was
                                     sent, look again
   {"op": "search", "q"}             type q into the open search panel's bar -> {"ok"}: the bar reads q
+  {"op": "who"}                     -> {"who"}: the trainer signed in, off the profile (ends on the map)
+  {"op": "switch", "to"}            Pixel only: sign in as that trainer (account.switch) -> {"who"}
   {"op": "restart"}                 force-close Pokémon GO and open it again (doesn't wait for it to load)
   {"op": "start", "run_dir"}        open Pokémon GO if it isn't, and wait until it's loaded -> {"screen"}
   {"op": "popup", "texts"}          close the box up on this screen if popups.py knows it -> {"closed": name or None}
@@ -120,6 +122,11 @@ def main():
                 except base.Lost as e:
                     base.log(f"not sent: {e}")
                     out = {"ok": False}
+            elif op == "who":
+                out = {"who": home.trainer(fast=False)}  # (the profile, from the map: the storage's bar is left alone)
+            elif op == "switch":
+                import account  # (here: only a run whose phones share one account needs it)
+                out = {"who": account.switch(req["to"])}
             elif op == "ready":
                 ready()
             elif op == "restart":

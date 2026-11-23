@@ -22,14 +22,14 @@ LUCKY = datetime.date(2019, 6, 1)
 
 TABLES = {  # made up
     TAKER: {"to": TAKER, "why": {"machop": ("Luckydex", "lucky dex hole"), "nidoran_female": ("Luckydex", "lucky dex hole"),
-                                 "rhyhorn": ("Reroll", "#1 raid attacker"), "geodude": ("GIV", "PvP"),
-                                 "magikarp": ("GIV", "★100% hole")},
+                                 "rhyhorn": ("Reroll", "#1 raid attacker"), "geodude": ("Reroll", "PvP"),
+                                 "magikarp": ("Reroll", "★100% hole"), "tandemaus": ("Reroll", "family of 3")},
             "lucky": {"nidoran_female": "female"}, "evolved": {"golem": "stage 2"}, "no_dmax": set(),
-            "xl_full": set(), "giv_for_taker": {"tandemaus"}, "raid": {"rhyhorn", "rhydon"}, "raid_self": {"rhydon"}, "strong": {"drilbur"},
+            "xl_full": set(), "raid": {"rhyhorn", "rhydon"}, "raid_self": {"rhydon"}, "strong": {"drilbur"},
             "hard": {}, "by_hand": set(), "dmax": {"wooloo": 480, "dubwool": 480}},
     GIVER: {"to": GIVER, "why": {"rhyhorn": ("GIV", "PvP"),
                                  "bulbasaur": ("Reroll", "Venusaur can mega")}, "lucky": {}, "evolved": {"golem": "stage 2"},
-            "no_dmax": set(), "xl_full": set(), "giv_for_taker": {"tandemaus"}, "raid": {"rhyhorn", "rhydon"}, "raid_self": {"rhydon"}, "strong": {"drilbur"},
+            "no_dmax": set(), "xl_full": set(), "raid": {"rhyhorn", "rhydon"}, "raid_self": {"rhydon"}, "strong": {"drilbur"},
             "hard": {"gible": "10 km egg (Gible)", "smeargle": "hard to farm"}, "by_hand": {"spinda", "tauros"},
             "dmax": {"wooloo": 480, "dubwool": 480}},
 }
@@ -38,7 +38,7 @@ TABLES = {  # made up
 def plain(**kw):
     """an untraded, new, ordinary, under-26 Pokémon that fits no rule, with every fact read"""
     d = dict(account=GIVER, sids=["pidgey"], iv_sum=30, traded=False, caught=NEW, gender="male", size="",
-             kg=1.0, candy_xl=400, levels=[20], far=False, gym_top20=None)
+             kg=1.0, candy_xl=400, candy=2000, levels=[20], far=False, gym_top20=None)
     d.update(kw)
     return Facts(**d)
 
@@ -209,6 +209,16 @@ CASES = {
     "Dynamax": plain(dynamax=True),
     "Tandemaus": plain(sids=["tandemaus"]),
     "far": plain(far=True),
+    # CyrillJan short of the family's candy: GIV, the trade's candy (the user, 2026-11-23)
+    "C under 360 XL: GIV": plain(candy_xl=0, candy=None),
+    "C under 348 Candy: GIV": plain(candy=347),
+    "C 348 Candy, 360+ XL: Transfer": plain(candy=348),
+    "C Candy not read: unsure": plain(candy=None),
+    "C Candy XL not read: unsure": plain(candy_xl=None),
+    "C short, traded: Transfer": plain(candy=10, candy_xl=0, traded=True),
+    "C short, xxs: IVC": plain(candy=10, size="xxs"),
+    "C short, Reroll first": plain(sids=["geodude"], candy=10),
+    "H short of candy: Transfer": plain(account=TAKER, candy=10),
     # HashTagAJay's pile (to CyrillJan)
     "H plain": plain(account=TAKER),
     "H Luckydex is CyrillJan's: none": plain(account=TAKER, sids=["machop"]),

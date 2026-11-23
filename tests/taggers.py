@@ -27,15 +27,16 @@ TRADEABLE = "!traded&!4*&!3*&!favorite&!xxl&!shiny&!shadow&!legendary&!ultra bea
 
 TABLES = {  # made up
     TAKER: {"to": TAKER, "why": {"machop": ("Luckydex", "hole"), "nidoran_female": ("Luckydex", "hole"),
-                                 "rhyhorn": ("Reroll", "#1"), "geodude": ("GIV", "PvP"), "magikarp": ("GIV", "hole")},
+                                 "rhyhorn": ("Reroll", "#1"), "geodude": ("Reroll", "PvP"), "magikarp": ("Reroll", "hole"),
+                                 "tandemaus": ("Reroll", "family of 3")},
             "lucky": {"nidoran_female": "female"}, "evolved": {"golem": "stage 2"}, "no_dmax": set(), "xl_full": set(),
-            "giv_for_taker": {"tandemaus"}, "raid": {"rhyhorn", "rhydon"}, "raid_self": {"rhydon"}, "hard": {}, "by_hand": set(), "dmax": {"wooloo": 480}},
+            "raid": {"rhyhorn", "rhydon"}, "raid_self": {"rhydon"}, "hard": {}, "by_hand": set(), "dmax": {"wooloo": 480}},
     GIVER: {"to": GIVER, "why": {"rhyhorn": ("GIV", "PvP")}, "lucky": {}, "evolved": {"golem": "stage 2"},
-            "no_dmax": {"wooloo"}, "xl_full": set(), "giv_for_taker": {"tandemaus"}, "raid": {"rhyhorn", "rhydon"},
+            "no_dmax": {"wooloo"}, "xl_full": set(), "raid": {"rhyhorn", "rhydon"},
             "raid_self": {"rhydon"}, "hard": {}, "by_hand": set(), "dmax": {"wooloo": 480}},
 }
-PLAN = {"tags": {"Luckydex": ["&66", "&29&female"], "Reroll": ["&111"], "GIV": ["&74,129"]}, "2xl": ["&111-112"],
-        "giv_evolved": ["&76,924", rules.DYNAMAX]}  # tradeable.build_plan's answer for TABLES[TAKER]
+PLAN = {"tags": {"Luckydex": ["&66", "&29&female"], "Reroll": ["&111", "&74,129,924"], "GIV": []}, "2xl": ["&111-112"],
+        "giv_evolved": ["&76", rules.DYNAMAX]}  # tradeable.build_plan's answer for TABLES[TAKER]
 SIDS = ["pidgey", "machop", "nidoran_female", "rhyhorn", "rhydon", "geodude", "magikarp", "golem", "tandemaus", "blissey",
         "haunter", "mewtwo", "meltan", "mew", "nihilego", "wooloo"]
 FLAGS = ["lucky", "shiny", "shadow", "costume", "background", "gigantamax", "dynamax"]
@@ -73,8 +74,9 @@ def term(t, f, tags=()):
         return t in kinds
     if t == "ultra beasts":
         return "ultrabeast" in kinds
-    if m := re.fullmatch(r"(year|age|distance|countcandyxl)([\d-]+)", t):
-        val = {"year": f.caught.year, "age": days, "distance": 500 if f.far else 5, "countcandyxl": f.candy_xl}[m[1]]
+    if m := re.fullmatch(r"(year|age|distance|countcandyxl|countcandy)([\d-]+)", t):
+        val = {"year": f.caught.year, "age": days, "distance": 500 if f.far else 5, "countcandyxl": f.candy_xl,
+               "countcandy": f.candy}[m[1]]
         return within(m[2], val)
     if re.fullmatch(r"\d+(-\d+)?", t):
         return within(t, pvp.SPECIES[f.sids[0]]["dex"])
@@ -99,6 +101,8 @@ def tradeable_bulk(f):
         return rules.XLX
     if any(pile(tr.BULK_REST + q) for q in PLAN["giv_evolved"]) or pile(tr.BULK_REST + "&!traded&distance100-"):
         return "GIV"
+    if any(pile(tr.BULK_REST + q) for q in tr.giver_short_searches()):
+        return "GIV"
     return None
 
 
@@ -112,13 +116,13 @@ def clean_bulk(f):
 
 def grid():
     """made-up Pokémon: every species, with none, one or two of the odd facts, across the facts the searches look at"""
-    for sid, n, size, caught, gender, xl, level, far, iv in itertools.product(
+    for sid, n, size, caught, gender, (xl, candy), level, far, iv in itertools.product(
             SIDS, range(1 + len(FLAGS) + len(FLAGS) * (len(FLAGS) - 1) // 2), ("", "xs", "xxs", "xxl"), DATES,
-            ("male", "female"), (100, 400), (20, 30), (False, True), (30, 40)):
+            ("male", "female"), ((100, 2000), (400, 100), (400, 2000)), (20, 30), (False, True), (30, 40)):
         on = ([()] + [(x,) for x in FLAGS] + list(itertools.combinations(FLAGS, 2)))[n]
         for traded in (False, True):
             yield Facts(sids=[sid], iv_sum=iv, ivs=(10, 10, 10), traded=traded, caught=caught, gender=gender, size=size,
-                        kg=1.0, candy_xl=xl, levels=[level], far=far, gym_top20=None, evolves=True,
+                        kg=1.0, candy_xl=xl, candy=candy, xl=xl, levels=[level], far=far, gym_top20=None, evolves=True,
                         **{k: True for k in on})
 
 

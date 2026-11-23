@@ -792,6 +792,7 @@ The final tag for a Pokémon that just fell short of a keeper, judged right wher
 - `xxl(f)`: an XXL one, traded or not (the user's rule, 2026-11-04): never traded or transferred, it has value in showcases
 - `shiny(f, v)`: a shiny one (the user's rule, 2026-11-03): judged like any other first
 - `usual(f, t, today=None)`: final_tag's rules, for all but what a shiny one gets in the end
+- `giver_short(f)`: CyrillJan's pile (untraded: a traded one never gets here): GIV while CyrillJan has under XL_CAP Candy XL or under LUCKY_CANDY Candy of the family
 - `special(f, sid, kinds, strip)`: a legendary, mythical or Ultra Beast one not kept (the user, 2026-11-19): star off, name back to the default
 - `dmax_short(f, t, sid)`: one that can Dynamax (or evolves into one that can), but isn't a Dynamax one: GIV while the account holding it is short of that family's Candy (DMAX_CANDY or less) or …
 - `two_xl(f, t, sid)`: 2XL (a Friendship Friday trade: a sure 2 Candy XL) when this account has under XL_CAP Candy XL of the family
@@ -919,6 +920,7 @@ Tag CyrillJan's Tradeable saved search by what a trade to HashTagAJay is worth, 
 - `mega_sids()`: species that can Mega or Primal Evolve (DialgaDex's attackers)
 - `team_100s(who, m)`: -> Counter {family root: copies}: the 100s (15/15/15 its only IV read, not a shadow) in who's newest whole /raidteam count
 - `giver_100(m)`: -> has_100(sid): CyrillJan's newest whole /raidteam count has a 100 (15/15/15, not a shadow) of sid or of a stage that evolves into it
+- `giver_short_searches()`: the last GIV searches, after the far one: never traded, and CyrillJan has under XL_CAP Candy XL or under LUCKY_CANDY Candy of the family (verdict.giver_short)
 - `size_search(size)`: a never-traded XXS one is renamed and tagged IVC, never GIV or Transfer
 - `bulk_searches(plan)`: the tag searches, in verdict.py's order -> [(tag, the species part, the rest of the suffix)]
 - `keep_xxl_ones(limit)`: an XXL one in the pile is no trade: a favorite, before any tag search

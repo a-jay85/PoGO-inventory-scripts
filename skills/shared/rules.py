@@ -32,10 +32,16 @@ XL_CAP = 360
 DMAX_CANDY = 1000  # one that can Dynamax (not a Dynamax one): GIV while its account has this much Candy or less, or
 # XL_CAP + what one Max Move costs in Candy XL or less (the user, 2026-11-16; one, not three: 2026-11-19; 1,000 Candy, was 2,500: 2026-11-20). Over both: no rule wants it
 UNDER_360_XL = f"&countcandyxl0-{XL_CAP - 1}"  # a count term eats what follows it: always last
+UNDER_348_CANDY = f"&countcandy0-{LUCKY_CANDY - 1}"  # the same: always last, and one count term a search
+# What the account that trades a Pokémon away gets, of that Pokémon's family (the user, 2026-11-23). A transfer gives
+# only TRANSFER_CANDY, so a trade always pays the sender more. CyrillJan's GIV bar (verdict.giver_short) is built on it
+TRADE_SENDER_CANDY = {(0, 10): 2, (10, 100): 3, (100, None): 4}  # km between the two traded Pokémon's catch places
+TRADE_SENDER_XL = 1  # 2 on a Friendship Friday (the 2XL tag)
+TRANSFER_CANDY = 1
 XLX_LEVEL = 26  # from here a power-up costs 4 Candy or more (4,000 Stardust at 26-26.5, 4,500+ after)
-# CyrillJan's pile only: GIV where it would get Transfer (tagged after XLX, like the evolved GIV ones)
-GIV_FOR_TAKER = {"tandemaus": "HashTagAJay still wants the family of 3 Maushold (and CyrillJan gets candy from the "
-                              "trade if it ever wants one)"}
+# CyrillJan's pile only: Reroll, with the other reasons HashTagAJay needs one (GIV till 2026-11-23, when GIV became
+# "CyrillJan needs the trade's candy" and Reroll "HashTagAJay needs it": the user)
+REROLL_FOR_TAKER = {"tandemaus": "HashTagAJay still wants the family of 3 Maushold"}
 XLX_FOR = {TAKER: XLX_LEVEL, GIVER: XLX_LEVEL}  # by who'd get it: 4 Candy+ a power-up, both (the user, 2026-11-16)
 PVE_TOP = 6  # verdict.py's "raid" list: a traded copy would be this high against some raid boss in DialgaDex
 # HashTagAJay's pile (Leftovers), judged for CyrillJan or the user's wife's account, which is behind CyrillJan: "good

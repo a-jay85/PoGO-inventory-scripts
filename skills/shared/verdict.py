@@ -188,6 +188,8 @@ def canon(t):
 def final_tag(f, t, today=None):
     """f: Facts. t: tables(TO[f.account]). -> Verdict"""
     f = replace(f, other_tags=[x for x in f.other_tags if x.strip().upper() not in IGNORED_TAGS])
+    if f.sids and all(pvp.SPECIES.get(s, {}).get("dex") in rules.NO_SHINY for s in f.sids):
+        f = replace(f, shiny=False)  # no shiny released: a None or True read is a misread
     if f.size == "xxl":  # first: shiny() below hides a traded one's tags, and no other rule applies
         return xxl(f)
     if not f.shiny:

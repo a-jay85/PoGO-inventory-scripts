@@ -55,6 +55,9 @@ SF_NATIVE = {"tauros", "tauros_aqua", "illumise", "seviper", "lunatone", "panpou
              "oricorio_pom_pom"}
 PVP_FLOOR = 5  # every rank 1 IV at least this
 HARD_CANDY = 100  # a stage 1 that costs this much candy to evolve into counts for the evolved GIV rule
+# dex numbers whose shiny the game hasn't released: one is never shiny, whatever the read says (Minior, the user
+# 2026-11-22: its shiny icon read failed and left one unsure)
+NO_SHINY = {774}
 BABIES = {172, 173, 174, 175, 236, 238, 239, 240, 298, 360, 406, 433, 438, 439, 440, 446, 447, 458, 848}  # not a stage
 SPECIAL = ("legendary", "mythical", "ultrabeast")  # special trades by species: traded by hand, never tagged
 # every special trade: no search in tradeable.py tags or powers one up. (Not in the taker's dex is one too: the user

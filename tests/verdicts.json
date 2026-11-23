@@ -283,6 +283,20 @@
   null,
   "100%: 98%+ never goes"
  ],
+ "Minior, shiny not read: none is shiny": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "no rule wants it"
+ ],
+ "Minior read as shiny: none is shiny": [
+  "unsure",
+  [],
+  null,
+  "could be minior_core, minior_meteor"
+ ],
  "shiny lucky, traded, a top IV": [
   "keep",
   [],

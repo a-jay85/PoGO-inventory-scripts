@@ -85,6 +85,8 @@ CASES = {
     "shiny, untraded, Remote Trade and a tag no rule knows": plain(shiny=True, other_tags=["REMOTE TRADE", "Mine"]),
     "shiny, traded, doesn't qualify, tags come off": plain(shiny=True, traded=True, other_tags=["GIV", "SOMETHING"]),
     "shiny, 98%": plain(shiny=True, iv_sum=45),
+    "Minior, shiny not read: none is shiny": plain(sids=["minior_core"], shiny=None),
+    "Minior read as shiny: none is shiny": plain(sids=["minior_core", "minior_meteor"], shiny=True),
     "shiny lucky, traded, a top IV": plain(shiny=True, lucky=True, traded=True, iv_top=True),
     "shiny lucky, traded, out, judged by /ivc": plain(shiny=True, lucky=True, traded=True, iv_top=False, pvp_judged=True, ivc_judged=True),
     "shiny lucky, not ranked yet: to /ivc first": plain(shiny=True, lucky=True, traded=True),

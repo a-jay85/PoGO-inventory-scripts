@@ -48,6 +48,7 @@ Turn Adventure Sync on for the account signed in
 - `turn_on()`: Adventure Sync on for whoever is signed in
 - `eggs()`: the egg check after Adventure Sync (eggs.check): the free ∞ incubator filled, the hatch timer set
 - `look()`
+- `script()`
 
 ## skills/shared/android.py
 Android phone for the /pvpc and /ivc scripts

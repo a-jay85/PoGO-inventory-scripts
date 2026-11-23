@@ -193,13 +193,16 @@ def look():
     return state
 
 
+def script():
+    if "--look" in sys.argv[1:]:
+        print(f"Adventure Sync: {look() or 'unread'}")
+    else:
+        print("Adventure Sync: turned on" if turn_on() else "Adventure Sync: on already")
+        eggs()
+
+
 if __name__ == "__main__":
+    import session
     base.new_run_dir(base.RUNS)
-    try:
-        if "--look" in sys.argv[1:]:
-            print(f"Adventure Sync: {look() or 'unread'}")
-        else:
-            print("Adventure Sync: turned on" if turn_on() else "Adventure Sync: on already")
-            eggs()
-    except Stop as e:
-        sys.exit(f"STOPPED: {e}")
+    session.main(script)  # (its end puts the phone's location back on and locks it: run alone, this left location
+    # off, Pixel 2026-11-22)

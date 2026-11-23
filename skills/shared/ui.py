@@ -286,9 +286,17 @@ def ocr(path):
     tabs, count = [], []  # the full list's TAGS and EGGS tabs and its '(7)' count, when the GPS banner hides them:
     # read from the contrast crop (the banner comes along from the map. A list read as a tag's list got its X, which
     # closed the whole Pokémon screen, over and over, and no search's count read: Pixel /dex, 2026-11-22)
-    if kind == "list" and gps_banner():
-        if not full_list(out):
-            tabs = [t for t in under_gps_banner(path, 0.0, 0.05, 1.0, 0.13) if is_label(t[4], "TAGS") or is_label(t[4], "EGGS")]
+    eggs_page = kind == "unknown" and any(re.search(r"/\s*\d+\s*km", t[4], re.I) for t in out)  # (the Eggs tab
+    # under the banner reads as unknown: advsync's egg check stopped on 'couldn't open the Eggs tab', Pixel 2026-11-22)
+    if (kind == "list" or eggs_page) and gps_banner():
+        for word, box in (("TAGS", (0.0, 0.05, 0.5, 0.13)), ("EGGS", (0.55, 0.05, 1.0, 0.13))):
+            if not tab(out, word):  # (EGGS reads glued to the banner's own words: 'ound. (11) EGGS'. The word's box is
+                # its share of the line's, from the end: hatch's egg check stopped on 'couldn't open the Eggs tab')
+                for t in under_gps_banner(path, *box):
+                    s, i = t[4].strip(), t[4].strip().upper().rfind(word)
+                    if i >= 0 and len(s) - i - len(word) <= 1:
+                        tabs.append((t[0] + t[2] * i / len(s), t[1], t[2] * len(word) / len(s), t[3], word))
+                        break
         if not any(t[1] < 0.15 and re.search(r"\(\d", t[4]) for t in out):
             # (only the middle: across the whole width the banner's own '(11)' reads on the count's line)
             for t in under_gps_banner(path, 0.25, 0.06, 0.75, 0.13):

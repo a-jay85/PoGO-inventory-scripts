@@ -1410,6 +1410,7 @@
    "ACCOUNTS",
    "GEAR",
    "POKEBALL",
+   "SETTINGS_ROWS",
    "SIGN_IN_TIMEOUT",
    "Stop",
    "TRIES",
@@ -1476,6 +1477,7 @@
    "read_general",
    "row",
    "screen_of",
+   "script",
    "switch",
    "to_general",
    "turn_on"

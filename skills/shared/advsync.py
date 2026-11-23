@@ -73,7 +73,8 @@ def screen_of(texts):
     if "ADVENTURE SYNC ENABLED" in j:
         return "enabled"
     words = {ui.up(t) for t in texts}
-    if "GENERAL" in words and row(texts):
+    if ("GENERAL" in words or {"LANGUAGE", "BATTERY SAVER"} <= words) and row(texts):  # (its rows: the GPS banner
+        # hides the GENERAL title, and evo's switch stopped there, Pixel 2026-11-22)
         return "general"
     return account.screen_of(texts)
 
@@ -192,13 +193,16 @@ def look():
     return state
 
 
+def script():
+    if "--look" in sys.argv[1:]:
+        print(f"Adventure Sync: {look() or 'unread'}")
+    else:
+        print("Adventure Sync: turned on" if turn_on() else "Adventure Sync: on already")
+        eggs()
+
+
 if __name__ == "__main__":
+    import session
     base.new_run_dir(base.RUNS)
-    try:
-        if "--look" in sys.argv[1:]:
-            print(f"Adventure Sync: {look() or 'unread'}")
-        else:
-            print("Adventure Sync: turned on" if turn_on() else "Adventure Sync: on already")
-            eggs()
-    except Stop as e:
-        sys.exit(f"STOPPED: {e}")
+    session.main(script)  # (its end puts the phone's location back on and locks it: run alone, this left location
+    # off, Pixel 2026-11-22)

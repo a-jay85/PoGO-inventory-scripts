@@ -209,7 +209,7 @@ The door: a Pokémon /ivc, /pvpc or /ivc just found isn't a keeper gets its fina
   - `facts(self, info, texts, sp, ivs, tile, size, gym_top20=None, iv_top=None, tile_cp=None, …)`: -> (Facts, why not sure before any rule: '' when it's up to the rules)
   - `xl_under(self, info)`: under 360 Candy XL (read on the way to the page bottom) -> bool or None
   - `page_bottom(self, info)`: the bottom of the page, then back to the top: the caught date (two reads that agree), traded or not, and the catch place in California or not -> {"caught", "traded", …
-  - `purify(self, info, v)`: purify it (the verdict's tags go on after)
+  - `purify(self, info, v, sp=None)`: purify it (the verdict's tags go on after)
   - `levels(self, texts, info, sp, ivs, tile_cp)`: the levels the power-up cost fits
   - `iv_levels(self, sp, ivs, cp, hp, quiet=False)`: the level from the appraisal's IVs, CP and HP, when the power-up cost doesn't read
   - `power_up(self, info, v, tile_cp, levels=None)`: a few power-ups first if that reaches a higher Candy XL tier on transfer (cleantrades' rule)
@@ -415,8 +415,8 @@ Powering one Pokémon up: its level from the page and the dialog, and the cheap 
 - `candy_at(lv)`: Candy for one power-up from this level, under 40 (a purified one's rounds up to the same)
 - `cost_levels(texts, cp)`: -> (cost, every level the detail page's power-up cost fits)
 - `read_dialog(cp, after=None, can_be=None)`: the open power-up dialog
-- `dialog(info, can_be=None)`: tap POWER UP on the detail page
-- `dialog_cp(info, can_be)`: the CP of a page whose own CP won't read (event art or the Pokémon over it): the power-up dialog shows it on plain white ('CP 3085 → 3120')
+- `dialog(info, can_be=None, species=None)`: tap POWER UP on the detail page
+- `dialog_cp(info, can_be, species=None)`: the CP of a page whose own CP won't read (event art or the Pokémon over it): the power-up dialog shows it on plain white ('CP 3085 → 3120')
 - `more(cp, d)`: tap + in the dialog: one more power-up
 - `cancel(box, bounds)`
 - `fits(c, rows)`: does this (species, IVs, level) give every dialog row (n power-ups, CP after, total dust)?
@@ -659,7 +659,7 @@ Shared taps: the swipe to the next Pokémon, SELECT ALL, an exact search, the St
 - `row_of(texts, button, tol=0.015, past=True, middle=True)`: the texts on a button's row, left to right: its cost ('EVOLVE 25', 'MEGA EVOLVE 40', 'PURIFY 5,000 50')
 - `costs(texts)`: -> (stardust owned, candy owned, purify dust cost, purify candy cost) off the detail page
 - `owned(texts)`: -> (stardust owned, candy owned) off the detail page
-- `purify(info)`: PURIFY once, YES once, wait for the animation to finish
+- `purify(info, species=None)`: PURIFY once, YES once, wait for the animation to finish
 
 ## skills/shared/timer.py
 One local timer for the scripts that run by themselves (gymfeed, hatch, goplus)
@@ -739,6 +739,7 @@ Screen reader + tap planner for /pvpc
 - `nickname_field(texts)`: the text box in the Set Nickname dialog (a stand-in box if it's empty)
 - `ticked_tags(path, texts)`: tag rows in the TAG dialog, and whether each has the green tick on the right
 - `letters(s)`: 'Flabébé' -> 'flabebe', 'Type: Null' -> 'typenull', 'Mime Jr.' -> 'mimejr'
+- `names_species(name, species)`: a dialog's species name ('MACHOP', 'RAICHU') is one of these speciesIds' (forms too: raichu_alolan)
 - `loose_match(name, texts, gm)`: no exact name match
 - `species_for(name, texts)`
 - `is_bar(px)`

@@ -1354,9 +1354,20 @@ def opened_right(info, tile_name, tile_cp):
         raise Skip(f"opened CP{info['cp']} but tile said CP{tile_cp}")
     # I, l, | and 1 read for each other ('Pvp GI18U118' on the tile, 'Pvp G|18U|18' on the page, 2026-11-02)
     fix = lambda x: re.sub(r"[il|1]", "i", short(x))
-    a = fix(info["name"])
     # OCR can run a row's names together ('Pvp Gm38 Um9 •Pvp Gn50U26+ •...'): one of them, same CP, is fine
-    return any(a and b and (a.startswith(b) or b.startswith(a)) for b in map(fix, (tile_name or "").split("•")))
+    same = lambda a: any(a and b and (a.startswith(b) or b.startswith(a)) for b in map(fix, (tile_name or "").split("•")))
+    if same(fix(info["name"])):
+        return True
+    if ui.ANDROID and tile_name:  # the big name can misread in the small picture (Machop's as 'doyew', upside down,
+        try:  # run after run, 2026-11-20 to 23): the full-size one reads it
+            again = ui.detail_info(ui.ocr(ui.android.sharp()))["name"]
+        except StopIteration:
+            return False
+        if again and same(fix(again)):
+            log(f"  name read {info['name']!r}, the full-size picture reads {again!r}")
+            info["name"] = again
+            return True
+    return False
 
 
 def open_checked(i, tile_name, tile_cp, name_ok=False):

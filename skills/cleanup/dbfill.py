@@ -96,7 +96,8 @@ def fill_one(info, texts):
 def dialog_cp(info, sp):
     """the CP off the power-up dialog (opened and cancelled), into the database. None: no POWER UP (level 50)"""
     try:
-        cp = powerup.dialog_cp(info, lambda c: any(base.can_have(s, c, info["hp"]) for s in sp if s in pvp.SPECIES))
+        cp = powerup.dialog_cp(info, lambda c: any(base.can_have(s, c, info["hp"]) for s in sp if s in pvp.SPECIES),
+                                 species=sp)
     except Pass as e:
         log(f"  no CP from the power-up dialog: {e}")
         return None

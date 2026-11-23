@@ -643,9 +643,11 @@ def moved(screen, texts, me):
 
 def steady_look(me):
     """look(), again if the page seems to have changed: the stardust a berry gives floats over the name ('+10',
-    'Scizor STARGUSTO') and goes in a moment. It stopped Blissey at 3 berries (2026-11-06). A real change stays"""
+    'Scizor STARGUSTO') and goes in a moment. It stopped Blissey at 3 berries (2026-11-06). The gym's badge icon can
+    float over it longer ('Em IANT eort 10': Empoleon stopped at 8, 2026-11-23), so about 8 s of looks. A real change
+    stays"""
     got = look()
-    for _ in range(4):
+    for _ in range(8):
         if not moved(got[0], got[1], me):
             break
         time.sleep(0.7)

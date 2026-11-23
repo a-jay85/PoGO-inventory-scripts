@@ -203,6 +203,34 @@ def ocr_lines(path):
 
 
 GPS_BANNER = re.compile(r"SIGNAL\s*NOT\s*FOUND", re.I)
+_banner = threading.local()  # .up: the last ocr_once on this thread dropped the GPS banner
+
+
+def gps_banner():
+    """the last read (this thread's) had the red 'GPS signal not found' banner, which ocr_once drops. It covers the
+    profile's tabs: FRIENDS doesn't read under it, ME mostly does, and a tap where a tab is goes through to the tab
+    (Pixel, 2026-11-22)"""
+    return getattr(_banner, "up", False)
+
+
+def under_gps_banner(path, x0, y0, x1, y1):
+    """the text under the GPS banner in the box x0,y0-x1,y1 (screen fractions), as ocr() gives it: the box in grey,
+    stretched to full contrast, at 3x. The friend list's '(35)' under FRIENDS read this way, and not at all from the
+    plain png (Pixel, 2026-11-22)"""
+    from PIL import ImageOps
+    im = Image.open(path)
+    W, H = im.size
+    c = ImageOps.autocontrast(ImageOps.grayscale(im.crop((int(W * x0), int(H * y0), int(W * x1), int(H * y1)))), cutoff=2)
+    out = f"/tmp/pogo-banner-{os.getpid()}-{threading.get_ident()}.png"
+    c.resize((c.width * 3, c.height * 3), Image.LANCZOS).save(out, compress_level=1)
+    found = []
+    for line in ocr_lines(out):
+        box, _, text = line.partition("\t")
+        x, y, w, h = map(float, box.split())
+        if not GPS_BANNER.search(text):
+            found.append((x0 + x * (x1 - x0), y0 + y * (y1 - y0), w * (x1 - x0), h * (y1 - y0),
+                          text.strip().translate(LOOKALIKES)))
+    return found
 
 
 def ocr_once(path):
@@ -211,10 +239,12 @@ def ocr_once(path):
     tipped text-count checks like the map's"""
     ensure_helper()
     out = []
+    _banner.up = False
     for line in ocr_lines(path):
         box, _, text = line.partition("\t")
         x, y, w, h = map(float, box.split())
         if y < 0.15 and GPS_BANNER.search(text):
+            _banner.up = True
             continue
         out.append((x, y, w, h, text.strip().translate(LOOKALIKES)))
     return out

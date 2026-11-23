@@ -2625,6 +2625,7 @@
    "TEAL_TOL",
    "TILE_PICK",
    "TMP",
+   "_banner",
    "_ocrd",
    "_older",
    "_seen",
@@ -2654,6 +2655,7 @@
    "fuzz_circle",
    "gate",
    "gift_banner",
+   "gps_banner",
    "green_button",
    "header",
    "hp_line",
@@ -2709,6 +2711,7 @@
    "to_shot",
    "top_clock",
    "under",
+   "under_gps_banner",
    "unscrolled",
    "up",
    "window"

@@ -117,21 +117,27 @@ def swipe_up():
 def sign_out():
     """from the map to the game's sign-in screen (RETURNING PLAYER)"""
     home.forget_storage()
-    last, same = None, 0
+    last, same, said_yes = None, 0, False
     for _ in range(30):
         screen, texts, path, bounds = home.look()
         mine = screen_of(texts)
-        if mine == "landing":
-            return
+        if mine in ("landing", "providers"):
+            return  # (sign_in carries on from either)
         now = mine or screen
         same = same + 1 if now == last else 0
         last = now
+        if said_yes and mine != "signout":
+            # signed out: the game is on its way to RETURNING PLAYER. A frame of it half drawn reads as unknown, and
+            # home.start would stop there on "wants you to sign in" (Pixel 2026-11-22): wait, never home.start
+            rest(1.5)
+            continue
         if same >= TRIES:
             keep_capture("signout")
             raise Stop(f"stuck on {now} on the way to Sign Out: {ui.summary(texts, 150)}")
         if mine == "signout":
             log("  signing out: YES")
             tap(*YES, wait=4.0)
+            said_yes = True
         elif mine == "settings":
             if not tap_text(texts, lambda s: s == "SIGN OUT"):
                 swipe_up()  # Sign Out is at the bottom (a scroll doesn't count as stuck)

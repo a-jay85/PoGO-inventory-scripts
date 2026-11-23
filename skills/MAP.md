@@ -394,6 +394,7 @@ Boxes the game pops up over any screen, by itself or left over from another scri
 - `party_summary(texts)`: the party's summary after it: only its round X closes it
 - `rocket_radar(texts)`: a new Rocket Radar (2026-11-05): Back does nothing, no X. EQUIP, its only button
 - `safety(texts)`: the game's 'Stay Aware of Your Surroundings' warning as it loads (iPhone, 2026-11-13: /trade stopped on it): OK, its only button
+- `weather(texts)`: the game's 'Weather warning' box over the map ('... be aware of your surroundings! Check your local weather service'), I AM SAFE its only button (Pixel, 2026-11-23: …
 - `news(texts)`: an event's news card as the game loads ('Dynamax Trails', SEE DETAILS and DISMISS; iPhone, 2026-11-13: /trade's restart stopped on it): DISMISS
 - `battery_saver(texts)`: Android's own 'Turn on Extreme Battery Saver?' box at 10% battery, over any screen (Pixel, 2026-11-13: over a hatched egg's rewards): No thanks
 - `mirroring_welcome(texts)`: iPhone Mirroring's own 'iPhone on Your Mac' welcome page as it opens ('Stay up to date', Learn More... / Not Now / Continue; iPhone, 2026-11-18: home.start stopped on it …

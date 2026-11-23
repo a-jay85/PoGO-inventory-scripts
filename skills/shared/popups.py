@@ -192,6 +192,15 @@ def safety(texts):
     return (0.5, last[1] + last[3] / 2 + SAFETY_TO_OK) if last else None
 
 
+def weather(texts):
+    """the game's 'Weather warning' box over the map ('... be aware of your surroundings! Check your local weather
+    service'), I AM SAFE its only button (Pixel, 2026-11-23: /hatch waited 150 s under it and stopped)"""
+    if "WEATHER WARNING" not in ui.joined(texts):
+        return None
+    hit = ui.label(texts, "I AM SAFE")
+    return ui.center(hit) if hit else None
+
+
 def news(texts):
     """an event's news card as the game loads ('Dynamax Trails', SEE DETAILS and DISMISS; iPhone, 2026-11-13: /trade's
     restart stopped on it): DISMISS"""
@@ -231,6 +240,7 @@ BOXES = (
     ("party ended", party_ended, "the party has ended: tapping OK", 1.5),
     ("party summary", party_summary, "the party's summary is up: closing it", 1.5),
     ("news", news, "an event's news card is up: tapping DISMISS", 1.5),
+    ("weather", weather, "a Weather warning is up: tapping I AM SAFE", 1.5),
     ("safety", safety, "the 'Stay Aware of Your Surroundings' warning is up: tapping OK", 1.5),
     ("rocket radar", rocket_radar, "a new Rocket Radar is up: tapping EQUIP, its only button", 2.5),
     ("mirroring welcome", mirroring_welcome, "iPhone Mirroring's welcome page is up: tapping Not Now", 2.0),

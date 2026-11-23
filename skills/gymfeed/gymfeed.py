@@ -185,9 +185,12 @@ def berry_colours(path):
     return warm / len(px), magenta / len(px)
 
 
-def berry_up(path):
-    """a berry floats on this gym Pokémon's page: it's hungry. A Razz's purple counts as magenta more than warm"""
-    return max(berry_colours(path)) >= BERRY_SHARE
+def berry_up(path, texts):
+    """a berry floats on this gym Pokémon's page: it's hungry. A Razz's purple counts as magenta more than warm. The
+    bag count shows under a floating berry: without it, Empoleon's yellow feet read as a berry, 12 taps fed nothing
+    (2026-11-23)"""
+    return max(berry_colours(path)) >= BERRY_SHARE and any(
+        re.fullmatch(r"\d{1,5}", t[4].strip()) and 0.84 < t[1] < 0.92 and 0.4 < t[0] < 0.8 for t in texts)
 
 
 def razz_up(path):
@@ -638,7 +641,14 @@ def choose():
 def moved(screen, texts, me):
     """a page that reads as a gym Pokémon's, with another name than me's. The feeding can hide the name: not moved"""
     name, mine = (re.sub(r"\s", "", n.upper()) for n in (page_name(texts), me[0]))
-    return screen == "feed" and name and not like(name, mine, 0.6)
+    return screen == "feed" and name and not like(name, mine, 0.6) and not same_chars(name, mine)
+
+
+def same_chars(a, b):
+    """the same letters and digits in another order: OCR read the nickname '84 H' as 'H ₺8' for 8 s, and its feeding
+    stopped (2026-11-23)"""
+    a, b = ("".join(sorted(re.sub(r"[^A-Z0-9]", "", x))) for x in (a, b))
+    return bool(a) and like(a, b, 0.75)
 
 
 def steady_look(me):
@@ -662,7 +672,7 @@ def berry_back(me):
     while True:
         time.sleep(0.6)
         screen, texts, path, bounds = look()
-        up = screen == "feed" and berry_up(path)
+        up = screen == "feed" and berry_up(path, texts)
         if up or time.time() >= end or moved(screen, texts, me):
             return up, screen, texts, path, bounds
 
@@ -679,7 +689,7 @@ def feed(kind, have, left, me):
         # a full Pokémon's berry can still show for a moment. A tap with no berry jumps to the faint Pokémon behind
         # (Blissey and Hitmonchan -> Greninja, 2026-11-06), so no tap before a look BERRY_WAIT after the last one
         screen, texts, path, bounds = steady_look(me)
-        up = screen == "feed" and berry_up(path)
+        up = screen == "feed" and berry_up(path, texts)
         if not up and not moved(screen, texts, me):
             up, screen, texts, path, bounds = berry_back(me)
         if moved(screen, texts, me):
@@ -729,7 +739,7 @@ def feed_here(seen, total, limit):
     seen.add(me)
     if total >= limit or out_of_berries:
         return 0
-    if not berry_up(path) and not berry_back(me)[0]:  # it floats in late
+    if not berry_up(path, texts) and not berry_back(me)[0]:  # it floats in late
         keep_capture(f"full-{me[0]}")
         log(f"  {me[0]} ({me[1]}): full")
         return 0

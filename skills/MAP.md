@@ -1148,7 +1148,7 @@ Feed berries to the Pokémon in the gyms you're defending, from the gym badge li
 - `is_heart(p)`: a pixel of the pink motivation heart over a gym Pokémon (iPhone, a red gym, 2026-11-23: about 245,95,125)
 - `hearts(path)`: the gym view's pink hearts, one over each Pokémon -> [(cx, the heart's bottom y)], left to right
 - `berry_colours(path)`: -> (share of warm or green pixels, share of magenta ones) in BERRY_BOX, where the berry floats
-- `berry_up(path)`: a berry floats on this gym Pokémon's page: it's hungry
+- `berry_up(path, texts)`: a berry floats on this gym Pokémon's page: it's hungry
 - `razz_up(path)`: the berry floating is a Razz: magenta, where Nanab, Pinap and Golden Razz are yellow
 - `berry_menu(texts)`: the BERRIES menu -> {kind: (count or None: not read, where to tap its berry)}. kinds: RAZZ NANAB PINAP GOLDEN SILVER, from the names under the berries ('GOLDEN RAZZ' / …
 - `menu_counts(menu, texts, path)`: berry_menu() with each count it missed read again from a close crop of path
@@ -1176,6 +1176,7 @@ Feed berries to the Pokémon in the gyms you're defending, from the gym badge li
 - `menu_tap(spot, bounds)`: a tap in the BERRIES menu that shuts it: a berry, or above it
 - `choose()`: on a gym Pokémon's page: the BERRIES menu, the first FEEDABLE kind with more than its floor picked -> (kind, its count), "full": the berry button is grey and opens no …
 - `moved(screen, texts, me)`: a page that reads as a gym Pokémon's, with another name than me's
+- `same_chars(a, b)`: the same letters and digits in another order: OCR read the nickname '84 H' as 'H ₺8' for 8 s, and its feeding stopped (2026-11-23)
 - `steady_look(me)`: look(), again if the page seems to have changed: the stardust a berry gives floats over the name ('+10', 'Scizor STARGUSTO') and goes in a moment
 - `berry_back(me)`: no berry showing: look for FULL_WAIT s (it's gone while the last one is eaten, and floats in late on a page just opened) -> (a berry floats, the last look: screen, …
 - `feed(kind, have, left, me)`: on `me`'s page with `kind` picked (`have` in the bag): tap the berry while one floats, the bag keeps more than FEEDABLE[kind] and fewer than `left` are fed -> (berries …

@@ -42,6 +42,7 @@
   "skills/shared/base.py high_iv": 1,
   "skills/shared/base.py opened_right": 1,
   "skills/shared/base.py steady_detail": 1,
+  "skills/shared/base.py wait_for_phone": 1,
   "skills/shared/door.py Door.power_up": 1,
   "skills/shared/home.py reach": 1,
   "skills/shared/home.py to_map": 1,

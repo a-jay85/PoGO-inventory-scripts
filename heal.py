@@ -39,8 +39,8 @@ FREE_S = 15 * 60  # wait at most this long for the phone to be free before the r
 TAIL = 80  # lines of output Claude gets in its prompt (the whole file is there to read)
 
 END = re.compile(r"\b(STOPPED|CRASHED): (.*)")
-HUMAN = ("is using the Pixel", "is using the iPhone", "phone not connected", "PIN", "the phone is locked",
-         "unlock it by hand", "won't let this terminal take pictures", "the Mac is locked")
+HUMAN = ("is using the Pixel", "is using the iPhone", "you're using the iPhone", "phone not connected", "PIN",
+         "the phone is locked", "unlock it by hand", "won't let this terminal take pictures", "the Mac is locked")
 CANT_REACH = "iPhone Mirroring can't reach the iPhone"
 
 

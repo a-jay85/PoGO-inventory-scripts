@@ -113,6 +113,7 @@ The shared tapper: screen reading, taps, timing, run folders and logging, and th
 - `texts_now()`: what's on the screen right now, or None if it can't be seen
 - `screen_changed(before, after)`: is this another screen, or a popup over it, by the OCR of two looks? Counts words, since ui.classify calls every popup and every /trade screen "unknown"
 - `yield_to_user(tapping=False, force=False)`: the user is at the Mac: stop here until it's been idle USER_IDLE seconds, then bring iPhone Mirroring back and go on
+- `wait_for_phone(texts)`: iPhone Mirroring says iPhone in Use (a call came in, or the iPhone was picked up, 2026-11-23): wait here till it shows the iPhone again, then go on
 - `bring_forward()`
 - `front(planned=False)`: bring iPhone Mirroring forward
 - `to_points(fx, fy, bounds)`
@@ -334,6 +335,7 @@ Whole screens that belong to one script, and the way out of each, for every othe
 - `gym_badgelist(texts)`
 - `gym_feed(texts)`: a gym defender's page, its defending time at the top
 - `gym_view(texts)`: inside a gym: CP labels over its Pokémon, the gym's name across the top
+- `glued_labels(texts)`: the middle holds only CP labels read glued together: few words on the whole screen, and each one in the middle mostly digits, 7 or more (a looser rule read 175 of 400 …
 - `gym_view_alone(texts)`: a gym, for the other scripts: a Pokémon list's CP labels look the same, and a gym never has a search bar, or a multi-select's TAG (n) / TRANSFER (n) (a list read half …
 - `x_button(texts)`
 - `leave_trade_yes(texts)`
@@ -713,6 +715,7 @@ Screen reader + tap planner for /pvpc
 - `top_clock(texts)`: the phone's clock read at the top
 - `find(texts, pred)`
 - `up(t)`
+- `in_use(texts)`: iPhone Mirroring's "iPhone in Use" page: the iPhone itself is being used (a call, or picked up)
 - `joined(texts)`: all the screen's text in one upper-case line
 - `summary(texts, n=250)`: the screen's text for a log line
 - `rows(texts, gap=0.012)`: OCR boxes -> [(y, joined text)]: rows top to bottom, each row's words left to right
@@ -1168,7 +1171,7 @@ Feed berries to the Pokémon in the gyms you're defending, from the gym badge li
 - `into_gym()`: a badge open -> "gym" once in its gym view
 - `tap_to(spot, bounds, want, then)`: a tap that should bring `want` from the `then` screen, again while `then` stays: the iPhone loses a tap now and then (NANAB in the menu, the berry button: two runs …
 - `menu_tap(spot, bounds)`: a tap in the BERRIES menu that shuts it: a berry, or above it
-- `choose()`: on a gym Pokémon's page: the BERRIES menu, the first FEEDABLE kind with more than its floor picked -> (kind, its count), or None: none to spare (the menu shut again, …
+- `choose()`: on a gym Pokémon's page: the BERRIES menu, the first FEEDABLE kind with more than its floor picked -> (kind, its count), "full": the berry button is grey and opens no …
 - `moved(screen, texts, me)`: a page that reads as a gym Pokémon's, with another name than me's
 - `steady_look(me)`: look(), again if the page seems to have changed: the stardust a berry gives floats over the name ('+10', 'Scizor STARGUSTO') and goes in a moment
 - `berry_back(me)`: no berry showing: look for FULL_WAIT s (it's gone while the last one is eaten, and floats in late on a page just opened) -> (a berry floats, the last look: screen, …

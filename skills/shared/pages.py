@@ -231,9 +231,19 @@ def gym_feed(texts):
 
 
 def gym_view(texts):
-    """inside a gym: CP labels over its Pokémon, the gym's name across the top"""
-    return any(CP_RE.match(t[4].strip()) and 0.3 < t[1] < 0.66 for t in texts) \
-        and any(t[1] < 0.18 and t[2] > 0.15 for t in texts if not CP_RE.match(t[4]))
+    """inside a gym: CP labels over its Pokémon, the gym's name across the top. Or a full gym whose labels overlap and
+    read as one line ('Ф25:218:2667', '©258218,2667'): with nothing else in the middle, home.start stopped on it as an
+    unknown screen (iPhone, 2026-11-23)"""
+    top = any(t[1] < 0.18 and t[2] > 0.15 for t in texts if not CP_RE.match(t[4]))
+    return top and (any(CP_RE.match(t[4].strip()) and 0.3 < t[1] < 0.66 for t in texts) or glued_labels(texts))
+
+
+def glued_labels(texts):
+    """the middle holds only CP labels read glued together: few words on the whole screen, and each one in the middle
+    mostly digits, 7 or more (a looser rule read 175 of 400 detail pages, lists and friend pages as a gym)"""
+    mid = [t[4] for t in texts if 0.3 < t[1] < 0.66]
+    return len(texts) <= 8 and bool(mid) and all(sum(c.isdigit() for c in s) >= 7 and sum(c.isalpha() for c in s) <= 1
+                                                  for s in mid)  # (7: a clock's 15:04:36 has 6)
 
 
 def gym_view_alone(texts):

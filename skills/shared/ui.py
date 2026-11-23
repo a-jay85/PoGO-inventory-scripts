@@ -43,6 +43,8 @@ class Moving(Refused):
 
 TAPS = ("click", "drag", "scroll", "key", "type")
 gate = None  # iPhone: base.yield_to_user, run before every tap (True) and look (False)
+phone_back = None  # iPhone: base.wait_for_phone(texts), run by ocr() on a capture of Mirroring's "iPhone in Use" page
+last_read = None  # the text of the latest capture that wasn't that page: the screen to come back to
 last_input = time.time()  # when the script's own last Mac input ended. Input from before the script started never counts
 PAUSE_FILE = "/tmp/pvpc_iphone_paused"  # the seconds the iPhone's run has been paused, for trade.py's other process
 _seen = None  # (when, path copy, texts, bounds, screen): the latest look, until the next tap or key
@@ -282,7 +284,13 @@ def ocr(path):
     Rayquaza's green coils at the Pixel's 406 px: the reader took 3 rows upside down ('93 H' as 'H £6', 'Rayquaza'
     as 'ezenbley') and the list read 10 of 14, missing its 96s and 93s (2026-11-18). 2x read all 14.
     (2x for every look: worse now and then, a half-hidden top row lost.) The boxes are fractions: the same at 2x"""
+    global last_read
     out = ocr_once(path)
+    if not ANDROID and os.path.abspath(path) == os.path.abspath(CAP):
+        if phone_back and in_use(out):  # a call came in, or the iPhone was picked up: no reader may see this page
+            out = phone_back(out)  # (it read as "no berry" and gymfeed called Garchomp full, 2026-11-23)
+        if not in_use(out):
+            last_read = out
     kind = classify(out)
     tabs, count = [], []  # the full list's TAGS and EGGS tabs and its '(7)' count, when the GPS banner hides them:
     # read from the contrast crop (the banner comes along from the map. A list read as a tag's list got its X, which
@@ -377,6 +385,12 @@ def find(texts, pred):
 
 def up(t):
     return t[4].upper().strip()
+
+
+def in_use(texts):
+    """iPhone Mirroring's "iPhone in Use" page: the iPhone itself is being used (a call, or picked up). Once it's
+    locked, the page's Connect button brings it back (base.wait_for_phone)"""
+    return "IPHONE IN USE" in joined(texts)
 
 
 def joined(texts):

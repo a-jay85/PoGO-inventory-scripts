@@ -161,6 +161,8 @@ Tried on the Pixel (HashTagAJay, 2026-11-13, about 603 friends): `giftable` (47)
 
 `count`, `dynamax` and `gigantamax` are ranges inside. Text after them is dropped, and `@` before them is dropped. So `@counter` turns into `count`, and `@dynamax cannon` into `dynamax`. A tag starting with one of these words only works with `#`. (`mega` was fixed in spring 2026.)
 
+The dropping is inside one term only. Tried on the Pixel (CyrillJan, 2026-11-23, #GIV = 1174): `countcandyxl-359` (753) and `countcandyxl360-` (421) add up to 1174, so do `countcandy-347` (36) and `countcandy348-` (1138). `#GIV&countcandyxl-359&!#GIV` gives 0, and `&!favorite` gives 751 before or after the count term. Two count terms in one search both count (`countcandy348-&countcandyxl360-`: 421). So a count term can sit anywhere in a search.
+
 ## Searches that save scanning
 
 - One species, one form: `37&alola`. Base form only: `37&!alola&!galar&!hisui&!paldea`.

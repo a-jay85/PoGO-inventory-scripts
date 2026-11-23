@@ -500,11 +500,13 @@ def storage_limit(texts):
 def profile(texts):
     """the profile's ME tab. A friend's banner ('... opened your Gifts!') can cover its tabs: then the trainer name
     with LEVEL and BUDDY under it tells it. A friend's page isn't it: its 'FRIENDSHIP LEVEL' holds 'FRIENDS' and it
-    has TOTAL ACTIVITY too (2026-11-17: /gift ended on RipVanWinkle70's page, /leftovers read it as the profile)"""
+    has TOTAL ACTIVITY too (2026-11-17: /gift ended on RipVanWinkle70's page, /leftovers read it as the profile).
+    The red 'GPS signal not found' banner (location off for the run) hides the FRIENDS tab: then the rows tell it
+    (Pixel, 2026-11-22: /dex stopped, 'couldn't get to the profile')"""
     j = ui.joined(texts)
     if pages.friend_page(texts):
         return False
-    if "FRIENDS" in j and ("TOTAL ACTIVITY" in j or "SCRAPBOOK" in j or "JOURNAL" in j):
+    if ("FRIENDS" in j or ui.gps_banner()) and ("TOTAL ACTIVITY" in j or "SCRAPBOOK" in j or "JOURNAL" in j):
         return True
     words = {ui.norm(t[4]) for t in texts}
     return {"LEVEL", "BUDDY"} <= words and any(squash(n) in squash(" ".join(t[4] for t in texts)) for n in TRAINERS)

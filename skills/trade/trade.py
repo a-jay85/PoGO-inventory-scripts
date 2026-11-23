@@ -396,7 +396,14 @@ def to_friend(p, ours=False):
         if s == "friends" and not p.friend:
             return
         if s == "profile" and not p.friend:
-            if friends := label(p, "FRIENDS"):  # (not read yet: the next look tries again)
+            # a search left typed hides ADD FRIEND, so the Friends tab reads as "profile", and a FRIENDS tap does
+            # nothing (Pixel 2026-11-22: 40 taps, 'HashTagAJay' in the bar). The bar's text at its left and a
+            # friend row ('2+ days ago') say it's the list: the bar's X (OCR never reads it) clears it
+            bar = p.find(lambda t: t[0] < 0.2 and 0.15 < t[1] <= 0.25 and t[4].strip())
+            if bar and p.find(lambda t: t[0] > 0.6 and t[1] > 0.25 and re.search(r"(?i)\bago\b", t[4])):
+                log(f"{p.name}: the friend list has {bar[0][4].strip()!r} searched: clearing it")
+                p.tap(0.87, bar[0][1] + bar[0][3] / 2)
+            elif friends := label(p, "FRIENDS"):  # (not read yet: the next look tries again)
                 p.tap_text(friends, dy=ui.TAB_DY)  # (under the word, as every tab tap)
         elif s == "friend":
             name = friend_name(p)

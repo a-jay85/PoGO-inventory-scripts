@@ -99,9 +99,11 @@ def trade_detail(texts):
 
 
 def trade_result(texts):
-    """after a trade: the Pokémon that came, with its STARDUST and candy"""
+    """after a trade: the Pokémon that came, with its STARDUST and candy. (The Pixel's OCR can drop the whole
+    STARDUST row: Trapinch, 2026-11-22, 35 s of looks. POWER UP and a CANDY line are enough then.)"""
     w = words(texts)
-    return "STARDUST" in w and ("POWER UP" in w or any("CANDY" in x for x in w))
+    candy = any("CANDY" in x for x in w)
+    return "STARDUST" in w and ("POWER UP" in w or candy) or "POWER UP" in w and candy
 
 
 def trade_gift(texts):

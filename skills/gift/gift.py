@@ -180,8 +180,9 @@ def classify():
         if "TOTAL ACTIVITY" in j or w & {"SCRAPBOOK", "JOURNAL", "GYM BADGES"} or {"LEVEL", "BUDDY"} <= w:
             return "profile"  # (first: its '& 91 AD' line reads as a search. Its FRIENDS tap falls back to where
             # the tab is, and that goes through the banner)
-        if w & {"ADD FRIEND", "INVITE", "TRAINER NICKNAME"} or search_line():
-            return "friends"
+        if w & {"ADD FRIEND", "INVITE", "TRAINER NICKNAME"} or search_line() or count() is not None:
+            return "friends"  # (count: the list scrolled past its search box keeps the '(515)' under FRIENDS. With
+            # no count check it read as unknown after every scroll, Back, search again, and 6 stopped the run, Pixel 2026-11-23)
     from search import pokeball
     from home import splash
     if splash(texts):

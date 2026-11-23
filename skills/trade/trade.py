@@ -14,7 +14,9 @@ other side's pick, and confirms only a regular cost. Anything else: it backs out
 stops when 5 looks find none. With no POGO_PHONE (or both): the two phones, as below.
 
 HashTagAJay plays on the iPhone (iPhone Mirroring on the Mac), CyrillJan on the Android phone (adb). Each phone is
-driven by its own phone.py process. A touch on the Mac pauses the iPhone's side until the Mac has been idle 5 s (base.yield_to_user).
+driven by its own phone.py process. A run reads who is signed in on each phone first. Both on one account: the Pixel
+switches to the other one (account.py, Pixel only), so both on HashTagAJay puts CyrillJan on the Pixel, and both on
+CyrillJan puts HashTagAJay on the Pixel and the phones trade the other way round (the user, 2026-11-22). A touch on the Mac pauses the iPhone's side until the Mac has been idle 5 s (base.yield_to_user).
 
 Each round: both phones go to the other account's friend page (map -> profile -> FRIENDS -> SEARCH -> name -> X on
 the gift), both tap LOCAL TRADE, each picks the newest Pokémon of a search (the saved "0-100km" / "100+km"
@@ -55,7 +57,7 @@ from base import Stop, log
 from search import pokeball, amp_as_8, result_count
 from home import main_menu, profile as me_tab
 from session import TROUBLE
-import popups, pages
+import home, popups, pages
 
 STATE = os.path.join(HERE, ".state.json")
 PER_DAY = 99  # the game allows 100: one is kept for a special trade made by hand
@@ -69,7 +71,7 @@ def set_piles(tags, saved):
     search doesn't fit in the bar: the iPhone shows its end, the Pixel its first ~30 characters. So the candy part goes
     last on the iPhone and right after the distance on the Pixel: NEAR + NEED and NEAR + "&countcandy2500-" look the
     same for 30 characters.
-    PLANS: (iPhone search, Android search, why), in order: the first with Pokémon left on both phones is traded. Each
+    PLANS: (iPhone search, Android search, why: {ios} and {android} are the phones' accounts), in order: the first with Pokémon left on both phones is traded. Each
     account gets candy for the one it sends, so a needy search keeps the far-apart bonus for species that account needs.
     0-100km with 0-100km trades the 2,500+ candy ones first: the needy 0-100km ones are kept for a far-apart pair later"""
     global NEAR, FAR, SAVED, RICH_I, RICH_A, PLANS
@@ -78,11 +80,11 @@ def set_piles(tags, saved):
     RICH_I = NEAR + "&countcandy2500-"
     RICH_A = f"distance0-100&countcandy2500-&{tags}"
     PLANS = [(NEAR + NEED, FAR + NEED, "both need the candy"), (FAR + NEED, NEAR + NEED, "both need the candy"),
-             (NEAR + NEED, FAR, "HashTagAJay needs the candy"), (FAR + NEED, NEAR, "HashTagAJay needs the candy"),
-             (NEAR, FAR + NEED, "CyrillJan needs the candy"), (FAR, NEAR + NEED, "CyrillJan needs the candy"),
+             (NEAR + NEED, FAR, "{ios} needs the candy"), (FAR + NEED, NEAR, "{ios} needs the candy"),
+             (NEAR, FAR + NEED, "{android} needs the candy"), (FAR, NEAR + NEED, "{android} needs the candy"),
              (RICH_I, RICH_A, "0-100km with 0-100km, both 2,500+ candy"),
-             (RICH_I, NEAR, "0-100km with 0-100km, HashTagAJay's 2,500+ candy"),
-             (NEAR, RICH_A, "0-100km with 0-100km, CyrillJan's 2,500+ candy"),
+             (RICH_I, NEAR, "0-100km with 0-100km, {ios}'s 2,500+ candy"),
+             (NEAR, RICH_A, "0-100km with 0-100km, {android}'s 2,500+ candy"),
              (NEAR, NEAR, "0-100km with 0-100km")]  # no far-apart bonus: the 100+km ones are kept for another day
 
 
@@ -306,6 +308,21 @@ def both(fn, *argsets):
             if isinstance(e, kind):
                 raise e
     return out
+
+
+def sort_accounts(ios, android):
+    """each phone's account read off its profile, and set as its account and the other's friend. Both on one account
+    can't trade: the Pixel switches to the other one (account.py is Pixel only). So the iPhone keeps HashTagAJay, and
+    both on CyrillJan trade with HashTagAJay on the Pixel"""
+    who = both(lambda p: p.call(op="who")["who"], (ios,), (android,))
+    if who[0] == who[1]:
+        to = next(n for n in home.TRAINERS if n != who[0])
+        log(f"both phones are signed in as {who[0]}: the Pixel switches to {to}")
+        who[1] = android.call(op="switch", to=to)["who"]
+        log(f"{android.name}: Pokémon GO up, on {android.start()}")
+    ios.account, ios.friend = who
+    android.account, android.friend = who[1], who[0]
+    log(f"{ios.name}: {ios.account}, {android.name}: {android.account}")
 
 
 # ---------- reading screens ----------
@@ -1223,7 +1240,7 @@ def trade_once(ios, android, specials, fresh=False, rehearse=False):
     if not picked:
         return None  # both phones are left in the picker: nothing picked, nothing to undo
     qi, qa, why, got = picked
-    log(f"pair: {why}")
+    log(f"pair: {why.format(ios=ios.account, android=android.account)}")
     far = FAR in (qi.replace(NEED, ""), qa.replace(NEED, ""))  # 0-100km with 0-100km: any distance goes
     for skip in range(SKIPS + 1):
         reads = both(check_confirm, *[(p,) for p in phones])
@@ -1552,6 +1569,7 @@ def main():
             return restart(phones)
         for p in phones:  # from wherever each phone is, Pokémon GO closed too
             log(f"{p.name}: Pokémon GO up, on {p.start()}")
+        sort_accounts(ios, android)
         if a.done is not None:
             set_made(a.done)
         friday = friendship_friday()

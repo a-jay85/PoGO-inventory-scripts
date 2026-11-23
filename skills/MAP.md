@@ -1551,6 +1551,7 @@ One phone for /trade, run as its own process: trade.py starts one for the iPhone
   - `keep(self, tag)`
   - `close(self)`: the run's end: lock the Pixel or quit iPhone Mirroring, then end the phone's process
 - `both(fn, *argsets)`: fn on both phones at once (each phone has its own process, so neither waits on the other)
+- `sort_accounts(ios, android)`: each phone's account read off its profile, and set as its account and the other's friend
 - `classify(texts, path)`
 - `friend_name(p)`: the name at the top left of a friend page
 - `same_name(a, b)`: two reads of a trainer name: OCR can put a space in one ('Hash TagAJay')

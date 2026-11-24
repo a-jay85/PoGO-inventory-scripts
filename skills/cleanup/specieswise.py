@@ -24,15 +24,17 @@ forms disagree is searched form by form (37&alola, 37&!alola).
 Each group (one tag, one search) is tagged in bulk: long press, SELECT ALL, the new tag on, the pile's tag off
 (../shared/savedsearch.py tag_pile). A group whose answer is the pile's own tag isn't touched.
 
-CyrillJan's #Reroll, for some dex numbers (the user, 2026-11-20: after a rule change, the families it touched):
-  python3 specieswise.py plan Reroll --as CyrillJan --and 4-6,25-26
-  POGO_PHONE=android caffeinate -dimsu python3 specieswise.py Reroll --as CyrillJan --and 4-6,25-26
+CyrillJan's #Reroll or #GIV, for some dex numbers (the user, 2026-11-20: after a rule change, the families it touched;
+#GIV 2026-11-23):
+  python3 specieswise.py plan Reroll|GIV --as CyrillJan --and 4-6,25-26
+  POGO_PHONE=android caffeinate -dimsu python3 specieswise.py Reroll|GIV --as CyrillJan --and 4-6,25-26
 Only 0-2* ones that aren't shadows (on no raid team: the user's rule of thumb). The searches go in steps by what the
 game can search: caught in 2016-2020, caught 300+ days ago, Dynamax, caught 100 km+ away, then the rest; inside a
 step, split by the family's Candy and Candy XL (countcandy, countcandyxl) where the rules cut. Each species and step
 is tried at every value a search can't see (dates, gender, IVs inside 0-2*), and goes in a search only if all give
-one tag. Gym defenders and the size-medal species are left out. Levels don't count (the user, 2026-11-20). What's
-left (3*+, shadows, not sure) goes to the walk: leftovers.py again Reroll --as CyrillJan.
+one tag. Gym defenders and the size-medal species are left out. Levels don't count in #Reroll (the user, 2026-11-20).
+#GIV holds the old level 26+ ones (XLX), so its Transfer searches take only CPs under level 26 (cp-N, as above). What's
+left (3*+, shadows, not sure) goes to the walk: leftovers.py again Reroll|GIV --as CyrillJan.
 """
 import datetime, itertools, os, sys
 from collections import defaultdict
@@ -47,7 +49,7 @@ import pvp, rules, search
 
 PILES = ("GIV", "Transfer", "Reroll")  # (Reroll: after a raid Reroll rule change, the user 2026-11-22)
 FAR = "&distance100-"  # caught 100 km+ away: GIV (far), which comes before Transfer
-GIVER_PILES = ("Reroll",)
+GIVER_PILES = ("Reroll", "GIV")  # (GIV: 2026-11-23, once GIV became "CyrillJan needs the trade's candy")
 WHO = rules.TAKER  # HashTagAJay
 GIVER = rules.GIVER  # CyrillJan: its piles go by the steps below
 # a rule before the species ones decides these (or the user does): never in a search
@@ -190,16 +192,17 @@ TOP = 10 ** 5  # a Candy or Candy XL count no family reaches  # the step terms, 
 
 
 def candy_grid(sid, t):
-    """-> ([Candy range], [Candy XL range]): where the rules cut for this species (XL_CAP for 2XL; DMAX_CANDY and one
-    Max Move's XL for a Dynamax line). A range is (lo, hi), hi TOP for no top"""
+    """-> ([Candy range], [Candy XL range]): where the rules cut for this species (XL_CAP for 2XL and giver_short;
+    LUCKY_CANDY for giver_short; DMAX_CANDY and one Max Move's XL for a Dynamax line). A range is (lo, hi), hi TOP for
+    no top"""
     import verdict as vd
-    cap, dc = vd.XL_CAP, rules.DMAX_CANDY
+    cap, dc, lc = vd.XL_CAP, rules.DMAX_CANDY, rules.LUCKY_CANDY
     need = t.get("dmax", {}).get(sid)
     if need is None:
-        return [(0, TOP)], [(0, cap - 1), (cap, TOP)]
+        return [(0, lc - 1), (lc, TOP)], [(0, cap - 1), (cap, TOP)]
     xs = [(lo, hi) for lo, hi in ((0, min(cap - 1, need)), (min(cap, need + 1), need), (max(cap, need + 1), TOP))
           if lo <= hi]
-    return [(0, dc), (dc + 1, TOP)], xs
+    return [(0, lc - 1), (lc, dc), (dc + 1, TOP)], xs
 
 
 def count_term(name, lo, hi):
@@ -248,6 +251,9 @@ def giver_groups(pile, dexes):
             and p.get("released", True) and not set(p.get("tags") or []) & set(rules.SPECIAL)]
     out, walk, before = [], [], ""
     corners = lambda c, x: [(cc, xx) for cc in c for xx in x]
+    # judged at level 20: a level 26+ one is GIV, so #GIV's Transfer searches take only CPs no level 26+ one has.
+    # #Reroll goes without (levels don't count there, the user 2026-11-20)
+    caps = {rules.TRANSFER: under26} if pile == "GIV" else None
     for term, open_facts in GIVER_STEPS:
         by = defaultdict(lambda: defaultdict(dict))  # the Candy terms -> dex -> {sid: tag or None}
         for sid in sids:
@@ -268,7 +274,7 @@ def giver_groups(pile, dexes):
             for d, forms in by_dex.items():  # a form of this dex that isn't in this group must not come in
                 for sid in (s for s in sids if pvp.PLAIN[s]["dex"] == d):
                     forms.setdefault(sid, None)
-            parts, _, unsure = dex_parts(by_dex, pile, GIVER_CHUNK)
+            parts, _, unsure = dex_parts(by_dex, pile, GIVER_CHUNK, caps=caps)
             walk += [(s, w) for s, w in unsure if by_dex[pvp.PLAIN[s]["dex"]].get(s)]
             for tag, qs in parts.items():
                 out += [(tag, "&".join(filter(None, (q, term, cterm))) + before) for q in qs]

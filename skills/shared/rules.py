@@ -31,8 +31,8 @@ LUCKY_CANDY = 348  # under this, a lucky one of the family wants a new copy's ca
 XL_CAP = 360
 DMAX_CANDY = 1000  # one that can Dynamax (not a Dynamax one): GIV while its account has this much Candy or less, or
 # XL_CAP + what one Max Move costs in Candy XL or less (the user, 2026-11-16; one, not three: 2026-11-19; 1,000 Candy, was 2,500: 2026-11-20). Over both: no rule wants it
-UNDER_360_XL = f"&countcandyxl0-{XL_CAP - 1}"  # a count term eats what follows it: always last
-UNDER_348_CANDY = f"&countcandy0-{LUCKY_CANDY - 1}"  # the same: always last, and one count term a search
+UNDER_360_XL = f"&countcandyxl0-{XL_CAP - 1}"  # (a count term can sit anywhere: tried 2026-11-23, SEARCH.md)
+UNDER_348_CANDY = f"&countcandy0-{LUCKY_CANDY - 1}"
 # What the account that trades a Pokémon away gets, of that Pokémon's family (the user, 2026-11-23). A transfer gives
 # only TRANSFER_CANDY, so a trade always pays the sender more. CyrillJan's GIV bar (verdict.giver_short) is built on it
 TRADE_SENDER_CANDY = {(0, 10): 2, (10, 100): 3, (100, None): 4}  # km between the two traded Pokémon's catch places

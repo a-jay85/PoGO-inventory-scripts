@@ -135,24 +135,25 @@ def android_launch():
     """Pokémon GO the app in front (opened if it wasn't). session.ready() has woken and unlocked the phone.
     True if it had to open it."""
     a = ui.android
-    if a.PKG in a.shell("dumpsys activity activities | grep -E 'ResumedActivity'"):
+    if a.game_in_front():
         return False
     log("Pokémon GO isn't in front: opening it")
     a.shell(f"monkey -p {a.PKG} -c android.intent.category.LAUNCHER 1")
     for i in range(40):  # a cold start takes a few seconds to put the game in front
         time.sleep(1)
-        if a.PKG in a.shell("dumpsys activity activities | grep -E 'ResumedActivity'"):
+        if a.game_in_front():
             return True
         if i == 15:  # (right after a Back closed it, the first launch can go nowhere: 2026-10-28)
             a.shell(f"monkey -p {a.PKG} -c android.intent.category.LAUNCHER 1")
     raise Stop("opened Pokémon GO but it never came to the front")
 
 
-def android_restart():
-    """force-stop the Pixel's game and open it again. A game left running for hours can stop taking taps while its
-    page looks normal (/trade's dead spells, PR #311; 2026-11-09 /ivc: 16 h up, no X or tag tap took for 4 min)"""
+def android_restart(why="the game takes no taps"):
+    """force-stop the Pixel's game and open it again, back once it's in front (not loaded yet). A game left running
+    for hours can stop taking taps while its page looks normal (/trade's dead spells, PR #311; 2026-11-09 /ivc: 16 h
+    up, no X or tag tap took for 4 min). why: the log line's reason"""
     a = ui.android
-    log("  the game takes no taps: restarting it")
+    log(f"  {why}: restarting it")
     a.shell(f"am force-stop {a.PKG}")
     time.sleep(1.0)
     android_launch()

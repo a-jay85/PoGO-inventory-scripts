@@ -39,7 +39,7 @@ OH = (0.5, 0.6)  # a tap anywhere on the "Oh?" screen goes on
 def open_fresh():
     """the game sent to the home screen and opened again, so it checks the eggs (see 1.)"""
     a = ui.android
-    if a.PKG in a.shell("dumpsys activity activities | grep -E 'ResumedActivity'"):
+    if a.game_in_front():
         log("to the home screen and back, so the game checks the eggs")
         a.key("home")
         time.sleep(1.5)

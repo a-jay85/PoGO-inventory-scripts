@@ -376,7 +376,7 @@ def gps_off():
 
 
 def game_in_front():
-    return ui.android.PKG in ui.android.shell("dumpsys activity activities | grep -E 'ResumedActivity'")
+    return ui.android.game_in_front()
 
 
 def close_location_box():

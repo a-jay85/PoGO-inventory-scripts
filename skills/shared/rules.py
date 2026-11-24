@@ -29,6 +29,8 @@ XLX = "GIV"  # the tag a level 26+ one gets (XLX_LEVEL). It was its own tag, XLX
 OLD_XLX = "XLX"  # (2026-11-19): every #XLX was retagged GIV on both phones. Still taken off wherever it shows up
 LUCKY_CANDY = 348  # under this, a lucky one of the family wants a new copy's candy
 XL_CAP = 360
+TEAM_SLOTS = 5  # a Team Future or Team Ideal (roster.ideal_firsts) holds 5 of a boss's #1 non-mega attacker.
+# CyrillJan's GIV bar for that line: XL_CAP for each of its 100s, up to TEAM_SLOTS (the user, 2026-11-23: tradeable.team_xl_need)
 DMAX_CANDY = 1000  # one that can Dynamax (not a Dynamax one): GIV while its account has this much Candy or less, or
 # XL_CAP + what one Max Move costs in Candy XL or less (the user, 2026-11-16; one, not three: 2026-11-19; 1,000 Candy, was 2,500: 2026-11-20). Over both: no rule wants it
 UNDER_360_XL = f"&countcandyxl0-{XL_CAP - 1}"  # (a count term can sit anywhere: tried 2026-11-23, SEARCH.md)

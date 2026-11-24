@@ -13,6 +13,10 @@
                                           each untagged one left opened once and given its final tag at the door
   POGO_PHONE=android caffeinate -dimsu python3 tradeable.py tag [--limit N]   CyrillJan signed in: the fast way,
                                           bulk tag searches first, then power-ups, then the door for the rest
+  POGO_PHONE=android caffeinate -dimsu python3 tradeable.py team100   either account: only searches. Its 100s
+                                          (4*) of each Team Future and Team Ideal #1 pick that trades, and of what
+                                          evolves into it -> runs/<time>-team100/team100.json (verdict.giver_short's
+                                          bar, both accounts; specieswise counts them first by itself)
   python3 tradeable.py plan               the Mac, optional: a look at the searches tag would run (runs/<time>-plan/)
 
 The species lists and the order here are also ../shared/verdict.py's: /ivc and /pvpc judge a Pokémon that
@@ -43,7 +47,9 @@ One tag each, the first that fits:
     defenders (/ivc's GYM_DEFENDERS) and untraded Dynamax ones. Tagged after the level 26+ walk.
  6. GIV (far): never traded and caught 100 km or more away ('distance100-'), and no other tag fits.
  7. GIV (CyrillJan short of candy): never traded, and CyrillJan has under 360 Candy XL or under 348 Candy of the
-    family (giver_short_searches, verdict.giver_short).
+    family (giver_short_searches, verdict.giver_short). A line with a Team Future or Team Ideal #1 pick (not as a
+    mega) wants 360 Candy XL for each 100 CyrillJan has of it, up to 5 (rules.TEAM_SLOTS: 4 100 Salamence want 1440,
+    the user 2026-11-23). team100 counts those 100s (team_xl_need).
  8. Transfer: everything else, but a never-traded XXS one gets renamed xxs and tagged IVC (sizes.py)
     (a never-traded trade evolution gets Transfer here: HashTagAJay doesn't need the XP, 2026-11-02).
 An XXL one gets no tag at all and is never powered up: it's made a favorite first (sizes.py, the user 2026-11-04).
@@ -88,7 +94,7 @@ import savedsearch
 import sizes
 from taps import Pass, owned, details
 from ivc import GYM_DEFENDERS
-from rules import (GIVER, TAKER, TAGS, XLX, OLD_XLX, TRANSFER, LUCKY_CANDY, XL_CAP, XLX_LEVEL, REROLL_FOR_TAKER, XLX_FOR,
+from rules import (GIVER, TAKER, TAGS, XLX, OLD_XLX, TRANSFER, LUCKY_CANDY, XL_CAP, TEAM_SLOTS, XLX_LEVEL, REROLL_FOR_TAKER, XLX_FOR,
     PVE_TOP, REROLL_ML, REROLL_ENOUGH, HARD_EGGS, HARD_TO_FARM, BY_HAND, SF_NATIVE, PVP_FLOOR, HARD_CANDY, BABIES, SPECIAL, NO_SPECIAL, DYNAMAX, UNDER_360_XL, UNDER_348_CANDY, TAG_SKIP, GUARANTEED,
     LUCKY_YEAR, OLD, OLD_AGE)
 
@@ -505,10 +511,11 @@ def taker_species(m):
         elif s in REROLL_FOR_TAKER:
             why.setdefault(s, ("Reroll", REROLL_FOR_TAKER[s]))
     evolved = evolved_giv(m, ok, why, json.load(open(hard_f)))
-    return {"why": why, "lucky": lucky, "evolved": evolved, "dmax": dmax_need(m, ok),
+    team_xl, team_f = team_xl_need(m, ok, GIVER)
+    return {"why": why, "lucky": lucky, "evolved": evolved, "dmax": dmax_need(m, ok), "team_xl": team_xl,
             "xl_full": {m.dex(x) for s in m.by if m.dex(s) in read["xl_full"] for x in m.family(s)},
             "from": {"lucky": lucky_run, "100": hund_run, "roster": roster_f, "read": read_f, "pvp": pvp_f,
-                     "evolved": hard_f}}
+                     "evolved": hard_f, "team100": team_f}}
 
 
 def build_plan(m):
@@ -642,10 +649,12 @@ def giver_species(m):
         if "regional" in (m.by[s].get("tags") or []) or s in BY_HAND:
             by_hand |= {s, *(x for x in dex.ancestors(s, m.parent) if m.dex(x) not in BABIES)}
     by_hand -= SF_NATIVE  # (caught in San Francisco: judged like any other)
+    team_xl, team_f = team_xl_need(m, ok, TAKER)
     return {"why": why, "evolved": evolved_giv(m, ok, why, json.load(open(hard_f))), "hard": hard, "by_hand": by_hand,
-            "dmax": dmax_need(m, ok),
+            "dmax": dmax_need(m, ok), "team_xl": team_xl,
             "xl_full": {m.dex(x) for s in m.by if m.dex(s) in xl_full for x in m.family(s)},
-            "from": {"read": read_f, "pvp": pvp_f, "evolved": hard_f, "eggs": eggs_f, "raidteam": count_f}}
+            "from": {"read": read_f, "pvp": pvp_f, "evolved": hard_f, "eggs": eggs_f, "raidteam": count_f,
+                     "team100": team_f}}
 
 
 def no_team_b(m):
@@ -714,6 +723,72 @@ def giver_100(m):
     return lambda sid: any(x in got for x in [sid, *dex.ancestors(sid, m.parent)])
 
 
+def team_picks(m):
+    """-> {sid: [bosses]}: the #1 non-mega picks of Team Future and Team Ideal (roster.ideal_firsts, megas=False) that
+    trade. Each team holds TEAM_SLOTS of one; a mega's one spot needs one 100, so it raises no bar"""
+    sys.path.append(os.path.join(HERE, "..", "roster"))
+    import roster
+    out = {}
+    for pulls in (roster.IDEAL, roster.COUNTERS):
+        for s, bosses in roster.ideal_firsts(pulls, megas=False).items():
+            if s in m.by and m.tradeable(s) and not m.special(s):
+                have = out.setdefault(s, [])
+                have += [b for b in bosses if b not in have]
+    return out
+
+
+TEAM100 = os.path.join("*", "team100.json")  # (a team100 run, or a specieswise run that counted first)
+
+
+def team_xl_need(m, ok, who):
+    """-> ({sid: [Candy XL who wants, the pick, its 100s] or None}, the team100.json read or None). who: the account
+    holding the pile (either one: the user, 2026-11-23). Every species of a pick's family (the family shares its Candy
+    XL) wants XL_CAP for each 100 of the pick (or of a stage that evolves into it) in who's newest team100 count, up
+    to TEAM_SLOTS. The family's highest bar wins. Only bars over XL_CAP are listed. None: a pick the count doesn't
+    have (verdict: not sure)"""
+    f = newest_for(TEAM100, who)
+    counts = json.load(open(f))["counts"] if f else {}
+    ok, out = set(ok), {}
+    for p in sorted(team_picks(m)):
+        n = counts.get(p)
+        bar = None if n is None else XL_CAP * min(n, TEAM_SLOTS)
+        if bar is not None and bar <= XL_CAP:
+            continue
+        for s in m.family(p):
+            if s not in ok or (s in out and out[s] is None):
+                continue
+            if bar is None or s not in out or out[s][0] < bar:
+                out[s] = None if bar is None else [bar, p, n]
+    return out, f
+
+
+def cmd_team100():
+    """either account signed in: count_team100. Only searches"""
+    base.new_run_dir(os.path.join(HERE, "runs"), suffix="team100")
+    count_team100(home.trainer())
+
+
+def count_team100(who):
+    """the 4* count of each team_picks pick with the stages that evolve into it, shadow or not (queries' form terms)
+    -> {pick: 100s}, also in <run folder>/team100.json. who: the account signed in"""
+    m = Model()
+    search.to_search_list()
+    counts = {}
+    for p in sorted(team_picks(m)):
+        n = 0
+        for q in queries(m, [p, *dex.ancestors(p, m.parent)]):
+            got = search.result_count(search.start_search("4*" + q)[1])
+            if got is None:
+                raise Stop(f"no result count read for 4*{q}")
+            n += got
+        counts[p] = n
+        log(f"team100: {p}: {n}")
+    f = os.path.join(base.RUN_DIR, "team100.json")
+    json.dump({"trainer": who, "counted": time.strftime("%Y-%m-%d %H:%M"), "counts": counts}, open(f, "w"), indent=1)
+    log(f"team100: {f}")
+    return counts
+
+
 # ---------- tag (CyrillJan's Tradeable) ----------
 
 # every tag search and walk leaves special trades out: the user trades them by hand
@@ -724,10 +799,18 @@ EVOLVED_REST = REST + "&traded,!xxs"  # and not a never-traded XXS one (those ge
 BULK_REST = EVOLVED_REST + TAG_SKIP
 
 
-def giver_short_searches():
+def giver_short_searches(team_xl=None, m=None):
     """the last GIV searches, after the far one: never traded, and CyrillJan has under XL_CAP Candy XL or under
-    LUCKY_CANDY Candy of the family (verdict.giver_short). Two searches: one count term each, last"""
-    return ["&!traded" + UNDER_360_XL, "&!traded" + UNDER_348_CANDY]
+    LUCKY_CANDY Candy of the family (verdict.giver_short). Then each Team Future/Ideal bar (taker_species' team_xl):
+    those families, under their bar. A family whose 100s weren't counted gets none: the door judges it"""
+    out = ["&!traded" + UNDER_360_XL, "&!traded" + UNDER_348_CANDY]
+    bars = {}
+    for s, v in (team_xl or {}).items():
+        if v:
+            bars.setdefault(v[0], []).append(s)
+    for bar, sids in sorted(bars.items()):
+        out += [q + f"&!traded&countcandyxl0-{bar - 1}" for q in queries(m, sids)]
+    return out
 
 
 def size_search(size):
@@ -888,7 +971,8 @@ def cmd_tag(limit):
         raise Stop(f"signed in as {who!r}: tag needs {GIVER}")
     to = TAKER
     try:
-        plan, _ = build_plan(Model())
+        m = Model()
+        plan, sp = build_plan(m)
     except NoData as e:
         raise Stop(str(e))
     save_plan = os.path.join(base.RUN_DIR, "plan.json")  # what this run tagged by, for the record
@@ -936,7 +1020,7 @@ def cmd_tag(limit):
         done.add(rest + q)
         save_done()
     tag_pile("GIV", rest + "&!traded&distance100-")  # fits nothing else, but a far trade: GIV
-    for q in giver_short_searches():  # then CyrillJan short of the family's candy: the trade's candy (verdict.giver_short)
+    for q in giver_short_searches(sp.get("team_xl"), m):  # then CyrillJan short of the family's candy: the trade's candy (verdict.giver_short)
         tag_pile("GIV", rest + q)
     got = door_walk(EVOLVED_REST, limit, who)  # (it leaves out #GIV. TAG_SKIP's ones are judged here)
     log(f"the rest, through the door: {dict(got)}")
@@ -1033,6 +1117,7 @@ if __name__ == "__main__":
         a = ["door"] + a
     cmds = {"refresh": cmd_refresh}
     cmds["dynamax"] = cmd_dynamax
+    cmds["team100"] = cmd_team100
     if a[0] not in (*cmds, "plan", "read", "tag", "door"):
         sys.exit(__doc__)
     if a[0] == "door":

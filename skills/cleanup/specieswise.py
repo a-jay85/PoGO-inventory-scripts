@@ -35,6 +35,9 @@ is tried at every value a search can't see (dates, gender, IVs inside 0-2*), and
 one tag. Gym defenders and the size-medal species are left out. Levels don't count in #Reroll (the user, 2026-11-20).
 #GIV holds the old level 26+ ones (XLX), so its Transfer searches take only CPs under level 26 (cp-N, as above). What's
 left (3*+, shadows, not sure) goes to the walk: leftovers.py again Reroll|GIV --as CyrillJan.
+On the phone (either account) it first counts the account's 100s of each Team Future/Ideal pick
+(tradeable.count_team100), so a line's GIV bar (360 Candy XL a 100, up to 5: verdict.team_short) is today's. plan
+uses the newest count.
 """
 import datetime, itertools, os, sys
 from collections import defaultdict
@@ -74,10 +77,13 @@ def species_tag(sid, t, counts, vd):
     c = counts.get(family(sid)) or {}
     candy, xl = c.get("candy"), c.get("xl")
     candy = 10 ** 6 if candy is None else candy
+    # (no count: 360+ XL, but a Team Future/Ideal line's bar can be higher, so its count stays unread: not sure)
+    read = None if xl is None and sid in t.get("team_xl", {}) else xl
     xl = 10 ** 6 if xl is None else xl
     f = vd.Facts(account=WHO, sids=[sid], iv_sum=30, ivs=(10, 10, 10), traded=False,
                  caught=datetime.date.today() - datetime.timedelta(days=30), gender="", size="", kg=None,
-                 candy_xl=xl, candy=candy, xl=xl, levels=[20.0], evolves=True, far=False, gym_top20=False)
+                 candy_xl=xl, candy=candy, xl=xl if read is not None else None, levels=[20.0], evolves=True,
+                 far=False, gym_top20=False)
     return vd.final_tag(f, t)
 
 
@@ -193,16 +199,19 @@ TOP = 10 ** 5  # a Candy or Candy XL count no family reaches  # the step terms, 
 
 def candy_grid(sid, t):
     """-> ([Candy range], [Candy XL range]): where the rules cut for this species (XL_CAP for 2XL and giver_short;
-    LUCKY_CANDY for giver_short; DMAX_CANDY and one Max Move's XL for a Dynamax line). A range is (lo, hi), hi TOP for
-    no top"""
+    LUCKY_CANDY for giver_short; DMAX_CANDY and one Max Move's XL for a Dynamax line; a Team Future/Ideal line's bar,
+    tradeable.team_xl_need). A range is (lo, hi), hi TOP for no top"""
     import verdict as vd
-    cap, dc, lc = vd.XL_CAP, rules.DMAX_CANDY, rules.LUCKY_CANDY
-    need = t.get("dmax", {}).get(sid)
-    if need is None:
-        return [(0, lc - 1), (lc, TOP)], [(0, cap - 1), (cap, TOP)]
-    xs = [(lo, hi) for lo, hi in ((0, min(cap - 1, need)), (min(cap, need + 1), need), (max(cap, need + 1), TOP))
-          if lo <= hi]
-    return [(0, lc - 1), (lc, dc), (dc + 1, TOP)], xs
+    need, team = t.get("dmax", {}).get(sid), t.get("team_xl", {}).get(sid)
+    xl_starts = {0, vd.XL_CAP} | ({need + 1} if need is not None else set()) | ({team[0]} if team else set())
+    candy_starts = {0, rules.LUCKY_CANDY} | ({rules.DMAX_CANDY + 1} if need is not None else set())
+    return ranges(candy_starts), ranges(xl_starts)
+
+
+def ranges(starts):
+    """{first value of each range} -> [(lo, hi)] in order, the last one up to TOP"""
+    s = sorted(starts)
+    return [(lo, hi - 1) for lo, hi in zip(s, s[1:])] + [(s[-1], TOP)]
 
 
 def count_term(name, lo, hi):
@@ -324,6 +333,8 @@ def cmd_tag(pile, who, dexes):
         log(f"signed in as {now!r}: switching to {who}")
         account.switch(who)
     home.start()
+    import tradeable  # (before the species lists load: verdict.team_short's Team Future/Ideal bars read it)
+    tradeable.count_team100(who)
     got, unsure, _ = plan_of(pile, who, dexes)
     log(f"#{pile}: {len(got)} searches; {len(unsure)} species not sure, left as they are")
     for sid, why in unsure:

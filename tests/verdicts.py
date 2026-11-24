@@ -26,12 +26,13 @@ TABLES = {  # made up
                                  "magikarp": ("Reroll", "★100% hole"), "tandemaus": ("Reroll", "family of 3")},
             "lucky": {"nidoran_female": "female"}, "evolved": {"golem": "stage 2"}, "no_dmax": set(),
             "xl_full": set(), "raid": {"rhyhorn", "rhydon"}, "raid_self": {"rhydon"}, "strong": {"drilbur"},
-            "hard": {}, "by_hand": set(), "dmax": {"wooloo": 480, "dubwool": 480}},
+            "hard": {}, "by_hand": set(), "dmax": {"wooloo": 480, "dubwool": 480},
+            "team_xl": {"bagon": [1440, "salamence", 4], "trapinch": None}},
     GIVER: {"to": GIVER, "why": {"rhyhorn": ("GIV", "PvP"),
                                  "bulbasaur": ("Reroll", "Venusaur can mega")}, "lucky": {}, "evolved": {"golem": "stage 2"},
             "no_dmax": set(), "xl_full": set(), "raid": {"rhyhorn", "rhydon"}, "raid_self": {"rhydon"}, "strong": {"drilbur"},
             "hard": {"gible": "10 km egg (Gible)", "smeargle": "hard to farm"}, "by_hand": {"spinda", "tauros"},
-            "dmax": {"wooloo": 480, "dubwool": 480}},
+            "dmax": {"wooloo": 480, "dubwool": 480}, "team_xl": {"bagon": [1800, "salamence", 5], "trapinch": None}},
 }
 
 
@@ -211,6 +212,14 @@ CASES = {
     "far": plain(far=True),
     # CyrillJan short of the family's candy: GIV, the trade's candy (the user, 2026-11-23)
     "C under 360 XL: GIV": plain(candy_xl=0, candy=None),
+    "C team line, 4 100s, 1000 XL: GIV": plain(sids=["bagon"], candy_xl=1000, xl=1000),
+    "C team line, 4 100s, 1500 XL: Transfer": plain(sids=["bagon"], candy_xl=1500, xl=1500),
+    "C team line, under 360 XL: GIV": plain(sids=["bagon"], candy_xl=100, xl=100, candy=None),
+    "C team line, XL count not read: unsure": plain(sids=["bagon"], candy_xl=360, xl=None),
+    "C team line, 100s not counted: unsure": plain(sids=["trapinch"], candy_xl=1000, xl=1000),
+    "H team line, 5 100s, 1000 XL: GIV": plain(account=TAKER, sids=["bagon"], candy_xl=1000, xl=1000),
+    "H team line, 5 100s, 1900 XL: Transfer": plain(account=TAKER, sids=["bagon"], candy_xl=1900, xl=1900),
+    "H team line, 100s not counted: unsure": plain(account=TAKER, sids=["trapinch"], candy_xl=1000, xl=1000),
     "C under 348 Candy: GIV": plain(candy=347),
     "C 348 Candy, 360+ XL: Transfer": plain(candy=348),
     "C Candy not read: unsure": plain(candy=None),

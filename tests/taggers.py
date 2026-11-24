@@ -30,7 +30,8 @@ TABLES = {  # made up
                                  "rhyhorn": ("Reroll", "#1"), "geodude": ("Reroll", "PvP"), "magikarp": ("Reroll", "hole"),
                                  "tandemaus": ("Reroll", "family of 3")},
             "lucky": {"nidoran_female": "female"}, "evolved": {"golem": "stage 2"}, "no_dmax": set(), "xl_full": set(),
-            "raid": {"rhyhorn", "rhydon"}, "raid_self": {"rhydon"}, "hard": {}, "by_hand": set(), "dmax": {"wooloo": 480}},
+            "raid": {"rhyhorn", "rhydon"}, "raid_self": {"rhydon"}, "hard": {}, "by_hand": set(), "dmax": {"wooloo": 480},
+            "team_xl": {"pidgey": [1440, "pidgeot", 4]}},  # (a Team Future/Ideal line: 4 100s)
     GIVER: {"to": GIVER, "why": {"rhyhorn": ("GIV", "PvP")}, "lucky": {}, "evolved": {"golem": "stage 2"},
             "no_dmax": {"wooloo"}, "xl_full": set(), "raid": {"rhyhorn", "rhydon"},
             "raid_self": {"rhydon"}, "hard": {}, "by_hand": set(), "dmax": {"wooloo": 480}},
@@ -101,7 +102,7 @@ def tradeable_bulk(f):
         return rules.XLX
     if any(pile(tr.BULK_REST + q) for q in PLAN["giv_evolved"]) or pile(tr.BULK_REST + "&!traded&distance100-"):
         return "GIV"
-    if any(pile(tr.BULK_REST + q) for q in tr.giver_short_searches()):
+    if any(pile(tr.BULK_REST + q) for q in tr.giver_short_searches(TABLES[TAKER]["team_xl"], MODEL)):
         return "GIV"
     return None
 
@@ -114,11 +115,14 @@ def clean_bulk(f):
     return rules.TRANSFER if pile else None
 
 
+MODEL = tr.Model()
+
+
 def grid():
     """made-up Pokémon: every species, with none, one or two of the odd facts, across the facts the searches look at"""
     for sid, n, size, caught, gender, (xl, candy), level, far, iv in itertools.product(
             SIDS, range(1 + len(FLAGS) + len(FLAGS) * (len(FLAGS) - 1) // 2), ("", "xs", "xxs", "xxl"), DATES,
-            ("male", "female"), ((100, 2000), (400, 100), (400, 2000)), (20, 30), (False, True), (30, 40)):
+            ("male", "female"), ((100, 2000), (400, 100), (400, 2000), (1000, 2000)), (20, 30), (False, True), (30, 40)):
         on = ([()] + [(x,) for x in FLAGS] + list(itertools.combinations(FLAGS, 2)))[n]
         for traded in (False, True):
             yield Facts(sids=[sid], iv_sum=iv, ivs=(10, 10, 10), traded=traded, caught=caught, gender=gender, size=size,

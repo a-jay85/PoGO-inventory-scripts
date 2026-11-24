@@ -98,9 +98,9 @@ def where(path, texts):
         return "sortmenu"
     if pages.gym_badge(texts):
         return "badge"
-    if {"ME", "FRIENDS"} <= words or len(words & PROFILE_WORDS) >= 2:  # (scrolled down, its GYM BADGES can sit near
-        return "profile"  # the top too). Its level ('80') passes for a CP label: with ME or FRIENDS missed it read as
-        # a gym view, and to_badge_list tapped X on it, 15 times in 30 s (iPhone, 2026-11-24 09:41)
+    if {"ME", "FRIENDS"} <= words or len(words & PROFILE_WORDS) >= 2 or no_location(texts):  # (scrolled down, its
+        return "profile"  # GYM BADGES can sit near the top too). Its level ('80') passes for a CP label: with
+        # FRIENDS hidden it read as a gym view, and to_badge_list tapped X on it, 15 times in 30 s (iPhone, 2026-11-24)
     if pages.gym_badgelist(texts):
         return "badgelist"
     if "BERRIES" in words and "RAZZ BERRY" in j.upper():
@@ -110,6 +110,14 @@ def where(path, texts):
     if gym_view(texts):
         return "gymview"
     return home.where(path, texts)
+
+
+def no_location(texts):
+    """the profile under the game's red 'Failed to detect location. (12)' bar (the phone lost its GPS). The bar hides
+    its SOCIAL and FRIENDS tabs, not ME. Mid-scroll (its Adventure Sync part, 'EGGS') nothing else says profile, and
+    it read as an unknown screen: the hatch code closed it (iPhone, 2026-11-24 09:55)"""
+    return "FAILED TO DETECT LOCATION" in ui.joined(texts).upper() and \
+        any(ui.norm(t[4]) == "ME" and t[1] < 0.15 for t in texts)
 
 
 def look():

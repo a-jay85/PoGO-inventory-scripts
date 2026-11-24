@@ -825,6 +825,7 @@
    "menu_counts",
    "menu_tap",
    "moved",
+   "no_location",
    "off_screen",
    "open_at",
    "out_of_berries",

@@ -619,8 +619,8 @@ def judge(m, results, wants):
 
 def in_pool(results, sid, pool, n, c):
     """is this tile on one of the family's lists for that pool (lucky, dmax), as far as they were read?"""
-    squeeze = lambda x: re.sub(r"[^a-z0-9]", "", x.lower())  # '96 AHC*' and '96 A HC*': one tile read two ways
-    return any(c == c2 and squeeze(n) == squeeze(n2) for q, _, _ in sort.groups(sid, pool) for n2, c2 in results.get(q, []))
+    return any(c == c2 and ui.alnum(n) == ui.alnum(n2)  # '96 AHC*' and '96 A HC*': one tile read two ways
+               for q, _, _ in sort.groups(sid, pool) for n2, c2 in results.get(q, []))
 
 
 def fallen_candidates(scanned, results, wants):

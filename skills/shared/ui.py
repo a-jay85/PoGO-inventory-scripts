@@ -461,6 +461,12 @@ def norm(s):
     return re.sub(r"[^A-Z ]", "", s.translate(LOOKALIKE).upper()).strip()
 
 
+def alnum(s):
+    """lower-case letters and digits only, None as '': one name OCR'd two ways ('98 ADC*X ^' / '98 AD C* X'),
+    'Farfetch\'d' as 'farfetchd'. (Not ui.letters: that keeps no digits and folds é to e)"""
+    return re.sub(r"[^a-z0-9]", "", (s or "").lower())
+
+
 def label(texts, word):
     """the text box that reads exactly word, or None"""
     return next((t for t in texts if norm(t[4]) == word), None)
@@ -752,7 +758,8 @@ def letters(s):
 def names_species(name, species):
     """a dialog's species name ('MACHOP', 'RAICHU') is one of these speciesIds' (forms too: raichu_alolan). For a page
     whose big name OCR misreads: Machop's reads 'doyew' (upside down) on the Pixel, run after run (2026-11-20 to 23)"""
-    gm = {p["speciesId"]: p for p in json.load(open(os.path.join(HERE, "gamemaster.json")))["pokemon"]}
+    import pvp  # (here, not at the top: a script whose first argument is 'update' would run pvp.py's update)
+    gm = pvp.SPECIES
     return bool(letters(name or "")) and any(
         s in gm and letters(gm[s]["speciesName"].split(" (")[0]) == letters(name) for s in species or ())
 
@@ -786,7 +793,8 @@ def loose_match(name, texts, gm):
 
 
 def species_for(name, texts):
-    gm = json.load(open(os.path.join(HERE, "gamemaster.json")))
+    import pvp  # (see names_species)
+    gm = pvp.GM
     words = {w for t in texts for w in norm(t).split()}  # the type line reads as one text: "DARK / NORMAL"
     cands = []
     for p in gm["pokemon"]:

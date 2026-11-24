@@ -737,6 +737,7 @@ Screen reader + tap planner for /pvpc
 - `summary(texts, n=250)`: the screen's text for a log line
 - `rows(texts, gap=0.012)`: OCR boxes -> [(y, joined text)]: rows top to bottom, each row's words left to right
 - `norm(s)`
+- `alnum(s)`: lower-case letters and digits only, None as '': one name OCR'd two ways ('98 ADC*X ^' / '98 AD C* X'), 'Farfetch'd' as 'farfetchd'
 - `label(texts, word)`: the text box that reads exactly word, or None
 - `center(t)`: a text box's middle
 - `is_label(s, label)`: OCR sometimes tacks a stray letter onto a bar label (Duskull's read 'Attack l'), or glues the cursor on ('Defensel')
@@ -1487,7 +1488,6 @@ Unattended /pvpc: works through the PvpC-tagged list in iPhone Mirroring with no
   - `state(self, who)`
   - `load(self, j)`
   - `teams(self, who)`: teams.json: what ../shared/raidteams.py reads
-- `models()`
 - `class Enough`: this tile's cap can't beat the 6th of any boss that asked: neither can the rest of the list
 - `by_cp(ts)`: the tiles' CPs go down, top to bottom (a CP not read is passed over, and so is one misread: shiny sparkles by a CP2850 read as 987, Pixel 2026-11-18)
 - `sorted_tiles(c, typed)`: type the search, sort its list by CP once (a search keeps the list's sort) -> its first tiles [(name, cp)]
@@ -1528,6 +1528,7 @@ Unattended /pvpc: works through the PvpC-tagged list in iPhone Mirroring with no
   - `helps(self, counts, megas=True)`: species -> (best place a new copy would get, the bosses where it gets that place)
   - `worth(self, counts, margin)`: species -> [(boss, why)] where one more copy (never shadow) would matter to these counts' teams: it gets into the 6 (helps), or its own rating comes within `margin` of …
 - `boss_name(b)`
+- `load_models(pulls=COUNTERS)`: -> the Models of pulls' newest counter files, one at a time (each file is about 4 MB)
 - `real_boss(b)`: a boss like a 4-star raid's or higher (the user, 2026-11-16, for Reroll): legendary, mythical, Ultra Beast, mega or primal (no Tropius)
 - `raid_tops(ok, n, real=False, megas=True, pulls=COUNTERS)`: -> ({sid: [bosses]}, {sid in some top as itself}, Model): each non-special species ok(sid) lets in (tradeable.py: tradeable ones) in DialgaDex's top n against some raid …
 - `ideal_firsts(pulls=IDEAL, megas=True)`: -> {sid: [bosses]}: Team Future (pulls=IDEAL) or Team Ideal (pulls=COUNTERS), the user's names (2026-11-22)

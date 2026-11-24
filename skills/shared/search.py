@@ -1400,7 +1400,7 @@ def looks_same(a, b):
     (None: a detail page swiped to before its name drew, raidteam keep 2026-11-22) looks like nothing"""
     if not a or not b:
         return False
-    a, b = (re.sub(r"[^a-z0-9]", "", x.lower()) for x in (a, b))
+    a, b = ui.alnum(a), ui.alnum(b)
     return abs(len(a) - len(b)) <= 1 and difflib.SequenceMatcher(None, a, b).ratio() >= 0.8
 
 

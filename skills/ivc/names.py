@@ -21,7 +21,7 @@ from base import Stop, Skip, log, keep_capture, go, wait_for, appraise, back_to_
 import ivc, door, search
 
 TAG = "IVC"
-GM = json.load(open(os.path.join(HERE, "..", "shared", "gamemaster.json")))
+GM = pvp.GM
 DONE_LOOK = re.compile(r"\s*\$?(\d|\*|[A-Z]{1,4}\*|xx[sl]\b|\^)", re.I)  # 87/96 A*, FP*, xxs, XXL ($91 HA: OCR)
 odd = set()  # odd tile names already logged
 DOOR = None  # door.Door for this run

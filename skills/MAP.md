@@ -675,13 +675,14 @@ One local timer for the scripts that run by themselves (gymfeed, hatch, goplus)
 - `later(name, minutes)`
 - `off(name)`
 - `gymfeed(feedable, phone)`: a gymfeed run's last word, on its phone's timer (phone: "android" or "iphone")
-- `busy()`: -> what's using a phone, or None
+- `busy(phone)`: -> what's using this phone ('android' or 'iphone'), or None
 - `pixel_in_use()`: -> True while you look to be using the Pixel
 - `pixel_charging()`: -> True while the Pixel is on power (AC, USB or wireless)
 - `skip(why)`: a skip line once, not every minute while it waits
 - `missed(phone, gone)`: gone: this tick didn't reach the phone
 - `notify(text)`
 - `away_off(phone, why)`: every timer on this phone off, with one log line and a notice that say how to turn them back on
+- `blocked(phone)`: -> why a job on this phone can't run this minute, or None
 - `tick()`
 - `install()`
 - `uninstall()`

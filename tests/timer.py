@@ -16,7 +16,7 @@ os.environ["PATH"] = BIN + os.pathsep + os.environ["PATH"]
 sys.path.insert(0, os.path.join(ROOT, "skills", "shared"))
 import timer
 
-timer.busy = lambda: None  # (a real script on a real phone mustn't hold up the test)
+timer.busy = lambda phone: None  # (a real script on a real phone mustn't hold up the test)
 
 
 def stub(name, body):
@@ -163,6 +163,41 @@ print("a run that only found another script on the phone: tries again")
 fresh(crowded=now - 60)
 timer.tick()
 check("crowded due again", "crowded" in timer.due())
+
+print("a run holds the Pixel, an older Pixel job and a newer iPhone job are due: the iPhone job runs")
+job("ios2", "iphone", "done: 1 thing")
+pixel(True)
+no_busy = timer.busy
+timer.busy = lambda phone: "pid 1 (specieswise.py)" if phone == "android" else None
+fresh(pix=now - 600, ios2=now - 60)
+timer.tick()
+check("ios2 ran (the Pixel's lock isn't its phone's)", "ios2: start" in log())
+check("pix didn't run", "pix: start" not in log())
+check("pix still due now", timer.due().get("pix", 0) <= time.time())
+
+print("a run holds the Pixel, only a Pixel job is due: it waits, one skip line")
+fresh(pix=now - 60)
+timer.tick()
+timer.tick()
+check("pix didn't run", "pix: start" not in log())
+check("one skip line, naming the script", log().count("skipped: another phone script is running (pid 1 (specieswise.py))") == 1)
+
+print("a run holds the iPhone, a Pixel job and an iPhone job are due: the Pixel job runs")
+timer.busy = lambda phone: "pid 2 (gift.py)" if phone == "iphone" else None
+fresh(ios2=now - 600, pix=now - 60)
+timer.tick()
+check("pix ran", "pix: start" in log())
+check("ios2 didn't run", "ios2: start" not in log())
+check("ios2 still due now", timer.due().get("ios2", 0) <= time.time())
+timer.busy = no_busy
+
+print("Pixel off adb, an iPhone job is due behind it: the iPhone job runs")
+pixel(False)
+fresh(pix=now - 600, ios2=now - 60)
+timer.tick()
+check("ios2 ran", "ios2: start" in log())
+check("pix still on (a short miss)", "pix" in timer.due())
+pixel(True)
 
 print("Pixel charging, hatch due: hatch waits, the job behind it runs")
 job("hatch", "android", "done: hatched 1")

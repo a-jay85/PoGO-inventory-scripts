@@ -1766,3 +1766,10 @@ The phone backlog: things to check, verify or fix on a phone that can't be done 
 - `show(found)`
 - `phone_busy()`: -> {phone: why it's busy, or None}
 - `main(a)`
+
+## repotools.py
+git and gh for the repo-root tools (merge_gate.py, wt_cleanup.py, backlog.py): one way to run each, and one reader of `git worktree list --porcelain`. Standard library …
+
+- `git(*args, cwd, env=None)`: -> the finished `git -C cwd args` (text, output captured)
+- `gh(*args, bin='gh', repo=None, cwd=None, capture=True)`: -> the finished `bin args [-R repo]` (text)
+- `worktrees(porcelain)`: `git worktree list --porcelain` output -> [(path, HEAD, branch)], the main checkout first (git lists it first)

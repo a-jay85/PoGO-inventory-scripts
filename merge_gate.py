@@ -27,10 +27,11 @@ A gate that can't check (gh down, a crash) blocks: a merge never goes through un
 POGO_GH_BIN: a stand-in for `gh` (tests/gate.py).
 """
 import ast, json, os, re, shlex, subprocess, sys, tempfile, time, traceback
+import repotools, watch  # (stdlib only)
 
 REPO = "a-jay85/PoGO-inventory-scripts"
 ROOT = os.path.dirname(os.path.realpath(__file__))  # any checkout of the repo: they share one git store
-WATCH_DIR = "/tmp/pogo-watch"
+WATCH_DIR = watch.DIR  # (bound once: tests/gate.py moves each on its own)
 TESTS = ["readers", "layout", "verdicts", "taggers", "heal"]  # must be there
 OPTIONAL = ["lints", "gate", "hundred", "codemap"]  # run when there
 DONE = re.compile(r"^all\b.*\b(the same|right)\b", re.M)
@@ -50,15 +51,14 @@ class Blocked(Exception):
 
 
 def git(*args, cwd=None, check=True):
-    p = subprocess.run(["git", "-C", cwd or ROOT, *args], capture_output=True, text=True)
+    p = repotools.git(*args, cwd=cwd or ROOT)
     if check and p.returncode:
         raise Blocked(f"git {' '.join(args)} failed: {p.stderr.strip()[:300]}")
     return p.stdout.strip() if p.returncode == 0 else None
 
 
 def gh(*args, cwd=None):
-    cmd = [os.environ.get("POGO_GH_BIN", "gh"), *args, "-R", REPO]
-    p = subprocess.run(cmd, cwd=cwd or ROOT, capture_output=True, text=True)
+    p = repotools.gh(*args, bin=os.environ.get("POGO_GH_BIN", "gh"), repo=REPO, cwd=cwd or ROOT)
     if p.returncode:
         raise Blocked(f"`gh {' '.join(args)}` failed: {(p.stderr or p.stdout).strip()[:300]}")
     return p.stdout
@@ -169,16 +169,7 @@ def get_head(pr):
 
 def worktrees():
     """[(path, HEAD, branch)] of every checkout of the repo"""
-    out, cur = [], {}
-    for l in (git("worktree", "list", "--porcelain") + "\n\n").split("\n"):
-        if not l.strip():
-            if cur.get("worktree"):
-                out.append((cur["worktree"], cur.get("HEAD"), cur.get("branch", "").removeprefix("refs/heads/")))
-            cur = {}
-        elif " " in l:
-            k, v = l.split(" ", 1)
-            cur[k] = v
-    return out
+    return repotools.worktrees(git("worktree", "list", "--porcelain"))
 
 
 def clean(path):

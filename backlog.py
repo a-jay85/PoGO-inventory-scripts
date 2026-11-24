@@ -22,6 +22,7 @@ no skills/ script is running; the Pixel must also show in adb devices. The iPhon
 Scripts never call this: Claude files issues after reading a run, so a phone run never waits on the network.
 """
 import json, os, re, subprocess, sys
+import repotools  # (stdlib only)
 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "skills", "shared"))
 import locks  # (stdlib only)
@@ -38,7 +39,7 @@ BODY_MIN = 101
 
 def gh(*args, capture=True):
     """-> gh's stdout; a failed gh stops with its error"""
-    p = subprocess.run([GH, *args, "-R", REPO], capture_output=capture, text=True)
+    p = repotools.gh(*args, bin=GH, repo=REPO, capture=capture)
     if p.returncode:
         sys.exit(f"gh {' '.join(args[:2])}: {(p.stderr or '').strip() or 'failed'}")
     return p.stdout or ""

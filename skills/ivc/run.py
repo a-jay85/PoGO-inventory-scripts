@@ -106,12 +106,8 @@ def from_ivc(tile_name, tile_cp):
 
 def keep_member(m):
     """what scan read on a detail screen, into this run's read.json: the next run takes it from there (from_ivc)"""
-    path = os.path.join(base.RUN_DIR, ivcrun.READ)
-    read = json.load(open(path)) if os.path.exists(path) else []
-    read.append(dict({k: m[k] for k in ("name", "cp", "hp", "candy", "types", "shadow", "lucky", "size", "dynamax", "tags")},
-                     bars=None, raws=None, phone="android" if ui.ANDROID else "ios", at=time.time()))
-    with open(path, "w") as f:
-        json.dump(read, f, indent=1)
+    ivcrun.keep_read(dict({k: m[k] for k in ("name", "cp", "hp", "candy", "types", "shadow", "lucky", "size", "dynamax", "tags")},
+                          bars=None, raws=None))
 
 
 # ---------- walking a list ----------

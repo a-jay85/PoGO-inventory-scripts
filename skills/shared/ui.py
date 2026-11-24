@@ -889,6 +889,26 @@ def check_rows(species, cp, hp, ivs, own=False):
 
 # ---------- icons (teal circles at the bottom) ----------
 
+def blobs(pts):
+    """the 4-neighbour connected pieces of a set of (x, y) pixels -> a list of pixel lists. Each caller picks its
+    own pixels and keeps its own size test (circles, sort_arrow, gymfeed's hearts)"""
+    seen, out = set(), []
+    for p in pts:
+        if p in seen:
+            continue
+        stack, blob = [p], []
+        seen.add(p)
+        while stack:
+            x, y = stack.pop()
+            blob.append((x, y))
+            for q in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+                if q in pts and q not in seen:
+                    seen.add(q)
+                    stack.append(q)
+        out.append(blob)
+    return out
+
+
 TEAL_TOL = 52 if ANDROID else 24  # the Pixel: (64, 131, 146) in its own screenshot
 
 
@@ -899,19 +919,8 @@ def circles(path, top=0.82):
     y0 = int(top * H)
     mask = {(x, y) for y in range(y0, H) for x in range(W)
             if sum(abs(a - b) for a, b in zip(im.getpixel((x, y)), (32, 122, 141))) < TEAL_TOL}
-    seen, out = set(), []
-    for p in mask:
-        if p in seen:
-            continue
-        stack, comp = [p], []
-        seen.add(p)
-        while stack:
-            x, y = stack.pop()
-            comp.append((x, y))
-            for q in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
-                if q in mask and q not in seen:
-                    seen.add(q)
-                    stack.append(q)
+    out = []
+    for comp in blobs(mask):
         xs, ys = [c[0] for c in comp], [c[1] for c in comp]
         w, h = max(xs) - min(xs), max(ys) - min(ys)
         if 0.06 * W < w < 0.25 * W and 0.7 < w / max(h, 1) < 1.4:
@@ -1011,19 +1020,8 @@ def sort_arrow(path, right_most=False):
     W, H = im.size
     light = {(x, y) for x in range(int(W * .86), int(W * .99)) for y in range(int(H * .89), int(H * .98))
              if im.getpixel((x, y))[0] >= 120 and min(im.getpixel((x, y))) <= 200}
-    seen, found = set(), []
-    for p in light:
-        if p in seen:
-            continue
-        stack, blob = [p], []
-        seen.add(p)
-        while stack:
-            x, y = stack.pop()
-            blob.append((x, y))
-            for q in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
-                if q in light and q not in seen:
-                    seen.add(q)
-                    stack.append(q)
+    found = []
+    for blob in blobs(light):
         xs, ys = [b[0] for b in blob], [b[1] for b in blob]
         w, h = max(xs) - min(xs) + 1, max(ys) - min(ys) + 1
         if 6 <= w <= 14 and 6 <= h <= 14 and len(blob) >= 15:

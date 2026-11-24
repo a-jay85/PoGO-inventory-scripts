@@ -158,19 +158,8 @@ def hearts(path):
     w, h = im.size
     px = im.load()
     pts = {(x, y) for y in range(int(0.3 * h), int(0.75 * h)) for x in range(w) if is_heart(px[x, y])}
-    out, done = [], set()
-    for p in pts:
-        if p in done:
-            continue
-        stack, blob = [p], []
-        done.add(p)
-        while stack:
-            x, y = stack.pop()
-            blob.append((x, y))
-            for q in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
-                if q in pts and q not in done:
-                    done.add(q)
-                    stack.append(q)
+    out = []
+    for blob in ui.blobs(pts):
         if HEART_PX[0] <= len(blob) <= HEART_PX[1]:  # a whole heart is about 410 px, a half-hidden one 240
             out.append((sum(x for x, _ in blob) / len(blob) / w, max(y for _, y in blob) / h))
     return sorted(out)

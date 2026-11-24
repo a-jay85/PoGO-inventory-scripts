@@ -75,7 +75,7 @@ import tradeable as tr  # builds the species lists
 import rules  # the numbers and lists: one copy, there
 import search  # dexes_of, dex_numbers
 from rules import GIVER, TAKER, XL_CAP, XLX, XLX_FOR, OLD_XLX
-from ivc import GYM_DEFENDERS, make_name as ivc_name
+from ivc import GYM_DEFENDERS, iv_pct, make_name as ivc_name
 from rules import NAMES as SIZE_NAMES  # a never-traded XXS one gets this name and IVC
 from rules import xxl_off
 from rules import EVO, EVO_FOR, TRADE_EVOS, COSTLY_LINES  # traded + a free trade evolution: Evo, on EVO_FOR's account
@@ -236,7 +236,7 @@ def usual(f, t, today=None):
     if f.iv_sum is None:
         return unsure("no appraisal")
     if f.iv_sum >= ALWAYS_KEEP:
-        return Verdict("keep", (), f"{round(f.iv_sum / 45 * 100)}%: 98%+ never goes")
+        return Verdict("keep", (), f"{iv_pct(f.iv_sum)}%: 98%+ never goes")
     if not f.sids:
         return unsure("species not read")
     if len(f.sids) > 1:  # (two forms of one dex too: the species lists go by form)
@@ -491,7 +491,7 @@ def costume_93(f, sid, kinds, strip=()):
         return unsure("costume 93%+: IVs not read (for its name)")
     name = ivc_name(tuple(f.ivs), f.shadow, (f.size or "").upper(), lucky=f.lucky,
                     legendary=bool(kinds & {"legendary", "ultrabeast", "mythical"}), gym=sid in GYM_DEFENDERS)
-    return Verdict("keep", (), f"costume, {round(f.iv_sum / 45 * 100)}%: named and a favorite", name=name, off=strip)
+    return Verdict("keep", (), f"costume, {iv_pct(f.iv_sum)}%: named and a favorite", name=name, off=strip)
 
 
 def costume_fav(f, sid, kinds, strip):
@@ -567,7 +567,7 @@ def odd_one(f, t, sid, odd, today):
         return unsure("shadow: IVs not read")
     pure = sum(min(15, i + 2) for i in f.ivs)
     if pure >= ALWAYS_KEEP:
-        return Verdict("keep", (), f"shadow, purified {round(pure / 45 * 100)}%: a favorite")
+        return Verdict("keep", (), f"shadow, purified {iv_pct(pure)}%: a favorite")
     if f.pure_top:
         return Verdict("keep", (), "shadow raid attacker, a top IV once purified: a favorite")
     if sid in t["raid"] and f.pure_top is None:

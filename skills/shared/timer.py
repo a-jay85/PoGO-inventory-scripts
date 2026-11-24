@@ -8,7 +8,9 @@ a launchd job runs `timer.py tick` every minute, and tick runs a script whose ti
 - A run that stops or crashes (any exit but 0) turns its own timer off, with a log line and a macOS notice, so a
   broken run doesn't come back every 15 min (hatch, 4 times on 2026-11-15). Not when it only found another script
   on the phone: that one tries again. Back on: run the script once by hand, or `timer.py in <name> 0`.
-- tick skips, and tries again next minute, while any other phone script is running.
+- tick skips a job, and tries again next minute, while another script is running on that job's phone (its lock). A
+  script on the other phone doesn't hold it up, and a job that can't run doesn't hold up the next due one
+  (the user, 2026-11-23: gymfeed-iphone sat 43 min behind a Pixel run).
 - tick skips, and tries again next minute, while you're using the phone (the user, 2026-11-16). The Pixel: touched
   in the last 3 min, or unlocked and touched in the last 10 min (pixel_in_use). Its screen being on says nothing:
   it stays on while plugged in. The iPhone: iPhone Mirroring says "iPhone in Use" (session.connect stops on it at
@@ -145,26 +147,11 @@ def gymfeed(feedable, phone):
 
 # ---------- the minute tick ----------
 
-def busy():
-    """-> what's using a phone, or None. The phone locks (session.claim), then any python running a script of
-    this repo (by its command line, or the folder it runs in: `cd skills/gift && python3 gift.py`)"""
-    for phone in locks.PHONES:
-        if who := locks.holder(phone):
-            return who
-    me = {os.getpid(), os.getppid()}
-    out = subprocess.run(["pgrep", "-fl", r"PoGO-inventory-scripts.*\.py"], capture_output=True, text=True).stdout
-    for line in out.splitlines():
-        pid, _, cmd = line.partition(" ")
-        if int(pid) not in me and "timer.py" not in cmd:
-            return cmd
-    pids = subprocess.run(["pgrep", "-i", "python"], capture_output=True, text=True).stdout.split()
-    for pid in pids:
-        if int(pid) in me:
-            continue
-        cwd = subprocess.run(["lsof", "-a", "-p", pid, "-d", "cwd", "-Fn"], capture_output=True, text=True).stdout
-        if "PoGO-inventory-scripts" in cwd:
-            return f"python in {cwd.split('n', 1)[-1].strip()}"
-    return None
+def busy(phone):
+    """-> what's using this phone ('android' or 'iphone'), or None. Its lock (session.claim): every phone script
+    holds it, a test script too. The other phone doesn't count: a Pixel run and an iPhone run go side by side
+    (POGO_PHONE=both does it)"""
+    return locks.holder(phone)
 
 
 def pixel_in_use():
@@ -232,6 +219,23 @@ def away_off(phone, why):
         notify(text)
 
 
+def blocked(phone):
+    """-> why a job on this phone can't run this minute, or None. A Pixel out of reach for GRACE min turns its
+    timers off (away_off), and the reason says so"""
+    if who := busy(phone):
+        return f"another phone script is running ({who[:80]})"
+    if phone == "android":
+        state = subprocess.run(["adb", "get-state"], capture_output=True, text=True).stdout.strip()
+        if (gone := missed(phone, state != "device")) >= GRACE:
+            away_off(phone, f"the Pixel was off adb for {gone:.0f} min")
+            return "the Pixel was off adb: its timers are off"
+        if state != "device":
+            return "Pixel not connected over adb"
+        if pixel_in_use():
+            return "you're using the Pixel"
+    return None
+
+
 def tick():
     now = time.time()
     ready = sorted((t, n) for n, t in due().items() if n in JOBS and t <= now)
@@ -239,21 +243,19 @@ def tick():
         missed("android", False)  # (adb answered: an old away count would turn every Pixel timer off at the next blip)
         skip(f"the Pixel is charging: {', '.join(n for _, n in ready if n in CHARGING_WAITS)} waits")
         ready = [r for r in ready if r[1] not in CHARGING_WAITS]  # (left in, it would hold every other job up)
-    if not ready:
+    waits = []
+    for _, name in ready:  # a job that can't run doesn't hold up one on the other phone (the user, 2026-11-23:
+        script, phone, after = JOBS[name]  # gymfeed-iphone sat 43 min behind a Pixel run)
+        phone = phone()
+        if why := blocked(phone):
+            if why not in waits:
+                waits.append(why)
+            continue
+        break
+    else:
+        if waits:
+            skip("; ".join(waits))
         return
-    name = ready[0][1]
-    script, phone, after = JOBS[name]
-    phone = phone()
-    if who := busy():
-        return skip(f"another phone script is running ({who[:80]})")
-    if phone == "android":
-        state = subprocess.run(["adb", "get-state"], capture_output=True, text=True).stdout.strip()
-        if (gone := missed(phone, state != "device")) >= GRACE:
-            return away_off(phone, f"the Pixel was off adb for {gone:.0f} min")
-        if state != "device":
-            return skip("Pixel not connected over adb")
-        if pixel_in_use():
-            return skip("you're using the Pixel")
     env = dict(os.environ, PATH=PATH)
     env.pop("POGO_PHONE", None)
     if phone == "android":

@@ -1168,6 +1168,7 @@ Feed berries to the Pokémon in the gyms you're defending, from the gym badge li
 - `dust(word)`: a word of the '+10 STARDUST' that floats over the name after each berry: 'STABEUST', 'STARNUST•', '+10'
 - `gym_view(texts)`: pages.gym_view, or the same with the looser CP labels OCR reads over a busy gym ('GP2008,', 'c*1677'): the gym's name across the top, a label in the middle
 - `who(texts)`: one gym Pokémon's page -> (its name, its trainer): the name at the top, the trainer beside its CP. OCR reads the trainer over the busy gym differently each time …
+- `same_trainer(a, b)`: two trainer reads with a long word alike
 - `gym_name(texts)`
 - `tiles(texts)`: the badge list's tiles -> [(name, cx, top)]: the name under each badge (its lines joined), across the tile's middle, the top of its first line
 - `is_meter(px)`

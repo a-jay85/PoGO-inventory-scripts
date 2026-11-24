@@ -15,13 +15,14 @@ Other ignored files in it (.state.json, .calib.json, .claude/) go with it; the m
 The main checkout is never touched.
 """
 import glob, json, os, shutil, subprocess, sys
+import repotools
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 BACKUPS = os.path.expanduser("~/claude-plans/_backups/worktree-runs")
 
 
 def git(*args, cwd=HERE, check=True):
-    r = subprocess.run(["git", "-C", cwd, *args], capture_output=True, text=True)
+    r = repotools.git(*args, cwd=cwd)
     if check and r.returncode:
         raise RuntimeError(f"git {' '.join(args)}: {r.stderr.strip()}")
     return r
@@ -29,25 +30,15 @@ def git(*args, cwd=HERE, check=True):
 
 def worktrees():
     """[(path, branch or None, tip)] for every worktree but the main one."""
-    out, cur = [], {}
-    for line in git("worktree", "list", "--porcelain").stdout.splitlines() + [""]:
-        if not line:
-            if cur:
-                out.append(cur)
-            cur = {}
-            continue
-        key, _, val = line.partition(" ")
-        cur[key] = val
-    main = os.path.realpath(out[0]["worktree"])  # git always lists the main worktree first
-    return [(w["worktree"], w.get("branch", "").removeprefix("refs/heads/") or None, w.get("HEAD"))
-            for w in out if os.path.realpath(w["worktree"]) != main]
+    out = repotools.worktrees(git("worktree", "list", "--porcelain").stdout)
+    main = os.path.realpath(out[0][0])  # git always lists the main worktree first
+    return [(path, branch or None, tip) for path, tip, branch in out if os.path.realpath(path) != main]
 
 
 def merged_pr(branch, tip):
     """The merged PR {number, headRefOid} for this branch (or this tip, if detached), else None."""
     args = ["--head", branch] if branch else ["--search", tip]
-    r = subprocess.run(["gh", "pr", "list", "--state", "merged", *args, "--json", "number,headRefOid"],
-                       capture_output=True, text=True, cwd=HERE)
+    r = repotools.gh("pr", "list", "--state", "merged", *args, "--json", "number,headRefOid", cwd=HERE)
     if r.returncode:
         raise RuntimeError(f"gh pr list: {r.stderr.strip()}")
     prs = json.loads(r.stdout or "[]")

@@ -10,7 +10,8 @@
   frame. Only badges with the small defender bubble at their top left count: the first one without it ends the
   run (the sort puts the gyms you're in first).
 - Taps TIME DEFENDING on the badge to go into the gym. A badge with no TIME DEFENDING: none of yours left in a gym,
-  so the run ends. A gym with a raid on is skipped.
+  so the run ends. A gym with a raid on is skipped: the tap shows a message ('Raid in progress! ...') for a few
+  seconds, which it reads for while it waits for the gym view, and the next run is 45 min away (a raid's length).
 - Taps each Pokémon in the gym view, right-most first, lower if nothing new opens (a back-row one shows only a bit).
   On its page it picks a berry from the berry menu (FEEDABLE: Razz, Nanab, Pinap, each down to a floor; never Golden
   Razz or Silver Pinap), taps the floating berry about every 2.5 s until it stays gone for 2 s (full for now: the
@@ -550,6 +551,18 @@ def to_badge_list():
     raise Stop("couldn't get to the gym badge list")
 
 
+RAID_WORDS = ("RAID IN PROGRESS", "ONCE THE RAID IS OVER", "WILL RETURN TO THE GYM")  # a piece of it is enough:
+# OCR drops words from a message over the busy gym
+
+
+def raid_look():
+    """look(), with the screen called "raid" while the raid message is up over it"""
+    screen, texts, path, bounds = look()
+    if any(w in ui.joined(texts).upper() for w in RAID_WORDS):
+        screen = "raid"
+    return screen, texts, path, bounds
+
+
 def into_gym():
     """a badge open -> "gym" once in its gym view. "none": no TIME DEFENDING (none of yours is in it). "raid": a raid
     is on there (the tap shows 'Raid in progress! Your Pokémon will return to the Gym once the raid is over.').
@@ -563,13 +576,17 @@ def into_gym():
     for _ in range(2):
         base.tap_box(hit[0], bounds)
         try:
-            base.wait_for("gymview", look=look, timeout=8, capture=False)
+            # the raid words are a message that fades in a few seconds: read for them all through the wait, not after
+            # it (2026-11-23, Oracle Park: the words had gone by the look after 8 s, so the badge was tapped again and
+            # the gym called shut, the next run in 30 min instead of when the raid ends)
+            screen, _, _, _ = base.wait_for("gymview", "raid", look=raid_look, timeout=8, capture=False)
+            if screen == "raid":
+                base.settle(raid_look, lambda r: r[0] != "raid", timeout=6)  # let it fade: it sits over the next taps
+                return "raid"
             time.sleep(1.5)  # the Pokémon walk in and their CP labels settle
             return "gym"
         except base.Lost:
             _, texts, _, bounds = look()
-            if "RAID IN PROGRESS" in ui.joined(texts).upper():
-                return "raid"
     keep_capture("nogym")
     return "shut"  # a raid whose words came and went, most likely: the next run tries again
 
@@ -788,8 +805,7 @@ def gym(total, limit):
     labels = sorted(all_labels(), key=lambda c: -c[0])
     _, _, path, bounds = look()
     pinks = hearts(path)
-    log(f"  {len(labels)} CP labels and {len(pinks)} hearts in the gym view")
-    # the hearts count the gym and show where each one stands. Fewer hearts than labels: they misread, use the labels
+    log(f"  {len(labels)} CP labels and {len(pinks)} hearts in the gym view")    # the hearts count the gym and show where each one stands. Fewer hearts than labels: they misread, use the labels
     by_heart = len(pinks) >= max(len(labels), 1)
     size = len(pinks) if by_heart else GYM_SIZE
     drops = HEART_DROPS if by_heart else TAP_DROPS
@@ -899,10 +915,11 @@ def route(edges, stays, start):
 # ---------- the run ----------
 
 feedable = None  # after a run: True, a gym is left to feed; False, none; None, not sure (timer left alone)
+raided = False  # after a run: a gym had a raid on (its Pokémon are out of it till the raid ends: the timer waits for that)
 
 
 def script(limit):
-    global feedable
+    global feedable, raided
     total, done, t0 = 0, set(), time.time()
     found, unsure = False, False  # a gym to feed seen; a gym that didn't open
     home.start(storage=False)
@@ -921,6 +938,7 @@ def script(limit):
             log(f"{name}: no TIME DEFENDING, so no gym of yours is left")
             break
         found |= inside in ("gym", "raid")
+        raided |= inside == "raid"
         unsure |= inside == "shut"
         if inside != "gym":
             log(f"{name}: " + ("a raid is on there" if inside == "raid" else "the gym didn't open") + ", skipped")
@@ -953,7 +971,7 @@ def main():
         session.main(script, a.limit)
     finally:  # after the phone is closed
         if feedable is not None:
-            timer.gymfeed(feedable, PHONE)
+            timer.gymfeed(feedable, PHONE, raided)
 
 
 if __name__ == "__main__":

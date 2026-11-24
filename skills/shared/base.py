@@ -1518,13 +1518,13 @@ def species_from_candy(texts, cp, hp):
     """for a Pokémon whose name isn't its species (a nickname): the line from the candy name, the forms in it
     with the types shown, and of those the ones that can have this CP and HP. -> list of species, or Skip"""
     got = candy(texts)  # a line with a baby takes the next one's candy (Azurill: MARILL CANDY)
-    lines = {pvp.root(s) for s in pvp.PLAIN if ui.norm(pvp.base_name(s)) == ui.norm(got or "")}
+    lines = {pvp.kin_root(s) for s in pvp.PLAIN if ui.norm(pvp.base_name(s)) == ui.norm(got or "")}
     if not lines:
         raise Skip(f"species unclear: candy reads {got!r}")
     seen = type_line(texts)
-    # every form whose line starts there: tree() misses some (Alolan Raichu isn't among Pikachu's evolutions).
+    # every form in that candy family: tree() leaves out the ones no evolution reaches (Alolan Raichu).
     # No type read (busy art behind it) says nothing: then every form, and the CP and HP pick
-    forms = [s for s in pvp.PLAIN if pvp.root(s) in lines
+    forms = [s for s in pvp.PLAIN if pvp.kin_root(s) in lines
              and (not seen or {t.upper() for t in pvp.PLAIN[s]["types"] if t != "none"} == seen)]
     sp = [s for s in forms if can_have(s, cp, hp)]
     if not sp:

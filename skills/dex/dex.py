@@ -448,7 +448,6 @@ parse = search.dex_numbers  # '14,22,29-33' -> {14, 22, 29, ..., 33}
 EVOLVE = {"lucky": ("lucky", "Lucky"), "xxs": ("xxs", "XXS")}  # page -> (its storage search word, its name in reports)
 
 REGIONS = {"_alolan": "alola", "_galarian": "galar", "_hisuian": "hisui", "_paldean": "paldea"}
-KIDS_FIX, PARENT_FIX = pvp.KIDS_FIX, pvp.PARENT_FIX  # the gamemaster's family errors (one copy, in pvp.py)
 GENDER = {413: "female", 414: "male", 416: "female", 475: "male", 478: "female", 758: "female"}  # only this gender evolves into it
 NO_EVOLVE = {589, 617}  # Escavalier, Accelgor: need a trade. A lucky one can't be traded again; an XXS one would leave
 UNSURE = {"wurmple": "Wurmple turns into Silcoon or Cascoon at random",
@@ -456,17 +455,10 @@ UNSURE = {"wurmple": "Wurmple turns into Silcoon or Cascoon at random",
 
 
 def evo_tree():
-    """child speciesId -> parent speciesId, from each entry's evolutions list (the 'parent' field has errors:
-    Carkol under Boltund, Mr. Rime under Mime Jr)"""
-    import json
-    gm = json.load(open(os.path.join(HERE, "..", "shared", "gamemaster.json")))["pokemon"]
-    by = {p["speciesId"]: p for p in gm if not re.search(r"_shadow|_mega|_xl$", p["speciesId"])}
-    parent = {}
-    for sid, p in by.items():
-        for c in KIDS_FIX[sid] if sid in KIDS_FIX else (p.get("family") or {}).get("evolutions") or []:
-            if c in by:
-                parent.setdefault(c, sid)
-    return by, parent
+    """(by, parent): speciesId -> its game data entry (no shadow, mega or XL), and child -> what it evolves from in
+    GO (pvp.parent: the one evolution map)"""
+    by = {s: p for s, p in pvp.SPECIES.items() if not re.search(r"_shadow|_mega|_xl$", s)}
+    return by, {c: p for c in by if (p := pvp.parent(c))}
 
 
 def form_terms(sid, by):

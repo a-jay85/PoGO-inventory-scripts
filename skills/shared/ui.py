@@ -515,7 +515,8 @@ def classify(texts):
         return "list"
     if any(w.startswith("SET NICKNAME") for w in words):  # a stray cursor can glue on: "Set Nicknamel"
         return "rename"
-    if any(w.startswith("TAG") and "POK" in w for w in words) and "DONE" in words:
+    # (the red GPS banner over a multi-select's sheet leaves only the end of its title: 'G 1 POKEMON', Pixel 2026-11-24)
+    if any(w.startswith("TAG") and "POK" in w or re.match(r"A?G\s*\d*\s*POK", w) for w in words) and "DONE" in words:
         return "tags"
     if any(is_label(w, "ATTACK") for w in words) and any(is_label(w, "DEFENSE") for w in words):
         return "appraisal"

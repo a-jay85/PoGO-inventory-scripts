@@ -60,21 +60,7 @@ def new_run_dir(d=None):
 
 def read_member(tile_name, tile_cp, ivc=True):
     info, texts, path = steady_detail()
-    for _ in range(2):  # a digit dropped ('CP62' for CP626): read again, off the phone's own screenshot on Android
-        if not (info["cp"] and info["cp"] != tile_cp and str(tile_cp).startswith(str(info["cp"]))):
-            break
-        time.sleep(0.5)
-        if ui.ANDROID:
-            p = ui.android.sharp()
-            texts2 = ui.ocr(p)
-            if ui.detail_info(texts2)["cp"] == tile_cp:
-                info, texts, path = ui.detail_info(texts2), texts2, p
-                break
-        info, texts, path = steady_detail()
-    a, b = short(info["name"]), short(tile_name)
-    if info["cp"] and info["cp"] != tile_cp:
-        raise Skip(f"opened CP{info['cp']} but tile said CP{tile_cp}")
-    if not a or not b or not (a.startswith(b) or b.startswith(a)):
+    if not base.opened_right(info, tile_name, tile_cp):  # (a wrong CP is its Skip)
         if not (info["cp"] == tile_cp and odd_name(sort.clean_name(tile_name))):
             raise Skip(f"opened {info['name']!r} but tile said {tile_name!r}")
         log(f"  tile said {tile_name!r}, the Pokémon is {info['name']!r} (same CP): going by the Pokémon")

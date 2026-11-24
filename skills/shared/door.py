@@ -178,9 +178,11 @@ class Door:
 
     def listed(self):
         """{(tile name, CP) as the walk read them: n} left as not sure by an earlier run of this tag, on this account,
-        under these rules"""
+        under these rules. Not one a search misread ('costume or not: not read'): the next run reads it again (the
+        costume search read 9 of 15 and all 56 again GIV opened were not sure, CyrillJan 2026-11-24)"""
         return Counter((e["tile"], e["cp"]) for e in load_list()
-                       if e["rules"] == RULES and e["account"] == self.account and e["tag"] == self.tag)
+                       if e["rules"] == RULES and e["account"] == self.account and e["tag"] == self.tag
+                       and not e.get("why", "").endswith(" or not: not read"))
 
     def judge(self, info, texts, sp, ivs, tile, size=None, raws=None, gym_top20=None, clear=False, unstar=False,
               iv_top=None, pure_top=None, hold=None):

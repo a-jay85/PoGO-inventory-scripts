@@ -313,7 +313,10 @@ def ocr(path):
                 if m and t[1] > 0.095 and not re.search(r"sign|found", t[4], re.I):
                     count.append(t[:4] + (m.group(0),))
         out = out + tabs + count
-    thin = kind == "list" and (len(tiles(out)) < len(tile_cps(out)) or not tiles(out))  # (no tiles at all on a
+    thin = kind == "list" and (len(tiles(out)) < len(tile_cps(out)) or not tiles(out) or orphan_names(out))
+    # (orphan names: rows read upside down lose their CPs too, so CPs and names still match. Costume Zubats, Pixel
+    # 2026-11-24: 'pegnzo' for Zubat, 'esınippa' for Happiny, 3 tiles of 9; the door's costume search read 9 of 15
+    # and called every GIV one not sure. 2x read all 9.) (no tiles at all on a
     # list: an iPhone list's one tile read its CP and name upside down, 'GIZE' for CP 3219, and /raidteam tapped a tile
     # it couldn't see, 2026-11-19. The Pixel too: a favorite's star read 'CP 2186K' and raidteam keep stopped on a
     # 1-tile list it read as 0, 2026-11-20. 2x read both. A real 0 pays the 2nd read: about 0.1 s)
@@ -338,6 +341,17 @@ def ocr(path):
             # no YES or NO, its clock read 'З:44', and /cleantrades stopped on 'the power-up didn't show', 2026-11-19)
             return again + (tabs if not full_list(again) else []) + count
     return out
+
+
+def orphan_names(texts):
+    """a list's text lower than a CP label could hide under the search bar (y 0.38+), above the round buttons, that is
+    no CP label and no tile name under one, 2+ in one row, each in a CP label's column: a row the reader took upside
+    down, CPs and all. (A trade screen, a search panel's labels: in no column, or 1 to a row)"""
+    cps = tile_cps(texts)
+    cols = [c[0] + c[2] / 2 for c in cps]
+    lost = [t for t in texts if 0.38 < t[1] < 0.88 and t not in cps and not any(under(t, c) for c in cps)
+            and any(abs(t[0] + t[2] / 2 - x) < 0.06 for x in cols)]
+    return any(sum(abs(u[1] - t[1]) < 0.01 for u in lost) >= 2 for t in lost)
 
 
 def size_lost(texts):

@@ -41,6 +41,8 @@ ui.ocr = lambda path: [] if path is None else _ocr(path)
 
 REAL = [  # (bar read, search typed): straight from the run logs
     (",lucky&320&!costume", "lucky&320&!costume"),
+    (",82-983,999-1000,1011-1013,1019", "#GIV&!legendary&!mythical&!ultrabeasts&!gigantamax&!#IVC&!#PvpC&" +
+     ",876-877,884-887,899,901,904,906-911,915-945,948-950,955-956,960-962,968,971-975,977-980,982-983,999-1000,1011-1013,1019"),  # the cut-off 9
     ("#Nope&shadow&!shiny&!costume&!", "#Nope&shadow&!shiny&!costume&!xxl&!xxs"),
     ("1-26,172&countcandyx|360-", "1-26,172&countcandyxl360-"),
     ("144&3*,*,4*&!galar", "144&3*,4*&!galar"),

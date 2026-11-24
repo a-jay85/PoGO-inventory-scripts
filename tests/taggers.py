@@ -103,7 +103,7 @@ def tradeable_bulk(f):
         return rules.XLX
     if any(pile(tr.BULK_REST + q) for q in PLAN["giv_evolved"]) or pile(tr.BULK_REST + "&!traded&distance100-"):
         return "GIV"
-    if any(pile(tr.BULK_REST + q) for q in tr.giver_short_searches(TABLES[TAKER]["team_xl"], MODEL, TABLES[TAKER]["team_line"])):
+    if any(pile(tr.BULK_REST + q) for q in giver_short()):
         return "GIV"
     return None
 
@@ -117,6 +117,14 @@ def clean_bulk(f):
 
 
 MODEL = tr.Model()
+_GIVER_SHORT = []
+
+
+def giver_short():
+    """tradeable.giver_short_searches for TABLES, built once (its queries() per Pokémon tripled the test's time)"""
+    if not _GIVER_SHORT:
+        _GIVER_SHORT.extend(tr.giver_short_searches(TABLES[TAKER]["team_xl"], MODEL, TABLES[TAKER]["team_line"]))
+    return _GIVER_SHORT
 
 
 def grid():

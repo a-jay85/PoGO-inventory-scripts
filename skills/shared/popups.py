@@ -222,6 +222,16 @@ def mirroring_welcome(texts):
     return ui.center(hit) if hit and "IPHONE ON YOUR MAC" in ui.joined(texts) else None
 
 
+def ios_update(texts):
+    """iOS's own 'iOS 27.3 Beta 2 Not Installed / The update will try again later.' box over the home screen, OK its
+    only button (iPhone, 2026-11-24 05:25: Spotlight wouldn't open under it, and /gymfeed stopped after 3 tries): OK"""
+    if ui.ANDROID:
+        return None
+    j = ui.joined(texts)
+    hit = ui.label(texts, "OK")
+    return ui.center(hit) if hit and ("NOT INSTALLED" in j or "TRY AGAIN LATER" in j) else None
+
+
 # name, where its tap goes, what the log says, seconds the box takes to go
 BOXES = (
     ("trade box", trade_ok, "a trade's box is up ({}): tapping OK", 1.5),
@@ -244,6 +254,7 @@ BOXES = (
     ("safety", safety, "the 'Stay Aware of Your Surroundings' warning is up: tapping OK", 1.5),
     ("rocket radar", rocket_radar, "a new Rocket Radar is up: tapping EQUIP, its only button", 2.5),
     ("mirroring welcome", mirroring_welcome, "iPhone Mirroring's welcome page is up: tapping Not Now", 2.0),
+    ("ios update", ios_update, "iOS's 'update not installed' box is up: tapping OK", 1.0),
     ("battery saver", battery_saver, "Android asks to turn on Extreme Battery Saver: tapping No thanks", 1.0),
 )
 

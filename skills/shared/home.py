@@ -392,6 +392,8 @@ def reach(storage):
             search.to_search_list()  # its own rule for a tag sheet left open
             return base.look()[0]
         elif screen == "ios-home":
+            if popups.clear(texts, bounds):  # an iOS box over the home screen (an update that failed, 2026-11-24)
+                continue  # blocks Spotlight: close it first, so it doesn't use up a try
             if home_taps >= IOS_OPEN_TRIES:  # each tap gives LOAD_TIMEOUT again: without this it never ends
                 keep_capture("start")  # (2026-11-01: 300 taps in 35 min, the game wouldn't open from any icon)
                 raise Stop(f"tapped Pokémon GO on the iPhone's home screen {home_taps} times and it didn't open: "

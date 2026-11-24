@@ -25,6 +25,8 @@ A read that says something isn't there (no name, a grey icon, no X, 0 results, n
 
 Something that needs a look on a phone but can't be done now (the phone is busy, the user is using it, a run left a Pokémon unsure) goes in the phone backlog: GitHub Issues in the private repo `a-jay85/PoGO-inventory-scripts-backlog`, through `backlog.py` (repo root). Search before filing. When both phones are free, `python3 backlog.py ready` says so and lists what's waiting. `.claude/skills/backlog/SKILL.md` has how to file and work it.
 
+A fix that needs a phone test, with the phone busy, never waits for the phone. Open the PR, write `No phone test: phone busy, filed in backlog #<n>` in its body, and file a `fix`-kind backlog issue (the PR URL, the exact `watch.py` command to run, what to look for). The night backlog run tests it and closes the issue. Don't merge until that test passes.
+
 ## Running the scripts
 
 - `POGO_PHONE=android`: the Pixel, over USB. Nothing set: the iPhone, through iPhone Mirroring. `POGO_PHONE=both`: `/gift` and `/mega` run both at once.

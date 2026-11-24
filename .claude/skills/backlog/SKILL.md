@@ -23,7 +23,11 @@ Pokémon unsure (a read that failed, a by-hand call, a list that ended early).
      `/tmp/pogo-watch/<stamp>.log`, or a PR URL of this repo. It cites a `file:line` and says what to look at and what
      goes wrong if nobody does. `new` exits 2 and names the rule it broke otherwise.
    - Title: the Pokémon or the script step, e.g. `Rattata CP457 2/3/2 (HashTagAJay #GIV): size not read`.
-3. Many of one kind from one run (50 species specieswise wasn't sure of): one issue with a checklist.
+3. A fix that needs a phone test while the phone is busy: don't wait for it. Open the PR, put `No phone test: phone busy,
+   filed in backlog #<n>` in its body, and file a `fix` issue with the PR URL, the exact `watch.py` command and what
+   to look for. The night run tests it from the worktree, then merges and closes the issue. Keep the worktree until then
+   (`wt_cleanup.py` skips it while the PR is open).
+4. Many of one kind from one run (50 species specieswise wasn't sure of): one issue with a checklist.
 
 ## Work it
 

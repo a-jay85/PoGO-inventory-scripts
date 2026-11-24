@@ -10,9 +10,9 @@ pile's bars50 (the lowest IV sum that could make some Team Potential): not sure,
 Under both it can't make a team. Nor can one whose stars the count's
 search left out (stars: its IV sum that low, its CP that low or lower).
 """
-import glob, json, os, time
+import glob, os, time
 
-from base import log
+from base import log, read_json
 
 RUNS = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "roster", "runs")
 _TEAMS = {}  # account -> (teams dict or None, days old)
@@ -26,9 +26,8 @@ def newest(who):
         return _TEAMS[who]
     got = None, None
     for p in sorted(glob.glob(os.path.join(RUNS, "*-raidteam", "teams.json")), reverse=True):
-        try:
-            t = json.load(open(p))
-        except (OSError, ValueError):
+        t = read_json(p)
+        if t is None:
             continue
         if t.get("trainer") == who and not t.get("limit"):
             when = time.mktime(time.strptime(t["counted"], "%Y-%m-%d %H:%M"))

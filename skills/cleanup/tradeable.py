@@ -125,20 +125,20 @@ def cmd_refresh():
             if min(ivs) >= PVP_FLOOR:
                 keep.setdefault(sid, []).append(f"{cap}:#{i}")
     out = os.path.join(HERE, f"pvp-giv-{time.strftime('%Y%m%d')}.json")
-    json.dump(dict(sorted(keep.items())), open(out, "w"), indent=0)
+    base.write_json(out, dict(sorted(keep.items())), indent=0)
     print(f"{len(keep)} species -> {out}")
     gm = json.load(urllib.request.urlopen(PM_URL))
     hard = hard_evolutions(gm)
     out = os.path.join(HERE, f"giv-evolved-{time.strftime('%Y%m%d')}.json")
-    json.dump(dict(sorted(hard.items())), open(out, "w"), indent=0)
+    base.write_json(out, dict(sorted(hard.items())), indent=0)
     print(f"{len(hard)} hard evolutions -> {out}")
     can = dynamax_species(gm)
     out = os.path.join(HERE, f"dynamax-{time.strftime('%Y%m%d')}.json")
-    json.dump(can, open(out, "w"))
+    base.write_json(out, can)
     print(f"{len(can)} dex numbers can Dynamax -> {out}")
     xl = max_move_xl(gm)
     out = os.path.join(HERE, f"maxmove-xl-{time.strftime('%Y%m%d')}.json")
-    json.dump(xl, open(out, "w"), indent=0)
+    base.write_json(out, xl, indent=0)
     print(f"{len(xl)} dex numbers' Max Move Candy XL -> {out}")
     refresh_eggs()
 
@@ -160,7 +160,7 @@ def refresh_eggs():
         if sid not in out.setdefault(e["eggType"], []):
             out[e["eggType"]].append(sid)
     f = os.path.join(HERE, f"eggs-{time.strftime('%Y%m%d')}.json")
-    json.dump({k: sorted(v) for k, v in sorted(out.items())}, open(f, "w"), indent=0)
+    base.write_json(f, {k: sorted(v) for k, v in sorted(out.items())}, indent=0)
     print(f"{sum(map(len, out.values()))} hard egg species -> {f}")
 
 
@@ -328,7 +328,7 @@ def cmd_read(resume=None):
     home.start()
     cache = json.load(open(resume)) if resume else {}
     saved = os.path.join(base.RUN_DIR, "searches.json")
-    n = tagsheet.counter(cache, lambda q, c: json.dump(cache, open(saved, "w"), indent=0),  # saved as it goes
+    n = tagsheet.counter(cache, lambda q, c: base.write_json(saved, cache, indent=0),  # saved as it goes
                          edit=True, live=True)  # (like roster: edit the last search's end, count with the keyboard up)
     m = Model()
     fams = families_by_dex(m)
@@ -340,7 +340,7 @@ def cmd_read(resume=None):
     xl = [h for c in chunks for h in tagsheet.group_hits(c, "", f"countcandyxl{XL_CAP}-", n, seen)]
     log(f"{XL_CAP}+ Candy XL: {xl}")
     out = {"trainer": who, "lucky_low_candy": lucky, "xl_full": xl}
-    json.dump(out, open(os.path.join(base.RUN_DIR, "read.json"), "w"), indent=1)
+    base.write_json(os.path.join(base.RUN_DIR, "read.json"), out, indent=1)
 
 
 # ---------- plan ----------
@@ -543,7 +543,7 @@ def cmd_plan(to=TAKER):
         sys.exit(str(e))
     why, evolved = sp["why"], sp["evolved"]
     base.new_run_dir(os.path.join(HERE, "runs"), suffix="plan")
-    json.dump(plan, open(os.path.join(base.RUN_DIR, "plan.json"), "w"), indent=1)
+    base.write_json(os.path.join(base.RUN_DIR, "plan.json"), plan, indent=1)
     lines = [f"# Tradeable plan {time.strftime('%Y-%m-%d %H:%M')}", ""]
     lines += [f"- {k}: {v}" for k, v in plan["from"].items()] + [""]
     for t in TAGS:
@@ -584,7 +584,7 @@ def cmd_dynamax():
     for lo, ds in families_by_dex(m):
         if can & set(ds):
             out[lo] = n(",".join(dex.ranges(ds)) + "&dynamax")
-            json.dump({"trainer": who, "families": out}, open(os.path.join(base.RUN_DIR, "dynamax.json"), "w"))
+            base.write_json(os.path.join(base.RUN_DIR, "dynamax.json"), {"trainer": who, "families": out})
     log(f"{sum(1 for v in out.values() if v)} of {len(out)} families have a Dynamax one -> {base.RUN_DIR}")
 
 
@@ -806,7 +806,7 @@ def count_team100(who):
         counts[p] = n
         log(f"team100: {p}: {n}")
     f = os.path.join(base.RUN_DIR, "team100.json")
-    json.dump({"trainer": who, "counted": time.strftime("%Y-%m-%d %H:%M"), "counts": counts}, open(f, "w"), indent=1)
+    base.write_json(f, {"trainer": who, "counted": time.strftime("%Y-%m-%d %H:%M"), "counts": counts}, indent=1)
     log(f"team100: {f}")
     return counts
 
@@ -1001,7 +1001,7 @@ def cmd_tag(limit):
     except NoData as e:
         raise Stop(str(e))
     save_plan = os.path.join(base.RUN_DIR, "plan.json")  # what this run tagged by, for the record
-    json.dump(plan, open(save_plan, "w"), indent=1)
+    base.write_json(save_plan, plan, indent=1)
     XLX_LEVEL = plan.get("xlx_level", XLX_LEVEL)
     log(f"{who}: tagging for {to} from {plan['from']}, XLX at level {XLX_LEVEL}+")
     search.to_search_list()
@@ -1084,7 +1084,7 @@ def bulk_first():
     if not n or n * BULK_HIT * DOOR_OPEN_S < len(todo) * TAG_SEARCH_S:
         log(f"no tag searches first: {n} in the pile, {len(todo)} searches cost more than the door's opens")
         return
-    json.dump(plan, open(os.path.join(base.RUN_DIR, "plan.json"), "w"), indent=1)  # what this run tagged by
+    base.write_json(os.path.join(base.RUN_DIR, "plan.json"), plan, indent=1)  # what this run tagged by
     log(f"{n} in the pile: {len(todo)} tag searches first, then the door for the rest")
     bulk_tag(plan)
 

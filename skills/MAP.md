@@ -91,7 +91,6 @@ The shared tapper: screen reading, taps, timing, run folders and logging, and th
 - `new_run_dir(runs, d=None, suffix='')`: a new run folder in runs, named by the time (and suffix), or d if given
 - `trainer_of(run)`: the account a run folder was: its trainer.txt (dex writes one), else the first "signed in: X" in its log.txt (home.trainer logs it), else None
 - `newest(folder, pattern)`: the newest file matching folder/pattern (dated names sort by date), or None
-- `write_json(path, data, **kw)`: write a file other runs read (a day's count, a skip list): a temp file first, then swapped in, so a run stopped mid-write never leaves half a file
 - `save(name, data)`
 - `load(name, default=None)`
 - `tap_gap()`: wait until a short random gap has passed since the last tap
@@ -285,6 +284,12 @@ Start from anywhere: every script calls start() first, so the phone can be on an
 - `split_name(n, ws)`: art over the middle of the name splits it in two ('HashTag', '& 91 AD D', 'Jay', iPhone /gift ME tab, 2026-11-21): one word is its start, of 5 letters or more, and …
 - `to_map()`: from anywhere to the map -> its texts
 - `trainer(fast=True)`: the signed-in trainer's name
+
+## skills/shared/jsonfile.py
+JSON files other runs read back (a day's count, a resume point, a skip list)
+
+- `read(path, default=None)`: -> the file's JSON, or default when it's missing or not whole JSON
+- `write(path, data, **kw)`: write a file other runs read: a temp file first, then swapped in, so a run stopped mid-write never leaves half a file
 
 ## skills/shared/locks.py
 The phone locks: one file per phone that session.claim() holds (flock) for a whole run

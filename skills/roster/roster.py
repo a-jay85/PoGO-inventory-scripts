@@ -37,7 +37,7 @@ HERE = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 sys.path.insert(0, os.path.join(HERE, "..", "dex"))
 import dex
-from base import Stop, log, newest
+from base import Stop, log, newest, write_json
 import search, session, tagsheet
 
 TRAINER = "HashTagAJay"  # the default; CyrillJan can be counted too (tradeable.py plan --to CyrillJan)
@@ -396,8 +396,7 @@ def count_class(model, d, sids, n, unsure):
 
 
 def save(path, counts, unsure, who):
-    json.dump({"trainer": who, "counts": [[*k, v] for k, v in counts.items()], "unsure": unsure}, open(path, "w"),
-              indent=0)
+    write_json(path, {"trainer": who, "counts": [[*k, v] for k, v in counts.items()], "unsure": unsure}, indent=0)
 
 
 def load_counts(path):
@@ -445,10 +444,10 @@ def report(model, counts, unsure, who, out_dir):
     plain = model.helps(counts, megas=False)  # (CyrillJan's Reroll: a mega's place needs only one 100)
     plain_in = lambda lo, hi: sorted(s for s, (p, _) in plain.items() if lo <= p <= hi and not model.special(s))
     name = lambda s: model.by[s]["speciesName"]
-    json.dump({"pulled": model.data.get("pulled"), "trainer": who,
+    write_json(os.path.join(out_dir, "roster.json"), {"pulled": model.data.get("pulled"), "trainer": who,
                "species": {s: {"place": p, "bosses": bs[:10], "special": model.special(s)} for s, (p, bs) in best.items()},
                "reroll": reroll, "giv": giv, "reroll_plain": plain_in(1, 1), "giv_plain": plain_in(2, TEAM)},
-              open(os.path.join(out_dir, "roster.json"), "w"), indent=1)
+               indent=1)
 
     def team_lines(b):
         t = model.team(b, counts)

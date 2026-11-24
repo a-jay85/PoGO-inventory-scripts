@@ -8,6 +8,7 @@ from collections import Counter
 
 from PIL import Image, ImageOps
 import ui, pvp, pokedb
+from jsonfile import read as read_json, write as write_json  # (stdlib only: timer.py and ui.py use it too)
 from ui import Refused, Moving
 
 HERE = os.path.dirname(os.path.realpath(__file__))
@@ -100,16 +101,6 @@ def newest(folder, pattern):
     import glob
     got = sorted(glob.glob(os.path.join(folder, pattern)))
     return got[-1] if got else None
-
-
-def write_json(path, data, **kw):
-    """write a file other runs read (a day's count, a skip list): a temp file first, then swapped in, so a run
-    stopped mid-write never leaves half a file. kw goes to json.dump"""
-    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
-    tmp = path + ".tmp"
-    with open(tmp, "w") as f:
-        json.dump(data, f, **kw)
-    os.replace(tmp, path)
 
 
 def save(name, data):

@@ -64,7 +64,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "ivc"))
 import dex, ivc, pvp
 import roster
 from roster import COUNTERS, is_mega, real_boss, boss_name, attacker_name
-from base import Stop, Skip, log, newest
+from base import Stop, Skip, log, newest, write_json
 
 TEAM = roster.TEAM
 TOP = pvp.LEVELS[-1]  # Team Potential: every copy powered up to here (the user, 2026-11-19)
@@ -781,12 +781,12 @@ def cmd_count(c, resume, out_dir):
     for q in piles:  # sorted by CP once, for all of them
         if not c.walk[q]["end"] and not c.walk[q].get("cp_done"):
             cp_pass(c, q)
-            json.dump(c.state(who), open(path, "w"), indent=0)
+            write_json(path, c.state(who), indent=0)
     named = False
     for q in piles:  # then by Name once
         if not c.walk[q]["end"]:
             named = name_pass(c, q, named)
-            json.dump(c.state(who), open(path, "w"), indent=0)
+            write_json(path, c.state(who), indent=0)
     if c.sorted:  # other scripts walk the list as it's sorted: back to Recent, newest first, the game's own
         import base
         search.sort_recent(base.look()[3])
@@ -795,7 +795,7 @@ def cmd_count(c, resume, out_dir):
 
 def report(c, who, out_dir):
     t = c.teams(who)
-    json.dump(t, open(os.path.join(out_dir, "teams.json"), "w"), indent=1)
+    write_json(os.path.join(out_dir, "teams.json"), t, indent=1)  # (raidteams.py reads it for the door)
     keep = [x for x in t["copies"] if x["on"]]
     lines = [f"# /raidteam: {who}'s 6 per raid boss: Team Available at today's levels, Team Potential at level 50", "",
              f"Counted {t['counted']}. {len(t['copies'])} copies counted ({sum(not x.get('from') for x in c.copies)} opened), "
@@ -875,7 +875,7 @@ def cmd_keep(t, path, limit=None):
                     favorite(info, texts, RAID_OFF)
                     made += 1
                 done.add(member_key(x))
-                json.dump(sorted(done), open(done_path, "w"), indent=0)
+                write_json(done_path, sorted(done), indent=0)
                 if not left or (limit is not None and made >= limit):
                     break
             base.go("close", "list")

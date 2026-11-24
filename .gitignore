@@ -13,3 +13,5 @@ skills/shared/.calib.json
 skills/trade/.state.json
 skills/shared/helper
 skills/shared/pokedb.sqlite
+# a write stopped mid-way (jsonfile.write): the temp file it swaps in
+*.json.tmp

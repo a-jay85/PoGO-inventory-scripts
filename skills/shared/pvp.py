@@ -14,6 +14,7 @@ evolutions, and PvP ranks and nicknames.
 """
 import json, math, os, re, sys, urllib.request
 from functools import lru_cache
+import jsonfile
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 GM_URL = "https://raw.githubusercontent.com/pvpoke/pvpoke/master/src/data/gamemaster.json"
@@ -39,7 +40,7 @@ def update():
     urllib.request.urlretrieve(JS_URL, os.path.join(HERE, "Pokemon.js"))
     lists = {t: [p["speciesId"] for p in json.load(urllib.request.urlopen(RANK_URL.format(path)))]
              for t, path in RANK_LISTS.items()}
-    json.dump(lists, open(os.path.join(HERE, "rankings.json"), "w"), indent=0)
+    jsonfile.write(os.path.join(HERE, "rankings.json"), lists, indent=0)  # (every script reads it on import)
 
 
 if len(sys.argv) > 1 and sys.argv[1] == "update":

@@ -1109,10 +1109,7 @@ def today():
 
 
 def state():
-    try:
-        return json.load(open(STATE))
-    except (OSError, ValueError):
-        return {}
+    return base.read_json(STATE, {})
 
 
 def made_today():

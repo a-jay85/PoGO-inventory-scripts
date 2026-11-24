@@ -1369,7 +1369,8 @@
    "top_at",
    "top_level",
    "tops",
-   "ui_key"
+   "ui_key",
+   "write_json"
   ],
   "runs": [
    "skills/roster/runs"
@@ -1414,7 +1415,8 @@
    "region",
    "report",
    "save",
-   "script"
+   "script",
+   "write_json"
   ],
   "runs": [
    "skills/roster/runs"
@@ -1674,6 +1676,7 @@
    "opened_right",
    "paused",
    "poll_gap",
+   "read_json",
    "recover",
    "remember",
    "remember_counts",
@@ -1896,6 +1899,14 @@
    "trainer",
    "unstick",
    "where"
+  ],
+  "runs": []
+ },
+ "skills/shared/jsonfile.py": {
+  "copies": {},
+  "names": [
+   "read",
+   "write"
   ],
   "runs": []
  },
@@ -2251,7 +2262,8 @@
    "log",
    "newest",
    "on_team",
-   "path_of"
+   "path_of",
+   "read_json"
   ],
   "runs": [
    "skills/roster/runs",

@@ -297,8 +297,11 @@ class Door:
         elif (unstar or v.unstar) and v.kind == "tag":
             base.set_star(False)
         on = {ui.norm(t) for t in v.tags}
-        off = [t for t in (*([self.tag] if self.source else ()), *v.off) if ui.norm(t) not in on]  # (GIV judged GIV again)
         has = lambda t: any(ui.norm(x) == ui.norm(t) for x in info["tags"])
+        off = [t for t in (*([self.tag] if self.source else ()), *(t for t in v.off if has(t))) if ui.norm(t) not in on]
+        # (GIV judged GIV again.) A verdict's off tag the page doesn't show isn't hunted for on the sheet: every GIV at
+        # level 26+ asks for XLX off, gone since 2026-11-19, and the hunt cost ~27 s a tile (Pixel, CyrillJan's #GIV walk,
+        # 2026-11-24: 70 tiles)
         if v.tags and not off and all(has(t) for t in v.tags):  # it has them all already: no trip to the tag sheet
             log(f"  door: has {'+'.join(v.tags)} already")
         elif v.tags or off:

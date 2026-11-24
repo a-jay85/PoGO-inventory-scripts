@@ -239,7 +239,7 @@ def menu_counts(menu, texts, path):
     return out
 
 
-known = []  # the (name, trainer)s met in this gym. A gym holds one of each species, so the name alone says who
+known = []  # the (name, trainer)s met in this gym. A gym holds one of each species and one per trainer
 
 
 def like(a, b, enough):
@@ -292,10 +292,18 @@ def who(texts):
            and not re.fullmatch(r"[\d\W]+", t[4].strip()) and len(t[4].strip()) > 2]
     trainer = " ".join(sorted(mid))
     for k in known:
-        if like(k[0], name, 0.8):
+        if like(k[0], name, 0.8) or same_chars(k[0].upper(), name.upper()) or same_trainer(k[1], trainer):
             return k
     known.append((name, trainer))
     return name, trainer
+
+
+def same_trainer(a, b):
+    """two trainer reads with a long word alike. A gym holds one Pokémon per trainer, so it's the same page. Blissey's
+    '84 H' read as 'H ₺8' made a 2nd entry with the same trainer: 6 seen, and Snorlax was never opened (Oracle Park,
+    2026-11-23)"""
+    words = lambda s: [w for w in (re.sub(r"[^A-Za-z0-9]", "", w) for w in s.split()) if len(w) >= 6 and not w.isdigit()]
+    return any(like(x.upper(), y.upper(), 0.8) for x in words(a) for y in words(b))
 
 
 def gym_name(texts):

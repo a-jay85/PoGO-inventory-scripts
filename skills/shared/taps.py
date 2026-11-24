@@ -205,7 +205,14 @@ def top_select_all(path):
            if t.strip() == "SELECT ALL"]
     if got:
         log("SELECT ALL read again from the top band")
-    return got[:1]
+        return got[:1]
+    # the red GPS banner (location off for the run) over it: read under the banner. It runs into the banner's
+    # '(11)', so only the end reads ('11) LECT ALL'), and the box ends where SELECT ALL does (Pixel, 2026-11-24)
+    for x, y, bw, bh, t in ui.under_gps_banner(path, 0.6, y0, 1.0, y1):
+        if re.search(r"ECT\s*ALL$", ui.norm(t)):
+            log(f"SELECT ALL read under the GPS banner ({t!r})")
+            return [(x + bw - 0.16, y, 0.16, bh, "SELECT ALL")]
+    return []
 
 
 ZOOM_TOP = f"/tmp/pogo-selectall-{os.getpid()}.png"

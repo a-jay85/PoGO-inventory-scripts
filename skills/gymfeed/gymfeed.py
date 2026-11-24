@@ -81,6 +81,7 @@ WARM_SHARE = 0.1  # yellow with no magenta that makes a berry: Empoleon's feet a
 MAX_TAPS = 14  # taps on one Pokémon at most: the game takes 10 per 30 min, so more means the taps aren't feeding
 FULL_WAIT = 2.0  # seconds a berry must stay gone to call a Pokémon full
 
+PROFILE_WORDS = {"SOCIAL", "LEVEL", "BUDDY", "SCRAPBOOK", "JOURNAL", "TOTAL ACTIVITY", "STYLE"}  # the profile's ME tab
 CP_RE = pages.CP_RE
 # a gym view's CP label as OCR reads it over the busy gym: 'CP2407', 'P633', '฿633', 'GP2940', 'g2855', '2833'
 LABEL_RE = re.compile(r"^\W*[^\W\d]{0,2}\W?\s*\d{2,4}\W*$")  # and 'c*1677' (iPhone, 2026-11-08)
@@ -97,8 +98,9 @@ def where(path, texts):
         return "sortmenu"
     if pages.gym_badge(texts):
         return "badge"
-    if {"ME", "FRIENDS"} <= words:  # (scrolled down, its GYM BADGES can sit near the top too)
-        return "profile"
+    if {"ME", "FRIENDS"} <= words or len(words & PROFILE_WORDS) >= 2 or no_location(texts):  # (scrolled down, its
+        return "profile"  # GYM BADGES can sit near the top too). Its level ('80') passes for a CP label: with
+        # FRIENDS hidden it read as a gym view, and to_badge_list tapped X on it, 15 times in 30 s (iPhone, 2026-11-24)
     if pages.gym_badgelist(texts):
         return "badgelist"
     if "BERRIES" in words and "RAZZ BERRY" in j.upper():
@@ -108,6 +110,14 @@ def where(path, texts):
     if gym_view(texts):
         return "gymview"
     return home.where(path, texts)
+
+
+def no_location(texts):
+    """the profile under the game's red 'Failed to detect location. (12)' bar (the phone lost its GPS). The bar hides
+    its SOCIAL and FRIENDS tabs, not ME. Mid-scroll (its Adventure Sync part, 'EGGS') nothing else says profile, and
+    it read as an unknown screen: the hatch code closed it (iPhone, 2026-11-24 09:55)"""
+    return "FAILED TO DETECT LOCATION" in ui.joined(texts).upper() and \
+        any(ui.norm(t[4]) == "ME" and t[1] < 0.15 for t in texts)
 
 
 def look():
@@ -426,6 +436,7 @@ def sort_defending():
     """the badge list sorted by Defending, arrow down. The menu shows DEFENDING with no arrow (another sort) or arrow
     up; one tap on it makes it arrow down and shuts the menu (every run that opened the menu again to check saw it
     down). A 2nd tap would turn it up, so: read the arrow first, tap only when it isn't down"""
+    global list_sorted
     _, _, _, bounds = base.wait_for("badgelist", look=look, timeout=8)
     base.click(*SORT_BUTTON, bounds, fuzz=0.01)
     base.wait_for("sortmenu", look=look, timeout=6)
@@ -442,17 +453,28 @@ def sort_defending():
     else:
         base.tap_box(hit, bounds)
     base.wait_for("badgelist", look=look, timeout=6)
+    list_sorted = True
     time.sleep(0.5)  # the tiles shuffle into place
 
 
+list_top = False  # the badge list is at its top: opened from the profile by to_badge_list, and no drag since
+list_sorted = False  # sort_defending ran since the list was last opened
+
+
 def fresh_list():
-    """the gym badge list, opened anew so it starts at its top. The game keeps the list's scroll while it's open, and
-    a run that started on a list left scrolled down saw gyms not yours first and ended. A drag down at the top shuts
-    the list instead of scrolling (2026-11-08); shut and opened again it starts at the top"""
+    """the gym badge list, at its top. The game keeps the list's scroll while it's open, and a run that started on a
+    list left scrolled down saw gyms not yours first and ended. A drag down at the top shuts the list instead of
+    scrolling (2026-11-08); shut and opened again it starts at the top. So it's shut and opened again only when it
+    may be scrolled: found open, or pick dragged it. Its own opening from the profile, and the X out of a badge it
+    didn't scroll, leave it at the top (each pass shut it and opened it again: about 3 s)"""
     to_badge_list()
-    base.tap_x(look()[3], fuzz=0.006)
-    off_screen("badgelist")
-    to_badge_list()
+    if not list_top:
+        base.tap_x(look()[3], fuzz=0.006)
+        off_screen("badgelist")
+        to_badge_list()
+    t0 = time.time()  # a raid message left from into_gym sits over the sort button (#583): wait out what's left of it
+    if base.settle(raid_look, lambda r: r[0] != "raid", timeout=6)[0] == "raid" or time.time() - t0 > 0.5:
+        log(f"  waited {time.time() - t0:.1f}s on the badge list for the raid message to go")
 
 
 def pick(done):
@@ -460,6 +482,7 @@ def pick(done):
     Gold takes both reads: no meter under it and a gold frame. A badge that fails one is opened (one open too many
     costs a few seconds; a silver badge read as gold goes unfed). None also once a badge without the defender
     bubble shows: the sort put every gym of yours before it. Scrolls down a screen at most twice"""
+    global list_top
     mine = False  # a defender bubble seen: only then does a badge without one end the list. The bubble was measured
     # on the iPhone only; a badge opened without one still ends the run by its missing TIME DEFENDING
     for page in range(3):
@@ -485,6 +508,7 @@ def pick(done):
                     + ", opened to be sure")
             return name, (cx, top - 0.09), bounds
         if page < 2:
+            list_top = False
             base.drag(0.5, 0.8, 0.5, 0.35, bounds, android_settle=base.LIST_SETTLE)
     return None
 
@@ -504,6 +528,7 @@ def off_screen(screen, timeout=3.0):
 
 def to_badge_list():
     """from wherever (a gym, a badge, the profile, the map) to the gym badge list"""
+    global list_top, list_sorted
     scrolls = 0
     for _ in range(35):
         screen, texts, path, bounds = look()
@@ -517,6 +542,7 @@ def to_badge_list():
             lst = [t for t in texts if gb and ui.norm(t[4]).startswith("LIST") and t[1] > gb[0][1]]
             if lst and lst[0][1] < 0.85:
                 base.tap_box(lst[0], bounds, dy=-0.03)  # the green diamond over LIST >
+                list_top, list_sorted = True, False
                 off_screen(screen)
             elif re.search(r"ADD FRIEND|SENT YOU A GIFT|DAYS AGO|HOURS? AGO|MINUTES? AGO", ui.joined(texts).upper()):
                 # the FRIENDS tab (where /gift leaves it), maybe scrolled past its ADD FRIEND
@@ -579,8 +605,7 @@ def into_gym():
             # it (2026-11-23, Oracle Park: the words had gone by the look after 8 s, so the badge was tapped again and
             # the gym called shut, the next run in 30 min instead of when the raid ends)
             screen, _, _, _ = base.wait_for("gymview", "raid", look=raid_look, timeout=8, capture=False)
-            if screen == "raid":
-                base.settle(raid_look, lambda r: r[0] != "raid", timeout=6)  # let it fade: it sits over the next taps
+            if screen == "raid":  # out at once: the X goes under it, and fresh_list waits out the rest of it
                 return "raid"
             time.sleep(1.5)  # the Pokémon walk in and their CP labels settle
             return "gym"
@@ -890,7 +915,8 @@ def script(limit):
     home.start(storage=False)
     while total < limit:
         fresh_list()
-        sort_defending()
+        if not list_sorted:  # it keeps its sort while it's open
+            sort_defending()
         got = pick(done)
         if not got:
             log("no gym of yours left that isn't gold")

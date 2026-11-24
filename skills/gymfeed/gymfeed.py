@@ -14,7 +14,7 @@
   seconds, which it reads for while it waits for the gym view, and the next run is 45 min away (a raid's length).
 - Taps each Pokémon in the gym view, right-most first, lower if nothing new opens (a back-row one shows only a bit).
   On its page it picks a berry from the berry menu (FEEDABLE: Razz, Nanab, Pinap, each down to a floor; never Golden
-  Razz or Silver Pinap), taps the floating berry about every 2.5 s until it stays gone for 2 s (full for now: the
+  Razz or Silver Pinap), taps the floating berry each time it floats again (2.6-3.6 s after a tap) until it stays gone for 2 s (full for now: the
   game takes 10 per Pokémon per 30 min; a picture is kept), then the round X back to the gym view. No berry to spare: the run ends. It looks again right before each
   tap: a tap with no berry there hits the faint Pokémon behind and jumps to its page. If the page did change, feeding
   stops (a picture is kept) and that one gets its turn later.
@@ -80,6 +80,9 @@ BERRY_BOX = (0.36, 0.72, 0.64, 0.88)
 WARM_SHARE = 0.1  # yellow with no magenta that makes a berry: Empoleon's feet are 8 %, a Nanab 12-17 %
 MAX_TAPS = 14  # taps on one Pokémon at most: the game takes 10 per 30 min, so more means the taps aren't feeding
 FULL_WAIT = 2.0  # seconds a berry must stay gone to call a Pokémon full
+BACK_POLL = 0.1  # seconds between looks while the berry is gone. It comes back 2.6-3.6 s after a tap (every
+# berry of 13 iPhone runs, 2026-11-24): looks 1 s apart (0.6 s here) saw it up to 1 s late. The iPhone keeps looks
+# ui.LOOK_PERIOD apart anyway
 
 PROFILE_WORDS = {"SOCIAL", "LEVEL", "BUDDY", "SCRAPBOOK", "JOURNAL", "TOTAL ACTIVITY", "STYLE"}  # the profile's ME tab
 CP_RE = pages.CP_RE
@@ -721,7 +724,7 @@ def berry_back(me):
     just opened) -> (a berry floats, the last look: screen, texts, path, bounds)"""
     end = time.time() + FULL_WAIT
     while True:
-        time.sleep(0.6)
+        time.sleep(BACK_POLL)
         screen, texts, path, bounds = look()
         up = screen == "feed" and berry_up(path)
         if up or time.time() >= end or moved(screen, texts, me):
@@ -735,7 +738,7 @@ def feed(kind, have, left, me):
     global razz_seen
     floor = FEEDABLE[kind]
     spare = min(have - floor, left)
-    fed, start, why = 0, time.time(), "limit"
+    fed, start, why, backs = 0, time.time(), "limit", []
     while True:
         # a full Pokémon's berry can still show for a moment. A tap with no berry jumps to the faint Pokémon behind
         # (Blissey and Hitmonchan -> Greninja, 2026-11-06), so no tap before a look BERRY_WAIT after the last one
@@ -743,6 +746,8 @@ def feed(kind, have, left, me):
         up = screen == "feed" and berry_up(path)
         if not up and not moved(screen, texts, me):
             up, screen, texts, path, bounds = berry_back(me)
+        if up and fed:
+            backs.append(base.LAST_LOOK[0] - base.last_tap)  # the look that saw it began this long after the tap
         if moved(screen, texts, me):
             keep_capture(f"moved-{me[0]}")
             log(f"    the page changed from {me[0]} to {page_name(texts)}: stopping")
@@ -768,7 +773,8 @@ def feed(kind, have, left, me):
         spent.add(kind)
     if kind == "RAZZ":
         razz_seen = have - fed
-    log(f"    {kind}: {fed} taps in {time.time() - start:.0f}s, {why}")
+    log(f"    {kind}: {fed} taps in {time.time() - start:.0f}s, {why}"
+        + (f" (berry back {min(backs):.1f}-{max(backs):.1f}s after a tap)" if backs else ""))
     return fed, why
 
 

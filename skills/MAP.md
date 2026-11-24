@@ -793,7 +793,8 @@ The final tag for a Pokémon that just fell short of a keeper, judged right wher
 - `xxl(f)`: an XXL one, traded or not (the user's rule, 2026-11-04): never traded or transferred, it has value in showcases
 - `shiny(f, v)`: a shiny one (the user's rule, 2026-11-03): judged like any other first
 - `usual(f, t, today=None)`: final_tag's rules, for all but what a shiny one gets in the end
-- `giver_short(f)`: CyrillJan's pile (untraded: a traded one never gets here): GIV while CyrillJan has under XL_CAP Candy XL or under LUCKY_CANDY Candy of the family
+- `giver_short(f, t)`: CyrillJan's pile (untraded: a traded one never gets here): GIV while CyrillJan has under XL_CAP Candy XL or under LUCKY_CANDY Candy of the family
+- `team_short(f, t)`: either account (the user, 2026-11-23): GIV while the account holding it has under its line's Team Future/Ideal bar of Candy XL (t['team_xl']: XL_CAP for each 100 it has …
 - `special(f, sid, kinds, strip)`: a legendary, mythical or Ultra Beast one not kept (the user, 2026-11-19): star off, name back to the default
 - `dmax_short(f, t, sid)`: one that can Dynamax (or evolves into one that can), but isn't a Dynamax one: GIV while the account holding it is short of that family's Candy (DMAX_CANDY or less) or …
 - `two_xl(f, t, sid)`: 2XL (a Friendship Friday trade: a sure 2 Candy XL) when this account has under XL_CAP Candy XL of the family
@@ -871,6 +872,7 @@ Re-judge HashTagAJay's #GIV, #Transfer or #Reroll pile by species alone, with no
 - `tiers(caps)`: {key: CP cap} -> {key: its tier's cap}: caps sorted low to high, a new tier once one is over TIER x the tier's lowest
 - `dex_parts(by_dex, pile, size, caps=None)`: {dex: {sid: tag or None (not sure)}} -> ({tag: [search part]}, {tag: n species}, [(sid, why) not sure])
 - `candy_grid(sid, t)`: -> ([Candy range], [Candy XL range]): where the rules cut for this species (XL_CAP for 2XL and giver_short; LUCKY_CANDY for giver_short; DMAX_CANDY and one Max Move's XL …
+- `ranges(starts)`: {first value of each range} -> [(lo, hi)] in order, the last one up to TOP
 - `count_term(name, lo, hi)`
 - `runs(cells)`: [((lo, hi), tag)] in order -> the same with neighbours of one tag joined
 - `giver_tag(sid, t, open_facts, counts, vd, today)`: -> the one tag every value of the open facts gives a plain 0-2* untraded one of this species, or None
@@ -921,7 +923,11 @@ Tag CyrillJan's Tradeable saved search by what a trade to HashTagAJay is worth, 
 - `mega_sids()`: species that can Mega or Primal Evolve (DialgaDex's attackers)
 - `team_100s(who, m)`: -> Counter {family root: copies}: the 100s (15/15/15 its only IV read, not a shadow) in who's newest whole /raidteam count
 - `giver_100(m)`: -> has_100(sid): CyrillJan's newest whole /raidteam count has a 100 (15/15/15, not a shadow) of sid or of a stage that evolves into it
-- `giver_short_searches()`: the last GIV searches, after the far one: never traded, and CyrillJan has under XL_CAP Candy XL or under LUCKY_CANDY Candy of the family (verdict.giver_short)
+- `team_picks(m)`: -> {sid: [bosses]}: the #1 non-mega picks of Team Future and Team Ideal (roster.ideal_firsts, megas=False) that trade
+- `team_xl_need(m, ok, who)`: -> ({sid: [Candy XL who wants, the pick, its 100s] or None}, the team100.json read or None)
+- `cmd_team100()`: either account signed in: count_team100
+- `count_team100(who)`: the 4* count of each team_picks pick with the stages that evolve into it, shadow or not (queries' form terms) -> {pick: 100s}, also in <run folder>/team100.json
+- `giver_short_searches(team_xl=None, m=None)`: the last GIV searches, after the far one: never traded, and CyrillJan has under XL_CAP Candy XL or under LUCKY_CANDY Candy of the family (verdict.giver_short)
 - `size_search(size)`: a never-traded XXS one is renamed and tagged IVC, never GIV or Transfer
 - `bulk_searches(plan)`: the tag searches, in verdict.py's order -> [(tag, the species part, the rest of the suffix)]
 - `keep_xxl_ones(limit)`: an XXL one in the pile is no trade: a favorite, before any tag search

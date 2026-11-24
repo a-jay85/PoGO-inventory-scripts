@@ -1167,6 +1167,64 @@
   null,
   "CyrillJan has under 360 Candy XL of the family: the trade's XL"
  ],
+ "C team line, 4 100s, 1000 XL: GIV": [
+  "tag",
+  [
+   "GIV"
+  ],
+  null,
+  "CyrillJan has 4 100s of salamence's line (Team Future/Ideal): wants 1440 Candy XL, has 1000"
+ ],
+ "C team line, 4 100s, 1500 XL: Transfer": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "no rule wants it"
+ ],
+ "C team line, under 360 XL: GIV": [
+  "tag",
+  [
+   "GIV"
+  ],
+  null,
+  "CyrillJan has under 360 Candy XL of the family: the trade's XL"
+ ],
+ "C team line, XL count not read: unsure": [
+  "unsure",
+  [],
+  null,
+  "Candy XL not read"
+ ],
+ "C team line, 100s not counted: unsure": [
+  "unsure",
+  [],
+  null,
+  "a Team Future/Ideal pick's line: its 100s not counted (tradeable.py team100)"
+ ],
+ "H team line, 5 100s, 1000 XL: GIV": [
+  "tag",
+  [
+   "GIV"
+  ],
+  null,
+  "HashTagAJay has 5 100s of salamence's line (Team Future/Ideal): wants 1800 Candy XL, has 1000"
+ ],
+ "H team line, 5 100s, 1900 XL: Transfer": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "no rule wants it"
+ ],
+ "H team line, 100s not counted: unsure": [
+  "unsure",
+  [],
+  null,
+  "a Team Future/Ideal pick's line: its 100s not counted (tradeable.py team100)"
+ ],
  "C under 348 Candy: GIV": [
   "tag",
   [

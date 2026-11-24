@@ -18,11 +18,13 @@ to. Signed in as CyrillJan (the pile goes to HashTagAJay):
   GuaranteedLucky > Luckydex > Old > 2XL (a raid attacker's line or a Dynamax one) > Reroll (HashTagAJay needs it: a
   strong line or raid attacker, a ★100% hole, PvP, a lucky family under 348 candy, Tandemaus) > GIV (pattern
   collection) > xxs > GIV (level 26+) > GIV (evolved, Dynamax) > GIV (far) > GIV (can Dynamax, account short of candy)
-  > GIV (CyrillJan has under 360 Candy XL or under 348 Candy of the family: the trade's candy, giver_short) > Transfer
+  > GIV (CyrillJan has under 360 Candy XL or under 348 Candy of the family: the trade's candy, giver_short; a Team
+  Future/Ideal #1 pick's line wants 360 Candy XL for each 100 CyrillJan has of it, up to 5: tradeable.team_xl_need)
+  > Transfer
 Signed in as HashTagAJay (the pile goes to CyrillJan or the user's wife's account, judged for any account):
   regional (not from San Francisco) or Spinda: unsure (by hand) > GuaranteedLucky > Old > GIV (medal) > 2XL > Reroll > GIV > xxs > GIV (level 26+) >
   GIV (evolved, 10/12 km egg family, Smeargle, gym defender line, Dynamax) > GIV (trade evolution) > GIV (far) >
-  GIV (can Dynamax, account short of candy) > Transfer
+  GIV (can Dynamax, account short of candy) > GIV (a Team Future/Ideal line under its bar: team_short) > Transfer
   (Reroll: a strong line (tradeable.strong_lines: on the ideal raid team, or a gym defender's line), DialgaDex top 6
   vs some 4-star+ boss, Master League top 20. CyrillJan's Reroll, only for a 100 HashTagAJay still needs (the user,
   2026-11-20): on the ideal team or HashTagAJay's top 6 only as a mega doesn't count, nor a family HashTagAJay has 5 100s
@@ -173,6 +175,7 @@ def tables(to):
         _TABLES[to] = {"to": to, "why": sp["why"], "lucky": sp.get("lucky", {}), "evolved": sp["evolved"],
                        "hard": sp.get("hard", {}), "by_hand": set(sp.get("by_hand", ())),
                        "no_dmax": set(sp.get("no_dmax", ())), "xl_full": sp["xl_full"], "dmax": sp.get("dmax", {}),
+                       "team_xl": sp.get("team_xl", {}),
                        "from": sp["from"],
                        "raid": set(tr.pve(m)[0]),  # in DialgaDex's top PVE_TOP vs some boss, or evolves into one
                        "strong": set(tr.strong_lines(m)),  # a strong line's species (its shadows: never purified)
@@ -355,23 +358,47 @@ def usual(f, t, today=None):
         return tag("GIV", why="caught 100 km+ away")
     if v := dmax_short(f, t, sid):  # (after the GIVs that need no count read)
         return v
-    if to == TAKER and (v := giver_short(f)):
+    if to == TAKER and (v := giver_short(f, t)):
+        return v
+    if to != TAKER and (v := team_short(f, t)):  # (CyrillJan's: in giver_short, after its under-XL_CAP one)
         return v
     return transfer(f, sid, "no rule wants it")
 
 
-def giver_short(f):
+def giver_short(f, t):
     """CyrillJan's pile (untraded: a traded one never gets here): GIV while CyrillJan has under XL_CAP Candy XL or
     under LUCKY_CANDY Candy of the family. The trade pays the sender 2-4 Candy and a Candy XL, a transfer 1 Candy
-    (rules.TRADE_SENDER_CANDY; the user, 2026-11-23). The XL read alone settles it when it's under. None: not short"""
+    (rules.TRADE_SENDER_CANDY; the user, 2026-11-23). The XL read alone settles it when it's under. A Team
+    Future/Ideal #1 pick's line wants XL_CAP for each 100 CyrillJan has of it, up to TEAM_SLOTS (t['team_xl']:
+    tradeable.team_xl_need; the user, 2026-11-23). None: not short"""
     if f.candy_xl is None:
         return unsure("Candy XL not read")
     if f.candy_xl < XL_CAP:
         return tag("GIV", why=f"{f.account} has under {XL_CAP} Candy XL of the family: the trade's XL")
+    if v := team_short(f, t):
+        return v
     if f.candy is None:
         return unsure("Candy not read")
     if f.candy < rules.LUCKY_CANDY:
         return tag("GIV", why=f"{f.account} has {f.candy} Candy of the family, under {rules.LUCKY_CANDY}: the trade's candy")
+    return None
+
+
+def team_short(f, t):
+    """either account (the user, 2026-11-23): GIV while the account holding it has under its line's Team Future/Ideal
+    bar of Candy XL (t['team_xl']: XL_CAP for each 100 it has of the #1 pick, up to TEAM_SLOTS:
+    tradeable.team_xl_need). The trade gives the sender a Candy XL, a transfer none. None: no bar, or over it"""
+    team = t.get("team_xl", {})
+    if any(s in team and team[s] is None for s in f.sids):
+        return unsure("a Team Future/Ideal pick's line: its 100s not counted (tradeable.py team100)")
+    if not (bars := [team[s] for s in f.sids if s in team]):
+        return None
+    bar, pick, n = max(bars)
+    if f.xl is None:
+        return unsure("Candy XL not read")
+    if f.xl < bar:
+        return tag("GIV", why=f"{f.account} has {n} 100s of {pick}'s line (Team Future/Ideal): wants {bar} Candy XL, "
+                              f"has {f.xl}")
     return None
 
 

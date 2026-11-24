@@ -1195,11 +1195,9 @@ Feed berries to the Pokémon in the gyms you're defending, from the gym badge li
 - `feed(kind, have, left, me)`: on `me`'s page with `kind` picked (`have` in the bag): tap the berry while one floats, the bag keeps more than FEEDABLE[kind] and fewer than `left` are fed -> (berries …
 - `wait_feed(timeout=4)`
 - `feed_here(seen, total, limit)`: on a gym Pokémon's page: feed it if it's new -> berries fed
-- `open_at(cx, cy, bounds, seen, drops=TAP_DROPS)`: in the gym view: tap a Pokémon at `drops` under its CP label (or heart) until one not seen yet opens -> the drop that opened it, on its page
+- `open_at(cx, cy, bounds, seen, drops=TAP_DROPS, fuzz=None)`: in the gym view: tap a Pokémon at `drops` under its CP label (or heart) until one not seen yet opens -> the drop that opened it, on its page
 - `gym(total, limit)`: in a gym's view: feed every Pokémon in it -> berries fed here
-- `explore(seen, n, total, limit)`: on a gym Pokémon's page: try SWIPES from each page reached until n are seen or nothing's left to try
-- `untried(edges, stays, page)`: -> the swipes still to try from a page, the ones that stayed least first
-- `route(edges, stays, start)`: -> the swipes from start to the nearest page with an untried swipe (then that swipe), or None
+- `body_scan(points, drop, seen, size, bounds, total, limit)`: in the gym view: tap BODY_SPOTS around each point (a heart's bottom, or a label with `drop` down to where its heart ends), missed ones first, until `size` are seen, …
 - `script(limit)`
 - `main()`
 

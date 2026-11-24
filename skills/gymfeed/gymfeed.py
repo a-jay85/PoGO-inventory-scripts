@@ -18,9 +18,10 @@
   game takes 10 per Pokémon per 30 min; a picture is kept), then the round X back to the gym view. No berry to spare: the run ends. It looks again right before each
   tap: a tap with no berry there hits the faint Pokémon behind and jumps to its page. If the page did change, feeding
   stops (a picture is kept) and that one gets its turn later.
-- The CP labels undercount a gym (one in the back row may have none), so after the taps it always swipes from the
-  ones it opened, until 6 are seen or no swipe is left to try. Some swipes only take with the finger held still
-  first, on the spot where the hidden one shows.
+- The CP labels undercount a gym (one in the back row may have none), so after the taps, while fewer than 6 are seen,
+  it taps around each heart (or label) for the rest: just under it, to its sides, on it. A hidden one often shows only
+  its face between two in front. A spot that already opened one is skipped. Swipes between pages never moved to
+  another Pokémon on their own and once left the page (backlog #14).
 - Back to the badge list, sorted again, the next badge. It ends after N berries (--limit, default 100) or when no
   gym is left.
 
@@ -37,7 +38,6 @@ A run that hit --limit or ran out of spare berries also says "on". The timer onl
 finds a gym: switching accounts doesn't. The berry menu was measured on the Pixel only.
 """
 import argparse, os, re, sys, time
-from collections import Counter, deque
 from difflib import SequenceMatcher
 
 HERE = os.path.dirname(os.path.realpath(__file__))
@@ -68,9 +68,11 @@ LIMIT = 100
 PROFILE_DRAG_LOW = 0.65  # the low end of a profile scroll. A friend level card can come up over the profile between a
 # look and the drag, and its USE LUCKY EGG sits at 0.85 (2026-11-23: a drag from 0.85 almost used an egg). 0.9 is on
 # the bottom banner and doesn't scroll
-MAX_SWIPES = 40  # per gym. Each swipe is about 3 s
-SWIPE_STAYS = 4  # a swipe that stayed on the page this often isn't tried from there again. Most stays end with a retry:
-# Chansey's left to right stayed twice in a row, then a run gave up on it and never found Scizor (2026-11-06)
+BODY_SPOTS = ((0, 0.015), (0.03, 0.02), (-0.03, 0.02), (0, 0.0), (0.05, 0.045), (-0.05, 0.045))  # (dx, dy) from
+# a heart's bottom, for the ones the first taps missed. Snorlax behind Blissey showed only its face, right under its
+# heart: the drops of HEART_DROPS hit Blissey's head (Oracle Park, iPhone, 2026-11-23)
+LABEL_TO_HEART = 0.04  # a CP label's centre to its heart's bottom, about (Oracle Park, iPhone, 2026-11-23)
+BODY_TAPS = 12  # taps at BODY_SPOTS per gym at most. Each is about 3 s
 GYM_SIZE = 6  # the most a gym holds. The CP labels can't count them: 4 labels, 5+ Pokémon on 2026-11-06
 BERRY_SHARE = 0.03  # a floating Razz fills 7-22 % of BERRY_BOX with warm or green pixels and 24-32 % with magenta;
 # no berry is 0 % of each (both phones, 2026-11-08). The Pixel's berry is darker: a test for bright colour missed it
@@ -78,18 +80,6 @@ BERRY_BOX = (0.36, 0.72, 0.64, 0.88)
 WARM_SHARE = 0.1  # yellow with no magenta that makes a berry: Empoleon's feet are 8 %, a Nanab 12-17 %
 MAX_TAPS = 14  # taps on one Pokémon at most: the game takes 10 per 30 min, so more means the taps aren't feeding
 FULL_WAIT = 2.0  # seconds a berry must stay gone to call a Pokémon full
-
-# swipes on a gym Pokémon's page: (x1, y1, x2, y2). The direction and the height pick who comes next, and the speed
-# doesn't matter. In 130 swipes on a full gym (2026-11-06), right to left at 0.72 went round
-# Chansey > Blissey > Greninja > Hitmonchan > Ampharos > Chansey, and left to right at 0.72 took Chansey to Scizor, the
-# one off that ring. At 0.62 Greninja went to Ampharos 9 of 9, so that height misses Hitmonchan and Scizor. Held swipes
-# higher up gave a different answer each time
-SWIPES = [
-    (0.85, 0.72, 0.15, 0.72),
-    (0.15, 0.72, 0.85, 0.72),
-    (0.85, 0.62, 0.15, 0.62),
-    (0.15, 0.62, 0.85, 0.62),
-]
 
 CP_RE = pages.CP_RE
 # a gym view's CP label as OCR reads it over the busy gym: 'CP2407', 'P633', '฿633', 'GP2940', 'g2855', '2833'
@@ -239,6 +229,7 @@ def menu_counts(menu, texts, path):
     return out
 
 
+hits = []  # the gym view spots that opened a Pokémon, this gym: a body scan skips them
 known = []  # the (name, trainer)s met in this gym. A gym holds one of each species and one per trainer
 
 
@@ -797,14 +788,15 @@ def feed_here(seen, total, limit):
     return got
 
 
-def open_at(cx, cy, bounds, seen, drops=TAP_DROPS):
+def open_at(cx, cy, bounds, seen, drops=TAP_DROPS, fuzz=None):
     """in the gym view: tap a Pokémon at `drops` under its CP label (or heart) until one not seen yet opens -> the drop
-    that opened it, on its page. None: back in the gym view, nothing new opened"""
+    that opened it, on its page. None: back in the gym view, nothing new opened. Each spot that opened one goes in hits"""
     for drop in drops:
-        base.click(cx, cy + drop, bounds, fuzz=0.01 if drops is TAP_DROPS else 0.004)  # a heart's spot is tight
+        base.click(cx, cy + drop, bounds, fuzz=fuzz or (0.01 if drops is TAP_DROPS else 0.004))  # a heart's is tight
         if not wait_feed():
             log(f"    tap {cx:.2f},{cy + drop:.2f}: nothing opened")
             continue
+        hits.append((cx, cy + drop))
         me = who(look()[1])
         if me not in seen:
             return drop
@@ -818,12 +810,16 @@ def open_at(cx, cy, bounds, seen, drops=TAP_DROPS):
 def gym(total, limit):
     """in a gym's view: feed every Pokémon in it -> berries fed here"""
     known.clear()
+    hits.clear()
     labels = sorted(all_labels(), key=lambda c: -c[0])
     _, _, path, bounds = look()
+    keep_capture("gymview")
     pinks = hearts(path)
     log(f"  {len(labels)} CP labels and {len(pinks)} hearts in the gym view")    # the hearts count the gym and show where each one stands. Fewer hearts than labels: they misread, use the labels
     by_heart = len(pinks) >= max(len(labels), 1)
-    size = len(pinks) if by_heart else GYM_SIZE
+    # a heart whose motivation is all gone is dark grey, and hearts() misses it (Snorlax's, 2026-11-23): a gym
+    # with fewer than 6 hearts still gets the body scan (BODY_TAPS caps it)
+    size = GYM_SIZE
     drops = HEART_DROPS if by_heart else TAP_DROPS
     if by_heart:
         labels = sorted(pinks, key=lambda c: -c[0])
@@ -850,82 +846,35 @@ def gym(total, limit):
         todo = missed
     if len(seen) >= size or total + fed >= limit or out_of_berries:
         return fed
-    log(f"  {len(seen)} opened on a tap: looking for more by swiping")
-    # into the front Pokémon nearest the first one missed, then try each swipe from every page reached
-    if seen:
-        mx, my = missed[0] if missed else (0.5, 0.45)
-        opened = [c for c in labels if c not in missed] or labels
-        cx, cy = min(opened, key=lambda c: abs(c[0] - mx) + (0 if c[1] > my else 0.5))
-        base.click(cx, cy + drops[0], bounds, fuzz=0.01 if drops is TAP_DROPS else 0.004)
-        if not wait_feed():
-            log("  couldn't open a Pokémon to swipe from")
-            return fed
-    else:
-        return fed
+    log(f"  {len(seen)} opened on a tap: tapping around the {'hearts' if by_heart else 'labels'} for the rest")
     used = len(seen)
-    fed += explore(seen, size, total + fed, limit)
-    log(f"  {len(seen) - used} more by swiping, {len(seen)} in all: " + ", ".join(k[0] for k in seen))
-    base.tap_x(look()[3], fuzz=0.006)
-    base.wait_for("gymview", look=look, timeout=8)
+    fed += body_scan(missed + [c for c in labels if c not in missed], 0 if by_heart else LABEL_TO_HEART,
+                     seen, size, bounds, total + fed, limit)
+    log(f"  {len(seen) - used} more around them, {len(seen)} in all: " + ", ".join(k[0] for k in seen))
     return fed
 
 
-def explore(seen, n, total, limit):
-    """on a gym Pokémon's page: try SWIPES from each page reached until n are seen or nothing's left to try.
-    -> berries fed. Each page is known by its name; a path of swipes leads back to one with swipes left"""
-    edges, stays = {}, Counter()  # page -> {swipe: page it led to}; (page, swipe) -> times it stayed on that page
-    here, fed, used = who(look()[1]), 0, 0
-    while len(seen) < n and used < MAX_SWIPES and total + fed < limit and not out_of_berries:
-        path = untried(edges, stays, here)[:1] or route(edges, stays, here)
-        if not path:
-            break
-        for i in path:
-            x1, y1, x2, y2 = SWIPES[i]
-            _, _, _, bounds = look()
-            base.drag(x1, y1, x2, y2, bounds, ms=150, settle=0.7)
+def body_scan(points, drop, seen, size, bounds, total, limit):
+    """in the gym view: tap BODY_SPOTS around each point (a heart's bottom, or a label with `drop` down to where its
+    heart ends), missed ones first, until `size` are seen, BODY_TAPS are used, or no spot is left. A spot near one that
+    already opened a Pokémon is skipped: that one stands in front there -> berries fed"""
+    fed, used = 0, 0
+    for cx, cy in points:
+        for dx, dy in BODY_SPOTS:
+            if len(seen) >= size or used >= BODY_TAPS or total + fed >= limit or out_of_berries:
+                return fed
+            x, y = cx + dx, cy + drop + dy
+            if any(abs(x - hx) < 0.02 and abs(y - hy) < 0.015 for hx, hy in hits):
+                continue
             used += 1
-            if not wait_feed(3):
-                keep_capture("swipelost")
-                raise Stop("a swipe in the gym left the Pokémon page")
-            now = who(look()[1])
-            log(f"    swipe {i} ({used}): {here[0]} -> {now[0]}")
-            went = now != here
-            if went:
-                edges.setdefault(here, {})[i] = now
-            else:
-                stays[here, i] += 1
-            if now not in seen:
-                fed += feed_here(seen, total + fed, limit)
-                now = who(look()[1])  # feeding can leave it on another page
-            here = now
-            if not went:
-                break  # the rest of a path started from the page this one should have left
+            if open_at(x, y, bounds, seen, (0,), fuzz=0.004) is None:
+                continue
+            log(f"    tap {x:.2f},{y:.2f}: {who(look()[1])[0]}")
+            fed += feed_here(seen, total + fed, limit)
+            base.tap_x(look()[3], fuzz=0.006)
+            _, _, _, bounds = base.wait_for("gymview", look=look, timeout=8)
+            time.sleep(0.8)
     return fed
-
-
-def untried(edges, stays, page):
-    """-> the swipes still to try from a page, the ones that stayed least first"""
-    todo = [i for i in range(len(SWIPES)) if i not in edges.get(page, {}) and stays[page, i] < SWIPE_STAYS]
-    return sorted(todo, key=lambda i: stays[page, i])
-
-
-def route(edges, stays, start):
-    """-> the swipes from start to the nearest page with an untried swipe (then that swipe), or None"""
-    q, back = deque([start]), {start: None}
-    while q:
-        p = q.popleft()
-        todo = untried(edges, stays, p)
-        if todo and p != start:
-            path = todo[:1]
-            while back[p]:
-                p, i = back[p]
-                path.insert(0, i)
-            return path
-        for i, nxt in edges.get(p, {}).items():
-            if nxt not in back:
-                back[nxt] = (p, i)
-                q.append(nxt)
-    return None
 
 
 # ---------- the run ----------

@@ -183,15 +183,10 @@ def classify():
         if w & {"ADD FRIEND", "INVITE", "TRAINER NICKNAME"} or search_line() or count() is not None:
             return "friends"  # (count: the list scrolled past its search box keeps the '(515)' under FRIENDS. With
             # no count check it read as unknown after every scroll, Back, search again, and 6 stopped the run, Pixel 2026-11-23)
-    from search import pokeball
-    from home import splash
+    from home import splash, map_or_blank
     if splash(texts):
         return "blank"  # the game still loading: wait, no Back
-    if len(texts) <= 12 and path and pokeball(path):
-        return "map"
-    if all(t[1] < 0.08 for t in texts):
-        return "blank"
-    return "unknown"
+    return map_or_blank(path, texts)
 
 
 def look():
@@ -363,7 +358,7 @@ def to_list():
             t = label("FRIENDS")
             tap_text(t, dy=ui.TAB_DY) if t else tap(0.5, 0.1 + ui.TAB_DY)  # (under the word, as every tab tap)
         elif s == "map":
-            tap(0.13, 0.91)  # the profile picture
+            tap(*ui.PROFILE_PIC)
         elif s in ("friend", "meter", "picker", "preview", "giftpopup", "luckytrade", "trainercode", "buddy", "raid"):
             close()
         elif s == "nickname":

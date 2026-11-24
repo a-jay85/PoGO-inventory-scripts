@@ -260,6 +260,7 @@ Start from anywhere: every script calls start() first, so the phone can be on an
 - `spotlight(texts)`: iPhone: Spotlight is open (its 'Top Hit' heading)
 - `top_hit(texts)`: iPhone: Spotlight's Top Hit, upper case (the row just under the 'Top Hit' heading), None if none
 - `splash(texts)`: the game's loading picture ('SCOPELY The Pokémon Company' at the bottom): Back there closes the game (2026-10-28), so it's waited out
+- `map_or_blank(path, texts)`: the end of every screen classify (home.where, gift's, trade's): the map (few words, the Poké Ball at the bottom middle), blank (only the status bar, or nothing: the game …
 - `where(path, texts)`: the screens start() cares about: a storage screen, tags/rename, map, mainmenu, exit, signin, anr, ios-home, mirroring, blank, unknown
 - `look()`
 - `note_storage(texts)`

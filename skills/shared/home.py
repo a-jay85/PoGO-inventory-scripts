@@ -66,6 +66,20 @@ def splash(texts):
     return "POKÉMON COMPANY" in ui.joined(texts) or "POKEMON COMPANY" in ui.joined(texts)
 
 
+MAP_TEXTS = 12  # the map has few words. A busy night map (raid/Rocket timers, the friends bar) can pass this and
+# read unknown: #404 raised it to 20 (closed for its phone test, not for the cap). One line here fixes it everywhere
+
+
+def map_or_blank(path, texts):
+    """the end of every screen classify (home.where, gift's, trade's): the map (few words, the Poké Ball at the
+    bottom middle), blank (only the status bar, or nothing: the game is loading), else unknown"""
+    if len(texts) <= MAP_TEXTS and path and search.pokeball(path):
+        return "map"
+    if all(t[1] < 0.08 for t in texts):
+        return "blank"
+    return "unknown"
+
+
 def where(path, texts):
     """the screens start() cares about: a storage screen, tags/rename, map, mainmenu, exit, signin, anr, ios-home,
     mirroring, blank, unknown"""
@@ -89,11 +103,7 @@ def where(path, texts):
         return "mirroring"  # iPhone Mirroring can't reach the phone
     if main_menu(texts):
         return "mainmenu"
-    if len(texts) <= 12 and search.pokeball(path):
-        return "map"
-    if all(t[1] < 0.08 for t in texts):
-        return "blank"  # only the status bar (or nothing): the game is loading
-    return "unknown"
+    return map_or_blank(path, texts)
 
 
 def look():
@@ -643,7 +653,7 @@ def trainer(fast=True):
                 search.close_panel(bounds)
             time.sleep(1.0)
         elif screen == "map":
-            search.click(0.13, 0.91, bounds)  # the profile picture
+            search.click(*ui.PROFILE_PIC, bounds)
             time.sleep(2.0)
         elif screen == "detail" and time.time() < hatched_at[0] + HATCH_SCREENS:
             log("  the hatched Pokémon's page: its X, to the map")  # (as start() does: back_to_list waited for a

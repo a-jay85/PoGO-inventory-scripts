@@ -558,7 +558,7 @@ def to_badge_list():
                 keep_capture("nobadges")
                 raise Stop("scrolled the profile and found no GYM BADGES ... LIST")
         elif screen == "map":
-            base.click(0.13, 0.91, bounds)  # the profile picture
+            base.click(*ui.PROFILE_PIC, bounds)
             off_screen(screen)
         elif screen == "mainmenu":
             base.back_or_x(bounds)

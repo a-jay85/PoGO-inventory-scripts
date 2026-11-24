@@ -168,13 +168,21 @@ def iphone_open():
     base.key("a", cmd=True)  # (a query left from last time would get the name added to it)
     base.key("delete")
     base.type_text(APP_NAME)
-    hit = top_hit(base.settle(look, lambda got: top_hit(got[1]) == "POKEMON GO", timeout=4)[1])
-    if hit != "POKEMON GO":
-        log(f"  Spotlight's Top Hit is {hit!r}, not Pokémon GO: back to the home screen")
-        base.key("1", cmd=True)
-        return False
-    base.key("return")
-    return True
+    for again in (True, False):
+        hit = top_hit(base.settle(look, lambda got: top_hit(got[1]) == "POKEMON GO", timeout=4)[1])
+        if hit != "POKEMON GO":
+            log(f"  Spotlight's Top Hit is {hit!r}, not Pokémon GO: back to the home screen")
+            base.key("1", cmd=True)
+            return False
+        try:
+            base.key("return")
+            return True
+        except base.Lost:
+            # a pause for the Mac came first, and Spotlight filled in more rows meanwhile (2026-11-24 11:56: Suggestions
+            # under the same Top Hit). Lost comes before the key is sent, so the Top Hit is read again
+            if not again:
+                raise
+            log("  Spotlight changed during the pause: reading its Top Hit again")
 
 
 # ---------- start ----------

@@ -65,6 +65,7 @@ LOG = os.path.join(CONF, "timer.log")
 LABEL = "pogo.timer"
 PLIST = os.path.expanduser(f"~/Library/LaunchAgents/{LABEL}.plist")
 PATH = "/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+RAID_WAIT = 45  # minutes: a raid's length, till a gym with one on gives its Pokémon back
 CHARGING_WAITS = {"hatch"}  # jobs that wait while the Pixel charges
 GOPLUS_FOR = "CyrillJan"  # the one account the GO Plus+ is paired with (goplus.py, account.py)
 KEEP = os.path.join(CONF, "gymfeed_keep_on_until")  # (epoch seconds) till then gymfeed's "off" keeps it on (both phones)
@@ -127,17 +128,21 @@ def off(name):
     _edit(lambda s: s.pop(name, None))
 
 
-def gymfeed(feedable, phone):
+def gymfeed(feedable, phone, raid=False):
     """a gymfeed run's last word, on its phone's timer (phone: "android" or "iphone"). feedable True: a gym is left
     to feed (next one in 30-32 min); False, none (off, unless gymfeed_keep_on_until is still ahead: then it keeps
-    looking every 30-32 min)"""
+    looking every 30-32 min). raid: a gym had a raid on, its Pokémon are out of it till the raid ends, so the next
+    run is RAID_WAIT min away (the user, 2026-11-23)"""
     name = "gymfeed-pixel" if phone == "android" else "gymfeed-iphone"
     lo, hi = JOBS[name][2]
     try:
         keep = int(open(KEEP).read().strip())
     except (OSError, ValueError):
         keep = 0
-    if feedable or keep > time.time():
+    if raid and feedable:
+        when = later(name, RAID_WAIT)
+        note(f"{name}: a raid is on at a gym, next after {when}")
+    elif feedable or keep > time.time():
         when = later(name, random.uniform(lo, hi))
         note(f"{name}: {'gyms to feed' if feedable else 'no gym to feed, kept on'}, next after {when}")
     else:

@@ -674,7 +674,7 @@ One local timer for the scripts that run by themselves (gymfeed, hatch, goplus)
 - `at(name, when)`: run name at when (epoch seconds)
 - `later(name, minutes)`
 - `off(name)`
-- `gymfeed(feedable, phone)`: a gymfeed run's last word, on its phone's timer (phone: "android" or "iphone")
+- `gymfeed(feedable, phone, raid=False)`: a gymfeed run's last word, on its phone's timer (phone: "android" or "iphone")
 - `busy(phone)`: -> what's using this phone ('android' or 'iphone'), or None
 - `pixel_in_use()`: -> True while you look to be using the Pixel
 - `pixel_charging()`: -> True while the Pixel is on power (AC, USB or wireless)
@@ -1175,6 +1175,7 @@ Feed berries to the Pokémon in the gyms you're defending, from the gym badge li
 - `pick(done)`: sorted badge list -> (name, the tile to tap) of the first badge not gold and not done yet, or None
 - `off_screen(screen, timeout=3.0)`: after a tap meant to leave `screen`: look until another screen the walk knows shows
 - `to_badge_list()`: from wherever (a gym, a badge, the profile, the map) to the gym badge list
+- `raid_look()`: look(), with the screen called "raid" while the raid message is up over it
 - `into_gym()`: a badge open -> "gym" once in its gym view
 - `tap_to(spot, bounds, want, then)`: a tap that should bring `want` from the `then` screen, again while `then` stays: the iPhone loses a tap now and then (NANAB in the menu, the berry button: two runs …
 - `menu_tap(spot, bounds)`: a tap in the BERRIES menu that shuts it: a berry, or above it

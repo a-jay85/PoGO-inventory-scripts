@@ -1188,6 +1188,7 @@ Feed berries to the Pokémon in the gyms you're defending, from the gym badge li
 - `menu_tap(spot, bounds)`: a tap in the BERRIES menu that shuts it: a berry, or above it
 - `choose()`: on a gym Pokémon's page: the BERRIES menu, the first FEEDABLE kind with more than its floor picked -> (kind, its count), "full": the berry button is grey and opens no …
 - `moved(screen, texts, me)`: a page that reads as a gym Pokémon's, with another name than me's
+- `badge_over(texts)`: 'BADGE PROGRESS' shows: the gym's badge floats over the name ('EnANTOn', 'Em LANT eort 10', '‹LANT': Oracle Park's badge)
 - `same_chars(a, b)`: the same letters and digits in another order: OCR read the nickname '84 H' as 'H ₺8' for 8 s, and its feeding stopped (2026-11-23)
 - `steady_look(me)`: look(), again if the page seems to have changed: the stardust a berry gives floats over the name ('+10', 'Scizor STARGUSTO') and goes in a moment
 - `berry_back(me)`: no berry showing: look for FULL_WAIT s (it's gone while the last one is eaten, and floats in late on a page just opened) -> (a berry floats, the last look: screen, …

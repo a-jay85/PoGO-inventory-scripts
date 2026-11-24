@@ -668,7 +668,15 @@ def choose():
 def moved(screen, texts, me):
     """a page that reads as a gym Pokémon's, with another name than me's. The feeding can hide the name: not moved"""
     name, mine = (re.sub(r"\s", "", n.upper()) for n in (page_name(texts), me[0]))
-    return screen == "feed" and name and not like(name, mine, 0.6) and not same_chars(name, mine)
+    return screen == "feed" and name and not badge_over(texts) and not like(name, mine, 0.6) \
+        and not same_chars(name, mine)
+
+
+def badge_over(texts):
+    """'BADGE PROGRESS' shows: the gym's badge floats over the name ('EnANTOn', 'Em LANT eort 10', '‹LANT': Oracle
+    Park's badge). It stays for as long as the berries keep coming, past steady_look's 8 s. All 10 'page changed'
+    stops in the logs had it, none a real change: Empoleon stopped at 3 berries in 2 runs (2026-11-23)"""
+    return any(like(re.sub(r"[^A-Z]", "", t[4].upper()), "BADGEPROGRESS", 0.8) for t in texts if t[1] < 0.35)
 
 
 def same_chars(a, b):

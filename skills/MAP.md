@@ -442,7 +442,14 @@ The game master (PvPoke's gamemaster.json): base stats, CP and HP, the level fro
 - `rank(species, ivs, cap)`
 - `meta(league)`: PvPoke's overall ranking for a league (L G U), best first, as of the last update
 - `viable(species, league, shadow=False, top=VIABLE_TOP)`: species (its shadow, if shadow and PvPoke ranks one) is in PvPoke's top in that league
-- `evolutions(species, ivs=None)`: ivs: only the evolutions these IVs can lead to (Tyrogue)
+- `plain(sid)`: one entry per real Pokémon: no shadow / mega / primal / XL-only duplicates
+- `listed(sid)`: what the game data says sid evolves into, KIDS_FIX applied (may name one twice)
+- `parents()`: child -> the one it evolves from
+- `parent(sid)`: what sid evolves from in GO, or None
+- `children(sid)`: the forms whose parent() is sid
+- `kin_parent(sid)`: the candy family's parent: parent(), or for a form no evolution reaches, the game data's 'parent' field (fixed): Alolan Raichu -> Pikachu, Hisuian Typhlosion -> Quilava
+- `kin_root(sid)`: the candy family's first stage (Alolan Raichu: Pichu)
+- `evolutions(species, ivs=None)`: what species can evolve into in GO. ivs: only the evolutions these IVs can lead to (Tyrogue)
 - `family(species, ivs=None)`: species plus every evolution reachable from it (with these IVs, if given)
 - `tops(species, ivs=None)`: final evolutions reachable from species (itself if final)
 - `lc_eligible(species)`
@@ -456,16 +463,14 @@ The game master (PvPoke's gamemaster.json): base stats, CP and HP, the level fro
 - `fits(ps, plus)`: ps = list of league texts; the name with the fewest spaces dropped that fits, or None
 - `eevee_name(ranks)`: every top-100 (league, form), best rank first whatever the league; ties go L, G, U. As many as fit, written in league order; if some don't fit, the last one that fit …
 - `make_name(species, ivs, level=None)`: Returns (name or None, notes)
-- `plain(sid)`: one entry per real Pokémon: no shadow / mega / primal / XL-only duplicates
 - `base_name(sid)`
-- `region(sid)`
-- `parent(sid)`
-- `children(sid)`
+- `region(sid)`: the region term of a regional form, or None
 - `search(sid, pool)`: the in-game search for one species form in one pool
 - `is_gym(q)`: a gym search ends in no pool term: it needs every CP
 - `line_searches(line, pool)`: the searches for a whole evolution line in one pool: dex numbers OR'd with commas ('258,259,260&shadow')
-- `root(sid)`
+- `root(sid)`: the first stage of sid's evolution tree
 - `tree(sid)`: every plain species from the line's first stage down, branches included
+- `look_of(sid)`: the form in sid's candy family's tree that sid is another look of (see root), or None
 - `letters(first)`: {form: the letter a Pvp name gives it in G and U} for the tree from first
 - `name_slots(name, first)`: {(league, form): rank} a Pvp name shows, for the tree from first
 - `iv_slots(species, ivs, level=None)`: {(league, form): rank} for every top-100 slot of an appraised Pokémon
@@ -974,7 +979,7 @@ Tag CyrillJan's Tradeable saved search by what a trade to HashTagAJay is worth, 
 - `pick_page(label)`: tap the page's chip (swiping the chip row until it shows) -> the page's Caught total
 - `walk_grid()`: from KANTO's grid at the top, scroll to the end -> {n: missing}
 - `searches(ns, prefix='')`: comma lists of at most MAX_CHARS characters, each with prefix in front
-- `evo_tree()`: child speciesId -> parent speciesId, from each entry's evolutions list (the 'parent' field has errors: Carkol under Boltund, Mr
+- `evo_tree()`: (by, parent): speciesId -> its game data entry (no shadow, mega or XL), and child -> what it evolves from in GO (pvp.parent: the one evolution map)
 - `form_terms(sid, by)`: the search terms that pick out this form of its species
 - `source_query(sids, by, gender=None, word='lucky')`: the storage search for lucky (or xxs: word) copies of these species forms (same form terms) that can still evolve
 - `ancestors(sid, parent)`

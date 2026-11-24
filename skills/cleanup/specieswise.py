@@ -66,10 +66,7 @@ CAP_TAGS = (rules.TRANSFER,)  # the tags verdict.py puts after GIV (level 26+): 
 
 def family(sid):
     """the family's Candy name, as the page reads it ('ARON')"""
-    s = sid
-    while (p := pvp.parent(s)) is not None:
-        s = p
-    return pvp.base_name(s).upper()
+    return pvp.base_name(pvp.kin_root(sid)).upper()
 
 
 def species_tag(sid, t, counts, vd):

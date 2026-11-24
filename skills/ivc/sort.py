@@ -46,7 +46,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "dex"))
 sys.path.insert(0, HERE)
 import dex
 import pvp
-from pvp import REGIONS, is_gym, base_name, region, parent, children, search
+from pvp import REGIONS, is_gym, base_name, region, kin_parent, evolutions, search
 from ui import tile_name as clean_name
 from ivc import GYM_DEFENDERS, make_name
 from rules import ALWAYS_KEEP
@@ -112,15 +112,16 @@ POOLS = ("plain", "shadow", "dmax")
 
 
 def kids(sid):
-    return list(dict.fromkeys(k for k in children(sid) if k in SPECIES))
+    return [k for k in evolutions(sid) if k in pvp.PLAIN]
 
 
 def lines_of(sid):
     """every evolution path (first stage -> a final) through this species. Branches are separate lines,
-    pre-evolutions count toward each; regional forms are their own species ids so they split naturally."""
+    pre-evolutions count toward each; regional forms are their own species ids so they split naturally. Up goes by
+    candy family (Hisuian Typhlosion: Cyndaquil, Quilava), down by what each can evolve into."""
     up = [sid]
-    while parent(up[0]):
-        up.insert(0, parent(up[0]))
+    while kin_parent(up[0]):
+        up.insert(0, kin_parent(up[0]))
 
     def down(s):
         ks = kids(s)

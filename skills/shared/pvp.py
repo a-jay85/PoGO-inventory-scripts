@@ -119,9 +119,79 @@ def viable(species, league, shadow=False, top=VIABLE_TOP):
 IV_BRANCH = {"tyrogue": {"hitmonlee": 0, "hitmonchan": 1, "hitmontop": 2}}
 
 
+# ---------- the one evolution map: every skill's parent, children, root and tree come from here ----------
+# The game data has two family fields that disagree: each entry's 'evolutions' list and its 'parent'. The lists are
+# what GO lets you evolve (Pikachu -> Raichu, never Alolan Raichu), so the map is built from them. 'parent' also
+# links forms no evolution reaches (Alolan Raichu, Hisuian Typhlosion) and has errors (Carkol under Boltund): it only
+# gives the candy family (kin_parent).
+KIDS_FIX = {"espurr": ["meowstic", "meowstic_female"],  # game data lists the male form twice
+            "lechonk": ["oinkologne", "oinkologne_female"],
+            "corsola_galarian": ["cursola"],  # the game data has no family for it
+            "poltchageist": ["sinistcha"], "sinistcha": []}
+# the 'parent' field's errors, for kin_parent of a form no evolution list reaches
+PARENT_FIX = {"raticate": "rattata", "darmanitan_galarian_standard": "darumaka_galarian",  # game data points
+              "darmanitan_galarian_zen": "darumaka_galarian",  # these at the wrong region's pre-evolution
+              "cursola": "corsola_galarian",  # ...and Cursola at Johto Corsola
+              "sinistcha": "poltchageist", "poltchageist": None}  # it has this one backwards
+
+
+def plain(sid):
+    """one entry per real Pokémon: no shadow / mega / primal / XL-only duplicates"""
+    return not (sid.endswith(("_shadow", "_xs", "_xl")) or "_mega" in sid or "_primal" in sid)
+
+
+PLAIN = {s: p for s, p in SPECIES.items() if plain(s)}
+
+
+def listed(sid):
+    """what the game data says sid evolves into, KIDS_FIX applied (may name one twice)"""
+    return KIDS_FIX[sid] if sid in KIDS_FIX else (SPECIES[sid].get("family") or {}).get("evolutions") or []
+
+
+def parents():
+    """child -> the one it evolves from. Where two evolve into one (Burmy's cloaks -> Mothim): the first listed"""
+    out = {}
+    for s in PLAIN:
+        for c in listed(s):
+            if c in PLAIN:
+                out.setdefault(c, s)
+    return out
+
+
+PARENT = parents()
+
+
+def parent(sid):
+    """what sid evolves from in GO, or None. parent(c) == p exactly when c is in children(p)"""
+    return PARENT.get(sid)
+
+
+def children(sid):
+    """the forms whose parent() is sid. evolutions() can hold more: Burmy's Sandy cloak evolves into Mothim too"""
+    return [c for c in dict.fromkeys(listed(sid)) if PARENT.get(c) == sid] if sid in SPECIES else []
+
+
+def kin_parent(sid):
+    """the candy family's parent: parent(), or for a form no evolution reaches, the game data's 'parent' field
+    (fixed): Alolan Raichu -> Pikachu, Hisuian Typhlosion -> Quilava. For candy, stages, and ivc's lines up"""
+    if sid in PARENT:
+        return PARENT[sid]
+    p = PARENT_FIX[sid] if sid in PARENT_FIX else (SPECIES.get(sid, {}).get("family") or {}).get("parent")
+    return p if p in PLAIN else None
+
+
+def kin_root(sid):
+    """the candy family's first stage (Alolan Raichu: Pichu)"""
+    seen = {sid}
+    while (p := kin_parent(sid)) and p not in seen:
+        seen.add(p)
+        sid = p
+    return sid
+
+
 def evolutions(species, ivs=None):
-    """ivs: only the evolutions these IVs can lead to (Tyrogue). None: all of them"""
-    out = [e for e in SPECIES[species].get("family", {}).get("evolutions", []) if e in SPECIES]
+    """what species can evolve into in GO. ivs: only the evolutions these IVs can lead to (Tyrogue). None: all"""
+    out = list(dict.fromkeys(e for e in listed(species) if e in SPECIES)) if species in SPECIES else []
     pick = IV_BRANCH.get(species)
     if pick and ivs is not None:
         out = [e for e in out if e not in pick or ivs[pick[e]] == max(ivs)]
@@ -144,8 +214,8 @@ def tops(species, ivs=None):
 
 
 def lc_eligible(species):
-    fam = SPECIES[species].get("family", {})
-    return "parent" not in fam and bool(evolutions(species))
+    first = kin_parent(species) is None if species in PLAIN else "parent" not in (SPECIES[species].get("family") or {})
+    return first and bool(evolutions(species))  # (a shadow's 'parent' is a shadow too: kin_parent drops it)
 
 
 def levels_for(species, ivs, cpv, hpv):
@@ -280,41 +350,14 @@ def make_name(species, ivs, level=None):
 
 REGIONS = {"alolan": "alola", "galarian": "galar", "hisuian": "hisui", "paldean": "paldea"}
 POOL_TERMS = {"shadow": "&shadow", "plain": "&!shadow", "lucky": "&lucky&", "dmax": "&dynamax,gigantamax", "gym": ""}
-# the game data's family errors, fixed once for /ivc, /dex, roster and tradeable
-PARENT_FIX = {"raticate": "rattata", "darmanitan_galarian_standard": "darumaka_galarian",  # game data points
-              "darmanitan_galarian_zen": "darumaka_galarian",  # these at the wrong region's pre-evolution
-              "cursola": "corsola_galarian",  # ...and Cursola at Johto Corsola
-              "sinistcha": "poltchageist", "poltchageist": None}  # it has this one backwards
-KIDS_FIX = {"espurr": ["meowstic", "meowstic_female"],  # game data lists the male form twice
-            "lechonk": ["oinkologne", "oinkologne_female"],
-            "corsola_galarian": ["cursola"],  # the game data has no family for it
-            "poltchageist": ["sinistcha"], "sinistcha": []}
-
-
-def plain(sid):
-    """one entry per real Pokémon: no shadow / mega / primal / XL-only duplicates"""
-    return not (sid.endswith(("_shadow", "_xs", "_xl")) or "_mega" in sid or "_primal" in sid)
-
-
-PLAIN = {s: p for s, p in SPECIES.items() if plain(s)}
-
-
 def base_name(sid):
     return PLAIN[sid]["speciesName"].split(" (")[0].lower()
 
 
 def region(sid):
-    return next((REGIONS[t] for t in PLAIN[sid].get("tags") or [] if t in REGIONS), None)
-
-
-def parent(sid):
-    par = PARENT_FIX[sid] if sid in PARENT_FIX else (PLAIN[sid].get("family") or {}).get("parent")
-    return par if par in PLAIN else None
-
-
-def children(sid):
-    ks = KIDS_FIX[sid] if sid in KIDS_FIX else (PLAIN[sid].get("family") or {}).get("evolutions") or []
-    return [e for e in ks if e in PLAIN]
+    """the region term of a regional form, or None. By its tags, else its id (Hisuian Decidueye has no tag)"""
+    return next((REGIONS[t] for t in PLAIN[sid].get("tags") or [] if t in REGIONS), None) or \
+        next((r for t, r in REGIONS.items() if f"_{t}" in sid), None)
 
 
 def search(sid, pool):
@@ -349,6 +392,10 @@ def line_searches(line, pool):
 # weaker than they are (safe: fewer fall). The one that falls is appraised again first, for all its slots.
 
 def root(sid):
+    """the first stage of sid's evolution tree. Another look of a form in its candy family's tree (same name and
+    region, but no evolution reaches it: Pikachu costumes, Palafin Hero, Aegislash Blade) goes with that form, so a
+    name read that gives every look stays one line. tree() leaves the look out: it is no extra final"""
+    sid = LOOK_OF.get(sid, sid)
     while parent(sid):
         sid = parent(sid)
     return sid
@@ -357,6 +404,18 @@ def root(sid):
 def tree(sid):
     """every plain species from the line's first stage down, branches included"""
     return [s for s in family(root(sid)) if s in PLAIN]
+
+
+def look_of(sid):
+    """the form in sid's candy family's tree that sid is another look of (see root), or None"""
+    if sid in PARENT or not kin_parent(sid):
+        return None
+    name = lambda s: base_name(s).split("_")[0]  # (PvPoke names some looks 'Palafin_hero')
+    return next((t for t in family(kin_root(sid)) if t != sid and t in PLAIN and name(t) == name(sid)
+                 and region(t) == region(sid)), None)
+
+
+LOOK_OF = {s: look_of(s) for s in PLAIN if look_of(s)}
 
 
 def letters(first):

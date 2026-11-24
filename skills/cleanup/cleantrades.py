@@ -22,7 +22,7 @@ Start with Pokémon GO on the Pokémon screen. Four steps, always in this order:
  4. Clean Trades -> tag Transfer. Then dbsweep.py's sweep deletes the Pokémon database's records of them (they were
     never opened, so no tag read deleted them). It searches #Transfer and opens a tile only when two records fit.
 Before step 2, the ones that must not get Transfer leave the pile: Clean Trades &xxl, traded or not -> favorite, and no
-step here touches an XXL one (&!xxl). The ones with rules of their own in verdict.py (shiny, lucky, legendary, costume,
+step here touches an XXL one (&!xxl). Clean Trades &xxs -> IVC, in bulk (the user goes through those on their own). The ones with rules of their own in verdict.py (shiny, lucky, legendary, costume,
 gym defender...: rules.DOOR_PICK) each get their final tag at the door or stay on its not-sure list, and steps 2-4 leave
 them out (rules.BULK_GUARD). Clean Trades only holds traded ones, so the never-traded rules (xxs, trade evolutions) are
 tradeable.py's and the door's.
@@ -55,6 +55,7 @@ import dbsweep
 
 
 TAGGING = [("PvpC1", "PvpC"), ("PvpC2", "PvpC"), ("IV Check", "IVC")]
+LOOK = False  # --look: only step 2, only reading (set below when run as a script)
 
 
 def power_walk(limit, query=None):
@@ -122,11 +123,17 @@ def power_pile(query, limit):
 
 def keep_xxl():
     """the user's rules: an XXL one in Clean Trades, traded or not, is a favorite (2026-11-04); it drops out of Clean
-    Trades (!favorite). Clean Trades only holds traded ones (rules.SAVED), so the never-traded rules (xxs: IVC, a trade
+    Trades (!favorite). Clean Trades only holds traded ones (rules.SAVED), so the never-traded rules (a trade
     evolution: GIV) never come up here: tradeable.py and the door have them. Searching Clean Trades &!traded found 0 in
     every run, at about 10 s a search (2026-11-20)"""
     import sizes  # (sizes imports this file)
     sizes.walk(lambda: run_shortcut(CLEAN, "&xxl&!favorite"), "xxl", 10 ** 9)
+
+
+def keep_xxs():
+    """an xxs one in Clean Trades, traded as it is, is kept too: tagged IVC in bulk, for the user to go through on
+    their own (the user, 2026-11-24). It drops out of Clean Trades (!#) before the door, the power-ups and Transfer"""
+    tag_pile(CLEAN, "IVC", "&xxs")
 
 
 def door_ones(limit, who):
@@ -158,9 +165,16 @@ def script(a):
     if "transfer" in a:  # every Transfer one: the cheap jump to an XL tier before it's transferred
         power_pile(f"#{TRANSFER}", limit)
         return
+    clean(limit, who)
+
+
+def clean(limit, who):
+    """the four steps, on the Pokémon screen, signed in as who. leftovers.py runs this first every time: a traded one
+    in Leftovers is a Clean Trades one, tagged here in bulk instead of opened at its door"""
     for name, tag in TAGGING:  # first: Clean Trades (!#) must only see what's left untagged after these
         tag_pile(name, tag)
     keep_xxl()  # before the power-ups: these won't be transferred
+    keep_xxs()
     door_ones(limit, who)  # (any left by --limit stay out of the steps below too)
     try:
         if power_walk(limit) is None:

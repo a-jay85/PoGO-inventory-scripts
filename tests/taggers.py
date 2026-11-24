@@ -109,8 +109,9 @@ def tradeable_bulk(f):
 
 
 def clean_bulk(f):
-    """cleantrades' steps after the door's ones -> the tag this one gets, or None"""
-    pile = fits(CLEAN_TRADES[f.account] + rules.BULK_GUARD, f)
+    """cleantrades' steps after the door's ones -> the tag this one gets, or None. An xxs one left before them
+    (keep_xxs: IVC, for the user to go through, the user 2026-11-24): not the rule book's, so not checked here"""
+    pile = fits(CLEAN_TRADES[f.account] + rules.BULK_GUARD + "&!xxs", f)
     if pile and f.account == rules.EVO_FOR and fits(rules.TRADE_EVOS, f):
         return rules.EVO
     return rules.TRANSFER if pile else None
@@ -160,7 +161,7 @@ def main():
             g = v.replace(base, account=who)
             if not got:
                 if name == "cleantrades" and fits(CLEAN_TRADES[who], g) and not fits(rules.DOOR_PICK, g) \
-                        and g.size != "xxl":
+                        and g.size not in ("xxl", "xxs"):
                     bad.append(f"{name} {who}: in the pile, but no step takes it: {g}")
                 continue
             tagged += 1

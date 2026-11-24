@@ -289,6 +289,9 @@ def to_search_list():
         else:  # ticks may be half changed (IVC off, the next tag not on yet): DONE would save that, the X saves nothing
             log("  left on the tag sheet with nothing ticked: out by its X, that Pokémon stays as it was")
             base.cancel_tags()
+        screen, texts, _, bounds = base.look()
+        if screen == "list":  # (a multi-select's sheet: back on that list, still in multi-select)
+            leave_multiselect(texts, bounds)
     if base.look()[0] in ("detail", "menu", "appraisal", "gym"):  # left on a Pokémon (a stop mid-visit): back out first
         back_to_list()
     off_map()

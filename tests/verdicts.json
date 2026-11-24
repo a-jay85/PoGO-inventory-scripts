@@ -859,6 +859,26 @@
   "clear",
   "unstar"
  ],
+ "meltan traded": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "traded Meltan: plenty of its Candy",
+  "clear",
+  "unstar"
+ ],
+ "melmetal traded": [
+  "tag",
+  [
+   "Spot Transfer"
+  ],
+  null,
+  "traded special trade: a spot transfer",
+  "clear",
+  "unstar"
+ ],
  "ultra beast": [
   "tag",
   [

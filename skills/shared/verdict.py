@@ -45,7 +45,8 @@ be Transfer gets its name cleared and a favorite instead).
 A special trade not kept (the user, 2026-11-19), its star off and its name back to the default:
   untraded legendary or Ultra Beast: Remote Trade + RT. Traded: Spot Transfer
   mythical: caught in a raid (the door's one `mythical&raid` search) can't be traded: Spot Transfer. Else a one- or
-  two-time one (Mew, Celebi, ...): a favorite, kept. Meltan and Melmetal: the legendary rules
+  two-time one (Mew, Celebi, ...): a favorite, kept. Meltan and Melmetal: the legendary rules,
+  but a traded Meltan gets plain Transfer (the user, 2026-11-24)
   shiny (any): untraded Remote Trade + RT; traded, a favorite with no tags
 A costume one that's a favorite already, traded or not (costume_fav(): the user, 2026-11-19, lucky remote trades bring
 rare costumes): it stays a favorite, its name back to the default, never Transfer or a trade tag. One that isn't (an
@@ -412,13 +413,15 @@ def special(f, sid, kinds, strip):
     """a legendary, mythical or Ultra Beast one not kept (the user, 2026-11-19): star off, name back to the default.
     A mythical caught in a raid can't be traded: Spot Transfer. Any other mythical (Mew, Celebi, ...: one- or
     two-time ones) is a favorite, kept. A legendary or Ultra Beast (and Meltan, Melmetal): untraded Remote Trade + RT,
-    traded Spot Transfer"""
+    traded Spot Transfer. A traded Meltan: plain Transfer (the user, 2026-11-24: plenty of Meltan Candy)"""
     if "mythical" in kinds and sid not in TRADE_BY_HAND:
         if f.raid is None:
             return unsure("mythical: caught in a raid or not, not read")
         if not f.raid:
             return Verdict("keep", (), "mythical, not from a raid: a one- or two-time one, kept")
         return tag("Spot Transfer", why="mythical from a raid: can't be traded", off=strip, clear=True, unstar=True)
+    if f.traded and sid == "meltan":  # (before the size: no trade, so an xxs one is no matter)
+        return tag("Transfer", why="traded Meltan: plenty of its Candy", off=strip, clear=True, unstar=True)
     if f.size is None or f.size in SIZE_NAMES:  # trades.py passes over an xxs one
         return unsure(f"special trade, size {f.size or 'not read'}: by hand")
     if f.traded:

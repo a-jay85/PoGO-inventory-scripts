@@ -7,6 +7,9 @@ wife's account, which is further behind: good for any account, the user 2026-11-
                                           re-judge a tag pile
 
 Signed in as someone else on the Pixel, it switches to HashTagAJay first (../shared/account.py) and goes on.
+Then cleantrades.py's steps run first, every time (the user, 2026-11-24): the shortcuts' tags, then Clean Trades
+tagged Transfer in bulk (its door ones, legendaries and such, opened one by one). A traded one in Leftovers is a Clean
+Trades one, so none is left here to open. --limit N goes to cleantrades too (at most N power-ups).
 
 HashTagAJay has 360+ Candy XL of most families, so only a trade worth something to the other side goes. Each one is
 opened once and gets its final tag at the door (../shared/door.py, ../shared/verdict.py's rules for HashTagAJay):
@@ -60,6 +63,9 @@ def cmd_door(limit):
             raise Stop(f"signed in as {who!r}: Leftovers is {TAKER}'s ({GIVER}'s pile is tradeable.py)")
         log(f"signed in as {who!r}: Leftovers is {TAKER}'s, switching")
         who = account.switch(TAKER)
+    home.start()
+    import cleantrades  # every time, first: a traded one in Leftovers is a Clean Trades one, tagged there in bulk
+    cleantrades.clean(limit, who)  # (Transfer) instead of opened here (64 opened that way, 2026-11-16 and 11-18)
     home.start()
     got = tradeable.door_walk(SUFFIX, limit, who, shortcut=SHORTCUT, gone=gone)
     log(f"Leftovers, through the door: {dict(got)}")

@@ -31,7 +31,8 @@ TABLES = {  # made up
                                  "tandemaus": ("Reroll", "family of 3")},
             "lucky": {"nidoran_female": "female"}, "evolved": {"golem": "stage 2"}, "no_dmax": set(), "xl_full": set(),
             "raid": {"rhyhorn", "rhydon"}, "raid_self": {"rhydon"}, "hard": {}, "by_hand": set(), "dmax": {"wooloo": 480},
-            "team_xl": {"pidgey": [1440, "pidgeot", 4]}},  # (a Team Future/Ideal line: 4 100s)
+            "team_xl": {"pidgey": [1440, "pidgeot", 4]},
+            "team_line": {"pidgey", "pidgeotto", "pidgeot", "rhyhorn", "rhydon", "rhyperior"}},  # (a Team Future/Ideal line: 4 100s)
     GIVER: {"to": GIVER, "why": {"rhyhorn": ("GIV", "PvP")}, "lucky": {}, "evolved": {"golem": "stage 2"},
             "no_dmax": {"wooloo"}, "xl_full": set(), "raid": {"rhyhorn", "rhydon"},
             "raid_self": {"rhydon"}, "hard": {}, "by_hand": set(), "dmax": {"wooloo": 480}},
@@ -102,7 +103,7 @@ def tradeable_bulk(f):
         return rules.XLX
     if any(pile(tr.BULK_REST + q) for q in PLAN["giv_evolved"]) or pile(tr.BULK_REST + "&!traded&distance100-"):
         return "GIV"
-    if any(pile(tr.BULK_REST + q) for q in tr.giver_short_searches(TABLES[TAKER]["team_xl"], MODEL)):
+    if any(pile(tr.BULK_REST + q) for q in tr.giver_short_searches(TABLES[TAKER]["team_xl"], MODEL, TABLES[TAKER]["team_line"])):
         return "GIV"
     return None
 

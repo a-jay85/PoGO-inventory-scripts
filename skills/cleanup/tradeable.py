@@ -46,8 +46,9 @@ One tag each, the first that fits:
     evolve into, or one GO can't evolve into yet (Kleavor, Alolan Marowak) (giv-evolved-<date>.json). Also gym
     defenders (/ivc's GYM_DEFENDERS) and untraded Dynamax ones. Tagged after the level 26+ walk.
  6. GIV (far): never traded and caught 100 km or more away ('distance100-'), and no other tag fits.
- 7. GIV (CyrillJan short of candy): never traded, and CyrillJan has under 360 Candy XL or under 348 Candy of the
-    family (giver_short_searches, verdict.giver_short). A line with a Team Future or Team Ideal #1 pick (not as a
+ 7. GIV (CyrillJan short of candy): never traded, and CyrillJan has under 348 Candy of the family, or under 360
+    Candy XL of a family with a species on Team Future, Team Ideal or one of CyrillJan's Team Availables or Team
+    Potentials (team_lines, the user 2026-11-23) (giver_short_searches, verdict.giver_short). A line with a Team Future or Team Ideal #1 pick (not as a
     mega) wants 360 Candy XL for each 100 CyrillJan has of it, up to 5 (rules.TEAM_SLOTS: 4 100 Salamence want 1440,
     the user 2026-11-23). team100 counts those 100s (team_xl_need).
  8. Transfer: everything else, but a never-traded XXS one gets renamed xxs and tagged IVC (sizes.py)
@@ -513,6 +514,7 @@ def taker_species(m):
     evolved = evolved_giv(m, ok, why, json.load(open(hard_f)))
     team_xl, team_f = team_xl_need(m, ok, GIVER)
     return {"why": why, "lucky": lucky, "evolved": evolved, "dmax": dmax_need(m, ok), "team_xl": team_xl,
+            "team_line": team_lines(m),
             "xl_full": {m.dex(x) for s in m.by if m.dex(s) in read["xl_full"] for x in m.family(s)},
             "from": {"lucky": lucky_run, "100": hund_run, "roster": roster_f, "read": read_f, "pvp": pvp_f,
                      "evolved": hard_f, "team100": team_f}}
@@ -737,6 +739,28 @@ def team_picks(m):
     return out
 
 
+def team_lines(m):
+    """-> the tradeable species of every family with a species on Team Future or Team Ideal (roster.ideal_firsts, its
+    megas too) or on one of CyrillJan's Team Availables or Team Potentials (its newest whole /raidteam count). Only these
+    lines want XL_CAP Candy XL on CyrillJan: a trade's XL for any other line isn't worth the trade (verdict.giver_short,
+    the user 2026-11-23). None: CyrillJan has no whole /raidteam count yet"""
+    import raidteams
+    t = raidteams.newest(GIVER)[0]
+    if t is None:
+        return None
+    sys.path.append(os.path.join(HERE, "..", "roster"))
+    import roster
+    on = set()
+    for pulls in (roster.IDEAL, roster.COUNTERS):
+        on |= set(roster.ideal_firsts(pulls))
+    copies = t.get("copies", [])
+    for team in t.get("bosses", {}).values():
+        for e in team:
+            if e["copy"] < len(copies):
+                on |= set(copies[e["copy"]]["species"])
+    return {s for x in on if x in m.by for s in m.family(x) if m.tradeable(s) and not m.special(s)}
+
+
 TEAM100 = os.path.join("*", "team100.json")  # (a team100 run, or a specieswise run that counted first)
 
 
@@ -799,11 +823,13 @@ EVOLVED_REST = REST + "&traded,!xxs"  # and not a never-traded XXS one (those ge
 BULK_REST = EVOLVED_REST + TAG_SKIP
 
 
-def giver_short_searches(team_xl=None, m=None):
-    """the last GIV searches, after the far one: never traded, and CyrillJan has under XL_CAP Candy XL or under
-    LUCKY_CANDY Candy of the family (verdict.giver_short). Then each Team Future/Ideal bar (taker_species' team_xl):
-    those families, under their bar. A family whose 100s weren't counted gets none: the door judges it"""
-    out = ["&!traded" + UNDER_360_XL, "&!traded" + UNDER_348_CANDY]
+def giver_short_searches(team_xl=None, m=None, team_line=None):
+    """the last GIV searches, after the far one: never traded, and CyrillJan has under XL_CAP Candy XL of a team line
+    (taker_species' team_line: team_lines) or under LUCKY_CANDY Candy of the family (verdict.giver_short). Then each
+    Team Future/Ideal bar (taker_species' team_xl): those families, under their bar. A family whose 100s weren't
+    counted gets none, nor does any line with no raid team count (team_line None): the door judges it"""
+    out = [q + "&!traded" + UNDER_360_XL for q in (queries(m, sorted(team_line)) if team_line else [])]
+    out += ["&!traded" + UNDER_348_CANDY]
     bars = {}
     for s, v in (team_xl or {}).items():
         if v:
@@ -1021,7 +1047,7 @@ def cmd_tag(limit):
         done.add(rest + q)
         save_done()
     tag_pile("GIV", rest + "&!traded&distance100-")  # fits nothing else, but a far trade: GIV
-    for q in giver_short_searches(sp.get("team_xl"), m):  # then CyrillJan short of the family's candy: the trade's candy (verdict.giver_short)
+    for q in giver_short_searches(sp.get("team_xl"), m, sp.get("team_line")):  # then CyrillJan short of the family's candy: the trade's candy (verdict.giver_short)
         tag_pile("GIV", rest + q)
     got = door_walk(EVOLVED_REST, limit, who)  # (it leaves out #GIV. TAG_SKIP's ones are judged here)
     log(f"the rest, through the door: {dict(got)}")

@@ -1159,13 +1159,35 @@
   null,
   "caught 100 km+ away"
  ],
- "C under 360 XL: GIV": [
+ "C no team line, under 360 XL, Candy not read: unsure": [
+  "unsure",
+  [],
+  null,
+  "Candy not read"
+ ],
+ "C no team line, under 360 XL, 400 Candy: Transfer": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "no rule wants it"
+ ],
+ "C no team line, under 360 XL, XL not read, 400 Candy: Transfer": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "no rule wants it"
+ ],
+ "C no team line, under 360 XL, under 348 Candy: GIV": [
   "tag",
   [
    "GIV"
   ],
   null,
-  "CyrillJan has under 360 Candy XL of the family: the trade's XL"
+  "CyrillJan has 100 Candy of the family, under 348: the trade's candy"
  ],
  "C team line, 4 100s, 1000 XL: GIV": [
   "tag",
@@ -1189,7 +1211,7 @@
    "GIV"
   ],
   null,
-  "CyrillJan has under 360 Candy XL of the family: the trade's XL"
+  "CyrillJan has under 360 Candy XL of a team line: the trade's XL"
  ],
  "C team line, XL count not read: unsure": [
   "unsure",
@@ -1248,10 +1270,12 @@
   "Candy not read"
  ],
  "C Candy XL not read: unsure": [
-  "unsure",
-  [],
+  "tag",
+  [
+   "Transfer"
+  ],
   null,
-  "Candy XL not read"
+  "no rule wants it"
  ],
  "C short, traded: Transfer": [
   "tag",

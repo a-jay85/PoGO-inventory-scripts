@@ -131,8 +131,8 @@ The shared tapper: screen reading, taps, timing, run folders and logging, and th
 - `appraise()`: -> (verdict name or NOPE)
 - `back_to_list()`: from appraisal, detail, menu or a gym defender's screen to the list, by the known-safe path
 - `recover(e, what)`: after a Lost mid-Pokémon: back out to the list by the known-safe path, so the walk can pass this one and go on
-- `settle(read, ok, timeout=3)`: keep reading until ok(value) or timeout: taps land faster than the screen redraws
-- `steady(read, tries=30, gap=None)`: look until read(texts) gives the same answer (not None) twice in a row: a page that slides up or a box that grows in reads wrong mid-way, and a tap then misses
+- `settle(read, ok, timeout=3, gap=0.1, tries=None)`: keep reading until ok(value) or timeout: taps land faster than the screen redraws
+- `steady(read, tries=30, gap=None, look=None, first=None, whole=False, last=False)`: look until read(texts) gives the same answer (not None) twice in a row: a page that slides up or a box that grows in reads wrong mid-way, and a tap then misses
 - `number(s, unit)`: '12.5 kg' -> 12.5 (a comma decimal too), None if it isn't that (an OCR misread like '..27 m' too)
 - `who(info)`: CP, max HP, weight and height: raid twins often share CP and HP, but hardly ever weight and height too
 - `same_pokemon(a, b)`: two who() reads: the same Pokémon? Unread values, or a dropped CP digit ('CP62' for CP626), still match

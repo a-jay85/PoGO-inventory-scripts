@@ -71,13 +71,10 @@ def evolve_one(dry, candy):
     """on the page of one to evolve, or just tapped. -> the page's bounds, or None when it has no EVOLVE row. Its place
     moves with the page's rows (0.863 to 0.948), so it's read each time"""
     time.sleep(SETTLE)
-    for _ in range(6):
-        screen, texts, _, bounds = look()
-        got = evolve_row(texts) if screen == "detail" else None
-        if got:
-            break
-        time.sleep(0.05)
-    else:
+    row = lambda seen: evolve_row(seen[1]) if seen[0] == "detail" else None
+    screen, texts, _, bounds = base.settle(look, row, timeout=None, gap=0.05, tries=6)  # 6 looks, 0.05 s apart
+    got = row((screen, texts))
+    if not got:
         return None
     info = ui.detail_info(texts)
     name = info["name"]

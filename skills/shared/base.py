@@ -765,28 +765,36 @@ def recover(e, what):
     back_to_list()
 
 
-def settle(read, ok, timeout=3):
-    """keep reading until ok(value) or timeout: taps land faster than the screen redraws"""
-    end = time.time() + timeout
+def settle(read, ok, timeout=3, gap=0.1, tries=None):
+    """keep reading until ok(value) or timeout: taps land faster than the screen redraws. gap: seconds between two
+    reads. tries: at most that many reads (timeout None: only tries). -> the last value read"""
+    end = None if timeout is None else time.time() + timeout
+    n = 0
     while True:
         v = read()
-        if ok(v) or time.time() > end:
+        n += 1
+        if ok(v) or (end is not None and time.time() > end) or (tries is not None and n >= tries):
             return v
-        time.sleep(0.1)
+        time.sleep(gap)
 
 
-def steady(read, tries=30, gap=None):
+def steady(read, tries=30, gap=None, look=None, first=None, whole=False, last=False):
     """look until read(texts) gives the same answer (not None) twice in a row: a page that slides up or a box that
-    grows in reads wrong mid-way, and a tap then misses. -> (answer or None, texts, bounds)"""
-    last = None
+    grows in reads wrong mid-way, and a tap then misses. -> (answer or None, texts, bounds)
+    look: the look to use (default base.look), -> (screen, texts, path, bounds). first: the answer of a look taken
+    just now, as the first read (one new look can confirm it). whole: read gets the whole look and the result is
+    (answer or None, look). last: when tries run out, the last answer instead of None"""
+    prev = first
     for _ in range(tries):
         time.sleep(short_wait(0.15) if gap is None else gap)
-        _, texts, _, bounds = look()
-        r = read(texts)
-        if r is not None and r == last:
-            return r, texts, bounds
-        last = r
-    return None, texts, bounds
+        seen = (look or globals()["look"])()
+        r = read(seen if whole else seen[1])
+        if r is not None and r == prev:
+            break
+        prev = r
+    else:
+        r = prev if last else None
+    return (r, seen) if whole else (r, seen[1], seen[3])
 
 
 # ---------- which Pokémon is open ----------

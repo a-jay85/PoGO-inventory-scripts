@@ -264,12 +264,11 @@ def dimmed():
 def undim(*screens, timeout=45):
     """wait, without tapping, for the grey veil to lift -> the screen then"""
     log("  the screen is greyed out: waiting for it, no taps")
-    end = time.time() + timeout
-    while time.time() < end:
-        time.sleep(1.0)
-        s = look()
-        if s in screens or not dimmed():
-            return s
+    lifted = lambda s: s in screens or not dimmed()
+    time.sleep(1.0)
+    s = base.settle(look, lifted, timeout - 1.0, gap=1.0)  # a look a second, for timeout s
+    if lifted(s):
+        return s
     raise base.Lost(f"the screen stayed greyed out {timeout}s: {summary()}")
 
 
@@ -556,13 +555,11 @@ def list_loaded():
     """the friend list's header shows before its friends do. A search typed then finds nobody (2026-11-05: 'iii + asia'
     read 0, it's usually 34). No search is on here, so friends will come: wait for them -> False if none did"""
     t0 = time.time()
-    while time.time() - t0 < LIST_LOAD:
-        if look() == "friends" and rows():
-            if time.time() - t0 > 1:
-                log(f"  waited {time.time() - t0:.1f}s for the friend list to load")
-            return True
-        time.sleep(base.poll_gap(0.4))
-    return False
+    if not base.settle(lambda: look() == "friends" and bool(rows()), bool, LIST_LOAD, gap=base.poll_gap(0.4)):
+        return False
+    if time.time() - t0 > 1:
+        log(f"  waited {time.time() - t0:.1f}s for the friend list to load")
+    return True
 
 
 def search(*parts):

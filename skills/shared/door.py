@@ -393,7 +393,9 @@ class Door:
                 if len(texts) > 5 and not any(re.match(r"[cC]\s*[pP].*\+\s*\d+\s*$", t[4].strip()) for t in texts):
                     break
                 time.sleep(0.5)
-            base.moved(base.detail_now())  # its CP and HP moved: still the same one
+            d = base.detail_now()
+            base.moved({**d, "cp": d["cp"] or powerup.last_cp})  # its CP and HP moved: still the same one (the
+            # GPS banner can hide the CP: the one the power-up reached)
         except powerup.Unsure as e:
             return vd.unsure(f"Transfer, but the power-up check: {e}")
         except taps.Pass as e:

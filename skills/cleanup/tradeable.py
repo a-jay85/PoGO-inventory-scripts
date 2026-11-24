@@ -892,6 +892,7 @@ def walk(suffix, xlx, power, limit, skip_dex=(), unsure=None):
                     if info2["cp"] is not None:
                         break
                     time.sleep(0.2)
+                info2["cp"] = info2["cp"] or powerup.last_cp  # (the GPS banner can hide the CP)
                 seen.add((info2["name"], info2["cp"], info2["hp"]))
                 pokedb.changed(base.who(info), base.who(info2))  # the database's record follows the new CP
                 log(f"powered up {info['name']} CP{info['cp']} -> CP{info2['cp']}, {n} power-up(s)")

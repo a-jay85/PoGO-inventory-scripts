@@ -17,6 +17,7 @@ class Unsure(Pass):
 
 DUST_FLOOR = 1_000_000
 LOOK = False  # --look: read the levels, power up and tag nothing
+last_cp = None  # the CP the last power_up() reached: callers use it when the GPS banner hides the page's CP
 XL_ODDS = [(1, 25), (15, 125), (20, 250), (23, 400), (26, 500), (31, 750)]  # (from level, Candy XL on transfer, per mille)
 PLAY_DUST = 40_000  # Stardust per Candy XL gained, at most: the dearest of the normal plays (19, 22 and 30 each cost it)
 DUST = [(1, 200), (3, 400), (5, 600), (7, 800), (9, 1000), (11, 1300), (13, 1600), (15, 1900), (17, 2200),
@@ -293,6 +294,7 @@ def power_up(info, texts, levels=None, known=None):
     Its level comes from the dialog: + adds a power-up, and each total (CP after, Stardust) rules levels out.
     levels: the caller's (its IVs, CP and HP can name the one level): narrows the cost's, or stands in when it doesn't read.
     known: cost_levels() already read on this open, at this CP (no more looks for it)"""
+    global last_cp
     cost, lvs = known or cost_levels(texts, info["cp"])
     lvs = sorted(set(lvs) & set(levels or ())) or lvs or sorted(levels or ())
     if not lvs:
@@ -375,7 +377,14 @@ def power_up(info, texts, levels=None, known=None):
                 press(ok[0], b2)
                 tapped = time.time()
             continue
-        if screen == "detail" and ui.detail_info(t2)["cp"] == after:
+        if screen == "detail" and (got := ui.detail_info(t2)["cp"]) == after:
+            last_cp = after
+            return n
+        if screen == "detail" and got is None and ui.gps_banner() and owned(t2)[0] == have_dust - total:
+            # the red 'Failed to detect location. (12)' banner sits on the CP and stays: the Stardust fell by just
+            # this power-up's cost instead (iPhone 2026-11-23, leftovers stopped 30 s on a Charmander already CP518)
+            log(f"  the GPS banner hides the CP: the Stardust fell by {total:,}, so it's CP{after}")
+            last_cp = after
             return n
     keep_capture("powerup")
     raise Stop(f"the power-up to CP{after} didn't show in 30s")

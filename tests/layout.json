@@ -2126,6 +2126,7 @@
    "go",
    "is_lucky",
    "keep_capture",
+   "last_cp",
    "log",
    "look",
    "more",

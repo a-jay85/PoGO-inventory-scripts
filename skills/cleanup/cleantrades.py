@@ -96,6 +96,7 @@ def power_walk(limit, query=None):
         else:
             done += 1
             info2 = ui.detail_info(wait_for("detail")[1])
+            info2["cp"] = info2["cp"] or powerup.last_cp  # (the GPS banner can hide the CP)
             seen.add((info2["name"], info2["cp"], info2["hp"]))
             log(f"powered up {info['name']} CP{info['cp']} -> CP{info2['cp']}, {taps} power-up(s)  ({time.time() - t0:.1f}s)")
     log(f"powered up {done}, passed {passed}, {time.time() - t_start:.0f}s")

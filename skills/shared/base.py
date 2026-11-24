@@ -1390,9 +1390,11 @@ def remember_counts(texts, xl=None):
 
 
 def short(s):
-    """for comparing two reads of a name: OCR adds or drops spaces and reads O as 0 ('84 A 0*' is '84 AO*')"""
+    """for comparing two reads of a name: OCR adds or drops spaces and dots, reads O as 0 ('84 A 0*' is '84 AO*')
+    and * as \" ('84 A 0\"')"""
     # (a tile's ♀ can read as '·': 'Nidoran ·' against the page's 'Nidoran 7', 2026-11-02)
-    return re.sub(r"[.…·•]+$", "", (s or "").strip()).replace(" ", "").replace("0", "o").lower()
+    s = re.sub(r"[.…\s]+", "", s or "").replace("\"", "*").replace("0", "o")
+    return re.sub(r"[·•]+$", "", s).lower()
 
 
 CP_LOOKS = 6  # looks at the CP when the read is the tile's CP with its end missing
@@ -1400,14 +1402,17 @@ CP_LOOKS = 6  # looks at the CP when the read is the tile's CP with its end miss
 
 def opened_right(info, tile_name, tile_cp):
     """the detail is the tile that was tapped: same CP, and one name starts the other (tiles cut long names)"""
-    if info["cp"] and info["cp"] != tile_cp and ui.ANDROID:
+    cut = info["cp"] and str(tile_cp).startswith(str(info["cp"]))  # the tile's CP with its end missing
+    if info["cp"] and info["cp"] != tile_cp and (ui.ANDROID or cut):
         # a digit can go unread in the small picture (CP180 for CP1806, 2026-11-02): look again at the full-size one.
-        # A moving arm can cover it too (Chandelure's, CP183 for CP1839, 2026-11-03): only a few looks get past that
-        for i in range(CP_LOOKS if str(tile_cp).startswith(str(info["cp"])) else 1):
+        # A moving arm can cover it too (Chandelure's, CP183 for CP1839, 2026-11-03): only a few looks get past that.
+        # The iPhone has no full-size one: a new look, for a cut CP only (/ivc's CP62 for CP626)
+        look = ui.android.sharp if ui.ANDROID else lambda: ui.capture()[0]
+        for i in range(CP_LOOKS if cut else 1):
             if i:
                 time.sleep(short_wait(0.5))
             try:
-                again = ui.detail_info(ui.ocr(ui.android.sharp()))["cp"]
+                again = ui.detail_info(ui.ocr(look()))["cp"]
             except StopIteration:  # no HP line in this read
                 continue
             if again == tile_cp or again and len(str(again)) == len(str(tile_cp)):  # every digit read: it's this one
@@ -1415,18 +1420,20 @@ def opened_right(info, tile_name, tile_cp):
                 break
     if info["cp"] and info["cp"] != tile_cp:
         raise Skip(f"opened CP{info['cp']} but tile said CP{tile_cp}")
-    # I, l, | and 1 read for each other ('Pvp GI18U118' on the tile, 'Pvp G|18U|18' on the page, 2026-11-02)
-    fix = lambda x: re.sub(r"[il|1]", "i", short(x))
+    # I, l, | and 1 read for each other ('Pvp GI18U118' on the tile, 'Pvp G|18U|18' on the page, 2026-11-02),
+    # or a stray | comes in between (/ivc's names: '84|A 0*' for '84 A 0*')
+    fixes = (lambda x: re.sub(r"[il|1]", "i", short(x)), lambda x: short(x).replace("|", ""))
     # OCR can run a row's names together ('Pvp Gm38 Um9 •Pvp Gn50U26+ •...'): one of them, same CP, is fine
-    same = lambda a: any(a and b and (a.startswith(b) or b.startswith(a)) for b in map(fix, (tile_name or "").split("•")))
-    if same(fix(info["name"])):
+    same = lambda name: any(a and b and (a.startswith(b) or b.startswith(a))
+                            for f in fixes for a in [f(name)] for b in map(f, (tile_name or "").split("•")))
+    if same(info["name"]):
         return True
     if ui.ANDROID and tile_name:  # the big name can misread in the small picture (Machop's as 'doyew', upside down,
         try:  # run after run, 2026-11-20 to 23): the full-size one reads it
             again = ui.detail_info(ui.ocr(ui.android.sharp()))["name"]
         except StopIteration:
             return False
-        if again and same(fix(again)):
+        if again and same(again):
             log(f"  name read {info['name']!r}, the full-size picture reads {again!r}")
             info["name"] = again
             return True

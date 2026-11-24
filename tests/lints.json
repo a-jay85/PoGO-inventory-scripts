@@ -35,7 +35,6 @@
   "skills/gymfeed/gymfeed.py steady_look": 1,
   "skills/gymfeed/gymfeed.py to_badge_list": 1,
   "skills/hatch/hatch.py through_hatches": 1,
-  "skills/ivc/run.py read_member": 1,
   "skills/ivc/run.py scan": 1,
   "skills/mega/mega.py finish": 1,
   "skills/shared/base.py appraisal_species": 1,

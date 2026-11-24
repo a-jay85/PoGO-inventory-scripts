@@ -168,6 +168,8 @@ CASES = {
     "legendary traded": plain(sids=["entei"], traded=True),
     "legendary fused": plain(sids=["kyurem_black"]),
     "meltan": plain(sids=["meltan"]),
+    "meltan traded": plain(sids=["meltan"], traded=True),
+    "melmetal traded": plain(sids=["melmetal"], traded=True),
     "ultra beast": plain(sids=["nihilego"]),
     # gym defenders
     "gym not checked": plain(sids=["snorlax"]),

@@ -172,8 +172,7 @@ def forms_by_moves(sp, moves):
 
 def forms_by_stats(sp, cp, hp, ivs):
     """the forms whose base stats give this CP and HP with these IVs at some level"""
-    fit = lambda b: any(pvp.cp(b, ivs, lv) == cp and pvp.hp(b, ivs, lv) == hp for lv in pvp.LEVELS)
-    return [s for s in sp if fit(pvp.SPECIES[s]["baseStats"])] or sp
+    return [s for s in sp if pvp.level_of(s, ivs, cp, hp) is not None] or sp
 
 
 def is_legendary(sp):

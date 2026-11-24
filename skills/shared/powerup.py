@@ -62,20 +62,8 @@ MAX_PLUS = 4  # + taps to find the level: from 19 the cost only jumps on the 5th
 
 def candidates(species, hp, a, b):
     """every (species, IVs, level) with this max HP, CP a, and CP b one power-up later"""
-    out = []
-    for sid in species:
-        st = pvp.SPECIES[sid]["baseStats"]
-        for lv in pvp.LEVELS[:-1]:
-            m, m2 = pvp.cpm(lv), pvp.cpm(lv + 0.5)
-            for h in range(16):
-                if max(10, math.floor((st["hp"] + h) * m)) != hp:
-                    continue
-                for at in range(16):
-                    for d in range(16):
-                        iv = (at, d, h)
-                        if pvp.cp(st, iv, lv) == a and pvp.cp(st, iv, lv + 0.5) == b:
-                            out.append((sid, iv, lv))
-    return out
+    return [(sid, iv, lv) for sid, lv, iv in pvp.combos(species, a, hp, pvp.LEVELS[:-1])
+            if pvp.cp(pvp.SPECIES[sid]["baseStats"], iv, lv + 0.5) == b]
 
 
 def nickname_species(info, texts):
@@ -94,19 +82,6 @@ def nickname_species(info, texts):
         sp = []
     go("dialog", "detail")
     return sp
-
-
-def cp_levels(species, hp, cp):
-    """every level some IVs give this CP and max HP at: no tap needed"""
-    out = set()
-    for sid in species:
-        st = pvp.SPECIES[sid]["baseStats"]
-        for lv in pvp.LEVELS:
-            m = pvp.cpm(lv)
-            hs = [h for h in range(16) if max(10, math.floor((st["hp"] + h) * m)) == hp]
-            if any(pvp.cp(st, (at, d, h), lv) == cp for h in hs for at in range(16) for d in range(16)):
-                out.add(lv)
-    return sorted(out)
 
 
 def page_cost(texts):

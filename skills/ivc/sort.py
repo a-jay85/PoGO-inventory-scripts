@@ -292,9 +292,7 @@ def identify(candy, type_words, cp, hp, iv):
         return cands
     fit = []
     for s in cands:
-        b = SPECIES[s]["baseStats"]
-        if any(pvp.cp(b, (a, d, iv - a - d), lv) == cp and pvp.hp(b, (a, d, iv - a - d), lv) == hp
-               for lv in pvp.LEVELS for a in range(16) for d in range(16) if 0 <= iv - a - d <= 15):
+        if any(sum(v) == iv for *_, v in pvp.combos([s], cp, hp)):
             fit.append(s)
     if len(fit) > 1:  # forms with the same stats (Oricorio, costumes) share a dex number: any will do
         if len({(SPECIES[s]["dex"], region(s)) for s in fit}) == 1:

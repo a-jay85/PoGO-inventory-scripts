@@ -1498,14 +1498,10 @@ def type_line(texts):
 def can_have(sid, cp, hp):
     """some IVs at some level give this exact CP and HP: a CP too high for the earlier stages rules them out.
     cp None (it didn't read): the HP alone"""
-    b = pvp.SPECIES[sid]["baseStats"]
-    for lv in pvp.LEVELS:
-        hs = [h for h in range(16) if pvp.hp(b, (0, 0, h), lv) == hp]
-        if hs and cp is None:
-            return True
-        if hs and any(pvp.cp(b, (a, d, h), lv) == cp for h in hs for a in range(16) for d in range(16)):
-            return True
-    return False
+    if cp is None:
+        b = pvp.SPECIES[sid]["baseStats"]
+        return any(pvp.hp(b, (0, 0, h), lv) == hp for lv in pvp.LEVELS for h in pvp.IVS)
+    return next(pvp.combos([sid], cp, hp), None) is not None
 
 
 def narrow(sp, ivs, cp, hp):
@@ -1706,15 +1702,8 @@ def learn_ivs(sp, cp, hp, ivs, raws=None):
 
 def _exact_ivs(sp, cp, hp, ivs, raws):
     crisp = all(abs(r - round(r)) <= 0.3 for r in raws)
-    cands = set()
-    for s in sp:
-        b = pvp.SPECIES[s]["baseStats"]
-        for lv in pvp.LEVELS:
-            for a in range(max(0, ivs[0] - 1), min(15, ivs[0] + 1) + 1):
-                for d in range(max(0, ivs[1] - 1), min(15, ivs[1] + 1) + 1):
-                    for h in range(max(0, ivs[2] - 1), min(15, ivs[2] + 1) + 1):
-                        if pvp.cp(b, (a, d, h), lv) == cp and pvp.hp(b, (a, d, h), lv) == hp:
-                            cands.add((a, d, h))
+    near = [range(max(0, v - 1), min(15, v + 1) + 1) for v in ivs]  # each bar's IV, one either side
+    cands = {v for _, _, v in pvp.combos(sp, cp, hp, ranges=near)}
     if crisp and tuple(ivs) in cands:
         return tuple(ivs)
     if len(cands) == 1:
@@ -1797,8 +1786,7 @@ def to_top(tag="PvpC"):
 
 def slots_of(sp, cp, hp, ivs):
     """{(league, form): rank} for exact IVs. sp: the forms it could be; CP and HP pick between them"""
-    fit = [s for s in sp if s in pvp.PLAIN and any(pvp.cp(pvp.PLAIN[s]["baseStats"], ivs, lv) == cp and
-                                pvp.hp(pvp.PLAIN[s]["baseStats"], ivs, lv) == hp for lv in pvp.LEVELS)]
+    fit = [s for s in sp if s in pvp.PLAIN and pvp.level_of(s, ivs, cp, hp) is not None]
     slots = {tuple(sorted(pvp.iv_slots(s, ivs, pvp.level_of(s, ivs, cp, hp)).items())) for s in fit}
     if len(slots) != 1:
         raise Skip(f"species unclear: {fit} rank differently")

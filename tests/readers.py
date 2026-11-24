@@ -276,7 +276,11 @@ SCREENS = {  # the map's friend row must not read as the list's search bar: the 
     "typed number and letters, no tabs": [box(.23, .17, "113&shadow")],
     "weekly challenge progress box": [box(.31, .196, "WEEKLY CHALLENGE"), box(.2, .3, "Catch 500 Pokémon"),
                                       box(.2, .33, "387 / 500"), box(.4, .8, "LET'S GO!")],
-    "a party's summary": [box(.2, .14, "Total KM Explored"), box(.4, .21, "1.3 km"), box(.1, .18, "Me & HashTagAJay"), box(.4, .64, "SHARE")],
+    "iPhone home screen, weather widget": [box(.11, .14, "Mission Bay 1"), box(.1, .164, "52°"), box(.66, .17, "Partly Cloudy"),
+                                           box(.66, .19, "H:57° L:46°"), box(.15, .23, "Coastal Flood Warning & 1 More"),
+                                           box(.12, .3, "21"), box(.12, .34, "51°"), box(.1, .4, "Tue"), box(.3, .58, "Mon"),
+                                           box(.31, .6, "23"), box(.34, .94, "T3")],
+    "a party's summary":[box(.2, .14, "Total KM Explored"), box(.4, .21, "1.3 km"), box(.1, .18, "Me & HashTagAJay"), box(.4, .64, "SHARE")],
 }
 
 _LIST = [box(.1, .079, "TAGS"), box(.8, .079, "EGGS"), box(.23, .17, "Search")] + [box(.1 + i / 20, .3, f"CP {i}00") for i in range(1, 7)] + \

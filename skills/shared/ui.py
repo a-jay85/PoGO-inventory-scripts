@@ -932,9 +932,11 @@ def search_box(texts):
         hits.sort(key=lambda t: t[0])
         if len(hits) == 2 and hits[0][4].strip() in ("a", "< a", "‹ a"):
             hits = hits[1:]
-        # a lone number there with no TAGS / EGGS tabs: the map's friend row ('Me' over '10', 2026-11-03), not a bar
+        # a lone number there with no TAGS / EGGS tabs: the map's friend row ('Me' over '10', 2026-11-03), not a bar.
+        # A temperature too: the iPhone home screen's weather widget ('52°', 2026-11-23: read as the list, a whole
+        # run dragged and tapped the home screen for 6 min instead of opening the game)
         if not (tab(texts, "TAGS") or tab(texts, "EGGS")):
-            hits = [t for t in hits if not t[4].strip().isdigit()]
+            hits = [t for t in hits if not re.fullmatch(r"\d+\s*°?\s*[FC]?", t[4].strip())]
     return hits[0] if len(hits) == 1 else None
 
 

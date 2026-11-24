@@ -1132,10 +1132,11 @@ TAGS_BACK_OUT_MAX = 3  # that many in a row: the taps aren't getting through, so
 
 
 def cancel_tags():
-    """leave the open tag sheet by the round X under DONE: nothing on it is saved. Both phones have that X, and no CANCEL"""
+    """leave the open tag sheet by the round X under DONE: nothing on it is saved. Both phones have that X, and no CANCEL.
+    A sheet opened from a multi-select list closes back to that list (Pixel 2026-11-24): the caller leaves multi-select"""
     for _ in range(3):
         screen, texts, _, bounds = look()
-        if screen == "detail":
+        if screen in ("detail", "list"):
             return
         done = [t for t in texts if ui.norm(t[4]) == "DONE"]
         if screen != "tags" or len(done) != 1:
@@ -1143,7 +1144,7 @@ def cancel_tags():
         d = done[0]
         tap_box((d[0] + d[2] / 2 - 0.03, d[1] + 0.075, 0.06, 0.03, ""), bounds, spread=0.15)
         try:
-            wait_for("detail", timeout=4, capture=False)
+            wait_for("detail", "list", timeout=4, capture=False)
             return
         except Stop:
             pass

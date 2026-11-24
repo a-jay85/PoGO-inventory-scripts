@@ -6,7 +6,8 @@ __pycache__/
 !.claude/skills/
 .DS_Store
 # skill runtime files (stay local, never pushed: the repo is public)
-skills/*/runs/
+# no trailing slash: watch.py links the main checkout's runs folders into a worktree, and git sees a link as a file
+skills/*/runs
 skills/shared/.state.json
 skills/shared/.calib.json
 skills/trade/.state.json

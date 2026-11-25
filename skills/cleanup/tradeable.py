@@ -596,10 +596,10 @@ def giver_species(m):
         4-star raid's or higher (real_boss; #2-#6 was GIV, the user 2026-11-19), or PvPoke's Master League top REROLL_ML
         (each with the earlier stages that evolve into it). The two raid reasons (the ideal team, the top PVE_TOP) only
         while some copy of the line could still make one of CyrillJan's Team Potentials (no_team_b: its newest whole count).
-        One that's in only as a Mega counts only till CyrillJan has a 100 of it (giver_100: one Mega is enough)
+        One that's in only as a Mega counts only till both accounts have a 100 of it (giver_100: one Mega is enough)
         Also a line that could make one of CyrillJan's own Team Potentials (giver_team: a trade rolls new IVs, so the
         species decides, the user 2026-11-23), even when it's in no DialgaDex top; one in only as a Mega, only till
-        CyrillJan has a 100 of it
+        both accounts have a 100 of it
       hard (GIV, after 2XL and the level 26+ GIV): the family of a 10 or 12 km egg hatch (refresh's eggs-<date>.json), Smeargle, and
         a gym defender's line (/ivc's GYM_DEFENDERS and what evolves into them: a potential top gym defender for an
         account with fewer, the user 2026-11-16)
@@ -624,11 +624,12 @@ def giver_species(m):
                 if x in ok:
                     why.setdefault(x, (tag, r))
     count_f, gone = no_team_b(m)
-    has_100 = giver_100(m)
+    givers, takers = giver_100(m), giver_100(m, TAKER, sure=True)
+    has_100 = lambda s: givers(s) and takers(s)  # (both accounts: the user, 2026-11-25)
     plain = strong_lines(m, megas=False)
     add("Reroll", {s: r for s, r in strong_lines(m).items() if " on the ideal team " not in r
                    or (not gone(s) and (s in plain or not has_100(r.split()[2])))})
-    enough = lambda s, mega_only: f"{GIVER} has a 100" if mega_only and has_100(s) else None
+    enough = lambda s, mega_only: f"{GIVER} and {TAKER} have a 100" if mega_only and has_100(s) else None
     add("Reroll", {s: r for s, r in pve(m, enough, real=True)[0].items() if not gone(s)})  # (it has the earlier stages)
     add("Reroll", {s: f"could make {GIVER}'s Team Potential (IV sum {b}+ at level 50)"
                    for s, (b, mega_only) in giver_team(m).items() if not (mega_only and has_100(s))})
@@ -711,15 +712,18 @@ def team_100s(who, m):
                    if not c["shadow"] and c["ivs"] == [[15, 15, 15]] and c["species"] and c["species"][0] in m.by)
 
 
-def giver_100(m):
-    """-> has_100(sid): CyrillJan's newest whole /raidteam count has a 100 (15/15/15, not a shadow) of sid or of a
-    stage that evolves into it. A Mega spot needs one copy: a line that's in only as a Mega (on the ideal team or in
-    the top PVE_TOP) is no Reroll once CyrillJan has a 100 of it (the user, 2026-11-22). A copy whose IVs the count
-    didn't read counts as no 100, so a line stays Reroll till a count reads it. No count: never a 100"""
+def giver_100(m, who=GIVER, sure=False):
+    """-> has_100(sid): who's newest whole /raidteam count has a 100 (15/15/15, not a shadow) of sid or of a stage
+    that evolves into it. A Mega spot needs one copy: a line that's in only as a Mega (on the ideal team or in the top
+    PVE_TOP) is no Reroll once both accounts have a 100 of it (the user, 2026-11-22; both, 2026-11-25: CyrillJan's 100
+    is no 100 for HashTagAJay, whose lines needing 100s stay Reroll, not GIV). A copy whose IVs the count didn't read
+    counts as no 100, so a line stays Reroll till a count reads it. sure: only a copy 15/15/15 is the one IV read for
+    (not one of a few that fit). No count: never a 100"""
     import raidteams
-    copies = (raidteams.newest(GIVER)[0] or {}).get("copies", [])
+    copies = (raidteams.newest(who)[0] or {}).get("copies", [])
     copies = copies.values() if isinstance(copies, dict) else copies
-    got = {s for c in copies if not c["shadow"] and [15, 15, 15] in (c["ivs"] or []) for s in c["species"]}
+    got = {s for c in copies if not c["shadow"] and (c["ivs"] == [[15, 15, 15]] if sure else
+                                                       [15, 15, 15] in (c["ivs"] or [])) for s in c["species"]}
     return lambda sid: any(x in got for x in [sid, *dex.ancestors(sid, m.parent)])
 
 

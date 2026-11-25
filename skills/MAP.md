@@ -946,7 +946,7 @@ Tag CyrillJan's Tradeable saved search by what a trade to HashTagAJay is worth, 
 - `giver_team(m)`: -> {sid: (the lowest IV sum that could make it, mega only)}: species a traded copy of could make one of CyrillJan's Team Potentials (bars50 not None in its newest whole …
 - `mega_sids()`: species that can Mega or Primal Evolve (DialgaDex's attackers)
 - `team_100s(who, m)`: -> Counter {family root: copies}: the 100s (15/15/15 its only IV read, not a shadow) in who's newest whole /raidteam count
-- `giver_100(m)`: -> has_100(sid): CyrillJan's newest whole /raidteam count has a 100 (15/15/15, not a shadow) of sid or of a stage that evolves into it
+- `giver_100(m, who=GIVER, sure=False)`: -> has_100(sid): who's newest whole /raidteam count has a 100 (15/15/15, not a shadow) of sid or of a stage that evolves into it
 - `team_picks(m)`: -> {sid: [bosses]}: the #1 non-mega picks of Team Future and Team Ideal (roster.ideal_firsts, megas=False) that trade
 - `team_lines(m)`: -> the tradeable species of every family with a species on Team Future or Team Ideal (roster.ideal_firsts, its megas too) or on one of CyrillJan's Team Availables or …
 - `team_xl_need(m, ok, who)`: -> ({sid: [Candy XL who wants, the pick, its 100s] or None}, the team100.json read or None)

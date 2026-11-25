@@ -336,12 +336,32 @@ def cmd_tag(pile, who, dexes):
     log(f"#{pile}: {len(got)} searches; {len(unsure)} species not sure, left as they are")
     for sid, why in unsure:
         log(f"  not sure: {sid}: {why}")
-    done = {}
+    done, empty = {}, step_probe(pile, who, savedsearch)
     for tag, q in got:
+        if empty(q):
+            continue
         k = savedsearch.tag_pile(f"#{pile}", tag, off=(pile,), query=query(pile, q, who))
         done[tag] = done.get(tag, 0) + k
         log(f"DONE {tag}: {k} from #{pile} ({query(pile, q, who)})")
     log(f"#{pile} by species: {done}")
+
+
+def step_probe(pile, who, savedsearch):
+    """CyrillJan's piles: -> empty(search part), True when the part's step (GIVER_STEPS) has nothing in the pile at
+    all. One short search a step (#GIV&0*,1*,2*&year2016-2020: short enough to type in one go), once, so every search
+    of an empty step is skipped (2026-11-23: all 38 of the year, age and Dynamax ones found 0). HashTagAJay's piles
+    have no steps: never empty"""
+    seen, steps = {}, [term for term, _ in GIVER_STEPS if term]
+
+    def empty(part):
+        step = next((s for s in steps if s in part.split("&")), None) if who == GIVER else None
+        if step is None:
+            return False
+        if step not in seen:
+            seen[step] = savedsearch.long_search(f"#{pile}&0*,1*,2*&{step}") == 0
+            log(f"#{pile}&0*,1*,2*&{step}: {'nothing: its searches are skipped' if seen[step] else 'some'}")
+        return seen[step]
+    return empty
 
 
 def args(a):

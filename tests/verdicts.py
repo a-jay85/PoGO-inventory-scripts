@@ -272,6 +272,11 @@ CASES = {
     "H Snom: GIV": plain(account=TAKER, sids=["snom"]),
     "Noivern: GIV": plain(sids=["noivern"]),
     "H Magikarp, no medal: GIV": plain(account=TAKER, sids=["magikarp"], kg=5.0),
+    # its holder has 5000+ Candy of it: the trade's candy isn't needed (the user, 2026-11-25)
+    "H Magikarp, 5000 Candy: Transfer": plain(account=TAKER, sids=["magikarp"], kg=5.0, candy=5000),
+    "H Magikarp, 4999 Candy: GIV": plain(account=TAKER, sids=["magikarp"], kg=5.0, candy=4999),
+    "H Magikarp, Candy not read: unsure": plain(account=TAKER, sids=["magikarp"], kg=5.0, candy=None),
+    "Snom, 6000 Candy: Transfer": plain(sids=["snom"], candy=6000),
     "Snom xxs: IVC": plain(sids=["snom"], size="xxs"),
     "Snom at 30: XLX first": plain(sids=["snom"], levels=[30]),
     "H Snom at 29: XLX first": plain(account=TAKER, sids=["snom"], levels=[29]),

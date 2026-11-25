@@ -58,7 +58,8 @@ Before everything: an XXL one, traded or not, is a favorite and its trade, Trans
 2026-11-04: it has value in showcases). Every Transfer for an untraded one goes through transfer() last: an xxs one gets IVC instead, a trade evolution
 (free to evolve once traded) GIV, signed in as HashTagAJay only (only CyrillJan wants the XP, the user 2026-11-02).
 Then one whose family has an evolution over 100 candy (Magikarp, Snom, Noibat: rules.COSTLY_LINES) GIV, either account
-(the user 2026-11-12; not a shadow, and CyrillJan's untraded trade evolutions still get Transfer). The user's own tags first: untraded with Old, Evo, GuaranteedLucky, Remote Trade or RT,
+(the user 2026-11-12; not a shadow, and CyrillJan's untraded trade evolutions still get Transfer), till its holder has
+5000+ Candy of the family (rules.COSTLY_ENOUGH, the user 2026-11-25). The user's own tags first: untraded with Old, Evo, GuaranteedLucky, Remote Trade or RT,
 those stay and only IVC / PvpC comes off; traded, the "trade it" tags (TRADE_TAGS) come off. The species lists come
 from tradeable.py's taker_species() and giver_species(), the same ones its tag searches use. Neither account's have an age
 limit: the newest saved copy is used, however old (the user, 2026-11-04 and 2026-11-06).
@@ -78,7 +79,7 @@ from rules import GIVER, TAKER, XL_CAP, XLX, XLX_FOR, OLD_XLX
 from ivc import GYM_DEFENDERS, iv_pct, make_name as ivc_name
 from rules import NAMES as SIZE_NAMES  # a never-traded XXS one gets this name and IVC
 from rules import xxl_off
-from rules import EVO, EVO_FOR, TRADE_EVOS, COSTLY_LINES  # traded + a free trade evolution: Evo, on EVO_FOR's account
+from rules import EVO, EVO_FOR, TRADE_EVOS, COSTLY_LINES, COSTLY_ENOUGH  # traded + a free trade evolution: Evo, on EVO_FOR's account
 
 TO = {GIVER: TAKER, TAKER: GIVER}
 OLD_DAYS = int(re.search(r"\d+", rules.OLD_AGE).group())
@@ -467,7 +468,9 @@ def transfer(f, sid, why, off=(), purify=False, clear=False):
       one that evolves free once traded (TRADE_EVOS) -> GIV, signed in as HashTagAJay only (it goes to EVO_FOR,
       who wants the XP; HashTagAJay doesn't, the user 2026-11-02). A shadow can't be traded: it never is
       one whose family has an evolution over 100 candy (COSTLY_LINES: Magikarp, Snom, Noibat, ...) -> GIV, either
-      account (the user, 2026-11-12). Not a shadow, and not a trade evolution on EVO_FOR (that rule stays). GIV at 26+ and
+      account (the user, 2026-11-12): the trade pays its holder the family's candy. Not a shadow, not a trade evolution
+      on EVO_FOR (that rule stays), and not once the holder has COSTLY_ENOUGH (5000) Candy of it (the user,
+      2026-11-25: Magikarp). Candy not read: unsure. GIV at 26+ and
       every other rule come before this, as before
     The size comes first, as in final_tag's order. A size that didn't read gives unsure, never Transfer"""
     if not f.traded:
@@ -480,6 +483,11 @@ def transfer(f, sid, why, off=(), purify=False, clear=False):
             return tag("GIV", why=f"untraded, evolves free once traded (else Transfer: {why})", off=off, clear=clear)
         dexn = pvp.SPECIES[sid]["dex"]
         if not f.shadow and dexn in COSTLY_DEX and not (f.account == EVO_FOR and dexn in TRADE_EVO_DEX):
+            if f.candy is None:
+                return unsure(f"{why}, but Candy not read (a costly line under {COSTLY_ENOUGH} Candy gets GIV)")
+            if f.candy >= COSTLY_ENOUGH:
+                return tag("Transfer", why=f"{why}; {f.candy} Candy of a costly line: no trade needed", off=off,
+                           purify=purify, clear=clear)
             return tag("GIV", why=f"untraded, its line has an evolution over 100 candy (else Transfer: {why})", off=off,
                        clear=clear)
     return tag("Transfer", why=why, off=off, purify=purify, clear=clear)

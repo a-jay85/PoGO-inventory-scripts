@@ -1627,6 +1627,36 @@
   null,
   "untraded, its line has an evolution over 100 candy (else Transfer: no rule wants it)"
  ],
+ "H Magikarp, 5000 Candy: Transfer": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "no rule wants it; 5000 Candy of a costly line: no trade needed"
+ ],
+ "H Magikarp, 4999 Candy: GIV": [
+  "tag",
+  [
+   "GIV"
+  ],
+  null,
+  "untraded, its line has an evolution over 100 candy (else Transfer: no rule wants it)"
+ ],
+ "H Magikarp, Candy not read: unsure": [
+  "unsure",
+  [],
+  null,
+  "no rule wants it, but Candy not read (a costly line under 5000 Candy gets GIV)"
+ ],
+ "Snom, 6000 Candy: Transfer": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "no rule wants it; 6000 Candy of a costly line: no trade needed"
+ ],
  "Snom xxs: IVC": [
   "tag",
   [

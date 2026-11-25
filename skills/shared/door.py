@@ -19,7 +19,7 @@ A lucky one only /ivc can rank (verdict.lucky): anywhere else the door sends it 
 top IV is written to runs/lucky-out.json, so /pvpc's door knows that when the lucky rule sends it on to PvpC (else it
 would go back to IVC, round and round).
 """
-import copy, datetime, hashlib, json, os, re, sys, time
+import ast, copy, datetime, hashlib, json, os, re, sys, time
 from collections import Counter
 from dataclasses import replace
 
@@ -33,7 +33,22 @@ from base import Stop, log
 NOT_SURE = os.path.join(HERE, "runs", "not-sure.json")
 LUCKY_OUT = os.path.join(HERE, "runs", "lucky-out.json")
 LUCKY_OUT_DAYS = 7  # an older entry is dropped: by then the line may have changed
-RULES = hashlib.md5(b"".join(open(os.path.join(HERE, f), "rb").read() for f in ("verdict.py", "door.py", "rules.py"))
+
+
+def code_of(f):
+    """a file's code with no comments and no docstrings (ast.dump): an edit to the words alone keeps every saved
+    judgment (backlog #16, 2026-11-24: any edit to the three files had dropped every one)"""
+    tree = ast.parse(open(os.path.join(HERE, f), encoding="utf-8").read())
+    for n in ast.walk(tree):
+        body = getattr(n, "body", None)
+        if isinstance(n, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)) and body \
+                and isinstance(body[0], ast.Expr) and isinstance(body[0].value, ast.Constant) \
+                and isinstance(body[0].value.value, str):
+            n.body = body[1:] or [ast.Pass()]
+    return ast.dump(tree).encode()
+
+
+RULES = hashlib.md5(b"".join(code_of(f) for f in ("verdict.py", "door.py", "rules.py"))
                     ).hexdigest()[:8]  # new rules or a new reader: judge again
 SEARCHES = {"costume": "costume"}  # the one fact the page and tile can't show. The rest come from pagefacts
 RAID = "mythical&raid"  # a mythical caught in a raid can't be traded (verdict.special): typed only when the scope could

@@ -475,9 +475,11 @@ def to_top():
 
 def whole(box, q):
     """False when the box clearly holds less than the search: the box shows the last ~40 letters of a long
-    search, so a short read (no '&' in it) is all there is. 2026-11-02: the 'iii' was lost and 'mo' alone ran"""
+    search, so a short read (no '&' in it) is all there is. 2026-11-02: the 'iii' was lost and 'mo' alone ran.
+    The read has no marks, so it's held to the search without them too (2026-11-25: '!OPEN&interactable&!EGG&', the
+    search with no '!WAIT&', read back whole as 19 letters, under 20, four times, and the run stopped)"""
     t = ui.norm(box[4]).replace(" ", "").rstrip("X") if box else ""
-    return not t or "&" in t or len(t) >= min(len(q), 20)
+    return not t or "&" in t or len(t) >= min(len(ui.norm(q).replace(" ", "")), 20)
 
 
 HIDDEN = "?"  # box_end's mark for a last letter the clear X sits on

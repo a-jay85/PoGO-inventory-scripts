@@ -269,7 +269,7 @@ def which(texts):
         at = where(texts)
         if at:
             detail = trade_box(texts) if name == "trade box" else \
-                ui.summary([t for t in texts if ui.norm(t[4]) in ("MAYBE LATER", "LETS GO")], 30)
+                ui.summary([t for t in texts if ui.norm(t[4]) in ("MAYBE LATER", "LETS GO", "CLAIM REWARDS")], 30)
             return name, at, say.format(detail), wait
     return None
 

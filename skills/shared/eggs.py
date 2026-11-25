@@ -112,6 +112,9 @@ def to_eggs():
         if not tab and ui.gift_banner(texts):  # a friend's banner hides the tabs for a few seconds ('Friendship
             base.banner_gone()  # level with X increased!', Pixel 2026-11-22): wait it out, then look again
             continue
+        if not tab and screen == "list" and not ui.full_list(texts):  # a tag's list has no tabs: home.start()
+            base.to_tags_tab()  # stops on it as a list ('PvpC 10', left by another run, Pixel 2026-11-24)
+            continue
         if not tab:
             break
         base.tap_box(tab, bounds, dy=ui.TAB_DY, rest=1.5)  # (under its word, as every tab tap)

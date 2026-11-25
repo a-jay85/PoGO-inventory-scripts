@@ -1754,6 +1754,11 @@ The merge gate: a PR of this repo merges only when its tests pass, its phone tes
 - `callers(trees, name)`: -> ['file:line in fn'] of every call to a function of this name (by name: a same-named one shows too)
 - `siblings(base, head, files)`: -> the lines of the siblings list (empty: no .py under skills/ changed)
 - `copies(base, head, files)`: -> ['skills/a/x.py go: also in skills/b/y.py:12'] for each function a PR changes or adds in a skill, where another skill has a function of the same name (a likely copy: …
+- `name_tokens(name)`
+- `doc_words(doc, short=False)`
+- `doc_pairs(doc)`
+- `top_defs(tree)`: -> {name: (node, its comment)} of the module's own functions (no methods, no defs inside defs, no _private)
+- `lookalikes(base, head, files)`: -> ['skills/gift/gift.py trainer_tabs: ui.banner_tabs (name: tabs; wording: gps banner, social)'] for each function a PR adds under skills/ that looks like one …
 - `line(body, key)`
 - `check(target, cwd)`: -> (blocks, notes, warnings) for one merge
 - `verdict(command, cwd)`: -> None (not a merge of this repo), or (block message or None, notes, warnings)

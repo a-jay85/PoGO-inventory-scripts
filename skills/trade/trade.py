@@ -33,6 +33,11 @@ and no 2XL any other day. A regular trade costs 80 Stardust on a Friday (20% off
 100 has no Friendship Friday (Niantic skips one now and then): nothing is traded, and the run (and the rest of the
 day's runs) goes on with the other days' rules. A run stops at midnight if that
 changes what it may trade.
+A lucky-trade event (EVENTS: its dates and piles) swaps GIV for its own pile on each phone, typed: Nov 24-30 2026,
+HashTagAJay's '#Old&age366-730&!candykm20' (caught 1-2 years ago, raising the lucky odds) for CyrillJan's '#Reroll'.
+The same far-apart and needy-candy plans, and the run stops when either pile is out (no GIV then). A Friendship Friday
+inside one still trades 2XL; a Friday with no Friendship Friday trades the event's piles. A run stops when an event
+starts or ends.
 Log and captures go in runs/<time>/.
 
 Keep both phones on and both games open. A long pause on the iPhone during a trade can let the game's trade timer run
@@ -63,30 +68,64 @@ PER_RUN = 48  # a run makes at most this many (--limit): two runs (96) stay unde
 NEED = "&countcandy0-2499"  # typed after a pile: only species this account has under 2,500 candy of
 
 
-def set_piles(tags, saved):
-    """what this run trades: the two piles (their saved searches, on both accounts, if they have them) and PLANS.
-    NEAR: 0-100 km, FAR: 100+ km. RICH_I, RICH_A: the 0-100km ones of species this account has 2,500+ candy of. A long
-    search doesn't fit in the bar: the iPhone shows its end, the Pixel its first ~30 characters. So the candy part goes
-    last on the iPhone and right after the distance on the Pixel: NEAR + NEED and NEAR + "&countcandy2500-" look the
-    same for 30 characters.
+def set_piles(tags, saved, tags_a=None):
+    """what this run trades: each phone's two piles (their saved searches, on both accounts, if they have them) and
+    PLANS. tags: the iPhone's pile (HashTagAJay), tags_a the Android's (CyrillJan; None: the same). NEAR_I, FAR_I and
+    NEAR_A, FAR_A: 0-100 km and 100+ km. RICH_I, RICH_A: the 0-100km ones of species this account has 2,500+ candy of.
+    A long search doesn't fit in the bar: the iPhone shows its end, the Pixel its first ~30 characters. So the candy
+    part goes last on the iPhone and right after the distance on the Pixel: NEAR_A + NEED and NEAR_A +
+    "&countcandy2500-" look the same for 30 characters.
     PLANS: (iPhone search, Android search, why), in order: the first with Pokémon left on both phones is traded. Each
     account gets candy for the one it sends, so a needy search keeps the far-apart bonus for species that account needs.
     0-100km with 0-100km trades the 2,500+ candy ones first: the needy 0-100km ones are kept for a far-apart pair later"""
-    global NEAR, FAR, SAVED, RICH_I, RICH_A, PLANS
-    NEAR, FAR = f"{tags}&distance0-100", f"{tags}&distance100-"
-    SAVED = {NEAR: "0-100km", FAR: "100+km"} if saved else {}
-    RICH_I = NEAR + "&countcandy2500-"
-    RICH_A = f"distance0-100&countcandy2500-&{tags}"
-    PLANS = [(NEAR + NEED, FAR + NEED, "both need the candy"), (FAR + NEED, NEAR + NEED, "both need the candy"),
-             (NEAR + NEED, FAR, "HashTagAJay needs the candy"), (FAR + NEED, NEAR, "HashTagAJay needs the candy"),
-             (NEAR, FAR + NEED, "CyrillJan needs the candy"), (FAR, NEAR + NEED, "CyrillJan needs the candy"),
+    global NEAR_I, FAR_I, NEAR_A, FAR_A, SAVED, RICH_I, RICH_A, PLANS
+    tags_a = tags_a or tags
+    NEAR_I, FAR_I = f"{tags}&distance0-100", f"{tags}&distance100-"
+    NEAR_A, FAR_A = f"{tags_a}&distance0-100", f"{tags_a}&distance100-"
+    SAVED = {NEAR_I: SHORTCUTS[0], FAR_I: SHORTCUTS[1]} if saved and tags == tags_a else {}
+    RICH_I = NEAR_I + "&countcandy2500-"
+    RICH_A = f"distance0-100&countcandy2500-&{tags_a}"
+    PLANS = [(NEAR_I + NEED, FAR_A + NEED, "both need the candy"), (FAR_I + NEED, NEAR_A + NEED, "both need the candy"),
+             (NEAR_I + NEED, FAR_A, "HashTagAJay needs the candy"), (FAR_I + NEED, NEAR_A, "HashTagAJay needs the candy"),
+             (NEAR_I, FAR_A + NEED, "CyrillJan needs the candy"), (FAR_I, NEAR_A + NEED, "CyrillJan needs the candy"),
              (RICH_I, RICH_A, "0-100km with 0-100km, both 2,500+ candy"),
-             (RICH_I, NEAR, "0-100km with 0-100km, HashTagAJay's 2,500+ candy"),
-             (NEAR, RICH_A, "0-100km with 0-100km, CyrillJan's 2,500+ candy"),
-             (NEAR, NEAR, "0-100km with 0-100km")]  # no far-apart bonus: the 100+km ones are kept for another day
+             (RICH_I, NEAR_A, "0-100km with 0-100km, HashTagAJay's 2,500+ candy"),
+             (NEAR_I, RICH_A, "0-100km with 0-100km, CyrillJan's 2,500+ candy"),
+             (NEAR_I, NEAR_A, "0-100km with 0-100km")]  # no far-apart bonus: the 100+km ones are kept for another day
 
 
-set_piles("giv", saved=True)  # main() switches a Friday run to #2xl, typed
+SHORTCUTS = ("0-100km", "100+km")  # the saved GIV searches' labels, on both accounts
+# A lucky-trade event (the user, 2026-11-24): while one is on, CyrillJan's #Reroll pile goes to HashTagAJay, for
+# HashTagAJay's Pokémon caught 366-730 days ago (an old one raises the lucky odds; a lucky Reroll has every IV 12+.
+# Nothing 2 years or older is spent: the user).
+# !candykm20 keeps legendary, mythical and Ultra Beast out (a special trade). A run stops when either pile runs out:
+# no GIV in an event. A Friendship Friday inside one still trades 2XL. (start, end, iPhone pile, Android pile), local time
+EVENTS = [(datetime.datetime(2026, 11, 24, 10, 0), datetime.datetime(2026, 11, 30, 20, 0),
+           "#Old&age366-730&!candykm20", "#Reroll")]
+
+
+def event_now():
+    """the lucky-trade event on now: (iPhone pile, Android pile), or None"""
+    now = datetime.datetime.now()
+    return next(((ti, ta) for start, end, ti, ta in EVENTS if start <= now < end), None)
+
+
+def plain_piles():
+    """a day with no Friendship Friday: the event's piles while one is on, else GIV on both. -> what's traded"""
+    ev = event_now()
+    if ev:
+        set_piles(ev[0], saved=False, tags_a=ev[1])
+        return f"the lucky-trade event: HashTagAJay's {ev[0]} for CyrillJan's {ev[1]}"
+    set_piles("giv", saved=True)
+    return "GIV"
+
+
+def mode():
+    """what a run may trade now: "friday", "event" or "giv". A run stops when it changes (midnight, an event's end)"""
+    return "friday" if friendship_friday() else "event" if event_now() else "giv"
+
+
+set_piles("giv", saved=True)  # main() switches a Friday run to #2xl and an event run to its piles, typed
 
 
 def friendship_friday():
@@ -636,12 +675,12 @@ def open_panel(p):
             p.key("back")  # Android: hides the keyboard only, the panel stays
             time.sleep(1.0)
             p.look()
-        if label(p, "FAVORITE") and shortcut(p, SAVED[NEAR]) and shortcut(p, SAVED[FAR]):
+        if label(p, "FAVORITE") and all(shortcut(p, n) for n in SHORTCUTS):
             return
         if label(p, "FAVORITE"):  # the panel is up, a shortcut isn't read: a banner ("... has connected!") can
             time.sleep(1.0)       # cover it for a few seconds. (This used to go round on the same look)
             p.look()
-            if shortcut(p, SAVED[NEAR]) and shortcut(p, SAVED[FAR]):
+            if all(shortcut(p, n) for n in SHORTCUTS):
                 return
     p.keep("panel")
     raise Stop(f"{p.name}: the search panel with the saved shortcuts didn't show: {p.summary()}")
@@ -710,12 +749,12 @@ def in_bar(p, q):
 
 
 def pile(s):
-    """which distance a search or a bar read is, by where the '-' sits after 'distance': NEAR ('0-100'), FAR
+    """which distance a search or a bar read is, by where the '-' sits after 'distance': "near" ('0-100'), "far"
     ('100-'), or None (no '-' read, or 'distance' cut off)"""
     m = re.search(r"ance(.{0,5})", s) or re.search(r"^nce(.{0,5})", s) or re.search(r"^ce(.{0,5})", s)
     if not m or "-" not in m.group(1):
         return None
-    return {1: NEAR, 3: FAR}.get(m.group(1).index("-"))
+    return {1: "near", 3: "far"}.get(m.group(1).index("-"))
 
 
 def edits(a, b):
@@ -1217,7 +1256,7 @@ def trade_once(ios, android, specials, fresh=False, rehearse=False):
         return None  # both phones are left in the picker: nothing picked, nothing to undo
     qi, qa, why, got = picked
     log(f"pair: {why}")
-    far = FAR in (qi.replace(NEED, ""), qa.replace(NEED, ""))  # 0-100km with 0-100km: any distance goes
+    far = FAR_I == qi.replace(NEED, "") or FAR_A == qa.replace(NEED, "")  # 0-100km with 0-100km: any distance goes
     for skip in range(SKIPS + 1):
         reads = both(check_confirm, *[(p,) for p in phones])
         for _ in range(2):  # a read can drop the decimal point (3,853.3 as 38533.0): read both again
@@ -1339,10 +1378,11 @@ TRIES = 5  # looks at the friend list for a trade request, out to the map and ba
 HUMAN = 300  # seconds a person may take to pick, or to confirm
 
 
-def solo_piles():
-    """what the script's phone offers, best first: the same piles, the species it needs candy of (under 2,500) first.
+def solo_piles(p):
+    """what the script's phone offers, best first: its own piles, the species it needs candy of (under 2,500) first.
     The other side's pick can't be seen beforehand, so no far-apart planning: the distance is only logged"""
-    return [NEAR + NEED, FAR + NEED, NEAR, FAR]
+    near, far = (NEAR_A, FAR_A) if p.name == "android" else (NEAR_I, FAR_I)
+    return [near + NEED, far + NEED, near, far]
 
 
 def find_request(p):
@@ -1421,7 +1461,7 @@ def solo_once(p, specials, rehearse=False):
     if n is not None:
         specials.setdefault("specials", n)
     got = None
-    for q in solo_piles():
+    for q in solo_piles(p):
         n, got = pick(p, q, specials)
         if got:
             break
@@ -1464,6 +1504,8 @@ def solo_main(a, name, android):
             set_piles("#2xl", saved=False)
             COST, COST_READS = FRIDAY_COST, FRIDAY_READS
             log("Friendship Friday: only the ones tagged 2XL")
+        else:
+            log(f"trading {plain_piles()}")
         n, rehearsed, specials, expired = 0, 0, {}, 0
         log(f"one phone ({p.name}): trades with whoever sends a local trade request; "
             f"{made_today()} trades made today so far, this run at most {a.limit}")
@@ -1476,9 +1518,8 @@ def solo_main(a, name, android):
             except NoFriday as e:
                 friday = False
                 base.write_json(STATE, {**state(), "no_friday": today()})
-                set_piles("giv", saved=True)
                 COST, COST_READS = REGULAR_COST, REGULAR_READS
-                log(f"{e}: no Friendship Friday this week. Trading GIV like any other day")
+                log(f"{e}: no Friendship Friday this week. Trading {plain_piles()} like any other day")
                 to_friend(p, ours=True)
                 continue
             except DailyLimit as e:
@@ -1552,12 +1593,15 @@ def main():
             set_piles("#2xl", saved=False)
             COST, COST_READS = FRIDAY_COST, FRIDAY_READS
             log("Friendship Friday: only the ones tagged 2XL")
+        else:
+            log(f"trading {plain_piles()}")
+        now = mode()
         made, n, specials, expired, fresh = made_today(), 0, {}, 0, False
         rehearsed, in_picker = 0, False
         log(f"{made} trades made today so far, {PER_DAY} a day; this run: at most {a.limit}")
         while n < a.limit and (not a.rehearse or rehearsed < a.rehearse):
-            if friendship_friday() != friday:
-                log("midnight: what can be traded changed. Start the run again")
+            if mode() != now:
+                log("midnight or an event's start or end: what can be traded changed. Start the run again")
                 break
             if made_today() >= PER_DAY:
                 log(f"{PER_DAY} trades today: done for the day")
@@ -1567,9 +1611,9 @@ def main():
             except NoFriday as e:
                 friday, fresh = False, True  # the next round backs both out of this confirm screen first
                 base.write_json(STATE, {**state(), "no_friday": today()})
-                set_piles("giv", saved=True)
                 COST, COST_READS = REGULAR_COST, REGULAR_READS
-                log(f"{e}: no Friendship Friday this week. Trading GIV like any other day")
+                log(f"{e}: no Friendship Friday this week. Trading {plain_piles()} like any other day")
+                now = mode()
                 continue
             except DailyLimit as e:
                 log(f"{e}: done for the day")
@@ -1597,7 +1641,7 @@ def main():
             names, d, candy = got
             log(f"trade {made_today()} today: {names[0]} (iPhone) <-> {names[1]} (Android), {d:,.1f} km, {candy} candy")
             try:
-                finish(phones, n < a.limit and made_today() < PER_DAY and friendship_friday() == friday)
+                finish(phones, n < a.limit and made_today() < PER_DAY and mode() == now)
             except DailyLimit as e:  # the box came up on the next round's LOCAL TRADE: this trade is counted
                 log(f"{e}: done for the day")
                 set_made(max(made_today(), PER_DAY))  # a later run today stops at once

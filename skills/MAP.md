@@ -1570,7 +1570,10 @@ One phone for /trade, run as its own process: trade.py starts one for the iPhone
 ## skills/trade/trade.py
 /trade: local trades between the user's two accounts, regular trades only
 
-- `set_piles(tags, saved)`: what this run trades: the two piles (their saved searches, on both accounts, if they have them) and PLANS. NEAR: 0-100 km, FAR: 100+ km
+- `set_piles(tags, saved, tags_a=None)`: what this run trades: each phone's two piles (their saved searches, on both accounts, if they have them) and PLANS. tags: the iPhone's pile (HashTagAJay), tags_a the …
+- `event_now()`: the lucky-trade event on now: (iPhone pile, Android pile), or None
+- `plain_piles()`: a day with no Friendship Friday: the event's piles while one is on, else GIV on both
+- `mode()`: what a run may trade now: "friday", "event" or "giv"
 - `friendship_friday()`: a Friday, and no confirm screen read today's regular cost: Niantic skips one now and then (2026-11-13, GO Wild Area week: 100 Stardust on a Friday)
 - `class Expired`: the game canceled the trade before both confirmed: nothing traded, the round can start over
 - `class ServiceDown`: the trading server failed ("Trading service temporarily unavailable"): the round starts over
@@ -1618,7 +1621,7 @@ One phone for /trade, run as its own process: trade.py starts one for the iPhone
 - `results(p)`: the picker's 'Q (7)' count, or None (the shared reader: Q read as 9, (0) as (O))
 - `same_l(s)`: OCR mixes up l, i, I, 1 and | in the bar ('xix' for 'xlx'): the searches differ elsewhere
 - `in_bar(p, q)`: the bar shows exactly this search
-- `pile(s)`: which distance a search or a bar read is, by where the '-' sits after 'distance': NEAR ('0-100'), FAR ('100-'), or None (no '-' read, or 'distance' cut off)
+- `pile(s)`: which distance a search or a bar read is, by where the '-' sits after 'distance': "near" ('0-100'), "far" ('100-'), or None (no '-' read, or 'distance' cut off)
 - `edits(a, b)`: how many letters added, dropped or changed turn a into b
 - `near_bar(p, q)`: a bar the OCR garbled ('giv,xl&distanceo-1i0&conntcandy' for the Pixel's then giv,xlx&distance0-100&countcandy0-2499) still shows q when the '-' puts it in q's pile and, …
 - `shown(p, q)`: the picker shows q's results: -> how many, 0 too (None: not yet)
@@ -1652,7 +1655,7 @@ One phone for /trade, run as its own process: trade.py starts one for the iPhone
 - `loaded(p)`
 - `reconnect(phones)`: iPhone Mirroring lost the iPhone: open it again, with the game up
 - `cmd_look(phones)`
-- `solo_piles()`: what the script's phone offers, best first: the same piles, the species it needs candy of (under 2,500) first
+- `solo_piles(p)`: what the script's phone offers, best first: its own piles, the species it needs candy of (under 2,500) first
 - `find_request(p)`: the Friends tab, until a local trade request is on it -> the friend's name, or None after TRIES looks
 - `solo_join(p, name)`: the request's row -> the friend's page (a gift of theirs can open first: its X shows the page) -> LOCAL TRADE, which joins the trade they're waiting in
 - `solo_confirm(p)`: our pick made: wait (a person's time) for theirs, then read the cost

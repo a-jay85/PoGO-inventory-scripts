@@ -254,6 +254,14 @@ def gym_view_alone(texts):
         and not any(re.fullmatch(r"(?:TAG|TRANSFER)\s*\(\d[\d,]*\)\W?", t[4].strip().upper()) for t in texts)
 
 
+def power_dialog(texts):
+    """the power-up dialog ('POWER UP: 93 AD', 'CP 1044 →1053', POWER UP, CANCEL) a crashed script left open over a
+    Pokémon (iPhone 2026-11-25: /ivc crashed on it, the next start stopped there). Its owner is powerup.py"""
+    return any(re.match(r"POWER UP\s*:", t[4].strip(), re.I) for t in texts) \
+        and any(re.fullmatch(r"CP\s*\d+\D+\d+", t[4].strip()) for t in texts) \
+        and any(ui.norm(t[4]) == "CANCEL" for t in texts)
+
+
 # ---------- the ways out ----------
 # each: texts -> (fx, fy) to tap, or None when it can't be left from here (then Back / reopen, as before)
 
@@ -278,6 +286,12 @@ def confirm_out(texts):
     return ui.center(t) if t and ui.norm(t[4]) == "CANCEL" else EXIT_DOOR
 
 
+def cancel(texts):
+    """the CANCEL button (never POWER UP)"""
+    t = next((t for t in texts if ui.norm(t[4]) == "CANCEL"), None)
+    return ui.center(t) if t else None
+
+
 def recent(texts):
     t = ui.label(texts, "RECENT")
     return ui.center(t) if t else None
@@ -291,6 +305,7 @@ def can_receive(texts):
 
 # order: the more particular first (a trade's warning and confirm screens show a Pokémon's CP too)
 PAGES = (
+    ("powerup: power-up dialog", power_dialog, cancel),
     ("trade: cancel this trade?", trade_leave, leave_trade_yes),
     ("trade: are you sure?", trade_warning, warning_no),
     ("trade: confirm", trade_confirm, confirm_out),

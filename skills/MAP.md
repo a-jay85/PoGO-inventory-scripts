@@ -328,6 +328,7 @@ Whole screens that belong to one script, and the way out of each, for every othe
 - `gift_picker(texts)`
 - `gift_preview(texts)`
 - `gift_popup(texts)`: (a long title cuts the line short: 'Greetings fro..', crecos1's Yacht Club gift, 2026-11-07)
+- `gift_bag_full(texts)`: 'Your Item Bag is full!' over a gift box that OPEN was tapped on (MANAGE ITEMS, UPGRADE ITEM BAG, Pixel 2026-11-25)
 - `lucky_trade(texts)`: a friend's Lucky Trade request over their page: its X shows the page
 - `raid(texts)`: a raid's gym screen (2026-10-27: a friend-row tap opened one)
 - `buddy(texts)`: the buddy's history page (a stray tap on the ME tab's buddy): its X goes back
@@ -705,7 +706,7 @@ One local timer for the scripts that run by themselves (gymfeed, hatch, goplus)
 - `main(a)`
 
 ## skills/shared/ui.py
-Screen reader + tap planner for /pvpc
+Screen reader + tap planner for every script, and the readers under the red GPS banner (gps_banner, under_gps_banner, banner_tabs: the storage's and the trainer screens' …
 
 - `class Refused`: a tap the script won't plan; message starts with REFUSED where it's a safety call
 - `class Moving`: screen still animating: try again in a moment
@@ -726,7 +727,7 @@ Screen reader + tap planner for /pvpc
 - `ocr_turned(path)`: the png's text read from a copy turned upside down, each box put back where it is on the png
 - `ocr_2x(path)`: OCR a 2x copy: it reads white on green (a GIV chip, YES) and upside-down lines the 1x read misses
 - `ocr(path)`: the png's text. A list with more tile CPs than names read: once more from a 2x copy, kept if it finds more tiles. A list with no TAGS or EGGS tab read: at 2x, kept if …
-- `banner_tabs(path, texts, pokemon=False)`: the storage's TAGS and EGGS tab words the red GPS banner hid (not in texts), read from under it (under_gps_banner), each its own box
+- `banner_tabs(path, texts, pokemon=False, tabs=STORAGE_TABS)`: tabs: (word, what of it reads, crop) each
 - `orphan_names(texts)`: a list's text lower than a CP label could hide under the search bar (y 0.38+), above the round buttons, that is no CP label and no tile name under one, 2+ in one row, …
 - `size_lost(texts)`: the units ('kg', 'm') whose value didn't read while the other's value or a WEIGHT / HEIGHT label did (the size row is on screen)
 - `header(texts)`: the POKÉMON header at the top reads (the trade picker has it with no TAGS or EGGS beside it: iPhone 2026-11-19 read it upside down, 'NOWĄYOd', and /trade stopped on 'the …
@@ -1090,14 +1091,16 @@ Evolve every free trade evolution tagged Evo, as fast as the game lets it
 - `drag(fy1, fy2, ms=500, x=None, settle=0.7)`: scroll by dragging from fy1 to fy2
 - `close()`: the X. No pause after it: every caller waits for the screen it opens (to_list won't X twice within 3 LAG)
 - `close_popup(*screens, timeout=6, also=())`: X on a gift or Lucky Trade popup over a friend page -> one of the screens
+- `trainer_tabs()`: the ME / FRIENDS / SOCIAL tabs are under the GPS banner (ui.banner_tabs reads ME and SOCIAL from under it)
 - `count()`: the '(N)' under FRIENDS while a search is on
 - `search_line()`: the search box's text, when it's on screen (it scrolls away with the list)
 - `search_gone()`: the friend list's button row under the picture (ADD FRIEND, INVITE) shows only with no search on
 - `to_list()`
 - `arrow()`: the sort button's arrow: 'down' / 'up' / None
-- `sorted_gift()`: the sort button already shows Can receive a gift (the gift icon) -> its arrow 'down' / 'up', else None
-- `set_sort()`: Can receive a gift, arrow down
-- `sort_to_top()`: a new sort puts the list back at its top, so this beats dragging up through hundreds of friends (the user's tip, 2026-11-07): pick Name, then set_sort() picks Can …
+- `sort_label()`
+- `sorted_gift()`: the sort button already shows the sort this pass wants (sort_name) -> its arrow 'down' / 'up', else None
+- `set_sort()`: sort_name (Can receive a gift, or GIFT for the open pass), arrow down
+- `sort_to_top()`: a new sort puts the list back at its top, so this beats dragging up through hundreds of friends (the user's tip, 2026-11-07): pick Name, then set_sort() picks sort_name …
 - `to_top()`
 - `whole(box, q)`: False when the box clearly holds less than the search: the box shows the last ~40 letters of a long search, so a short read (no '&' in it) is all there is
 - `box_end(box)`: the search box's read, squeezed, without the clear X it can end with
@@ -1113,8 +1116,11 @@ Evolve every free trade evolution tagged Evo, as fast as the game lets it
 - `grey(p)`
 - `badged(im, name_y)`: the grey circle with a white arrow at the avatar's bottom right: a gift already sent, nothing more to send
 - `rows()`: the rows on screen, top down: {name, t, badged}. A row is the trainer name at x ~0.29, the nickname just under it; rows too low to see their badge are left for the next …
+- `sent_me_gift(t)`: the row whose name is t has '<name> sent you a Gift!' under it (one line, or 'sent you a' / 'Gift!' on two, Pixel 2026-11-25)
 - `name_key(s)`: a trainer name with the letters OCR mixes up made the same
 - `same_name(a, b)`: the row's name and the page's: OCR reads them a little differently ('lycбo' / 'lyc60')
+- `cut_of(short, whole)`: short is whole cut off at the end, its last letter maybe misread: a long name on the friend page ('Kapselswi' / 'Kapselswirek', 'MyFairyCc' / 'MyFairyCookie', Pixel …
+- `like(a, b)`: the same friend, read in two places (one may be cut short)
 - `never_gift(name, nick)`: the friend the script must leave alone
 - `page_name()`
 - `page_nickname()`: the nickname under the name, in straight quotes -> (text, its line) / ("", None) when there's none
@@ -1140,8 +1146,9 @@ Evolve every free trade evolution tagged Evo, as fast as the game lets it
 - `is_tagged(tag, nick)`: the nickname already reads new_nickname(tag, ...) of itself: renaming it would change nothing
 - `new_nickname(tag, old)`
 - `cancel_nickname()`
-- `rename(tag, old, listed)`: listed: the nickname as the friend list showed it
+- `rename(tag, old, listed, new=None)`: listed: the nickname as the friend list showed it
 - `grey_check(t)`: tap a grey SEND GIFT anyway
+- `whose_page(row, done)`: the friend page that opened from row's tap -> (row, name), name None when it's no one to go on with
 - `one_friend(row, check=False, done=None)`: open the row's friend page, check, gift and/or tag
 - `wait_ok()`: a friend tagged WAIT gets a gift anyway on this account (GIFT_WAIT)
 - `whose()`: from the friend list: our trainer name on the ME tab -> trainer, and which gifts this account sends (San Francisco only when it can't be read)
@@ -1149,9 +1156,18 @@ Evolve every free trade evolution tagged Evo, as fast as the game lets it
 - `iii_file()`
 - `iii_finished()`: the "iii" zones this account has finished today, and "iii rest" / "lll rest" for a whole search finished
 - `iii_remember(zone, day)`: zone: an "iii" zone, or "iii rest" / "lll rest"
-- `run_searches(limit)`
+- `class Done`: a pass is over: why (None: --limit)
+- `walk(base_q, zq, n, act, done, retried, todo_ok, ends, end_note)`: walk the list of the search just typed (base_q + zq, (n) friends) from its top, and act(row) on each friend todo_ok(row) lets through, top down, till the first one left …
+- `run_searches(limit)`: the send pass -> (gifts sent, why it ended)
+- `open_time()`: late enough to open gifts: from OPEN_FROM till midnight
+- `box_from(*names)`: the gift box showing is from one of names (its sender's name sits under the city, Pixel 2026-11-25: 'alestarSK')
+- `untag(nick, listed)`: take the WAIT / SENT / EGG tag off a friend who leveled up -> True when the nickname changed
+- `held(name, nick, listed)`: a friend whose gift waits: OPEN, or close to leveling up
+- `open_one(row, done, anytime)`: open the gift row's friend sent me, unless held() -> "opened", None (left on purpose), "missed" or "raid"
+- `opened(name, nick, t0)`: tap OPEN on the box from name and wait for their page -> "opened"
+- `open_searches(limit, anytime=False)`: the open pass -> (gifts opened, why it ended)
 - `one_phone(a)`
-- `script(limit)`
+- `script(limit, cmd='run')`
 - `main()`
 
 ## skills/goplus/goplus.py

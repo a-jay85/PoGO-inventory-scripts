@@ -10,3 +10,4 @@ paths:
 - A `no appraisal button: through the menu` log line means `open_appraisal`'s button finder missed. The run still works, just slower.
 - Pixel grey-screen glitch: the whole screen stays dimmed, `adb shell dumpsys window` shows mCurrentFocus=NotificationShade, and runs stop with "found 0 menu buttons on 'detail'". The shade, dismiss-keyguard and reopening don't help. Check mCurrentFocus first, then ask the user to restart the phone.
 - Unstarted idea: `base.start` doesn't clear old popups (~/claude-plans/_reports/2026-11-04-pogo-shared-code-review.md, A1).
+- The red GPS banner (location off for most Pixel runs) hides the tabs and counts at the top. Read what it hides with `ui.under_gps_banner` or `ui.banner_tabs` (storage tabs, or `tabs=ui.TRAINER_TABS`). Never guess the screen from other rows instead.

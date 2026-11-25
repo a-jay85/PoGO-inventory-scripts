@@ -38,7 +38,7 @@ Before writing a helper, grep `skills/MAP.md` (every function, its arguments and
 - `skills/shared/tagsheet.py`: Shared reads and taps: a search typed until the bar reads back exactly, who's on the detail page (name, CP, HP, weight, height), its tag chips, the caught date at the …
 - `skills/shared/taps.py`: Shared taps: the swipe to the next Pokémon, SELECT ALL, an exact search, the Stardust and candy owned, and purify (one PURIFY, one YES, the animation waited out)
 - `skills/shared/timer.py`: One local timer for the scripts that run by themselves (gymfeed, hatch, goplus)
-- `skills/shared/ui.py`: Screen reader + tap planner for /pvpc
+- `skills/shared/ui.py`: Screen reader + tap planner for every script, and the readers under the red GPS banner (gps_banner, under_gps_banner, banner_tabs: the storage's and the trainer screens' …
 - `skills/shared/verdict.py`: The final tag for a Pokémon that just fell short of a keeper, judged right where it was judged (no Nope)
 
 ## skills/cleanup

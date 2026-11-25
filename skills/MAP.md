@@ -345,10 +345,12 @@ Whole screens that belong to one script, and the way out of each, for every othe
 - `gym_view(texts)`: inside a gym: CP labels over its Pokémon, the gym's name across the top
 - `glued_labels(texts)`: the middle holds only CP labels read glued together: few words on the whole screen, and each one in the middle mostly digits, 7 or more (a looser rule read 175 of 400 …
 - `gym_view_alone(texts)`: a gym, for the other scripts: a Pokémon list's CP labels look the same, and a gym never has a search bar, or a multi-select's TAG (n) / TRANSFER (n) (a list read half …
+- `power_dialog(texts)`: the power-up dialog ('POWER UP: 93 AD', 'CP 1044 →1053', POWER UP, CANCEL) a crashed script left open over a Pokémon (iPhone 2026-11-25: /ivc crashed on it, the next …
 - `x_button(texts)`
 - `leave_trade_yes(texts)`
 - `warning_no(texts)`
 - `confirm_out(texts)`: takes back a CONFIRM that landed (CANCEL), else the exit door
+- `cancel(texts)`: the CANCEL button (never POWER UP)
 - `recent(texts)`
 - `can_receive(texts)`: the gift sort menu's row (OCR can glue its round pick button on: 'OCAN RECEIVE A GIFT')
 - `which(texts)`: the page on this screen -> (name, (fx, fy)), or None

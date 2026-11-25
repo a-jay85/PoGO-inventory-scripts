@@ -203,9 +203,10 @@ def dialog(info, can_be=None, species=None):
     press(btn[0], bounds)
     *got, head = read_dialog(info["cp"], can_be=can_be)
     title = head.split(":", 1)[1]
-    if ui.letters(title) != ui.letters(info["name"]) and ui.names_species(title, species):
+    name = info["name"] or ""  # (a page whose name didn't read: the title must name the species)
+    if ui.letters(title) != ui.letters(name) and ui.names_species(title, species):
         log(f"  name read {info['name']!r}, the dialog says {title.strip()}: the same species and CP")
-    elif ui.letters(title) != ui.letters(info["name"]):
+    elif ui.letters(title) != ui.letters(name):
         press(got[3], got[5])
         raise Stop(f"the power-up dialog names someone else: {head!r} (wanted {info['name']})")
     return got

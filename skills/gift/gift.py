@@ -215,6 +215,9 @@ def classify():
         if w & {"ADD FRIEND", "INVITE", "TRAINER NICKNAME"} or search_line() or count() is not None:
             return "friends"  # (count: the list scrolled past its search box keeps the '(515)' under FRIENDS. With
             # no count check it read as unknown after every scroll, Back, search again, and 6 stopped the run, Pixel 2026-11-23)
+        if trainer_tabs() and rows():
+            return "friends"  # (scrolled past its box, the banner on the '(7)' too: read as unknown, Back went to the
+            # map and wiped the search, 6 times, Pixel 2026-11-25)
     from home import splash, map_or_blank
     if splash(texts):
         return "blank"  # the game still loading: wait, no Back
@@ -336,6 +339,14 @@ def close_popup(*screens, timeout=6, also=()):
 
 
 # ---------- the friend list ----------
+
+def trainer_tabs():
+    """the ME / FRIENDS / SOCIAL tabs are under the GPS banner: ME and SOCIAL's end read from under it (FRIENDS sits
+    right under the banner's words and never does, Pixel 2026-11-25: 'ME', 'ound. (11) CIAL')"""
+    # (each tab its own small crop, as ui.banner_tabs does: wider ones lost ME or 'CIAL' to the banner's words)
+    return any(t[0] < 0.25 and ui.norm(t[4]) == "ME" for t in ui.under_gps_banner(path, 0.0, 0.06, 0.3, 0.13)) \
+        and any(t[0] + t[2] > 0.75 and ui.norm(t[4]).endswith("CIAL") for t in ui.under_gps_banner(path, 0.6, 0.06, 1.0, 0.13))
+
 
 def count():
     """the '(N)' under FRIENDS while a search is on. Under the GPS banner (location off) it reads only from a
@@ -772,6 +783,18 @@ def same_name(a, b):
     """the row's name and the page's: OCR reads them a little differently ('lycбo' / 'lyc60'). One letter off is ok"""
     a, b = name_key(a), name_key(b)
     return a == b or len(a) == len(b) and sum(x != y for x, y in zip(a, b)) <= 1
+
+
+def cut_of(short, whole):
+    """short is whole cut off at the end, its last letter maybe misread: a long name on the friend page
+    ('Kapselswi' / 'Kapselswirek', 'MyFairyCc' / 'MyFairyCookie', Pixel 2026-11-25). 7 letters at least"""
+    a, b = name_key(short), name_key(whole)
+    return 7 <= len(a) < len(b) and b.startswith(a[:-1])
+
+
+def like(a, b):
+    """the same friend, read in two places (one may be cut short)"""
+    return same_name(a, b) or cut_of(a, b) or cut_of(b, a)
 
 
 def never_gift(name, nick):
@@ -1322,16 +1345,17 @@ def whose_page(row, done):
         if poll_until(page_name, NAME_WAIT):
             log(f"  the name showed after {time.time() - w0:.1f}s")
         name = page_name()
-    if name and not same_name(name, row["name"]) and done is not None and name_key(name) not in done:
+    if name and not like(name, row["name"]) and done is not None and name_key(name) not in done:
         log(f"  opened {name!r}, the list read {row['name']!r}: going on with them")
         row = dict(row, name=name, nick="")  # (the list's nickname is unknown: a rename is left to the user)
-    elif not name or not same_name(name, row["name"]):
+    elif not name or not like(name, row["name"]):
         if not name:
             keep_capture("noname")
         log(f"  opened {name!r}, wanted {row['name']!r}: skipped")
         return row, None
     if done is not None:
         done.add(name_key(name))
+        done.add(name_key(row["name"]))  # (the list's read too, when the page cut it short)
     return row, name
 
 
@@ -1690,9 +1714,9 @@ def open_time():
     return time.localtime().tm_hour >= OPEN_FROM
 
 
-def box_from(name):
-    """the gift box showing is from name (its sender's name sits under the city, Pixel 2026-11-25: 'alestarSK')"""
-    return any(same_name(clean(t[4]), name) for t in texts if 0.4 < t[1] < 0.8)
+def box_from(*names):
+    """the gift box showing is from one of names (its sender's name sits under the city, Pixel 2026-11-25: 'alestarSK')"""
+    return any(like(clean(t[4]), n) for t in texts if 0.4 < t[1] < 0.8 for n in names)
 
 
 def untag(nick, listed):
@@ -1752,7 +1776,7 @@ def open_one(row, done, anytime):
     if held(name, nick, row["nick"]):
         return None
     to_list()
-    again = [r for r in rows() if same_name(r["name"], name)]
+    again = [r for r in rows() if like(r["name"], name) or like(r["name"], row["name"])]
     if not again:
         log(f"  {name}: their row is gone from the list: skipped")
         return "missed"
@@ -1760,7 +1784,7 @@ def open_one(row, done, anytime):
     if s != "giftpopup" and not poll_until(lambda: classify() == "giftpopup", 1.5):
         log(f"  {name}: the second tap opened {s}, no gift box: skipped")
         return "raid" if s == "raid" else "missed"
-    if not box_from(name):
+    if not box_from(name, row["name"]):
         keep_capture("box_from")
         log(f"  {name}: the gift box doesn't read their name ({summary()}): left")
         close_popup("friend")

@@ -1091,6 +1091,7 @@ Evolve every free trade evolution tagged Evo, as fast as the game lets it
 - `drag(fy1, fy2, ms=500, x=None, settle=0.7)`: scroll by dragging from fy1 to fy2
 - `close()`: the X. No pause after it: every caller waits for the screen it opens (to_list won't X twice within 3 LAG)
 - `close_popup(*screens, timeout=6, also=())`: X on a gift or Lucky Trade popup over a friend page -> one of the screens
+- `trainer_tabs()`: the ME / FRIENDS / SOCIAL tabs are under the GPS banner: ME and SOCIAL's end read from under it (FRIENDS sits right under the banner's words and never does, Pixel …
 - `count()`: the '(N)' under FRIENDS while a search is on
 - `search_line()`: the search box's text, when it's on screen (it scrolls away with the list)
 - `search_gone()`: the friend list's button row under the picture (ADD FRIEND, INVITE) shows only with no search on
@@ -1118,6 +1119,8 @@ Evolve every free trade evolution tagged Evo, as fast as the game lets it
 - `sent_me_gift(t)`: the row whose name is t has '<name> sent you a Gift!' under it (one line, or 'sent you a' / 'Gift!' on two, Pixel 2026-11-25)
 - `name_key(s)`: a trainer name with the letters OCR mixes up made the same
 - `same_name(a, b)`: the row's name and the page's: OCR reads them a little differently ('lycбo' / 'lyc60')
+- `cut_of(short, whole)`: short is whole cut off at the end, its last letter maybe misread: a long name on the friend page ('Kapselswi' / 'Kapselswirek', 'MyFairyCc' / 'MyFairyCookie', Pixel …
+- `like(a, b)`: the same friend, read in two places (one may be cut short)
 - `never_gift(name, nick)`: the friend the script must leave alone
 - `page_name()`
 - `page_nickname()`: the nickname under the name, in straight quotes -> (text, its line) / ("", None) when there's none
@@ -1157,7 +1160,7 @@ Evolve every free trade evolution tagged Evo, as fast as the game lets it
 - `walk(base_q, zq, n, act, done, retried, todo_ok, ends, end_note)`: walk the list of the search just typed (base_q + zq, (n) friends) from its top, and act(row) on each friend todo_ok(row) lets through, top down, till the first one left …
 - `run_searches(limit)`: the send pass -> (gifts sent, why it ended)
 - `open_time()`: late enough to open gifts: from OPEN_FROM till midnight
-- `box_from(name)`: the gift box showing is from name (its sender's name sits under the city, Pixel 2026-11-25: 'alestarSK')
+- `box_from(*names)`: the gift box showing is from one of names (its sender's name sits under the city, Pixel 2026-11-25: 'alestarSK')
 - `untag(nick, listed)`: take the WAIT / SENT / EGG tag off a friend who leveled up -> True when the nickname changed
 - `held(name, nick, listed)`: a friend whose gift waits: OPEN, or close to leveling up
 - `open_one(row, done, anytime)`: open the gift row's friend sent me, unless held() -> "opened", None (left on purpose), "missed" or "raid"

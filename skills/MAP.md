@@ -422,7 +422,6 @@ Powering one Pokémon up: its level from the page and the dialog, and the cheap 
 - `plays_for(rate)`: level -> the next Candy XL tier on transfer, where reaching it costs at most PLAY_DUST Stardust per Candy XL gained …
 - `candidates(species, hp, a, b)`: every (species, IVs, level) with this max HP, CP a, and CP b one power-up later
 - `nickname_species(info, texts)`: a nickname ('96 HA') names no species: the candy line and types (no taps), else the appraisal's 'This Gible was caught' line
-- `cp_levels(species, hp, cp)`: every level some IVs give this CP and max HP at: no tap needed
 - `page_cost(texts)`: the Stardust next to POWER UP on the detail page, or None if it can't be read
 - `page_candy(texts)`: the Candy next to the Stardust on the detail page's POWER UP row, or None if it can't be read (it often can't)
 - `candy_at(lv)`: Candy for one power-up from this level, under 40 (a purified one's rounds up to the same)
@@ -445,6 +444,7 @@ The game master (PvPoke's gamemaster.json): base stats, CP and HP, the level fro
 - `cpm(level)`
 - `cp(base, ivs, level)`
 - `hp(base, ivs, level)`
+- `combos(sids, cpv, hpv, levels=None, ranges=(IVS, IVS, IVS))`: every (species, level, (atk, def, sta)) that gives exactly this CP and HP, species then level then sta, atk, def order
 - `stat_product(base, ivs, cap)`
 - `table(species, cap)`
 - `rank(species, ivs, cap)`

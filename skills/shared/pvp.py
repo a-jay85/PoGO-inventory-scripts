@@ -76,6 +76,25 @@ def hp(base, ivs, level):
     return max(10, math.floor((base["hp"] + ivs[2]) * cpm(level)))
 
 
+IVS = range(16)
+
+
+def combos(sids, cpv, hpv, levels=None, ranges=(IVS, IVS, IVS)):
+    """every (species, level, (atk, def, sta)) that gives exactly this CP and HP, species then level then sta, atk,
+    def order. levels: None (or empty) = all. ranges: the atk, def and sta IVs to try. A
+    generator: any() / next() stop at the first. Every sid must be in SPECIES. A None CP or HP matches nothing"""
+    ra, rd, rh = ranges
+    for s in sids:
+        b = SPECIES[s]["baseStats"]
+        for lv in levels or LEVELS:
+            m = cpm(lv)  # hp() inline (the same sum, once per level): it runs 16 times a level
+            for h in [h for h in rh if max(10, math.floor((b["hp"] + h) * m)) == hpv]:
+                for a in ra:
+                    for d in rd:
+                        if cp(b, (a, d, h), lv) == cpv:
+                            yield s, lv, (a, d, h)
+
+
 def stat_product(base, ivs, cap):
     best = None
     for lv in LEVELS:

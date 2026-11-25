@@ -201,15 +201,7 @@ def below(x, y):
 
 def fits(sids, cp, hp, levels=None):
     """[(sid, level, ivs)] that give exactly this CP and HP, at these levels (None: any)"""
-    out = []
-    for s in sids:
-        if s not in pvp.SPECIES:
-            continue
-        b = stats(s)
-        for lv in levels or pvp.LEVELS:
-            hs = [h for h in range(16) if pvp.hp(b, (0, 0, h), lv) == hp]
-            out += [(s, lv, (a, d, h)) for h in hs for a in range(16) for d in range(16) if pvp.cp(b, (a, d, h), lv) == cp]
-    return out
+    return list(pvp.combos([s for s in sids if s in pvp.SPECIES], cp, hp, levels))
 
 
 class Count:

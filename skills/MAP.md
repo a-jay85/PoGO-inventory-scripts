@@ -769,6 +769,7 @@ Screen reader + tap planner for /pvpc
 - `is_fill(px)`
 - `bars(path, texts)`
 - `check_rows(species, cp, hp, ivs, own=False)`: own: rank it as its own species only (pvp.OWN_ONLY)
+- `blobs(pts)`: the 4-neighbour connected pieces of a set of (x, y) pixels -> a list of pixel lists
 - `circles(path, top=0.82)`: the teal round buttons in the screen's bottom part (from top down, a fraction of the height)
 - `calib_scale()`
 - `to_shot(fx, fy, bounds)`
@@ -840,6 +841,7 @@ Fills the Pokémon database (../shared/pokedb.py) with the IVs of one search's P
 
 - `known(info)`: the database already has this page's IVs: one record of the same Pokémon (weight, height, HP, and CP when it read) with them
 - `species(info, texts)`: the name, else the candy line and types
+- `any_form(sp, cp, hp)`: some form of sp (one pvp knows) can have this CP and HP
 - `fits(sp, cp, hp)`: cp if some form of sp can have it with this HP, else None (a misread)
 - `fill_one(info, texts)`: appraise the open page; the database learns its IVs
 - `dialog_cp(info, sp)`: the CP off the power-up dialog (opened and cancelled), into the database
@@ -1233,6 +1235,7 @@ Feed berries to the Pokémon in the gyms you're defending, from the gym badge li
 ## skills/ivc/ivc.py
 IV% nickname maker for the /ivc skill
 
+- `iv_pct(total)`: an IV sum (0-45) as the game's rounded IV%. sum/45 never lands on .5, so plain round() is exact
 - `pct(ivs)`
 - `purified(ivs)`
 - `stat_letters(ivs)`: capitals for every 15; if none, the lowercase leader(s); nothing when all three tie (or 100%)
@@ -1262,6 +1265,7 @@ IV% nickname maker for the /ivc skill
 - `pvp_candidate(sp, ivs, cp, hp)`: the /pvpc test: top 100 stat product in Little, Great or Ultra League for some form in the family that its level still fits under the cap
 - `same_name(got, want)`: OCR drops or swaps * ^ and spaces, and mixes case (xXS): compare letters, digits and / only
 - `retag(new)`: untick IVC, tick the new tag (PvpC)
+- `save_read(r)`: one detail screen's read, with the phone and the time, onto this run's read.json (names' remember and run.py's keep_member both write it; run.py's from_ivc reads it back)
 - `remember(name, cp, info, texts, shadow, lucky, size, bars, raws)`
 - `process(i, tile_name, tile_cp, dry)`
 - `keep_read(r)`

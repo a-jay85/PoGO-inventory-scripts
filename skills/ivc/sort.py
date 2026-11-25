@@ -48,7 +48,7 @@ import dex
 import pvp
 from pvp import REGIONS, is_gym, base_name, region, kin_parent, evolutions, search
 from ui import tile_name as clean_name
-from ivc import GYM_DEFENDERS, make_name
+from ivc import GYM_DEFENDERS, make_name, iv_pct
 from rules import ALWAYS_KEEP
 
 TOP, TOP_MEGA, TOP_DMAX, TOP_GYM_CP, TOP_GYM_IV = 5, 6, 3, 20, 20
@@ -79,7 +79,7 @@ Name = namedtuple("Name", "iv purified size pvp")  # IV sums (0-45) or None
 
 def iv_sum(p):
     s = round(p * 45 / 100)
-    return s if 0 <= s <= 45 and round(s * 100 / 45) == p else None
+    return s if 0 <= s <= 45 and iv_pct(s) == p else None
 
 
 def parse_name(name):
@@ -342,7 +342,7 @@ def without_me(vals, mine, cp):
 
 
 def pct(v):
-    return f"{round(v * 100 / 45)}%"
+    return f"{iv_pct(v)}%"
 
 
 def final_name(f):
@@ -634,7 +634,7 @@ def test():
     check("name FP*", parse_name("FP*"), Name(None, None, False, False))
     check("name Pvp G12", parse_name("Pvp G12").pvp, True)
     check("name 89/100 a S*^", parse_name("89/100 a S*^"), Name(40, 45, True, False))
-    check("all IV% map back", all(iv_sum(round(s * 100 / 45)) == s for s in range(46)), True)
+    check("all IV% map back", all(iv_sum(iv_pct(s)) == s for s in range(46)), True)
     check("purified value", value("87/96 A", shadow=False), 43)
     check("shadow value", value("87/96 A", shadow=True), 39)
     check("eevee lines", len(lines_of("eevee")), 8)

@@ -64,9 +64,14 @@ def species(info, texts):
         return None, cp  # (the appraisal's species checks it)
 
 
+def any_form(sp, cp, hp):
+    """some form of sp (one pvp knows) can have this CP and HP"""
+    return any(base.can_have(s, cp, hp) for s in sp if s in pvp.SPECIES)
+
+
 def fits(sp, cp, hp):
     """cp if some form of sp can have it with this HP, else None (a misread)"""
-    if cp is None or any(base.can_have(s, cp, hp) for s in sp if s in pvp.SPECIES):
+    if cp is None or any_form(sp, cp, hp):
         return cp
     log(f"  CP{cp} fits none of {sp}: a misread, left out")
     return None
@@ -96,8 +101,7 @@ def fill_one(info, texts):
 def dialog_cp(info, sp):
     """the CP off the power-up dialog (opened and cancelled), into the database. None: no POWER UP (level 50)"""
     try:
-        cp = powerup.dialog_cp(info, lambda c: any(base.can_have(s, c, info["hp"]) for s in sp if s in pvp.SPECIES),
-                                 species=sp)
+        cp = powerup.dialog_cp(info, lambda c: any_form(sp, c, info["hp"]), species=sp)
     except Pass as e:
         log(f"  no CP from the power-up dialog: {e}")
         return None

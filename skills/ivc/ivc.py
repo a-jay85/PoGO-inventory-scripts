@@ -22,9 +22,13 @@ STAT_COMBOS = {"H", "A", "D", "HA", "HD", "AD", "HAD"}  # move initials that wou
 GYM_DEFENDERS = {"blissey", "chansey", "snorlax", "slaking", "wobbuffet", "dondozo"}
 
 
+def iv_pct(total):
+    """an IV sum (0-45) as the game's rounded IV%. sum/45 never lands on .5, so plain round() is exact"""
+    return round(total * 100 / 45)
+
+
 def pct(ivs):
-    # sum/45 never lands on .5, so plain round() is exact
-    return round(sum(ivs) * 100 / 45)
+    return iv_pct(sum(ivs))
 
 
 def purified(ivs):

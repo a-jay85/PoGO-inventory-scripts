@@ -1824,8 +1824,10 @@ def opened(name, nick, t0):
             log("  the gift box is still there: OPEN again")
             o = label("OPEN", 0.7, 0.95)
             tap_text(o) if o else tap(0.44, 0.85, fuzz=0.004)
-        elif s == "unknown" and any(re.fullmatch(r"\+\s?\d[\d,]*", t[4].strip()) for t in texts):
-            pass  # the items flying in: '+1 | Egg | +200 | Stardust' (Pixel, 2026-11-25). Wait, no capture
+        elif s == "unknown" and (any(re.fullmatch(r"\+\s?\d[\d,]*", t[4].strip()) for t in texts)
+                                 or "GREETINGS FROM" in j):
+            pass  # the box going (OPEN gone first) or the items flying in: '+1 | Egg | +200 | Stardust' (Pixel,
+            # 2026-11-25). Wait, no capture
         elif s not in ("friend", "giftpopup", "blank") and summary() not in st["said"]:
             st["said"].add(summary())
             keep_capture("after_open")

@@ -682,7 +682,7 @@ def favorite_and_untag():
 
 def lucky_rank(m):
     """a DOOR here is out of the lucky rule's spots, the same plain spots sort.decide gives every one (top 5/6 on a
-    strong line, the top IV on a weak one): False. With no IV in its name it was never ranked: None, the door leaves
+    strong line, the top IV per final on a weak one): False. With no IV in its name it was never ranked: None, the door leaves
     it not sure"""
     return False if sort.value(m["name"], m["shadow"]) is not None else None
 

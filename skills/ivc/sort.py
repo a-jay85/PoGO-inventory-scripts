@@ -28,8 +28,9 @@ team (Team Future) against a boss like a 4-star raid's or higher, released or no
 legendary and shadow too (roster.ideal_firsts: today, once unreleased Pokémon come out, or once a signature move not in
 GO yet does). Forms split: Galarian Zapdos is strong, Zapdos isn't. Also strong: gym defenders, COLLECT. A legendary,
 mythical or Ultra Beast line is strong only that way.
-Weak families: their weak lines share 1 spot (ties keep), lucky or not; shadows 1 and Dynamax 1 of their own (the
-user, 2026-11-19: the top IV per family, its 98% and 100% always); an Elite TM name (*) keeps.
+Weak lines: 1 spot per weak final (ties keep), lucky or not; shadows 1 and Dynamax 1 per weak final too (the
+user, 2026-11-19: the top IV, its 98% and 100% always; 2026-11-25: per final, so Galarian Slowpoke keeps one for
+Slowbro and one for Slowking); an Elite TM name (*) keeps.
   meta-overrides.txt can mark a species strong or weak by hand.
 COLLECT lines (Vivillon patterns): a DOOR becomes LEAVE so the user picks.
 Fails: XXL/xxs in the name -> leave for the user. Otherwise -> DOOR. No IV and no size (FP*, *) -> DOOR.
@@ -53,7 +54,6 @@ from rules import ALWAYS_KEEP
 
 TOP, TOP_MEGA, TOP_DMAX, TOP_GYM_CP, TOP_GYM_IV = 5, 6, 3, 20, 20
 ALWAYS = ALWAYS_KEEP  # 98% and 100% always keep
-WEAK = "weak"  # the one spot a family's weak lines share (spots, to_spots)
 COLLECT = {"scatterbug", "spewpa", "vivillon"}  # pattern collections: the user picks by hand
 OWN_FORM = {"mewtwo_armored"}  # a form the searches can't split from the rest of its dex number
 
@@ -349,35 +349,26 @@ def final_name(f):
 
 @lru_cache(None)
 def weak_slots(sid):
-    """the finals of this species' family whose every line is weak: they share one spot (WEAK)"""
+    """the finals of this species' family whose every line is weak: they get 1 spot each"""
     big = {}
     for line in family(sid):
         big[slot(line[-1])] = big.get(slot(line[-1]), False) or strong(line)[0]
     return frozenset(k for k, b in big.items() if not b)
 
 
-def to_spots(sid, r):
-    """finals it can become -> the spots it can take: a weak final's is the family's one WEAK spot"""
-    w = weak_slots(sid)
-    return frozenset(WEAK if k in w else k for k in r)
-
-
 def spots(sid, pool):
-    """spot -> (how many of them to keep, its name, weak-line note) for this species' family. A strong final has its
-    own spots; the weak ones share one, WEAK (the user, 2026-11-19: a weak family keeps its top IV)"""
-    out, weak, meta = {}, [], None
+    """final -> (how many of them to keep, its name, weak-line note) for this species' family. A strong final has
+    top N; a weak one keeps its top IV (the user, 2026-11-19), 1 spot per weak final (the user, 2026-11-25)"""
+    out = {}
     for line in family(sid):
         f = line[-1]
         if slot(f) in weak_slots(sid):
-            meta = meta or strong(line)[1]
-            weak.append(final_name(f))
+            out.setdefault(slot(f), (1, final_name(f), f" (weak line, best: {strong(line)[1]})"))
             continue
         n = {"plain": top_n(line), "shadow": TOP, "dmax": TOP_DMAX}[pool]  # shadows can't mega: top 5
         old = out.get(slot(f))
         if not old or n > old[0]:
             out[slot(f)] = (n, final_name(f), "")
-    if weak:
-        out[WEAK] = (1, " / ".join(dict.fromkeys(weak)), f" (weak family, best: {meta})")
     return out
 
 
@@ -420,7 +411,7 @@ def spotless_shadows(sid, results, me):
     """the family's other shadows that get no shadow spot, at their purified IV (84/96 -> 96): they could be
     purified too, so a shadow kept for its purified IV competes with them"""
     items, _ = pool_items(sid, "shadow", results, True, me)
-    items = sorted(((v, to_spots(sid, r), t) for v, r, t in items), key=lambda o: -o[0])
+    items = sorted(items, key=lambda o: -o[0])
     caps = {k: c[0] for k, c in spots(sid, "shadow").items()}
     ok, _ = fill([r for _, r, _ in items], caps)
     return [(parse_name(t[0]).purified, r, t) for (v, r, t), got in zip(items, ok)
@@ -457,8 +448,7 @@ def judge_pool(m, results, pool, what, mine, r, me_in_pool=True, extra=()):
     caps = spots(sid, pool)
     shadow = m["shadow"] and pool == "shadow"
     items, found = pool_items(sid, pool, results, shadow, (mine, m["cp"]) if me_in_pool else None)
-    items = [(v, to_spots(sid, x), t) for v, x, t in items + list(extra)]
-    r = to_spots(sid, r)
+    items = items + list(extra)
     ok, got, held = fits(items, {k: c[0] for k, c in caps.items()}, mine, r)
     total = f"{len(items) + 1} in the {' / '.join(dict.fromkeys(c[1] for c in caps.values()))} family"
     notes = [] if found else [f"not seen in its own {what} search"]
@@ -782,8 +772,10 @@ def test():
           gallade__plain=[("93", 2500)], gardevoir__plain=six_better))[0], "DOOR")
     ev = dict(kl, species="eevee", cp=500)
     full = {f"{x}__plain": six_better for x in ("flareon", "espeon", "umbreon", "leafeon", "glaceon", "sylveon")}
-    check("eevee: the weak eeveelutions share one spot", spots("eevee", "plain")[WEAK][0], 1)
-    check("weak family: a 2nd eevee nopes", decide(ev, resf("eevee", eevee__plain=[("96", 1), ("93", 500)]))[0],
+    check("eevee: each weak eeveelution has 1 spot", sorted(c[0] for c in spots("eevee", "plain").values()), [1] * 8)
+    check("weak family: a 2nd eevee takes another eeveelution's spot",
+          decide(ev, resf("eevee", eevee__plain=[("96", 1), ("93", 500)]))[0], "KEEP")
+    check("weak family: a 9th eevee nopes", decide(ev, resf("eevee", eevee__plain=[("96", 1)] * 8 + [("93", 500)]))[0],
           "DOOR")
     check("eevee: every spot taken", decide(ev, resf("eevee", jolteon__plain=[("100", 1)],
           eevee__plain=[("96", 1), ("93", 500)], **full))[0], "DOOR")
@@ -797,8 +789,17 @@ def test():
           [True] * 6)
     check("tyrogue (Attack highest) only wants a Hitmonlee spot", decide(tg, resf("tyrogue",
           tyrogue__plain=[("93 a", 400)], hitmonlee__plain=six_better))[0], "DOOR")
-    check("weak family: a better Hitmonchan takes the one spot", decide(tg, resf("tyrogue",
-          tyrogue__plain=[("93 a", 400)], hitmonchan__plain=[("96", 1)]))[0], "DOOR")
+    check("weak family: a better Hitmonchan leaves Hitmonlee's spot", decide(tg, resf("tyrogue",
+          tyrogue__plain=[("93 a", 400)], hitmonchan__plain=[("96", 1)]))[0], "KEEP")
+    check("weak family: a better Hitmonlee takes its spot", decide(tg, resf("tyrogue",
+          tyrogue__plain=[("93 a", 400)], hitmonlee__plain=[("96", 1)]))[0], "DOOR")
+    sp = dict(kl, species="slowpoke_galarian", cp=500, name="93 A")
+    check("galarian slowpoke: a 93 under a 96 keeps (Slowbro and Slowking spots)", decide(sp, resf(
+          "slowpoke_galarian", slowpoke_galarian__plain=[("96 HA", 694), ("93 A", 500)]))[0], "KEEP")
+    check("galarian slowpoke: 93s tied for the 2nd spot all keep", decide(sp, resf("slowpoke_galarian",
+          slowpoke_galarian__plain=[("96 HA", 694), ("93 H", 308), ("93 A", 500)]))[0], "KEEP")
+    check("galarian slowpoke: a 93 under two 96s nopes", decide(sp, resf("slowpoke_galarian",
+          slowpoke_galarian__plain=[("96 HA", 694), ("96", 1), ("93 A", 500)]))[0], "DOOR")
     check("weak family: the best tyrogue keeps", decide(tg, resf("tyrogue", tyrogue__plain=[("93 a", 400)],
           hitmonchan__plain=[("91", 1)]))[0], "KEEP")
     cb = dict(kl, species="combee", cp=300)
@@ -850,7 +851,7 @@ if __name__ == "__main__":
         for pool in POOLS:
             print(f"{pool}: " + ", ".join(f"{n} top {k}{w}" for k, n, w in spots(a[1], pool).values()))
             for q, r, ss in groups(a[1], pool):
-                print(f"    {q:40} {'/'.join(ss)} -> {', '.join(spots(a[1], pool)[k][1] for k in to_spots(a[1], r)) or 'nothing'}")
+                print(f"    {q:40} {'/'.join(ss)} -> {', '.join(spots(a[1], pool)[k][1] for k in r if k in spots(a[1], pool)) or 'nothing'}")
     elif a[0] == "megas":
         print(" ".join(sorted(MEGA_BASES)))
     else:

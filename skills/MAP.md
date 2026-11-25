@@ -1315,7 +1315,7 @@ Unattended /ivc: keep the best IVC Pokémon (favorite + untick IVC)
 - `recheck_fallen(n, c)`: on its detail screen: lucky, Dynamax and size known now, so judge it again
 - `act_fallen(limit, hold=None)`
 - `favorite_and_untag()`
-- `lucky_rank(m)`: a DOOR here is out of the lucky rule's spots, the same plain spots sort.decide gives every one (top 5/6 on a strong line, the top IV on a weak one): False
+- `lucky_rank(m)`: a DOOR here is out of the lucky rule's spots, the same plain spots sort.decide gives every one (top 5/6 on a strong line, the top IV per final on a weak one): False
 - `act_query(plans)`: only the dex numbers that still have work, when that's short enough to type; else every IVC one
 - `load_plan()`: plan.json, with a run folder from before 2026-10-30 read the same: its DOOR was called NOPE
 - `plan_key(m)`
@@ -1371,9 +1371,8 @@ Rules for /ivc: which IVC Pokémon to keep (favorite + untag) and which to send 
 - `without_me(vals, mine, cp)`: the member shows up in its own pool: take one matching tile out (same value and CP)
 - `pct(v)`
 - `final_name(f)`
-- `weak_slots(sid)`: the finals of this species' family whose every line is weak: they share one spot (WEAK)
-- `to_spots(sid, r)`: finals it can become -> the spots it can take: a weak final's is the family's one WEAK spot
-- `spots(sid, pool)`: spot -> (how many of them to keep, its name, weak-line note) for this species' family
+- `weak_slots(sid)`: the finals of this species' family whose every line is weak: they get 1 spot each
+- `spots(sid, pool)`: final -> (how many of them to keep, its name, weak-line note) for this species' family
 - `fill(order, caps)`: order: finals each Pokémon can become, best first
 - `fits(others, caps, mine, my_reach)`: others: (value, finals it can become, tile)
 - `spotless_shadows(sid, results, me)`: the family's other shadows that get no shadow spot, at their purified IV (84/96 -> 96): they could be purified too, so a shadow kept for its purified IV competes with …

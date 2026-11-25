@@ -98,6 +98,9 @@ def where(path, texts):
         return "sortmenu"
     if pages.gym_badge(texts):
         return "badge"
+    if pages.friend_page(texts):  # its 'Level 78' and TOTAL ACTIVITY passed for the profile: to_badge_list scrolled it
+        return home.where(path, texts)  # 23 times and stopped (Pixel, 2026-11-24: /gift left it there). home.unstick
+        # knows its way out
     if {"ME", "FRIENDS"} <= words or len(words & PROFILE_WORDS) >= 2 or no_location(texts):  # (scrolled down, its
         return "profile"  # GYM BADGES can sit near the top too). Its level ('80') passes for a CP label: with
         # FRIENDS hidden it read as a gym view, and to_badge_list tapped X on it, 15 times in 30 s (iPhone, 2026-11-24)

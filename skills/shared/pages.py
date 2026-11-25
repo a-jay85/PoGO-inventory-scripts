@@ -127,6 +127,12 @@ def gift_popup(texts):
     return "GREETINGS FRO" in ui.joined(texts) and "OPEN" in words(texts)
 
 
+def gift_bag_full(texts):
+    """'Your Item Bag is full!' over a gift box that OPEN was tapped on (MANAGE ITEMS, UPGRADE ITEM BAG, Pixel
+    2026-11-25). Its X goes back to the gift box"""
+    return "ITEM BAG IS FULL" in ui.joined(texts)
+
+
 def lucky_trade(texts):
     """a friend's Lucky Trade request over their page: its X shows the page"""
     return "REVIEW LUCKY" in ui.joined(texts)
@@ -318,6 +324,7 @@ PAGES = (
     ("trade: result", trade_result, x_button),
     ("gift: gift list", gift_picker, x_button),
     ("gift: preview", gift_preview, x_button),
+    ("gift: item bag full", gift_bag_full, x_button),
     ("gift: gift box", gift_popup, x_button),
     ("trade: gift box", trade_gift, x_button),
     ("gift: Lucky Trade request", lucky_trade, x_button),

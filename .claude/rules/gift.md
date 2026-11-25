@@ -18,3 +18,6 @@ paths:
 - The user sends gifts very fast by hand and wants the script to match. Speed-test with `gift.py --dry-run --walk` and read steps.txt for gaps. Each empty-search nudge costs about 13 s.
 - An adb exit 255 on the first look after a PIN unlock: cause unproven. If it comes back, read the stderr.
 - Not yet seen live: a non-SF California send, the CPD skip, a real take-over, the Android trade-countdown row, the new heart tap on the iPhone, the gift list/preview/SEND at the new timings (check the first log for "didn't open it", "preview reads").
+- Opening (from 23:00, `gift.py open` any time): the gift box only shows from the list's tap, never from the friend page after its X, so each open is tap, X, page, back, tap, OPEN. After OPEN the screen is blank ~5 s, then the friend page comes back by itself (iPhone, 2026-11-25). CyrillJan's item bag was full on 2026-11-25: its opens stop at once until the user clears it.
+- The GIFT sort's picture reads 0.68 on the Can receive a gift picture: sorted_gift() needs the wanted one to beat the other, or a send run after an open pass would think it's sorted right.
+- Not yet seen live: the Lucky Friends screen, the level-up screen and the daily open limit's box after OPEN (each is logged as "after OPEN:" with a capture).

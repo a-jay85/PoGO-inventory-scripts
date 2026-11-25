@@ -5,7 +5,8 @@
   POGO_PHONE=android caffeinate -dimsu python3 gift.py [--limit N]    the Android phone
   POGO_PHONE=both caffeinate -dimsu python3 gift.py [--limit N]       both phones at once
   [POGO_PHONE=android] python3 gift.py look                           what the script reads now; taps nothing
-  add --dry-run: everything but SEND and the nickname's OK.
+  [POGO_PHONE=android] caffeinate -dimsu python3 gift.py open [--limit N]   only the open pass, any time of day
+  add --dry-run: everything but SEND, OPEN and the nickname's OK.
   add --dry-run --walk: a speed test that works after every gift is sent: each friend's page, always its friendship screen, no gift list.
 
 HashTagAJay is on the iPhone (iPhone Mirroring: a touch on the Mac pauses it), CyrillJan on the Android phone (adb).
@@ -43,6 +44,17 @@ delete that file.
 A finished "iii + rest" or "lll + rest" (the whole search, no zone) is remembered the same way. Later runs that day skip
 that search's zones and go straight to its rest, which holds every zone: most gifts are sent by then, and the zone order
 matters less than the minutes its searches take. The rest itself is still searched every run.
+
+Opening (the user, 2026-11-25): a run that's done sending at 23:00 or later opens the gifts friends sent me, till
+midnight. Search "!OPEN&interactable&" (OPEN: CyrillJan's hand-made XP batch, opened by hand), the list sorted GIFT
+(gifts to me first, so the first row with no "sent you a Gift!" ends a search). The zones in the order above, then
+the rest split for the best chance of a new Lucky Friend: not lucky with a remote trade, not lucky Forever, not lucky
+Best, lucky Forever, lucky Best (those four with no remote trade), then Ultra, Great, Good, none. Lucky with a remote
+trade: left out. ?, $ and SENT friends are opened too.
+Each one's friendship screen is read as for a gift. 1 point to go: left unopened (tagged WAIT if it isn't). Tagged
+WAIT, SENT or EGG with 2 points to go: left. Tagged and no longer close: they leveled up, so the tag comes off and the
+gift is opened. The gift box shows only from the list's tap: tap, X, their page, back, tap again, OPEN.
+It stops at midnight, at a full item bag, or at the game's daily limit. --limit N: at most N opened too.
 """
 import argparse, difflib, json, os, random, re, subprocess, sys, time
 from PIL import Image
@@ -66,6 +78,21 @@ NEVER = ("CHICAGO", "RALEIGH", "NORTH CAROLINA")  # cities never sent
 FIRST = "!?&!$&!WAIT&!OPEN&interactable&!EGG&"  # iii: no gift from me yet, not played with today
 THEN = "!WAIT&!OPEN&!interactable&!EGG&"  # lll: played with me today / opened my gift
 # (on a GIFT_WAIT account both go without their "!WAIT&": wait_ok())
+OPENS = "!OPEN&interactable&"  # the open pass: gifts to me from friends not played with today. OPEN is CyrillJan's
+# hand-made XP batch tag (opened by hand). ?, $, WAIT, SENT and EGG friends are in: their gifts get opened too
+OPEN_FROM = 23  # the hour (local) from which a run opens gifts after sending them, till midnight
+HELD = re.compile(r"^(WAIT|SENT|EGG)\s*")  # nickname tags of a friend close to leveling up: their gift waits
+LUCKY = [  # the open pass's "rest", in the order most likely to make a new Lucky Friend (the user, 2026-11-25).
+    ("not lucky, remote trade", "!lucky&remotetrade"),  # (lucky and remote trade: left out, the user's call)
+    ("not lucky, forever", "!lucky&!remotetrade&friendlevel5"),
+    ("not lucky, best", "!lucky&!remotetrade&friendlevel4"),
+    ("lucky, forever", "lucky&!remotetrade&friendlevel5"),
+    ("lucky, best", "lucky&!remotetrade&friendlevel4"),
+    ("ultra", "!remotetrade&friendlevel3"),
+    ("great", "!remotetrade&friendlevel2"),
+    ("good", "!remotetrade&friendlevel1"),
+    ("none yet", "!remotetrade&friendlevel0"),
+]
 ZONES = [  # farthest ahead of Pacific time first; "" (no zone) last picks up everyone else
     ("asia", "Japan:South Korea:Taiwan:Indonesia:Thailand:Singapore:Hong Kong&"),
     ("europe", "UK:Spain:Germany:Denmark:Sweden:France:Portugal:Norway:Poland:Italy:Netherlands&"),
@@ -399,29 +426,41 @@ SORT_ICON = os.path.join(HERE, "gift_sort_icon.png")  # the sort button's gift-a
 SORT_ICON_AT = (336, 813) if ui.ANDROID else (330, 815)  # its top left in the capture
 
 
+OPEN_SORT_ICON = os.path.join(HERE, "gift_open_sort_icon.png")  # the GIFT sort's picture (gifts to me first), same spot
+CAN_RECEIVE, GIFTS_TO_ME = "CAN RECEIVE A GIFT", "GIFT"  # the two sorts' rows in the sort menu
+sort_name = CAN_RECEIVE  # the sort this pass wants: sending, Can receive a gift; the open pass, GIFT
+
+
+def sort_label():
+    return "Can receive a gift" if sort_name == CAN_RECEIVE else "Gift"
+
+
 def sorted_gift():
-    """the sort button already shows Can receive a gift (the gift icon) -> its arrow 'down' / 'up', else None.
-    Other sorts' icons and other screens read 0.4 or less"""
-    return arrow() if (ui.icon_score(path, SORT_ICON, SORT_ICON_AT, slack=2) or 0) >= 0.6 else None
+    """the sort button already shows the sort this pass wants (sort_name) -> its arrow 'down' / 'up', else None.
+    Other sorts' icons and other screens read 0.4 or less. The two gift sorts' pictures look alike (the GIFT sort read
+    0.68 on the Can receive one, Pixel 2026-11-25), so the one wanted must also beat the other"""
+    mine, other = (SORT_ICON, OPEN_SORT_ICON) if sort_name == CAN_RECEIVE else (OPEN_SORT_ICON, SORT_ICON)
+    score = ui.icon_score(path, mine, SORT_ICON_AT, slack=2) or 0
+    return arrow() if score >= 0.6 and score > (ui.icon_score(path, other, SORT_ICON_AT, slack=2) or 0) else None
 
 
 def set_sort():
-    """Can receive a gift, arrow down. Picking the sort that's already on flips its arrow: pick, read, again.
+    """sort_name (Can receive a gift, or GIFT for the open pass), arrow down. Picking the sort that's already on flips its arrow: pick, read, again.
     The sort button's picture shows when it's on already: nothing to tap, or one pick when only the arrow is up"""
     if look() == "friends":
         way = sorted_gift()
         if way == "down":
-            log("already sorted Can receive a gift, arrow down")
+            log(f"already sorted {sort_label()}, arrow down")
             return
         if way == "up":
-            log("sorted Can receive a gift, arrow up: picking it once to flip it")
+            log(f"sorted {sort_label()}, arrow up: picking it once to flip it")
     for attempt in range(4):
         if look() != "sortmenu":
             tap(*SORT_BUTTON, fuzz=0.004)
             wait("sortmenu", timeout=6 * LAG)
-        t = menu_label("CAN RECEIVE A GIFT")
+        t = menu_label(sort_name)
         if not t:
-            log("the sort menu's Can receive a gift wasn't read: looking again")
+            log(f"the sort menu's {sort_label()} wasn't read: looking again")
             time.sleep(0.5)  # (the menu may still be sliding in)
             continue
         tap_text(t)
@@ -431,16 +470,16 @@ def set_sort():
             continue  # (a lagging tap missed)
         way = arrow()
         if way == "down":
-            log("sorted Can receive a gift, arrow down")
+            log(f"sorted {sort_label()}, arrow down")
             return
         log(f"sort arrow reads {way}: again")
     keep_capture("sort")
-    raise Stop("couldn't get the list sorted Can receive a gift, arrow down")
+    raise Stop(f"couldn't get the list sorted {sort_label()}, arrow down")
 
 
 def sort_to_top():
     """a new sort puts the list back at its top, so this beats dragging up through hundreds of friends (the user's
-    tip, 2026-11-07): pick Name, then set_sort() picks Can receive a gift again"""
+    tip, 2026-11-07): pick Name, then set_sort() picks sort_name again"""
     tap(*SORT_BUTTON, fuzz=0.004)
     wait("sortmenu", timeout=6 * LAG)
     name = menu_label("NAME")
@@ -710,8 +749,18 @@ def rows():
     trade = lambda t: any("REMOTE TRADE" in ui.up(o) and 0 < o[1] - t[1] < 0.1
                           or o[0] > 0.6 and -0.01 < o[1] - t[1] < 0.05 and re.fullmatch(r"\d{1,3}:\d{2}:\d{2}", o[4].strip())
                           for o in texts)
-    return [{"name": clean(t[4]), "nick": nick, "t": t, "badged": badged(im, t[1]), "trade": trade(t)}
-            for t, nick in out if t[1] > 0.26]
+    return [{"name": clean(t[4]), "nick": nick, "t": t, "badged": badged(im, t[1]), "trade": trade(t),
+             "gift": sent_me_gift(t)} for t, nick in out if t[1] > 0.26]
+
+
+def sent_me_gift(t):
+    """the row whose name is t has '<name> sent you a Gift!' under it (one line, or 'sent you a' / 'Gift!' on two,
+    Pixel 2026-11-25). A Lucky Remote Trade request's 'sent you a' has 'Lucky Remote Trade' under it instead"""
+    for o in texts:
+        if 0 < o[1] - t[1] < 0.1 and "SENT Y" in ui.up(o) and "TRADE" not in ui.up(o):
+            if "GIFT" in ui.up(o) or any("GIFT" in ui.up(g) and 0 < g[1] - o[1] < 0.035 for g in texts):
+                return True
+    return False
 
 
 def name_key(s):
@@ -1180,13 +1229,14 @@ def cancel_nickname():
         time.sleep(1)
 
 
-def rename(tag, old, listed):
+def rename(tag, old, listed, new=None):
     """listed: the nickname as the friend list showed it. The box opens empty, so the old nickname is typed back
-    from what was read: both reads must agree, or a misread would wipe the user's zone tag"""
+    from what was read: both reads must agree, or a misread would wipe the user's zone tag. new: the nickname to give
+    (the open pass takes a tag off), else old with tag put on"""
     if re.sub(r"\s", "", old) != re.sub(r"\s", "", listed):  # (the list's OCR drops spaces: 'WAITLocal')
         log(f"  the nickname reads {old!r} on the page, {listed!r} in the list: tag it {tag} by hand")
         return False
-    new = new_nickname(tag, old)
+    new = new_nickname(tag, old) if new is None else new
     if not TYPEABLE.fullmatch(new):
         log(f"  can't type nickname {new!r}: rename it to {tag} by hand")
         return False
@@ -1261,20 +1311,10 @@ def grey_check(t):
     return None
 
 
-def one_friend(row, check=False, done=None):
-    """open the row's friend page, check, gift and/or tag. -> the gift sent, None (no gift, on purpose), "grey",
-    "misread" (a friend already dealt with opened), "empty" or "raid".
-    check: on a grey SEND GIFT, tap it anyway to see whether my bag is empty. done: name_keys dealt with this run.
+def whose_page(row, done):
+    """the friend page that opened from row's tap -> (row, name), name None when it's no one to go on with.
     A page that isn't the row's name but no one done yet is a friend from the same list (OCR garbles some rows'
-    names each look, 2026-11-07: '1234Lo', '1234) Jading'): it goes on with them"""
-    t0 = time.time()
-    s = tap_into(row["t"], "friend", "giftpopup", "luckytrade", "raid")
-    if s == "raid":
-        keep_capture("raid")
-        log(f"  tapping {row['name']!r} opened a raid: left it")
-        return "raid"  # (run_searches' to_list() closes it, and tries this friend once more)
-    if s in ("giftpopup", "luckytrade"):
-        close_popup("friend")  # their gift to me: X, never OPEN. A Lucky Trade request: X, left for the user
+    names each look, 2026-11-07: '1234Lo', '1234) Jading'): it goes on with them (row gets their name)"""
     name = page_name()
     if not name:
         # the page can count as open before its name loads (iPhone, 2026-11-07: 5 friends skipped as 'opened None')
@@ -1289,9 +1329,27 @@ def one_friend(row, check=False, done=None):
         if not name:
             keep_capture("noname")
         log(f"  opened {name!r}, wanted {row['name']!r}: skipped")
-        return "misread"
+        return row, None
     if done is not None:
         done.add(name_key(name))
+    return row, name
+
+
+def one_friend(row, check=False, done=None):
+    """open the row's friend page, check, gift and/or tag. -> the gift sent, None (no gift, on purpose), "grey",
+    "misread" (a friend already dealt with opened), "empty" or "raid".
+    check: on a grey SEND GIFT, tap it anyway to see whether my bag is empty. done: name_keys dealt with this run"""
+    t0 = time.time()
+    s = tap_into(row["t"], "friend", "giftpopup", "luckytrade", "raid")
+    if s == "raid":
+        keep_capture("raid")
+        log(f"  tapping {row['name']!r} opened a raid: left it")
+        return "raid"  # (run_searches' to_list() closes it, and tries this friend once more)
+    if s in ("giftpopup", "luckytrade"):
+        close_popup("friend")  # their gift to me: X (the open pass opens it later). A Lucky Trade request: X, left for the user
+    row, name = whose_page(row, done)
+    if not name:
+        return "misread"
     nick, _ = page_nickname()
     if re.match(r"WAIT", nick) and not wait_ok():
         log(f"{name} ({nick}): tagged WAIT, skipped")  # (the list's WAIT check, for a page opened by a garbled row)
@@ -1415,179 +1473,397 @@ def iii_remember(zone, day):
         log(f"  iii + {zone}: finished, skipped for the rest of {day}")
 
 
+class Done(Exception):
+    """a pass is over: why (None: --limit). The limit, no gifts left, midnight, a full item bag"""
+    def __init__(self, why):
+        super().__init__(why)
+        self.why = why
+
+
+def walk(base_q, zq, n, act, done, retried, todo_ok, ends, end_note):
+    """walk the list of the search just typed (base_q + zq, (n) friends) from its top, and act(row) on each friend
+    todo_ok(row) lets through, top down, till the first one left ends(row) on a list as the search sorted it, or the
+    list runs out. -> (finished, missed): finished, the whole list was dealt with; missed, a friend on it wasn't.
+    act(row) -> "done" (sent or opened: their row keeps its place till a new search), None (nothing changed), "skip"
+    (not opened: the list still shows), "missed" (try them another run) or "raid" (a raid popped up under the tap:
+    they get one more try). It raises Done to end the pass. done: name_keys reached this pass. retried: name_keys
+    already given a 2nd try. end_note: why ends(row) ends the list, for the log"""
+    lost = 0  # act's lost screens in a row
+    if arrow() != "down":
+        set_sort()
+    stale, fresh = 0, True  # fresh: the last capture is the friend list as it is now (no look needed)
+    top = True  # the list is as a search sorted it: nothing done since (scrolled or not)
+    bounced = 0  # scrolls that landed off the list since the last friend reached
+    finished, missed, seen = False, False, set()  # missed: a friend here wasn't dealt with; seen: names on the list
+    tapped = []  # where rows were tapped since the list last moved: done, whatever OCR reads there next
+    pinned = set()  # rows skipped for their spot alone (logged once)
+    while True:
+        if not fresh and look() != "friends":  # a drag that landed as a tap opened something: back first
+            bounced += 1
+            if bounced >= MAX_BOUNCED:
+                raise Stop(f"{bounced} scrolls in a row left the friend list: {summary()}")
+            to_list()
+        fresh = False
+        if search_gone():
+            # with no search on, a scrolled list has no '(N)' and reads as the profile: every scroll would
+            # come back to the top of the same page, forever (2026-11-03). Type it again
+            log("  the search is gone: searching again")
+            n = search(base_q, zq)
+            if not n:
+                break
+            if arrow() != "down":
+                set_sort()
+            stale, fresh, top, tapped = 0, True, True, []
+            continue
+        on_screen = rows()
+        seen |= {r["name"] for r in on_screen}
+        todo = [r for r in on_screen if name_key(r["name"]) not in done and todo_ok(r)]
+        spot = [r for r in todo if any(abs(r["t"][1] - y) < 0.012 for y in tapped)]
+        for r in spot:  # (a row already tapped, its name read another way: not opened again, but not proven done)
+            if r["name"] not in pinned:
+                pinned.add(r["name"])
+                log(f"  {r['name']!r} sits where a friend was tapped: skipped as done")
+        missed = missed or bool(spot)
+        todo = [r for r in todo if r not in spot]
+        if todo and ends(todo[0]):
+            if top:
+                finished = True
+                break  # sorted with the friends to act on first, and the first one not done ends it: nobody left
+            # the list re-sorts only on a new search: the friends done this run keep their place, arrow
+            # and all. Search again, then look at the top
+            log(f"  {todo[0]['name']} {end_note}: searching again to re-sort")
+            n = search(base_q, zq)
+            if not n:
+                break
+            if arrow() != "down":
+                set_sort()
+            stale, fresh, top, tapped = 0, True, True, []
+            continue
+        if not todo:
+            before = [r["name"] for r in rows()]
+            # (a scroll leaves top alone: the sort holds below too. 2026-10-31: friends gifted this run sat
+            # unarrowed at the top after the new search, so every re-search scrolled past them to the same
+            # arrow, and searched again, forever)
+            drag(0.75, 0.4, settle=0.35)  # (a slow drag barely glides on: the list holds still soon)
+            tapped = []
+            look()
+            stale = stale + 1 if [r["name"] for r in rows()] == before else 0
+            if stale:
+                finished = len(seen) >= n  # (a drag that didn't move the list looks like the bottom too)
+                break  # the bottom of the list
+            fresh = classify() == "friends"
+            continue
+        row = todo[0]
+        bounced = 0
+        done.add(name_key(row["name"]))  # (I and l, O and 0 alike: OCR reads them either way)
+        tapped.append(row["t"][1])
+        try:
+            got = act(row)
+        except base.Lost as e:
+            # a late iPhone tap (two X's landing at once closed the friend page, 2026-10-28) left a screen
+            # nobody expected. Nothing was sent unseen: after SEND a lost screen is a Stop (but a Pixel game that
+            # took neither SEND tap gets restarted, send_gift). Back to the list, the search typed again (the way
+            # back can pass the map), and this friend tried once more
+            lost += 1
+            missed = True
+            if lost >= MAX_LOST:
+                raise Stop(f"lost {lost} times in a row: {e}") from e
+            keep_capture("lost_friend")
+            log(f"  lost on {row['name']!r} ({e}): back to the list")
+            time.sleep(2 * LAG)  # (a tap still on its way lands before the next look)
+            to_list()
+            if name_key(row["name"]) not in retried:  # (the key: the 2nd look read 'Gabinatoro' as 'Gabinator0', 2026-11-16)
+                retried.add(name_key(row["name"]))
+                done.discard(name_key(row["name"]))  # (dealt with after all: their row reads so next time)
+            n = search(base_q, zq)
+            if not n:
+                break
+            if arrow() != "down":
+                set_sort()
+            stale, fresh, top, tapped = 0, True, True, []
+            continue
+        lost = 0
+        if got == "skip":
+            fresh = True
+            continue
+        missed = missed or got in ("missed", "raid")
+        if got == "raid":  # (a raid invite popped up under the tap: not this friend's fault)
+            if name_key(row["name"]) not in retried:
+                retried.add(name_key(row["name"]))
+                done.discard(name_key(row["name"]))
+                tapped.pop()  # (its spot too: the second try taps it again)
+        if got == "done":
+            top = False  # their row changes, but they keep their place until the next search
+        to_list()
+        # the next friend is already known (rows keep their place until a new search): tap it the moment
+        # the list shows. Only its rows may lag a moment behind the header
+        if not rows():
+            poll_until(lambda: classify() != "friends" or rows(), 2.0)
+        fresh = classify() == "friends"
+    return finished, missed
+
+
 def run_searches(limit):
-    sent, done, greys = 0, set(), 0
-    lost, retried = 0, set()  # lost: one_friend's lost screens in a row; retried: name_keys of friends already given a 2nd try
+    """the send pass -> (gifts sent, why it ended)"""
+    done, retried = set(), set()  # retried: name_keys of friends already given a 2nd try
+    st = {"sent": 0, "greys": 0}
+
+    def send(row):
+        if re.match(r"WAIT", row["nick"].strip()) and not wait_ok():
+            log(f"  {row['name']} ({row['nick']}): tagged WAIT, skipped")  # (1 point to level up: no gift)
+            return "skip"
+        # a grey SEND GIFT alone proves nothing (that friend may not take one now). Every 3rd grey in a row,
+        # tap it anyway: the gift list opening, or send_gift's OutOfGifts, tells whether the bag is empty
+        got = one_friend(row, check=st["greys"] % 3 == 2, done=done)
+        if got == "empty":
+            log(f"the game says I have no gifts: out of gifts, done ({st['sent']} sent)")
+            raise Done("out of gifts")
+        st["greys"] = st["greys"] + 1 if got == "grey" else 0
+        if st["greys"] >= 9:
+            log(f"9 grey SEND GIFTs in a row: likely out of gifts, done ({st['sent']} sent)")
+            raise Done("likely out of gifts (9 grey SEND GIFTs in a row)")
+        if got in ("grey", "misread"):  # (a grey one can take a gift minutes later)
+            return "missed"
+        if got == "raid":
+            return "raid"
+        if got:
+            st["sent"] += 1
+            if st["sent"] >= limit:
+                log(f"{st['sent']} gifts: the limit for this run")
+                raise Done(None)
+            return "done"
+        return None
+
+    # a Remote Trade friend stays at the top whatever the sort: their arrow says nothing about the rest
+    # (never_gift here too: OCR can read a name differently each look, so done alone could reopen them)
+    todo_ok = lambda r: not (r["trade"] and r["badged"]) and not never_gift(r["name"], r["nick"])
+    ends = lambda r: r["badged"] and not WALK  # sorted can-receive first: the first one with the arrow ends it
     to_list()
     whose()
     set_sort()
-    for first, base_q in (("iii", FIRST), ("lll", THEN)):
-        if wait_ok():
-            base_q = base_q.replace("!WAIT&", "")
+    try:
+        for first, base_q in (("iii", FIRST), ("lll", THEN)):
+            if wait_ok():
+                base_q = base_q.replace("!WAIT&", "")
+            prev = None
+            # a whole "rest" search finished earlier today: it holds every zone, so go straight to it. Late in the day
+            # most gifts are sent, and the zone order matters less than the time the zone searches take
+            straight = f"{first} rest" in iii_finished()
+            if straight:
+                log(f"{first} + rest: finished earlier today: its zones skipped, straight to {first} + rest")
+            for zone, zq in ZONES:
+                remembered = first == "iii" and zone != "rest"  # (rest: where a friend added today lands)
+                if straight and zone != "rest":
+                    continue  # (prev stays: the box still holds that search)
+                if remembered and zone in iii_finished():
+                    log(f"iii + {zone}: finished earlier today: skipped")
+                    continue
+                t0 = time.time()
+                day = today()
+                n = None
+                if prev is not None and len(prev) == 2 and len(zq) <= 2:
+                    n = swap_zone(base_q, prev, zq)  # ea -> ce -> mo -> (none): change just the end
+                if n is None:
+                    n = search(base_q, zq)
+                prev = zq
+                log(f"{first} + {zone}: ({n}) ({time.time() - t0:.0f}s)")
+                if n == 0 and remembered:  # (a list slow to load can read 0: one false 0 would lose them all day)
+                    n = search(base_q, zq)
+                    if n == 0:
+                        iii_remember(zone, day)
+                    else:
+                        log(f"  searched again: ({n})")
+                if not n:
+                    continue
+                finished, missed = walk(base_q, zq, n, send, done, retried, todo_ok, ends, "has the arrow")
+                if finished and not missed and (remembered or zone == "rest"):
+                    iii_remember(zone if remembered else f"{first} rest", day)  # (rest: still searched, its zones not)
+    except Done as e:
+        return st["sent"], e.why
+    return st["sent"], "nobody left who can take one"
+
+
+# ---------- the open pass ----------
+
+def open_time():
+    """late enough to open gifts: from OPEN_FROM till midnight"""
+    return time.localtime().tm_hour >= OPEN_FROM
+
+
+def box_from(name):
+    """the gift box showing is from name (its sender's name sits under the city, Pixel 2026-11-25: 'alestarSK')"""
+    return any(same_name(clean(t[4]), name) for t in texts if 0.4 < t[1] < 0.8)
+
+
+def untag(nick, listed):
+    """take the WAIT / SENT / EGG tag off a friend who leveled up -> True when the nickname changed"""
+    new = HELD.sub("", nick).strip()
+    if not new:
+        log(f"  {nick!r} is only its tag: take it off by hand")  # (an empty box's OK: not tried)
+        return False
+    return rename(HELD.match(nick).group(1), nick, listed, new=new)
+
+
+def held(name, nick, listed):
+    """a friend whose gift waits: OPEN, or close to leveling up. Reads the friendship screen as for a gift (meter():
+    only when the small hearts say it may be close). Takes the tag off one who leveled up -> True: leave it"""
+    if nick.startswith("OPEN"):
+        log(f"{name} ({nick}): tagged OPEN, opened by hand: left")
+        return True
+    tag = HELD.match(nick)
+    n = meter()
+    if n == 1:  # (both accounts: opening it would level them up. GIFT_WAIT is about sending)
+        if tag:
+            log(f"{name} ({nick}): 1 point to level up, tagged {tag.group(1)}: gift left unopened")
+        else:
+            log(f"{name} ({nick}): 1 point to level up: gift left unopened, tagging WAIT")
+            rename("WAIT", nick, listed)
+        return True
+    if tag and n == 2:
+        log(f"{name} ({nick}): 2 points to level up, tagged {tag.group(1)}: gift left unopened")
+        return True
+    if tag:
+        log(f"{name} ({nick}): tagged {tag.group(1)}, {n if n is not None else 'no level-up close'}: leveled up, "
+            f"taking the tag off")
+        untag(nick, listed)
+    return False
+
+
+def open_one(row, done, anytime):
+    """open the gift row's friend sent me, unless held() -> "opened", None (left on purpose), "missed" or "raid".
+    The gift box shows only from the list's tap, so: tap, X, their page and friendship screen, back, tap, OPEN.
+    Raises Done when the day's opens are over (midnight, a full item bag, the game's limit)"""
+    t0 = time.time()
+    s = tap_into(row["t"], "giftpopup", "friend", "luckytrade", "raid")
+    if s == "raid":
+        keep_capture("raid")
+        log(f"  tapping {row['name']!r} opened a raid: left it")
+        return "raid"
+    if s == "luckytrade":
+        s = close_popup("friend", "giftpopup")  # (a Lucky Trade request over it: left for the user)
+    if s == "friend" and not poll_until(lambda: classify() == "giftpopup", 1.5):
+        log(f"  {row['name']}: no gift box came up: skipped")
+        return "missed"
+    close_popup("friend")
+    row, name = whose_page(row, done)
+    if not name:
+        return "missed"
+    nick, _ = page_nickname()
+    if held(name, nick, row["nick"]):
+        return None
+    to_list()
+    again = [r for r in rows() if same_name(r["name"], name)]
+    if not again:
+        log(f"  {name}: their row is gone from the list: skipped")
+        return "missed"
+    s = tap_into(again[0]["t"], "giftpopup", "friend", "luckytrade", "raid")
+    if s != "giftpopup" and not poll_until(lambda: classify() == "giftpopup", 1.5):
+        log(f"  {name}: the second tap opened {s}, no gift box: skipped")
+        return "raid" if s == "raid" else "missed"
+    if not box_from(name):
+        keep_capture("box_from")
+        log(f"  {name}: the gift box doesn't read their name ({summary()}): left")
+        close_popup("friend")
+        return "missed"
+    if not anytime and not open_time():
+        close_popup("friend")
+        raise Done("midnight: the day's opens are over")
+    if DRY:
+        log(f"{name} ({nick}): DRY RUN: would open their gift ({time.time() - t0:.0f}s)")
+        close_popup("friend")
+        return "opened"
+    return opened(name, nick, t0)
+
+
+LIMIT_WORDS = re.compile(r"LIMIT|TOMORROW|MORE GIFTS|CAN.?T OPEN|CANNOT OPEN")  # the daily open limit's box (not seen yet)
+
+
+def opened(name, nick, t0):
+    """tap OPEN on the box from name and wait for their page -> "opened". The box goes, the screen is blank while the
+    items fly (about 5 s, iPhone 2026-11-25), then the friend page shows by itself"""
+    o = label("OPEN", 0.7, 0.95)
+    tap_text(o) if o else tap(0.44, 0.85, fuzz=0.004)
+    w0, st = time.time(), {"retapped": False, "said": set(), "lucky": False}
+
+    def step():
+        s = look()
+        j = joined()
+        if pages.gift_bag_full(texts):
+            keep_capture("bag_full")
+            close_popup("giftpopup", "friend")
+            close_popup("friend")
+            raise Done("the item bag is full: make space, then open the rest")
+        if "LUCKY" in j and not st["lucky"]:
+            st["lucky"] = True
+            keep_capture("lucky")
+            log(f"  LUCKY: {summary()}")
+        if s == "giftpopup" and not st["retapped"] and time.time() - w0 > 3 * LAG:
+            st["retapped"] = True  # (the box still there: the OPEN tap didn't land)
+            log("  the gift box is still there: OPEN again")
+            o = label("OPEN", 0.7, 0.95)
+            tap_text(o) if o else tap(0.44, 0.85, fuzz=0.004)
+        elif s not in ("friend", "giftpopup", "blank") and summary() not in st["said"]:
+            st["said"].add(summary())
+            keep_capture("after_open")
+            log(f"  after OPEN: {s}: {summary()}")
+            if LIMIT_WORDS.search(j):
+                close()
+                raise Done(f"the game's daily gift limit: {summary()}")
+        return s
+
+    if base.settle(step, lambda s: s == "friend", 25, gap=0.5) == "friend":
+        lucky = " (lucky!)" if st["lucky"] else ""
+        log(f"{name} ({nick}): opened their gift{lucky} ({time.time() - t0:.0f}s)")
+        return "opened"
+    keep_capture("open_end")
+    raise base.Lost(f"after OPEN their page never came back: {summary()}")
+
+
+def open_searches(limit, anytime=False):
+    """the open pass -> (gifts opened, why it ended). Each zone in ZONES' order, then the rest in LUCKY's order, the list
+    sorted GIFT (gifts to me first). anytime: the open cmd, by hand (else it ends at midnight)"""
+    global sort_name
+    done, retried = set(), set()
+    st = {"opened": 0}
+
+    def act(row):
+        got = open_one(row, done, anytime)
+        if got == "opened":
+            st["opened"] += 1
+            if st["opened"] >= limit:
+                log(f"{st['opened']} gifts opened: the limit for this run")
+                raise Done(None)
+            return "done"
+        return got
+
+    # rows too low to read their whole gift line wait for the next scroll (a cut 'sent y' would end the list).
+    # A Remote Trade friend sits on top whatever the sort
+    todo_ok = lambda r: r["t"][1] < 0.8 and not (r["trade"] and not r["gift"])
+    ends = lambda r: not r["gift"]  # sorted GIFT: the first one with no gift for me ends it
+    searches = [(z, zq) for z, zq in ZONES if z != "rest"] + [(f"rest, {k}", q) for k, q in LUCKY]
+    sort_name = GIFTS_TO_ME
+    try:
+        to_list()
+        set_sort()
         prev = None
-        # a whole "rest" search finished earlier today: it holds every zone, so go straight to it. Late in the day
-        # most gifts are sent, and the zone order matters less than the time the zone searches take
-        straight = f"{first} rest" in iii_finished()
-        if straight:
-            log(f"{first} + rest: finished earlier today: its zones skipped, straight to {first} + rest")
-        for zone, zq in ZONES:
-            remembered = first == "iii" and zone != "rest"  # (rest: where a friend added today lands)
-            if straight and zone != "rest":
-                continue  # (prev stays: the box still holds that search)
-            if remembered and zone in iii_finished():
-                log(f"iii + {zone}: finished earlier today: skipped")
-                continue
+        for zone, zq in searches:
+            if not anytime and not open_time():
+                raise Done("midnight: the day's opens are over")
             t0 = time.time()
-            day = today()
             n = None
             if prev is not None and len(prev) == 2 and len(zq) <= 2:
-                n = swap_zone(base_q, prev, zq)  # ea -> ce -> mo -> (none): change just the end
+                n = swap_zone(OPENS, prev, zq)
             if n is None:
-                n = search(base_q, zq)
+                n = search(OPENS, zq)
             prev = zq
-            log(f"{first} + {zone}: ({n}) ({time.time() - t0:.0f}s)")
-            if n == 0 and remembered:  # (a list slow to load can read 0: one false 0 would lose them all day)
-                n = search(base_q, zq)
-                if n == 0:
-                    iii_remember(zone, day)
-                else:
-                    log(f"  searched again: ({n})")
-            if not n:
-                continue
-            if arrow() != "down":
-                set_sort()
-            stale, fresh = 0, True  # fresh: the last capture is the friend list as it is now (no look needed)
-            top = True  # the list is as a search sorted it: no gift sent since (scrolled or not)
-            bounced = 0  # scrolls that landed off the list since the last friend reached
-            finished, missed, seen = False, False, set()  # missed: a friend here wasn't dealt with; seen: names on the list
-            tapped = []  # where rows were tapped since the list last moved: done, whatever OCR reads there next
-            pinned = set()  # rows skipped for their spot alone (logged once)
-            while True:
-                if not fresh and look() != "friends":  # a drag that landed as a tap opened something: back first
-                    bounced += 1
-                    if bounced >= MAX_BOUNCED:
-                        raise Stop(f"{bounced} scrolls in a row left the friend list: {summary()}")
-                    to_list()
-                fresh = False
-                if search_gone():
-                    # with no search on, a scrolled list has no '(N)' and reads as the profile: every scroll would
-                    # come back to the top of the same page, forever (2026-11-03). Type it again
-                    log("  the search is gone: searching again")
-                    n = search(base_q, zq)
-                    if not n:
-                        break
-                    if arrow() != "down":
-                        set_sort()
-                    stale, fresh, top, tapped = 0, True, True, []
-                    continue
-                on_screen = rows()
-                seen |= {r["name"] for r in on_screen}
-                # a Remote Trade friend stays at the top whatever the sort: their arrow says nothing about the rest
-                # (never_gift here too: OCR can read a name differently each look, so done alone could reopen them)
-                todo = [r for r in on_screen if name_key(r["name"]) not in done and not (r["trade"] and r["badged"])
-                        and not never_gift(r["name"], r["nick"])]
-                spot = [r for r in todo if any(abs(r["t"][1] - y) < 0.012 for y in tapped)]
-                for r in spot:  # (a row already tapped, its name read another way: not opened again, but not proven done)
-                    if r["name"] not in pinned:
-                        pinned.add(r["name"])
-                        log(f"  {r['name']!r} sits where a friend was tapped: skipped as done")
-                missed = missed or bool(spot)
-                todo = [r for r in todo if r not in spot]
-                if todo and todo[0]["badged"] and not WALK:
-                    if top:
-                        finished = True
-                        break  # sorted can-receive first, and the first friend not done has the arrow: nobody left
-                    # the list re-sorts only on a new search: the friends gifted this run keep their place, arrow
-                    # and all. Search again, then look at the top
-                    log(f"  {todo[0]['name']} has the arrow: searching again to re-sort")
-                    n = search(base_q, zq)
-                    if not n:
-                        break
-                    if arrow() != "down":
-                        set_sort()
-                    stale, fresh, top, tapped = 0, True, True, []
-                    continue
-                if not todo:
-                    before = [r["name"] for r in rows()]
-                    # (a scroll leaves top alone: the sort holds below too. 2026-10-31: friends gifted this run sat
-                    # unarrowed at the top after the new search, so every re-search scrolled past them to the same
-                    # arrow, and searched again, forever)
-                    drag(0.75, 0.4, settle=0.35)  # (a slow drag barely glides on: the list holds still soon)
-                    tapped = []
-                    look()
-                    stale = stale + 1 if [r["name"] for r in rows()] == before else 0
-                    if stale:
-                        finished = len(seen) >= n  # (a drag that didn't move the list looks like the bottom too)
-                        break  # the bottom of the list
-                    fresh = classify() == "friends"
-                    continue
-                row = todo[0]
-                bounced = 0
-                done.add(name_key(row["name"]))  # (I and l, O and 0 alike: OCR reads them either way)
-                tapped.append(row["t"][1])
-                if re.match(r"WAIT", row["nick"].strip()) and not wait_ok():
-                    log(f"  {row['name']} ({row['nick']}): tagged WAIT, skipped")  # (1 point to level up: no gift)
-                    fresh = True
-                    continue
-                # a grey SEND GIFT alone proves nothing (that friend may not take one now). Every 3rd grey in a row,
-                # tap it anyway: the gift list opening, or send_gift's OutOfGifts, tells whether the bag is empty
-                try:
-                    got = one_friend(row, check=greys % 3 == 2, done=done)
-                except base.Lost as e:
-                    # a late iPhone tap (two X's landing at once closed the friend page, 2026-10-28) left a screen
-                    # nobody expected. Nothing was sent unseen: after SEND a lost screen is a Stop (but a Pixel game that
-                    # took neither SEND tap gets restarted, send_gift). Back to the list, the search typed again (the way
-                    # back can pass the map), and this friend tried once more
-                    lost += 1
-                    missed = True
-                    if lost >= MAX_LOST:
-                        raise Stop(f"lost {lost} times in a row: {e}") from e
-                    keep_capture("lost_friend")
-                    log(f"  lost on {row['name']!r} ({e}): back to the list")
-                    time.sleep(2 * LAG)  # (a tap still on its way lands before the next look)
-                    to_list()
-                    if name_key(row["name"]) not in retried:  # (the key: the 2nd look read 'Gabinatoro' as 'Gabinator0', 2026-11-16)
-                        retried.add(name_key(row["name"]))
-                        done.discard(name_key(row["name"]))  # (gifted after all: their SEND GIFT reads grey next time)
-                    n = search(base_q, zq)
-                    if not n:
-                        break
-                    if arrow() != "down":
-                        set_sort()
-                    stale, fresh, top, tapped = 0, True, True, []
-                    continue
-                lost = 0
-                missed = missed or got in ("grey", "misread", "raid")  # (a grey one can take a gift minutes later)
-                if got == "misread":
-                    got = None
-                if got == "raid":  # (a raid invite popped up under the tap: not this friend's fault)
-                    if name_key(row["name"]) not in retried:
-                        retried.add(name_key(row["name"]))
-                        done.discard(name_key(row["name"]))
-                        tapped.pop()  # (its spot too: the second try taps it again)
-                    got = None
-                if got == "empty":
-                    log(f"the game says I have no gifts: out of gifts, done ({sent} sent)")
-                    return sent, "out of gifts"
-                greys = greys + 1 if got == "grey" else 0
-                if greys >= 9:
-                    log(f"9 grey SEND GIFTs in a row: likely out of gifts, done ({sent} sent)")
-                    return sent, "likely out of gifts (9 grey SEND GIFTs in a row)"
-                if got and got != "grey":
-                    sent += 1
-                    top = False  # their arrow now shows, but they keep their place until the next search
-                    if sent >= limit:
-                        log(f"{sent} gifts: the limit for this run")
-                        return sent, None
-                to_list()
-                # the next friend is already known (rows keep their place until a new search): tap it the moment
-                # the list shows. Only its rows may lag a moment behind the header
-                if not rows():
-                    poll_until(lambda: classify() != "friends" or rows(), 2.0)
-                fresh = classify() == "friends"
-            if finished and not missed and (remembered or zone == "rest"):
-                iii_remember(zone if remembered else f"{first} rest", day)  # (rest: still searched, its zones not)
-    return sent, "nobody left who can take one"
+            log(f"open + {zone}: ({n}) ({time.time() - t0:.0f}s)")
+            if n:
+                walk(OPENS, zq, n, act, done, retried, todo_ok, ends, "has no gift for me")
+    except Done as e:
+        return st["opened"], e.why
+    finally:
+        sort_name = CAN_RECEIVE
+    return st["opened"], "every search walked"
 
 
 def one_phone(a):
@@ -1602,10 +1878,10 @@ def one_phone(a):
         if s == "friend":
             print("    hearts:", heart_fill())
         return
-    session.main(script, a.limit)
+    session.main(script, a.limit, a.cmd)
 
 
-def script(limit):
+def script(limit, cmd="run"):
     import home
     session.ready()  # iPhone Mirroring up (or the Pixel unlocked) before the first look
     try:
@@ -1616,20 +1892,26 @@ def script(limit):
         s = home.start(storage=False)
     session.gps_off()  # (home.start does it too, but a run that starts on the friend list skips home.start)
     log(f"Pokémon GO up, on {s}")
-    try:
-        sent, why = run_searches(limit)
-        log(f"done: {sent} gifts {'would be sent (dry run)' if DRY else 'sent'}" + (f", {why}" if why else ""))
-    except OutOfGifts:
-        log("done: out of gifts (none we may send left): stopping")
-        if not ui.ANDROID:
-            to_list()
+    if cmd == "run":
+        try:
+            sent, why = run_searches(limit)
+            log(f"done: {sent} gifts {'would be sent (dry run)' if DRY else 'sent'}" + (f", {why}" if why else ""))
+        except OutOfGifts:
+            log("done: out of gifts (none we may send left)")
+            if not ui.ANDROID:
+                to_list()
+    if WALK or not (cmd == "open" or open_time()):
+        return
+    log("opening gifts" + (" (the open cmd: any time)" if cmd == "open" else f" (it's past {OPEN_FROM}:00)"))
+    got, why = open_searches(limit, anytime=cmd == "open")
+    log(f"done opening: {got} gifts {'would be opened (dry run)' if DRY else 'opened'}" + (f", {why}" if why else ""))
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", nargs="?", default="run", choices=("run", "look"))
-    ap.add_argument("--limit", type=int, default=1000, help="at most N gifts per phone this run")
-    ap.add_argument("--dry-run", action="store_true", help="everything but SEND and the nickname's OK")
+    ap.add_argument("cmd", nargs="?", default="run", choices=("run", "look", "open"))
+    ap.add_argument("--limit", type=int, default=1000, help="at most N gifts sent, and N opened, per phone this run")
+    ap.add_argument("--dry-run", action="store_true", help="everything but SEND, OPEN and the nickname's OK")
     ap.add_argument("--walk", action="store_true", help="speed test, with --dry-run: friends already gifted too; "
                     "opens each one's page and friendship screen as for a gift, never the gift list")
     a = ap.parse_args()

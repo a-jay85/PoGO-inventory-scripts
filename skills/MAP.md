@@ -328,6 +328,7 @@ Whole screens that belong to one script, and the way out of each, for every othe
 - `gift_picker(texts)`
 - `gift_preview(texts)`
 - `gift_popup(texts)`: (a long title cuts the line short: 'Greetings fro..', crecos1's Yacht Club gift, 2026-11-07)
+- `gift_bag_full(texts)`: 'Your Item Bag is full!' over a gift box that OPEN was tapped on (MANAGE ITEMS, UPGRADE ITEM BAG, Pixel 2026-11-25)
 - `lucky_trade(texts)`: a friend's Lucky Trade request over their page: its X shows the page
 - `raid(texts)`: a raid's gym screen (2026-10-27: a friend-row tap opened one)
 - `buddy(texts)`: the buddy's history page (a stray tap on the ME tab's buddy): its X goes back
@@ -1095,9 +1096,10 @@ Evolve every free trade evolution tagged Evo, as fast as the game lets it
 - `search_gone()`: the friend list's button row under the picture (ADD FRIEND, INVITE) shows only with no search on
 - `to_list()`
 - `arrow()`: the sort button's arrow: 'down' / 'up' / None
-- `sorted_gift()`: the sort button already shows Can receive a gift (the gift icon) -> its arrow 'down' / 'up', else None
-- `set_sort()`: Can receive a gift, arrow down
-- `sort_to_top()`: a new sort puts the list back at its top, so this beats dragging up through hundreds of friends (the user's tip, 2026-11-07): pick Name, then set_sort() picks Can …
+- `sort_label()`
+- `sorted_gift()`: the sort button already shows the sort this pass wants (sort_name) -> its arrow 'down' / 'up', else None
+- `set_sort()`: sort_name (Can receive a gift, or GIFT for the open pass), arrow down
+- `sort_to_top()`: a new sort puts the list back at its top, so this beats dragging up through hundreds of friends (the user's tip, 2026-11-07): pick Name, then set_sort() picks sort_name …
 - `to_top()`
 - `whole(box, q)`: False when the box clearly holds less than the search: the box shows the last ~40 letters of a long search, so a short read (no '&' in it) is all there is
 - `box_end(box)`: the search box's read, squeezed, without the clear X it can end with
@@ -1113,6 +1115,7 @@ Evolve every free trade evolution tagged Evo, as fast as the game lets it
 - `grey(p)`
 - `badged(im, name_y)`: the grey circle with a white arrow at the avatar's bottom right: a gift already sent, nothing more to send
 - `rows()`: the rows on screen, top down: {name, t, badged}. A row is the trainer name at x ~0.29, the nickname just under it; rows too low to see their badge are left for the next …
+- `sent_me_gift(t)`: the row whose name is t has '<name> sent you a Gift!' under it (one line, or 'sent you a' / 'Gift!' on two, Pixel 2026-11-25)
 - `name_key(s)`: a trainer name with the letters OCR mixes up made the same
 - `same_name(a, b)`: the row's name and the page's: OCR reads them a little differently ('lycбo' / 'lyc60')
 - `never_gift(name, nick)`: the friend the script must leave alone
@@ -1140,8 +1143,9 @@ Evolve every free trade evolution tagged Evo, as fast as the game lets it
 - `is_tagged(tag, nick)`: the nickname already reads new_nickname(tag, ...) of itself: renaming it would change nothing
 - `new_nickname(tag, old)`
 - `cancel_nickname()`
-- `rename(tag, old, listed)`: listed: the nickname as the friend list showed it
+- `rename(tag, old, listed, new=None)`: listed: the nickname as the friend list showed it
 - `grey_check(t)`: tap a grey SEND GIFT anyway
+- `whose_page(row, done)`: the friend page that opened from row's tap -> (row, name), name None when it's no one to go on with
 - `one_friend(row, check=False, done=None)`: open the row's friend page, check, gift and/or tag
 - `wait_ok()`: a friend tagged WAIT gets a gift anyway on this account (GIFT_WAIT)
 - `whose()`: from the friend list: our trainer name on the ME tab -> trainer, and which gifts this account sends (San Francisco only when it can't be read)
@@ -1149,9 +1153,18 @@ Evolve every free trade evolution tagged Evo, as fast as the game lets it
 - `iii_file()`
 - `iii_finished()`: the "iii" zones this account has finished today, and "iii rest" / "lll rest" for a whole search finished
 - `iii_remember(zone, day)`: zone: an "iii" zone, or "iii rest" / "lll rest"
-- `run_searches(limit)`
+- `class Done`: a pass is over: why (None: --limit)
+- `walk(base_q, zq, n, act, done, retried, todo_ok, ends, end_note)`: walk the list of the search just typed (base_q + zq, (n) friends) from its top, and act(row) on each friend todo_ok(row) lets through, top down, till the first one left …
+- `run_searches(limit)`: the send pass -> (gifts sent, why it ended)
+- `open_time()`: late enough to open gifts: from OPEN_FROM till midnight
+- `box_from(name)`: the gift box showing is from name (its sender's name sits under the city, Pixel 2026-11-25: 'alestarSK')
+- `untag(nick, listed)`: take the WAIT / SENT / EGG tag off a friend who leveled up -> True when the nickname changed
+- `held(name, nick, listed)`: a friend whose gift waits: OPEN, or close to leveling up
+- `open_one(row, done, anytime)`: open the gift row's friend sent me, unless held() -> "opened", None (left on purpose), "missed" or "raid"
+- `opened(name, nick, t0)`: tap OPEN on the box from name and wait for their page -> "opened"
+- `open_searches(limit, anytime=False)`: the open pass -> (gifts opened, why it ended)
 - `one_phone(a)`
-- `script(limit)`
+- `script(limit, cmd='run')`
 - `main()`
 
 ## skills/goplus/goplus.py

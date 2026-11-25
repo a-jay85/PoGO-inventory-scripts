@@ -1820,7 +1820,8 @@ def opened(name, nick, t0):
             log(f"  after OPEN: {s}: {summary()}")
             close()
             raise Done(f"the game's daily gift limit: {summary()}")
-        if "LUCKY" in j and not st["lucky"]:
+        if s != "friend" and "LUCKY" in j and not st["lucky"]:  # (a lucky friend's own page says '• Lucky Friend •':
+            # read as a new one, Pixel 2026-11-25)
             st["lucky"] = True
             keep_capture("lucky")
             log(f"  LUCKY: {summary()}")

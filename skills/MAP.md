@@ -895,7 +895,7 @@ Re-judge HashTagAJay's #GIV, #Transfer or #Reroll pile by species alone, with no
 - `under26(sids)`: the highest CP no level 26+ one of these forms can have: one under the lowest one's CP at level 26, 0/0/0
 - `tiers(caps)`: {key: CP cap} -> {key: its tier's cap}: caps sorted low to high, a new tier once one is over TIER x the tier's lowest
 - `dex_parts(by_dex, pile, size, caps=None)`: {dex: {sid: tag or None (not sure)}} -> ({tag: [search part]}, {tag: n species}, [(sid, why) not sure])
-- `candy_grid(sid, t)`: -> ([Candy range], [Candy XL range]): where the rules cut for this species (XL_CAP for 2XL and giver_short; LUCKY_CANDY for giver_short; DMAX_CANDY and one Max Move's XL …
+- `candy_grid(sid, t)`: -> ([Candy range], [Candy XL range]): where the rules cut for this species (XL_CAP for 2XL and giver_short; LUCKY_CANDY for giver_short; COSTLY_ENOUGH for a costly line, …
 - `ranges(starts)`: {first value of each range} -> [(lo, hi)] in order, the last one up to TOP
 - `count_term(name, lo, hi)`
 - `runs(cells)`: [((lo, hi), tag)] in order -> the same with neighbours of one tag joined

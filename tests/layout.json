@@ -2310,6 +2310,7 @@
    "BULK_GUARD",
    "BY_HAND",
    "CLEAN",
+   "COSTLY_ENOUGH",
    "COSTLY_LINES",
    "DMAX_CANDY",
    "DOOR_PICK",
@@ -2855,6 +2856,7 @@
   "names": [
    "ALWAYS_KEEP",
    "COSTLY_DEX",
+   "COSTLY_ENOUGH",
    "COSTLY_LINES",
    "EVO",
    "EVO_FOR",

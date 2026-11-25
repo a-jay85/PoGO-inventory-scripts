@@ -8,7 +8,7 @@
 Each species is judged once by ../shared/verdict.py, the one rule book, as a plain one: untraded, caught 30 days ago,
 no odd size, level 20, caught nearby, its gym top 20 out. HashTagAJay's Candy and Candy XL per family come from the
 Pokémon database (../shared/pokedb.py: what the scripts read last); a family it has no count for counts as 360+ XL
-and plenty of Candy (most of HashTagAJay's are). So the species rules decide: Reroll (raid top 6, the user 2026-11-19), GIV (stage 2, hard
+and plenty of Candy (most of HashTagAJay's are), except a costly line's Candy (5000+ of it: Transfer), so that's not sure. So the species rules decide: Reroll (raid top 6, the user 2026-11-19), GIV (stage 2, hard
 evolutions, egg families, gym lines, trade evolutions, costly lines, short of Candy for Dynamax), 2XL (under 360 XL),
 or Transfer. No appraisal, no power-up cost, no page read: the IV rule (98%+) doesn't run. Level isn't searchable, so a
 Transfer search takes only CPs no level 26+ one has (GIV at level 26+ comes before Transfer): under the species'
@@ -73,7 +73,8 @@ def species_tag(sid, t, counts, vd):
     """-> verdict.Verdict for a plain one of this species on HashTagAJay"""
     c = counts.get(family(sid)) or {}
     candy, xl = c.get("candy"), c.get("xl")
-    candy = 10 ** 6 if candy is None else candy
+    costly = pvp.SPECIES[sid]["dex"] in vd.COSTLY_DEX  # (no count: plenty, but a costly line's 5000 bar needs one)
+    candy = (None if costly else 10 ** 6) if candy is None else candy
     # (no count: 360+ XL, but a Team Future/Ideal line's bar can be higher, so its count stays unread: not sure)
     read = None if xl is None and sid in t.get("team_xl", {}) else xl
     xl = 10 ** 6 if xl is None else xl
@@ -196,12 +197,13 @@ TOP = 10 ** 5  # a Candy or Candy XL count no family reaches  # the step terms, 
 
 def candy_grid(sid, t):
     """-> ([Candy range], [Candy XL range]): where the rules cut for this species (XL_CAP for 2XL and giver_short;
-    LUCKY_CANDY for giver_short; DMAX_CANDY and one Max Move's XL for a Dynamax line; a Team Future/Ideal line's bar,
+    LUCKY_CANDY for giver_short; COSTLY_ENOUGH for a costly line, verdict.transfer; DMAX_CANDY and one Max Move's XL for a Dynamax line; a Team Future/Ideal line's bar,
     tradeable.team_xl_need). A range is (lo, hi), hi TOP for no top"""
     import verdict as vd
     need, team = t.get("dmax", {}).get(sid), t.get("team_xl", {}).get(sid)
     xl_starts = {0, vd.XL_CAP} | ({need + 1} if need is not None else set()) | ({team[0]} if team else set())
-    candy_starts = {0, rules.LUCKY_CANDY} | ({rules.DMAX_CANDY + 1} if need is not None else set())
+    candy_starts = ({0, rules.LUCKY_CANDY} | ({rules.DMAX_CANDY + 1} if need is not None else set())
+                    | ({rules.COSTLY_ENOUGH} if pvp.SPECIES[sid]["dex"] in vd.COSTLY_DEX else set()))
     return ranges(candy_starts), ranges(xl_starts)
 
 

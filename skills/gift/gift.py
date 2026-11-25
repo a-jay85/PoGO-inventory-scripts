@@ -1815,6 +1815,11 @@ def opened(name, nick, t0):
             close_popup("giftpopup", "friend")
             close_popup("friend")
             raise Done("the item bag is full: make space, then open the rest")
+        if s != "friend" and LIMIT_WORDS.search(j):  # (on every look: the box may show over the fading gift box)
+            keep_capture("open_limit")
+            log(f"  after OPEN: {s}: {summary()}")
+            close()
+            raise Done(f"the game's daily gift limit: {summary()}")
         if "LUCKY" in j and not st["lucky"]:
             st["lucky"] = True
             keep_capture("lucky")
@@ -1825,16 +1830,13 @@ def opened(name, nick, t0):
             o = label("OPEN", 0.7, 0.95)
             tap_text(o) if o else tap(0.44, 0.85, fuzz=0.004)
         elif s == "unknown" and (any(re.fullmatch(r"\+\s?\d[\d,]*", t[4].strip()) for t in texts)
-                                 or "GREETINGS FROM" in j):
+                                 or "GREETINGS FROM" in j) and not re.search(r"LEVEL|FRIENDS", j):
             pass  # the box going (OPEN gone first) or the items flying in: '+1 | Egg | +200 | Stardust' (Pixel,
-            # 2026-11-25). Wait, no capture
+            # 2026-11-25). Wait, no capture. (A level-up screen, which may show '+N' too, still gets one)
         elif s not in ("friend", "giftpopup", "blank") and summary() not in st["said"]:
             st["said"].add(summary())
             keep_capture("after_open")
             log(f"  after OPEN: {s}: {summary()}")
-            if LIMIT_WORDS.search(j):
-                close()
-                raise Done(f"the game's daily gift limit: {summary()}")
         return s
 
     if base.settle(step, lambda s: s == "friend", 25, gap=0.5) == "friend":

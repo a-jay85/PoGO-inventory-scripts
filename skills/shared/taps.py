@@ -235,15 +235,12 @@ def tile_names(texts):
 def settled_tiles(texts=None):
     """the list's tiles [(name, cp)] once two looks in a row agree. texts: a look of this list taken just now (a
     search's results): it counts as the first, so one new look can confirm it (~0.75 s less a search, Pixel)"""
-    last = [(ui.tile_name(n), c) for n, c, _, _ in ui.tiles(texts)] if texts and ui.classify(texts) == "list" else None
-    for _ in range(12):
-        time.sleep(base.short_wait(0.25))
-        screen, texts, path, bounds = look()
-        ts = [(ui.tile_name(n), c) for n, c, _, _ in ui.tiles(texts)] if screen == "list" else None
-        if ts is not None and ts == last:
-            return ts
-        last = ts
-    return last or []
+    def read(seen):
+        return [(ui.tile_name(n), c) for n, c, _, _ in ui.tiles(seen[1])] if seen[0] == "list" else None
+
+    first = read((ui.classify(texts), texts)) if texts else None
+    ts, _ = base.steady(read, tries=12, gap=base.short_wait(0.25), first=first, whole=True, last=True)
+    return ts or []
 
 
 # ---------- one Pokémon ----------

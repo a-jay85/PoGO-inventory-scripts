@@ -99,7 +99,7 @@ The repo is public. These stay local and are in `.gitignore`:
 
 `python3 tests/layout.py` pins how the scripts find each other and their files: each script's names, the one shared copy of `run.py` (its run folder), where every run folder goes, and that every path and `module.name` the code uses exists. Run it after moving or renaming a file, or moving code between files. It must say "all ... the same". Same `--record` rule.
 
-`python3 tests/lints.py` pins three bad patterns that came back after fixes, from the code alone: a typed search that ends in a thin letter (`#IVC&xxl` reads back as `#IVC&xx`), a label lookup used with no None check (`tap_text(label(...))`), and hand-rolled wait loops per function (use `base.settle` or `base.wait_for`). A new one fails with its file:line and what to do instead. Run it after any change under `skills/`. It must say "all ... the same". Same `--record` rule.
+`python3 tests/lints.py` pins four bad patterns that came back after fixes, from the code alone: a typed search that ends in a thin letter (`#IVC&xxl` reads back as `#IVC&xx`), a label lookup used with no None check (`tap_text(label(...))`), hand-rolled wait loops per function (use `base.settle` or `base.wait_for`), and hand-rolled "two reads in a row agree" loops (use `base.steady`). A new one fails with its file:line and what to do instead. Run it after any change under `skills/`. It must say "all ... the same". Same `--record` rule.
 
 `python3 tests/heal.py` checks `pogo.py`'s healing with a made-up failing step and a stand-in Claude. Run it after any change to `heal.py` or `pogo.py`.
 

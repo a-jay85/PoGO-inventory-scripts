@@ -349,13 +349,12 @@ def caught(texts):
 # ---------- the tag sheet ----------
 
 def still_sheet():
-    last = None
-    for _ in range(10):
-        _, texts, path, bounds = wait_for("tags")
-        ys = [(t[4], round(t[1], 2)) for t in texts]  # (boxes jitter a little between reads of a still screen)
-        if ys == last:
-            return texts, path, bounds
-        last = ys
-        time.sleep(0.25)
+    def ys(texts):
+        return [(t[4], round(t[1], 2)) for t in texts]  # (boxes jitter a little between reads of a still screen)
+
+    _, texts, _, _ = wait_for("tags")
+    # two reads in a row must agree, 10 at most (this one the first), 0.25 s apart: then the last one
+    _, (_, texts, path, bounds) = base.steady(lambda s: ys(s[1]), tries=9, gap=0.25, look=lambda: wait_for("tags"),
+                                              first=ys(texts), whole=True, last=True)
     return texts, path, bounds
 

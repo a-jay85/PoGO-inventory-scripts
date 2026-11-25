@@ -443,15 +443,19 @@ def sort_defending():
     _, _, _, bounds = base.wait_for("badgelist", look=look, timeout=8)
     base.click(*SORT_BUTTON, bounds, fuzz=0.01)
     base.wait_for("sortmenu", look=look, timeout=6)
-    seen = []
-    while len(seen) < 2 or seen[-1] != seen[-2]:  # the menu slides in: two reads in a row must agree
-        time.sleep(0.25)
-        _, texts, path, bounds = look()
-        hit = next(t for t in texts if ui.norm(t[4]) == "DEFENDING")
-        seen.append(arrow(path, hit[1] + hit[3] / 2))
-        if len(seen) > 6:
-            break
-    if seen[-1] == "down":
+
+    def defending(texts):
+        return next(t for t in texts if ui.norm(t[4]) == "DEFENDING")
+
+    def read(seen):  # (no arrow is an answer too: DEFENDING shows none under another sort)
+        _, texts, path, _ = seen
+        hit = defending(texts)
+        return arrow(path, hit[1] + hit[3] / 2) or "none"
+
+    # the menu slides in: two reads in a row must agree, 7 at most (then the last one)
+    way, (_, texts, _, bounds) = base.steady(read, tries=7, gap=0.25, look=look, whole=True, last=True)
+    hit = defending(texts)
+    if way == "down":
         base.click(*SORT_BUTTON, bounds, fuzz=0.01)  # its X sits where the sort button was
     else:
         base.tap_box(hit, bounds)
@@ -661,18 +665,14 @@ def choose():
         if look()[0] != "feed":
             raise
         return "full"
-    seen = []
-    while len(seen) < 2 or seen[-1] != seen[-2]:  # it slides up: two reads in a row must agree
-        time.sleep(0.4)
-        _, texts, path, bounds = look()
-        menu = berry_menu(texts)
-        seen.append({k: c for k, (c, _) in menu.items()})
-        if len(seen) > 6:
-            break
-    menu = menu_counts(menu, texts, path)
-    seen[-1] = {k: c for k, (c, _) in menu.items()}
-    log("    bag: " + ", ".join(f"{k} {c}" for k, c in seen[-1].items()))
-    razz_seen = seen[-1].get("RAZZ")
+    # it slides up: two reads in a row must agree, 7 at most (then the last one)
+    counts = lambda t: {k: c for k, (c, _) in berry_menu(t).items()}
+    _, (_, texts, path, bounds) = base.steady(lambda s: counts(s[1]), tries=7, gap=0.4, look=look, whole=True,
+                                              last=True)
+    menu = menu_counts(berry_menu(texts), texts, path)
+    bag = {k: c for k, (c, _) in menu.items()}
+    log("    bag: " + ", ".join(f"{k} {c}" for k, c in bag.items()))
+    razz_seen = bag.get("RAZZ")
     for kind, floor in FEEDABLE.items():
         count, spot = menu.get(kind, (None, None))
         if count is not None and count > floor and kind not in spent:

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Pins three bad patterns that came back after a fix: a search that ends in a thin letter, a label lookup used
-without a None check, and a hand-rolled wait loop. No phone, nothing imported: it reads the code (ast) of
+"""Pins four bad patterns that came back after a fix: a search that ends in a thin letter, a label lookup used
+without a None check, a hand-rolled wait loop, and a hand-rolled "two reads agree" loop. No phone, nothing imported: it reads the code (ast) of
 skills/**/*.py and the root scripts. Today's offenders are pinned in tests/lints.json, so only a new one fails.
 
   python3 tests/lints.py            check against tests/lints.json
@@ -27,7 +27,12 @@ skills/**/*.py and the root scripts. Today's offenders are pinned in tests/lints
 3. waits  for/while loops that sleep (time.sleep) and look at the screen (LOOKS below) in their own body: use
           base.settle(read, ok, timeout), base.steady(read) (two reads that agree) or base.wait_for. Counted per
           function. Not counted: loops over base.tries() (it is the shared wait), and settle/steady/wait_for/tries
-          themselves.
+          themselves. A bounded 'for _ in range(N): look ... sleep' is one of these too (no rule of its own).
+4. agree  for/while loops that look at the screen until two reads in a row agree, with or without a sleep: use
+          base.steady(read) (look=, first=, whole=, last= cover the variants). The shape: a while test with
+          'X[-1] != X[-2]', or an 'if' on 'X[-1] == X[-2]' or 'now == last' with 'last = now' in the loop (alone or in an
+          'and') whose body is just a return or break. Not counted: steady itself, loops that scroll or tap (MOVES:
+          a scroll-end 'the list didn't move' check), 'same = same + 1 if now == last' counters (no bare if).
 LINT_DEBUG=1 lists the searches whose end it couldn't work out.
 Pins: file, function and the expression, never a line number (any edit above would move it). New ones print
 file:line and what to do instead.
@@ -50,6 +55,8 @@ LOOKS = {"look", "capture", "ocr", "sharp", "panel_text", "wait_for", "wait", "n
 SHARED_WAITS = {("base", "settle"), ("base", "steady"), ("base", "wait_for"), ("base", "tries")}
 SAY = {"thin": "put a term that doesn't end in a thin letter last (xxl&#IVC, not #IVC&xxl)",
        "none": "check it first (t = label(...); if t: ...), or use a walrus: if (t := label(...)):",
+       "agree": "use base.steady(read, tries, gap) (look=, first=, whole=, last= for the variants); if it really can't, "
+                "--record and say why in the PR body",
        "waits": "use base.settle(read, ok, timeout), base.steady(read) or base.wait_for; if it really can't, --record and say why in the "
                 "PR body"}
 
@@ -563,14 +570,64 @@ def check_waits(code):
     return counts, lines
 
 
+# ---------- 4. agree ----------
+
+MOVES = {"scroll", "small_scroll", "drag", "swipe", "tap", "tap_box", "click", "press", "go"}  # a loop that moves the
+# screen itself (a scroll-end check: 'the list didn't move') isn't waiting for it
+
+
+def same_read(e, kept):
+    """a == b between two names, one of them the other's keep (prev = now in the loop), or X[-1] == / != X[-2]"""
+    if not (isinstance(e, ast.Compare) and len(e.ops) == 1 and isinstance(e.ops[0], (ast.Eq, ast.NotEq))):
+        return False
+    a, b = e.left, e.comparators[0]
+    if isinstance(e.ops[0], ast.Eq) and isinstance(a, ast.Name) and isinstance(b, ast.Name):
+        return (a.id, b.id) in kept or (b.id, a.id) in kept
+    idx = [ast.literal_eval(x.slice) if isinstance(x, ast.Subscript) and isinstance(x.slice, ast.UnaryOp) else None
+           for x in (a, b)]
+    return sorted(i for i in idx if i is not None) == [-2, -1] and ast.dump(a.value) == ast.dump(b.value)
+
+
+def agree_test(t, kept):
+    return same_read(t, kept) or isinstance(t, ast.BoolOp) and any(same_read(v, kept) for v in t.values)
+
+
+def check_agree(code):
+    counts, lines = {}, collections.defaultdict(list)
+    for m in code.mods.values():
+        for n in ast.walk(m.tree):
+            if not isinstance(n, (ast.For, ast.While)):
+                continue
+            fn = enclosing(m, n)
+            q = qualname(m, fn)
+            if (m.name, q) == ("base", "steady"):
+                continue
+            body = list(own_body(n))
+            calls = [call_name(c) for c in body if isinstance(c, ast.Call)]
+            if not any(c in LOOKS for c in calls) or any(c in MOVES for c in calls):
+                continue
+            kept = {(a.targets[0].id, a.value.id) for a in body if isinstance(a, ast.Assign) and len(a.targets) == 1
+                    and isinstance(a.targets[0], ast.Name) and isinstance(a.value, ast.Name)}
+            hit = isinstance(n, ast.While) and agree_test(n.test, kept) or any(
+                isinstance(c, ast.If) and agree_test(c.test, kept) and len(c.body) == 1
+                and isinstance(c.body[0], (ast.Return, ast.Break)) for c in body)
+            if hit:
+                key = f"{m.rel} {q}"
+                counts[key] = counts.get(key, 0) + 1
+                lines[key].append(f"{m.rel}:{n.lineno}")
+    return counts, lines
+
+
 # ---------- the check ----------
 
 def now(code):
     thin, thin_note = check_thin(code)
     none, none_note = check_none(code)
     waits, wait_lines = check_waits(code)
-    pins = {"thin": sorted(k for k, _ in thin), "none": sorted(k for k, _ in none), "waits": dict(sorted(waits.items()))}
-    where = {"thin": thin, "none": none, "waits": wait_lines}
+    agree, agree_lines = check_agree(code)
+    pins = {"thin": sorted(k for k, _ in thin), "none": sorted(k for k, _ in none), "waits": dict(sorted(waits.items())),
+            "agree": dict(sorted(agree.items()))}
+    where = {"thin": thin, "none": none, "waits": wait_lines, "agree": agree_lines}
     return pins, where, {"thin": thin_note, "none": none_note}
 
 
@@ -596,15 +653,16 @@ def main(a):
         for k in ("thin", "none"):
             for key, at in where[k]:
                 print(f"{k}: {at}: {key}")
-        for key, ls in where["waits"].items():
-            print(f"waits: {', '.join(ls)}: {key}")
+        for k in ("waits", "agree"):
+            for key, ls in where[k].items():
+                print(f"{k}: {', '.join(ls)}: {key}")
         return 0
     if a == ["--record"]:
         with open(GOLD, "w") as f:
             json.dump(pins, f, indent=1, sort_keys=True, ensure_ascii=False)
             f.write("\n")
-        print(f"recorded {len(pins['thin'])} thin, {len(pins['none'])} none, {sum(pins['waits'].values())} waits "
-              f"-> {GOLD}")
+        print(f"recorded {len(pins['thin'])} thin, {len(pins['none'])} none, {sum(pins['waits'].values())} waits, "
+              f"{sum(pins['agree'].values())} agree -> {GOLD}")
         return 0
     gold = json.load(open(GOLD))
     bad = 0
@@ -617,18 +675,20 @@ def main(a):
         for key in sorted(g - n):
             bad += 1
             print(f"{k}: gone: {key} (run --record if that's meant)")
-    g, n = gold.get("waits", {}), pins["waits"]
-    for key in sorted(set(g) | set(n)):
-        if g.get(key, 0) == n.get(key, 0):
-            continue
-        bad += 1
-        if n.get(key, 0) > g.get(key, 0):
-            print(f"waits: {key}: {g.get(key, 0)} -> {n[key]} hand-rolled wait loops "
-                  f"({', '.join(where['waits'][key])})\n  -> {SAY['waits']}")
-        else:
-            print(f"waits: {key}: {g[key]} -> {n.get(key, 0)}: fewer, good (run --record)")
-    total = len(gold.get("thin", [])) + len(gold.get("none", [])) + len(g)
+    for k, what in (("agree", "hand-rolled two-reads-agree loops"), ("waits", "hand-rolled wait loops")):
+        g, n = gold.get(k, {}), pins[k]
+        for key in sorted(set(g) | set(n)):
+            if g.get(key, 0) == n.get(key, 0):
+                continue
+            bad += 1
+            if n.get(key, 0) > g.get(key, 0):
+                print(f"{k}: {key}: {g.get(key, 0)} -> {n[key]} {what} "
+                      f"({', '.join(where[k][key])})\n  -> {SAY[k]}")
+            else:
+                print(f"{k}: {key}: {g[key]} -> {n.get(key, 0)}: fewer, good (run --record)")
+    total = len(gold.get("thin", [])) + len(gold.get("none", [])) + len(g) + len(gold.get("agree", {}))
     print(f"({notes['thin']}; {notes['none']}; {sum(n.values())} wait loops in {len(per_file(n))} files; "
+          f"{sum(pins['agree'].values())} agree loops; "
           f"{time.time() - t0:.1f}s)")
     print(f"{bad} new or changed" if bad else f"all {total} pins the same")
     return 1 if bad else 0

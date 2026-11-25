@@ -1029,10 +1029,11 @@ def search_box(texts):
 
 
 def search_panel(texts):
-    """the filter panel that opens (with the keyboard) when the search bar is tapped"""
+    """the filter panel that opens (with the keyboard) when the search bar is tapped. Its See More page (Recent, See
+    Less) has no Recommended (Pixel 2026-11-24: home.start pressed Back on it and the game went to the back)"""
     words = {norm(t[4]) for t in texts}
     cps = sum(bool(re.match(r"CP\s*\d", t[4].upper())) for t in texts)
-    return bool(words & {"RECOMMENDED", "SEE MORE"}) and cps < 3
+    return (bool(words & {"RECOMMENDED", "SEE MORE"}) or {"RECENT", "SEE LESS"} <= words) and cps < 3
 
 
 def search_text(box):

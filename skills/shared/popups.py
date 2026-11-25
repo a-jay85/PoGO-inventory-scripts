@@ -115,10 +115,12 @@ def passenger(texts):
 def challenge(texts):
     """a Weekly Challenge box. A friend's invite over the profile: its X is greyed out and Back does nothing, so only
     its two buttons get past it. The user's rule (2026-11-03): MAYBE LATER, so a run never sticks here. The "You've
-    completed 77%" box over the map (2026-11-04) has one button, LET'S GO!"""
+    completed 77%" box over the map (2026-11-04) has one button, LET'S GO!. A finished one ('Hatch 20 Eggs', Pixel
+    CyrillJan 2026-11-24, after a restart: hatch stopped on it) has CLAIM REWARDS! and SHARE: CLAIM REWARDS, as a
+    finished Party Challenge's CLAIM REWARD"""
     if "WEEKLY CHALLENGE" not in ui.joined(texts):
         return None
-    hit = ui.label(texts, "MAYBE LATER") or ui.label(texts, "LETS GO")
+    hit = ui.label(texts, "MAYBE LATER") or ui.label(texts, "LETS GO") or ui.label(texts, "CLAIM REWARDS")
     return ui.center(hit) if hit else None
 
 

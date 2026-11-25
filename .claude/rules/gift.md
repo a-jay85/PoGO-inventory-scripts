@@ -5,7 +5,7 @@ paths:
 # /gift notes (the rules themselves are in gift.py's top comment)
 
 - A wrong send costs the user's trust. It's why auto-transfer isn't allowed. Never loosen the guards: never Chicago/Raleigh/North Carolina, never a title or city the account doesn't send, and the preview must match before SEND. Cards swap places and stale cards show, so never trust list position alone.
-- Open the friendship screen only when a friend may really be 1-2 points away. The user dislikes needless checks. HashTagAJay never opens it (NO_LEVELUP, 2026-11-21: that account needs no more XP). CyrillJan still does.
+- Open the friendship screen only when a friend may really be 1-2 points away. The user dislikes needless checks. Both accounts check it and tag WAIT and SENT. On HashTagAJay a WAIT friend still gets a gift (GIFT_WAIT, the user 2026-11-25: that account needs no more XP, but the tags stay so the friend's side can claim it whenever). CyrillJan holds a WAIT friend's gift back.
 - Fast gift-list scrolls are fine: it only needs one eligible gift. Don't shrink the scroll to see every card.
 - A grey SEND GIFT doesn't mean an empty bag. The only proven empty-bag sign is the picker having none of ours.
 - A count with no rows is a game bug: add a space to the search, don't retype.

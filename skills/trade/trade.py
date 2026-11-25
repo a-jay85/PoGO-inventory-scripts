@@ -52,8 +52,8 @@ sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import ui
 import base
 from base import Stop, log
-from search import pokeball, amp_as_8, result_count
-from home import main_menu, profile as me_tab
+from search import amp_as_8, result_count
+from home import main_menu, map_or_blank, profile as me_tab
 from session import TROUBLE
 import popups, pages
 
@@ -345,11 +345,7 @@ def classify(texts, path):
         return "storage"  # the storage's list or tags tab, left open by another skill: its X closes it (the iPhone has no Back)
     if main_menu(texts):
         return "mainmenu"  # the Poké Ball's menu: POKÉDEX, POKÉMON, SHOP, ITEMS
-    if len(texts) <= 12 and pokeball(path):
-        return "map"
-    if all(t[1] < 0.08 for t in texts):
-        return "blank"  # only the status bar: the game is loading
-    return "unknown"
+    return map_or_blank(path, texts)
 
 
 confirm_label = pages.confirm_label
@@ -437,7 +433,7 @@ def to_friend(p, ours=False):
         elif s in ("gift", "result", "mainmenu", "detail", "storage"):
             p.tap(*X_BUTTON)
         elif s == "map":
-            p.tap(0.13, 0.91)
+            p.tap(*ui.PROFILE_PIC)
         elif s in ("profile", "friends"):
             # a typed search hides ADD FRIEND, so a searched friend list reads as "profile": tap the row if it's there
             row = p.find(lambda t: t[4].strip().lower() == p.friend.lower() and t[0] > 0.2 and t[1] > 0.25)

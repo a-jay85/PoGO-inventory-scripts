@@ -1244,6 +1244,8 @@ TABS = ("TAGS", "POKMON", "EGGS")  # the storage's tabs, at the window's top
 TAB_DY = 0.025  # a tab's tap: this much under its word. The iPhone missed its word 6 of 6 times (Mirroring takes
 # taps that high for itself) and landed 6 of 6 this much lower; the Pixel took 6 of 6 both ways (2026-11-19).
 # The profile's ME / FRIENDS / SOCIAL tabs too (gift, trade, home, gymfeed): ME stopped landing on the iPhone
+PROFILE_PIC = (0.13, 0.91)  # the trainer's picture at the map's bottom left: its tap opens the profile (gift, trade,
+# home, gymfeed)
 
 RESTED = {}  # (target, screen, bounds) -> (x, y): where a button stood when two looks agreed it was still
 

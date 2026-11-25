@@ -1117,11 +1117,7 @@ def door_walk(suffix, limit, who, shortcut=SHORTCUT, gone=None):
             log(f"  {n!r} CP{c}: done, still on the list: passed over")
             return False
         counts["opened"] += 1
-        info, texts, _ = base.open_checked(i, n, c)
-        _, ivs, raws, iv = base.high_iv()
-        sp = ui.species_for(info["name"], info["texts"]) or base.species_from_candy(texts, info["cp"] or c, info["hp"])
-        info, texts, _ = base.steady_detail()
-        got = gate.judge(info, texts, sp, ivs, (n, c), size=base.extras(texts)[2], raws=raws)
+        got, iv = gate.judge_open(i, n, c)
         counts[got] += 1
         log(f"DONE door {got} {n!r} CP{c} {iv}")
         go("close", "list")

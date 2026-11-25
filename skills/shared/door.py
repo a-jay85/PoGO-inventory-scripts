@@ -5,6 +5,7 @@ detail page that's still open. No Nope.
                              for what the detail page can't show (traded; shiny; costume; background; caught 100 km+
                              away; under 360 Candy XL), all within the tag
   facts.judge(...)           read the rest off the open page, ask verdict.final_tag, do what it says
+  facts.judge_open(i, n, c)  open tile i of the list, appraise it, then judge it as above
   facts.listed()             Pokémon an earlier run left as not sure under today's rules: the walk passes over them
 
 Not sure = left exactly as it is (tag and name) and written to runs/not-sure.json, with why, for a rule offline.
@@ -183,6 +184,15 @@ class Door:
         return Counter((e["tile"], e["cp"]) for e in load_list()
                        if e["rules"] == RULES and e["account"] == self.account and e["tag"] == self.tag
                        and not e.get("why", "").endswith(" or not: not read"))
+
+    def judge_open(self, i, n, c, **kw):
+        """open tile i of the list (the walk read it as name n, CP c), appraise it, find its species and judge it.
+        kw: judge's. The page stays open. -> (judge's answer, the IV read as text)"""
+        info, texts, _ = base.open_checked(i, n, c)
+        _, ivs, raws, iv = base.high_iv()
+        sp = ui.species_for(info["name"], info["texts"]) or base.species_from_candy(texts, info["cp"] or c, info["hp"])
+        info, texts, _ = base.steady_detail()
+        return self.judge(info, texts, sp, ivs, (n, c), size=base.extras(texts)[2], raws=raws, **kw), iv
 
     def judge(self, info, texts, sp, ivs, tile, size=None, raws=None, gym_top20=None, clear=False, unstar=False,
               iv_top=None, pure_top=None, hold=None):

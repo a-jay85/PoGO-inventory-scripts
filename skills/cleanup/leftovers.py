@@ -112,11 +112,7 @@ def cmd_again(tag, limit, owner=TAKER, narrow=""):
                 skip[(n, c)] -= 1
                 return False
         counts["opened"] += 1
-        info, texts, _ = base.open_checked(i, n, c)
-        _, ivs, raws, iv = base.high_iv()
-        sp = ui.species_for(info["name"], info["texts"]) or base.species_from_candy(texts, info["cp"] or c, info["hp"])
-        info, texts, _ = base.steady_detail()
-        got = gate.judge(info, texts, sp, ivs, (n, c), size=base.extras(texts)[2], raws=raws)
+        got, iv = gate.judge_open(i, n, c)
         counts[got] += 1
         v = getattr(gate, "last", None)
         stays = got == door.UNSURE or (got == "tag" and v is not None and tag in v.tags)

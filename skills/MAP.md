@@ -206,6 +206,7 @@ The door: a Pokémon /ivc, /pvpc or /ivc just found isn't a keeper gets its fina
   - `has(self, k, tile)`: a search whose count didn't match (a long list read 57 for 55): a tile read in it is in it, one not read could be a tile it missed -> None
   - `renamed(self, old, new)`: a tile renamed after the searches (/ivc's LOOK): it's in the same ones under its new name
   - `listed(self)`: {(tile name, CP) as the walk read them: n} left as not sure by an earlier run of this tag, on this account, under these rules
+  - `judge_open(self, i, n, c, **kw)`: open tile i of the list (the walk read it as name n, CP c), appraise it, find its species and judge it
   - `judge(self, info, texts, sp, ivs, tile, size=None, raws=None, gym_top20=None, clear=False, …)`: the open detail page of a Pokémon that isn't a keeper
   - `facts(self, info, texts, sp, ivs, tile, size, gym_top20=None, iv_top=None, tile_cp=None, …)`: -> (Facts, why not sure before any rule: '' when it's up to the rules)
   - `xl_under(self, info)`: under 360 Candy XL (read on the way to the page bottom) -> bool or None

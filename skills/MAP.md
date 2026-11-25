@@ -1265,7 +1265,7 @@ IV% nickname maker for the /ivc skill
 - `pvp_candidate(sp, ivs, cp, hp)`: the /pvpc test: top 100 stat product in Little, Great or Ultra League for some form in the family that its level still fits under the cap
 - `same_name(got, want)`: OCR drops or swaps * ^ and spaces, and mixes case (xXS): compare letters, digits and / only
 - `retag(new)`: untick IVC, tick the new tag (PvpC)
-- `keep_read(r)`: one detail screen's read, with the phone and the time, onto this run's read.json (names' remember and run.py's keep_member both write it; run.py's from_ivc reads it back)
+- `save_read(r)`: one detail screen's read, with the phone and the time, onto this run's read.json (names' remember and run.py's keep_member both write it; run.py's from_ivc reads it back)
 - `remember(name, cp, info, texts, shadow, lucky, size, bars, raws)`
 - `process(i, tile_name, tile_cp, dry)`
 - `keep_read(r)`

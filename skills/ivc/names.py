@@ -210,7 +210,7 @@ def retag(new):
 READ = "read.json"  # what each renamed one's detail screen showed: the sort takes it instead of opening it again
 
 
-def keep_read(r):
+def save_read(r):
     """one detail screen's read, with the phone and the time, onto this run's read.json (names' remember and
     run.py's keep_member both write it; run.py's from_ivc reads it back)"""
     path = os.path.join(base.RUN_DIR, READ)
@@ -221,7 +221,7 @@ def keep_read(r):
 
 
 def remember(name, cp, info, texts, shadow, lucky, size, bars, raws):
-    keep_read({"name": name, "cp": cp, "hp": info["hp"], "candy": base.candy(texts), "types": sorted(base.type_line(texts)),
+    save_read({"name": name, "cp": cp, "hp": info["hp"], "candy": base.candy(texts), "types": sorted(base.type_line(texts)),
                "shadow": shadow, "lucky": lucky, "size": size, "dynamax": base.dynamax(texts),
                "tags": info["tags"], "bars": list(bars), "raws": list(raws) if raws else None})
 

@@ -106,7 +106,7 @@ def from_ivc(tile_name, tile_cp):
 
 def keep_member(m):
     """what scan read on a detail screen, into this run's read.json: the next run takes it from there (from_ivc)"""
-    ivcrun.keep_read(dict({k: m[k] for k in ("name", "cp", "hp", "candy", "types", "shadow", "lucky", "size", "dynamax", "tags")},
+    ivcrun.save_read(dict({k: m[k] for k in ("name", "cp", "hp", "candy", "types", "shadow", "lucky", "size", "dynamax", "tags")},
                           bars=None, raws=None))
 
 

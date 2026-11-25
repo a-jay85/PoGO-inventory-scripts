@@ -594,7 +594,7 @@ def count_owned(missing, by, parent):
                 owned[s] = n
     log(f"  100s in storage: {owned}")
     import json
-    json.dump(owned, open(os.path.join(base.RUN_DIR, "owned-100.json"), "w"), indent=0)
+    base.write_json(os.path.join(base.RUN_DIR, "owned-100.json"), owned, indent=0)
     return owned
 
 

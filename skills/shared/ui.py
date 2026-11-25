@@ -15,6 +15,7 @@ With POGO_PHONE=android the screen comes from the phone's own screenshots and ta
 """
 import json, os, random, re, shutil, subprocess, sys, threading, time, unicodedata
 from PIL import Image
+import jsonfile
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 HELPER = os.path.join(HERE, "helper")
@@ -1320,13 +1321,13 @@ def cmd_read(path=None):
         path, bounds = capture()
     texts = ocr(path)
     screen = classify(texts)
-    state = json.load(open(STATE)) if os.path.exists(STATE) else {}
+    state = jsonfile.read(STATE, {})
     if screen == "detail":
         info = detail_info(texts)
         sp = species_for(info["name"], info["texts"])
         state = {k: info[k] for k in ("name", "cp", "hp")}
         state["species"] = sp
-        json.dump(state, open(STATE, "w"))
+        jsonfile.write(STATE, state)
         print(f"detail  name={info['name']}  CP={info['cp']}  HP={info['hp']}  tags={info['tags']}  species={sp or '?'}")
     elif screen == "appraisal":
         ivs, raws = bars(path, texts)
@@ -1355,7 +1356,7 @@ def cmd_calib(sx, sy):
     ensure_helper()
     mx, my = map(float, sh(HELPER, "mouse").split())
     scale = (mx / sx + my / sy) / 2
-    json.dump({"scale": scale}, open(CALIB, "w"))
+    jsonfile.write(CALIB, {"scale": scale})
     print(f"scale={scale:.4f}")
 
 

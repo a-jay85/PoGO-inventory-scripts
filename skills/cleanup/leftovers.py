@@ -77,10 +77,7 @@ AGAIN_DONE = os.path.join(HERE, "runs", "again-done.json")
 
 
 def again_done():
-    try:
-        return json.load(open(AGAIN_DONE))
-    except (OSError, ValueError):
-        return {}
+    return base.read_json(AGAIN_DONE, {})
 
 
 def cmd_again(tag, limit, owner=TAKER, narrow=""):

@@ -213,10 +213,8 @@ def holders(key, first, qs, cp, name=None):
     account = DOOR.account if DOOR else None
     for d in sorted((d for d in os.listdir(runs) if RUN_NAME.fullmatch(d) and d != me), reverse=True):
         path = os.path.join(runs, d)
-        try:
-            reads = json.load(open(os.path.join(path, "pools.json")))
-            wants = json.load(open(os.path.join(path, "counts.json")))
-        except (OSError, ValueError):
+        reads, wants = (base.read_json(os.path.join(path, f)) for f in ("pools.json", "counts.json"))
+        if reads is None or wants is None:
             continue
         if not all(q in reads for q in qs) or not account or signed_in(path) != account:
             continue

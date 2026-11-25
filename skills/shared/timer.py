@@ -47,7 +47,7 @@ Replaces the gymfeed-only timer (gymfeed_cron.sh and gymfeed_timer.sh with their
 """
 import fcntl, json, os, random, re, subprocess, sys, time
 
-import locks
+import jsonfile, locks
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 SKILLS = os.path.dirname(HERE)
@@ -99,14 +99,9 @@ def _edit(change):
     os.makedirs(CONF, exist_ok=True)
     with open(STATE + ".lock", "a") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
-        try:
-            state = json.load(open(STATE))
-        except (OSError, ValueError):
-            state = {}
+        state = jsonfile.read(STATE, {})
         change(state)
-        tmp = STATE + ".tmp"
-        json.dump(state, open(tmp, "w"), indent=1, sort_keys=True)
-        os.replace(tmp, STATE)
+        jsonfile.write(STATE, state, indent=1, sort_keys=True)
         return dict(state)
 
 
@@ -193,17 +188,14 @@ def skip(why):
 
 def missed(phone, gone):
     """gone: this tick didn't reach the phone. -> minutes it has been out of reach in a row (0 when reached)"""
-    try:
-        away = json.load(open(AWAY))
-    except (OSError, ValueError):
-        away = {}
+    away = jsonfile.read(AWAY, {})
     if not gone:
         if away.pop(phone, None) is not None:
-            json.dump(away, open(AWAY, "w"))
+            jsonfile.write(AWAY, away)
         return 0
     if phone not in away:
         away[phone] = int(time.time())
-        json.dump(away, open(AWAY, "w"))
+        jsonfile.write(AWAY, away)
     return (time.time() - away[phone]) / 60
 
 

@@ -39,6 +39,9 @@ no gifts left or a stop leave it unfinished, and so does --dry-run. An unread tr
 always searched: friends move into it during the day. So is "iii" + rest: a friend just added has no zone yet, so that's
 where they land. A friend with a zone who rejoins a finished "iii" search today (WAIT taken off) waits for midnight, or
 delete that file.
+A finished "iii + rest" or "lll + rest" (the whole search, no zone) is remembered the same way. Later runs that day skip
+that search's zones and go straight to its rest, which holds every zone: most gifts are sent by then, and the zone order
+matters less than the minutes its searches take. The rest itself is still searched every run.
 """
 import argparse, difflib, json, os, random, re, subprocess, sys, time
 from PIL import Image
@@ -1381,7 +1384,7 @@ def iii_file():
 
 
 def iii_finished():
-    """the "iii" zones this account has finished today"""
+    """the "iii" zones this account has finished today, and "iii rest" / "lll rest" for a whole search finished"""
     if not trainer:
         return []
     try:
@@ -1393,11 +1396,14 @@ def iii_finished():
 
 
 def iii_remember(zone, day):
-    """day: when this zone's search started. A search that ran past midnight proves nothing about the new day"""
-    if DRY or not trainer or day != today():
+    """zone: an "iii" zone, or "iii rest" / "lll rest". day: when this zone's search started. A search that ran past midnight proves nothing about the new day"""
+    if DRY or not trainer or day != today() or zone in iii_finished():
         return
     base.write_json(iii_file(), {"day": day, "zones": iii_finished() + [zone]})
-    log(f"  iii + {zone}: finished, skipped for the rest of {day}")
+    if zone.endswith(" rest"):
+        log(f"  {zone.replace(' ', ' + ')}: finished, its zones skipped for the rest of {day}")
+    else:
+        log(f"  iii + {zone}: finished, skipped for the rest of {day}")
 
 
 def run_searches(limit):
@@ -1408,11 +1414,18 @@ def run_searches(limit):
     set_sort()
     for first, base_q in (("iii", FIRST), ("lll", THEN)):
         prev = None
+        # a whole "rest" search finished earlier today: it holds every zone, so go straight to it. Late in the day
+        # most gifts are sent, and the zone order matters less than the time the zone searches take
+        straight = f"{first} rest" in iii_finished()
+        if straight:
+            log(f"{first} + rest: finished earlier today: its zones skipped, straight to {first} + rest")
         for zone, zq in ZONES:
             remembered = first == "iii" and zone != "rest"  # (rest: where a friend added today lands)
+            if straight and zone != "rest":
+                continue  # (prev stays: the box still holds that search)
             if remembered and zone in iii_finished():
                 log(f"iii + {zone}: finished earlier today: skipped")
-                continue  # (prev stays: the box still holds that search)
+                continue
             t0 = time.time()
             day = today()
             n = None
@@ -1561,8 +1574,8 @@ def run_searches(limit):
                 if not rows():
                     poll_until(lambda: classify() != "friends" or rows(), 2.0)
                 fresh = classify() == "friends"
-            if remembered and finished and not missed:
-                iii_remember(zone, day)
+            if finished and not missed and (remembered or zone == "rest"):
+                iii_remember(zone if remembered else f"{first} rest", day)  # (rest: still searched, its zones not)
     return sent, "nobody left who can take one"
 
 

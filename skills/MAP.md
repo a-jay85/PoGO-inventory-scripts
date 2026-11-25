@@ -1144,8 +1144,8 @@ Evolve every free trade evolution tagged Evo, as fast as the game lets it
 - `whose()`: from the friend list: our trainer name on the ME tab -> trainer, and which gifts this account sends (San Francisco only when it can't be read)
 - `today()`
 - `iii_file()`
-- `iii_finished()`: the "iii" zones this account has finished today
-- `iii_remember(zone, day)`: day: when this zone's search started
+- `iii_finished()`: the "iii" zones this account has finished today, and "iii rest" / "lll rest" for a whole search finished
+- `iii_remember(zone, day)`: zone: an "iii" zone, or "iii rest" / "lll rest"
 - `run_searches(limit)`
 - `one_phone(a)`
 - `script(limit)`

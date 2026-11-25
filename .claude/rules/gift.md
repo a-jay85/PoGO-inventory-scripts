@@ -12,7 +12,7 @@ paths:
 - The friend list's header shows before its rows (16 s seen on the iPhone), so search() waits for rows. An empty list in swap_zone can be real, so no wait there.
 - A Remote Trade friend stays on top whatever the sort; on the iPhone their row shows a countdown. Their arrow doesn't end a search.
 - Friends can move from iii to lll mid-day. That's expected.
-- A finished iii zone is skipped until midnight (`~/.config/pogo/gift_iii_<trainer>.json`, delete to reset). `iii + rest` is never remembered: a friend added today lands there.
+- A finished iii zone is skipped until midnight (`~/.config/pogo/gift_iii_<trainer>.json`, delete to reset). `iii + rest` is always searched: a friend added today lands there. Once `iii + rest` or `lll + rest` finishes clean, later runs that day skip that search's zones and go straight to its rest (the user, 2026-11-24: saves ~2 min a run).
 - Gift runs use CyrillJan on the Pixel. CyrillJan sends San Francisco only (Claude's call; the user can widen it). The user may later give a list of local gift names to replace the city rule.
 - OCR can read one line across two cards in a row. Such a card waits for a clean read. SF titles may hold a comma.
 - The user sends gifts very fast by hand and wants the script to match. Speed-test with `gift.py --dry-run --walk` and read steps.txt for gaps. Each empty-search nudge costs about 13 s.

@@ -241,9 +241,10 @@ def long_search(q):
         search_exact(q)
         return results()
     terms = re.split(r"(?=&)", q)
-    head = terms.pop(0)  # (an AND's order doesn't matter: the terms that narrow it go first, the `&!` ones last,
-    terms = sorted(dict.fromkeys(terms), key=lambda t: (t.startswith("&count"), t.startswith("&!")))  # so an empty
-    # one stops early. No repeats. A count term eats what follows it: it goes after everything)
+    head = terms.pop(0)  # (an AND's order doesn't matter: the terms that narrow it go first, then the count terms,
+    terms = sorted(dict.fromkeys(terms), key=lambda t: (t.startswith("&!"), t.startswith("&count")))  # the `&!` ones
+    # last, so an empty one stops early: a count term is often what empties it (specieswise, 2026-11-25: about 45 s a
+    # search with it last). No repeats. A count term works anywhere in a search: SEARCH.md, tried 2026-11-23)
     while terms and len(head + terms[0]) <= HEAD_MAX:
         head += terms.pop(0)
     search_exact(head)

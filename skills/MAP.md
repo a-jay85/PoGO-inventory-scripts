@@ -905,6 +905,7 @@ Re-judge HashTagAJay's #GIV, #Transfer or #Reroll pile by species alone, with no
 - `plan_of(pile, who, dexes)`: -> ([(tag, search part)] in the order to tag them, [(sid, why) not sure], {tag: n species} or None)
 - `cmd_plan(pile, who, dexes)`
 - `cmd_tag(pile, who, dexes)`
+- `step_probe(pile, who, savedsearch)`: CyrillJan's piles: -> empty(search part), True when the part's step (GIVER_STEPS) has nothing in the pile at all
 - `args(a)`: -> (plan?, pile, who, dexes or None) from [plan] PILE [--as CyrillJan] [--and DEXES], or None
 
 ## skills/cleanup/tradeable.py

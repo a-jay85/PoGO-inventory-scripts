@@ -23,10 +23,15 @@ What it checks, on the PR head as GitHub has it:
   line `Speed elsewhere: <which other scripts got the same win, or why none can>`. A speed win in one script goes to
   every script that does the same step. Without the line it blocks, with the functions of the same name in other
   skills (likely copies) as a place to start.
+- Shared look-alikes: each function a PR adds to a .py under skills/ (not skills/shared/ itself) is held against the
+  ones skills/shared/ had at the base: a rare name word in common ('trainer_tabs', 'banner_tabs') with a rare phrase
+  or enough rare wording in both comments ('GPS banner'), or much rare wording with a phrase. One that calls its
+  look-alike is a wrapper and passes. Look-alikes found: the body needs a line `Shared checked: <for each new
+  function: the look-alike and why it isn't a fit, or that it moved to shared>`. Without one it blocks and shows them.
 A gate that can't check (gh down, a crash) blocks: a merge never goes through unchecked.
 POGO_GH_BIN: a stand-in for `gh` (tests/gate.py).
 """
-import ast, json, os, re, shlex, subprocess, sys, tempfile, time, traceback
+import ast, json, math, os, re, shlex, subprocess, sys, tempfile, time, traceback
 import repotools, watch  # (stdlib only)
 
 REPO = "a-jay85/PoGO-inventory-scripts"
@@ -612,6 +617,90 @@ def copies(base, head, files):
     return out
 
 
+# ---------- look-alikes of shared helpers ----------
+
+GENERIC = set("get read one the is set has tap new all any its it for and with from that this what when who off out "
+              "not run main".split())
+RARE_NAME = 5  # a name token in more shared names than this says little (tag, search, box, trade ...)
+RARE_PAIR = 3  # a two-word phrase in more shared comments than this says little
+RARE_WORD = 10  # ... and so does one with a word in more than this ('cut short', 'friend page', 'gift box')
+DOC_MIN = 12.0  # a name match needs a rare phrase too, or this much rare wording (the sum of each word's rarity)
+PAIR_MIN = 24.0  # a rare phrase with no name in common needs this much
+
+
+def name_tokens(name):
+    return {t for t in re.split(r"[_\W]+", name.lower()) if len(t) >= 3 and t not in GENERIC}
+
+
+def doc_words(doc, short=False):
+    return {w for w in re.findall(r"[a-z][a-z']+", (doc or "").lower()) if short or len(w) >= 4}
+
+
+def doc_pairs(doc):
+    ws = re.findall(r"[a-z][a-z']+", (doc or "").lower())
+    return {(a, b) for a, b in zip(ws, ws[1:]) if len(a) >= 3 and len(b) >= 3 and a not in GENERIC
+            and b not in GENERIC}
+
+
+def top_defs(tree):
+    """-> {name: (node, its comment)} of the module's own functions (no methods, no defs inside defs, no _private)"""
+    return {n.name: (n, ast.get_docstring(n)) for n in (tree.body if tree is not None else [])
+            if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and not n.name.startswith("_")}
+
+
+def lookalikes(base, head, files):
+    """-> ['skills/gift/gift.py trainer_tabs: ui.banner_tabs (name: tabs; wording: gps banner, social)'] for each
+    function a PR adds under skills/ that looks like one skills/shared/ already had at the base: a rare name token
+    in common with a rare two-word phrase ('GPS banner') or rare words in both comments, or a phrase and many rare
+    words. skills/shared/ itself is left out: its new helpers look like their neighbours on purpose. A new function
+    that calls its look-alike is a wrapper, not a copy. GATE_SCORES=1 shows each pair's score (for tuning)."""
+    py = [f for f in files if f.startswith("skills/") and f.endswith(".py") and not f.startswith("skills/shared/")]
+    if not py:
+        return []
+    shared = {}
+    for f in code_files(base):
+        if f.startswith("skills/shared/"):
+            for name, (_, doc) in top_defs(parse(git("show", f"{base}:{f}", check=False))).items():
+                shared[f"{f[len('skills/shared/'):-3]}.{name}"] = (name_tokens(name), doc_words(doc), doc_pairs(doc),
+                                                                  doc_words(doc, short=True))
+    if not shared:
+        return []
+    count = len(shared)
+    names, words, pairs = {}, {}, {}
+    for toks, _, ps, all_ws in shared.values():
+        for tally, keys in ((names, toks), (words, all_ws), (pairs, ps)):
+            for k in keys:
+                tally[k] = tally.get(k, 0) + 1
+    rarity = lambda w: max(0.0, math.log(count / (1 + words.get(w, 0))))
+    rare_pair = lambda p: pairs[p] <= RARE_PAIR and all(words.get(w, 0) <= RARE_WORD for w in p)
+    out = []
+    for f in py:
+        old = top_defs(parse(git("show", f"{base}:{f}", check=False)))
+        for name, (node, doc) in top_defs(parse(git("show", f"{head}:{f}", check=False))).items():
+            if name in old:
+                continue
+            calls = {getattr(c.func, "attr", None) or getattr(c.func, "id", None)
+                     for c in ast.walk(node) if isinstance(c, ast.Call)}
+            toks, ws, ps = name_tokens(name), doc_words(doc), doc_pairs(doc)
+            hits = []
+            for other, (stoks, sws, sps, _) in shared.items():
+                if other.split(".")[-1] in calls:
+                    continue  # (it uses that one: a wrapper, not a copy)
+                same_name = sorted(t for t in toks & stoks if names[t] <= RARE_NAME)
+                common = sorted(ws & sws, key=lambda w: -rarity(w))
+                score = sum(rarity(w) for w in common)
+                phrase = sorted(" ".join(p) for p in ps & sps if rare_pair(p))
+                if (same_name and (phrase or score >= DOC_MIN)) or (phrase and score >= PAIR_MIN):
+                    why = ([f"name: {', '.join(same_name)}"] if same_name else []) + \
+                          [f"wording: {', '.join(phrase + [w for w in common if rarity(w) >= 3][:4])}"]
+                    hits.append((bool(same_name) + bool(phrase), score, f"{other} ({'; '.join(why)})"
+                                 + (f" [{score:.0f}]" if os.environ.get("GATE_SCORES") else "")))
+            hits.sort(reverse=True)
+            if hits:
+                out.append(f"{f} {name}: " + ", ".join(h[2] for h in hits[:3]) + (" ..." if len(hits) > 3 else ""))
+    return out
+
+
 # ---------- the verdict ----------
 
 def line(body, key):
@@ -676,6 +765,20 @@ def check(target, cwd):
                 f"the same fix?):\n{listing}\n  Then add a body line `Siblings: <what you checked, what you found>`, "
                 f"e.g. `Siblings: gift.py read_card's 3 callers checked, the iPhone side has the same bug, fixed "
                 f"too`. {edit}")
+
+    alike = lookalikes(base, head, files)
+    if alike:
+        listing = "\n".join("  " + a for a in alike)
+        if line(body, "Shared checked"):
+            notes.append("shared look-alikes (the PR says: " + line(body, "Shared checked")[:200] + "):\n" + listing)
+        else:
+            blocks.append(
+                "No `Shared checked:` line in the PR body. These new functions look like ones skills/shared/ "
+                f"already has (a name word or rare wording in common):\n{listing}\n  Read each shared one: if it "
+                "does the job, use it and drop the new one; if it almost does, move the new one into skills/shared/. "
+                "Then add a body line `Shared checked: <for each new function: the look-alike and why it isn't a "
+                "fit, or that it moved to shared>`, e.g. `Shared checked: walk isn't search.walk_list (that walks "
+                f"storage tiles, this one the friend list)`. {edit}")
 
     speed = SPEED.search(pr["title"] + "\n" + body)
     if speed and any(f.startswith("skills/") and f.endswith(".py") for f in files):

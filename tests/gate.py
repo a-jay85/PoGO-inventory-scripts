@@ -59,6 +59,20 @@ sh("git", "config", "user.name", "t")
 write(os.path.join(REPO, "skills/aa/run.py"), SKILL)
 write(os.path.join(REPO, "skills/bb/other.py"), "import run\n\n\ndef go():\n    return run.pick(1)\n\n\ndef extra():\n    return 0\n")
 write(os.path.join(REPO, "README.md"), "hi\n")
+write(os.path.join(REPO, "skills/shared/ui.py"), '''def banner_tabs(path, texts):
+    """the storage's TAGS and EGGS tab words the red GPS banner hid, read from under it"""
+    return []
+
+
+def under_gps_banner(path):
+    """the text under the GPS banner, at 3x"""
+    return []
+
+
+def walk_list(visit):
+    """call visit on each tile of the open list, top to bottom"""
+    return 0
+''')
 for t in g.TESTS:
     write(os.path.join(REPO, f"tests/{t}.py"), "import os, sys\nif os.environ.get('GATE_FAIL') == %r:\n"
           "    print('1 WRONG'); sys.exit(1)\nprint('all 3 answers the same')\n" % t)
@@ -314,6 +328,45 @@ try:
 finally:
     g.check = real
 case("the gate crashing: blocked, with the crash", o, lambda o: denied(o, "crashed", "ZeroDivisionError"))
+
+# ---------- new helpers that look like shared ones ----------
+
+ALIKE = '''
+
+def trainer_tabs():
+    """the ME / FRIENDS / SOCIAL tabs are under the GPS banner"""
+    return []
+
+
+def wrapped_tabs():
+    """the trainer tabs, under the GPS banner"""
+    return ui.banner_tabs(1, [])
+
+
+def walk_slowly():
+    """go over the friends one by one"""
+    return 1
+'''
+write(os.path.join(WT, "skills/aa/run.py"), HEAD_SKILL + ALIKE)
+sh("git", "commit", "-qam", "tabs", cwd=WT)
+ALIKE_HEAD = sh("git", "rev-parse", "HEAD", cwd=WT)
+pr(body=NPT + SIB, headRefOid=ALIKE_HEAD)
+o = gate()
+case("a new function like a shared one, no Shared checked: line: blocked, names the pair and why", o,
+     lambda o: denied(o, "No `Shared checked:` line", "skills/aa/run.py trainer_tabs: ui.banner_tabs (name: tabs; "
+                      "wording: gps banner", "`Shared checked: <for each new function")
+     and "wrapped_tabs" not in o["hookSpecificOutput"]["permissionDecisionReason"]
+     and "walk_slowly" not in o["hookSpecificOutput"]["permissionDecisionReason"])
+pr(body=NPT + SIB + "\nShared checked: trainer_tabs reads the profile's tabs, banner_tabs only storage's",
+   headRefOid=ALIKE_HEAD)
+o = gate()
+case("the same with a Shared checked: line: passes, the line and the pair in the notes", o,
+     lambda o: passed(o) and "only storage's" in notes(o) and "trainer_tabs: ui.banner_tabs" in notes(o))
+pr(body=NPT + SIB)
+o = gate()
+case("new functions with no shared look-alike (extra): passes, no Shared checked: needed", o,
+     lambda o: passed(o) and "look-alike" not in notes(o))
+sh("git", "reset", "-q", "--hard", HEAD, cwd=WT)
 
 # ---------- what counts as a changed code line ----------
 

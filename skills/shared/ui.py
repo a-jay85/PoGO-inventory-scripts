@@ -349,15 +349,26 @@ def banner_tabs(path, texts, pokemon=False):
     'signal not found' sits right on POKÉMON and no crop or colour reads it (Pixel 2026-11-24), so it is placed
     halfway between them on their row, its width from a clean read (POKÉMON 0.197 wide to TAGS 0.103), where the
     tab always is (a clean Tags tab: TAGS 0.204, POKÉMON 0.498, EGGS 0.791). A tap there goes through the banner"""
-    found = []
+    found, seen = [], []
     for word, box in (("TAGS", (0.0, 0.05, 0.5, 0.13)), ("EGGS", (0.55, 0.05, 1.0, 0.13))):
         if not tab(texts, word):  # (EGGS reads glued to the banner's own words: 'ound. (11) EGGS'. The word's box is
             # its share of the line's, from the end: hatch's egg check stopped on 'couldn't open the Eggs tab')
-            for t in under_gps_banner(path, *box):
+            lines = under_gps_banner(path, *box)
+            seen += lines
+            for t in lines:
                 s, i = t[4].strip(), t[4].strip().upper().rfind(word)
                 if i >= 0 and len(s) - i - len(word) <= 1:
                     found.append((t[0] + t[2] * i / len(s), t[1], t[2] * len(word) / len(s), t[3], word))
                     break
+    # the longer 'Failed to detect location. (12)' banner covers both words ('TA', '(12)GGS': Pixel 2026-11-24, raidteam
+    # keep stopped on it). The egg count under EGGS ('11/ 12') still reads, and only the full list and its tabs show
+    # it: then each missing tab goes where a clean read has it (TAGS 0.204, EGGS 0.791, 0.103 wide), on the count's row
+    count = next((t for t in texts + seen if 0.095 < t[1] < 0.125 and t[0] > 0.5
+                  and re.fullmatch(r"[\d,]+\s*/\s*[\d,]+", t[4].strip())), None)
+    if count:
+        for word, x in (("TAGS", 0.204), ("EGGS", 0.791)):
+            if not tab(texts + found, word):
+                found.append((x - 0.0515, count[1] - 0.027, 0.103, 0.02, word))
     tags, eggs = tab(texts + found, "TAGS"), tab(texts + found, "EGGS")
     if pokemon and tags and eggs and not tab(texts, "POKMON"):
         w = tags[2] * 1.9

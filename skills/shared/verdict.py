@@ -129,7 +129,7 @@ class Facts:
     evolves: bool = None  # an Evolve button under Power Up (None: that part of the page didn't show)
     far: bool = None  # caught 100 km+ away (the run's one 'distance100-' search)
     gym_top20: bool = None  # a gym defender: top 20 CP or IV of its species (its search)
-    iv_top: bool = None  # a lucky one: in /ivc's spots for its line (strong: top 5/6 IV or the best lucky; weak: top IV)
+    iv_top: bool = None  # a lucky one: in /ivc's spots for its line (strong: top 5/6 IV or the best lucky; weak: top IV per final)
     pure_top: bool = None  # a shadow: a non-shadow spot of its line once purified (/ivc's sort; None: nobody checked)
     pvp_judged: bool = False  # /pvpc already found it's no PvP keeper
     ivc_judged: bool = False  # /ivc or /ivc is judging it: IVC is the tag coming off
@@ -511,8 +511,8 @@ def costume_fav(f, sid, kinds, strip):
 
 def lucky(f, sid, dexn, strip):
     """a lucky one, traded or not (the user's rule, 2026-10-30): in /ivc's spots for its line it stays: on a strong
-    line the top 5 IV of its non-shadow ones (6 if the line can mega evolve), on a weak family only its top IV (the
-    user, 2026-11-19: strong = on the ideal raid team, sort.strong; no lucky spot of its own), ties keep. Out of that, one with a PvP
+    line the top 5 IV of its non-shadow ones (6 if the line can mega evolve), on a weak line only the top IV per final (the
+    user, 2026-11-19, per final 2026-11-25: strong = on the ideal raid team, sort.strong; no lucky spot of its own), ties keep. Out of that, one with a PvP
     top-100 IV goes to /pvpc, which compares it with the ones you own. The rest: name cleared, Transfer (door.py checks
     the power-up first). A costume or background one never gets that Transfer: name cleared and a favorite (the user,
     2026-11-18). A traded one that evolves for free gets Evo instead. Only /ivc ranks it: from anywhere else it goes to IVC, name cleared, and

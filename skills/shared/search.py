@@ -128,7 +128,14 @@ def walk_list(visit, limit=10 ** 9, stop=None, odd=None, passed=None, want=None)
             if here[(n, c)] > passed[(n, c)]:
                 pick = (i, n, c)
                 break
-        if not pick and list_ended(ts):
+        if not pick and list_ended(ts):  # the list may still be drawing after a page closed: look again first
+            # (Pixel 2026-11-22: 'end of list' after 15 of 156 Bagons on one read; a rerun went on from the 16th)
+            def reread():
+                _, t, p, _ = wait_for("list")
+                return read_tiles(t, p, odd)
+            if not list_ended(base.settle(reread, lambda r: not list_ended(r), timeout=1.5, gap=0.2)):
+                log("  more rows came in on a second look: the list hadn't ended")
+                continue
             log("end of list (room for another row, none there)")
             return True
         if not pick:

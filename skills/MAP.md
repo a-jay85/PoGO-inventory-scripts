@@ -814,7 +814,7 @@ The final tag for a Pokémon that just fell short of a keeper, judged right wher
 - `xxl(f)`: an XXL one, traded or not (the user's rule, 2026-11-04): never traded or transferred, it has value in showcases
 - `shiny(f, v)`: a shiny one (the user's rule, 2026-11-03): judged like any other first
 - `usual(f, t, today=None)`: final_tag's rules, for all but what a shiny one gets in the end
-- `giver_short(f, t)`: CyrillJan's pile (untraded: a traded one never gets here): GIV while CyrillJan has under LUCKY_CANDY Candy of the family, or under XL_CAP Candy XL of a team line …
+- `cyrill_short(f, t)`: CyrillJan's pile (untraded: a traded one never gets here): GIV while CyrillJan has under LUCKY_CANDY Candy of the family, or under XL_CAP Candy XL of a team line …
 - `team_short(f, t)`: either account (the user, 2026-11-23): GIV while the account holding it has under its line's Team Future/Ideal bar of Candy XL (t['team_xl']: XL_CAP for each 100 it has …
 - `special(f, sid, kinds, strip)`: a legendary, mythical or Ultra Beast one not kept (the user, 2026-11-19): star off, name back to the default
 - `dmax_short(f, t, sid)`: one that can Dynamax (or evolves into one that can), but isn't a Dynamax one: GIV while the account holding it is short of that family's Candy (DMAX_CANDY or less) or …
@@ -895,12 +895,12 @@ Re-judge HashTagAJay's #GIV, #Transfer or #Reroll pile by species alone, with no
 - `under26(sids)`: the highest CP no level 26+ one of these forms can have: one under the lowest one's CP at level 26, 0/0/0
 - `tiers(caps)`: {key: CP cap} -> {key: its tier's cap}: caps sorted low to high, a new tier once one is over TIER x the tier's lowest
 - `dex_parts(by_dex, pile, size, caps=None)`: {dex: {sid: tag or None (not sure)}} -> ({tag: [search part]}, {tag: n species}, [(sid, why) not sure])
-- `candy_grid(sid, t)`: -> ([Candy range], [Candy XL range]): where the rules cut for this species (XL_CAP for 2XL and giver_short; LUCKY_CANDY for giver_short; COSTLY_ENOUGH for a costly line, …
+- `candy_grid(sid, t)`: -> ([Candy range], [Candy XL range]): where the rules cut for this species (XL_CAP for 2XL and cyrill_short; LUCKY_CANDY for cyrill_short; COSTLY_ENOUGH for a costly …
 - `ranges(starts)`: {first value of each range} -> [(lo, hi)] in order, the last one up to TOP
 - `count_term(name, lo, hi)`
 - `runs(cells)`: [((lo, hi), tag)] in order -> the same with neighbours of one tag joined
-- `giver_tag(sid, t, open_facts, counts, vd, today)`: -> the one tag every value of the open facts gives a plain 0-2* untraded one of this species, or None
-- `giver_groups(pile, dexes)`: CyrillJan's pile, for these dex numbers -> [(tag, search part)] in the order to tag them, and [(sid, why)] left for the walk (leftovers.py again)
+- `cyrill_tag(sid, t, open_facts, counts, vd, today)`: -> the one tag every value of the open facts gives a plain 0-2* untraded one of this species, or None
+- `cyrill_groups(pile, dexes)`: CyrillJan's pile, for these dex numbers -> [(tag, search part)] in the order to tag them, and [(sid, why)] left for the walk (leftovers.py again)
 - `query(pile, part, who=WHO)`
 - `plan_of(pile, who, dexes)`: -> ([(tag, search part)] in the order to tag them, [(sid, why) not sure], {tag: n species} or None)
 - `cmd_plan(pile, who, dexes)`
@@ -937,23 +937,23 @@ Tag CyrillJan's Tradeable saved search by what a trade to HashTagAJay is worth, 
 - `queries(m, sids, gender=None, room=40)`: species forms -> ['&<dexes><form terms>', ...], each under MAX_SUFFIX characters with room left for the tag terms
 - `evolved_giv(m, ok, why, hard)`: -> {sid: why} for the GIV (evolved) rule: stage 2, a hard stage 1 (hard: giv-evolved-<date>.json) or a gym defender, of the ok ones not in why
 - `class NoData`: a file the species lists need isn't there yet
-- `taker_species(m)`: CyrillJan's pile, judged for HashTagAJay
+- `cyrill_species(m)`: CyrillJan's pile, judged for HashTagAJay
 - `build_plan(m)`: every search tag runs, from the newest /dex, /roster and read data (made fresh each run: no plan step)
 - `cmd_plan(to=TAKER)`: only a preview (plan.md) of the searches tag would run: tag makes its own, nothing reads this
 - `can_dynamax()`: dex numbers that can Dynamax (refresh's dynamax-<date>.json: pvp.can_dynamax)
 - `cmd_dynamax()`: either account signed in: how many Dynamax ones it has of each family that can Dynamax (only searches)
-- `giver_species(m)`: HashTagAJay's pile (Leftovers), judged for CyrillJan or the user's wife's account: what's good for any account (the user, 2026-11-16) -> {"why": {sid: (tag, why)}, …
+- `hashtag_species(m)`: HashTagAJay's pile (Leftovers), judged for CyrillJan or the user's wife's account: what's good for any account (the user, 2026-11-16) -> {"why": {sid: (tag, why)}, …
 - `no_team_b(m)`: -> (the teams.json of CyrillJan's newest whole /raidteam count or None, gone(sid))
-- `giver_team(m)`: -> {sid: (the lowest IV sum that could make it, mega only)}: species a traded copy of could make one of CyrillJan's Team Potentials (bars50 not None in its newest whole …
+- `cyrill_potentials(m)`: -> {sid: (the lowest IV sum that could make it, mega only)}: species a traded copy of could make one of CyrillJan's Team Potentials (bars50 not None in its newest whole …
 - `mega_sids()`: species that can Mega or Primal Evolve (DialgaDex's attackers)
 - `team_100s(who, m)`: -> Counter {family root: copies}: the 100s (15/15/15 its only IV read, not a shadow) in who's newest whole /raidteam count
-- `giver_100(m)`: -> has_100(sid): CyrillJan's newest whole /raidteam count has a 100 (15/15/15, not a shadow) of sid or of a stage that evolves into it
+- `cyrill_has_100(m)`: -> has_100(sid): CyrillJan's newest whole /raidteam count has a 100 (15/15/15, not a shadow) of sid or of a stage that evolves into it
 - `team_picks(m)`: -> {sid: [bosses]}: the #1 non-mega picks of Team Future and Team Ideal (roster.ideal_firsts, megas=False) that trade
 - `team_lines(m)`: -> the tradeable species of every family with a species on Team Future or Team Ideal (roster.ideal_firsts, its megas too) or on one of CyrillJan's Team Availables or …
 - `team_xl_need(m, ok, who)`: -> ({sid: [Candy XL who wants, the pick, its 100s] or None}, the team100.json read or None)
 - `cmd_team100()`: either account signed in: count_team100
 - `count_team100(who)`: the 4* count of each team_picks pick with the stages that evolve into it, shadow or not (queries' form terms) -> {pick: 100s}, also in <run folder>/team100.json
-- `giver_short_searches(team_xl=None, m=None, team_line=None)`: the last GIV searches, after the far one: never traded, and CyrillJan has under XL_CAP Candy XL of a team line (taker_species' team_line: team_lines) or under …
+- `cyrill_short_searches(team_xl=None, m=None, team_line=None)`: the last GIV searches, after the far one: never traded, and CyrillJan has under XL_CAP Candy XL of a team line (cyrill_species' team_line: team_lines) or under …
 - `size_search(size)`: a never-traded XXS one is renamed and tagged IVC, never GIV or Transfer
 - `bulk_searches(plan)`: the tag searches, in verdict.py's order -> [(tag, the species part, the rest of the suffix)]
 - `keep_xxl_ones(limit)`: an XXL one in the pile is no trade: a favorite, before any tag search

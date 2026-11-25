@@ -19,7 +19,7 @@ to. Signed in as CyrillJan (the pile goes to HashTagAJay):
   strong line or raid attacker, a ★100% hole, PvP, a lucky family under 348 candy, Tandemaus) > GIV (pattern
   collection) > xxs > GIV (level 26+) > GIV (evolved, Dynamax) > GIV (far) > GIV (can Dynamax, account short of candy)
   > GIV (CyrillJan has under 348 Candy of the family, or under 360 Candy XL of a team line: the trade's candy,
-  giver_short. A team line: a species of the family on Team Future, Ideal, or a CyrillJan Team Available or Potential; a Team
+  cyrill_short. A team line: a species of the family on Team Future, Ideal, or a CyrillJan Team Available or Potential; a Team
   Future/Ideal #1 pick's line wants 360 Candy XL for each 100 CyrillJan has of it, up to 5: tradeable.team_xl_need)
   > Transfer
 Signed in as HashTagAJay (the pile goes to CyrillJan or the user's wife's account, judged for any account):
@@ -30,10 +30,10 @@ Signed in as HashTagAJay (the pile goes to CyrillJan or the user's wife's accoun
   vs some 4-star+ boss, Master League top 20. CyrillJan's Reroll, only for a 100 HashTagAJay still needs (the user,
   2026-11-20): on the ideal team or HashTagAJay's top 6 only as a mega doesn't count, nor a family HashTagAJay has 5 100s
   of. HashTagAJay's Reroll for a raid reason, only while the line could make one of CyrillJan's Team Potentials (the user,
-  2026-11-22: tradeable.no_team_b), and one in only as a mega only till CyrillJan has a 100 of it (tradeable.giver_100).
+  2026-11-22: tradeable.no_team_b), and one in only as a mega only till CyrillJan has a 100 of it (tradeable.cyrill_has_100).
   HashTagAJay's Reroll too for a line that could make one of CyrillJan's own Team Potentials, IVs rolled new by the
-  trade (the user, 2026-11-23: tradeable.giver_team).
-  GIV at level 26+ both ways (was XLX, the user 2026-11-19): giver_species())
+  trade (the user, 2026-11-23: tradeable.cyrill_potentials).
+  GIV at level 26+ both ways (was XLX, the user 2026-11-19): hashtag_species())
 A Dynamax one (both accounts): 2XL, then GIV (level 26+, then the rest). One that only can Dynamax (or evolves into one that can) gets GIV
 while the account holding it has rules.DMAX_CANDY Candy or less, or XL_CAP + one Max Move's Candy XL or less, of
 the family (dmax_short, the user 2026-11-16). With more of both and no other rule, Transfer
@@ -61,7 +61,7 @@ Then one whose family has an evolution over 100 candy (Magikarp, Snom, Noibat: r
 (the user 2026-11-12; not a shadow, and CyrillJan's untraded trade evolutions still get Transfer), till its holder has
 5000+ Candy of the family (rules.COSTLY_ENOUGH, the user 2026-11-25). The user's own tags first: untraded with Old, Evo, GuaranteedLucky, Remote Trade or RT,
 those stay and only IVC / PvpC comes off; traded, the "trade it" tags (TRADE_TAGS) come off. The species lists come
-from tradeable.py's taker_species() and giver_species(), the same ones its tag searches use. Neither account's have an age
+from tradeable.py's cyrill_species() and hashtag_species(), the same ones its tag searches use. Neither account's have an age
 limit: the newest saved copy is used, however old (the user, 2026-11-04 and 2026-11-06).
 """
 import datetime, os, re, sys
@@ -171,7 +171,7 @@ def tables(to):
     if to not in _TABLES:
         m = tr.Model()
         try:
-            sp = tr.taker_species(m) if to == TAKER else tr.giver_species(m)
+            sp = tr.cyrill_species(m) if to == TAKER else tr.hashtag_species(m)
         except (tr.NoData, SystemExit, OSError) as e:  # (pve() exits with no DialgaDex counters; no runs folder)
             _TABLES[to] = {"to": to, "missing": str(e)}
             return _TABLES[to]
@@ -183,7 +183,7 @@ def tables(to):
                        "raid": set(tr.pve(m)[0]),  # in DialgaDex's top PVE_TOP vs some boss, or evolves into one
                        "strong": set(tr.strong_lines(m)),  # a strong line's species (its shadows: never purified)
                        "raid_self": {s for s in tr.raid_tops(m)[0] if s in m.by}  # in some top as itself
-                       | (set(tr.giver_team(m)) if to == GIVER else set())}  # or on a CyrillJan Team Potential
+                       | (set(tr.cyrill_potentials(m)) if to == GIVER else set())}  # or on a CyrillJan Team Potential
     return _TABLES[to]
 
 
@@ -361,14 +361,14 @@ def usual(f, t, today=None):
         return tag("GIV", why="caught 100 km+ away")
     if v := dmax_short(f, t, sid):  # (after the GIVs that need no count read)
         return v
-    if to == TAKER and (v := giver_short(f, t)):
+    if to == TAKER and (v := cyrill_short(f, t)):
         return v
-    if to != TAKER and (v := team_short(f, t)):  # (CyrillJan's: in giver_short, after its under-XL_CAP one)
+    if to != TAKER and (v := team_short(f, t)):  # (CyrillJan's: in cyrill_short, after its under-XL_CAP one)
         return v
     return transfer(f, sid, "no rule wants it")
 
 
-def giver_short(f, t):
+def cyrill_short(f, t):
     """CyrillJan's pile (untraded: a traded one never gets here): GIV while CyrillJan has under LUCKY_CANDY Candy of
     the family, or under XL_CAP Candy XL of a team line (t['team_line']: a species of the family on Team Future, Team
     Ideal or one of CyrillJan's Team Availables or Potentials, tradeable.team_lines; the user, 2026-11-23: no trade for

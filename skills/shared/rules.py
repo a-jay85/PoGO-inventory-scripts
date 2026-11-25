@@ -38,7 +38,7 @@ DMAX_CANDY = 1000  # one that can Dynamax (not a Dynamax one): GIV while its acc
 UNDER_360_XL = f"&countcandyxl0-{XL_CAP - 1}"  # (a count term can sit anywhere: tried 2026-11-23, SEARCH.md)
 UNDER_348_CANDY = f"&countcandy0-{LUCKY_CANDY - 1}"
 # What the account that trades a Pokémon away gets, of that Pokémon's family (the user, 2026-11-23). A transfer gives
-# only TRANSFER_CANDY, so a trade always pays the sender more. CyrillJan's GIV bar (verdict.giver_short) is built on it
+# only TRANSFER_CANDY, so a trade always pays the sender more. CyrillJan's GIV bar (verdict.cyrill_short) is built on it
 TRADE_SENDER_CANDY = {(0, 10): 2, (10, 100): 3, (100, None): 4}  # km between the two traded Pokémon's catch places
 TRADE_SENDER_XL = 1  # 2 on a Friendship Friday (the 2XL tag)
 TRANSFER_CANDY = 1
@@ -49,7 +49,7 @@ REROLL_FOR_TAKER = {"tandemaus": "HashTagAJay still wants the family of 3 Mausho
 XLX_FOR = {TAKER: XLX_LEVEL, GIVER: XLX_LEVEL}  # by who'd get it: 4 Candy+ a power-up, both (the user, 2026-11-16)
 PVE_TOP = 6  # verdict.py's "raid" list: a traded copy would be this high against some raid boss in DialgaDex
 # HashTagAJay's pile (Leftovers), judged for CyrillJan or the user's wife's account, which is behind CyrillJan: "good
-# for any account" (the user, 2026-11-16). giver_species() in tradeable.py
+# for any account" (the user, 2026-11-16). hashtag_species() in tradeable.py
 REROLL_ENOUGH = 5  # CyrillJan's Reroll: HashTagAJay holding this many 100s of a family needs no more (the user, 2026-11-20)
 REROLL_ML = 20  # Reroll: PvPoke's Master League top this many (or evolves into one)
 HARD_EGGS = ("10 km", "12 km")  # GIV: a family that hatches from these eggs (refresh keeps every one it has seen)

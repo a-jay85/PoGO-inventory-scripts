@@ -18,7 +18,7 @@ runs out.
 Each boss's 6: down its list, a slot per owned copy, at most one mega (or primal) and only with a copy of its base
 species. A new traded copy of a species (never shadow) helps against a boss if it would get into those 6. #1 and
 #2-#6 are both Reroll (#2-#6 was GIV till the user, 2026-11-19). tradeable.py gives them Reroll only for a 100
-HashTagAJay still needs (taker_species). Legendary, Mythical and Ultra Beast species are never tagged (traded by hand).
+HashTagAJay still needs (cyrill_species). Legendary, Mythical and Ultra Beast species are never tagged (traded by hand).
 Output in runs/<time>-count/: counts.json, roster.json (for /cleanup's tradeable.py) and report.md.
 
 pull.mjs takes about 2 minutes and needs Playwright (loaded from the IBL5 checkout; PLAYWRIGHT= points elsewhere). It

@@ -16,9 +16,10 @@ today). Inside each, the time zones farthest ahead first: lasia, leuro, latam, e
 is sorted "Can receive a gift", arrow down: friends who can take a gift come first, so the first row with the grey
 already-sent badge ends that search. A friend with a Remote Trade sits on top whatever the sort (their row says Remote Trade, or shows its countdown), so their badge doesn't count.
 
-Before each gift the friendship screen is checked (not on an account in NO_LEVELUP: HashTagAJay needs no level-up XP).
-When the next heart is the 3rd, 4th or 5th, or it's the Forever Friends bar: 1 point to go -> no gift, nickname
-"WAIT <old>"; 2 points -> gift, nickname "SENT <old>".
+Before each gift the friendship screen is checked. When the next heart is the 3rd, 4th or 5th, or it's the Forever
+Friends bar: 1 point to go -> no gift, nickname "WAIT <old>"; 2 points -> gift, nickname "SENT <old>".
+On an account in GIFT_WAIT (HashTagAJay: it needs no level-up XP) the tags are the same, but every friend gets a gift,
+tagged WAIT or not.
 Only gifts from San Francisco are sent (the city line under the title), or from anywhere in California on an account in
 CALIFORNIA. Never one with "lion", "tree" or "rock" in its title, and never with a sticker. When a phone has none left it stops; the other phone carries on. At the end the iPhone quits iPhone Mirroring and the Pixel locks.
 Log and captures go in runs/<time>-<phone>/.
@@ -57,13 +58,14 @@ from search import nudge_bar
 CITY = "SAN FRANCISCO"  # the only gifts sent: the rest (Chicago, North Carolina ...) are kept for sending by hand
 KEEP = re.compile(r"\b(lion|tree|(?<!mission )rock)", re.I)  # San Francisco gifts that are kept anyway (Lions, Trees, Rocky too; Mission Rock is sent)
 CALIFORNIA = {"HashTagAJay"}  # these accounts send any California gift. The rest send San Francisco gifts only
-NO_LEVELUP = {"HashTagAJay"}  # these accounts never check how close a friend is to a level-up (no WAIT or SENT tags).
-# An unread account still checks
+GIFT_WAIT = {"HashTagAJay"}  # these accounts still tag WAIT and SENT, but send a WAIT friend a gift too.
+# An unread account holds back, as before
 whole_state = False  # this phone's, picked once the friend list shows whose account it is
 trainer = None  # this phone's account, read by whose(). None: unread, so no "iii" memory
 NEVER = ("CHICAGO", "RALEIGH", "NORTH CAROLINA")  # cities never sent
 FIRST = "!?&!$&!WAIT&!OPEN&interactable&!EGG&"  # iii: no gift from me yet, not played with today
 THEN = "!WAIT&!OPEN&!interactable&!EGG&"  # lll: played with me today / opened my gift
+# (on a GIFT_WAIT account both go without their "!WAIT&": wait_ok())
 ZONES = [  # farthest ahead of Pacific time first; "" (no zone) last picks up everyone else
     ("asia", "Japan:South Korea:Taiwan:Indonesia:Thailand:Singapore:Hong Kong&"),
     ("europe", "UK:Spain:Germany:Denmark:Sweden:France:Portugal:Norway:Poland:Italy:Netherlands&"),
@@ -1289,7 +1291,7 @@ def one_friend(row, check=False, done=None):
     if done is not None:
         done.add(name_key(name))
     nick, _ = page_nickname()
-    if re.match(r"WAIT", nick):
+    if re.match(r"WAIT", nick) and not wait_ok():
         log(f"{name} ({nick}): tagged WAIT, skipped")  # (the list's WAIT check, for a page opened by a garbled row)
         return None
     if never_gift(name, nick):
@@ -1309,7 +1311,7 @@ def one_friend(row, check=False, done=None):
         t = send_gift_label()
     if not t or not gift_icon(t):
         if WALK:  # (a speed test: the friendship screen as for a gift, then back. Never the gift list)
-            n = meter() if trainer not in NO_LEVELUP else None
+            n = meter()
             log(f"{name} ({nick}): walked, {n if n is not None else '-'} points ({time.time() - t0:.1f}s)")
             return "walked"
         keep_capture("grey")
@@ -1320,8 +1322,8 @@ def one_friend(row, check=False, done=None):
             log(f"{name} ({nick}): their SEND GIFT is grey: skipped")
             return "grey"
         log(f"{name} ({nick}): SEND GIFT read grey, but the gift list opened: going on")
-    n = meter() if trainer not in NO_LEVELUP else None  # (None: no WAIT, no SENT)
-    if n == 1:
+    n = meter()
+    if n == 1 and not wait_ok():
         if is_tagged("WAIT", nick):
             log(f"{name} ({nick}): 1 point to level up: no gift, already tagged WAIT")
             return None
@@ -1330,16 +1332,21 @@ def one_friend(row, check=False, done=None):
         return None
     title = send_gift()
     log(f"{name} ({nick}): {'would send' if DRY else 'sent'} {title} ({time.time() - t0:.0f}s)")
-    if n == 2:
+    if n in (1, 2) and not is_tagged(tag := "WAIT" if n == 1 else "SENT", nick):  # (1: a GIFT_WAIT account)
         try:
-            rename("SENT", nick, row["nick"])
+            rename(tag, nick, row["nick"])
         except base.Lost as e:  # (the gift went: count it, run_searches' to_list() takes it from wherever this is)
             keep_capture("lost_rename")
-            log(f"  lost while tagging SENT ({e}): tag it by hand")
+            log(f"  lost while tagging {tag} ({e}): tag it by hand")
     return title
 
 
 # ---------- a run ----------
+
+def wait_ok():
+    """a friend tagged WAIT gets a gift anyway on this account (GIFT_WAIT). An unread account: no"""
+    return trainer in GIFT_WAIT
+
 
 def whose():
     """from the friend list: our trainer name on the ME tab -> trainer, and which gifts this account sends (San Francisco
@@ -1413,6 +1420,8 @@ def run_searches(limit):
     whose()
     set_sort()
     for first, base_q in (("iii", FIRST), ("lll", THEN)):
+        if wait_ok():
+            base_q = base_q.replace("!WAIT&", "")
         prev = None
         # a whole "rest" search finished earlier today: it holds every zone, so go straight to it. Late in the day
         # most gifts are sent, and the zone order matters less than the time the zone searches take
@@ -1514,7 +1523,7 @@ def run_searches(limit):
                 bounced = 0
                 done.add(name_key(row["name"]))  # (I and l, O and 0 alike: OCR reads them either way)
                 tapped.append(row["t"][1])
-                if re.match(r"WAIT", row["nick"].strip()):
+                if re.match(r"WAIT", row["nick"].strip()) and not wait_ok():
                     log(f"  {row['name']} ({row['nick']}): tagged WAIT, skipped")  # (1 point to level up: no gift)
                     fresh = True
                     continue

@@ -1143,6 +1143,7 @@ Evolve every free trade evolution tagged Evo, as fast as the game lets it
 - `rename(tag, old, listed)`: listed: the nickname as the friend list showed it
 - `grey_check(t)`: tap a grey SEND GIFT anyway
 - `one_friend(row, check=False, done=None)`: open the row's friend page, check, gift and/or tag
+- `wait_ok()`: a friend tagged WAIT gets a gift anyway on this account (GIFT_WAIT)
 - `whose()`: from the friend list: our trainer name on the ME tab -> trainer, and which gifts this account sends (San Francisco only when it can't be read)
 - `today()`
 - `iii_file()`

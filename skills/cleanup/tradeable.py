@@ -15,12 +15,12 @@
                                           bulk tag searches first, then power-ups, then the door for the rest
   POGO_PHONE=android caffeinate -dimsu python3 tradeable.py team100   either account: only searches. Its 100s
                                           (4*) of each Team Future and Team Ideal #1 pick that trades, and of what
-                                          evolves into it -> runs/<time>-team100/team100.json (verdict.giver_short's
+                                          evolves into it -> runs/<time>-team100/team100.json (verdict.cyrill_short's
                                           bar, both accounts; specieswise counts them first by itself)
   python3 tradeable.py plan               the Mac, optional: a look at the searches tag would run (runs/<time>-plan/)
 
 The species lists and the order here are also ../shared/verdict.py's: /ivc and /pvpc judge a Pokémon that
-isn't a keeper with them (the door, no Nope). giver_species() is the other side, HashTagAJay's pile (leftovers.py),
+isn't a keeper with them (the door, no Nope). hashtag_species() is the other side, HashTagAJay's pile (leftovers.py),
 judged for any account: Reroll, GIV, GIV (level 26+), GIV (evolved, 10/12 km eggs, Smeargle); regionals not from
 San Francisco (rules.SF_NATIVE) and Spinda by hand (its docstring has the rules). MEDALS (a tiny Rattata, a big Magikarp: GIV for any account's medals) are the
 door's too, on HashTagAJay.
@@ -48,7 +48,7 @@ One tag each, the first that fits:
  6. GIV (far): never traded and caught 100 km or more away ('distance100-'), and no other tag fits.
  7. GIV (CyrillJan short of candy): never traded, and CyrillJan has under 348 Candy of the family, or under 360
     Candy XL of a family with a species on Team Future, Team Ideal or one of CyrillJan's Team Availables or Team
-    Potentials (team_lines, the user 2026-11-23) (giver_short_searches, verdict.giver_short). A line with a Team Future or Team Ideal #1 pick (not as a
+    Potentials (team_lines, the user 2026-11-23) (cyrill_short_searches, verdict.cyrill_short). A line with a Team Future or Team Ideal #1 pick (not as a
     mega) wants 360 Candy XL for each 100 CyrillJan has of it, up to 5 (rules.TEAM_SLOTS: 4 100 Salamence want 1440,
     the user 2026-11-23). team100 counts those 100s (team_xl_need).
  8. Transfer: everything else, but a never-traded XXS one gets renamed xxs and tagged IVC (sizes.py)
@@ -441,7 +441,7 @@ class NoData(Exception):
     """a file the species lists need isn't there yet"""
 
 
-def taker_species(m):
+def cyrill_species(m):
     """CyrillJan's pile, judged for HashTagAJay. Reroll: a strong line (strong_lines, the same rule as HashTagAJay's
     pile), or a new copy would be in HashTagAJay's own top 6 against some raid boss (roster.json: #1 or #2-#6).
     CyrillJan trades only to HashTagAJay, so a Reroll is only for a 100 HashTagAJay still needs (the user, 2026-11-20):
@@ -501,7 +501,7 @@ def taker_species(m):
     hund = dex.hundred_useful(set(hund_missing), hund_owned, m.by, m.parent)
     low = {m.root(s) for s in m.by if m.dex(s) in read["lucky_low_candy"]}
     for s in ok:  # (all three were GIV till 2026-11-23: HashTagAJay needs them, so Reroll. GIV is now what CyrillJan
-        if s in hund:  # needs the trade's candy for: verdict.giver_short. The user)
+        if s in hund:  # needs the trade's candy for: verdict.cyrill_short. The user)
             why.setdefault(s, ("Reroll", "★100% hole"))
         elif s in pvp_giv:
             why.setdefault(s, ("Reroll", "PvP " + " ".join(pvp_giv[s])))
@@ -520,8 +520,8 @@ def taker_species(m):
 
 def build_plan(m):
     """every search tag runs, from the newest /dex, /roster and read data (made fresh each run: no plan step).
-    -> (plan, taker_species' answer). NoData if a data file isn't there yet"""
-    sp = taker_species(m)
+    -> (plan, cyrill_species' answer). NoData if a data file isn't there yet"""
+    sp = cyrill_species(m)
     why, lucky, evolved = sp["why"], sp["lucky"], sp["evolved"]
     plan = {"taker": TAKER, "xlx_level": XLX_FOR[TAKER], "from": sp["from"],
             "tags": {t: queries(m, [s for s, (w, _) in why.items() if w == t], lucky if t == "Luckydex" else None,
@@ -588,7 +588,7 @@ def cmd_dynamax():
     log(f"{sum(1 for v in out.values() if v)} of {len(out)} families have a Dynamax one -> {base.RUN_DIR}")
 
 
-def giver_species(m):
+def hashtag_species(m):
     """HashTagAJay's pile (Leftovers), judged for CyrillJan or the user's wife's account: what's good for any account
     (the user, 2026-11-16) -> {"why": {sid: (tag, why)}, "evolved": {sid: why}, "hard": {sid: why}, "by_hand": {sid},
     "xl_full": {dex}, "from": {what: file}}. Read by ../shared/verdict.py
@@ -596,8 +596,8 @@ def giver_species(m):
         4-star raid's or higher (real_boss; #2-#6 was GIV, the user 2026-11-19), or PvPoke's Master League top REROLL_ML
         (each with the earlier stages that evolve into it). The two raid reasons (the ideal team, the top PVE_TOP) only
         while some copy of the line could still make one of CyrillJan's Team Potentials (no_team_b: its newest whole count).
-        One that's in only as a Mega counts only till CyrillJan has a 100 of it (giver_100: one Mega is enough)
-        Also a line that could make one of CyrillJan's own Team Potentials (giver_team: a trade rolls new IVs, so the
+        One that's in only as a Mega counts only till CyrillJan has a 100 of it (cyrill_has_100: one Mega is enough)
+        Also a line that could make one of CyrillJan's own Team Potentials (cyrill_potentials: a trade rolls new IVs, so the
         species decides, the user 2026-11-23), even when it's in no DialgaDex top; one in only as a Mega, only till
         CyrillJan has a 100 of it
       hard (GIV, after 2XL and the level 26+ GIV): the family of a 10 or 12 km egg hatch (refresh's eggs-<date>.json), Smeargle, and
@@ -624,14 +624,14 @@ def giver_species(m):
                 if x in ok:
                     why.setdefault(x, (tag, r))
     count_f, gone = no_team_b(m)
-    has_100 = giver_100(m)
+    has_100 = cyrill_has_100(m)
     plain = strong_lines(m, megas=False)
     add("Reroll", {s: r for s, r in strong_lines(m).items() if " on the ideal team " not in r
                    or (not gone(s) and (s in plain or not has_100(r.split()[2])))})
     enough = lambda s, mega_only: f"{GIVER} has a 100" if mega_only and has_100(s) else None
     add("Reroll", {s: r for s, r in pve(m, enough, real=True)[0].items() if not gone(s)})  # (it has the earlier stages)
     add("Reroll", {s: f"could make {GIVER}'s Team Potential (IV sum {b}+ at level 50)"
-                   for s, (b, mega_only) in giver_team(m).items() if not (mega_only and has_100(s))})
+                   for s, (b, mega_only) in cyrill_potentials(m).items() if not (mega_only and has_100(s))})
     ml = {s: int(r.split("#")[1]) for s, rs in json.load(open(pvp_f)).items() for r in rs if r.startswith("10000:")}
     add("Reroll", {s: f"Master League #{r}" for s, r in ml.items() if r <= REROLL_ML and s in m.by})
     eggs = json.load(open(eggs_f))
@@ -671,12 +671,12 @@ def no_team_b(m):
     return raidteams.path_of(GIVER), gone
 
 
-def giver_team(m):
+def cyrill_potentials(m):
     """-> {sid: (the lowest IV sum that could make it, mega only)}: species a traded copy of could make one of
     CyrillJan's Team Potentials (bars50 not None in its newest whole /raidteam count; not a shadow pile: a shadow can't
     be traded). A trade rolls new IVs, so the species decides, not the copy's IVs (the user, 2026-11-23: HashTagAJay's
     Transfer pile held some). mega only: it can Mega Evolve (mega_sids) and no copy holds a Team Potential spot as
-    itself, so one 100 is enough there (giver_100, the user 2026-11-22). No count: none"""
+    itself, so one 100 is enough there (cyrill_has_100, the user 2026-11-22). No count: none"""
     import raidteams
     t = raidteams.newest(GIVER)[0] or {}
     copies = t.get("copies", [])
@@ -711,7 +711,7 @@ def team_100s(who, m):
                    if not c["shadow"] and c["ivs"] == [[15, 15, 15]] and c["species"] and c["species"][0] in m.by)
 
 
-def giver_100(m):
+def cyrill_has_100(m):
     """-> has_100(sid): CyrillJan's newest whole /raidteam count has a 100 (15/15/15, not a shadow) of sid or of a
     stage that evolves into it. A Mega spot needs one copy: a line that's in only as a Mega (on the ideal team or in
     the top PVE_TOP) is no Reroll once CyrillJan has a 100 of it (the user, 2026-11-22). A copy whose IVs the count
@@ -740,7 +740,7 @@ def team_picks(m):
 def team_lines(m):
     """-> the tradeable species of every family with a species on Team Future or Team Ideal (roster.ideal_firsts, its
     megas too) or on one of CyrillJan's Team Availables or Team Potentials (its newest whole /raidteam count). Only these
-    lines want XL_CAP Candy XL on CyrillJan: a trade's XL for any other line isn't worth the trade (verdict.giver_short,
+    lines want XL_CAP Candy XL on CyrillJan: a trade's XL for any other line isn't worth the trade (verdict.cyrill_short,
     the user 2026-11-23). None: CyrillJan has no whole /raidteam count yet"""
     import raidteams
     t = raidteams.newest(GIVER)[0]
@@ -821,10 +821,10 @@ EVOLVED_REST = REST + "&traded,!xxs"  # and not a never-traded XXS one (those ge
 BULK_REST = EVOLVED_REST + TAG_SKIP
 
 
-def giver_short_searches(team_xl=None, m=None, team_line=None):
+def cyrill_short_searches(team_xl=None, m=None, team_line=None):
     """the last GIV searches, after the far one: never traded, and CyrillJan has under XL_CAP Candy XL of a team line
-    (taker_species' team_line: team_lines) or under LUCKY_CANDY Candy of the family (verdict.giver_short). Then each
-    Team Future/Ideal bar (taker_species' team_xl): those families, under their bar. A family whose 100s weren't
+    (cyrill_species' team_line: team_lines) or under LUCKY_CANDY Candy of the family (verdict.cyrill_short). Then each
+    Team Future/Ideal bar (cyrill_species' team_xl): those families, under their bar. A family whose 100s weren't
     counted gets none, nor does any line with no raid team count (team_line None): the door judges it"""
     out = [q + "&!traded" + UNDER_360_XL for q in (queries(m, sorted(team_line)) if team_line else [])]
     out += ["&!traded" + UNDER_348_CANDY]
@@ -1045,7 +1045,7 @@ def cmd_tag(limit):
         done.add(rest + q)
         save_done()
     tag_pile("GIV", rest + "&!traded&distance100-")  # fits nothing else, but a far trade: GIV
-    for q in giver_short_searches(sp.get("team_xl"), m, sp.get("team_line")):  # then CyrillJan short of the family's candy: the trade's candy (verdict.giver_short)
+    for q in cyrill_short_searches(sp.get("team_xl"), m, sp.get("team_line")):  # then CyrillJan short of the family's candy: the trade's candy (verdict.cyrill_short)
         tag_pile("GIV", rest + q)
     got = door_walk(EVOLVED_REST, limit, who)  # (it leaves out #GIV. TAG_SKIP's ones are judged here)
     log(f"the rest, through the door: {dict(got)}")

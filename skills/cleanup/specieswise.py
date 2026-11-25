@@ -196,8 +196,8 @@ TOP = 10 ** 5  # a Candy or Candy XL count no family reaches  # the step terms, 
 
 
 def candy_grid(sid, t):
-    """-> ([Candy range], [Candy XL range]): where the rules cut for this species (XL_CAP for 2XL and giver_short;
-    LUCKY_CANDY for giver_short; COSTLY_ENOUGH for a costly line, verdict.transfer; DMAX_CANDY and one Max Move's XL for a Dynamax line; a Team Future/Ideal line's bar,
+    """-> ([Candy range], [Candy XL range]): where the rules cut for this species (XL_CAP for 2XL and cyrill_short;
+    LUCKY_CANDY for cyrill_short; COSTLY_ENOUGH for a costly line, verdict.transfer; DMAX_CANDY and one Max Move's XL for a Dynamax line; a Team Future/Ideal line's bar,
     tradeable.team_xl_need). A range is (lo, hi), hi TOP for no top"""
     import verdict as vd
     need, team = t.get("dmax", {}).get(sid), t.get("team_xl", {}).get(sid)
@@ -228,7 +228,7 @@ def runs(cells):
     return out
 
 
-def giver_tag(sid, t, open_facts, counts, vd, today):
+def cyrill_tag(sid, t, open_facts, counts, vd, today):
     """-> the one tag every value of the open facts gives a plain 0-2* untraded one of this species, or None"""
     seen = set()
     for caught, dyn, far, ivs, gender, (candy, xl) in itertools.product(
@@ -246,7 +246,7 @@ def giver_tag(sid, t, open_facts, counts, vd, today):
     return seen.pop()
 
 
-def giver_groups(pile, dexes):
+def cyrill_groups(pile, dexes):
     """CyrillJan's pile, for these dex numbers -> [(tag, search part)] in the order to tag them, and [(sid, why)]
     left for the walk (leftovers.py again)"""
     import verdict as vd
@@ -266,10 +266,10 @@ def giver_groups(pile, dexes):
         by = defaultdict(lambda: defaultdict(dict))  # the Candy terms -> dex -> {sid: tag or None}
         for sid in sids:
             cs, xs = candy_grid(sid, t)
-            if tag := giver_tag(sid, t, open_facts, [p for c in cs for x in xs for p in corners(c, x)], vd, today):
+            if tag := cyrill_tag(sid, t, open_facts, [p for c in cs for x in xs for p in corners(c, x)], vd, today):
                 by[""][pvp.PLAIN[sid]["dex"]][sid] = tag
                 continue
-            rows = [runs([(x, giver_tag(sid, t, open_facts, corners(c, x), vd, today)) for x in xs]) for c in cs]
+            rows = [runs([(x, cyrill_tag(sid, t, open_facts, corners(c, x), vd, today)) for x in xs]) for c in cs]
             if all(r == rows[0] for r in rows):  # the Candy count doesn't matter: Candy XL alone
                 rows, cs = rows[:1], [(0, TOP)]
             for c, row in zip(cs, rows):
@@ -301,7 +301,7 @@ def query(pile, part, who=WHO):
 def plan_of(pile, who, dexes):
     """-> ([(tag, search part)] in the order to tag them, [(sid, why) not sure], {tag: n species} or None)"""
     if who == GIVER:
-        got, unsure = giver_groups(pile, dexes)
+        got, unsure = cyrill_groups(pile, dexes)
         return got, unsure, None
     got, n, unsure = groups(pile)
     out = []

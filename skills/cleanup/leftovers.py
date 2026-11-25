@@ -19,7 +19,7 @@ opened once and gets its final tag at the door (../shared/door.py, ../shared/ver
   League top 20) > IVC (xxs) > GIV (level 26+: a power-up costs 4 Candy+) > GIV (stage 2 or a hard
   evolution, a 10 or 12 km egg's family, Smeargle, a gym defender's line (Slakoth, Wynaut...), a Dynamax one, a trade evolution, caught 100 km+ away, a costly line)
   > GIV (one that can Dynamax, while this account has 1,000 Candy or less, or 360 + one Max Move's Candy XL or less) > Transfer
-The species lists are tradeable.py's giver_species() (data: tradeable.py refresh).
+The species lists are tradeable.py's hashtag_species() (data: tradeable.py refresh).
 
 Leftovers is the user's: '!4*&!3*&!#&!favorite&!shiny&!lucky&!shadow&!legendary&!mythical&!ultrabeasts&!pvp&!age0-7
 &!xxl&!gigantamax' (read off the iPhone 2026-11-16, !gigantamax added 2026-11-19). Its !# and !favorite drop each

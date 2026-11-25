@@ -63,8 +63,9 @@ sys.path.insert(0, os.path.join(HERE, "..", "dex"))
 sys.path.insert(0, os.path.join(HERE, "..", "ivc"))
 import dex, ivc, pvp
 import roster
-from roster import COUNTERS, is_mega, real_boss, boss_name, attacker_name
+from roster import is_mega, real_boss, boss_name, attacker_name
 from base import Stop, Skip, log, newest, write_json
+import ui
 
 TEAM = roster.TEAM
 TOP = pvp.LEVELS[-1]  # Team Potential: every copy powered up to here (the user, 2026-11-19)
@@ -445,13 +446,6 @@ class Count:
         return out
 
 
-def models():
-    files = [newest(HERE, c) for c in COUNTERS]
-    if not all(files):
-        sys.exit(f"no DialgaDex counters yet ({' and '.join(COUNTERS)}): node {os.path.join(HERE, 'pull.mjs')}")
-    return [roster.Model(json.load(open(f))) for f in files]
-
-
 # ---------- the phone ----------
 
 class Enough(Exception):
@@ -494,7 +488,7 @@ def iv_pct(name):
 def bare(name):
     """a name's letters and digits only: OCR adds or drops marks ('98 ADC*X ^' / '98 AD C* X'). '93 H' and '93 HP'
     stay two"""
-    return re.sub(r"[^a-z0-9]", "", (name or "").lower())
+    return ui.alnum(name)
 
 
 def squash(name):
@@ -909,7 +903,7 @@ def keep_script(a):
 
 def script(a):
     import base, ui
-    ms = models()
+    ms = list(roster.load_models())
     c = Count(ms, Rater(), a.limit)
     try:
         if a.cmd == "count":

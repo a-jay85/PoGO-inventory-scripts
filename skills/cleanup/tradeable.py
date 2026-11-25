@@ -697,7 +697,7 @@ def mega_sids():
     team: a mega species' bar can be a spot only its mega wins"""
     sys.path.append(os.path.join(HERE, "..", "roster"))
     import roster
-    rm = roster.Model(json.load(open(roster.newest(roster.HERE, roster.COUNTERS[0]))))
+    rm = next(roster.load_models(roster.COUNTERS[:1]))
     return {s for a, s in zip(rm.A, rm.sid) if s and roster.is_mega(a)}
 
 

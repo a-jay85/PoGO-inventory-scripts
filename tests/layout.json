@@ -880,12 +880,12 @@
   "names": [
    "ALL_IVS",
    "EXAMPLES",
-   "GM_PATH",
    "GYM_DEFENDERS",
    "HERE",
    "NAME_HEAD",
    "NAME_LEN",
    "PURIFY_FROM",
+   "SHARED",
    "SHOW_FROM",
    "STATS",
    "STAT_COMBOS",
@@ -1118,6 +1118,7 @@
    "TOP_GYM_IV",
    "TOP_MEGA",
    "WEAK",
+   "alnum",
    "base_name",
    "beaten",
    "by_iv",
@@ -1314,7 +1315,6 @@
  "skills/roster/raidteam.py": {
   "copies": {},
   "names": [
-   "COUNTERS",
    "Count",
    "Counter",
    "Enough",
@@ -1351,7 +1351,6 @@
    "log",
    "main",
    "member_key",
-   "models",
    "name_copy",
    "name_pass",
    "newest",
@@ -1405,6 +1404,7 @@
    "ideal_firsts",
    "is_mega",
    "load_counts",
+   "load_models",
    "log",
    "main",
    "move_term",
@@ -1425,7 +1425,6 @@
  "skills/roster/sigmoves.py": {
   "copies": {},
   "names": [
-   "GM",
    "HERE",
    "OUT",
    "SRC",
@@ -2592,7 +2591,6 @@
   "copies": {},
   "names": [
    "Again",
-   "GM",
    "HERE",
    "NEXT_AT",
    "NEXT_AT_IOS",
@@ -2721,6 +2719,7 @@
    "_ocrd",
    "_older",
    "_seen",
+   "alnum",
    "appraisal_button",
    "ask_helper",
    "banner_tabs",

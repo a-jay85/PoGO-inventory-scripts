@@ -66,6 +66,7 @@ glimmora tatsugiri baxcalibur heatran darkrai zeraora""".split()
 
 NO_REGION = "&".join("!" + r for r in REGIONS.values())
 
+from ui import alnum
 GM = pvp.GM
 BY_ID = {p["speciesId"]: p for p in GM["pokemon"]}
 SPECIES = pvp.PLAIN
@@ -275,7 +276,7 @@ def strong(line, megas=True):
 def identify(candy, type_words, cp, hp, iv):
     """renamed Pokémon: candidates from the candy's family, then the type line, then which ones CP and HP fit
     with that IV sum. -> list of species ids (one if sure)."""
-    letters = lambda n: re.sub(r"[^a-z0-9]", "", n.lower())  # OCR drops ' - and é: 'FARFETCHD', 'HOOH', 'FLABB'
+    letters = alnum  # OCR drops ' - and é: 'FARFETCHD', 'HOOH', 'FLABB'
     candy = letters(candy or "")
     fam = lambda s: (SPECIES[s].get("family") or {}).get("id") or "solo " + base_name(s)  # legendaries: no family
     names = {letters(base_name(s)) for s in SPECIES}
@@ -316,10 +317,10 @@ def pool_values(entries, shadow):
     counts = Counter(map(tuple, entries))
     best = {}
     for (name, cp), k in counts.items():
-        key = (re.sub(r"[^a-z0-9]", "", name.lower()), cp)
+        key = (alnum(name), cp)
         if cp and (key not in best or k > counts[best[key]]):
             best[key] = (name, cp)
-    entries = [e for e in map(tuple, entries) if not e[1] or best[(re.sub(r"[^a-z0-9]", "", e[0].lower()), e[1])] == e]
+    entries = [e for e in map(tuple, entries) if not e[1] or best[(alnum(e[0]), e[1])] == e]
     out = []
     for name, cp in entries:
         v = value(name, shadow)

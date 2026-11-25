@@ -6,7 +6,7 @@ It used to purify and bulk-transfer every shadow tagged Nope. Nothing tags Nope 
 through the door (door.py), and the user's shadow rules (purify + Transfer under 360 Candy XL ...) wait on
 the not-sure list for verdict.py. purify() is here for them.
 """
-import json, os, random, re, sys, time
+import os, random, re, sys, time
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "shared"))
@@ -14,9 +14,6 @@ import ui
 import base
 from base import Stop, log, keep_capture, go, look, wait_for, front, save, load, candy
 import search, session
-
-GM = json.load(open(os.path.join(HERE, "..", "shared", "gamemaster.json")))
-
 
 class Pass(Exception):
     """leave this one alone"""
@@ -311,8 +308,7 @@ def purify(info, species=None):
     _, texts, _, bounds = look()
     now = ui.detail_info(texts) if ui.classify(texts) == "detail" else {}
     pur = exact(texts, "PURIFY")
-    flat = lambda s: re.sub(r"[^a-z0-9]", "", (s or "").lower())
-    if not info["cp"] or (flat(now.get("name")), now.get("cp")) != (flat(info["name"]), info["cp"]) or len(pur) != 1:
+    if not info["cp"] or (ui.alnum(now.get("name")), now.get("cp")) != (ui.alnum(info["name"]), info["cp"]) or len(pur) != 1:
         raise Again(f"{info['name']} CP{info['cp']} then {now.get('name')} CP{now.get('cp')}")
     press(pur[0], bounds)
     for _ in range(25):  # the YES/NO dialog
@@ -327,9 +323,9 @@ def purify(info, species=None):
         raise Stop("no purify YES/NO after tapping PURIFY")
     t1 = time.time()
     named = re.search(r"purify\s+(.+?)\s*\?", ask, re.I)
-    if flat(info["name"]) not in flat(ask) and named and ui.names_species(named.group(1), species):
+    if ui.alnum(info["name"]) not in ui.alnum(ask) and named and ui.names_species(named.group(1), species):
         log(f"  name read {info['name']!r}, the purify box says {named.group(1)}: the same species")
-    elif flat(info["name"]) not in flat(ask):
+    elif ui.alnum(info["name"]) not in ui.alnum(ask):
         no = exact(texts, "NO")
         if len(no) == 1:
             press(no[0], bounds)

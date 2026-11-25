@@ -15,7 +15,7 @@ import json, os, re, sys, tempfile, urllib.request
 HERE = os.path.dirname(os.path.realpath(__file__))
 SRC = "https://play.pokemonshowdown.com/data/"
 OUT = os.path.join(HERE, "sigmoves.json")
-GM = os.path.join(HERE, "..", "shared", "gamemaster.json")
+sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 
 
 def key(s):
@@ -66,8 +66,9 @@ def build(moves, learnsets, dex, gm):
 def main():
     if sys.argv[1:]:
         sys.exit(__doc__)
+    import pvp  # (after the argv check: pvp.py's own 'update' runs on import when argv[1] is 'update')
     with tempfile.TemporaryDirectory() as t:
-        rows = build(fetch("moves.json", t), fetch("learnsets.json", t), fetch("pokedex.json", t), json.load(open(GM)))
+        rows = build(fetch("moves.json", t), fetch("learnsets.json", t), fetch("pokedex.json", t), pvp.GM)
     json.dump(rows, open(OUT, "w"), indent=0)
     print(f"{len({r['move'] for r in rows})} signature moves not in GO, {len(rows)} learners -> {OUT}")
 

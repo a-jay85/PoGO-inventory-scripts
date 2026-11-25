@@ -213,6 +213,16 @@ IDEAL = COUNTERS + FUTURE + SIG  # the strong lines' pulls: today, unreleased Po
 #   Team Available: one account's own copies at today's levels and IVs (raidteam.py). Its Team Potential is the same copies at level 50.
 
 
+def load_models(pulls=COUNTERS):
+    """-> the Models of pulls' newest counter files, one at a time (each file is about 4 MB). Exits first, naming
+    the missing ones, if any of them has no file yet"""
+    files = [newest(HERE, c) for c in pulls]
+    if not all(files):
+        sys.exit(f"no DialgaDex counters yet ({' and '.join(p for p, f in zip(pulls, files) if not f)}): "
+                 f"node {os.path.join(HERE, 'pull.mjs')}")
+    return (Model(json.load(open(f))) for f in files)
+
+
 def real_boss(b):
     """a boss like a 4-star raid's or higher (the user, 2026-11-16, for Reroll): legendary, mythical, Ultra Beast,
     mega or primal (no Tropius)"""
@@ -226,12 +236,8 @@ def raid_tops(ok, n, real=False, megas=True, pulls=COUNTERS):
     and legendary attackers (DialgaDex's class, for forms like Eternamax with no tags) take no spot. real: only bosses
     like a 4-star raid's or higher (real_boss). megas=False: a mega takes its spot but counts for no one (for Reroll, a
     mega counts only as the best of its type). pulls: which counter files (COUNTERS, or FUTURE)"""
-    files = [newest(HERE, c) for c in pulls]
-    if not all(files):
-        sys.exit(f"no DialgaDex counters yet ({' and '.join(pulls)}): node {os.path.join(HERE, 'pull.mjs')}")
     tops, plain, first = {}, set(), None
-    for data_f in files:
-        rm = Model(json.load(open(data_f)))
+    for rm in load_models(pulls):
         first = first or rm
         for b in rm.bosses:
             if real and not real_boss(b):
@@ -266,13 +272,8 @@ def ideal_firsts(pulls=IDEAL, megas=True):
     today, unreleased Pokémon too, unreleased signature moves too). Shadows and legendaries count. A mega counts as
     its species, a shadow as its species, a form as its own species id (Galarian Zapdos, not Zapdos).
     megas=False: the #1 mega's spot counts for no one (one 100 of a mega is enough: the user, 2026-11-20)"""
-    files = [newest(HERE, c) for c in pulls]
-    if not all(files):
-        sys.exit(f"no DialgaDex counters yet ({' and '.join(p for p, f in zip(pulls, files) if not f)}): "
-                 f"node {os.path.join(HERE, 'pull.mjs')}")
     out = {}
-    for data_f in files:
-        rm = Model(json.load(open(data_f)))
+    for rm in load_models(pulls):
         for b in rm.bosses:
             if not real_boss(b):
                 continue
@@ -513,10 +514,7 @@ def main():
     ap.add_argument("cmd", choices=("count", "report"))
     ap.add_argument("counts", nargs="?", help="count: carry on from this counts.json. report: which (default newest)")
     a = ap.parse_args()
-    data_path = newest(HERE, "dialgadex-counters-[0-9]*[0-9].json")  # (not a -test<n> pull)
-    if not data_path:
-        sys.exit("no counters yet: node pull.mjs")
-    model = Model(json.load(open(data_path)))
+    model = next(load_models(COUNTERS[:1]))  # (not a -test<n> pull)
     if a.counts and not os.path.exists(a.counts):  # (runs/... is under the skill folder)
         a.counts = os.path.join(HERE, a.counts)
     session.main(script, a, model)

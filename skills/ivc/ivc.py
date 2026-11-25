@@ -10,10 +10,10 @@ leader(s) if none is 15), then Elite TM move initials + *, then XXL / xxs. Anyth
 legendary/mythical/ultra beast/gym defender under 93% gets only the move and size parts, and NOPE if there are none. Max 12 characters. To fit: drop spaces from the right, then size -> ^,
 then initials -> * on the stat letters, then the space after the IV.
 """
-import json, os, re, sys
+import os, re, sys
 
 HERE = os.path.dirname(os.path.realpath(__file__))
-GM_PATH = os.path.join(HERE, "..", "shared", "gamemaster.json")
+SHARED = os.path.join(HERE, "..", "shared")
 NAME_LEN = 12
 SHOW_FROM = 93  # below this IV% (rounded) only shadows, luckies and legendaries show IV and stat letters
 PURIFY_FROM = 84  # shadow IV% (rounded) at which the purified IV% is shown
@@ -139,9 +139,11 @@ def read_name(name, shadow=False):
 
 
 def elite_moves(species):
-    gm = json.load(open(GM_PATH))
-    by_id = {p["speciesId"]: p for p in gm["pokemon"]}
-    names = {m["moveId"]: m["name"] for m in gm["moves"]}
+    if SHARED not in sys.path:  # (`ivc.py elite <id>` run on its own)
+        sys.path.insert(0, SHARED)
+    import pvp  # (here, not at the top: ivc.py's name rules need no game master)
+    by_id = pvp.SPECIES
+    names = {m["moveId"]: m["name"] for m in pvp.GM["moves"]}
     p = by_id.get(species) or by_id.get(re.sub(r"_shadow$", "", species))
     return [names.get(m, m) for m in (p or {}).get("eliteMoves") or []]
 

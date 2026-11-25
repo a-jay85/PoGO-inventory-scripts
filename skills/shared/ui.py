@@ -297,15 +297,14 @@ def ocr(path):
     # closed the whole Pokémon screen, over and over, and no search's count read: Pixel /dex, 2026-11-22)
     eggs_page = kind == "unknown" and any(re.search(r"/\s*\d+\s*km", t[4], re.I) for t in out)  # (the Eggs tab
     # under the banner reads as unknown: advsync's egg check stopped on 'couldn't open the Eggs tab', Pixel 2026-11-22)
-    if (kind == "list" or eggs_page) and gps_banner():
-        for word, box in (("TAGS", (0.0, 0.05, 0.5, 0.13)), ("EGGS", (0.55, 0.05, 1.0, 0.13))):
-            if not tab(out, word):  # (EGGS reads glued to the banner's own words: 'ound. (11) EGGS'. The word's box is
-                # its share of the line's, from the end: hatch's egg check stopped on 'couldn't open the Eggs tab')
-                for t in under_gps_banner(path, *box):
-                    s, i = t[4].strip(), t[4].strip().upper().rfind(word)
-                    if i >= 0 and len(s) - i - len(word) <= 1:
-                        tabs.append((t[0] + t[2] * i / len(s), t[1], t[2] * len(word) / len(s), t[3], word))
-                        break
+    if kind in ("unknown", "tag-tab") and gps_banner() and any("HAVE THIS TAG" in norm(t[4]) for t in out):
+        # the Tags tab under the banner: its header row didn't read, so POKÉMON had no box to tap (ivc stopped on
+        # 'found 0 matches for POKMON on tag-tab'), and with 2 tag rows read the screen was unknown (Pixel 2026-11-24)
+        tabs = banner_tabs(path, out, pokemon=True)
+        out = out + tabs
+        kind = classify(out)
+    elif (kind == "list" or eggs_page) and gps_banner():
+        tabs = banner_tabs(path, out)
         if not any(t[1] < 0.15 and re.search(r"\(\d", t[4]) for t in out):
             # (only the middle: across the whole width the banner's own '(11)' reads on the count's line)
             for t in under_gps_banner(path, 0.25, 0.06, 0.75, 0.13):
@@ -341,6 +340,29 @@ def ocr(path):
             # no YES or NO, its clock read 'З:44', and /cleantrades stopped on 'the power-up didn't show', 2026-11-19)
             return again + (tabs if not full_list(again) else []) + count
     return out
+
+
+def banner_tabs(path, texts, pokemon=False):
+    """the storage's TAGS and EGGS tab words the red GPS banner hid (not in texts), read from under it
+    (under_gps_banner), each its own box. pokemon: a POKÉMON box too, once TAGS and EGGS are both there: the banner's
+    'signal not found' sits right on POKÉMON and no crop or colour reads it (Pixel 2026-11-24), so it is placed
+    halfway between them on their row, its width from a clean read (POKÉMON 0.197 wide to TAGS 0.103), where the
+    tab always is (a clean Tags tab: TAGS 0.204, POKÉMON 0.498, EGGS 0.791). A tap there goes through the banner"""
+    found = []
+    for word, box in (("TAGS", (0.0, 0.05, 0.5, 0.13)), ("EGGS", (0.55, 0.05, 1.0, 0.13))):
+        if not tab(texts, word):  # (EGGS reads glued to the banner's own words: 'ound. (11) EGGS'. The word's box is
+            # its share of the line's, from the end: hatch's egg check stopped on 'couldn't open the Eggs tab')
+            for t in under_gps_banner(path, *box):
+                s, i = t[4].strip(), t[4].strip().upper().rfind(word)
+                if i >= 0 and len(s) - i - len(word) <= 1:
+                    found.append((t[0] + t[2] * i / len(s), t[1], t[2] * len(word) / len(s), t[3], word))
+                    break
+    tags, eggs = tab(texts + found, "TAGS"), tab(texts + found, "EGGS")
+    if pokemon and tags and eggs and not tab(texts, "POKMON"):
+        w = tags[2] * 1.9
+        mid = (center(tags)[0] + center(eggs)[0]) / 2
+        found.append((mid - w / 2, tags[1], w, tags[3], "POKÉMON"))
+    return found
 
 
 def orphan_names(texts):

@@ -11,7 +11,8 @@ Reads one JSON request a line on stdin, answers one JSON line on stdout:
                                     these three -> {"stale": "..."} if the screen changed during a pause: nothing was
                                     sent, look again
   {"op": "search", "q"}             type q into the open search panel's bar -> {"ok"}: the bar reads q
-  {"op": "restart"}                 force-close Pokémon GO and open it again (doesn't wait for it to load)
+  {"op": "restart"}                 force-close Pokémon GO and open it again (doesn't wait for it to load;
+                                    Android: waits until it's in front)
   {"op": "start", "run_dir"}        open Pokémon GO if it isn't, and wait until it's loaded -> {"screen"}
   {"op": "popup", "texts"}          close the box up on this screen if popups.py knows it -> {"closed": name or None}
   {"op": "unstick", "texts", "backs"}  one step out of a screen nobody knows (Android: Back; iPhone: reopen the game)
@@ -75,8 +76,7 @@ def ready():
 
 def restart():
     if ui.ANDROID:
-        pkg = ui.android.PKG
-        ui.android.shell(f"am force-stop {pkg}; monkey -p {pkg} -c android.intent.category.LAUNCHER 1")
+        home.android_restart(why="trade.py asked")  # (back once the game is in front: trade.loaded waits for the load)
         return
     # iPhone, through iPhone Mirroring's own shortcuts: cmd+2 the App Switcher, cmd+1 the home screen
     base.key("2", cmd=True)

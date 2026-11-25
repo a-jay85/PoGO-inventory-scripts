@@ -69,6 +69,7 @@ Android phone for the /pvpc and /ivc scripts
 - `sharp(path='/tmp/pvpc_android_sharp.png')`: the phone's own screenshot in the capture layout, 3x bigger, for small symbols ('!', '&')
 - `sharp_last(path='/tmp/pvpc_android_sharp.png')`: sharp() of the last capture()'s own screenshot: no new one
 - `capture(path)`
+- `game_in_front()`: Pokémon GO is the app in front
 - `ready(force=False)`: phone plugged in and awake, Pokémon GO in front
 - `to_px(x, y)`: Mac points (made from the latest capture's bounds) -> phone pixels
 - `has_motionevent()`
@@ -266,7 +267,7 @@ Start from anywhere: every script calls start() first, so the phone can be on an
 - `note_storage(texts)`
 - `press_text(texts, bounds, word, dy=0.0)`: tap a button by its label (exit dialog's CANCEL: not a target ui.plan knows), dy under its middle
 - `android_launch()`: Pokémon GO the app in front (opened if it wasn't)
-- `android_restart()`: force-stop the Pixel's game and open it again
+- `android_restart(why='the game takes no taps')`: force-stop the Pixel's game and open it again, back once it's in front (not loaded yet)
 - `keyboard_up()`
 - `iphone_open()`: the game in front on the iPhone, wherever its icon sits (dock, any page, a folder, the App Library): iPhone Mirroring's cmd+1 goes to the home screen, its Search pill …
 - `leave_scopely(texts)`: the Scopely Explore page (the profile's EXPLORE button opens it): Back does nothing there, its 'Return to Pokémon GO' link at the top goes back to the game

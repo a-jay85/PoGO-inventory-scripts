@@ -249,6 +249,12 @@ def capture(path):
 # ---------- getting ready ----------
 
 _checked = 0.0
+RESUMED = "dumpsys activity activities | grep -E 'ResumedActivity'"  # the app in front: PKG in its answer = the game
+
+
+def game_in_front():
+    """Pokémon GO is the app in front"""
+    return PKG in shell(RESUMED)
 
 
 def ready(force=False):
@@ -260,7 +266,7 @@ def ready(force=False):
         raise NotReady("phone not connected: plug it in, turn on USB debugging, and tap Allow on the phone "
                        "(unplugged: same Wi-Fi as the Mac, and plugged in once since it restarted, see adbwifi.py)")
     for attempt in range(2):
-        out = shell("dumpsys power | grep -m1 mWakefulness=; dumpsys activity activities | grep -E 'ResumedActivity'")
+        out = shell(f"dumpsys power | grep -m1 mWakefulness=; {RESUMED}")  # (one adb call for both)
         awake = "mWakefulness=Awake" in out
         if awake or attempt:
             break
@@ -268,14 +274,15 @@ def ready(force=False):
         time.sleep(1.5)
     if not awake:
         raise NotReady("phone screen is off")
-    if PKG not in out and os.path.exists(GPS_FILE):  # this run turned location off: Android's 'No location access'
+    front = PKG in out
+    if not front and os.path.exists(GPS_FILE):  # this run turned location off: Android's 'No location access'
         shell("input keyevent KEYCODE_BACK")  # box can come up over the game, once in a while (the Pixel, 2026-11-22:
         time.sleep(1.0)  # once in 4 turns). Back closes it, as its Close does
-        out = shell("dumpsys activity activities | grep -E 'ResumedActivity'")
-        if PKG in out:
+        front = game_in_front()
+        if front:
             import base
             base.log("  closed a box over the game (Android's 'No location access', most likely) with Back")
-    if PKG not in out:
+    if not front:
         raise NotReady("Pokémon GO isn't on the phone screen (locked, or another app is in front)")
     _checked = time.time()
 

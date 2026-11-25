@@ -706,7 +706,7 @@ One local timer for the scripts that run by themselves (gymfeed, hatch, goplus)
 - `main(a)`
 
 ## skills/shared/ui.py
-Screen reader + tap planner for /pvpc
+Screen reader + tap planner for every script, and the readers under the red GPS banner (gps_banner, under_gps_banner, banner_tabs: the storage's and the trainer screens' …
 
 - `class Refused`: a tap the script won't plan; message starts with REFUSED where it's a safety call
 - `class Moving`: screen still animating: try again in a moment
@@ -727,7 +727,7 @@ Screen reader + tap planner for /pvpc
 - `ocr_turned(path)`: the png's text read from a copy turned upside down, each box put back where it is on the png
 - `ocr_2x(path)`: OCR a 2x copy: it reads white on green (a GIV chip, YES) and upside-down lines the 1x read misses
 - `ocr(path)`: the png's text. A list with more tile CPs than names read: once more from a 2x copy, kept if it finds more tiles. A list with no TAGS or EGGS tab read: at 2x, kept if …
-- `banner_tabs(path, texts, pokemon=False)`: the storage's TAGS and EGGS tab words the red GPS banner hid (not in texts), read from under it (under_gps_banner), each its own box
+- `banner_tabs(path, texts, pokemon=False, tabs=STORAGE_TABS)`: tabs: (word, what of it reads, crop) each
 - `orphan_names(texts)`: a list's text lower than a CP label could hide under the search bar (y 0.38+), above the round buttons, that is no CP label and no tile name under one, 2+ in one row, …
 - `size_lost(texts)`: the units ('kg', 'm') whose value didn't read while the other's value or a WEIGHT / HEIGHT label did (the size row is on screen)
 - `header(texts)`: the POKÉMON header at the top reads (the trade picker has it with no TAGS or EGGS beside it: iPhone 2026-11-19 read it upside down, 'NOWĄYOd', and /trade stopped on 'the …
@@ -1091,7 +1091,7 @@ Evolve every free trade evolution tagged Evo, as fast as the game lets it
 - `drag(fy1, fy2, ms=500, x=None, settle=0.7)`: scroll by dragging from fy1 to fy2
 - `close()`: the X. No pause after it: every caller waits for the screen it opens (to_list won't X twice within 3 LAG)
 - `close_popup(*screens, timeout=6, also=())`: X on a gift or Lucky Trade popup over a friend page -> one of the screens
-- `trainer_tabs()`: the ME / FRIENDS / SOCIAL tabs are under the GPS banner: ME and SOCIAL's end read from under it (FRIENDS sits right under the banner's words and never does, Pixel …
+- `trainer_tabs()`: the ME / FRIENDS / SOCIAL tabs are under the GPS banner (ui.banner_tabs reads ME and SOCIAL from under it)
 - `count()`: the '(N)' under FRIENDS while a search is on
 - `search_line()`: the search box's text, when it's on screen (it scrolls away with the list)
 - `search_gone()`: the friend list's button row under the picture (ADD FRIEND, INVITE) shows only with no search on

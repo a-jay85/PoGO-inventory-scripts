@@ -341,11 +341,9 @@ def close_popup(*screens, timeout=6, also=()):
 # ---------- the friend list ----------
 
 def trainer_tabs():
-    """the ME / FRIENDS / SOCIAL tabs are under the GPS banner: ME and SOCIAL's end read from under it (FRIENDS sits
-    right under the banner's words and never does, Pixel 2026-11-25: 'ME', 'ound. (11) CIAL')"""
-    # (each tab its own small crop, as ui.banner_tabs does: wider ones lost ME or 'CIAL' to the banner's words)
-    return any(t[0] < 0.25 and ui.norm(t[4]) == "ME" for t in ui.under_gps_banner(path, 0.0, 0.06, 0.3, 0.13)) \
-        and any(t[0] + t[2] > 0.75 and ui.norm(t[4]).endswith("CIAL") for t in ui.under_gps_banner(path, 0.6, 0.06, 1.0, 0.13))
+    """the ME / FRIENDS / SOCIAL tabs are under the GPS banner (ui.banner_tabs reads ME and SOCIAL from under it)"""
+    found = ui.banner_tabs(path, texts, tabs=ui.TRAINER_TABS)
+    return all(ui.tab(texts + found, w) for w in ("ME", "SOCIAL"))
 
 
 def count():

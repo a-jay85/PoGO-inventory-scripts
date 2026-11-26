@@ -17,6 +17,8 @@ The skills import each other by relative path (`HERE/../shared`), so they must s
 
 What every file can do is mapped from the code by `codemap.py` (repo root): `.claude/rules/codemap.md` has one line per file and loads by itself when a script is read, and `skills/MAP.md` has every function with its arguments and comment. Before writing a helper (a level, a CP, a candy count, a search), grep `skills/MAP.md` for it: it is likely already in `skills/shared/`. After adding, renaming or removing a function, or changing a file's top comment, run `python3 codemap.py` and commit both maps.
 
+Facts many scripts share (the two accounts, the tags, what a trade pays, where the Pokémon database and the game master are) are in `.claude/rules/facts.md`, which always loads. A new fact that two or more skills need goes there. A fact only one skill needs goes in that skill's `.claude/rules/<skill>.md`. A lasting game fact or user rule goes in the repo, not in Claude's memory: memory is tied to the folder a session starts in, so worktree sessions never see it.
+
 A speed win found in one script goes to every script that does the same step, in the same PR or the next one, without the user asking. Before opening the PR, grep `skills/` for the same wait, read, search or loop. Best: move that step into `skills/shared/`, so one change reaches every script. If another script can't take the win, the PR body says why.
 
 A read that says something isn't there (no name, a grey icon, no X, 0 results, no date) may be a screen still loading. Look again with `base.settle(read, ok, timeout)` or `base.wait_for` before acting on it. Never tap or type to make it show up: the blank-search nudge did that and turned a real 0 into 1182 (#293).
@@ -43,7 +45,7 @@ A fix that needs a phone test, with the phone busy, never waits for the phone. O
 2. Enter it with `EnterWorktree(path=...)`. Don't `cd` into it.
 3. Commit, then push in a separate command. Never chain `git commit && git push`.
 4. Open a PR with `gh pr create`. Squash-merge only: `gh pr merge --squash --delete-branch`.
-   `merge_gate.py` (repo root, a hook in `.claude/settings.json`) checks every `gh pr merge` of this repo first, and blocks it with what to do. It runs every test below on the PR head. A PR that changes a `.py` under `skills/`, or `pogo.py`, `heal.py` or `watch.py`, needs a `watch.py` phone run, ended with exit 0, of the files as they are at the PR head. If one can't be done, a body line `No phone test: <why>`. Such a PR also needs a body line `Siblings: <what was checked, what it found>`. The gate lists the changed functions, their callers, and phone or account branches where only one side changed. It also lists the PR's changed lines that the phone run never reached. If most of them never ran, it blocks until the body has a line `Unreached: <why they can't be reached>`. A PR that changes a `.py` under `skills/` and talks about speed in its title or body ("faster", "fewer", "2.0 s -> 1.2 s") needs a body line `Speed elsewhere: <which other scripts got the same win, or why none can>`. The gate lists functions of the same name in other skills, which are likely copies. A PR that adds a function to a `.py` under `skills/` (outside `skills/shared/`) that looks like one `skills/shared/` already has (a name word in common, like `trainer_tabs` and `ui.banner_tabs`, or rare words in both comments, like "GPS banner") needs a body line `Shared checked: <for each new function: the look-alike and why it isn't a fit, or that it moved to shared>`. The gate lists each new function and its look-alikes. One that calls its look-alike passes. With no look-alikes, no line is needed. `python3 merge_gate.py <n>` runs the same checks by hand.
+   `merge_gate.py` (repo root, a hook in `.claude/settings.json`) checks every `gh pr merge` of this repo first, and blocks it with what to do. It runs the tests on the PR head. A PR that changes a `.py` under `skills/`, or `pogo.py`, `heal.py` or `watch.py`, needs a `watch.py` phone run of the PR head, ended with exit 0, or a body line `No phone test: <why>`. It may also ask for body lines (`Siblings:`, `Unreached:`, `Speed elsewhere:`, `Shared checked:`). When each one is needed: `.claude/rules/testing.md`. `python3 merge_gate.py <n>` runs the same checks by hand.
 5. Claude does this step itself and never hands it to the user. Leave the worktree (`ExitWorktree` with `keep`), pull the main checkout (above), then remove every merged worktree:
    `python3 ~/PoGO-inventory-scripts/wt_cleanup.py`
    It removes only worktrees whose PR merged, with nothing uncommitted and no process inside, and it saves their `runs/` folders to `~/claude-plans/_backups/worktree-runs/` first. It also sweeps leftovers from other sessions. `--dry-run` shows what it would do.
@@ -95,25 +97,7 @@ The repo is public. These stay local and are in `.gitignore`:
 
 ## Testing
 
-`python3 tests/readers.py` pins what every text reader says today (search-bar checks, result counts, name matchers), from OCR text alone. Run it after any change to one. It must say "all ... the same". If an answer changed on purpose, run `--record` and say which answers changed in the PR body.
-
-`python3 tests/layout.py` pins how the scripts find each other and their files: each script's names, the one shared copy of `run.py` (its run folder), where every run folder goes, and that every path and `module.name` the code uses exists. Run it after moving or renaming a file, or moving code between files. It must say "all ... the same". Same `--record` rule.
-
-`python3 tests/lints.py` pins four bad patterns that came back after fixes, from the code alone: a typed search that ends in a thin letter (`#IVC&xxl` reads back as `#IVC&xx`), a label lookup used with no None check (`tap_text(label(...))`), hand-rolled wait loops per function (use `base.settle` or `base.wait_for`), and hand-rolled "two reads in a row agree" loops (use `base.steady`). A new one fails with its file:line and what to do instead. Run it after any change under `skills/`. It must say "all ... the same". Same `--record` rule.
-
-`python3 tests/heal.py` checks `pogo.py`'s healing with a made-up failing step and a stand-in Claude. Run it after any change to `heal.py` or `pogo.py`.
-
-`python3 tests/timer.py` checks `skills/shared/timer.py`'s tick with a stand-in `adb` and made-up jobs: a phone out of reach turns its timers off. Run it after any change to `timer.py`. It must say "all timer cases right".
-
-`python3 tests/gate.py` checks `merge_gate.py` with a made-up repo and PR, a stand-in `gh` and made-up phone runs. Run it after any change to `merge_gate.py`, `watch.py` or `linetrace/sitecustomize.py`. It must say "all gate cases right".
-
-`python3 tests/verdicts.py` pins the final tag `verdict.py` gives made-up Pokémon. `python3 tests/taggers.py` runs the bulk taggers' searches (`tradeable.py tag`, `cleantrades.py`) over made-up Pokémon and checks they tag what `verdict.py` says. Run both after any change to a rule or a tag search.
-
-`python3 tests/codemap.py` checks both code maps match the code. Run it after any change to a `.py` under `skills/` or the repo root. It must say "all code maps the same". Out of date: `python3 codemap.py`, then commit both maps.
-
-`python3 tests/hundred.py` checks `dex.hundred_useful` (which forms a new 100% copy would help) on a made-up evolution tree. Run it after any change to it. It must say "all hundred cases right".
-
-`skills/cleanup/savedsearches.py` reads the saved searches off the Pixel and checks they hold the terms in `rules.SAVED`. Run it after changing one on the phone.
+Which test to run after which change, and what the merge gate asks for in a PR body: `.claude/rules/testing.md` (it loads when a `.py` is read).
 
 Nothing tests taps and timing off the phone. A change to how a skill reads or taps the phone isn't done until it has run on the phone, from its worktree, through `watch.py` (the merge gate looks for that run):
 `POGO_PHONE=android python3 <worktree>/watch.py caffeinate -dimsu python3 <worktree>/skills/pvpc/run.py --limit 1`. Claude starts it and watches it itself; no need to ask the user to watch.

@@ -1,6 +1,7 @@
 ---
 paths:
   - "**/*.py"
+  - "*.py"
   - "tests/**"
 ---
 # Tests and the merge gate

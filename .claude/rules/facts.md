@@ -28,5 +28,13 @@ This file has no `paths:`, so it loads in every session. It holds what many scri
 
 - The Pokémon database: `~/.config/pogo/pokemon.db` (SQLite, `skills/shared/pokedb.py`). Per account it has every Pokémon read (exact IVs, CP, HP, tags), Candy and Candy XL per family, Mega Energy, and the dex size records. Query it, and give the read date, before a phone search or saying "I don't know". `python3 skills/shared/pokedb.py candy [account]` lists Candy, XL and energy. `skills/shared/pokedb.sqlite` is an empty leftover.
 - The game master: `skills/shared/gamemaster.json` (PvPoke's). It has base stats, CP and HP, levels and evolutions. `skills/shared/pvp.py` reads it, and `skills/shared/rankings.json` has the PvP ranks. `python3 skills/shared/pvp.py update` downloads both again.
-- Raid counters: `skills/roster/dialgadex-counters-*.json`, pulled from DialgaDex (`skills/roster/roster.py`). The user's team names (Team Future, Ideal, Available, Potential) are in `.claude/rules/roster.md`.
+- Raid counters: `skills/roster/dialgadex-counters-*.json`, pulled from DialgaDex (`skills/roster/roster.py`).
 - Every function and its comment: `skills/MAP.md`. Grep it before writing a helper.
+
+## The user's raid team names
+
+- Team Future: DialgaDex's #1 mega and #1 other attacker per 4★+ boss, unreleased ones too (`roster.ideal_firsts()`). Same for every account.
+- Team Ideal: the same, only what's in GO today (`roster.ideal_firsts(roster.COUNTERS)`). When the user means "what to collect today", it's likely this one.
+- Team Available: one account's own copies at today's levels and IVs (`raidteam.py`, once team A).
+- Team Potential: the same copies, each at level 50 by its IVs (`raidteam.py`, once team B; `b50`, `no_team_b` in code).
+- More in `.claude/rules/roster.md`.

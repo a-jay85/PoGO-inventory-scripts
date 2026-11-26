@@ -18,8 +18,9 @@ A lucky one only /ivc can rank (verdict.lucky): anywhere else the door sends it 
 top IV is written to runs/lucky-out.json, so /pvpc's door knows that when the lucky rule sends it on to PvpC (else it
 would go back to IVC, round and round).
 """
-import hashlib, json, os, re, sys, time
+import datetime, hashlib, json, os, re, sys, time
 from collections import Counter
+from dataclasses import replace
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, HERE)
@@ -211,6 +212,12 @@ class Door:
         base.learn_ivs(sp, info["cp"], info["hp"], ivs, raws)
         f, why = self.facts(info, texts, sp, ivs, key(*tile), size, gym_top20, iv_top, tile[1], pure_top)
         v = vd.final_tag(f, self.tables) if not why else vd.unsure(why)
+        if v.kind == UNSURE and not why and "page" not in base.OPENED:  # the top alone wasn't enough: every rule
+            # that needs a bottom fact answers unsure while it's None, so the bottom is read and the rules asked again
+            f = replace(f, **self.page_facts(info, f.lucky, bottom=True))
+            v = vd.final_tag(f, self.tables)
+        elif "page" not in base.OPENED:
+            log(f"  door: page bottom not needed ({v.kind} {'+'.join(v.tags)})")
         if f.lucky and iv_top is False:
             ranked_out(self.account, sp, ivs)
         if hold and v.kind == "tag" and "Transfer" in v.tags:
@@ -260,8 +267,6 @@ class Door:
         near = [ui.norm(t[4]) for t in texts if hp[1] < t[1] < hp[1] + 0.3]
         chips = tagsheet.tag_chips_sure(texts, (*vd.OWN_TAGS, *vd.TRADE_TAGS, *vd.REMOTE_TAGS, *vd.IGNORED_TAGS,
                                                 self.tag, self.other or ""))  # before page_bottom scrolls down
-        page = self.page_bottom(info)
-        xl = self.said["xl_under"] if "xl_under" in self.said else self.xl_under(info)
         icons = tile_icons(info)
         said = lambda k, v: self.said.get(k, v)
         rows = [ui.norm(t[4]) for t in texts]
@@ -271,11 +276,10 @@ class Door:
         f = vd.Facts(evolves=can_evolve(texts), account=self.account, sids=list(sp), iv_sum=sum(ivs) if ivs else None,
                      ivs=tuple(ivs) if ivs else None, shiny=said("shiny", icons.get("shiny")),
                      costume=costume, favorite=favorite, background=said("background", icons.get("background")),
-                     traded=True if lucky else said("traded", page["traded"]), caught=page["caught"], shadow=base.is_shadow(texts),
-                     lucky=lucky,
+                     shadow=base.is_shadow(texts), lucky=lucky,
                      gigantamax="GIGANTAMAX" in near, dynamax="DYNAMAX" in near, size=size, kg=base.who(info)[2],
-                     candy_xl=None if xl is None else 0 if xl else XL_CAP, candy=page.get("candy"), xl=page.get("xl"),
-                     levels=self.levels(texts, info, sp, ivs, tile_cp), far=said("far", None if page["california"] is None else not page["california"]), gym_top20=gym_top20,
+                     **self.page_facts(info, lucky, bottom=False),
+                     levels=self.levels(texts, info, sp, ivs, tile_cp), gym_top20=gym_top20,
                      raid_team=raidteams.on_team(self.account, list(sp), base.is_shadow(texts), info["cp"] or tile_cp,
                                                  info["hp"], *base.who(info)[2:], iv_sum=sum(ivs) if ivs else None),
                      raid=self.has("raid", tile) if "raid" in self.sets else None,
@@ -287,21 +291,36 @@ class Door:
             log("  lucky: /ivc ranked it out of the top IV already")
         return f, ""
 
-    def xl_under(self, info):
-        """under 360 Candy XL (read on the way to the page bottom) -> bool or None"""
-        n = self.page_bottom(info)["xl"]
-        return None if n is None else n < XL_CAP
+    def page_facts(self, info, lucky, bottom):
+        """the Facts read off the page's bottom (traded, caught, far) and its counts (candy, xl, candy_xl), where the
+        scope (self.said) or a lucky one doesn't say them already. bottom False: only what shows without a drag (the
+        counts on the top screen, or the page bottom already known), the rest None. bottom True: page_bottom's read"""
+        page = self.page_bottom(info, drag=bottom)
+        said = lambda k, v: self.said.get(k, v)
+        under = said("xl_under", None if page["xl"] is None else page["xl"] < XL_CAP)
+        return dict(traded=True if lucky else said("traded", page["traded"]), caught=page["caught"],
+                    far=said("far", None if page["california"] is None else not page["california"]),
+                    candy_xl=None if under is None else 0 if under else XL_CAP, candy=page.get("candy"), xl=page.get("xl"))
 
-    def page_bottom(self, info):
+    def page_bottom(self, info, drag=True):
         """the bottom of the page, then back to the top: the caught date (two reads that agree), traded or not, and
-        the catch place in California or not -> {"caught", "traded", "california"}. Once per open (base.OPENED)"""
+        the catch place in California or not, and the counts -> {"caught", "traded", "california", "xl", "candy"}.
+        Once per open (base.OPENED). The database's record of this one, when it has all three, saves the drag, if the
+        counts showed on the top screen (a Dynamax one's Candy XL is a drag down). drag False: no drag, only what's
+        known without one (the rest None, and nothing kept: a later call drags)"""
         if "page" in base.OPENED:
             return base.OPENED["page"]
-        seen = ui._seen  # the detail page read just now, with no tap since, is the top (one look less)
-        if seen and seen[4] == "detail" and time.time() - seen[0] < 1.5:
-            _, path, texts, bounds, _ = seen
-        else:
-            _, texts, path, bounds = base.look()
+        top = top_counts(info)
+        known = saved_bottom(base.OPENED.get("who"))
+        counts = {"xl": top["xl"], "candy": top["candy"]}
+        if known and None not in counts.values():
+            log(f"  page bottom from the database: caught {known['caught']}, traded {known['traded']},"
+                f" California {known['california']}")
+            base.OPENED["page"] = {**known, **counts}
+            return base.OPENED["page"]
+        if not drag:
+            return {"caught": None, "traded": None, "california": None, **(known or {}), **counts}
+        texts, path, bounds = top["texts"], top["path"], top["bounds"]
         me = tagsheet.who(texts)[1]
         if not (me[3] and me[4]):  # a read as the page fades in can miss the height, or half the weight ('3kg' for
             # 41.18kg): back_to_top would never find that one again (2026-11-13). Look again, keep the last read
@@ -453,6 +472,37 @@ def dead_end(costume, sp, texts):
     if ev or costume is False:  # (an Evolve button: no dead end, whatever the costume search read)
         return False
     return None if costume is None or ev is None else True
+
+
+def top_counts(info):
+    """the open page's top screen and the counts on it, read once per open (base.OPENED): {"xl", "candy" (None: not
+    on the top screen), "texts", "path", "bounds"}. No database fallback here: page_bottom's drag reads what's missing"""
+    if "top" in base.OPENED:
+        return base.OPENED["top"]
+    seen = ui._seen  # the detail page read just now, with no tap since, is the top (one look less)
+    if seen and seen[4] == "detail" and time.time() - seen[0] < 1.5:
+        _, path, texts, bounds, _ = seen
+    else:
+        _, texts, path, bounds = base.look()
+    xl = pagefacts.candy_xl(texts)
+    if xl is None:
+        xl = pagefacts.candy_xl_close(path, texts)
+    base.remember_counts(texts, xl=xl)
+    base.OPENED["top"] = {"xl": xl, "candy": candy_owned(texts), "texts": texts, "path": path, "bounds": bounds}
+    return base.OPENED["top"]
+
+
+def saved_bottom(who):
+    """the page bottom's facts the database kept for this one (page_bottom's own reads, which never change):
+    {"caught", "traded", "california"}, or None when any of them isn't there"""
+    r = pokedb.record(who)
+    if not r or not r.get("caught") or r["flags"].get("traded") is None or r["flags"].get("california") is None:
+        return None
+    try:
+        caught = datetime.date.fromisoformat(r["caught"])
+    except ValueError:
+        return None
+    return {"caught": caught, "traded": bool(r["flags"]["traded"]), "california": bool(r["flags"]["california"])}
 
 
 def catch_date(texts):

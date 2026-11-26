@@ -6,6 +6,7 @@ here are made up too, so only the rules and their order are tested.
   python3 tests/verdicts.py --record   write verdicts.json from today's code (after a change you meant)
 """
 import datetime, json, os, sys
+from dataclasses import replace
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GOLD = os.path.join(ROOT, "tests", "verdicts.json")
@@ -379,7 +380,32 @@ TEAM_CASES = {  # (sids, shadow, cp, hp, kg, m[, iv_sum]) -> raidteams.on_team
 }
 
 
+BOTTOM = ("traded", "caught", "far")  # the facts off the page's bottom (door.page_facts)
+COUNTS = ("candy", "xl", "candy_xl")  # the counts: on the top screen, or (a Dynamax page) a drag down
+
+
+def top_only():
+    """the door asks the rules first with the page's bottom not read (and the counts too, for a Dynamax page), and
+    drags down only when that answer is unsure: so each answer without them must be unsure or the one with them"""
+    bad = []
+    for k, c in CASES.items():
+        f, t = c if isinstance(c, tuple) else (c, None)
+        full = answer(c)
+        for gone in (BOTTOM, BOTTOM + COUNTS):
+            g = replace(f, **{x: None for x in gone})
+            if f.lucky:
+                g = replace(g, traded=True)  # (the door knows a lucky one is traded without the bottom)
+            got = answer((g, t) if t else g)
+            if got[0] != "unsure" and got != full:
+                bad.append(f"{k} without {'/'.join(gone)}: {got[:2]}, with them {full[:2]}")
+    return bad
+
+
 def main():
+    if wrong := top_only():
+        print("\n".join(wrong))
+        print(f"{len(wrong)} answers made without the page's bottom differ from the answer with it")
+        return 1
     got = {k: answer(f) for k, f in CASES.items()}
     got |= {f"on_team: {k}": repr(raidteams.on_team("x", *a[:6], t=TEAMS, iv_sum=(a[6:] or [None])[0])) for k, a in TEAM_CASES.items()}
     got |= {"on_team: no count": repr(raidteams.on_team(None, ["rhyhorn"], False, 2000, 150))}

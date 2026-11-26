@@ -210,8 +210,8 @@ The door: a Pokémon /ivc, /pvpc or /ivc just found isn't a keeper gets its fina
   - `judge_open(self, i, n, c, **kw)`: open tile i of the list (the walk read it as name n, CP c), appraise it, find its species and judge it
   - `judge(self, info, texts, sp, ivs, tile, size=None, raws=None, gym_top20=None, clear=False, …)`: the open detail page of a Pokémon that isn't a keeper
   - `facts(self, info, texts, sp, ivs, tile, size, gym_top20=None, iv_top=None, tile_cp=None, …)`: -> (Facts, why not sure before any rule: '' when it's up to the rules)
-  - `xl_under(self, info)`: under 360 Candy XL (read on the way to the page bottom) -> bool or None
-  - `page_bottom(self, info)`: the bottom of the page, then back to the top: the caught date (two reads that agree), traded or not, and the catch place in California or not -> {"caught", "traded", …
+  - `page_facts(self, info, lucky, bottom)`: the Facts read off the page's bottom (traded, caught, far) and its counts (candy, xl, candy_xl), where the scope (self.said) or a lucky one doesn't say them already
+  - `page_bottom(self, info, drag=True)`: the bottom of the page, then back to the top: the caught date (two reads that agree), traded or not, and the catch place in California or not, and the counts -> …
   - `purify(self, info, v, sp=None)`: purify it (the verdict's tags go on after)
   - `levels(self, texts, info, sp, ivs, tile_cp)`: the levels the power-up cost fits
   - `iv_levels(self, sp, ivs, cp, hp, quiet=False)`: the level from the appraisal's IVs, CP and HP, when the power-up cost doesn't read
@@ -219,6 +219,8 @@ The door: a Pokémon /ivc, /pvpc or /ivc just found isn't a keeper gets its fina
 - `cost_levels(texts, cp)`: powerup.cost_levels(), once an open: the same one at the same CP again (OPENED's who: a power-up or a purify changes it) gets the first read that found levels, with no …
 - `can_evolve(texts)`: an Evolve button under Power Up on the detail page -> True; Power Up and the moves row under it but no Evolve between them -> False (a costume Piplup); that part of the …
 - `dead_end(costume, sp, texts)`: a costume one whose plain form evolves but it can't (verdict.dead_end): /pvpc and /ivc judge it as its own species only
+- `top_counts(info)`: the open page's top screen and the counts on it, read once per open (base.OPENED): {"xl", "candy" (None: not on the top screen), "texts", "path", "bounds"}. No database …
+- `saved_bottom(who)`: the page bottom's facts the database kept for this one (page_bottom's own reads, which never change): {"caught", "traded", "california"}, or None when any of them isn't …
 - `catch_date(texts)`: the page's bottom can show a date each for a trade, an egg received and the catch or hatch
 - `load_list()`
 - `add_to_list(e)`
@@ -374,6 +376,7 @@ A memory of each account's Pokémon, built from what the scripts already read
 - `matches(c, acct, who)`: the records this read could be: same weight and height to the hundredth, then CP and HP by same_pokemon
 - `seen(who, nickname=None, tags=None, **facts)`: a steady read of the detail page's top
 - `learn(who, **facts)`: more about a record already seen (species, ivs, caught, star, nickname, flags like traded or shiny)
+- `record(who)`: the one record of this run's account that a who() read is, as a dict with its flags read back into a dict, or None (no record yet, or twins that fit it)
 - `tagged(who, tags)`: the tags after set_tags checked them: Transfer among them deletes the record
 - `changed(before, after, **facts)`: the same Pokémon, its CP, HP, weight or height moved (power-up, purify, evolve): the record follows it
 - `gone(who, why)`: it left this account (traded away, transferred): delete its record

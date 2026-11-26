@@ -111,14 +111,18 @@ def fit_window():
     """the iPhone Mirroring window set to SIZE. -> the size it had before, or None if it was right already"""
     if ANDROID:
         return None
-    w, h = window()[3:]
+    x, y, w, h = window()[1:]
     if (round(w), round(h)) == SIZE:
         return None
     global _seen, _older
     _seen = _older = None  # a look from before the resize has the old boxes
+    # move it up by the height it lacks first: a window low on the screen has no room to grow and stays small
+    # (2026-11-25: 320 x 704 at y 735 stopped 3 runs). Its bottom stays where it was, so the new size fits
+    up = max(0, SIZE[1] - round(h))
+    move = f"set position of window 1 to {{{round(x)}, {round(y) - up}}}\n" if up else ""
     try:
-        sh("osascript", "-e", f'tell application "System Events" to tell process "iPhone Mirroring" '
-                              f'to set size of window 1 to {{{SIZE[0]}, {SIZE[1]}}}')
+        sh("osascript", "-e", f'tell application "System Events" to tell process "iPhone Mirroring"\n{move}'
+                              f'set size of window 1 to {{{SIZE[0]}, {SIZE[1]}}}\nend tell')
     except subprocess.CalledProcessError as e:
         raise Refused(f"can't set the iPhone Mirroring window to {SIZE[0]} x {SIZE[1]} (it's {w:.0f} x {h:.0f}): "
                       f"{(e.stderr or '').strip()[:120]}")

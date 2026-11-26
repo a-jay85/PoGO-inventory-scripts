@@ -102,13 +102,15 @@ def list_ended(ts):
     return bool(ts) and max(t[3] for t in ts) < LAST_ROW_ABOVE
 
 
-def walk_list(visit, limit=10 ** 9, stop=None, odd=None, passed=None, want=None):
+def walk_list(visit, limit=10 ** 9, stop=None, odd=None, passed=None, want=None, expect=None):
     """call visit(i, name, cp) on each tile of the open list once, top to bottom. visit returns True if the tile
     left the list (so it isn't counted as passed). Ends after END_AFTER_STALE scrolls with nothing new.
     stop(name): the list is past what's wanted. odd: see read_tiles. passed: {(name, CP): n} to pass over from the
-    start. want(name, cp): False passes a tile over. -> True if the list ran out"""
+    start. want(name, cp): False passes a tile over. expect: the game's count of the list: a list that looks done
+    before that many were visited gets one more drag. -> True if the list ran out"""
     passed, seen = Counter(passed), set()  # seen: CPs. At the bottom the list bounces and OCR reads names differently
     stale, done, skips = 0, 0, 0
+    dragged_at_end = False
     full = None  # started on the full Pokémon list (start_search's results), not a tag's list
     while done < limit:
         _, texts, path, bounds = wait_for("list")
@@ -136,8 +138,12 @@ def walk_list(visit, limit=10 ** 9, stop=None, odd=None, passed=None, want=None)
             if not list_ended(base.settle(reread, lambda r: not list_ended(r), timeout=1.5, gap=0.2)):
                 log("  more rows came in on a second look: the list hadn't ended")
                 continue
-            log("end of list (room for another row, none there)")
-            return True
+            if not (expect and done < expect and not dragged_at_end):
+                log("end of list (room for another row, none there)")
+                return True
+            # (Pixel 2026-11-26: 'end of list' at Fletchling, 102 of 402 walked, and 2 looks agreed)
+            log(f"  the list looks done at {done} of {expect}: one drag to be sure")
+            dragged_at_end = True
         if not pick:
             before = set(seen)
             global scrolled
@@ -149,6 +155,7 @@ def walk_list(visit, limit=10 ** 9, stop=None, odd=None, passed=None, want=None)
                 back_to_list()
                 continue
             stale = 0 if {t[1] for t in ui.tiles(texts)} - before else stale + 1
+            dragged_at_end = dragged_at_end and stale > 0  # new tiles: a later end gets its own drag
             if stale >= END_AFTER_STALE:
                 log("end of list")
                 return True

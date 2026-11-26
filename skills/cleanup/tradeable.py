@@ -1136,10 +1136,10 @@ def door_walk(suffix, limit, who, shortcut=SHORTCUT, gone=None):
             judged.add((n, c))
         return left
 
-    def walk(part):  # one part of the pile (door.walk_parts): its search says traded or not, and the catch date's age
+    def walk(part, n):  # one part of the pile (door.walk_parts): its search says traded or not, and the catch date's age
         nonlocal gate
         gate = part
-        search.walk_list(visit, stop=lambda n: counts["opened"] >= limit)
+        search.walk_list(visit, stop=lambda _: counts["opened"] >= limit, expect=n)
         return counts["opened"] >= limit
 
     count = lambda terms: savedsearch.run_shortcut(shortcut, f"{suffix}&{terms}" if terms else suffix)

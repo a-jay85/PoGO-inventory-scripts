@@ -127,10 +127,10 @@ def cmd_again(tag, limit, owner=TAKER, narrow=""):
         log(f"again {tag}: the game counts {n} in {q}")
         return n
 
-    def walk(part):  # one part of the pile (door.walk_parts): its search says traded or not, and the catch date's age
+    def walk(part, n):  # one part of the pile (door.walk_parts): its search says traded or not, and the catch date's age
         nonlocal gate
         gate = part
-        search.walk_list(visit, stop=lambda n: counts["opened"] >= limit)
+        search.walk_list(visit, stop=lambda _: counts["opened"] >= limit, expect=n)
         return counts["opened"] >= limit
 
     door.walk_parts(gate, count(""), count, walk, limit)

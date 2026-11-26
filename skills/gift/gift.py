@@ -233,7 +233,12 @@ def look():
         texts, path = t, p  # classify() reads them
         return classify()
 
+    global blipped
     s, _, _, bounds = base.look(where, remember=False)
+    if ui.gps_banner_solid() and time.time() - blipped > BLIP_GAP:
+        blipped = time.time()  # (the banner hides friend names and the list's tabs: every friend was skipped)
+        if session.gps_blip():
+            s, _, _, bounds = base.look(where, remember=False)
     return s
 
 
@@ -245,6 +250,8 @@ def wait(*screens, timeout=10):
 
 
 TAP_REST = 0.03  # after a tap: a moment only, as the wait after it looks for the next screen (was 0.25-0.4 s)
+BLIP_GAP = 60  # seconds between two tries at taking the solid GPS banner off (session.gps_blip)
+blipped = 0.0  # when the last try was
 NAME_WAIT = 3.0  # seconds a friend page may take to show its trainer name
 ICON_WAIT = 5.0  # seconds a friend the list shows as able to take a gift may take to colour their SEND GIFT icon
 POLL = 0.1  # iPhone: seconds between two looks while waiting for a screen (a look takes 0.1-0.3 s; was 0.4)

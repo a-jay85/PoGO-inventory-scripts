@@ -379,6 +379,26 @@ def game_in_front():
     return ui.android.game_in_front()
 
 
+GPS_BLIP_WAIT = 10  # seconds the game gets to drop its 'Failed to detect location' banner once location is on
+
+
+def gps_blip():
+    """the game's solid 'Failed to detect location. (12)' banner (ui.gps_banner_solid) comes after some minutes with
+    location off, stays, and hides what's under it. Location on takes it off in ~4 s, and with location off again
+    it stayed gone (Pixel, 2026-11-26). Only when this run turned location off (gps_off). -> True if it went"""
+    if not ui.ANDROID or not os.path.exists(ui.android.GPS_FILE):
+        return False
+    t0 = time.time()
+    ui.android.shell("cmd location set-location-enabled true")
+    up = base.settle(lambda: (ui.ocr(ui.capture()[0]), ui.gps_banner())[1], lambda up: not up,
+                     timeout=GPS_BLIP_WAIT, gap=0.5)
+    ui.android.shell("cmd location set-location-enabled false")
+    close_location_box()
+    log(f"  the 'Failed to detect location' banner {'stayed' if up else 'went'} with location on for a moment "
+        f"({time.time() - t0:.1f}s)")
+    return not up
+
+
 def close_location_box():
     """Android's own 'No location access' box (Close / Turn on location) comes up over the game right after location
     goes off, and taps meant for the game stop on it ('Pokémon GO isn't on the phone screen', Pixel 2026-11-22).

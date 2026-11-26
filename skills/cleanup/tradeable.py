@@ -1141,7 +1141,7 @@ def door_walk(suffix, limit, who, shortcut=SHORTCUT, gone=None):
 
     count = lambda terms: savedsearch.run_shortcut(shortcut, f"{suffix}&{terms}" if terms else suffix)
     if whole := count(""):
-        door.walk_parts(gate, whole, count, walk)
+        door.walk_parts(gate, whole, count, walk, limit)
     return counts
 
 

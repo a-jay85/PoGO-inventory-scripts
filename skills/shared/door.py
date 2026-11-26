@@ -47,6 +47,8 @@ OLD_DAYS = int(re.search(r"\d+", rules.OLD_AGE).group())
 TRADED_SPLITS = (("traded", True), ("!traded", False))
 AGE_SPLITS = ((rules.LUCKY_YEAR[1:], "lucky"), (f"year{Y1 + 1}-{rules.OLD_AGE}", "old"),  # (the tag searches' terms)
               (f"year{Y1 + 1}-&age-{OLD_DAYS - 1}", "new"))
+DRAG_S, SEARCH_S = 9, 10  # (seconds) a drag to the page's bottom and back (door.md), one typed search counted
+TOP_SETTLES = 0.5  # the share of a pile its parts let the top screen judge (tests/verdicts.py: 142 of 259)
 UNSURE = "unsure"
 EMPTY = []  # (account, a scope's terms, term): the game counted 0 for that search this run. A scope with all of those
 # terms and more (#IVC&590 after #IVC) can only be empty too, so it isn't typed. Only an empty answer is kept: a tile
@@ -513,15 +515,20 @@ def dead_end(costume, sp, texts):
     return None if costume is None or ev is None else True
 
 
-def walk_parts(gate, whole, count, walk):
-    """walk gate's pile in its parts (Door.splits). whole: the game's count of the pile. count(terms): type the pile's
-    search & terms ('' = the pile alone) -> the game's count. walk(part door): walk the list on screen -> True when
-    the run's limit is reached. Parts that don't add up to the whole (a term the game reads another way) aren't
-    believed: the pile is walked whole, as before"""
-    parts, typed = gate.splits(), None
+def walk_parts(gate, whole, count, walk, limit=None):
+    """walk gate's pile in its parts (Door.splits). whole: the game's count of the pile, still on screen. count(terms):
+    type the pile's search & terms ('' = the pile alone) -> the game's count. walk(part door): walk the list on screen
+    -> True when the run's limit is reached. limit: how many the run opens at most. Parts that don't add up to the
+    whole (a term the game reads another way) aren't believed: the pile is walked whole, as before. A pile too small
+    for its parts' searches to pay back in drags saved is walked whole too"""
+    parts, typed = gate.splits(), ""
+    n = min(whole or 0, limit or whole or 0)
+    if len(parts) > 1 and n * DRAG_S * TOP_SETTLES < len(parts) * SEARCH_S:
+        log(f"door: {n} to open, {len(parts)} parts' searches cost more than the drags they'd save: walked whole")
+        parts = [("", gate)]
     if len(parts) > 1:
         got = {}
-        for terms, _ in reversed(parts):  # (backwards: the first part to walk is the last one typed)
+        for terms, _ in parts:
             got[terms] = count(terms)
             typed = terms
         log(f"door: {whole} in the pile, in parts {got}")
@@ -529,9 +536,7 @@ def walk_parts(gate, whole, count, walk):
             log(f"door: the parts add up to {sum(n or 0 for n in got.values())}, not {whole}: walked whole")
             parts = [("", gate)]
         else:
-            parts = [p for p in parts if got[p[0]]]
-    else:
-        typed = ""
+            parts = sorted((p for p in parts if got[p[0]]), key=lambda p: p[0] != typed)  # the one on screen first
     for terms, part in parts:
         if terms != typed:
             count(terms)

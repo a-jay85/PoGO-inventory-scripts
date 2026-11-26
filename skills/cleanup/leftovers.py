@@ -133,7 +133,7 @@ def cmd_again(tag, limit, owner=TAKER, narrow=""):
         search.walk_list(visit, stop=lambda n: counts["opened"] >= limit)
         return counts["opened"] >= limit
 
-    door.walk_parts(gate, count(""), count, walk)
+    door.walk_parts(gate, count(""), count, walk, limit)
     log(f"again {tag}, through the door: {dict(counts)}")
     return counts
 

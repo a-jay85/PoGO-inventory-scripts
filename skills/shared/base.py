@@ -169,12 +169,17 @@ def zoomed_badge(path, texts):
 def look(where=None, remember=True):
     """capture and OCR the screen. -> (screen, texts, path, bounds). where(path, texts): the screen's name (default
     ui.classify, the storage screens; home.where and dex.where know more). remember: keep it for ui.plan() (/gift
-    never taps a named button, so it skips that). Each look's capture and OCR seconds go to RUN_DIR/steps.txt"""
+    never taps a named button, so it skips that). Each look's capture and OCR seconds go to RUN_DIR/steps.txt.
+    Android's battery saver box is closed here (popups.battery_saver), and the screen looked at again"""
     t0 = time.time()
     path, bounds = ui.capture()
     t1 = time.time()
     texts = ui.ocr(path)
     texts += zoomed_badge(path, texts)
+    # Android's own battery saver box at 10% can come up over any screen, in any loop: close it here, once for all
+    # of them, and look again (Pixel 2026-11-26: over a detail page, back_to_top read None 12 times and stopped)
+    if popups.battery_saver(texts) and popups.clear(texts, bounds):
+        return look(where, remember)
     if remember:
         ui.remember(path, texts, bounds)
     screen = where(path, texts) if where else ui.classify(texts)

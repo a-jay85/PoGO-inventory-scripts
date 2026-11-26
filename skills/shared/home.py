@@ -448,6 +448,10 @@ def reach(storage):
             # was on a friend's page; its words changed between looks, so it waited there 150 s and stopped)
         elif screen == "unknown" and (step := through_hatch(texts, bounds, hatched)) is not None:
             hatched = step
+        elif screen == "unknown" and (storage or opened) and pages.step_out(texts, bounds):
+            pass  # another script's page: its way out now. (The wait for a still screen below never ended on a
+            # friend's friendship meter, its top line changing every look: 150 s, then a stop, iPhone 2026-11-26.
+            # Not for a game already up with no storage wanted: /trade goes on from its own pages, as below)
         elif screen == "unknown" and storage and search.sort_menu(texts):  # a stop left the sort menu up (a slow
             log("  the sort menu is open: closing it")                 # iPhone opened it after giving up)
             search.click(search.SORT_BUTTON[0], search.SORT_BUTTON[1], bounds)  # its X sits where the button was

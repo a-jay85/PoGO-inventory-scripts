@@ -170,6 +170,7 @@ The shared tapper: screen reading, taps, timing, run folders and logging, and th
 - `remember(info, texts)`: this steady read of the page's top goes into the database (pokedb): no tap, no look
 - `remember_counts(texts, xl=None)`: the page's Candy, Candy XL and Mega Energy into the database, kept per family (pokedb.counts_seen)
 - `short(s)`: for comparing two reads of a name: OCR adds or drops spaces and dots, reads O as 0 ('84 A 0*' is '84 AO*') and * as " ('84 A 0"')
+- `turned_over(a, b)`: one name is the other read upside down, give or take a letter: the iPhone's tile read of Yungoos CP579 as 'soo8un1•', 'sooun•', 'soosun•' five times in a row (/pvpc, …
 - `opened_right(info, tile_name, tile_cp)`: the detail is the tile that was tapped: same CP, and one name starts the other (tiles cut long names)
 - `open_checked(i, tile_name, tile_cp, name_ok=False)`: open tile i and check the detail is the one that was tapped (opened_right) -> (info, texts, path)
 - `is_shadow(texts)`

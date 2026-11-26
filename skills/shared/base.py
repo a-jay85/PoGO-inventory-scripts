@@ -3,7 +3,7 @@
 tags, star, rename) every skill's script uses. One copy in memory per run: scripts `import base`, so all of
 them share one RUN_DIR and one last_tap. /pvpc's own walk is ../pvpc/run.py.
 """
-import contextlib, json, math, os, random, re, shutil, subprocess, sys, time, unicodedata
+import contextlib, difflib, json, math, os, random, re, shutil, subprocess, sys, time, unicodedata
 from collections import Counter
 
 from PIL import Image, ImageOps
@@ -1408,6 +1408,23 @@ def short(s):
     return re.sub(r"[·•]+$", "", s).lower()
 
 
+# what OCR makes of a letter turned upside down -> the letter ('Yungoos' upside down reads 'soo8un1')
+TURNED = str.maketrans({"u": "n", "n": "u", "6": "g", "8": "g", "9": "g", "ƃ": "g", "b": "q", "q": "b", "d": "p",
+                        "p": "d", "1": "y", "λ": "y", "ʎ": "y", "w": "m", "m": "w", "ɯ": "m", "e": "a", "ɐ": "a",
+                        "y": "h", "ɥ": "h", "ɔ": "c", "ə": "e", "ɹ": "r", "ʇ": "t", "ʞ": "k", "ı": "i"})
+
+
+def turned_over(a, b):
+    """one name is the other read upside down, give or take a letter: the iPhone's tile read of Yungoos CP579
+    as 'soo8un1•', 'sooun•', 'soosun•' five times in a row (/pvpc, 2026-11-26), the Pixel's page read of Machop
+    as 'doyew' (2026-11-20 to 23)"""
+    a, b = short(a), short(b)
+    if min(len(a), len(b)) < 4:
+        return False
+    up = lambda s: s[::-1].translate(TURNED)
+    return max(difflib.SequenceMatcher(None, up(a), b).ratio(), difflib.SequenceMatcher(None, a, up(b)).ratio()) >= 0.75
+
+
 CP_LOOKS = 6  # looks at the CP when the read is the tile's CP with its end missing
 
 
@@ -1438,6 +1455,9 @@ def opened_right(info, tile_name, tile_cp):
     same = lambda name: any(a and b and (a.startswith(b) or b.startswith(a))
                             for f in fixes for a in [f(name)] for b in map(f, (tile_name or "").split("•")))
     if same(info["name"]):
+        return True
+    if info["cp"] == tile_cp and tile_name and info["name"] and turned_over(tile_name, info["name"]):
+        log(f"  tile said {tile_name!r}, the page's {info['name']!r} read upside down (same CP): going by the page")
         return True
     if ui.ANDROID and tile_name:  # the big name can misread in the small picture (Machop's as 'doyew', upside down,
         try:  # run after run, 2026-11-20 to 23): the full-size one reads it

@@ -445,8 +445,9 @@ def cyrill_species(m):
     """CyrillJan's pile, judged for HashTagAJay. Reroll: a strong line (strong_lines, the same rule as HashTagAJay's
     pile), or a new copy would be in HashTagAJay's own top 6 against some raid boss (roster.json: #1 or #2-#6).
     CyrillJan trades only to HashTagAJay, so a Reroll is only for a 100 HashTagAJay still needs (the user, 2026-11-20):
-    a place won only as a mega counts for nothing (one 100 is enough there: the ★100% hole rule's GIV), and a family
-    HashTagAJay holds REROLL_ENOUGH 100s of gets none. Either can still get 2XL or GIV (candy, distance, ...)
+    a place won only as a mega counts for nothing (one 100 is enough there: the ★100% hole rule's Reroll), and a family
+    HashTagAJay holds REROLL_ENOUGH 100s of gets no strong-line or raid-attacker Reroll. Either can still get a Reroll
+    from the ★100% hole, PvP, lucky-family or REROLL_FOR_TAKER rules, or 2XL or GIV (candy, distance, ...)
     -> {"why": {sid: (tag, why)}, "lucky": {sid: gender term},
     "evolved": {sid: why}, "xl_full": {dex}, "from": {what: file}}. Shared by plan and ../shared/verdict.py"""
     lucky_missing, lucky_run = dex.latest("lucky", TAKER)  # (an evolve-lucky run counts too)

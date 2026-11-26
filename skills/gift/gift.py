@@ -1797,8 +1797,9 @@ def open_one(row, done, anytime):
     return opened(name, nick, t0)
 
 
-LIMIT_WORDS = re.compile(r"LIMIT|TOMORROW|MORE GIFTS|CAN.?T OPEN|CANNOT OPEN")  # the daily open limit: a pink pill in
-# the middle of the screen, over the friend page (iPhone 2026-11-25, its words not read yet)
+LIMIT_WORDS = re.compile(r"DAILY LIMIT|LIMIT REACHED|TOMORROW TO OPEN|LIMIT|MORE GIFTS|CAN.?T OPEN|CANNOT OPEN")  # the daily
+# open limit: a pink pill in the middle, over the friend page: 'Daily limit reached. Come back tomorrow to open more |
+# Gifts.' (iPhone 2026-11-25). Nothing gets past it till the day resets
 
 
 def opened(name, nick, t0):

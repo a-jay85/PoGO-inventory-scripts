@@ -234,6 +234,17 @@ def ios_update(texts):
     return ui.center(hit) if hit and ("NOT INSTALLED" in j or "TRY AGAIN LATER" in j) else None
 
 
+def stop_photos(texts):
+    """a PokéStop's photo page: its name across the top left, its photo in the middle, '2 PHOTOS' bottom right and the
+    round X bottom middle. A late tap that landed on the map opens it (iPhone, 2026-11-26: /gift stopped on '24 Hour
+    Fitness', and opening the game again came back to it). The photo's own text reads different each time: never
+    used. -> the X"""
+    photos = any(re.fullmatch(r"\d*\s*PHOTOS?", ui.norm(t[4])) and t[0] > 0.6 and t[1] > 0.88 for t in texts)
+    title = any(t[0] < 0.2 and 0.09 < t[1] < 0.2 and any(c.isalpha() for c in t[4]) for t in texts)
+    return base.X_BUTTON if photos and title and len(texts) <= 10 \
+        and not any("SEARCH" in ui.up(t) for t in texts) else None
+
+
 # name, where its tap goes, what the log says, seconds the box takes to go
 BOXES = (
     ("trade box", trade_ok, "a trade's box is up ({}): tapping OK", 1.5),
@@ -258,6 +269,7 @@ BOXES = (
     ("mirroring welcome", mirroring_welcome, "iPhone Mirroring's welcome page is up: tapping Not Now", 2.0),
     ("ios update", ios_update, "iOS's 'update not installed' box is up: tapping OK", 1.0),
     ("battery saver", battery_saver, "Android asks to turn on Extreme Battery Saver: tapping No thanks", 1.0),
+    ("stop photos", stop_photos, "a PokéStop's photo page is up (a tap landed on the map): its X", 1.5),
 )
 
 

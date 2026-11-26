@@ -384,6 +384,15 @@ BOTTOM = ("traded", "caught", "far")  # the facts off the page's bottom (door.pa
 COUNTS = ("candy", "xl", "candy_xl")  # the counts: on the top screen, or (a Dynamax page) a drag down
 
 
+def age_of(caught):
+    """the catch-date bucket door.SPLITS' searches give a date (verdict.AGES)"""
+    if caught is None:
+        return None
+    if v.LUCKY_YEARS[0] <= caught.year <= v.LUCKY_YEARS[1]:
+        return "lucky"
+    return "old" if (TODAY - caught).days >= v.OLD_DAYS else "new"
+
+
 def top_only():
     """the door asks the rules first with the page's bottom not read (and the counts too, for a Dynamax page), and
     drags down only when that answer is unsure: so each answer without them must be unsure or the one with them"""
@@ -391,13 +400,15 @@ def top_only():
     for k, c in CASES.items():
         f, t = c if isinstance(c, tuple) else (c, None)
         full = answer(c)
-        for gone in (BOTTOM, COUNTS, BOTTOM + COUNTS):
-            g = replace(f, **{x: None for x in gone})
+        split = {"traded": f.traded, "age": age_of(f.caught), "caught": None, "far": None}  # (door.SPLITS' walk)
+        for gone in (BOTTOM, COUNTS, BOTTOM + COUNTS, split, {**split, **dict.fromkeys(COUNTS)}):
+            g = replace(f, **(gone if isinstance(gone, dict) else dict.fromkeys(gone)))
             if f.lucky:
                 g = replace(g, traded=True)  # (the door knows a lucky one is traded without the bottom)
             got = answer((g, t) if t else g)
-            if got[0] != "unsure" and got != full:
-                bad.append(f"{k} without {'/'.join(gone)}: {got[:2]}, with them {full[:2]}")
+            same = (lambda r: r[:3] + r[4:]) if isinstance(gone, dict) else (lambda r: r)  # (a bucket's why says less)
+            if got[0] != "unsure" and same(got) != same(full):
+                bad.append(f"{k} without {'/'.join(x for x in gone if (gone[x] is None if isinstance(gone, dict) else 1))}: {got[:2]}, with them {full[:2]}")
     return bad
 
 

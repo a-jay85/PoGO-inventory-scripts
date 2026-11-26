@@ -1775,6 +1775,7 @@
  "skills/shared/door.py": {
   "copies": {},
   "names": [
+   "AGE_SPLITS",
    "Counter",
    "Door",
    "EMPTY",
@@ -1784,14 +1785,18 @@
    "LUCKY_OUT",
    "LUCKY_OUT_DAYS",
    "NOT_SURE",
+   "OLD_DAYS",
    "RAID",
    "RULES",
    "SAID",
    "SEARCHES",
    "Stop",
+   "TRADED_SPLITS",
    "UNDER_360_XL",
    "UNSURE",
    "XL_CAP",
+   "Y0",
+   "Y1",
    "add_to_list",
    "can_evolve",
    "candy_owned",
@@ -1813,6 +1818,7 @@
    "tile_icons",
    "top_counts",
    "vd",
+   "walk_parts",
    "was_ranked_out"
   ],
   "runs": [
@@ -2868,6 +2874,7 @@
  "skills/shared/verdict.py": {
   "copies": {},
   "names": [
+   "AGES",
    "ALWAYS_KEEP",
    "COSTLY_DEX",
    "COSTLY_ENOUGH",
@@ -2900,6 +2907,7 @@
    "XL_CAP",
    "_TABLES",
    "canon",
+   "caught_when",
    "costume_93",
    "costume_fav",
    "cyrill_short",

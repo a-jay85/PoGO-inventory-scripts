@@ -18,7 +18,7 @@ A lucky one only /ivc can rank (verdict.lucky): anywhere else the door sends it 
 top IV is written to runs/lucky-out.json, so /pvpc's door knows that when the lucky rule sends it on to PvpC (else it
 would go back to IVC, round and round).
 """
-import datetime, hashlib, json, os, re, sys, time
+import copy, datetime, hashlib, json, os, re, sys, time
 from collections import Counter
 from dataclasses import replace
 
@@ -40,6 +40,13 @@ RAID = "mythical&raid"  # a mythical caught in a raid can't be traded (verdict.s
 # (2026-10-31: traded and the catch place off the page's bottom, Candy XL off its top, shiny and background off the tile)
 SAID = {"traded": "traded", "shiny": "shiny", "background": "background", "far": "distance100-",
         "xl_under": UNDER_360_XL[1:]}  # a scope that already says one of these (#Nope&traded) is believed over the page
+Y0, Y1 = rules.LUCKY_YEARS
+OLD_DAYS = int(re.search(r"\d+", rules.OLD_AGE).group())
+# a pile walked in parts (Door.splits), each part's search telling the door what the page's bottom would: traded or
+# not, and which of verdict.AGES its catch date is in. Ranges only, no !year or !age (SEARCH.md: ! is ignored on some)
+TRADED_SPLITS = (("traded", True), ("!traded", False))
+AGE_SPLITS = ((f"year{Y0}-{Y1}", "lucky"), (f"year{Y1 + 1}-&age{OLD_DAYS}-", "old"),
+              (f"year{Y1 + 1}-&age-{OLD_DAYS - 1}", "new"))
 UNSURE = "unsure"
 EMPTY = []  # (account, a scope's terms, term): the game counted 0 for that search this run. A scope with all of those
 # terms and more (#IVC&590 after #IVC) can only be empty too, so it isn't typed. Only an empty answer is kept: a tile
@@ -103,6 +110,7 @@ class Door:
         if not self.source:  # a saved search's pile (tradeable.door_walk): its terms too (Leftovers: !mythical)
             said |= set(rules.SAVED.get(self.account, {}).get(tag, ()))
         self.said = {k: term in said for k, term in SAID.items() if term in said or "!" + term in said}
+        self.terms = said
         empty = lambda term: self.source and any(a == self.account and t == term and wide <= said for a, wide, t in EMPTY)
         searches = dict(SEARCHES)
         dexes = search.dexes_of(self.scope)
@@ -153,6 +161,34 @@ class Door:
                 log(f"door: gym list {dex}: {len(got)} read, the game says {want}")
                 if want is not None and len(got) == want:  # (else: those come out not sure)
                     GYM_TILES[self.account, dex] = got
+
+    def splits(self):
+        """the pile in parts, each part's search saying what the page's bottom would (TRADED_SPLITS, AGE_SPLITS), so
+        more Pokémon are judged off the page's top alone -> [(terms to add to the scope's search, a door that
+        believes them)]. One part with no terms: the scope can't be split. A traded one isn't split by age: no rule asks its catch date.
+        !traded is believed only with a catch after LUCKY_YEARS: the game's traded misses trades before Oct 2020"""
+        age = lambda x: re.fullmatch(r"!?(age|year)\S*", x)
+        if any(map(age, self.terms)):  # the scope picks its own ages: new ones only (Leftovers' age0-7) or can't say
+            ages = [("", "new" if any((m := re.fullmatch(r"age(?:\d*-)?(\d+)", x)) and int(m[1]) < OLD_DAYS
+                                      for x in self.terms) else None)]
+        else:
+            ages = AGE_SPLITS
+        traded = [("", None)] if "traded" in self.said else TRADED_SPLITS
+        out = []
+        for tt, tv in traded:
+            for at, av in [("", None)] if tv else ages:
+                known = {"age": av} if av else {}
+                if tv is not None and (tv or av in ("old", "new")):
+                    known["traded"] = tv
+                out.append(("&".join(x for x in (tt, at) if x), self.narrow(known)))
+        return out
+
+    def narrow(self, known):
+        """this door for a part of its pile whose search says known ({"traded": bool, "age": a verdict.AGES key}):
+        the same searches, the same lists"""
+        part = copy.copy(self)
+        part.said = {**self.said, **known}
+        return part
 
     def gym_rank(self, sp, cp, ivs, shadow):
         """top 20 of its species? None: not a gym defender, its list didn't read, or can't tell"""
@@ -298,7 +334,7 @@ class Door:
         page = self.page_bottom(info, drag=bottom)
         said = lambda k, v: self.said.get(k, v)
         under = said("xl_under", None if page["xl"] is None else page["xl"] < XL_CAP)
-        return dict(traded=True if lucky else said("traded", page["traded"]), caught=page["caught"],
+        return dict(traded=True if lucky else said("traded", page["traded"]), caught=page["caught"], age=said("age", None),
                     far=said("far", None if page["california"] is None else not page["california"]),
                     candy_xl=None if under is None else 0 if under else XL_CAP, candy=page.get("candy"), xl=page.get("xl"))
 
@@ -472,6 +508,34 @@ def dead_end(costume, sp, texts):
     if ev or costume is False:  # (an Evolve button: no dead end, whatever the costume search read)
         return False
     return None if costume is None or ev is None else True
+
+
+def walk_parts(gate, whole, count, walk):
+    """walk gate's pile in its parts (Door.splits). whole: the game's count of the pile. count(terms): type the pile's
+    search & terms ('' = the pile alone) -> the game's count. walk(part door): walk the list on screen -> True when
+    the run's limit is reached. Parts that don't add up to the whole (a term the game reads another way) aren't
+    believed: the pile is walked whole, as before"""
+    parts, typed = gate.splits(), None
+    if len(parts) > 1:
+        got = {}
+        for terms, _ in parts:
+            got[terms] = count(terms)
+            typed = terms
+        log(f"door: {whole} in the pile, in parts {got}")
+        if whole is None or None in got.values() or sum(got.values()) != whole:
+            log(f"door: the parts add up to {sum(n or 0 for n in got.values())}, not {whole}: walked whole")
+            parts = [("", gate)]
+        else:
+            parts = [p for p in parts if got[p[0]]]
+            parts.sort(key=lambda p: p[0] != typed)  # the one still on screen first
+    else:
+        typed = ""
+    for terms, part in parts:
+        if terms != typed:
+            count(terms)
+        typed = None
+        if walk(part):
+            return
 
 
 def top_counts(info):

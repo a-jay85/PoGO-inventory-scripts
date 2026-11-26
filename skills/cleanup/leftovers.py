@@ -121,9 +121,19 @@ def cmd_again(tag, limit, owner=TAKER, narrow=""):
                 json.dump(memo, fh)
         return not stays
 
-    _, texts, _ = search.start_search(scope)
-    log(f"again {tag}: the game counts {search.result_count(texts)} in {scope}")
-    search.walk_list(visit, stop=lambda n: counts["opened"] >= limit)
+    def count(terms):
+        q = f"{scope}&{terms}" if terms else scope
+        n = search.result_count(search.start_search(q)[1])
+        log(f"again {tag}: the game counts {n} in {q}")
+        return n
+
+    def walk(part):  # one part of the pile (door.walk_parts): its search says traded or not, and the catch date's age
+        nonlocal gate
+        gate = part
+        search.walk_list(visit, stop=lambda n: counts["opened"] >= limit)
+        return counts["opened"] >= limit
+
+    door.walk_parts(gate, count(""), count, walk)
     log(f"again {tag}, through the door: {dict(counts)}")
     return counts
 

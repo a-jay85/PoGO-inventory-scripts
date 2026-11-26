@@ -203,6 +203,8 @@ The door: a Pokémon /ivc, /pvpc or /ivc just found isn't a keeper gets its fina
 - `candy_owned(texts)`: the family's Candy count on this page, or None (taps.owned's read)
 - `class Door`
   - `read_gym_lists(self, find)`: one search for any gym species in the pile (usually none), then the whole list of each one there
+  - `splits(self)`: the pile in parts, each part's search saying what the page's bottom would (TRADED_SPLITS, AGE_SPLITS), so more Pokémon are judged off the page's top alone -> [(terms to …
+  - `narrow(self, known)`: this door for a part of its pile whose search says known ({"traded": bool, "age": a verdict.AGES key}): the same searches, the same lists
   - `gym_rank(self, sp, cp, ivs, shadow)`: top 20 of its species? None: not a gym defender, its list didn't read, or can't tell
   - `has(self, k, tile)`: a search whose count didn't match (a long list read 57 for 55): a tile read in it is in it, one not read could be a tile it missed -> None
   - `renamed(self, old, new)`: a tile renamed after the searches (/ivc's LOOK): it's in the same ones under its new name
@@ -219,6 +221,7 @@ The door: a Pokémon /ivc, /pvpc or /ivc just found isn't a keeper gets its fina
 - `cost_levels(texts, cp)`: powerup.cost_levels(), once an open: the same one at the same CP again (OPENED's who: a power-up or a purify changes it) gets the first read that found levels, with no …
 - `can_evolve(texts)`: an Evolve button under Power Up on the detail page -> True; Power Up and the moves row under it but no Evolve between them -> False (a costume Piplup); that part of the …
 - `dead_end(costume, sp, texts)`: a costume one whose plain form evolves but it can't (verdict.dead_end): /pvpc and /ivc judge it as its own species only
+- `walk_parts(gate, whole, count, walk)`: walk gate's pile in its parts (Door.splits)
 - `top_counts(info)`: the open page's top screen and the counts on it, read once per open (base.OPENED): {"xl", "candy" (None: not on the top screen), "texts", "path", "bounds"}. No database …
 - `saved_bottom(who)`: the page bottom's facts the database kept for this one (page_bottom's own reads, which never change): {"caught", "traded", "california"}, or None when any of them isn't …
 - `catch_date(texts)`: the page's bottom can show a date each for a trade, an egg received and the catch or hatch
@@ -836,6 +839,7 @@ The final tag for a Pokémon that just fell short of a keeper, judged right wher
 - `dead_end(f, sid)`: a costume one whose plain form evolves, but it can't (no Evolve button): judged as its own species only, for raids and PvP (the user, 2026-11-02)
 - `odd_one(f, t, sid, odd, today)`: an untraded shadow, costume or background one (the user's rules, 2026-10-29; 360+ Candy XL, 2026-10-30)
 - `shadow_transfer(f, sid, why, today, purify=False)`: a shadow's Transfer (the user, 2026-11-08): a catch date that would get GuaranteedLucky or Old gets that tag instead, and it isn't purified (the user purifies by hand)
+- `caught_when(f, today)`: (caught in LUCKY_YEARS?, OLD_DAYS+ ago?, how to say it) from the date read off the page, else from the walk's search (Facts.age)
 
 ## skills/cleanup/cleantrades.py
 Cleanup after trading: tag the saved searches, power up the Clean Trades ones that cross an XL tier, tag them Transfer

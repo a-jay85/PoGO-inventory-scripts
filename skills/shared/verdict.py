@@ -86,6 +86,7 @@ from rules import EVO, EVO_FOR, TRADE_EVOS, COSTLY_LINES, COSTLY_ENOUGH  # trade
 TO = {GIVER: TAKER, TAKER: GIVER}
 OLD_DAYS = int(re.search(r"\d+", rules.OLD_AGE).group())
 LUCKY_YEARS = rules.LUCKY_YEARS
+AGES = {"lucky": (True, True), "old": (False, True), "new": (False, False)}  # Facts.age -> (lucky year, old)
 # GIV (medal), from rules.py's MEDALS: dex -> (size it needs, or None; fits(kg); the kg range that reads right)
 MEDALS = {min(search.dexes_of(q)): (("xxs", "xs") if "xxs,xs" in q else None, fits, rules.MEDAL_KG[name])
           for name, q, fits in rules.MEDALS}
@@ -114,6 +115,7 @@ class Facts:
     ivs: tuple = None  # (attack, defense, HP), for what purifying would make it
     traded: bool = None
     caught: datetime.date = None
+    age: str = None  # no date read: what the walk's search said of its catch date (door.SPLITS): one of AGES
     gender: str = None  # 'male', 'female', or '' for a genderless one
     shiny: bool = False  # shiny, costume, background: None = its search failed
     lucky: bool = False
@@ -278,9 +280,8 @@ def usual(f, t, today=None):
         return unsure(f"{', '.join(odd)} special trade: by hand")
     if f.costume and (v := costume_fav(f, sid, kinds, strip)):  # (before the special trades and Transfer)
         return v
-    if f.caught is None:
+    if f.caught is None and f.age is None and not f.traded:  # (a traded one's rules never ask its catch date)
         return unsure("catch date not read")
-    old = (today - f.caught).days >= OLD_DAYS
 
     # special trades (the user, 2026-11-19): star off, name back to the default
     if f.gigantamax:
@@ -309,8 +310,9 @@ def usual(f, t, today=None):
         return tag("Transfer", why="traded: can't trade again", off=strip)
     if to == GIVER and sid in t.get("by_hand", ()):  # (before Old: an old regional is still the user's to tag)
         return unsure("regional or Spinda: likely a special trade, by hand")
-    if LUCKY_YEARS[0] <= f.caught.year <= LUCKY_YEARS[1]:
-        return tag("GuaranteedLucky", why=f"untraded, caught {f.caught.year}: lucky once traded")
+    lucky_year, old, when = caught_when(f, today)
+    if lucky_year:
+        return tag("GuaranteedLucky", why=f"untraded, {when}: lucky once traded")
 
     if "missing" in t:
         return unsure(f"no species lists for {to}: {t['missing']}")
@@ -325,7 +327,7 @@ def usual(f, t, today=None):
         if not g or g == f.gender:
             return tag("Luckydex", why=why[1])
     if old:
-        return tag("Old", why=f"untraded, caught {(today - f.caught).days} days ago")
+        return tag("Old", why=f"untraded, {when}")
     if f.size is None:
         return unsure("size not read")
 
@@ -619,11 +621,24 @@ def shadow_transfer(f, sid, why, today, purify=False):
     v = transfer(f, sid, why, purify=purify)
     if v.tags != ("Transfer",):
         return v
-    if LUCKY_YEARS[0] <= f.caught.year <= LUCKY_YEARS[1]:
-        return tag("GuaranteedLucky", why=f"shadow, caught {f.caught.year}: lucky once purified and traded (else {why})")
-    if (today - f.caught).days >= OLD_DAYS:
-        return tag("Old", why=f"shadow, caught {(today - f.caught).days} days ago (else {why})")
+    lucky_year, old, when = caught_when(f, today)
+    if lucky_year:
+        return tag("GuaranteedLucky", why=f"shadow, {when}: lucky once purified and traded (else {why})")
+    if old:
+        return tag("Old", why=f"shadow, {when} (else {why})")
     return v
+
+
+def caught_when(f, today):
+    """(caught in LUCKY_YEARS?, OLD_DAYS+ ago?, how to say it) from the date read off the page, else from the walk's
+    search (Facts.age). Only an untraded one is asked, and usual() said unsure when neither is known"""
+    if f.caught is not None:
+        days = (today - f.caught).days
+        lucky = LUCKY_YEARS[0] <= f.caught.year <= LUCKY_YEARS[1]
+        return lucky, days >= OLD_DAYS, f"caught {f.caught.year}" if lucky else f"caught {days} days ago"
+    lucky, old = AGES[f.age]
+    return lucky, old, (f"caught {LUCKY_YEARS[0]}-{LUCKY_YEARS[1]}" if lucky else f"caught {OLD_DAYS}+ days ago"
+                        if old else f"caught under {OLD_DAYS} days ago")
 
 
 if __name__ == "__main__":

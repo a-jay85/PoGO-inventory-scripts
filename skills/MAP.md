@@ -163,7 +163,7 @@ The shared tapper: screen reading, taps, timing, run folders and logging, and th
 - `set_star(on)`: favorite (on) or not
 - `same_name(got, want)`: OCR mangles the v in Pvp (Pyp, PУp, PvP): be loose on the first three letters only
 - `clear_name(ok=lambda g: bool(g) and (not re.match('P\\S?p ?[LGU]|\\d', g)))`: blank the nickname: the game shows the species name again
-- `field_text()`
+- `field_text()`: the nickname box's text
 - `leave_rename(button, name=None, same=same_name)`: after typing, the first tap only ends editing: tap again until the dialog closes
 - `do_rename(name, same=same_name)`: same(read, wanted): how loosely the OCR of the name may match (each skill's names misread their own way)
 - `steady_detail()`: the screen slides in: wait for two reads that agree

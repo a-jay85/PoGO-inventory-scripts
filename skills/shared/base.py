@@ -1285,8 +1285,15 @@ def clear_name(ok=lambda g: bool(g) and not re.match(r"P\S?p ?[LGU]|\d", g)):
 
 
 def field_text():
+    """the nickname box's text. A blank read is read again 3x bigger: after the first OK tap the box loses focus and
+    its paler text can read as nothing at 1x ('Pvp L76' read '' on the Pixel, 2026-11-25; 3x read it)"""
     _, texts, _, _ = wait_for("rename")
-    return ui.nickname_field(texts)[4].strip()
+    got = ui.nickname_field(texts)[4].strip()
+    if not got:
+        big = sharp_again() if ui.ANDROID else ui.ocr(ui.sharp())
+        if any(norm.startswith("SET NICKNAME") for norm in (ui.norm(t[4]) for t in big)):
+            got = ui.nickname_field(big)[4].strip()
+    return got
 
 
 def leave_rename(button, name=None, same=same_name):

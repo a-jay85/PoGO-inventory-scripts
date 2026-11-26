@@ -9,7 +9,7 @@ Whatever is on the main checkout's `main` branch is what runs on the phone.
 - Never edit the main checkout (`~/PoGO-inventory-scripts`) directly. That covers code, docs and config, however small the change.
 - After a PR merges, update the main checkout or the live scripts never see the change:
   `git -C ~/PoGO-inventory-scripts pull --ff-only`
-- Don't pull while a script is running on the phone. Python has already loaded the old files, but a skill that imports another one mid-run gets a mix.
+- Pull right after the merge, even while a script is running on the phone. Don't wait for the run, don't set up a job to wait for it, and don't mention the pull in the reply unless it fails.
 
 The skills import each other by relative path (`HERE/../shared`), so they must stay siblings under `skills/`.
 

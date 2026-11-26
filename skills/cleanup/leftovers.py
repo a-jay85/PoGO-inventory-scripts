@@ -21,7 +21,7 @@ opened once and gets its final tag at the door (../shared/door.py, ../shared/ver
   > GIV (one that can Dynamax, while this account has 1,000 Candy or less, or 360 + one Max Move's Candy XL or less) > Transfer
 The species lists are tradeable.py's hashtag_species() (data: tradeable.py refresh).
 
-Leftovers is the user's: '!4*&!3*&!#&!favorite&!shiny&!lucky&!shadow&!legendary&!mythical&!ultrabeasts&!pvp&!age0-7
+Leftovers is the user's: '!4*&!3*&!#&!favorite&!shiny&!lucky&!shadow&!legendary&!mythical&!ultrabeasts&!pvp&age0-7
 &!xxl&!gigantamax' (read off the iPhone 2026-11-16, !gigantamax added 2026-11-19). Its !# and !favorite drop each
 one judged (a tag or a star) out of it. --limit N stops after N opened.
 

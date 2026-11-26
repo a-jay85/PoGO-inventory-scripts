@@ -16,7 +16,7 @@ paths:
 - Never run on the iPhone yet: multi-select and swipe; the sizes.py sweep on HashTagAJay.
 
 ## leftovers / specieswise
-- The Leftovers saved search (read off the iPhone; the user can't copy it): `!4*&!3*&!#&!favorite&!shiny&!lucky&!shadow&!legendary&!mythical&!ultrabeasts&!pvp&!age0-7&!xxl`.
+- The Leftovers saved search (read off the iPhone; the user can't copy it): `!4*&!3*&!#&!favorite&!shiny&!lucky&!shadow&!legendary&!mythical&!ultrabeasts&!pvp&age0-7&!xxl`. `age0-7` keeps it to the last 8 days of catches: older ones were kept on purpose (the user, 2026-11-26).
 - HashTagAJay trades away only what helps another, less developed account. It has 360+ XL for most species.
 - Regionals not from San Francisco (`rules.SF_NATIVE` lists the ones that are) and Spinda go on the not-sure list; the user tags them by hand.
 - Open: shadows are still skipped in the "#1 vs a boss" check (the user didn't pick). Claude chose "whole line, any IV" for gym-defender lines; the user may want it tighter.

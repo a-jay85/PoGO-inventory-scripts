@@ -6,6 +6,7 @@ here are made up too, so only the rules and their order are tested.
   python3 tests/verdicts.py --record   write verdicts.json from today's code (after a change you meant)
 """
 import datetime, json, os, sys
+from dataclasses import replace
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GOLD = os.path.join(ROOT, "tests", "verdicts.json")
@@ -345,6 +346,7 @@ def answer(f):
 
 
 import raidteams  # noqa: E402
+import door  # noqa: E402
 
 TEAMS = {"bars": {"rhyhorn": 1500, "rhyhorn|shadow": 1400, "pidgey": None},  # made up: a count's teams.json
          "copies": [{"species": ["rhyhorn"], "shadow": False, "cp": 2000, "hp": 150, "kg": 110.5, "m": 1.02,
@@ -379,7 +381,49 @@ TEAM_CASES = {  # (sids, shadow, cp, hp, kg, m[, iv_sum]) -> raidteams.on_team
 }
 
 
+BOTTOM = ("traded", "caught", "far")  # the facts off the page's bottom (door.page_facts)
+COUNTS = ("candy", "xl", "candy_xl")  # the counts: on the top screen, or (a Dynamax page) a drag down
+
+
+def part_said(f):
+    """what the door walk's part (door.Door.splits, on a pile whose search says nothing of trades or ages) that f is in
+    tells the door instead of the page's bottom. f's traded or catch date not known: nothing"""
+    class Pile:
+        terms, said = {"#giv"}, {}
+        narrow = lambda self, known: known
+    age = f.caught and v.age_of(f.caught, TODAY)
+    for terms, known in door.Door.splits(Pile()):
+        if f.traded is not None and ("traded" in terms.split("&")) == f.traded and known.get("age", age) == age:
+            break
+    else:
+        known = {}
+    return {"traded": known.get("traded"), "age": known.get("age"), "caught": None, "far": None}
+
+
+def top_only():
+    """the door asks the rules first with the page's bottom not read (and the counts too, for a Dynamax page), and
+    drags down only when that answer is unsure: so each answer without them must be unsure or the one with them"""
+    bad = []
+    for k, c in CASES.items():
+        f, t = c if isinstance(c, tuple) else (c, None)
+        full = answer(c)
+        split = part_said(f)
+        for gone in (BOTTOM, COUNTS, BOTTOM + COUNTS, split, {**split, **dict.fromkeys(COUNTS)}):
+            g = replace(f, **(gone if isinstance(gone, dict) else dict.fromkeys(gone)))
+            if f.lucky:
+                g = replace(g, traded=True)  # (the door knows a lucky one is traded without the bottom)
+            got = answer((g, t) if t else g)
+            same = (lambda r: r[:3] + r[4:]) if isinstance(gone, dict) else (lambda r: r)  # (a bucket's why says less)
+            if got[0] != "unsure" and same(got) != same(full):
+                bad.append(f"{k} without {'/'.join(x for x in gone if (gone[x] is None if isinstance(gone, dict) else 1))}: {got[:2]}, with them {full[:2]}")
+    return bad
+
+
 def main():
+    if wrong := top_only():
+        print("\n".join(wrong))
+        print(f"{len(wrong)} answers made without the page's bottom differ from the answer with it")
+        return 1
     got = {k: answer(f) for k, f in CASES.items()}
     got |= {f"on_team: {k}": repr(raidteams.on_team("x", *a[:6], t=TEAMS, iv_sum=(a[6:] or [None])[0])) for k, a in TEAM_CASES.items()}
     got |= {"on_team: no count": repr(raidteams.on_team(None, ["rhyhorn"], False, 2000, 150))}

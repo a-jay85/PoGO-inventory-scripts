@@ -283,6 +283,25 @@ def learn(who, **facts):
 
 
 @_guard
+def record(who):
+    """the one record of this run's account that a who() read is, as a dict with its flags read back into a dict, or
+    None (no record yet, or twins that fit it). Reads only: last_seen stays"""
+    who = _fingerprint(who)
+    acct = account()
+    if not who or not acct:
+        return None
+    c = connect()
+    if c is None:
+        return None
+    row = _one(c, acct, who, "record")
+    if row is None:
+        return None
+    got = dict(row)
+    got["flags"] = json.loads(got["flags"] or "{}")
+    return got
+
+
+@_guard
 def tagged(who, tags):
     """the tags after set_tags checked them: Transfer among them deletes the record"""
     who = _fingerprint(who)

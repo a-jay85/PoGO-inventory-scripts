@@ -1013,8 +1013,10 @@ def search_box(texts):
         # a lone number there with no TAGS / EGGS tabs: the map's friend row ('Me' over '10', 2026-11-03), not a bar.
         # A temperature too: the iPhone home screen's weather widget ('52°', 2026-11-23: read as the list, a whole
         # run dragged and tapped the home screen for 6 min instead of opening the game)
+        # The map's catch counter too, a Poké Ball and '11/35' ('1O 11/35', Pixel 2026-11-26: account.py's way to Sign
+        # Out took the map for the list and stopped). No search has a '/'
         if not (tab(texts, "TAGS") or tab(texts, "EGGS")):
-            hits = [t for t in hits if not re.fullmatch(r"\d+\s*°?\s*[FC]?", t[4].strip())]
+            hits = [t for t in hits if not re.fullmatch(r"\d+\s*°?\s*[FC]?|(\S{1,2}\s+)?\d+\s*/\s*\d+", t[4].strip())]
     return hits[0] if len(hits) == 1 else None
 
 

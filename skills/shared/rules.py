@@ -100,8 +100,9 @@ SAVED = {GIVER: {CLEAN: ("traded", "!3*", "!4*", "!favorite", "!#"),
          TAKER: {CLEAN: ("traded", "!3*", "!4*", "!favorite", "!#"),
                  "IV Check": ("4*,3*", "!favorite", "!#"),
                  "PvpC1": (), "PvpC2": (),
-                 "Leftovers": ("!favorite", "!mythical", "!gigantamax", "!#")}}  # (leftovers.py: any tag or star takes
-# one out of it. No mythical or Gigantamax: the door types no mythical&raid search, the walk adds nothing, 2026-11-19)
+                 "Leftovers": ("!favorite", "!mythical", "!gigantamax", "!#", "age0-7")}}  # (leftovers.py: any tag or
+# star takes one out of it. No mythical or Gigantamax: the door types no mythical&raid search, the walk adds nothing,
+# 2026-11-19. age0-7, this week's catches (the user, 2026-11-26): the door splits it by traded only, all new)
 
 
 

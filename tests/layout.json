@@ -1379,12 +1379,12 @@
    "member_key",
    "name_copy",
    "name_pass",
-   "newest",
    "open_tiles",
    "piles_in_order",
    "read_copy",
    "real_boss",
    "report",
+   "same_limit",
    "script",
    "sorted_tiles",
    "squash",
@@ -1398,7 +1398,8 @@
    "write_json"
   ],
   "runs": [
-   "skills/roster/runs"
+   "skills/roster/runs",
+   "skills/roster/runs/*-raidteam/copies.json"
   ]
  },
  "skills/roster/roster.py": {

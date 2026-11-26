@@ -180,15 +180,19 @@ case "ocr":
     for l in ocr(args[2]) { print(l) }
 case "ocrd":
     // the same, kept running: one png path per line in, its lines out, then "." alone. Starting a helper
-    // and Vision for each read cost ~1 s more than the read itself
+    // and Vision for each read cost ~1 s more than the read itself. Each read in its own autorelease pool: with
+    // no run loop nothing else drains one, and every read's images stayed (~2 MB a read: 2.4 GB in one iPhone
+    // run, while both phones ran, 2026-11-26). With the pool it stays at ~170 MB
     setvbuf(stdout, nil, _IOLBF, 0)
     while let path = readLine() {
-        if path.hasPrefix("capture ") {
-            print(capture(String(path.dropFirst(8))))
-        } else {
-            for l in ocr(path) { print(l) }
+        autoreleasepool {
+            if path.hasPrefix("capture ") {
+                print(capture(String(path.dropFirst(8))))
+            } else {
+                for l in ocr(path) { print(l) }
+            }
+            print(".")
         }
-        print(".")
     }
 case "mouse":
     let p = CGEvent(source: nil)!.location

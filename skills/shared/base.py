@@ -1269,14 +1269,19 @@ def clear_name(ok=lambda g: bool(g) and not re.match(r"P\S?p ?[LGU]|\d", g)):
     with changing("clearing the name"):
         tap("field")
         time.sleep(0.3)
-        for _ in range(2):
+        for attempt in range(2):
+            if attempt:  # the field's tap can miss the keyboard, so no key lands: tap it again, as do_rename does
+                tap("field")  # (iPhone /ivc, 2026-11-26: '93 all' stayed through both tries)
+                time.sleep(0.5)
             key("a", cmd=True)
             key("delete")
             if not settle(field_text, lambda g: not g, timeout=1.5):
                 break
         else:
+            shown = field_text()  # read before CANCEL: after it the box is gone
+            keep_capture("rename")
             leave_rename("CANCEL")
-            raise Stop(f"couldn't empty the nickname box (it shows {field_text()!r})")
+            raise Stop(f"couldn't empty the nickname box (it shows {shown!r})")
         leave_rename("OK")
         got = settle(detail_name, ok)
         if not ok(got):

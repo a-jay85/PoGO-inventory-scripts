@@ -1797,15 +1797,17 @@ def open_one(row, done, anytime):
     return opened(name, nick, t0)
 
 
-LIMIT_WORDS = re.compile(r"LIMIT|TOMORROW|MORE GIFTS|CAN.?T OPEN|CANNOT OPEN")  # the daily open limit's box (not seen yet)
+LIMIT_WORDS = re.compile(r"LIMIT|TOMORROW|MORE GIFTS|CAN.?T OPEN|CANNOT OPEN")  # the daily open limit: a pink pill in
+# the middle of the screen, over the friend page (iPhone 2026-11-25, its words not read yet)
 
 
 def opened(name, nick, t0):
     """tap OPEN on the box from name and wait for their page -> "opened". The box goes, the screen is blank while the
-    items fly (about 5 s, iPhone 2026-11-25), then the friend page shows by itself"""
+    items fly (about 5 s, iPhone 2026-11-25), then the friend page shows by itself. At the game's daily open limit the
+    box goes straight back to the friend page (under 1 s, no blank, no items) with a pink pill over it: Done"""
     o = label("OPEN", 0.7, 0.95)
     tap_text(o) if o else tap(0.44, 0.85, fuzz=0.004)
-    w0, st = time.time(), {"retapped": False, "said": set(), "lucky": False}
+    w0, st = time.time(), {"retapped": False, "said": set(), "lucky": False, "went": False}
 
     def step():
         s = look()
@@ -1815,10 +1817,12 @@ def opened(name, nick, t0):
             close_popup("giftpopup", "friend")
             close_popup("friend")
             raise Done("the item bag is full: make space, then open the rest")
-        if s != "friend" and LIMIT_WORDS.search(j):  # (on every look: the box may show over the fading gift box)
+        st["went"] |= s not in ("giftpopup", "friend")  # the box went: blank, or the items flying in
+        if LIMIT_WORDS.search(j):  # (on every look, the friend page too: the pill shows over it)
             keep_capture("open_limit")
             log(f"  after OPEN: {s}: {summary()}")
-            close()
+            if s != "friend":
+                close()
             raise Done(f"the game's daily gift limit: {summary()}")
         if s != "friend" and "LUCKY" in j and not st["lucky"]:  # (a lucky friend's own page says '• Lucky Friend •':
             # read as a new one, Pixel 2026-11-25)
@@ -1841,6 +1845,12 @@ def opened(name, nick, t0):
         return s
 
     if base.settle(step, lambda s: s == "friend", 25, gap=0.5) == "friend":
+        if not st["went"]:  # straight back with nothing opened: the daily limit's pill (iPhone 2026-11-25: 3 friends
+            # logged as opened this way). Look a moment more for its words, for the log; it fades by itself
+            keep_capture("open_limit")
+            base.settle(step, lambda s: False, 2, gap=0.4)  # (step raises Done if it reads them)
+            raise Done(f"{name}'s gift box closed with nothing opened: the game's daily gift limit, likely "
+                       f"(the pill not read: {summary()})")
         lucky = " (lucky!)" if st["lucky"] else ""
         log(f"{name} ({nick}): opened their gift{lucky} ({time.time() - t0:.0f}s)")
         return "opened"

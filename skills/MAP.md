@@ -1086,6 +1086,7 @@ Evolve every free trade evolution tagged Evo, as fast as the game lets it
 - `summary()`
 - `classify()`
 - `look()`: run.look with gift's own screens, kept in the module globals texts/path/bounds (run.look writes steps.txt)
+- `unbanner(solid=True)`: the last look had the GPS banner over what it needs (solid: only the solid 'Failed to detect location' one): take it off with location on for a moment …
 - `wait(*screens, timeout=10)`: run.wait_for with gift's screens: a Refused look is raised, no capture kept (as gift always had it)
 - `tap(fx, fy, fuzz=0.008, rest=None)`: rest: seconds to wait after the tap (default TAP_REST)
 - `tap_text(t, dy=0.0, rest=None)`

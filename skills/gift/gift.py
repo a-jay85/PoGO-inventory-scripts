@@ -233,13 +233,20 @@ def look():
         texts, path = t, p  # classify() reads them
         return classify()
 
-    global blipped
     s, _, _, bounds = base.look(where, remember=False)
-    if ui.gps_banner_solid() and time.time() - blipped > BLIP_GAP:
-        blipped = time.time()  # (the banner hides friend names and the list's tabs: every friend was skipped)
-        if session.gps_blip():
-            s, _, _, bounds = base.look(where, remember=False)
+    if unbanner():  # (the solid banner hides the list's tabs and count: 6 scrolls read as unknown, Pixel 2026-11-26)
+        s, _, _, bounds = base.look(where, remember=False)
     return s
+
+
+def unbanner(solid=True):
+    """the last look had the GPS banner over what it needs (solid: only the solid 'Failed to detect location' one):
+    take it off with location on for a moment (session.gps_blip), at most once per BLIP_GAP. -> True if it went"""
+    global blipped
+    if not (ui.gps_banner_solid() if solid else ui.gps_banner()) or time.time() - blipped <= BLIP_GAP:
+        return False
+    blipped = time.time()
+    return session.gps_blip()
 
 
 def wait(*screens, timeout=10):
@@ -1350,6 +1357,11 @@ def whose_page(row, done):
         if poll_until(page_name, NAME_WAIT):
             log(f"  the name showed after {time.time() - w0:.1f}s")
         name = page_name()
+    if not name and unbanner(solid=False):
+        # either GPS banner can sit on the name: 3 friends at the list's top skipped each run (Pixel, 2026-11-26)
+        poll_until(page_name, NAME_WAIT)
+        name = page_name()
+        log(f"  the name under the GPS banner reads {name!r}")
     if name and not like(name, row["name"]) and done is not None and name_key(name) not in done:
         log(f"  opened {name!r}, the list read {row['name']!r}: going on with them")
         row = dict(row, name=name, nick="")  # (the list's nickname is unknown: a rename is left to the user)

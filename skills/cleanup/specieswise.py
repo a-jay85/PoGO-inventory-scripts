@@ -64,14 +64,9 @@ TIER = 1.5  # Transfer's CP tiers: a tier's caps are at most this times its lowe
 CAP_TAGS = (rules.TRANSFER,)  # the tags verdict.py puts after GIV (level 26+): only CPs under level 26 go in
 
 
-def family(sid):
-    """the family's Candy name, as the page reads it ('ARON')"""
-    return pvp.base_name(pvp.kin_root(sid)).upper()
-
-
 def species_tag(sid, t, counts, vd):
     """-> verdict.Verdict for a plain one of this species on HashTagAJay"""
-    c = counts.get(family(sid)) or {}
+    c = counts.get(pvp.candy_family(sid)) or {}
     candy, xl = c.get("candy"), c.get("xl")
     costly = pvp.SPECIES[sid]["dex"] in vd.COSTLY_DEX  # (no count: plenty, but a costly line's 5000 bar needs one)
     candy = (None if costly else 10 ** 6) if candy is None else candy

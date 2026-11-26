@@ -623,6 +623,7 @@ A run's phone from start to end
 - `needs_gps()`
 - `gps_off()`: the Pixel's location off for the rest of the run, unless this script needs it
 - `game_in_front()`
+- `gps_blip()`: the game's solid 'Failed to detect location
 - `close_location_box()`: Android's own 'No location access' box (Close / Turn on location) comes up over the game right after location goes off, and taps meant for the game stop on it ('Pokémon …
 - `close()`: the end of a run: the Pixel's brightness and location back (every run dims it), then lock it; or quit iPhone Mirroring
 - `limit(a, default=10 ** 9)`: --limit N from a script's arguments
@@ -723,6 +724,7 @@ Screen reader + tap planner for every script, and the readers under the red GPS 
 - `ask_helper(line)`: one line to the kept-running helper (started again if it went away) -> its answer's lines, or None
 - `ocr_lines(path)`: the helper's OCR lines for a png
 - `gps_banner()`: the last read (this thread's) had the red 'GPS signal not found' banner, which ocr_once drops
+- `gps_banner_solid()`: the last read (this thread's) had the solid red 'Failed to detect location
 - `under_gps_banner(path, x0, y0, x1, y1)`: the text under the GPS banner in the box x0,y0-x1,y1 (screen fractions), as ocr() gives it: the box in grey, stretched to full contrast, at 3x
 - `ocr_once(path)`: the png's text, less the game's red 'GPS signal not found
 - `ocr_turned(path)`: the png's text read from a copy turned upside down, each box put back where it is on the png
@@ -1084,6 +1086,7 @@ Evolve every free trade evolution tagged Evo, as fast as the game lets it
 - `summary()`
 - `classify()`
 - `look()`: run.look with gift's own screens, kept in the module globals texts/path/bounds (run.look writes steps.txt)
+- `unbanner(solid=True)`: the last look had the GPS banner over what it needs (solid: only the solid 'Failed to detect location' one): take it off with location on for a moment …
 - `wait(*screens, timeout=10)`: run.wait_for with gift's screens: a Refused look is raised, no capture kept (as gift always had it)
 - `tap(fx, fy, fuzz=0.008, rest=None)`: rest: seconds to wait after the tap (default TAP_REST)
 - `tap_text(t, dy=0.0, rest=None)`

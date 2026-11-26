@@ -222,6 +222,13 @@ def gps_banner():
     return getattr(_banner, "up", False)
 
 
+def gps_banner_solid():
+    """the last read (this thread's) had the solid red 'Failed to detect location. (12)' banner: taller than the
+    'GPS signal not found' one, and nothing under it reads (the friend page's name, the friend list's tabs and
+    count: 3 friends skipped, then 6 scrolls read as unknown, Pixel 2026-11-26). session.gps_blip takes it off"""
+    return getattr(_banner, "solid", False)
+
+
 def under_gps_banner(path, x0, y0, x1, y1):
     """the text under the GPS banner in the box x0,y0-x1,y1 (screen fractions), as ocr() gives it: the box in grey,
     stretched to full contrast, at 3x. The friend list's '(35)' under FRIENDS read this way, and not at all from the
@@ -248,12 +255,13 @@ def ocr_once(path):
     tipped text-count checks like the map's"""
     ensure_helper()
     out = []
-    _banner.up = False
+    _banner.up = _banner.solid = False
     for line in ocr_lines(path):
         box, _, text = line.partition("\t")
         x, y, w, h = map(float, box.split())
         if y < 0.15 and GPS_BANNER.search(text):
             _banner.up = True
+            _banner.solid = _banner.solid or bool(re.search(r"DETECT", text, re.I))
             continue
         out.append((x, y, w, h, text.strip().translate(LOOKALIKES)))
     return out

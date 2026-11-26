@@ -234,7 +234,19 @@ def look():
         return classify()
 
     s, _, _, bounds = base.look(where, remember=False)
+    if unbanner():  # (the solid banner hides the list's tabs and count: 6 scrolls read as unknown, Pixel 2026-11-26)
+        s, _, _, bounds = base.look(where, remember=False)
     return s
+
+
+def unbanner(solid=True):
+    """the last look had the GPS banner over what it needs (solid: only the solid 'Failed to detect location' one):
+    take it off with location on for a moment (session.gps_blip), at most once per BLIP_GAP. -> True if it went"""
+    global blipped
+    if not (ui.gps_banner_solid() if solid else ui.gps_banner()) or time.time() - blipped <= BLIP_GAP:
+        return False
+    blipped = time.time()
+    return session.gps_blip()
 
 
 def wait(*screens, timeout=10):
@@ -245,6 +257,8 @@ def wait(*screens, timeout=10):
 
 
 TAP_REST = 0.03  # after a tap: a moment only, as the wait after it looks for the next screen (was 0.25-0.4 s)
+BLIP_GAP = 60  # seconds between two tries at taking the solid GPS banner off (session.gps_blip)
+blipped = 0.0  # when the last try was
 NAME_WAIT = 3.0  # seconds a friend page may take to show its trainer name
 ICON_WAIT = 5.0  # seconds a friend the list shows as able to take a gift may take to colour their SEND GIFT icon
 POLL = 0.1  # iPhone: seconds between two looks while waiting for a screen (a look takes 0.1-0.3 s; was 0.4)
@@ -1343,6 +1357,11 @@ def whose_page(row, done):
         if poll_until(page_name, NAME_WAIT):
             log(f"  the name showed after {time.time() - w0:.1f}s")
         name = page_name()
+    if not name and unbanner(solid=False):
+        # either GPS banner can sit on the name: 3 friends at the list's top skipped each run (Pixel, 2026-11-26)
+        poll_until(page_name, NAME_WAIT)
+        name = page_name()
+        log(f"  the name under the GPS banner reads {name!r}")
     if name and not like(name, row["name"]) and done is not None and name_key(name) not in done:
         log(f"  opened {name!r}, the list read {row['name']!r}: going on with them")
         row = dict(row, name=name, nick="")  # (the list's nickname is unknown: a rename is left to the user)

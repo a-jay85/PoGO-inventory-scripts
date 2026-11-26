@@ -391,7 +391,7 @@ def top_only():
     for k, c in CASES.items():
         f, t = c if isinstance(c, tuple) else (c, None)
         full = answer(c)
-        for gone in (BOTTOM, BOTTOM + COUNTS):
+        for gone in (BOTTOM, COUNTS, BOTTOM + COUNTS):
             g = replace(f, **{x: None for x in gone})
             if f.lucky:
                 g = replace(g, traded=True)  # (the door knows a lucky one is traded without the bottom)

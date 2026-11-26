@@ -47,10 +47,10 @@ matters less than the minutes its searches take. The rest itself is still search
 
 Opening (the user, 2026-11-25): a run that's done sending at 23:00 or later opens the gifts friends sent me, till
 midnight. Search "!OPEN&interactable&" (OPEN: CyrillJan's hand-made XP batch, opened by hand), the list sorted GIFT
-(gifts to me first, so the first row with no "sent you a Gift!" ends a search). The zones in the order above, then
-the rest split for the best chance of a new Lucky Friend: not lucky with a remote trade, not lucky Forever, not lucky
-Best, lucky Forever, lucky Best (those four with no remote trade), then Ultra, Great, Good, none. Lucky with a remote
-trade: left out. ?, $ and SENT friends are opened too.
+(gifts to me first, so the first row with no "sent you a Gift!" ends a search). No time zones (the user, 2026-11-25:
+a gift's opening day doesn't follow the sender's zone). The searches go in the order with the best chance of a new
+Lucky Friend: not lucky with a remote trade, not lucky Forever, not lucky Best, lucky Forever, lucky Best (those four
+with no remote trade), then Ultra, Great, Good, none. Lucky with a remote trade: left out. ?, $ and SENT friends are opened too.
 Each one's friendship screen is read as for a gift. 1 point to go: left unopened (tagged WAIT if it isn't). Tagged
 WAIT, SENT or EGG with 2 points to go: left. Tagged and no longer close: they leveled up, so the tag comes off and the
 gift is opened. The gift box shows only from the list's tap: tap, X, their page, back, tap again, OPEN.
@@ -82,7 +82,7 @@ OPENS = "!OPEN&interactable&"  # the open pass: gifts to me from friends not pla
 # hand-made XP batch tag (opened by hand). ?, $, WAIT, SENT and EGG friends are in: their gifts get opened too
 OPEN_FROM = 23  # the hour (local) from which a run opens gifts after sending them, till midnight
 HELD = re.compile(r"^(WAIT|SENT|EGG)\s*")  # nickname tags of a friend close to leveling up: their gift waits
-LUCKY = [  # the open pass's "rest", in the order most likely to make a new Lucky Friend (the user, 2026-11-25).
+LUCKY = [  # the open pass's searches, in the order most likely to make a new Lucky Friend (the user, 2026-11-25).
     ("not lucky, remote trade", "!lucky&remotetrade"),  # (lucky and remote trade: left out, the user's call)
     ("not lucky, forever", "!lucky&!remotetrade&friendlevel5"),
     ("not lucky, best", "!lucky&!remotetrade&friendlevel4"),
@@ -1849,7 +1849,7 @@ def opened(name, nick, t0):
 
 
 def open_searches(limit, anytime=False):
-    """the open pass -> (gifts opened, why it ended). Each zone in ZONES' order, then the rest in LUCKY's order, the list
+    """the open pass -> (gifts opened, why it ended). Each search in LUCKY's order (no time zones), the list
     sorted GIFT (gifts to me first). anytime: the open cmd, by hand (else it ends at midnight)"""
     global sort_name
     done, retried = set(), set()
@@ -1869,25 +1869,18 @@ def open_searches(limit, anytime=False):
     # A Remote Trade friend sits on top whatever the sort
     todo_ok = lambda r: r["t"][1] < 0.8 and not (r["trade"] and not r["gift"])
     ends = lambda r: not r["gift"]  # sorted GIFT: the first one with no gift for me ends it
-    searches = [(z, zq) for z, zq in ZONES if z != "rest"] + [(f"rest, {k}", q) for k, q in LUCKY]
     sort_name = GIFTS_TO_ME
     try:
         to_list()
         set_sort()
-        prev = None
-        for zone, zq in searches:
+        for kind, q in LUCKY:
             if not anytime and not open_time():
                 raise Done("midnight: the day's opens are over")
             t0 = time.time()
-            n = None
-            if prev is not None and len(prev) == 2 and len(zq) <= 2:
-                n = swap_zone(OPENS, prev, zq)
-            if n is None:
-                n = search(OPENS, zq)
-            prev = zq
-            log(f"open + {zone}: ({n}) ({time.time() - t0:.0f}s)")
+            n = search(OPENS, q)
+            log(f"open + {kind}: ({n}) ({time.time() - t0:.0f}s)")
             if n:
-                walk(OPENS, zq, n, act, done, retried, todo_ok, ends, "has no gift for me")
+                walk(OPENS, q, n, act, done, retried, todo_ok, ends, "has no gift for me")
     except Done as e:
         return st["opened"], e.why
     finally:

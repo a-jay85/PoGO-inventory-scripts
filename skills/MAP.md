@@ -1533,6 +1533,7 @@ Unattended /pvpc: works through the PvpC-tagged list in iPhone Mirroring with no
 - `cmd_keep(t, path, limit=None)`: every copy on a team in teams dict t (from path): a favorite, rules.RAID_OFF off
 - `ui_key(s)`
 - `keep_script(a)`
+- `same_limit(limit)`: report's default: the newest copies.json counted with this --limit (a test count doesn't hide the whole one)
 - `script(a)`
 - `main()`
 

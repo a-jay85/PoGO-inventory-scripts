@@ -6,7 +6,7 @@ every copy powered up to level 50 (by its IVs). Ties with a 6th stay on. Both ph
   POGO_PHONE=android caffeinate -dimsu python3 raidteam.py count [copies.json] [--limit N]
                                        count whoever is signed in; with a copies.json, carry on from it.
                                        --limit N: only the first N bosses (a test)
-  python3 raidteam.py report [copies.json]   the teams again (Mac only)
+  python3 raidteam.py report [copies.json] [--limit N]   the teams again (Mac only). Default the newest count with that --limit
   POGO_PHONE=android caffeinate -dimsu python3 raidteam.py keep [teams.json] [--limit N]
                                        every copy on a team: a favorite, its trade and Transfer tags off. Default the
                                        signed-in account's newest whole count. --limit N: at most N copies. A whole
@@ -64,7 +64,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "ivc"))
 import dex, ivc, pvp
 import roster
 from roster import is_mega, real_boss, boss_name, attacker_name
-from base import Stop, Skip, log, newest, write_json
+from base import Stop, Skip, log, write_json
 import ui
 
 TEAM = roster.TEAM
@@ -893,6 +893,18 @@ def keep_script(a):
     cmd_keep(t, path, a.limit)
 
 
+def same_limit(limit):
+    """report's default: the newest copies.json counted with this --limit (a test count doesn't hide the whole one)"""
+    import glob
+    for p in sorted(glob.glob(os.path.join(HERE, "runs", "*-raidteam", "copies.json")), reverse=True):
+        try:
+            if json.load(open(p)).get("limit") == limit:
+                return p
+        except (OSError, ValueError):
+            continue
+    return None
+
+
 def script(a):
     import base, ui
     ms = list(roster.load_models())
@@ -903,9 +915,9 @@ def script(a):
             who = cmd_count(c, a.copies, base.RUN_DIR)
             out = base.RUN_DIR
         else:
-            path = a.copies or newest(HERE, "runs/*-raidteam/copies.json")
+            path = a.copies or same_limit(a.limit)
             if not path:
-                sys.exit("no count yet: raidteam.py count")
+                sys.exit(f"no count with --limit {a.limit} yet: raidteam.py count" + (f" --limit {a.limit}" if a.limit else ""))
             j = json.load(open(path))
             if j.get("limit") != a.limit:
                 sys.exit(f"{path} counted with --limit {j.get('limit')}: report it with the same")

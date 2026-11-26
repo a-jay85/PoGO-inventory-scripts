@@ -629,13 +629,19 @@ def shadow_transfer(f, sid, why, today, purify=False):
     return v
 
 
+def age_of(caught, today=None):
+    """the AGES key of a catch date: what door.AGE_SPLITS' searches say of it"""
+    if LUCKY_YEARS[0] <= caught.year <= LUCKY_YEARS[1]:
+        return "lucky"
+    return "old" if ((today or datetime.date.today()) - caught).days >= OLD_DAYS else "new"
+
+
 def caught_when(f, today):
     """(caught in LUCKY_YEARS?, OLD_DAYS+ ago?, how to say it) from the date read off the page, else from the walk's
     search (Facts.age). Only an untraded one is asked, and usual() said unsure when neither is known"""
     if f.caught is not None:
-        days = (today - f.caught).days
-        lucky = LUCKY_YEARS[0] <= f.caught.year <= LUCKY_YEARS[1]
-        return lucky, days >= OLD_DAYS, f"caught {f.caught.year}" if lucky else f"caught {days} days ago"
+        lucky, old = AGES[age_of(f.caught, today)]
+        return lucky, old, f"caught {f.caught.year}" if lucky else f"caught {(today - f.caught).days} days ago"
     lucky, old = AGES[f.age]
     return lucky, old, (f"caught {LUCKY_YEARS[0]}-{LUCKY_YEARS[1]}" if lucky else f"caught {OLD_DAYS}+ days ago"
                         if old else f"caught under {OLD_DAYS} days ago")

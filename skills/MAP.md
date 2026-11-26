@@ -839,6 +839,7 @@ The final tag for a Pokémon that just fell short of a keeper, judged right wher
 - `dead_end(f, sid)`: a costume one whose plain form evolves, but it can't (no Evolve button): judged as its own species only, for raids and PvP (the user, 2026-11-02)
 - `odd_one(f, t, sid, odd, today)`: an untraded shadow, costume or background one (the user's rules, 2026-10-29; 360+ Candy XL, 2026-10-30)
 - `shadow_transfer(f, sid, why, today, purify=False)`: a shadow's Transfer (the user, 2026-11-08): a catch date that would get GuaranteedLucky or Old gets that tag instead, and it isn't purified (the user purifies by hand)
+- `age_of(caught, today=None)`: the AGES key of a catch date: what door.AGE_SPLITS' searches say of it
 - `caught_when(f, today)`: (caught in LUCKY_YEARS?, OLD_DAYS+ ago?, how to say it) from the date read off the page, else from the walk's search (Facts.age)
 
 ## skills/cleanup/cleantrades.py

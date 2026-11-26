@@ -40,12 +40,12 @@ RAID = "mythical&raid"  # a mythical caught in a raid can't be traded (verdict.s
 # (2026-10-31: traded and the catch place off the page's bottom, Candy XL off its top, shiny and background off the tile)
 SAID = {"traded": "traded", "shiny": "shiny", "background": "background", "far": "distance100-",
         "xl_under": UNDER_360_XL[1:]}  # a scope that already says one of these (#Nope&traded) is believed over the page
-Y0, Y1 = rules.LUCKY_YEARS
+Y1 = rules.LUCKY_YEARS[1]
 OLD_DAYS = int(re.search(r"\d+", rules.OLD_AGE).group())
 # a pile walked in parts (Door.splits), each part's search telling the door what the page's bottom would: traded or
 # not, and which of verdict.AGES its catch date is in. Ranges only, no !year or !age (SEARCH.md: ! is ignored on some)
 TRADED_SPLITS = (("traded", True), ("!traded", False))
-AGE_SPLITS = ((f"year{Y0}-{Y1}", "lucky"), (f"year{Y1 + 1}-&age{OLD_DAYS}-", "old"),
+AGE_SPLITS = ((rules.LUCKY_YEAR[1:], "lucky"), (f"year{Y1 + 1}-{rules.OLD_AGE}", "old"),  # (the tag searches' terms)
               (f"year{Y1 + 1}-&age-{OLD_DAYS - 1}", "new"))
 UNSURE = "unsure"
 EMPTY = []  # (account, a scope's terms, term): the game counted 0 for that search this run. A scope with all of those
@@ -333,6 +333,9 @@ class Door:
         counts on the top screen, or the page bottom already known), the rest None. bottom True: page_bottom's read"""
         page = self.page_bottom(info, drag=bottom)
         said = lambda k, v: self.said.get(k, v)
+        if said("age", None) and page["caught"] and vd.age_of(page["caught"]) != self.said["age"]:
+            log(f"  door: AGE MISMATCH: this part's search says {self.said['age']}, the date {page['caught']} says "
+                f"{vd.age_of(page['caught'])}: the date is believed")  # (Facts.caught goes before Facts.age)
         under = said("xl_under", None if page["xl"] is None else page["xl"] < XL_CAP)
         return dict(traded=True if lucky else said("traded", page["traded"]), caught=page["caught"], age=said("age", None),
                     far=said("far", None if page["california"] is None else not page["california"]),
@@ -518,7 +521,7 @@ def walk_parts(gate, whole, count, walk):
     parts, typed = gate.splits(), None
     if len(parts) > 1:
         got = {}
-        for terms, _ in parts:
+        for terms, _ in reversed(parts):  # (backwards: the first part to walk is the last one typed)
             got[terms] = count(terms)
             typed = terms
         log(f"door: {whole} in the pile, in parts {got}")
@@ -527,7 +530,6 @@ def walk_parts(gate, whole, count, walk):
             parts = [("", gate)]
         else:
             parts = [p for p in parts if got[p[0]]]
-            parts.sort(key=lambda p: p[0] != typed)  # the one still on screen first
     else:
         typed = ""
     for terms, part in parts:

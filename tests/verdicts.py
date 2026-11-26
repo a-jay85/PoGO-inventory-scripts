@@ -346,6 +346,7 @@ def answer(f):
 
 
 import raidteams  # noqa: E402
+import door  # noqa: E402
 
 TEAMS = {"bars": {"rhyhorn": 1500, "rhyhorn|shadow": 1400, "pidgey": None},  # made up: a count's teams.json
          "copies": [{"species": ["rhyhorn"], "shadow": False, "cp": 2000, "hp": 150, "kg": 110.5, "m": 1.02,
@@ -384,13 +385,19 @@ BOTTOM = ("traded", "caught", "far")  # the facts off the page's bottom (door.pa
 COUNTS = ("candy", "xl", "candy_xl")  # the counts: on the top screen, or (a Dynamax page) a drag down
 
 
-def age_of(caught):
-    """the catch-date bucket door.SPLITS' searches give a date (verdict.AGES)"""
-    if caught is None:
-        return None
-    if v.LUCKY_YEARS[0] <= caught.year <= v.LUCKY_YEARS[1]:
-        return "lucky"
-    return "old" if (TODAY - caught).days >= v.OLD_DAYS else "new"
+def part_said(f):
+    """what the door walk's part (door.Door.splits, on a pile whose search says nothing of trades or ages) that f is in
+    tells the door instead of the page's bottom. f's traded or catch date not known: nothing"""
+    class Pile:
+        terms, said = {"#giv"}, {}
+        narrow = lambda self, known: known
+    age = f.caught and v.age_of(f.caught, TODAY)
+    for terms, known in door.Door.splits(Pile()):
+        if f.traded is not None and ("traded" in terms.split("&")) == f.traded and known.get("age", age) == age:
+            break
+    else:
+        known = {}
+    return {"traded": known.get("traded"), "age": known.get("age"), "caught": None, "far": None}
 
 
 def top_only():
@@ -400,7 +407,7 @@ def top_only():
     for k, c in CASES.items():
         f, t = c if isinstance(c, tuple) else (c, None)
         full = answer(c)
-        split = {"traded": f.traded, "age": age_of(f.caught), "caught": None, "far": None}  # (door.SPLITS' walk)
+        split = part_said(f)
         for gone in (BOTTOM, COUNTS, BOTTOM + COUNTS, split, {**split, **dict.fromkeys(COUNTS)}):
             g = replace(f, **(gone if isinstance(gone, dict) else dict.fromkeys(gone)))
             if f.lucky:

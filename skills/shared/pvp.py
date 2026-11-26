@@ -209,6 +209,11 @@ def kin_root(sid):
     return sid
 
 
+def candy_family(sid):
+    """the family's Candy name, as the detail page and the Pokémon database say it ('ARON')"""
+    return base_name(kin_root(sid)).upper()
+
+
 def evolutions(species, ivs=None):
     """what species can evolve into in GO. ivs: only the evolutions these IVs can lead to (Tyrogue). None: all"""
     out = list(dict.fromkeys(e for e in listed(species) if e in SPECIES)) if species in SPECIES else []

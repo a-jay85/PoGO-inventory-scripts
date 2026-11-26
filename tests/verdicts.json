@@ -1543,7 +1543,7 @@
    "GIV"
   ],
   null,
-  "level 29+",
+  "level 29+: CyrillJan's Candy XL not read",
   {
    "off": [
     "XLX"
@@ -1556,7 +1556,91 @@
    "GIV"
   ],
   null,
-  "level 27+",
+  "level 27+: CyrillJan's Candy XL not read",
+  {
+   "off": [
+    "XLX"
+   ]
+  }
+ ],
+ "H 26+, CyrillJan 359 XL: GIV": [
+  "tag",
+  [
+   "GIV"
+  ],
+  null,
+  "level 29+: CyrillJan has 359 Candy XL (2026-11-25), wants 360",
+  {
+   "off": [
+    "XLX"
+   ]
+  }
+ ],
+ "H 26+, CyrillJan 360 XL: Transfer": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "no rule wants it"
+ ],
+ "H 26+, CyrillJan 360 XL, far: GIV far": [
+  "tag",
+  [
+   "GIV"
+  ],
+  null,
+  "caught 100 km+ away"
+ ],
+ "H level 25 or 26, CyrillJan full: Transfer": [
+  "tag",
+  [
+   "Transfer"
+  ],
+  null,
+  "no rule wants it"
+ ],
+ "H 26+, team line, 2 100s, 700 XL: GIV": [
+  "tag",
+  [
+   "GIV"
+  ],
+  null,
+  "level 29+: CyrillJan has 700 Candy XL (2026-11-25), wants 720",
+  {
+   "off": [
+    "XLX"
+   ]
+  }
+ ],
+ "H 26+, team line, 2 100s, 720 XL: no level GIV": [
+  "tag",
+  [
+   "GIV"
+  ],
+  null,
+  "10 km egg (Gible)"
+ ],
+ "H 26+, team line, CyrillJan's 100s not counted: GIV": [
+  "tag",
+  [
+   "GIV"
+  ],
+  null,
+  "level 29+: CyrillJan's 100s of a Team Future/Ideal line not counted",
+  {
+   "off": [
+    "XLX"
+   ]
+  }
+ ],
+ "XLX, CyrillJan's own: no XL check": [
+  "tag",
+  [
+   "GIV"
+  ],
+  null,
+  "level 29+",
   {
    "off": [
     "XLX"
@@ -1684,7 +1768,7 @@
    "GIV"
   ],
   null,
-  "level 29+",
+  "level 29+: CyrillJan's Candy XL not read",
   {
    "off": [
     "XLX"
@@ -1753,7 +1837,7 @@
    "GIV"
   ],
   null,
-  "level 26+",
+  "level 26+: CyrillJan's Candy XL not read",
   {
    "off": [
     "XLX"
@@ -1842,7 +1926,7 @@
    "GIV"
   ],
   null,
-  "level 26+",
+  "level 26+: CyrillJan's Candy XL not read",
   {
    "off": [
     "XLX"
@@ -1909,7 +1993,7 @@
    "GIV"
   ],
   null,
-  "level 26+",
+  "level 26+: CyrillJan's Candy XL not read",
   {
    "off": [
     "XLX"

@@ -33,7 +33,9 @@ Signed in as HashTagAJay (the pile goes to CyrillJan or the user's wife's accoun
   2026-11-22: tradeable.no_team_b), and one in only as a mega only till CyrillJan has a 100 of it (tradeable.cyrill_has_100).
   HashTagAJay's Reroll too for a line that could make one of CyrillJan's own Team Potentials, IVs rolled new by the
   trade (the user, 2026-11-23: tradeable.cyrill_potentials).
-  GIV at level 26+ both ways (was XLX, the user 2026-11-19): hashtag_species())
+  GIV at level 26+ both ways (was XLX, the user 2026-11-19): hashtag_species()). On HashTagAJay's pile, only while
+  CyrillJan is short of Candy XL of the line: 360, or a Team Future/Ideal line's bar of 360 for each 100 he has of
+  its #1 pick, up to 5 (cyrill_xl_full, the user 2026-11-25). Full: the rules after it judge it
 A Dynamax one (both accounts): 2XL, then GIV (level 26+, then the rest). One that only can Dynamax (or evolves into one that can) gets GIV
 while the account holding it has rules.DMAX_CANDY Candy or less, or XL_CAP + one Max Move's Candy XL or less, of
 the family (dmax_short, the user 2026-11-16). With more of both and no other rule, Transfer
@@ -179,6 +181,7 @@ def tables(to):
                        "hard": sp.get("hard", {}), "by_hand": set(sp.get("by_hand", ())),
                        "no_dmax": set(sp.get("no_dmax", ())), "xl_full": sp["xl_full"], "dmax": sp.get("dmax", {}),
                        "team_xl": sp.get("team_xl", {}), "team_line": sp.get("team_line"),
+                       "cyrill_xl": sp.get("cyrill_xl", {}), "cyrill_team_xl": sp.get("cyrill_team_xl", {}),
                        "from": sp["from"],
                        "raid": set(tr.pve(m)[0]),  # in DialgaDex's top PVE_TOP vs some boss, or evolves into one
                        "strong": set(tr.strong_lines(m)),  # a strong line's species (its shadows: never purified)
@@ -341,10 +344,12 @@ def usual(f, t, today=None):
     if f.size in SIZE_NAMES:
         return tag("IVC", why=f"never traded {f.size.upper()}", name=SIZE_NAMES[f.size])
 
-    if not f.levels or min(f.levels) < XLX_FOR[to] <= max(f.levels):
-        return unsure(f"level {f.levels or '?'}: can't tell if it's {XLX_FOR[to]}+")
-    if min(f.levels) >= XLX_FOR[to]:
-        return tag(XLX, why=f"level {min(f.levels)}+", off=(OLD_XLX,))
+    full, xl_note = cyrill_xl_full(t, sid) if to == GIVER else (False, "")
+    if not full:  # (CyrillJan has its line's bar of Candy XL: the level doesn't matter, the next rules judge it)
+        if not f.levels or min(f.levels) < XLX_FOR[to] <= max(f.levels):
+            return unsure(f"level {f.levels or '?'}: can't tell if it's {XLX_FOR[to]}+")
+        if min(f.levels) >= XLX_FOR[to]:
+            return tag(XLX, why=f"level {min(f.levels)}+" + (f": {xl_note}" if xl_note else ""), off=(OLD_XLX,))
 
     if sid in t["evolved"]:
         return tag("GIV", why=t["evolved"][sid])
@@ -366,6 +371,22 @@ def usual(f, t, today=None):
     if to != TAKER and (v := team_short(f, t)):  # (CyrillJan's: in cyrill_short, after its under-XL_CAP one)
         return v
     return transfer(f, sid, "no rule wants it")
+
+
+def cyrill_xl_full(t, sid):
+    """HashTagAJay's pile, the level 26+ GIV (the user, 2026-11-25): that trade is for the Candy XL CyrillJan gets
+    when he transfers it, so it's only worth it while CyrillJan is short. His bar: XL_CAP, or for a Team Future/Ideal
+    line XL_CAP for each 100 he has of its #1 pick, up to TEAM_SLOTS (t['cyrill_team_xl']: tradeable.team_xl_need).
+    His count: the Pokémon database's last read (t['cyrill_xl']). -> (full, what was found). A count or 100s not
+    read: not full, so the GIV stays (never a step toward Transfer)"""
+    team = t.get("cyrill_team_xl", {})
+    if sid in team and team[sid] is None:
+        return False, f"{GIVER}'s 100s of a Team Future/Ideal line not counted"
+    bar = team[sid][0] if sid in team else XL_CAP
+    xl, at = t.get("cyrill_xl", {}).get(sid) or (None, None)
+    if xl is None:
+        return False, f"{GIVER}'s Candy XL not read"
+    return xl >= bar, f"{GIVER} has {xl} Candy XL ({(at or '?')[:10]}), wants {bar}"
 
 
 def cyrill_short(f, t):

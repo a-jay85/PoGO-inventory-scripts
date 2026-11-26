@@ -605,6 +605,8 @@ def hashtag_species(m):
         a gym defender's line (/ivc's GYM_DEFENDERS and what evolves into them: a potential top gym defender for an
         account with fewer, the user 2026-11-16)
       dmax: what dmax_need says (a Dynamax one, or one that can Dynamax while this account is short: verdict.py)
+      cyrill_xl {sid: (CyrillJan's Candy XL of its family, when it was read)}: the Pokémon database's last read.
+        cyrill_team_xl: team_xl_need for CyrillJan's 100s. The level 26+ GIV asks both (verdict.cyrill_xl_full)
       by_hand: likely special trades the user tags by hand: regionals (PvPoke's tag + rules.BY_HAND, less
         rules.SF_NATIVE: they spawn in San Francisco) and Spinda
     (An Adventure Effect move would be a Reroll, but only legendaries and Ultra Beasts have one: special trades)"""
@@ -651,11 +653,14 @@ def hashtag_species(m):
             by_hand |= {s, *(x for x in dex.ancestors(s, m.parent) if m.dex(x) not in BABIES)}
     by_hand -= SF_NATIVE  # (caught in San Francisco: judged like any other)
     team_xl, team_f = team_xl_need(m, ok, TAKER)
+    cyrill_bar, cyrill_team_f = team_xl_need(m, ok, GIVER)
+    counts = pokedb.candies(GIVER)
+    cyrill_xl = {s: (c["xl"], c["xl_at"]) for s in ok if (c := counts.get(pvp.candy_family(s))) and c["xl"] is not None}
     return {"why": why, "evolved": evolved_giv(m, ok, why, json.load(open(hard_f))), "hard": hard, "by_hand": by_hand,
-            "dmax": dmax_need(m, ok), "team_xl": team_xl,
+            "dmax": dmax_need(m, ok), "team_xl": team_xl, "cyrill_xl": cyrill_xl, "cyrill_team_xl": cyrill_bar,
             "xl_full": {m.dex(x) for s in m.by if m.dex(s) in xl_full for x in m.family(s)},
             "from": {"read": read_f, "pvp": pvp_f, "evolved": hard_f, "eggs": eggs_f, "raidteam": count_f,
-                     "team100": team_f}}
+                     "team100": team_f, "cyrill_team100": cyrill_team_f}}
 
 
 def no_team_b(m):

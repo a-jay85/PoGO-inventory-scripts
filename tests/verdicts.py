@@ -37,6 +37,12 @@ TABLES = {  # made up
 }
 
 
+def cyrill(team=None, **xl):
+    """HashTagAJay's tables with CyrillJan's Candy XL {sid: n} and Team Future/Ideal bars (team_xl_need's shape)"""
+    return {**TABLES[GIVER], "cyrill_xl": {s: (n, "2026-11-25 12:00:00") for s, n in xl.items()},
+            "cyrill_team_xl": team or {}}
+
+
 def plain(**kw):
     """an untraded, new, ordinary, under-26 Pokémon that fits no rule, with every fact read"""
     d = dict(account=GIVER, sids=["pidgey"], iv_sum=30, traded=False, caught=NEW, gender="male", size="",
@@ -263,6 +269,18 @@ CASES = {
     "H GIV": plain(account=TAKER, sids=["rhyhorn"]),
     "H XLX at 29": plain(account=TAKER, levels=[29]),
     "H not XLX at 27": plain(account=TAKER, levels=[27]),
+    # the level 26+ GIV only while CyrillJan is short of Candy XL of the line (the user, 2026-11-25)
+    "H 26+, CyrillJan 359 XL: GIV": (plain(account=TAKER, levels=[29]), cyrill(pidgey=359)),
+    "H 26+, CyrillJan 360 XL: Transfer": (plain(account=TAKER, levels=[29]), cyrill(pidgey=360)),
+    "H 26+, CyrillJan 360 XL, far: GIV far": (plain(account=TAKER, levels=[29], far=True), cyrill(pidgey=360)),
+    "H level 25 or 26, CyrillJan full: Transfer": (plain(account=TAKER, levels=[25.5, 26]), cyrill(pidgey=400)),
+    "H 26+, team line, 2 100s, 700 XL: GIV": (plain(account=TAKER, sids=["gible"], levels=[29]),
+                                               cyrill(team={"gible": [720, "garchomp", 2]}, gible=700)),
+    "H 26+, team line, 2 100s, 720 XL: no level GIV": (plain(account=TAKER, sids=["gible"], levels=[29]),
+                                                         cyrill(team={"gible": [720, "garchomp", 2]}, gible=720)),
+    "H 26+, team line, CyrillJan's 100s not counted: GIV": (plain(account=TAKER, levels=[29]),
+                                                             cyrill(team={"pidgey": None}, pidgey=5000)),
+    "XLX, CyrillJan's own: no XL check": (plain(levels=[29]), {**TABLES[TAKER], "cyrill_xl": {"pidgey": (5000, "")}}),
     "H Dynamax, has one": plain(account=TAKER, dynamax=True),
     "H Dynamax, has none": plain(account=TAKER, sids=["wooloo"], dynamax=True),
     "H Tandemaus": plain(account=TAKER, sids=["tandemaus"]),

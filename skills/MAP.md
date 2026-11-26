@@ -460,6 +460,7 @@ The game master (PvPoke's gamemaster.json): base stats, CP and HP, the level fro
 - `children(sid)`: the forms whose parent() is sid
 - `kin_parent(sid)`: the candy family's parent: parent(), or for a form no evolution reaches, the game data's 'parent' field (fixed): Alolan Raichu -> Pikachu, Hisuian Typhlosion -> Quilava
 - `kin_root(sid)`: the candy family's first stage (Alolan Raichu: Pichu)
+- `candy_family(sid)`: the family's Candy name, as the detail page and the Pokémon database say it ('ARON')
 - `evolutions(species, ivs=None)`: what species can evolve into in GO. ivs: only the evolutions these IVs can lead to (Tyrogue)
 - `family(species, ivs=None)`: species plus every evolution reachable from it (with these IVs, if given)
 - `tops(species, ivs=None)`: final evolutions reachable from species (itself if final)
@@ -814,6 +815,7 @@ The final tag for a Pokémon that just fell short of a keeper, judged right wher
 - `xxl(f)`: an XXL one, traded or not (the user's rule, 2026-11-04): never traded or transferred, it has value in showcases
 - `shiny(f, v)`: a shiny one (the user's rule, 2026-11-03): judged like any other first
 - `usual(f, t, today=None)`: final_tag's rules, for all but what a shiny one gets in the end
+- `cyrill_xl_full(t, sid)`: HashTagAJay's pile, the level 26+ GIV (the user, 2026-11-25): that trade is for the Candy XL CyrillJan gets when he transfers it, so it's only worth it while CyrillJan …
 - `cyrill_short(f, t)`: CyrillJan's pile (untraded: a traded one never gets here): GIV while CyrillJan has under LUCKY_CANDY Candy of the family, or under XL_CAP Candy XL of a team line …
 - `team_short(f, t)`: either account (the user, 2026-11-23): GIV while the account holding it has under its line's Team Future/Ideal bar of Candy XL (t['team_xl']: XL_CAP for each 100 it has …
 - `special(f, sid, kinds, strip)`: a legendary, mythical or Ultra Beast one not kept (the user, 2026-11-19): star off, name back to the default
@@ -889,7 +891,6 @@ An XXL Pokémon, traded or not, is kept: favorite on, its trade, Transfer and IV
 ## skills/cleanup/specieswise.py
 Re-judge HashTagAJay's #GIV, #Transfer or #Reroll pile by species alone, with no Pokémon opened (the user, 2026-11-16; #Reroll 2026-11-22, after its raid Rerolls began …
 
-- `family(sid)`: the family's Candy name, as the page reads it ('ARON')
 - `species_tag(sid, t, counts, vd)`: -> verdict.Verdict for a plain one of this species on HashTagAJay
 - `groups(pile)`: -> ({tag: [search part]}, {tag: n species}, [(sid, why) not sure])
 - `under26(sids)`: the highest CP no level 26+ one of these forms can have: one under the lowest one's CP at level 26, 0/0/0

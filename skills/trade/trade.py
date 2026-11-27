@@ -138,6 +138,7 @@ MIN_KM = 100
 EARTH_KM = 20040  # the farthest two spots on Earth can be apart
 SKIPS = 3  # pairs caught under MIN_KM apart: how many of the Android's next ones to try before stopping
 REGULAR_COST, REGULAR_READS = 100, {"100"}  # Stardust for a regular trade between these two accounts
+RUN_MODE = None  # what this run trades (mode()), set by main(): check_confirm tells a day that changed mid-round
 COST, COST_READS = REGULAR_COST, REGULAR_READS  # this run's (main() switches them on a Friday). READS: all digits, still it
 FRIDAY_COST, FRIDAY_READS = 80, {"80", "180"}  # 20% off on Fridays. (The iPhone reads the Stardust icon as a 1: 180)
 OK_WARNINGS = ("MAX MOVE LEVELS WILL BE RESET", "MEGA LEVEL WILL BE RESET")  # (mega level: user OK, 2026-11-07); trade warnings tapped YES; any other one stops the run
@@ -163,6 +164,11 @@ class OutOfRange(Expired):
 class NoFriday(Stop):
     """a Friday run's confirm screen shows the regular cost: no Friendship Friday this week. Nothing traded. main()
     goes on with the other days' rules"""
+
+
+class DayChanged(Stop):
+    """midnight or an event's start or end came mid-round: the confirm screen shows the new day's cost (11-27, 00:00:18:
+    a Thursday round's confirm showed Friday's 80). Nothing traded. main() backs both out and ends the run"""
 
 
 class DailyLimit(Stop):
@@ -1102,6 +1108,8 @@ def check_confirm(p):
             why += f", {d} km"
         time.sleep(0.3)
     p.keep("confirm")
+    if RUN_MODE and mode() != RUN_MODE:
+        raise DayChanged(f"{p.name}: {why}, and what can be traded changed (midnight or an event's start or end)")
     raise Stop(f"{p.name}: won't confirm: {why}")
 
 
@@ -1562,7 +1570,7 @@ def solo_main(a, name, android):
 
 
 def main():
-    global COST, COST_READS
+    global COST, COST_READS, RUN_MODE
     ap = argparse.ArgumentParser()
     ap.add_argument("cmd", nargs="?", default="run", choices=("run", "look", "restart"))
     ap.add_argument("--limit", type=int, default=PER_RUN)
@@ -1595,7 +1603,7 @@ def main():
             log("Friendship Friday: only the ones tagged 2XL")
         else:
             log(f"trading {plain_piles()}")
-        now = mode()
+        now = RUN_MODE = mode()
         made, n, specials, expired, fresh = made_today(), 0, {}, 0, False
         rehearsed, in_picker = 0, False
         log(f"{made} trades made today so far, {PER_DAY} a day; this run: at most {a.limit}")
@@ -1613,8 +1621,12 @@ def main():
                 base.write_json(STATE, {**state(), "no_friday": today()})
                 COST, COST_READS = REGULAR_COST, REGULAR_READS
                 log(f"{e}: no Friendship Friday this week. Trading {plain_piles()} like any other day")
-                now = mode()
+                now = RUN_MODE = mode()
                 continue
+            except DayChanged as e:
+                log(f"{e}: nothing traded. Start the run again")
+                in_picker = True  # both are on (or near) the confirm screen: backed out to the friend page below
+                break
             except DailyLimit as e:
                 log(f"{e}: done for the day")
                 set_made(max(made_today(), PER_DAY))  # a later run today stops at once

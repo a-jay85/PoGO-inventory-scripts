@@ -481,6 +481,14 @@ def norm(s):
     return re.sub(r"[^A-Z ]", "", s.translate(LOOKALIKE).upper()).strip()
 
 
+def count_text(s):
+    """a count under its icon: '144', or with the icon read as a glyph before it ('• 144', '§ 12,789,117').
+    -> the int, or None for anything else (a letter or a second number in it)"""
+    m = re.fullmatch(r"[^\w\s]{0,2}\s*(\d[\d,.]*)", (s or "").strip())  # (Pixel 2026-11-27: the candy icon as '•',
+    # and cleantrades passed 11 of 50 with "can't read the candy owned: []")
+    return int(re.sub(r"\D", "", m.group(1))) if m else None
+
+
 def alnum(s):
     """lower-case letters and digits only, None as '': one name OCR'd two ways ('98 ADC*X ^' / '98 AD C* X'),
     'Farfetch\'d' as 'farfetchd'. (Not ui.letters: that keeps no digits and folds é to e)"""

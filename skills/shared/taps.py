@@ -292,10 +292,10 @@ def owned(texts):
                 key=lambda u: u[1], default=l) if ui.norm(l[4]) == "CANDY" else l for l in labs]
     labs = sorted(set(labs), key=lambda t: (round(t[1], 2), t[0]))[:1]  # the candy row is above the XL / mega energy row
     up = [t for l in labs for t in texts if 0 < l[1] - t[1] < 0.045 and t[0] < l[0] + l[2] and l[0] < t[0] + t[2]
-          and re.fullmatch(r"[\d,.]+", t[4].strip())]
+          and ui.count_text(t[4]) is not None]  # (the candy icon can read as a '•' before it)
     if len(up) != 1:
         raise Pass(f"can't read the candy owned: {[t[4] for t in up]}")
-    have_dust, have_candy = num(dust_n[4]), num(up[0][4])
+    have_dust, have_candy = num(dust_n[4]), ui.count_text(up[0][4])
     if None in (have_dust, have_candy):
         raise Pass(f"can't read the Stardust or candy owned: {dust_n[4]!r} {up[0][4]!r}")
     return have_dust, have_candy

@@ -163,8 +163,8 @@ def candy_xl(texts):
     if len(labels) != 1:
         return None
     lab = labels[0]
-    got = [int(re.sub(r"\D", "", t[4])) for t in texts if 0.01 < lab[1] - t[1] < 0.06
-           and abs((t[0] + t[2] / 2) - (lab[0] + lab[2] / 2)) < 0.12 and re.fullmatch(r"\d[\d,.]*", t[4].strip())]
+    got = [ui.count_text(t[4]) for t in texts if 0.01 < lab[1] - t[1] < 0.06
+           and abs((t[0] + t[2] / 2) - (lab[0] + lab[2] / 2)) < 0.12 and ui.count_text(t[4]) is not None]
     return got[0] if len(got) == 1 else None
 
 
@@ -184,8 +184,8 @@ def mega_energy(texts):
             if len(under) != 1:
                 continue
             form = form or (ui.norm(under[0][4]).split() + [None])[1]
-        got = [int(re.sub(r"\D", "", t[4])) for t in texts if 0.01 < lab[1] - t[1] < 0.06
-               and abs((t[0] + t[2] / 2) - (lab[0] + lab[2] / 2)) < 0.12 and re.fullmatch(r"\d[\d,.]*", t[4].strip())]
+        got = [ui.count_text(t[4]) for t in texts if 0.01 < lab[1] - t[1] < 0.06
+               and abs((t[0] + t[2] / 2) - (lab[0] + lab[2] / 2)) < 0.12 and ui.count_text(t[4]) is not None]
         if len(got) == 1:
             out[f"{name} {form}" if form else name] = got[0]
     return out

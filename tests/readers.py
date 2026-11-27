@@ -542,6 +542,10 @@ CANDY_ROWS = {  # the detail page's candy rows, at the Pixel's heights (a Dratin
         (0.246, 0.724, 0.084, 0.02, "20"), (0.158, 0.751, 0.271, 0.013, "KYOGRE CANDY XL"),
         (0.665, 0.724, 0.084, 0.02, "400"), (0.576, 0.751, 0.266, 0.013, "KYOGRE PRIMAL"),
         (0.65, 0.766, 0.118, 0.012, "ENERGY")],
+    "candy icon read as a dot": [  # a Minior page off the Pixel, 2026-11-27: cleantrades passed it
+        (0.078, 0.655, 0.267, 0.026, "12,785,917"), (0.148, 0.683, 0.163, 0.014, "STARDUST"),
+        (0.438, 0.656, 0.138, 0.02, "• 144"), (0.424, 0.681, 0.227, 0.016, "MINIOR CANDY"),
+        (0.808, 0.658, 0.059, 0.018, "• 11"), (0.704, 0.683, 0.271, 0.013, "MINIOR CANDY XL")],
 }
 
 

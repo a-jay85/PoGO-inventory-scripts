@@ -1,5 +1,6 @@
 {
  "base.candy": {
+  "X and Y, name over MEGA ENERGY": "CHARMANDER",
   "candy icon read as a dot": "MINIOR",
   "energy number missing": "DRATINI",
   "mega one line, X form": "CHARMANDER",
@@ -1519,6 +1520,7 @@
   "xXS 96\tXXS 96": true
  },
  "pagefacts.candy_xl": {
+  "X and Y, name over MEGA ENERGY": 626,
   "candy icon read as a dot": 11,
   "energy number missing": null,
   "mega one line, X form": 12,
@@ -1539,6 +1541,10 @@
   "your buddy's page: no button": true
  },
  "pagefacts.mega_energy": {
+  "X and Y, name over MEGA ENERGY": {
+   "CHARIZARD X": 2071,
+   "CHARIZARD Y": 1234
+  },
   "candy icon read as a dot": {},
   "energy number missing": {},
   "mega one line, X form": {
@@ -4964,6 +4970,10 @@
   ]
  },
  "taps.owned": {
+  "X and Y, name over MEGA ENERGY": [
+   12746517,
+   1900
+  ],
   "candy icon read as a dot": [
    12785917,
    144

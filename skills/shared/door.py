@@ -9,7 +9,8 @@ detail page that's still open. No Nope.
   facts.listed()             Pokémon an earlier run left as not sure under today's rules: the walk passes over them
 
 Not sure = left exactly as it is (tag and name) and written to runs/not-sure.json, with why, for a rule offline.
-A search whose tiles didn't all read counts as not done: every Pokémon that needs it comes out not sure.
+A search whose tiles didn't all read is typed once more (read_twice). Still short: it counts as not done, and every
+Pokémon that needs it comes out not sure.
 
 A gym defender's top 20 (rank_gym): before the walk the door looks for gym species in the pile, and reads the whole list
 of each one it finds, once a run. sort.gym_top20, /ivc's own rule, ranks each one opened. /ivc passes its own answer.
@@ -75,6 +76,21 @@ def key(tile_name, cp):
     return ui.tile_name(tile_name), cp
 
 
+def read_twice(find, term):
+    """find(term), typed once more when it read fewer or more tiles than the game counts: the same search read 12 of
+    13 costumes, then 13 of 13 a minute later (CyrillJan 2026-11-27), and one short read left all 396 of a pile not
+    sure. Same count both times: the tiles of both reads (a tile read in either is in it). -> find's (got, want)"""
+    got, want = find(term)
+    if not want or len(got) == want:
+        return got, want
+    log(f"door: {term}: {len(got)} read, the game says {want}: typing it again")
+    got2, want2 = find(term)
+    if want2 is not None and len(got2) == want2 or want2 != want:
+        return got2, want2
+    both = Counter(got) | Counter(got2)  # (each tile as many times as the most one read saw it)
+    return list(both.elements()), want
+
+
 
 def candy_owned(texts):
     """the family's Candy count on this page, or None (taps.owned's read)"""
@@ -131,7 +147,7 @@ class Door:
                 self.sets[k] = term in said
                 log(f"door: {self.scope}: {'every' if term in said else 'no'} one is {term}, no search")
                 continue
-            got, want = find(term)
+            got, want = read_twice(find, term)
             ok = want is not None and len(got) == want
             if self.source and want == 0 and not got:
                 EMPTY.append((self.account, said, term))

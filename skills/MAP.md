@@ -200,6 +200,7 @@ The door: a Pokémon /ivc, /pvpc or /ivc just found isn't a keeper gets its fina
 
 - `tile_icons(info)`: {"shiny", "background"} off the list tile this page was opened from: base.open_tile's, or the last "tile N" any go() tapped (/cleanup, /mega)
 - `key(tile_name, cp)`
+- `read_twice(find, term)`: find(term), typed once more when it read fewer or more tiles than the game counts: the same search read 12 of 13 costumes, then 13 of 13 a minute later (CyrillJan …
 - `candy_owned(texts)`: the family's Candy count on this page, or None (taps.owned's read)
 - `class Door`
   - `read_gym_lists(self, find)`: one search for any gym species in the pile (usually none), then the whole list of each one there

@@ -1613,6 +1613,7 @@ One phone for /trade, run as its own process: trade.py starts one for the iPhone
 - `class ServiceDown`: the trading server failed ("Trading service temporarily unavailable"): the round starts over
 - `class OutOfRange`: "... is out of range for trading" after LOCAL TRADE, with the phones side by side: nothing traded
 - `class NoFriday`: a Friday run's confirm screen shows the regular cost: no Friendship Friday this week
+- `class DayChanged`: midnight or an event's start or end came mid-round: the confirm screen shows the new day's cost (11-27, 00:00:18: a Thursday round's confirm showed Friday's 80)
 - `class DailyLimit`: the game says an account has made its 100 trades today ("Daily trading limit reached", "... has reached the daily trading limit"): trades by hand or with other friends …
 - `class Lost`: iPhone Mirroring lost the iPhone mid-run ("Connection Interrupted"): open Mirroring again, then the round starts over
 - `paused_so_far()`: the seconds the iPhone's process has been paused for the user (its own clock already leaves them out)

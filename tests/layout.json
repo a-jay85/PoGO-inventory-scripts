@@ -784,6 +784,7 @@
  "skills/gymfeed/gymfeed.py": {
   "copies": {},
   "names": [
+   "BACK_POLL",
    "BERRY",
    "BERRY_BOX",
    "BERRY_MENU",

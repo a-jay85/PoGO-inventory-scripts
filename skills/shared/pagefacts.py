@@ -170,20 +170,29 @@ def candy_xl(texts):
 
 def mega_energy(texts):
     """each Mega Energy count on the page: the number over a "<SPECIES> MEGA ENERGY" label. OCR wraps the label
-    ("DRAGONITE MEGA", then "ENERGY" under it), and an X/Y species ends it in the form ("ENERGY X").
+    ("DRAGONITE MEGA", then "ENERGY" under it, or "CHARIZARD", then "MEGA ENERGY X"), and an X/Y species ends it in
+    the form ("ENERGY X").
     -> {"DRAGONITE": 359, "CHARIZARD X": 120}. A label whose number doesn't read is left out"""
     out = {}
+    under_of = lambda lab, pat: [u for u in texts if 0 < u[1] - lab[1] < 0.03 and u[0] < lab[0] + lab[2]
+                                 and lab[0] < u[0] + u[2] and re.fullmatch(pat, ui.norm(u[4]))]
     for lab in texts:
         m = re.fullmatch(r"(.+?)\s+(?:MEGA|PRIMAL)(?:\s+ENERGY)?(?:\s+([XY]))?", ui.norm(lab[4]))
-        if not m or re.search(r"\d", m.group(1)):
-            continue
-        name, form = m.group(1).strip(), m.group(2)
-        if "ENERGY" not in ui.norm(lab[4]):  # the wrapped half under it: "ENERGY" or "ENERGY X"
-            under = [u for u in texts if 0 < u[1] - lab[1] < 0.03 and u[0] < lab[0] + lab[2] and lab[0] < u[0] + u[2]
-                     and re.fullmatch(r"ENERGY(\s+[XY])?", ui.norm(u[4]))]
+        if m and not re.search(r"\d", m.group(1)):
+            name, form = m.group(1).strip(), m.group(2)
+            if "ENERGY" not in ui.norm(lab[4]):  # the wrapped half under it: "ENERGY" or "ENERGY X"
+                under = under_of(lab, r"ENERGY(\s+[XY])?")
+                if len(under) != 1:
+                    continue
+                form = form or (ui.norm(under[0][4]).split() + [None])[1]
+        elif not m and re.fullmatch(r"[A-Z][A-Z ]*", lab[4].strip()):  # the name alone, "MEGA ENERGY X" under it
+            # (Charizard's X and Y side by side, Pixel 2026-11-27: "CHARIZARD" / "MEGA ENERGY X", and neither read)
+            under = under_of(lab, r"(?:MEGA|PRIMAL)\s+ENERGY(\s+[XY])?")
             if len(under) != 1:
                 continue
-            form = form or (ui.norm(under[0][4]).split() + [None])[1]
+            name, form = ui.norm(lab[4]), (ui.norm(under[0][4]).split() + [None])[2]
+        else:
+            continue
         got = [ui.count_text(t[4]) for t in texts if 0.01 < lab[1] - t[1] < 0.06
                and abs((t[0] + t[2] / 2) - (lab[0] + lab[2] / 2)) < 0.12 and ui.count_text(t[4]) is not None]
         if len(got) == 1:

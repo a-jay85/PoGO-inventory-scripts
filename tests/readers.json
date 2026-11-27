@@ -1,5 +1,6 @@
 {
  "base.candy": {
+  "candy icon read as a dot": "MINIOR",
   "energy number missing": "DRATINI",
   "mega one line, X form": "CHARMANDER",
   "mega wrapped": "DRATINI",
@@ -1518,6 +1519,7 @@
   "xXS 96\tXXS 96": true
  },
  "pagefacts.candy_xl": {
+  "candy icon read as a dot": 11,
   "energy number missing": null,
   "mega one line, X form": 12,
   "mega wrapped": 539,
@@ -1537,6 +1539,7 @@
   "your buddy's page: no button": true
  },
  "pagefacts.mega_energy": {
+  "candy icon read as a dot": {},
   "energy number missing": {},
   "mega one line, X form": {
    "CHARIZARD X": 1200
@@ -4961,6 +4964,10 @@
   ]
  },
  "taps.owned": {
+  "candy icon read as a dot": [
+   12785917,
+   144
+  ],
   "energy number missing": [
    123456,
    2814

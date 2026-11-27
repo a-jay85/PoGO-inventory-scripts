@@ -751,6 +751,7 @@ Screen reader + tap planner for every script, and the readers under the red GPS 
 - `summary(texts, n=250)`: the screen's text for a log line
 - `rows(texts, gap=0.012)`: OCR boxes -> [(y, joined text)]: rows top to bottom, each row's words left to right
 - `norm(s)`
+- `count_text(s)`: a count under its icon: '144', or with the icon read as a glyph before it ('• 144', '§ 12,789,117')
 - `alnum(s)`: lower-case letters and digits only, None as '': one name OCR'd two ways ('98 ADC*X ^' / '98 AD C* X'), 'Farfetch'd' as 'farfetchd'
 - `label(texts, word)`: the text box that reads exactly word, or None
 - `center(t)`: a text box's middle

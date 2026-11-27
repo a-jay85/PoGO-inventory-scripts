@@ -2791,6 +2791,7 @@
    "cmd_press",
    "cmd_read",
    "cmd_tap",
+   "count_text",
    "detail_info",
    "dialog_ok",
    "ensure_helper",

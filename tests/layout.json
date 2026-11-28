@@ -2229,6 +2229,7 @@
    "closed",
    "evolve_box",
    "exit_box",
+   "fitness_off",
    "friend_card",
    "ios_update",
    "manage_favorite",

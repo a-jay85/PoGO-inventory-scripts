@@ -29,7 +29,7 @@ for the whole way -> Evo, IVC off.
   python3 xxs.py plan <account> <species> <kg> <m> [traded]   -> the plan for one
   python3 xxs.py test                                          -> run the examples
 """
-import os, sys, time
+import os, sys
 from dataclasses import dataclass, field
 
 HERE = os.path.dirname(os.path.realpath(__file__))
@@ -218,10 +218,8 @@ def act(account, sid, shadow, tile, ivs=None):
     have = page.get("candy")
     log(f"  xxs: {sid} {kg} kg {m} m, {'traded' if traded else 'untraded'}, {have} candy -> "
         f"{' -> '.join(p.path) or 'no evolving'}{f' ({p.candy} candy)' if p.path else ''}, then {p.tag}: {'; '.join(p.why)}")
-    if p.tag is None:
-        door.add_to_list({"tile": tile[0], "cp": tile[1], "hp": hp, "ivs": list(ivs or ()), "species": [sid],
-                          "why": "xxs " + "; ".join(p.why), "account": account, "tag": TAG, "rules": door.RULES,
-                          "day": time.strftime("%Y-%m-%d"), "run": base.RUN_DIR})
+    if p.tag is None:  # not on the door's not-sure list: that list is skipped until verdict, door or rules change,
+        # and most of these are sure once `pogo.py dex xxs` has read the xxs page. So each run opens it again
         return door.UNSURE
     tag, name = p.tag, p.name
     if p.path and (have is None or have < p.candy):

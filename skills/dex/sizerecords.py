@@ -17,9 +17,9 @@ in that time are swiped past (--again reads them anyway). --limit N reads at mos
 around: it never changes anything in the game.
 
 A page with no MY RECORDS box, or no tabs at all (never caught; a form like Alolan Rattata, 2026-11-12) is saved with
-no values. The box looks like it counts only Pokémon caught as that species: CyrillJan's Milotic (CAUGHT 1, evolved),
-Huntail, Gorebyss, Ludicolo and Beautifly have none (2026-11-12). So whether a traded one sets a record is not known
-yet: read the receiver's page before and after a trade. Forms:
+no values. The box counts evolved Pokémon (the user, 2026-11-27) and traded ones ("New Height Record" cards in the
+2026-11-12 and 2026-11-14 trade runs). Why CyrillJan's Milotic (CAUGHT 1, evolved), Huntail, Gorebyss, Ludicolo and
+Beautifly had no box on 2026-11-12 isn't known. Forms:
 the swipe shows one page per number, and this reads the form the page opens on (the first one). Another form's own
 box isn't read.
 

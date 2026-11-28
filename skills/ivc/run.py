@@ -2,23 +2,23 @@
 """Unattended /ivc: keep the best IVC Pokémon (favorite + untick IVC). The rest get their final tag right there
 (../shared/door.py, name cleared), or stay as they are on ../shared/runs/not-sure.json. Rules in sort.py.
 
-  caffeinate -dimsu python3 run.py [sort [<run dir>]] [--limit N] [--look]
+  python3 run.py [sort [<run dir>]] [--limit N] [--look]
         read the IVC Pokémon, then per family: type its searches, decide, favorite or door on the list on screen.
         Up to 60 IVC ones: one search reads them all. More: 50 dex numbers at a time. Give the run dir
         to carry on after a stop. --limit N: change N, then stop. --look: decide only (plan.txt), change nothing
-  caffeinate -dimsu python3 run.py names [--limit N] [--dry-run]
+  python3 run.py names [--limit N] [--dry-run]
         the names pass on its own (the sort starts with it): an XXL IVC one becomes a favorite, IVC off. Then it names
         what the sort can't, the xxs IVC ones (the sort leaves them out) and ones whose nickname is no species (the detail screen tells the species)
-  caffeinate -dimsu python3 run.py fallen <run dir> [--limit N]  the fallen-out step on its own (a sort that gets to
+  python3 run.py fallen <run dir> [--limit N]  the fallen-out step on its own (a sort that gets to
         the end does it itself): group the fallen-out ones, then tag or door each one. act-fallen: the same
-  caffeinate -dimsu python3 run.py resort [<run dir>] [--dex A-B] [--look] [--limit N]
+  python3 run.py resort [<run dir>] [--dex A-B] [--look] [--limit N]
         judge the starred /ivc-named ones again after a rule change: type every search of each family with a weak
         line (--dex: only those dex numbers), then the fallen-out step sends what fell out to the door. --look:
         fallen.txt only, change nothing. One the door would tag Transfer gets the Fallen tag instead (star and name
         stay). One search per family, and three wide ones that tell shadow, lucky and Dynamax apart. Give the run dir
         to carry on after a stop
   python3 run.py search "<query>" [...]                     type searches and print the tiles (testing; later ones edit the bar's end)
-  POGO_PHONE=android caffeinate -dimsu python3 run.py ...   (Android phone over USB, see ../pvpc/android.py)
+  POGO_PHONE=android python3 run.py ...   (Android phone over USB, see ../pvpc/android.py)
 
 An IVC Pokémon still named after its species is opened once (look): appraised, named (names.py), judged and
 favorited or sent to the door right there. Start with Pokémon GO

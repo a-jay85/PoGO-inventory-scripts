@@ -2,9 +2,9 @@
 """/dex: read one Pokédex page and print a storage search of the Pokémon missing from it, for another account
 to paste. Android only for now.
 
-  POGO_PHONE=android caffeinate -dimsu python3 dex.py lucky     the Lucky page
-  POGO_PHONE=android caffeinate -dimsu python3 dex.py 100       the ★100% page
-  POGO_PHONE=android caffeinate -dimsu python3 dex.py xxs       the XXS page: each search starts with xxs&
+  POGO_PHONE=android python3 dex.py lucky     the Lucky page
+  POGO_PHONE=android python3 dex.py 100       the ★100% page
+  POGO_PHONE=android python3 dex.py xxs       the XXS page: each search starts with xxs&
   POGO_PHONE=android python3 dex.py look                        what it reads on a grid screen now; taps nothing
   POGO_PHONE=android python3 dex.py evolve [lucky|xxs|100] [run]  the evolve step again on a page already read (default:
                                                                 Lucky, its newest run); doesn't read the page again.

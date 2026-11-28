@@ -317,6 +317,7 @@ def claim():
     f.write(f"pid {os.getpid()} ({' '.join(sys.argv)})\n")
     f.flush()
     held = f
+    locks.awake()  # the Mac awake for the whole run
     return None
 
 

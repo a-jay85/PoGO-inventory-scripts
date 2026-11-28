@@ -3,7 +3,7 @@
 which account's record would beat the other's, so a spare xxs or XXL can be traded over to set a new record.
 Android only for now.
 
-  POGO_PHONE=android caffeinate -dimsu python3 sizerecords.py read [--from N] [--limit N] [--again]
+  POGO_PHONE=android python3 sizerecords.py read [--from N] [--limit N] [--again]
                                                    read this account's Pokédex
   python3 sizerecords.py compare                   the trades (no phone)
 

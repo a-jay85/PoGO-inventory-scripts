@@ -2,8 +2,8 @@
 """Tag HashTagAJay's Leftovers saved search by what a trade to another account is worth (CyrillJan, or the user's
 wife's account, which is further behind: good for any account, the user 2026-11-16).
 
-  POGO_PHONE=android caffeinate -dimsu python3 leftovers.py [--limit N]   from either account
-  POGO_PHONE=android caffeinate -dimsu python3 leftovers.py again GIV|Transfer|Reroll [--as CyrillJan] [--and Q] [--limit N]
+  POGO_PHONE=android python3 leftovers.py [--limit N]   from either account
+  POGO_PHONE=android python3 leftovers.py again GIV|Transfer|Reroll [--as CyrillJan] [--and Q] [--limit N]
                                           re-judge a tag pile
 
 Signed in as someone else on the Pixel, it switches to HashTagAJay first (../shared/account.py) and goes on.

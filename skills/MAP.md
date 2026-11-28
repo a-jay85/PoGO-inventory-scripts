@@ -330,6 +330,7 @@ The phone locks: one file per phone that session.claim() holds (flock) for a who
 
 - `path(phone)`: the lock file of 'android' or 'iphone'
 - `holder(phone)`: -> the lock's line ('pid N (script args)') while a run holds the phone, or None when it's free
+- `awake()`: keeps the Mac awake (display too: iPhone Mirroring needs it) while this process lives, as `caffeinate -dimsu` in front of the command did
 
 ## skills/shared/pagefacts.py
 What the door needs to know, read off the list tile and the Pokémon's own page instead of searches

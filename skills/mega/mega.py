@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Mega Evolve every Pokémon tagged TODO, once a day each.
 
-  POGO_PHONE=android caffeinate -dimsu python3 mega.py [--limit N] [--dry-run]   the Android phone
-  caffeinate -dimsu python3 mega.py [--limit N] [--dry-run]                      the iPhone
-  POGO_PHONE=both caffeinate -dimsu python3 mega.py [--limit N] [--dry-run]      both phones at once
+  POGO_PHONE=android python3 mega.py [--limit N] [--dry-run]   the Android phone
+  python3 mega.py [--limit N] [--dry-run]                      the iPhone
+  POGO_PHONE=both python3 mega.py [--limit N] [--dry-run]      both phones at once
 
 Searches #TODO&mega&!#TODO4 (Mega-capable species only, so a Braixen never opens), opens the first one and swipes through them.
 On each page it opens the Mega level page (the round Mega badge under the types) and Mega Evolves from there:

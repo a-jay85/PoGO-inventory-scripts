@@ -747,7 +747,7 @@ def check(target, cwd):
                 f"ended with exit 0 ran these files as they are at the PR head {head[:10]}.\n"
                 + "".join(f"  {x}\n" for x in near)
                 + f"  Do: commit and push every change first, then from the PR's worktree, in the foreground:\n"
-                  f"  POGO_PHONE=android python3 {wt}/watch.py caffeinate -dimsu python3 {wt}/{script} --limit 1\n"
+                  f"  POGO_PHONE=android python3 {wt}/watch.py python3 {wt}/{script} --limit 1\n"
                   f"  (the script the change touches, the smallest run that reaches it; `ps aux | grep -E "
                   f"'skills/|pogo.py'` first: nothing else may run on the phone). If it can't be tested on the phone, "
                   f"add a body line `No phone test: <why, 10+ characters>`"

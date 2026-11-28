@@ -1,26 +1,26 @@
 #!/usr/bin/env python3
 """Unattended /pvpc: works through the PvpC-tagged list in iPhone Mirroring with no Claude.
 
-  caffeinate -dimsu python3 run.py [--limit N] [--dry-run]       rename every PvpC Pokémon. A renamed one is
+  python3 run.py [--limit N] [--dry-run]       rename every PvpC Pokémon. A renamed one is
                                                                  a keeper: star on, PvpC off. At the end of the
                                                                  list it also runs `fallen` on this run. One that
                                                                  isn't a keeper gets its final tag right there
                                                                  (../shared/door.py), or stays as it is and goes on
                                                                  ../shared/runs/not-sure.json. A Pvp-named one an
                                                                  older run left in PvpC is judged again too
-  caffeinate -dimsu python3 run.py fallen <run dir> [--limit N]   which older Pvp Pokémon the new names pushed out,
+  python3 run.py fallen <run dir> [--limit N]   which older Pvp Pokémon the new names pushed out,
                                                                  in one pass per line: each line's search typed once,
                                                                  the beaten ones opened from that list and renamed (a
                                                                  trim) or sent to the door for its final tag (name
                                                                  cleared) in the open that appraises them, until the
                                                                  line stops changing. act-fallen: same thing
-  caffeinate -dimsu python3 run.py fallen --line <species>       the same pass on one line (plain and shadow) in a new
+  python3 run.py fallen --line <species>       the same pass on one line (plain and shadow) in a new
                                                                  run folder, with no new names: fixes old names a rule
                                                                  change left wrong (a league the form can't play)
-  caffeinate -dimsu python3 run.py keepers [--limit N]           star the Pvp-named ones still in the PvpC list
+  python3 run.py keepers [--limit N]           star the Pvp-named ones still in the PvpC list
                                                                  (from runs before keepers were starred), PvpC off,
                                                                  without judging them again (the main run does that)
-  POGO_PHONE=android caffeinate -dimsu python3 run.py ...   (Android phone over USB, see ../shared/android.py)
+  POGO_PHONE=android python3 run.py ...   (Android phone over USB, see ../shared/android.py)
 
 Start with Pokémon GO on the inventory, filtered to the PvpC tag. Anything the script isn't sure
 about is skipped and written to runs/<time>/log.txt with a capture. Anything unexpected stops the run.

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """/gift: send San Francisco gifts to every friend who can take one, the most useful first.
 
-  caffeinate -dimsu python3 gift.py [--limit N]                       the iPhone
-  POGO_PHONE=android caffeinate -dimsu python3 gift.py [--limit N]    the Android phone
-  POGO_PHONE=both caffeinate -dimsu python3 gift.py [--limit N]       both phones at once
+  python3 gift.py [--limit N]                       the iPhone
+  POGO_PHONE=android python3 gift.py [--limit N]    the Android phone
+  POGO_PHONE=both python3 gift.py [--limit N]       both phones at once
   [POGO_PHONE=android] python3 gift.py look                           what the script reads now; taps nothing
-  [POGO_PHONE=android] caffeinate -dimsu python3 gift.py open [--limit N]   only the open pass, any time of day
+  [POGO_PHONE=android] python3 gift.py open [--limit N]   only the open pass, any time of day
   add --dry-run: everything but SEND, OPEN and the nickname's OK.
   add --dry-run --walk: a speed test that works after every gift is sent: each friend's page, always its friendship screen, no gift list.
 

@@ -198,6 +198,7 @@ The shared tapper: screen reading, taps, timing, run folders and logging, and th
 ## skills/shared/door.py
 The door: a Pokémon /ivc, /pvpc or /ivc just found isn't a keeper gets its final tag right there (verdict.py), on the detail page that's still open
 
+- `code_of(f)`: a file's code with no comments and no docstrings (ast.dump): an edit to the words alone keeps every saved judgment (backlog #16, 2026-11-24: any edit to the three files …
 - `tile_icons(info)`: {"shiny", "background"} off the list tile this page was opened from: base.open_tile's, or the last "tile N" any go() tapped (/cleanup, /mega)
 - `key(tile_name, cp)`
 - `read_twice(find, term)`: find(term), typed once more when it read fewer or more tiles than the game counts: the same search read 12 of 13 costumes, then 13 of 13 a minute later (CyrillJan …

@@ -1825,6 +1825,7 @@
    "can_evolve",
    "candy_owned",
    "catch_date",
+   "code_of",
    "cost_levels",
    "dead_end",
    "key",

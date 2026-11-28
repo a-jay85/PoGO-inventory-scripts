@@ -588,7 +588,7 @@ In-game searches and list walking, shared by /ivc and /pvpc's fallen-out step
 - `zoom_name(im, t)`: read one tile's name again from a 3x crop under its CP: small names read better big ('od' -> '40 d')
 - `read_tiles(texts, path, odd=None)`: the list's tiles with clean names
 - `list_ended(ts)`: these tiles leave room for another row: nothing more to scroll to
-- `walk_list(visit, limit=10 ** 9, stop=None, odd=None, passed=None, want=None)`: call visit(i, name, cp) on each tile of the open list once, top to bottom
+- `walk_list(visit, limit=10 ** 9, stop=None, odd=None, passed=None, want=None, expect=None)`: call visit(i, name, cp) on each tile of the open list once, top to bottom
 - `pokeball(path)`: the red-over-white Poké Ball at the bottom middle of the map
 - `off_map()`: a pull-down past the top of the list closes the Pokémon screen
 - `leave_multiselect(texts, bounds)`: a tap read as a long press puts the list in multi-select ('SELECT ALL', X top left), which hides the count

@@ -551,23 +551,27 @@ def dead_end(costume, sp, texts):
 
 def walk_parts(gate, whole, count, walk, limit=None):
     """walk gate's pile in its parts (Door.splits). whole: the game's count of the pile, still on screen. count(terms):
-    type the pile's search & terms ('' = the pile alone) -> the game's count. walk(part door): walk the list on screen
-    -> True when the run's limit is reached. limit: how many the run opens at most. Parts that don't add up to the
-    whole (a term the game reads another way) aren't believed: the pile is walked whole, as before. A pile too small
-    for its parts' searches to pay back in drags saved is walked whole too"""
+    type the pile's search & terms ('' = the pile alone) -> the game's count. walk(part door, n): walk the list on
+    screen, which the game counts n -> True when the run's limit is reached. limit: how many the run opens at most.
+    Parts that don't add up to the whole (a term the game reads another way) aren't believed: the pile is walked
+    whole, as before. A part with no count read is 0 when the others add up to the whole (an empty list shows no
+    count). A pile too small for its parts' searches to pay back in drags saved is walked whole too"""
     parts, typed = gate.splits(), ""
     n = min(whole or 0, limit or whole or 0)
     if len(parts) > 1 and n * DRAG_S * TOP_SETTLES < len(parts) * SEARCH_S:
         log(f"door: {n} to open, {len(parts)} parts' searches cost more than the drags they'd save: walked whole")
         parts = [("", gate)]
+    got = {"": whole}
     if len(parts) > 1:
-        got = {}
         for terms, _ in parts:
             got[terms] = count(terms)
             typed = terms
         log(f"door: {whole} in the pile, in parts {got}")
-        if whole is None or None in got.values() or sum(got.values()) != whole:
-            log(f"door: the parts add up to {sum(n or 0 for n in got.values())}, not {whole}: walked whole")
+        read = sum(n or 0 for t, n in got.items() if t)
+        if whole is not None and read == whole:  # (Pixel 2026-11-26: the 3 empty parts read None, the 4th 402 of 402)
+            got = {t: n or 0 for t, n in got.items()}
+        if whole is None or None in got.values() or read != whole:
+            log(f"door: the parts add up to {read}, not {whole}: walked whole")
             parts = [("", gate)]
         else:
             parts = sorted((p for p in parts if got[p[0]]), key=lambda p: p[0] != typed)  # the one on screen first
@@ -575,7 +579,7 @@ def walk_parts(gate, whole, count, walk, limit=None):
         if terms != typed:
             count(terms)
         typed = None
-        if walk(part):
+        if walk(part, got[terms]):
             return
 
 

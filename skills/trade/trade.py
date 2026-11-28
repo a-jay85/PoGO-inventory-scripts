@@ -34,7 +34,9 @@ and no 2XL any other day. A regular trade costs 80 Stardust on a Friday (20% off
 day's runs) goes on with the other days' rules. A run stops at midnight if that
 changes what it may trade.
 A lucky-trade event (EVENTS: its dates and piles) swaps GIV for its own pile on each phone, typed: Nov 24-30 2026,
-HashTagAJay's '#Old&age366-730&!candykm20' (caught 1-2 years ago, raising the lucky odds) for CyrillJan's '#Reroll'.
+HashTagAJay's '#Old&age366-730' (caught 1-2 years ago, raising the lucky odds) for CyrillJan's '#Reroll'. The #Old
+pile leaves out every special trade it can search for (NOT_SPECIAL: shadow, purified, shiny, background, costume,
+Gigantamax, legendary, mythical, Ultra Beast).
 The same far-apart and needy-candy plans, and the run stops when either pile is out (no GIV then). A Friendship Friday
 inside one still trades 2XL; a Friday with no Friendship Friday trades the event's piles. A run stops when an event
 starts or ends.
@@ -98,10 +100,14 @@ SHORTCUTS = ("0-100km", "100+km")  # the saved GIV searches' labels, on both acc
 # A lucky-trade event (the user, 2026-11-24): while one is on, CyrillJan's #Reroll pile goes to HashTagAJay, for
 # HashTagAJay's Pokémon caught 366-730 days ago (an old one raises the lucky odds; a lucky Reroll has every IV 12+.
 # Nothing 2 years or older is spent: the user).
-# !candykm20 keeps legendary, mythical and Ultra Beast out (a special trade). A run stops when either pile runs out:
-# no GIV in an event. A Friendship Friday inside one still trades 2XL. (start, end, iPhone pile, Android pile), local time
+# #Old is tagged by age alone, so it holds special trades the confirm screen won't take (a stop, the user 2026-11-28):
+# NOT_SPECIAL leaves them out. It goes right after the tag: the iPhone bar shows a search's end, and the distance and
+# candy terms there tell the plans apart. A run stops when either pile runs out: no GIV in an event. A Friendship
+# Friday inside one still trades 2XL. (start, end, iPhone pile, Android pile), local time
+NOT_SPECIAL = "".join(f"&!{t}" for t in ("shadow", "purified", "shiny", "background", "costume", "gigantamax",
+                                         "legendary", "mythical", "ultrabeast"))
 EVENTS = [(datetime.datetime(2026, 11, 24, 10, 0), datetime.datetime(2026, 11, 30, 20, 0),
-           "#Old&age366-730&!candykm20", "#Reroll")]
+           "#Old&age366-730" + NOT_SPECIAL, "#Reroll")]
 
 
 def event_now():

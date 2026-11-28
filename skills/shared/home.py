@@ -373,6 +373,8 @@ def reach(storage):
                 continue
             except Stop as e:  # not a storage Pokémon after all (a trade's result screen): out the other way
                 log(f"  couldn't close the Pokémon the usual way: {e}")
+                if isinstance(e, base.Lost) and look()[0] in ("map", "mainmenu"):
+                    continue  # its X went to the map (a hatched egg's page, Pixel 2026-11-28): the map's way in next
                 if ui.ANDROID and not restarted:  # its X took no tap at all: a stuck game, a restart fixes it
                     restarted = True
                     android_restart()
@@ -385,6 +387,13 @@ def reach(storage):
             search.off_map()
             try:
                 got = base.wait_for(*STORAGE, timeout=8)
+                if got[0] in OPEN:  # a Pokémon's page from the map is an egg that hatched under the tap (its 'Oh?'
+                    # unseen): its X goes to the map, never the list. Pixel 2026-11-28, right after an account switch
+                    log("  a Pokémon's page came up instead of the list (an egg hatched): its X, to the map")
+                    hatched = hatched_at[0] = time.time()  # (trainer() reads hatched_at for the page's next look)
+                    base.tap_x(got[3])
+                    time.sleep(2.0)
+                    continue
                 if got[0] == "list":  # opened from the map: at the top (seen on the iPhone, 2026-11-02)
                     search.scrolled = False
                     note_storage(got[1])  # the bar is empty only now: two reads here spare trainer() clearing it later
@@ -669,7 +678,12 @@ def trainer(fast=True):
             base.tap_x(bounds)  # list and got the EGGS tab, Pixel 2026-11-18)
             time.sleep(2.0)
         elif screen in OPEN:
-            base.back_to_list()
+            try:
+                base.back_to_list()
+            except base.Lost:  # a hatched Pokémon's page nobody saw hatch: its X went to the map, which is
+                if look()[0] not in ("map", "mainmenu"):  # where this is headed anyway (Pixel 2026-11-28)
+                    raise
+                log("  that Pokémon's page closed to the map (a hatched egg's)")
         elif screen == "list" and not ui.full_list(texts):
             base.to_tags_tab()  # a tag's list: its X isn't the Pokémon screen's (stuck 12 looks, 2026-11-02)
         elif screen in ("list", "tag-tab"):

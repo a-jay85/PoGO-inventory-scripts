@@ -214,9 +214,9 @@ def evolutions(species, ivs=None):
 def evolve_cost(species, into):
     """what evolving species into `into` costs: {"candy": n, "needs": [...]} (gamedata.evolve_cost), or None if the game
     data doesn't say. A shadow one costs what its plain form does"""
-    plain_sid = species.removesuffix("_shadow")
+    plain_sid = species.removesuffix("_SHADOW")
     costs = (SPECIES.get(plain_sid, {}).get("family") or {}).get("costs") or {}
-    return costs.get(into.removesuffix("_shadow"))
+    return costs.get(into.removesuffix("_SHADOW"))
 
 
 def family(species, ivs=None):

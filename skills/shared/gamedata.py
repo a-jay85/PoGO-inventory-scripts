@@ -311,7 +311,8 @@ def build():
                 fam = {"parent": fam["parent"] and (sh(fam["parent"]) or fam["parent"]),
                        "evolutions": [k for k in map(sh, fam["evolutions"] or []) if k]}
         fam = {k: x for k, x in fam.items() if x}
-        fam = {k: rn(x) if k == "parent" else [rn(y) for y in x] for k, x in fam.items()}
+        fam = {k: rn(x) if k == "parent" else {rn(y): c for y, c in x.items()} if k == "costs" else [rn(y) for y in x]
+               for k, x in fam.items()}
         if fam:  # (as PvPoke: no family when nothing links)
             e["family"] = {"id": e["familyId"], **fam}
         e["tags"] = tags

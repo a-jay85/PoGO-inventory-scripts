@@ -76,16 +76,25 @@ def key(tile_name, cp):
     return ui.tile_name(tile_name), cp
 
 
-def gym_dexes(got, want):
-    """the gym species search's tiles [(name, cp)] and the game's count -> the GYM_DEX numbers in them, by the tile
-    names, so each species isn't searched alone (~9 s each, 4 of 6 found none: backlog #8). None when a tile's name
-    isn't a gym species' own name (a nickname) or not every tile read: then each one is searched"""
-    import pvp
+def gym_dexes(got, want, account=None):
+    """the gym species search's tiles [(name, cp)] and the game's count -> the GYM_DEX numbers in them, so each
+    species isn't searched alone (~9 s each, 4 of 6 found none: backlog #8). A tile's species is its name, or for a
+    nickname ('24 a') the database's record of that nickname and CP. None when one tile can't be told, or not every
+    tile read: then each one is searched"""
+    import pvp, pokedb
     by_name = {x["speciesName"].split(" (")[0].lower(): x["dex"] for x in pvp.SPECIES.values() if x["dex"] in GYM_DEX}
     if want is None or len(got) != want:
         return None
-    dexes = {by_name.get((n or "").strip().lower()) for n, _ in got}
-    return None if None in dexes else dexes
+    dexes = set()
+    for n, cp in got:
+        dex = by_name.get((n or "").strip().lower())
+        if dex is None:
+            known = {pvp.SPECIES.get(r["species"] or "", {}).get("dex") for r in pokedb.find(account, nickname=n, cp=cp)}
+            if len(known) != 1 or not known <= set(GYM_DEX):
+                return None
+            dex = known.pop()
+        dexes.add(dex)
+    return dexes
 
 
 def read_twice(find, term):
@@ -186,9 +195,9 @@ class Door:
         if not want:
             log(f"door: {self.scope}: no gym defenders")
             return
-        dexes = gym_dexes(got, want)
+        dexes = gym_dexes(got, want, self.account)
         if dexes is not None:
-            log(f"door: gym species in it, by the tile names: {sorted(dexes)}")
+            log(f"door: gym species in it, by the tile names and the database: {sorted(dexes)}")
         for dex in GYM_DEX:
             if (self.account, dex) not in GYM_TILES and (dex in dexes if dexes is not None else find(str(dex))[1]):
                 got, want = search.run_search(str(dex))

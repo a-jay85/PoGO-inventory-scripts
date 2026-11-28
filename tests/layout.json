@@ -1827,6 +1827,7 @@
    "catch_date",
    "cost_levels",
    "dead_end",
+   "gym_dexes",
    "key",
    "load_list",
    "load_lucky_out",

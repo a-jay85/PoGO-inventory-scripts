@@ -76,6 +76,18 @@ def key(tile_name, cp):
     return ui.tile_name(tile_name), cp
 
 
+def gym_dexes(got, want):
+    """the gym species search's tiles [(name, cp)] and the game's count -> the GYM_DEX numbers in them, by the tile
+    names, so each species isn't searched alone (~9 s each, 4 of 6 found none: backlog #8). None when a tile's name
+    isn't a gym species' own name (a nickname) or not every tile read: then each one is searched"""
+    import pvp
+    by_name = {x["speciesName"].split(" (")[0].lower(): x["dex"] for x in pvp.SPECIES.values() if x["dex"] in GYM_DEX}
+    if want is None or len(got) != want:
+        return None
+    dexes = {by_name.get((n or "").strip().lower()) for n, _ in got}
+    return None if None in dexes else dexes
+
+
 def read_twice(find, term):
     """find(term), typed once more when it read fewer or more tiles than the game counts: the same search read 12 of
     13 costumes, then 13 of 13 a minute later (CyrillJan 2026-11-27), and one short read left all 396 of a pile not
@@ -170,11 +182,15 @@ class Door:
         if not self.typed:
             search.to_search_list()
             self.typed = True
-        if not find(",".join(map(str, GYM_DEX)))[1]:
+        got, want = find(",".join(map(str, GYM_DEX)))
+        if not want:
             log(f"door: {self.scope}: no gym defenders")
             return
+        dexes = gym_dexes(got, want)
+        if dexes is not None:
+            log(f"door: gym species in it, by the tile names: {sorted(dexes)}")
         for dex in GYM_DEX:
-            if (self.account, dex) not in GYM_TILES and find(str(dex))[1]:
+            if (self.account, dex) not in GYM_TILES and (dex in dexes if dexes is not None else find(str(dex))[1]):
                 got, want = search.run_search(str(dex))
                 log(f"door: gym list {dex}: {len(got)} read, the game says {want}")
                 if want is not None and len(got) == want:  # (else: those come out not sure)

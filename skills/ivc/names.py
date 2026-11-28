@@ -270,6 +270,10 @@ def read_one(i, tile_name, tile_cp):
     if not sp:  # a nickname: the candy, the types and the CP tell the species
         sp = base.species_from_candy(texts, cp, info["hp"])
     shadow, lucky, size = extras(texts)
+    if size is None and re.search(r"xxs|sxx", info["name"] or "", re.I):  # its badge read missed (CyrillJan's
+        # Zorua and Lillipup named XXS, 2026-11-27: sent to the door with no xxs rules). The name says it
+        log(f"  no size badge read, but the name {info['name']!r} says xxs")
+        size = "XXS"
     moves = []
     if any(ivc.elite_moves(s) for s in sp):
         seen = read_moves()

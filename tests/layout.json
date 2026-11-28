@@ -2836,6 +2836,7 @@
    "CANT_CAPTURE",
    "CAP",
    "CONFIRM_SCREENS",
+   "FLIP",
    "GPS_BANNER",
    "HAZARDS",
    "HAZARD_MARGIN",
@@ -2966,6 +2967,7 @@
    "top_clock",
    "under",
    "under_gps_banner",
+   "unflip",
    "unscrolled",
    "up",
    "window"

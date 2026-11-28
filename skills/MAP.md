@@ -813,6 +813,7 @@ Screen reader + tap planner for every script, and the readers under the red GPS 
 - `detail_info(texts)`
 - `tile_cps(texts)`: the CP labels of the list's tiles
 - `under(t, c)`: text t is the name under CP label c: its middle under c's, or a row's names run into one box over c
+- `unflip(name)`: a tile name read upside down, turned back
 - `tiles(texts)`: Pokémon tiles in the list, in reading order: (name, cp, x, y) with x, y = middle of the tile image
 - `dialog_ok(texts)`: the Set Nickname dialog's OK box
 - `green_button(path, box)`: is the green OK button behind this box? Most of a line across the dialog through its middle is green (the button runs ~0.12-0.88 across, light green on the left to teal …

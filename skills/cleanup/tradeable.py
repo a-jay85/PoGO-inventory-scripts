@@ -87,7 +87,7 @@ import ui
 import base
 from base import Stop, Skip, log, go, look, wait_for
 import search, pokedb
-import pvp
+import pvp, gamedata
 import home, session, tagsheet
 import dex
 import powerup
@@ -105,7 +105,6 @@ if ui.ANDROID:  # a look's shrink, save and OCR take 0.3-0.6 s, so at 0.3 most h
 SHORTCUT = "Tradeable"
 MAX_SUFFIX = 300  # characters added to the saved search: it's already in the bar
 PVP_URL = "https://raw.githubusercontent.com/pvpoke/pvpoke/master/src/data/rankings/all/overall/rankings-%d.json"
-PM_URL = "https://raw.githubusercontent.com/PokeMiners/game_masters/master/latest/latest.json"
 EGGS_URL = "https://raw.githubusercontent.com/bigfoott/ScrapedDuck/data/eggs.min.json"
 
 
@@ -119,7 +118,7 @@ def cmd_refresh():
         for i, r in enumerate(ranks, 1):
             sid = r["speciesId"].replace("_shadow", "")
             if sid not in pvp.SPECIES:
-                print(f"{cap}: no {sid} in the gamemaster")
+                print(f"{cap}: no {sid} in the game data")
                 continue
             ivs = (15, 15, 15) if cap == 10000 else pvp.table(sid, cap)[0][2]
             if min(ivs) >= PVP_FLOOR:
@@ -127,7 +126,7 @@ def cmd_refresh():
     out = os.path.join(HERE, f"pvp-giv-{time.strftime('%Y%m%d')}.json")
     base.write_json(out, dict(sorted(keep.items())), indent=0)
     print(f"{len(keep)} species -> {out}")
-    gm = json.load(urllib.request.urlopen(PM_URL))
+    gm = gamedata.raw()
     hard = hard_evolutions(gm)
     out = os.path.join(HERE, f"giv-evolved-{time.strftime('%Y%m%d')}.json")
     base.write_json(out, dict(sorted(hard.items())), indent=0)
@@ -155,7 +154,7 @@ def refresh_eggs():
             continue
         sid = by_name.get(e["name"].lower())
         if not sid:
-            print(f"eggs: no {e['name']} in the gamemaster")
+            print(f"eggs: no {e['name']} in the game data")
             continue
         if sid not in out.setdefault(e["eggType"], []):
             out[e["eggType"]].append(sid)
@@ -210,18 +209,21 @@ def dmax_need(m, ok):
 def hard_evolutions(gm):
     """PokeMiners' game master -> {speciesId: why}: evolving into it costs HARD_CANDY+ candy, a quest or an item, or
     it evolves from something in the main games but can't be evolved into in GO yet (Kleavor, Alolan Marowak)"""
+    sid_of = {}  # a PokeMiners form (or a formless pokemonId) -> its PvPoke id, the shortest one first
+    for sid, p in sorted(pvp.PLAIN.items(), key=lambda kv: len(kv[0])):
+        sid_of.setdefault(p["form"] or p["template"].split("_POKEMON_", 1)[1], sid)
     out, reached = {}, set()
     for x in gm:
         for b in (x["data"].get("pokemonSettings") or {}).get("evolutionBranch") or []:
             if "evolution" not in b or b.get("temporaryEvolution"):
                 continue
-            names = [re.sub(r"_alola$", "_alolan", n.lower().removesuffix("_normal"))
-                     for n in (b.get("form"), b["evolution"]) if n]  # (pvpoke: _alolan; an odd form: the species)
-            sid = next((n for n in names if n in pvp.SPECIES), None)
+            forms = [b.get("form"), f"{b['evolution']}_NORMAL", b["evolution"]]  # (an odd form: the species)
+            sid = next((sid_of[f] for f in forms if f in sid_of), None) or \
+                next((s for f, s in sid_of.items() if f.startswith(f"{b['evolution']}_")), None)
             if not sid:
-                print(f"no {names[0]} in the gamemaster")
+                print(f"no {forms[0] or forms[2]} in the game data")
                 continue
-            reached.update(n for n in names if n in pvp.SPECIES)
+            reached.add(pvp.SPECIES[sid]["template"])  # (by template: lanturnw is Lanturn)
             item = b.get("evolutionItemRequirement") or b.get("lureItemRequirement") or ""
             why = [w for w, ok in [(f"{b.get('candyCost')} candy", (b.get("candyCost") or 0) >= HARD_CANDY),
                                    ("quest", b.get("questDisplay")),
@@ -231,7 +233,8 @@ def hard_evolutions(gm):
     m = Model()
     for sid in m.by:
         par = m.parent_of(sid)
-        if par and sid not in reached and m.by[sid].get("released") and "duplicate" not in m.by[sid].get("tags", []):
+        if par and m.by[sid]["template"] not in reached and m.by[sid].get("released") and \
+                "duplicate" not in m.by[sid].get("tags", []):
             out.setdefault(sid, f"can't evolve into it from {m.by[par]['speciesName']} in GO yet")
     return out
 

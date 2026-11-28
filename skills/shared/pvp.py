@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The game master (PvPoke's gamemaster.json): base stats, CP and HP, the level from IVs, CP and HP (level_of),
+"""The game master (PokeMiners', built by gamedata.py under PvPoke's ids): base stats, CP and HP, the level from IVs, CP and HP (level_of),
 evolutions, and PvP ranks and nicknames.
 
   pvp.py check <species> <cp> <hp> <stars> [--near a/d/h] [--own]
@@ -10,15 +10,13 @@ evolutions, and PvP ranks and nicknames.
   pvp.py name <species> <atk> <def> <hp>     -> the nickname (or NOPE)
   pvp.py slots <species> "<Pvp name>"         -> the (league, form) ranks a name shows, for the fallen-out check
   pvp.py test                                -> names read back into the slots they came from
-  pvp.py update                              -> re-download PvPoke game data and league rankings (rankings.json)
+  pvp.py update                              -> re-download the game master and PvPoke's league rankings (gamedata.py)
 """
-import json, math, os, re, sys, urllib.request
+import json, math, os, re, sys, unicodedata
 from functools import lru_cache
-import jsonfile
+import gamedata
 
 HERE = os.path.dirname(os.path.realpath(__file__))
-GM_URL = "https://raw.githubusercontent.com/pvpoke/pvpoke/master/src/data/gamemaster.json"
-JS_URL = "https://raw.githubusercontent.com/pvpoke/pvpoke/master/src/js/pokemon/Pokemon.js"
 MAX_LEVEL = 50
 LEAGUES = [("L", 500), ("G", 1500), ("U", 2500)]
 STAR_RANGES = {0: (0, 22), 1: (23, 29), 2: (30, 36), 3: (37, 44), 4: (45, 45)}
@@ -29,28 +27,16 @@ OWN_ONLY = set()  # species ranked as themselves only, no evolutions: a costume 
 CP_ROOM = 100  # a form plays a league only if 15/15/15 at level 50 tops the cap minus this (user's rule, 2026-10-31)
 
 
-RANK_URL = "https://raw.githubusercontent.com/pvpoke/pvpoke/master/src/data/rankings/{}.json"
-RANK_LISTS = {"L": "little/overall/rankings-500", "G": "all/overall/rankings-1500",
-              "U": "all/overall/rankings-2500"}
 VIABLE_TOP = 100  # a form is viable in a league if it's in PvPoke's top this many there
 
 
-def update():
-    urllib.request.urlretrieve(GM_URL, os.path.join(HERE, "gamemaster.json"))
-    urllib.request.urlretrieve(JS_URL, os.path.join(HERE, "Pokemon.js"))
-    lists = {t: [p["speciesId"] for p in json.load(urllib.request.urlopen(RANK_URL.format(path)))]
-             for t, path in RANK_LISTS.items()}
-    jsonfile.write(os.path.join(HERE, "rankings.json"), lists, indent=0)  # (every script reads it on import)
-
-
 if len(sys.argv) > 1 and sys.argv[1] == "update":
-    update()
-    print("updated")
+    gamedata.update()
     sys.exit()
 
-GM = json.load(open(os.path.join(HERE, "gamemaster.json")))
+GM = gamedata.load()
 SPECIES = {p["speciesId"]: p for p in GM["pokemon"]}
-CPMS = [float(x) for x in re.search(r"var cpms = \[([^\]]*)\]", open(os.path.join(HERE, "Pokemon.js")).read()).group(1).split(",")]
+CPMS = GM["cpms"]
 LEVELS = [1 + i * 0.5 for i in range(int((MAX_LEVEL - 1) * 2) + 1)]
 
 
@@ -125,7 +111,7 @@ def rank(species, ivs, cap):
 @lru_cache(None)
 def meta(league):
     """PvPoke's overall ranking for a league (L G U), best first, as of the last update"""
-    return json.load(open(os.path.join(HERE, "rankings.json")))[league]
+    return gamedata.rankings()[league]
 
 
 def viable(species, league, shadow=False, top=VIABLE_TOP):
@@ -140,20 +126,10 @@ IV_BRANCH = {"tyrogue": {"hitmonlee": 0, "hitmonchan": 1, "hitmontop": 2}}
 
 
 # ---------- the one evolution map: every skill's parent, children, root and tree come from here ----------
-# The game data has two family fields that disagree: each entry's 'evolutions' list and its 'parent'. The lists are
-# what GO lets you evolve (Pikachu -> Raichu, never Alolan Raichu), so the map is built from them. 'parent' also
-# links forms no evolution reaches (Alolan Raichu, Hisuian Typhlosion) and has errors (Carkol under Boltund): it only
-# gives the candy family (kin_parent).
-KIDS_FIX = {"espurr": ["meowstic", "meowstic_female"],  # game data lists the male form twice
-            "lechonk": ["oinkologne", "oinkologne_female"],
-            "corsola_galarian": ["cursola"],  # the game data has no family for it
-            "poltchageist": ["sinistcha"], "sinistcha": []}
-# the 'parent' field's errors, for kin_parent of a form no evolution list reaches
-PARENT_FIX = {"raticate": "rattata", "darmanitan_galarian_standard": "darumaka_galarian",  # game data points
-              "darmanitan_galarian_zen": "darumaka_galarian",  # these at the wrong region's pre-evolution
-              "cursola": "corsola_galarian",  # ...and Cursola at Johto Corsola
-              "sinistcha": "poltchageist", "poltchageist": None}  # it has this one backwards
-
+# The game data has two family fields: each entry's 'evolutions' list and its 'parent'. The lists are what GO lets you
+# evolve (Pikachu -> Raichu, never Alolan Raichu), so the map is built from them. 'parent' also links forms no
+# evolution reaches (Alolan Raichu, Hisuian Typhlosion, Archaludon) for the candy family (kin_parent). Both come
+# from PokeMiners' game master (gamedata.py), which has none of the errors PvPoke's had (Carkol under Boltund).
 
 def plain(sid):
     """one entry per real Pokémon: no shadow / mega / primal / XL-only duplicates"""
@@ -164,8 +140,8 @@ PLAIN = {s: p for s, p in SPECIES.items() if plain(s)}
 
 
 def listed(sid):
-    """what the game data says sid evolves into, KIDS_FIX applied (may name one twice)"""
-    return KIDS_FIX[sid] if sid in KIDS_FIX else (SPECIES[sid].get("family") or {}).get("evolutions") or []
+    """what the game data says sid evolves into"""
+    return (SPECIES[sid].get("family") or {}).get("evolutions") or []
 
 
 def parents():
@@ -196,7 +172,7 @@ def kin_parent(sid):
     (fixed): Alolan Raichu -> Pikachu, Hisuian Typhlosion -> Quilava. For candy, stages, and ivc's lines up"""
     if sid in PARENT:
         return PARENT[sid]
-    p = PARENT_FIX[sid] if sid in PARENT_FIX else (SPECIES.get(sid, {}).get("family") or {}).get("parent")
+    p = (SPECIES.get(sid, {}).get("family") or {}).get("parent")
     return p if p in PLAIN else None
 
 
@@ -210,8 +186,10 @@ def kin_root(sid):
 
 
 def candy_family(sid):
-    """the family's Candy name, as the detail page and the Pokémon database say it ('ARON')"""
-    return base_name(kin_root(sid)).upper()
+    """the family's Candy name, as the detail page and the Pokémon database say it (base.candy): 'ARON', 'MARILL'
+    for Azurill, 'MR MIME', 'FLABEBE'. From the game master's family, so a baby's is its evolution's"""
+    name = unicodedata.normalize("NFKD", SPECIES[sid]["candy"]).encode("ascii", "ignore").decode()
+    return re.sub(r"[^A-Z ]", "", name.upper()).strip()
 
 
 def evolutions(species, ivs=None):

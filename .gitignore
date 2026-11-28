@@ -15,3 +15,7 @@ skills/shared/helper
 skills/shared/pokedb.sqlite
 # a write stopped mid-way (jsonfile.write): the temp file it swaps in
 *.json.tmp
+# the game data (gamedata.py keeps it in ~/.config/pogo/gamedata/, never in the repo)
+skills/shared/gamemaster.json
+skills/shared/Pokemon.js
+skills/shared/rankings.json

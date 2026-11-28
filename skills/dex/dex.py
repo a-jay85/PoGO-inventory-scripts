@@ -58,7 +58,7 @@ FIT = 0.015  # a number this close to a row height sits at it
 SCROLL = 0.25  # of the screen per swipe, ~1.7 rows: the clear band shows ~4.5, so each screen repeats ~2 rows
 MAX_SCREENS = 400
 SURE_ROOM = 0.15  # a number this far inside the clear band, top or bottom, sits among enough rows to read it right
-LAST_DEX = 1025  # Pecharunt, the highest number in gamemaster.json: any higher read is an OCR slip
+LAST_DEX = 1025  # Pecharunt, the highest number in the game master: any higher read is an OCR slip
 REGION_NAMES = {"KANTO", "JOHTO", "HOENN", "SINNOH", "UNOVA", "KALOS", "ALOLA", "GALAR", "HISUI", "PALDEA"}
 # not on the Lucky or the 100% page at all: the species that can't be traded (Mew, Celebi, Jirachi, Deoxys,
 # Phione to Arceus, the Unova and Kalos mythicals, Zygarde, Magearna, Marshadow, Zeraora, Meltan, Melmetal, Zarude)

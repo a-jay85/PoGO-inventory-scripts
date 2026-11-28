@@ -261,6 +261,21 @@ Fallen out: older Pokémon that newer, better ones push out of the top
 - `summary(fallen, grouped)`: lines for the plan / fallen.txt
 - `act(limit, recheck, tag, species, odd=None, gym_top20=None, iv_top=lambda n, c: None, …)`: send the grouped ones to the door
 
+## skills/shared/gamedata.py
+The game data every script reads: PokeMiners' game master (what the game itself ships), its English names, and PvPoke's league rankings (the meta list)
+
+- `missing()`
+- `update()`
+- `raw()`: PokeMiners' game master as downloaded: a list of {templateId, data}
+- `built()`: this checkout's species file: named by a hash of everything it's built from
+- `load()`: the species file: {"pokemon": [...], "moves": [...], "cpms": [...]}, built first if this checkout has none
+- `rankings()`: PvPoke's overall ranking per league (L G U): speciesIds, best first
+- `f32(x)`: the game's numbers are 32-bit floats: the same value PvPoke writes (0.094 -> 0.0939999967813491)
+- `cpms(gm)`: the CP multiplier of every level from 1 to MAX_CPM_LEVEL, half levels too (the mean of the squares)
+- `move_numbers(gm)`: move number -> its name in the templates (COMBAT_V0482_MOVE_DYNAMAX_CANNON: 482 -> DYNAMAX_CANNON)
+- `move_id(m, numbers)`: PvPoke's move id: no _FAST on the end
+- `build()`: the species data from PokeMiners' game master, the English names and the id table
+
 ## skills/shared/home.py
 Start from anywhere: every script calls start() first, so the phone can be on any screen, or Pokémon GO not open
 
@@ -449,9 +464,8 @@ Powering one Pokémon up: its level from the page and the dialog, and the cheap 
 - `power_up(info, texts, levels=None, known=None)`: 1-2 power-ups (up to 4 for a lucky one) if this one sits right under an XL tier (PLAYS, LUCKY_PLAYS, SHADOW_PLAYS)
 
 ## skills/shared/pvp.py
-The game master (PvPoke's gamemaster.json): base stats, CP and HP, the level from IVs, CP and HP (level_of), evolutions, and PvP ranks and nicknames
+The game master (PokeMiners', built by gamedata.py under PvPoke's ids): base stats, CP and HP, the level from IVs, CP and HP (level_of), evolutions, and PvP ranks and …
 
-- `update()`
 - `can_dynamax()`: dex numbers that can Dynamax (tradeable.py refresh's ../cleanup/dynamax-<date>.json, from the game master), or None when there's no such file yet
 - `cpm(level)`
 - `cp(base, ivs, level)`
@@ -463,13 +477,13 @@ The game master (PvPoke's gamemaster.json): base stats, CP and HP, the level fro
 - `meta(league)`: PvPoke's overall ranking for a league (L G U), best first, as of the last update
 - `viable(species, league, shadow=False, top=VIABLE_TOP)`: species (its shadow, if shadow and PvPoke ranks one) is in PvPoke's top in that league
 - `plain(sid)`: one entry per real Pokémon: no shadow / mega / primal / XL-only duplicates
-- `listed(sid)`: what the game data says sid evolves into, KIDS_FIX applied (may name one twice)
+- `listed(sid)`: what the game data says sid evolves into
 - `parents()`: child -> the one it evolves from
 - `parent(sid)`: what sid evolves from in GO, or None
 - `children(sid)`: the forms whose parent() is sid
 - `kin_parent(sid)`: the candy family's parent: parent(), or for a form no evolution reaches, the game data's 'parent' field (fixed): Alolan Raichu -> Pikachu, Hisuian Typhlosion -> Quilava
 - `kin_root(sid)`: the candy family's first stage (Alolan Raichu: Pichu)
-- `candy_family(sid)`: the family's Candy name, as the detail page and the Pokémon database say it ('ARON')
+- `candy_family(sid)`: the family's Candy name, as the detail page and the Pokémon database say it (base.candy): 'ARON', 'MARILL' for Azurill, 'MR MIME', 'FLABEBE'
 - `evolutions(species, ivs=None)`: what species can evolve into in GO. ivs: only the evolutions these IVs can lead to (Tyrogue)
 - `family(species, ivs=None)`: species plus every evolution reachable from it (with these IVs, if given)
 - `tops(species, ivs=None)`: final evolutions reachable from species (itself if final)

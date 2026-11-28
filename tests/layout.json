@@ -3086,6 +3086,7 @@
    "NEAR_A",
    "NEAR_I",
    "NEED",
+   "NOT_SPECIAL",
    "NoFriday",
    "OK_WARNINGS",
    "OutOfRange",

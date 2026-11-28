@@ -25,6 +25,10 @@ _picked = []  # pick() has run in this process
 _last_adb = [0.0]  # when the last adb command (a tap, key, swipe...) finished: an older screenshot is stale
 
 
+INPUT_MARK = "/tmp/pogo-android-input"  # its mtime: when any script last sent the Pixel a tap, key or swipe
+_first_input = [0.0]  # when this process sent its first one
+
+
 def adb(*a, timeout=30):
     if not _picked:
         pick()
@@ -32,7 +36,45 @@ def adb(*a, timeout=30):
         r = subprocess.run(["adb", *a], capture_output=True, text=True, timeout=timeout)
     finally:
         _last_adb[0] = time.time()
+        if a and a[0] == "shell" and "input " in " ".join(a[1:]):
+            mark_input()
     return r.stdout
+
+
+def mark_input():
+    """a script's tap, key or swipe just went to the Pixel: the phone counts it as a touch, so by_hand() must not"""
+    _first_input[0] = _first_input[0] or time.time()
+    try:
+        with open(INPUT_MARK, "a"):
+            os.utime(INPUT_MARK)
+    except OSError:
+        pass
+
+
+def by_hand(slack=2.0):
+    """-> seconds since a person last touched the Pixel, or None when its last touch came from a script (adb input)
+    or can't be read. A touch newer than every script's last input is a person's. The age is the phone's own
+    "(N ms ago)", whose clock leaves out deep sleep: a phone that slept reads its touch as newer than it was, so a
+    caller asks this of an unlocked phone (the user, 2026-11-27: a Claude test pressed Back through their raid)"""
+    out = shell("dumpsys power | grep -m1 ' lastUserActivityTime='")
+    m = re.search(r"lastUserActivityTime=\d+ \((\d+) ms ago\)", out)
+    if not m:
+        return None
+    ago = int(m.group(1)) / 1000
+    try:
+        ours = os.path.getmtime(INPUT_MARK)
+    except OSError:
+        ours = 0.0
+    return ago if time.time() - ago > ours + slack else None
+
+
+def touched_mid_run():
+    """-> seconds since a person touched the Pixel after this run's first tap, or None. A touch from before the run
+    (the user opening the game, then starting the script) doesn't count"""
+    if not _first_input[0]:
+        return None
+    ago = by_hand()
+    return ago if ago is not None and time.time() - ago > _first_input[0] else None
 
 
 def pick():

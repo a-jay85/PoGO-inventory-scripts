@@ -240,6 +240,9 @@ def unstick(texts):
     (re)opened"""
     global backs, reopened, banner_seen
     seen = ui.summary(texts, 200)
+    if ui.ANDROID and (ago := ui.android.touched_mid_run()) is not None:  # a person on the Pixel mid-run: every
+        raise Stop(f"someone touched the Pixel {ago:.0f}s ago, mid-run: stopped so it doesn't tap over what "  # Back
+                   f"you're doing: {seen[:80]}")  # below would land on their screen (a raid, 2026-11-27)
     if ui.gift_banner(texts):  # it goes by itself, and the screen under it may be one everyone knows
         now = time.time()
         if now > banner_seen + 4 * BANNER_WAIT:

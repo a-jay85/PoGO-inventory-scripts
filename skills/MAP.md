@@ -1449,14 +1449,17 @@ Rules for /ivc: which IVC Pokémon to keep (favorite + untag) and which to send 
 ## skills/ivc/xxs.py
 /ivc's rules for an xxs one in #IVC that isn't a top IV copy (the user, 2026-11-27)
 
+- `can_trade(sid, shadow)`: can it go to the other account at all
 - `class Plan`
-- `chain(sid)`: -> (the stages it evolves through to its stop, why it stops: 'end', 'fork' or what the next one needs)
+- `chain(sid, gender=None)`: -> (the stages it evolves through to its stop, why it stops: 'end', 'fork' or what the next one needs)
 - `path_candy(sid, path)`
 - `line(sid)`: every species it can still become, past forks too (not itself)
 - `dex(sid)`
 - `gains(sid, kg, m, stages, records, missing)`: what each stage would give one account: a sure small-side record (records: {dex: dex_records row}) or an empty xxs entry (missing: its xxs page's missing dex numbers, …
-- `evolve(sid, why, end_tag, end_name)`: evolve to the stop: a fork or a special need -> Evo, the end -> end_tag
-- `plan(account, sid, kg, m, traded, records, missing)`: records, missing: {account: dex_records rows by dex number}, {account: the xxs page's missing numbers or None}
+- `evolve(sid, why, end_tag, end_name, gender=None)`: evolve to the stop: a fork or a special need -> Evo, the end -> end_tag
+- `unread(sid, records, missing, stages)`: what's not read yet that a Transfer would rest on -> a reason, or None
+- `plan(account, sid, kg, m, traded, records, missing, shadow=False, gender=None)`: records, missing: {account: dex_records rows by dex number}, {account: the xxs page's missing numbers or None}. gender: 'male', 'female' or None (not read)
+- `judge(account, sid, kg, m, traded, records, missing, gender)`
 - `load()`: (records, missing) for both accounts, from the Pokémon database and the newest xxs page read
 - `test()`
 

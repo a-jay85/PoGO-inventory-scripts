@@ -36,7 +36,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import ui
 import base
 from base import Stop, log, keep_capture
-import home, pvp, search, session, tagsheet
+import home, pvp, rules, search, session, tagsheet
 
 PAGES = {"lucky": "LUCKY", "100": "100%", "xxs": "XXS"}  # page -> its chip's label
 PREFIX = {"xxs": "xxs&"}  # once in front of each search: OR binds tighter, so xxs&1-3,7 is xxs AND (1-3 OR 7)
@@ -62,7 +62,7 @@ LAST_DEX = 1025  # Pecharunt, the highest number in the game master: any higher 
 REGION_NAMES = {"KANTO", "JOHTO", "HOENN", "SINNOH", "UNOVA", "KALOS", "ALOLA", "GALAR", "HISUI", "PALDEA"}
 # not on the Lucky or the 100% page at all: the species that can't be traded (Mew, Celebi, Jirachi, Deoxys,
 # Phione to Arceus, the Unova and Kalos mythicals, Zygarde, Magearna, Marshadow, Zeraora, Meltan, Melmetal, Zarude)
-NEVER_TRADED = {999, 1000}  # Gimmighoul, Gholdengo: shown on the Lucky page, but can't be traded, so never lucky
+NEVER_TRADED = rules.NEVER_TRADED  # shown on the Lucky page, but never lucky
 NOT_LISTED = {151, 251, 385, 386, *range(489, 495), 647, 648, 649, *range(718, 722), 801, 802, 807, 808, 809, 893}
 
 

@@ -15,8 +15,12 @@ tag:
 The stop: the first stage with two or more evolutions (a fork: the user picks), or whose evolution needs more than
 candy (an item, a quest, a buddy walk, a gender, a trade: gamedata.evolve_cost), or the end of the line. "Its line" is
 every species it can still evolve into, past a fork too (the whole line counts, the user 2026-11-27), each one's size
-worked out by evosize.py. A record counts only when it's sure. A species the dex_records table has no row for, or an
-xxs page never read, counts as no gain.
+worked out by evosize.py. A record counts only when it's sure.
+
+Unsure (tag None: it's left as it is, IVC on, for the not-sure list): a "nothing found" answer (CyrillJan's Transfer,
+HashTagAJay's plain GIV) that rests on data not read yet (HashTagAJay's xxs page never read, a species of its line with
+no dex_records row), and a GIV for one that can't be traded (a shadow,
+a mythical, Gimmighoul, Gholdengo: can_trade() says).
 
   python3 xxs.py plan <account> <species> <kg> <m> [traded]   -> the plan for one
   python3 xxs.py test                                          -> run the examples
@@ -32,17 +36,24 @@ TAKER, GIVER = rules.TAKER, rules.GIVER
 NAME = "xxs"
 
 
+def can_trade(sid, shadow):
+    """can it go to the other account at all"""
+    tags = pvp.SPECIES[sid.removesuffix("_shadow")].get("tags") or []
+    return not shadow and not sid.endswith("_shadow") and dex(sid) not in rules.NEVER_TRADED and "mythical" not in tags
+
+
 @dataclass
 class Plan:
     path: list  # the species to evolve into, in order (empty: no evolving)
-    tag: str  # its final tag: rules.EVO, 'Transfer' or 'GIV'
+    tag: str  # its final tag: rules.EVO, 'Transfer' or 'GIV', or None: unsure, left as it is
     name: str = None  # the nickname to give it, or None to leave it
     candy: int = 0  # what the evolving costs
     why: list = field(default_factory=list)
 
 
-def chain(sid):
-    """-> (the stages it evolves through to its stop, why it stops: 'end', 'fork' or what the next one needs)"""
+def chain(sid, gender=None):
+    """-> (the stages it evolves through to its stop, why it stops: 'end', 'fork' or what the next one needs). gender
+    ('male', 'female' or None: not read): an evolution only the other gender gets is the end (a male Combee)"""
     path, cur, seen = [], sid, {sid}
     while True:
         kids = pvp.evolutions(cur)
@@ -53,6 +64,8 @@ def chain(sid):
         cost = pvp.evolve_cost(cur, kids[0])
         if cost is None:
             return path, "no cost in the game data"
+        if gender and any(n.startswith("gender ") and n.split()[1].lower() != gender for n in cost["needs"]):
+            return path, "end"
         if cost["needs"]:
             return path, ", ".join(cost["needs"])
         if kids[0] in seen:
@@ -97,31 +110,51 @@ def gains(sid, kg, m, stages, records, missing):
     return out
 
 
-def evolve(sid, why, end_tag, end_name):
+def evolve(sid, why, end_tag, end_name, gender=None):
     """evolve to the stop: a fork or a special need -> Evo, the end -> end_tag"""
-    path, stop = chain(sid)
+    path, stop = chain(sid, gender)
     if stop == "end":
         return Plan(path, end_tag, end_name, path_candy(sid, path), why + ["end of its line"])
     return Plan(path, rules.EVO, None, path_candy(sid, path), why + [f"stops before a {stop}" if stop == "fork"
                                                                        else f"next needs {stop}"])
 
 
-def plan(account, sid, kg, m, traded, records, missing):
-    """records, missing: {account: dex_records rows by dex number}, {account: the xxs page's missing numbers or None}"""
+def unread(sid, records, missing, stages):
+    """what's not read yet that a Transfer would rest on -> a reason, or None"""
+    if missing[TAKER] is None:
+        return "HashTagAJay's xxs page not read (pogo.py dex xxs)"
+    no_row = [pvp.SPECIES[s]["speciesName"] for s, acct in stages if dex(s) not in records[acct]]
+    return f"no record box read for {', '.join(no_row[:3])}" if no_row else None
+
+
+def plan(account, sid, kg, m, traded, records, missing, shadow=False, gender=None):
+    """records, missing: {account: dex_records rows by dex number}, {account: the xxs page's missing numbers or None}.
+    gender: 'male', 'female' or None (not read)"""
+    p = judge(account, sid, kg, m, traded, records, missing, gender)
+    if p.tag == "GIV" and not can_trade(sid, shadow):
+        return Plan(p.path, None, None, p.candy, p.why + ["but it can't be traded: unsure, by hand"])
+    return p
+
+
+def judge(account, sid, kg, m, traded, records, missing, gender):
     if traded:
-        return evolve(sid, ["traded"], "Transfer", None)
+        return evolve(sid, ["traded"], "Transfer", None, gender)
     if account == TAKER:
         here = evosize.holds_small(kg, m, records[TAKER].get(dex(sid)) or {})
         got = [f"holds {w}" for w in here] + gains(sid, kg, m, line(sid), records[TAKER], missing[TAKER])
         if got:
-            return evolve(sid, got, "GIV", NAME)
+            return evolve(sid, got, "GIV", NAME, gender)
+        if why := unread(sid, records, missing, [(s, TAKER) for s in line(sid)]):
+            return Plan([], None, None, 0, [f"unsure: {why}"])
         return Plan([], "GIV", NAME, 0, ["no record or xxs entry on HashTagAJay: GIV for CyrillJan"])
     there = gains(sid, kg, m, [sid] + line(sid), records[TAKER], missing[TAKER])
     if there:
         return Plan([], "GIV", NAME, 0, [f"for HashTagAJay: {', '.join(there[:3])}"])
     mine = gains(sid, kg, m, line(sid), records[GIVER], None)
     if mine:
-        return evolve(sid, mine, "GIV", NAME)
+        return evolve(sid, mine, "GIV", NAME, gender)
+    if why := unread(sid, records, missing, [(s, TAKER) for s in [sid] + line(sid)] + [(s, GIVER) for s in line(sid)]):
+        return Plan([], None, None, 0, [f"unsure: {why}"])
     return Plan([], "Transfer", None, 0, ["no record on either account"])
 
 
@@ -155,11 +188,16 @@ def test():
     check("chain eevee", chain("eevee"), ([], "fork"))
     check("chain feebas", chain("feebas"), ([], "quest, buddy km"))
     check("chain poliwag", chain("poliwag"), (["poliwhirl"], "fork"))
+    check("chain combee, male", chain("combee", "male"), ([], "end"))
+    check("chain combee, female", chain("combee", "female"), ([], "gender FEMALE"))
+    check("traded male combee", p(TAKER, "combee", 3.0, 0.3, True, none, unread, False, "male"), ([], "Transfer", None))
     check("candy", path_candy("bulbasaur", ["ivysaur", "venusaur"]), 125)
     check("traded, to the end", p(GIVER, "bulbasaur", 3.0, 0.3, True, none, unread),
           (["ivysaur", "venusaur"], "Transfer", None))
     check("traded, fork", p(TAKER, "poliwag", 5.0, 0.3, True, none, unread), (["poliwhirl"], rules.EVO, None))
-    check("HTAJ, nothing", p(TAKER, "bulbasaur", 3.0, 0.3, False, none, unread), ([], "GIV", "xxs"))
+    check("HTAJ, nothing", p(TAKER, "bulbasaur", 3.0, 0.3, False, {TAKER: {2: box(1, .1), 3: box(1, .1)}, GIVER: {}},
+                             {TAKER: set(), GIVER: None}), ([], "GIV", "xxs"))
+    check("HTAJ, nothing but page unread", p(TAKER, "bulbasaur", 3.0, 0.3, False, none, unread), ([], None, None))
     recs = {TAKER: {1: box(2.0, 0.2), 2: box(8.0, 0.9), 3: box(0.5, 0.1)}, GIVER: {}}
     check("HTAJ, Ivysaur record", p(TAKER, "bulbasaur", 3.0, 0.3, False, recs, unread),
           (["ivysaur", "venusaur"], "GIV", "xxs"))
@@ -175,9 +213,22 @@ def test():
           (["ivysaur", "venusaur"], "GIV", "xxs"))
     check("CJ, own record past a fork", p(GIVER, "poliwag", 5.0, 0.3, False,
                                          {TAKER: {}, GIVER: {186: box(99, 9)}}, unread), (["poliwhirl"], rules.EVO, None))
+    read = {TAKER: set(), GIVER: None}
     check("CJ, nothing anywhere", p(GIVER, "bulbasaur", 3.0, 0.3, False,
-                                    {TAKER: mine[TAKER], GIVER: {2: box(1.0, 0.1), 3: box(1.0, 0.1)}}, unread),
+                                    {TAKER: mine[TAKER], GIVER: {2: box(1.0, 0.1), 3: box(1.0, 0.1)}}, read),
           ([], "Transfer", None))
+    check("CJ, HTAJ xxs page unread: unsure", p(GIVER, "bulbasaur", 3.0, 0.3, False,
+                                                {TAKER: mine[TAKER], GIVER: {2: box(1.0, 0.1), 3: box(1.0, 0.1)}},
+                                                unread), ([], None, None))
+    check("CJ, a stage with no box read: unsure", p(GIVER, "bulbasaur", 3.0, 0.3, False,
+                                                    {TAKER: mine[TAKER], GIVER: {2: box(1.0, 0.1)}}, read),
+          ([], None, None))
+    check("HTAJ shadow, GIV: unsure", p(TAKER, "bulbasaur", 3.0, 0.3, False, {TAKER: {2: box(1, .1), 3: box(1, .1)},
+                                         GIVER: {}}, {TAKER: set(), GIVER: None}, True), ([], None, None))
+    check("traded shadow: Transfer still", p(TAKER, "bulbasaur", 3.0, 0.3, True, none, unread, True),
+          (["ivysaur", "venusaur"], "Transfer", None))
+    check("can't trade Gimmighoul", can_trade("gimmighoul", False), False)
+    check("can trade Bulbasaur", can_trade("bulbasaur", False), True)
     print("all xxs cases right" if not bad else f"{bad} wrong")
     return bad
 

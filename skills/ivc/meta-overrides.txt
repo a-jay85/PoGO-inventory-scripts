@@ -1,3 +1,3 @@
 # Mark a line strong or weak by hand, overriding the #1-raid-attacker test (sort.strong). One per row: strong <species id> or weak <species id>
-# (any species in the line works; ids are the game master form names, e.g. BIBAREL_NORMAL, DUDUNSPARCE_THREE, MAROWAK_ALOLA).
+# (any species in the line works; ids or plain names, e.g. bibarel, BIBAREL_NORMAL, DUDUNSPARCE_THREE, MAROWAK_ALOLA).
 # Strong = top 5/6 kept. Weak = the top IV kept (ties keep), plus any 98%/100% and the top 3 Dynamax.

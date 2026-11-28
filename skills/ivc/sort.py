@@ -235,7 +235,7 @@ def load_meta():
         for row in open(path):
             w = row.split("#")[0].split()
             if len(w) == 2 and w[0] in ("strong", "weak"):
-                over[w[1]] = w[0] == "strong"
+                over[pvp.to_sid(w[1])] = w[0] == "strong"
     return over
 
 

@@ -265,11 +265,12 @@ SIZE_CARD = (95, 206, 250)  # the card's sky blue
 def size_record(path):
     """a 'New Size Record' card: it slides up over a Pokémon's detail page the first time it's opened after the
     record, and covers the bottom third. Its words fade in after it lands, so it's told by its blue: a row of it,
-    edge to edge, where the detail page is white"""
+    edge to edge, where the detail page is white. Any of a few rows: a taller card's height line sits on 0.78 (its
+    white ruler and '1.09 m', a Dragonite's New Height Record after two evolves, /ivc, Pixel, 2026-11-27)"""
     im = ui.Image.open(path).convert("RGB")
     W, H = im.size
-    return all(sum(abs(a - b) for a, b in zip(im.getpixel((int(fx * W), int(0.78 * H))), SIZE_CARD)) < 30
-               for fx in (0.05, 0.3, 0.5, 0.7, 0.95))
+    return any(all(sum(abs(a - b) for a, b in zip(im.getpixel((int(fx * W), int(fy * H))), SIZE_CARD)) < 30
+                   for fx in (0.05, 0.3, 0.5, 0.7, 0.95)) for fy in (0.78, 0.85))
 
 
 def size_title(texts):

@@ -253,6 +253,15 @@ The Eggs tab: read the eggs, put the mode's one in the free ∞ incubator, and s
 - `fill_and_time()`: on the Eggs tab: the mode's free egg into the ∞ incubator (if it's free), then the hatch timer (see 1
 - `check()`: from the map: the Eggs tab, fill_and_time, and back to the map
 
+## skills/shared/evolve.py
+Evolving the Pokémon whose detail page is open: read the EVOLVE row, tap it, read YES, tap it, wait out the animation
+
+- `evolve_row(texts)`: the detail page's EVOLVE button -> (box, cost)
+- `box_key(texts)`: the "want to evolve" box: where YES and NO are
+- `wait_box()`: after the EVOLVE tap: the "want to evolve" box -> (texts, bounds)
+- `evolve_one(dry, candy)`: on the page of one to evolve, or just tapped
+- `evolved()`: after evolve_one's YES: the evolved one's page, read once it holds still -> (info, texts)
+
 ## skills/shared/evosize.py
 A Pokémon's height and weight after it evolves, and whether that sets a sure Pokédex size record
 
@@ -1107,10 +1116,6 @@ Put HashTagAJay's missing-lucky list into CyrillJan's saved search Luckydex
 ## skills/evo/evo.py
 Evolve every free trade evolution tagged Evo, as fast as the game lets it
 
-- `evolve_row(texts)`: the detail page's EVOLVE button -> (box, cost)
-- `box_key(texts)`: the "want to evolve" box: where YES and NO are
-- `wait_box()`: after the EVOLVE tap: the "want to evolve" box -> (texts, bounds)
-- `evolve_one(dry, candy)`: on the page of one to evolve, or just tapped
 - `script(limit, dry, here, candy)`
 - `main()`
 
@@ -1385,6 +1390,7 @@ Unattended /ivc: keep the best IVC Pokémon (favorite + untick IVC)
 - `plan_key(m)`
 - `dex_of(m)`
 - `door_for(m)`: the door whose searches cover this one's dex, if any yet
+- `to_xxs(m, n, c, ivs)`: an xxs DOOR, on its open page: xxs.act (evolve, tag, name) -> its final tag or door.UNSURE
 - `could_be_dead(m)`: its plain form evolves, so a costume one of it might not (verdict.dead_end): its KEEP needs the door's costume search
 - `dead_keep(m, n, c)`: on its open detail page, a KEEP: a costume one that can't evolve, though its plain form can? Then it counts as its own species only (the user, 2026-11-02), and a …
 - `renamed_in_pools(results, n, c, name, own)`: the pools showed this one as its species name (n): it's name now
@@ -1447,6 +1453,7 @@ Rules for /ivc: which IVC Pokémon to keep (favorite + untag) and which to send 
 - `gym_keep(m, tiles)`: the gym defender rule (the user, 2026-10-27): top TOP_GYM_CP by CP or top TOP_GYM_IV by IV, among every one of that species in tiles (Chansey and Blissey each get their …
 - `gym_top20(sid, cp, ivs, shadow, tiles)`: gym_keep for one whose IVs were read but whose name may not say them (the door)
 - `decide(m, results)`: m: dict species, cp, name, shadow, lucky, dynamax (raid_team: raidteams.on_team's answer)
+- `is_xxs(m)`: an xxs one: its name says xxs, or the badge read on its detail screen does
 - `pick_species(options)`: one species from the CP/HP guesses
 - `searches_for(m)`: every search decide() needs for this member
 - `test()`
@@ -1466,6 +1473,8 @@ Rules for /ivc: which IVC Pokémon to keep (favorite + untag) and which to send 
 - `plan(account, sid, kg, m, traded, records, missing, shadow=False, gender=None)`: records, missing: {account: dex_records rows by dex number}, {account: the xxs page's missing numbers or None}. gender: 'male', 'female' or None (not read)
 - `judge(account, sid, kg, m, traded, records, missing, gender)`
 - `load()`: (records, missing) for both accounts, from the Pokémon database and the newest xxs page read
+- `learned(records, missing, account, sid, kg, m)`: account owns sid at kg and m now (it just evolved into it): its record box and xxs page as the game has them now, so the next xxs one of the line is judged against them
+- `act(account, sid, shadow, tile, ivs=None)`: on the open detail page of an xxs one sort.decide sent to the door: plan it, evolve it along its line, then tag and name it
 - `test()`
 
 ## skills/mega/mega.py

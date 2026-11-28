@@ -32,7 +32,10 @@ SPECIES_NAMES = {p["speciesName"].split(" (")[0].lower() for p in GM["pokemon"]}
 # ---------- what's on the detail screen ----------
 
 def not_mine(name):
-    """renamed already, by /ivc (87/96 A*) or /pvpc (Pvp L35)"""
+    """renamed already, by /ivc (87/96 A*) or /pvpc (Pvp L35). An xxs name with no IV in it ('xxs', 'FP*xxs': named
+    before 2026-11-27, when a low one showed none) isn't done: it's named again with its IV, so the sort can rank it"""
+    if re.search(r"xxs|sxx", name or "", re.I) and not re.search(r"\d", name or ""):
+        return False
     return bool(DONE_LOOK.match(name or "") or pvp.PVP_NAME.match((name or "").strip()))
 
 

@@ -11,7 +11,7 @@ then #Transfer&!traded&xxs. tradeable.py, cleantrades.py and /ivc do the same to
 Each one is opened. Its size badge must agree with the search, or it's passed over. Then:
   XXL: favorite on, the tags in rules.XXL_OFF off. Its name and other tags stay.
   xxs: named xxs (/ivc's spelling; a name that already says its size keeps it). IVC on, Transfer off. Other tags stay.
-/ivc counts an xxs name as done, and leaves sized IVC ones for the user once named.
+/ivc then names it again with its IV ('73 ad xxs'), ranks it, and judges the rest by ../ivc/xxs.py.
 Then, signed in as HashTagAJay only (CyrillJan wants the XP, HashTagAJay doesn't, 2026-11-02), the never-traded
 trade evolutions (free to evolve once traded, cleantrades' TRADE_EVOS), not shadows:
 #Transfer&!traded&!shadow&!xxl&!xxs&!#GIV&<dex numbers> -> GIV on, Transfer off, all at once (SELECT ALL).

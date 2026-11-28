@@ -18,6 +18,7 @@ Before writing a helper, grep `skills/MAP.md` (every function, its arguments and
 - `skills/shared/base.py`: The shared tapper: screen reading, taps, timing, run folders and logging, and the detail-screen steps (appraise, tags, star, rename) every skill's script uses
 - `skills/shared/door.py`: The door: a Pokémon /ivc, /pvpc or /ivc just found isn't a keeper gets its final tag right there (verdict.py), on the detail page that's still open
 - `skills/shared/eggs.py`: The Eggs tab: read the eggs, put the mode's one in the free ∞ incubator, and set the hatch timer
+- `skills/shared/evolve.py`: Evolving the Pokémon whose detail page is open: read the EVOLVE row, tap it, read YES, tap it, wait out the animation
 - `skills/shared/evosize.py`: A Pokémon's height and weight after it evolves, and whether that sets a sure Pokédex size record
 - `skills/shared/fallen.py`: Fallen out: older Pokémon that newer, better ones push out of the top
 - `skills/shared/gamedata.py`: The game data every script reads: PokeMiners' game master (what the game itself ships), its English names, and PvPoke's league rankings (the meta list)

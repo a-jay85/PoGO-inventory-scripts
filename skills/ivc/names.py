@@ -32,7 +32,10 @@ SPECIES_NAMES = {p["speciesName"].split(" (")[0].lower() for p in GM["pokemon"]}
 # ---------- what's on the detail screen ----------
 
 def not_mine(name):
-    """renamed already, by /ivc (87/96 A*) or /pvpc (Pvp L35)"""
+    """renamed already, by /ivc (87/96 A*) or /pvpc (Pvp L35). An xxs name with no IV in it ('xxs', 'FP*xxs': named
+    before 2026-11-27, when a low one showed none) isn't done: it's named again with its IV, so the sort can rank it"""
+    if re.search(r"xxs|sxx", name or "", re.I) and not re.search(r"\d", name or ""):
+        return False
     return bool(DONE_LOOK.match(name or "") or pvp.PVP_NAME.match((name or "").strip()))
 
 
@@ -267,6 +270,10 @@ def read_one(i, tile_name, tile_cp):
     if not sp:  # a nickname: the candy, the types and the CP tell the species
         sp = base.species_from_candy(texts, cp, info["hp"])
     shadow, lucky, size = extras(texts)
+    if size is None and re.search(r"xxs|sxx", info["name"] or "", re.I):  # its badge read missed (CyrillJan's
+        # Zorua and Lillipup named XXS, 2026-11-27: sent to the door with no xxs rules). The name says it
+        log(f"  no size badge read, but the name {info['name']!r} says xxs")
+        size = "XXS"
     moves = []
     if any(ivc.elite_moves(s) for s in sp):
         seen = read_moves()

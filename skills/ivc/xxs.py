@@ -22,6 +22,10 @@ HashTagAJay's plain GIV) that rests on data not read yet (HashTagAJay's xxs page
 no dex_records row), and a GIV for one that can't be traded (a shadow,
 a mythical, Gimmighoul, Gholdengo: can_trade() says).
 
+act() does it on the phone, on the open page of one /ivc's sort sent to the door: the weight, height, traded or
+not and the candy read off the page, then the evolving (../shared/evolve.py), the tag and the name. Short of candy
+for the whole way -> Evo, IVC off.
+
   python3 xxs.py plan <account> <species> <kg> <m> [traded]   -> the plan for one
   python3 xxs.py test                                          -> run the examples
 """
@@ -171,6 +175,77 @@ def load():
     return records, missing
 
 
+# ---------- on the phone ----------
+
+TAG = "IVC"
+STATE = {}  # load()'s records and missing, read once a run and kept up to date as /ivc evolves
+
+
+def learned(records, missing, account, sid, kg, m):
+    """account owns sid at kg and m now (it just evolved into it): its record box and xxs page as the game has them
+    now, so the next xxs one of the line is judged against them"""
+    rec = records[account].setdefault(dex(sid), {"kg_min": None, "kg_max": None, "m_min": None, "m_max": None})
+    for k, v in (("kg_min", kg), ("m_min", m)):
+        if v is not None and (rec.get(k) is None or v < rec[k]):
+            rec[k] = v
+    for k, v in (("kg_max", kg), ("m_max", m)):
+        if v is not None and (rec.get(k) is None or v > rec[k]):
+            rec[k] = v
+    if missing.get(account) is not None:
+        missing[account].discard(dex(sid))
+
+
+def act(account, sid, shadow, tile, ivs=None):
+    """on the open detail page of an xxs one sort.decide sent to the door: plan it, evolve it along its line, then
+    tag and name it. tile: (name, CP) as the walk read it. -> its final tag, or door.UNSURE (left as it is, IVC on,
+    on the not-sure list)"""
+    import base, door, evolve, names, powerup, tagsheet, ui
+    from base import log
+    if not STATE:
+        STATE["records"], STATE["missing"] = load()
+    records, missing = STATE["records"], STATE["missing"]
+    info, texts, _ = base.steady_detail()
+    _, hp, kg, m = base.who(info)
+    door.powerup, door.tagsheet = door.powerup or powerup, door.tagsheet or tagsheet  # (Door() sets these; its
+    # page_bottom needs no Door)
+    page = door.Door.page_bottom(None, info) if kg is not None and m is not None else {}
+    lucky = any(ui.norm(t[4]).startswith("LUCKY POK") for t in texts)  # only a trade makes one lucky
+    traded = True if lucky else page.get("traded")
+    if kg is None or m is None or traded is None:
+        p = Plan([], None, why=[f"unsure: read {kg} kg, {m} m, traded {traded}"])
+    else:
+        p = plan(account, sid, kg, m, traded, records, missing, shadow)
+    have = page.get("candy")
+    log(f"  xxs: {sid} {kg} kg {m} m, {'traded' if traded else 'untraded'}, {have} candy -> "
+        f"{' -> '.join(p.path) or 'no evolving'}{f' ({p.candy} candy)' if p.path else ''}, then {p.tag}: {'; '.join(p.why)}")
+    if p.tag is None:  # not on the door's not-sure list: that list is skipped until verdict, door or rules change,
+        # and most of these are sure once `pogo.py dex xxs` has read the xxs page. So each run opens it again
+        return door.UNSURE
+    tag, name = p.tag, p.name
+    if p.path and (have is None or have < p.candy):
+        log(f"  xxs: {have} candy, its line needs {p.candy}: {rules.EVO}, IVC off")
+        tag, name = rules.EVO, None
+    elif p.path:
+        at = sid
+        for s in p.path:
+            if evolve.evolve_one(False, True) is None:
+                base.keep_capture("xxs-noevolve")
+                log(f"  xxs: no EVOLVE row on {at}: {rules.EVO}, IVC off")
+                tag, name = rules.EVO, None
+                break
+            info, texts = evolve.evolved()
+            _, _, kg, m = base.who(info)
+            learned(records, missing, account, s, kg, m)
+            log(f"  xxs: evolved into {s}: {kg} kg {m} m")
+            at = s
+    if name:
+        base.do_rename(name, names.same_name)
+    else:  # an IV name on a Transfer or Evo one would rank as a rival in the pools
+        base.clear_name()
+    base.set_tags(on=[tag], off=[TAG])
+    return tag
+
+
 def test():
     bad = 0
 
@@ -229,6 +304,11 @@ def test():
           (["IVYSAUR_NORMAL", "VENUSAUR_NORMAL"], "Transfer", None))
     check("can't trade Gimmighoul", can_trade("GIMMIGHOUL_NORMAL", False), False)
     check("can trade Bulbasaur", can_trade("BULBASAUR_NORMAL", False), True)
+    recs, miss = {TAKER: {2: box(8.0, 0.9)}}, {TAKER: {3}}
+    learned(recs, miss, TAKER, "IVYSAUR_NORMAL", 6.5, 0.5)
+    learned(recs, miss, TAKER, "VENUSAUR_NORMAL", 50.0, 1.0)
+    check("learned: a lower record", recs[TAKER][2], {"kg_min": 6.5, "kg_max": 99, "m_min": 0.5, "m_max": 9})
+    check("learned: a first box, the entry filled", (recs[TAKER][3]["kg_min"], miss[TAKER]), (50.0, set()))
     print("all xxs cases right" if not bad else f"{bad} wrong")
     return bad
 

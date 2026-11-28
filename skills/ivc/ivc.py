@@ -7,7 +7,8 @@
 
 Name = IV%, then /purified IV% (shadow, 84+), then H A D for each stat at 15 (or the lowercase
 leader(s) if none is 15), then Elite TM move initials + *, then XXL / xxs. Anything not shadow, lucky or
-legendary/mythical/ultra beast/gym defender under 93% gets only the move and size parts, and NOPE if there are none. Max 12 characters. To fit: drop spaces from the right, then size -> ^,
+legendary/mythical/ultra beast/gym defender/xxs under 93% gets only the move and size parts, and NOPE if there are none
+(an xxs one always shows its IV: /ivc ranks it, then xxs.py judges the rest). Max 12 characters. To fit: drop spaces from the right, then size -> ^,
 then initials -> * on the stat letters, then the space after the IV.
 """
 import os, re, sys
@@ -58,7 +59,7 @@ def shows_iv(ivs, shadow=False, lucky=False, legendary=False, gym=False):
 def candidates(ivs, shadow=False, size=None, moves=(), lucky=False, legendary=False, gym=False):
     """every form of the name, best first"""
     p = pct(ivs)
-    show = shows_iv(ivs, shadow, lucky, legendary, gym)
+    show = shows_iv(ivs, shadow, lucky, legendary, gym) or (size or "").upper() == "XXS"
     iv = str(p) if show else ""
     if show and shadow and PURIFY_FROM <= p < 100:
         iv += f"/{pct(purified(ivs))}"
@@ -175,7 +176,8 @@ EXAMPLES = [  # (a, d, h), shadow, size, moves, name
     ((12, 12, 9), True, None, [], "73 ad"),
     ((9, 12, 12), True, None, [], "73 hd"),
     ((12, 12, 9), False, None, [], None),
-    ((12, 12, 9), False, "XXS", [], "xxs"),
+    ((12, 12, 9), False, "XXS", [], "73 ad xxs"),
+    ((2, 3, 1), False, "XXS", ["Frenzy Plant"], "13 d FP* xxs"),
     ((12, 12, 9), False, "XXL", ["Frenzy Plant"], "FP* XXL"),
     ((14, 14, 14), False, None, [], "93"),
     ((14, 13, 15), False, None, [], "93 H"),

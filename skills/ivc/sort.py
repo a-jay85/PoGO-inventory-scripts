@@ -33,7 +33,11 @@ user, 2026-11-19: the top IV, its 98% and 100% always; 2026-11-25: per final, so
 Slowbro and one for Slowking); an Elite TM name (*) keeps.
   meta-overrides.txt can mark a species strong or weak by hand.
 COLLECT lines (Vivillon patterns): a DOOR becomes LEAVE so the user picks.
-Fails: XXL/xxs in the name -> leave for the user. Otherwise -> DOOR. No IV and no size (FP*, *) -> DOOR.
+Fails: XXL in the name (or a ^ with no xxs badge read) -> leave for the user. Otherwise -> DOOR. No IV and no size
+(FP*, *) -> DOOR. An xxs one is ranked like any other (its name shows its IV: '73 ad xxs'), and a keep keeps it as
+it is, never evolved. Its DOOR is xxs.py's instead of the door's: evolve along its line for a Pokédex size record,
+then Evo, GIV or Transfer. An xxs name with no IV in it ('xxs', named before 2026-11-27) -> LEAVE, until the names
+pass names it again.
 
 DialgaDex counters (../roster/dialgadex-counters-[future-|sig-][pp2-]<date>.json) come from ../roster/pull.mjs.
 """
@@ -530,7 +534,9 @@ def decide(m, results):
     """m: dict species, cp, name, shadow, lucky, dynamax (raid_team: raidteams.on_team's answer). results: search string -> [(tile name, cp)].
     -> (KEEP | DOOR | LEAVE, [reasons])"""
     p = parse_name(m["name"])
-    sized = p.size or bool(m.get("size"))  # the XXL/XXS badge read on the detail screen counts too
+    small = is_xxs(m)
+    sized = p.size and not small or m.get("size") == "XXL"  # left for the user. The XXL badge read on the detail
+    # screen counts too. A ^ (the size dropped to fit) with no badge read could be either: left too
     why, notes = [], []
     team = m.get("raid_team", ())  # raidteams.on_team, set by the caller: on its holder's own raid team
     if team:
@@ -547,7 +553,7 @@ def decide(m, results):
         why += w
     mine = value(m["name"], m["shadow"])
     if mine is None:
-        return ("LEAVE" if sized or gym_unsure else "DOOR"), why + [f"no IV in the name {m['name']!r}"]
+        return ("LEAVE" if sized or small or gym_unsure else "DOOR"), why + [f"no IV in the name {m['name']!r}"]
     if mine >= ALWAYS:
         return "KEEP", [f"{pct(mine)} always keeps"]
     if m["shadow"] and p.purified is not None and p.purified >= ALWAYS:
@@ -576,7 +582,12 @@ def decide(m, results):
         why.append(reason)
     if not (sized or gym_unsure) and any(s.startswith(c) for line in lines_of(sid) for s in line for c in COLLECT):
         return "LEAVE", ["pattern collection: yours to pick"] + why + notes
-    return ("LEAVE" if sized or gym_unsure else "DOOR"), why + notes
+    return ("LEAVE" if sized or gym_unsure else "DOOR"), why + notes + (["xxs: xxs.py judges it"] if small else [])
+
+
+def is_xxs(m):
+    """an xxs one: its name says xxs, or the badge read on its detail screen does"""
+    return m.get("size") == "XXS" or bool(re.search(r"xxs", m.get("name") or "", re.I)) and m.get("size") != "XXL"
 
 
 def pick_species(options):
@@ -689,6 +700,10 @@ def test():
     check("XXL fails -> LEAVE", decide(dict(me, name="93 XXL"), res(CHARIZARD_NORMAL__plain=six_better))[0], "LEAVE")
     check("move only -> DOOR", decide(dict(me, name="FP*"), res())[0], "DOOR")
     check("xxs only -> LEAVE", decide(dict(me, name="xxs"), res())[0], "LEAVE")
+    check("xxs keeps as any other", decide(dict(me, name="93 xxs"), res(CHARIZARD_NORMAL__plain=[("93", 2000)]))[0], "KEEP")
+    check("xxs fails -> DOOR (xxs.py)", decide(dict(me, name="93 xxs"), res(CHARIZARD_NORMAL__plain=six_better))[0], "DOOR")
+    check("xxs badge, ^ name fails -> DOOR", decide(dict(me, name="93^", size="XXS"), res(CHARIZARD_NORMAL__plain=six_better))[0], "DOOR")
+    check("^ name, no badge read -> LEAVE", decide(dict(me, name="93^"), res(CHARIZARD_NORMAL__plain=six_better))[0], "LEAVE")
     sh = dict(me, shadow=True, name="80/93 a")
     check("shadow vs shadows only", decide(sh, res(CHARIZARD_NORMAL__plain=six_better, CHARIZARD_NORMAL__shadow=[("80/93 a", 2000)]))[0], "KEEP")
     check("shadow beaten", decide(sh, res(CHARIZARD_NORMAL__shadow=[("82/96", 1)] * 6, CHARIZARD_NORMAL__plain=six_better))[0], "DOOR")

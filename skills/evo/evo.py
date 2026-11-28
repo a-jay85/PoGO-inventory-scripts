@@ -22,81 +22,20 @@ It stops rather than guesses:
 --dry-run goes as far as the YES / NO box for the top one and taps NO. It still taps the phone.
 Log in runs/<time>-android/log.txt.
 """
-import argparse, os, re, sys, time
+import argparse, os, sys, time
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import ui
 import base
 from base import Stop, log, keep_capture, look
-import search, session, home, account, pokedb
-from taps import exact, press, yes_no, settled_tiles, row_of
+import search, session, home, account
+from evolve import evolve_one
+from taps import settled_tiles
 from tagsheet import search_exact
 from rules import EVO, EVO_FOR, TRADE_EVOS
 
 SEARCH = f"#{EVO}&evolve&traded&!xxl&{TRADE_EVOS}"  # an XXL one stays as it is (the user, 2026-11-05)
-ANIMATION = 18.3  # YES to the evolved one's page: 18.2 s, every species (the user's run, 2026-11-05)
-SETTLE = 0.4  # after a tap, for the page or box to stop moving: one look then is enough (each look is about 0.4 s)
-
-
-def evolve_row(texts):
-    """the detail page's EVOLVE button -> (box, cost). cost: the number on its row, 0 when none shows. None: no button
-    (MEGA EVOLVE starts MEGA)"""
-    btn = [t for t in texts if ui.norm(t[4]).startswith("EVOLVE") and t[1] > 0.4]
-    if not btn:
-        return None
-    nums = [int(n) for t in row_of(texts, btn[0], past=False) for n in re.findall(r"\d+", t[4])]
-    return btn[0], max(nums, default=0)
-
-
-def box_key(texts):
-    """the "want to evolve" box: where YES and NO are. None while it isn't there yet. A Power Up box has YES / NO too:
-    never that one"""
-    return yes_no(texts, "WANT TO EVOLVE")
-
-
-def wait_box():
-    """after the EVOLVE tap: the "want to evolve" box -> (texts, bounds). Its height changes (Karrablast's has a league
-    warning), so YES is read once two looks agree on where it is, as mega.py does: a tap while the box grows can miss.
-    Never wait_for here: it says NO to this box"""
-    time.sleep(SETTLE)
-    got, texts, bounds = base.steady(box_key, tries=30, gap=0.05)
-    if got is None:
-        keep_capture("nobox")
-        raise Stop("no 'want to evolve' box after EVOLVE")
-    return texts, bounds
-
-
-def evolve_one(dry, candy):
-    """on the page of one to evolve, or just tapped. -> the page's bounds, or None when it has no EVOLVE row. Its place
-    moves with the page's rows (0.863 to 0.948), so it's read each time"""
-    time.sleep(SETTLE)
-    row = lambda seen: evolve_row(seen[1]) if seen[0] == "detail" else None
-    screen, texts, _, bounds = base.settle(look, row, timeout=None, gap=0.05, tries=6)  # 6 looks, 0.05 s apart
-    got = row((screen, texts))
-    if not got:
-        return None
-    info = ui.detail_info(texts)
-    name = info["name"]
-    box, cost = got
-    if cost and not candy:
-        keep_capture("cost")
-        raise Stop(f"{name}: its EVOLVE costs {cost}: this search should only find free ones (--candy spends it)")
-    log(f"  {name}: EVOLVE at {box[1]:.3f}, {cost} candy")
-    press(box, bounds)
-    texts, bounds = wait_box()
-    if dry:
-        log(f"  DRY: {ui.summary(texts, 200)}")
-        press(exact(texts, "NO")[0], bounds)
-        return bounds
-    press(exact(texts, "YES")[0], bounds)
-    # its weight, height and CP all change, and no look follows (speed): the old record goes, and the evolved one
-    # is added the next time any script opens it
-    pokedb.gone(base.who(info), "evolved")
-    time.sleep(ANIMATION)
-    return bounds
-
-
 def script(limit, dry, here, candy):
     if not ui.ANDROID:
         raise Stop("evo.py is Pixel only: POGO_PHONE=android")

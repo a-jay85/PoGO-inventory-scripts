@@ -8,7 +8,7 @@
         to carry on after a stop. --limit N: change N, then stop. --look: decide only (plan.txt), change nothing
   python3 run.py names [--limit N] [--dry-run]
         the names pass on its own (the sort starts with it): an XXL IVC one becomes a favorite, IVC off. Then it names
-        what the sort can't, the xxs IVC ones (the sort leaves them out) and ones whose nickname is no species (the detail screen tells the species)
+        what the sort can't: ones whose nickname is no species, and xxs ones named before their name showed the IV (the detail screen tells the species)
   python3 run.py fallen <run dir> [--limit N]  the fallen-out step on its own (a sort that gets to
         the end does it itself): group the fallen-out ones, then tag or door each one. act-fallen: the same
   python3 run.py resort [<run dir>] [--dex A-B] [--look] [--limit N]
@@ -39,12 +39,15 @@ from base import Stop, Skip, log, go, back_to_list, front, save, load, steady_de
     extras, candy, type_line, dynamax, set_tags, set_star
 
 import names as ivcrun
+import xxs
 base.RUN_DIR = os.path.join(HERE, "runs", time.strftime("%Y%m%d-%H%M%S"))  # (new_run_dir picks the real one)
 import sort
 import search, fallen, session, door
 from search import to_search_list, start_search, run_search, result_count, looks_same
 
 TAG = "IVC"
+PILE = f"#{TAG}&!XXL"  # every IVC one the sort judges: an XXL one is kept by sizes.py. (XXL, not xxl: the bar's
+# read drops a thin last l. #IVC stays first: an #IVC list loses one whose IVC comes off)
 DOORS = {}  # dex number ("all": every #IVC one) -> the door.Door whose searches cover it. Made when act first has a
 # DOOR of that dex, over every DOOR the plan has then: the plan grows a chunk at a time
 
@@ -173,7 +176,7 @@ def chunk_of(m, a, b):
     if m.get("dex_range"):
         return m["dex_range"] == [a, b]
     opts = m.get("species_options") or ([m["species"]] if m.get("species") else [])
-    return bool(opts) and not m.get("size") and all(a <= sort.SPECIES[s]["dex"] <= b for s in opts)
+    return bool(opts) and m.get("size") != "XXL" and all(a <= sort.SPECIES[s]["dex"] <= b for s in opts)
 
 
 CHUNKS = [(a, min(a + CHUNK - 1, MAX_DEX)) for a in range(1, MAX_DEX + 1, CHUNK)]
@@ -326,7 +329,7 @@ def flag_unrenamed(found, a, b):
         return
     dex = dex_terms(sort.SPECIES[m["species"]]["dex"] for m in us)
     for f in FLAGS:
-        got, _ = run_search(f"#{TAG}&!xxl&!xxs&{dex}&{f}", False, edit=True)
+        got, _ = run_search(f"{PILE}&{dex}&{f}", False, edit=True)
         for m in us:
             m[f] = any(c == m["cp"] and same_name(n, m["tile"]) for n, c in got)
     for m in us:
@@ -695,8 +698,8 @@ dex_terms = search.dex_list  # [1, 4, 5, 7] -> '1,4-5,7'
 
 def act_query(plans):
     """only the dex numbers that still have work, when that's short enough to type; else every IVC one.
-    XXL/xxs are never in the plan (scan leaves them out), so they don't need to be in the list either"""
-    q = f"#{TAG}&!xxl&!xxs"
+    XXL ones are never in the plan (scan leaves them out), so they don't need to be in the list either"""
+    q = PILE
     dex = dex_terms(sort.SPECIES[m["species"]]["dex"] for m in plans if m.get("species") in sort.SPECIES)
     return f"{q}&{dex}" if dex and len(dex) <= ACT_QUERY_MAX else q
 
@@ -717,6 +720,16 @@ def dex_of(m):
 def door_for(m):
     """the door whose searches cover this one's dex, if any yet"""
     return DOORS.get("all") or DOORS.get(dex_of(m))
+
+
+def to_xxs(m, n, c, ivs):
+    """an xxs DOOR, on its open page: xxs.act (evolve, tag, name) -> its final tag or door.UNSURE"""
+    was = next(iter(DOORS.values()), None) or ivcrun.DOOR  # (the names pass's door knows who's signed in)
+    import pokedb
+    who = was.account if was else pokedb.account()
+    if not who:
+        raise Skip("an xxs DOOR, but who's signed in isn't known: next run")
+    return xxs.act(who, m["species"], m["shadow"], (n, c), ivs)
 
 
 ACTS = ("KEEP", "DOOR", "LOOK")  # the verdicts act opens a Pokémon for
@@ -820,6 +833,8 @@ def look(i, n, c, p, members):
         gone = verdict
         if verdict == "KEEP":
             favorite_and_untag()
+        elif verdict == "DOOR" and sort.is_xxs(m):
+            gone = to_xxs(m, name, c, r["ivs"])
         elif verdict == "DOOR" and not door_for(m):
             verdict, gone = "LEAVE", "LEAVE"
             why = ["named; DOOR, but outside what the door's searches covered: next run"] + why
@@ -843,7 +858,8 @@ def act(limit, members):
     how many weren't found: the family isn't done then, a rerun walks its lists again)"""
     mine = {plan_key(m) for m in members}
     lists, plans = {}, [m for m in load_plan() if m["verdict"] in ACTS and plan_key(m) in mine]
-    to_door = lambda m: m["verdict"] in ("DOOR", "LOOK") or m["verdict"] == "KEEP" and could_be_dead(m)
+    to_door = lambda m: m["verdict"] == "LOOK" or m["verdict"] == "DOOR" and not sort.is_xxs(m) \
+        or m["verdict"] == "KEEP" and could_be_dead(m)
     if any(to_door(m) and not door_for(m) for m in plans):  # (a LOOK may turn out DOOR, a KEEP a costume dead end)
         # its searches only over the dex numbers sent to the door and not covered yet: a short list reads right more often
         new = {dex_of(m) for m in load_plan() if to_door(m) and m.get("species") in sort.SPECIES and not door_for(m)}
@@ -854,7 +870,8 @@ def act(limit, members):
         DOORS.update(dict.fromkeys(new, made) if scope else {"all": made})
         if made.typed:  # its searches leave the bar on something else. None typed: the family's list is still there
             SHOWN["q"] = None
-    listed = next(iter(DOORS.values())).listed() if DOORS else Counter()  # not sure last time, same rules: passed over
+    was = next(iter(DOORS.values()), None) or ivcrun.DOOR  # (no door made yet when only xxs ones go to it)
+    listed = was.listed() if was else Counter()  # not sure last time, same rules: passed over
     read = load("pools.json") if os.path.exists(os.path.join(base.RUN_DIR, "pools.json")) else {}
     for m in plans:
         k = (sort.clean_name(m["tile"]), m["cp"])
@@ -949,7 +966,7 @@ def act(limit, members):
         verdict = gone = m["verdict"]
         if verdict == "KEEP" and dead_keep(m, n, c):
             verdict = gone = "DOOR"
-        if verdict == "DOOR" and not door_for(m):
+        if verdict == "DOOR" and not door_for(m) and not sort.is_xxs(m):
             raise Skip("judged DOOR here, outside what the door's searches covered: next run")  # (no read would mean 'no')
         if verdict == "KEEP":
             favorite_and_untag()
@@ -962,6 +979,10 @@ def act(limit, members):
                 verdict = gone = "KEEP"
                 progress.setdefault("kept98", []).append([n, c])
                 log(f"  the plan said DOOR, appraised {what}: 98%+")
+            elif sort.is_xxs(m):
+                gone = to_xxs(m, n, c, ivs)
+                if gone == door.UNSURE:
+                    progress.setdefault("stayed", []).append([n, c])
             else:  # sort.decide ran the gym rule (a gym defender's DOOR is out of both top 20s) and the purified one
                 info, texts, _ = steady_detail()
                 gone = door_for(m).judge(info, texts, [m["species"]], ivs, (n, c), size=now["size"], raws=raws,
@@ -1016,7 +1037,7 @@ COUNTED = {}  # chunks_for's search when the pile is small: scan reads its list 
 
 def chunk_query(ab):
     """the scan's search for dex chunk ab: the whole dex needs no numbers"""
-    return f"#{TAG}&!xxl&!xxs" + ("" if tuple(ab) == (1, MAX_DEX) else f"&{ab[0]}-{ab[1]}")
+    return PILE + ("" if tuple(ab) == (1, MAX_DEX) else f"&{ab[0]}-{ab[1]}")
 
 
 def chunks_for(done):
@@ -1028,7 +1049,7 @@ def chunks_for(done):
         return [(1, MAX_DEX)] if set(began) == {f"1-{MAX_DEX}"} else CHUNKS
     front()
     to_search_list()
-    q = f"#{TAG}&!xxl&!xxs"
+    q = PILE
     _, texts, _ = start_search(q)
     n = result_count(texts)
     log(f"{q}: the game says {n}")
@@ -1109,7 +1130,7 @@ def sort_all(limit, look):
 
 def plain_pile():
     """one search for two: none of #IVC is XXL or a costume, as most runs find. Then the XXL pass has nothing to do and
-    the door needn't search for costumes. xxs ones are left out: untraded ones stay in #IVC for good"""
+    the door needn't search for costumes. xxs ones are left out: the sort judges them (xxs.py), not the door"""
     import home, tagsheet
     who = home.trainer()  # (before a search hides the storage limit)
     front()
@@ -1125,7 +1146,7 @@ def plain_pile():
 
 def names(limit, dry=False):
     """the names pass: an XXL one in #IVC is kept (the user, 2026-11-04). Then the old /ivc loop over what's left of
-    #IVC. It names the xxs ones (never in the sort) and
+    #IVC. It names the xxs ones again whose name has no IV (named before 2026-11-27), and
     opens a nickname that's no species to read it in full. One still named after its species is named too (the sort
     couldn't look at it). The next sort ranks what it named"""
     if not dry and not plain_pile():

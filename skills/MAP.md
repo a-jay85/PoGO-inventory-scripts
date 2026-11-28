@@ -1246,6 +1246,7 @@ Connect the GO Plus+: tap its Poké Ball at the top right of the map
 Feed berries to the Pokémon in the gyms you're defending, from the gym badge list
 
 - `where(path, texts)`: profile, badgelist, sortmenu, badge, gymview, feed, or what home.where says (map, mainmenu, exit ...)
+- `badges_row(texts)`: the profile scrolled down to its GYM BADGES row: the badges' LIST > with MEDALS under it, tabs and the ME rows gone off the top -> the LIST text box, or None
 - `no_location(texts)`: the profile under the game's red 'Failed to detect location
 - `look()`
 - `cp_labels(texts)`: the gym view's CP labels over its Pokémon -> [(cx, cy)]

@@ -349,6 +349,7 @@ def ready():
     if ui.ANDROID:
         adb_ok()
         if not opened:
+            in_use_check()
             restart_if_worn()
         unlock()
         ui.android.dim()  # USB or Wi-Fi
@@ -357,6 +358,20 @@ def ready():
     elif not opened or not mirroring_running():
         connect()
     opened = True
+
+
+IN_USE = 60  # seconds: a Claude-started run won't take a Pixel a person touched this recently
+
+
+def in_use_check():
+    """a run Claude starts (CLAUDECODE set) stops before its first tap while you're using the Pixel: unlocked and
+    touched by hand in the last minute. The user said the Pixel was free, then saw a raid that couldn't wait; the
+    test started 3 min later pressed Back through it (2026-11-27). A run you start yourself isn't held up"""
+    if not os.environ.get("CLAUDECODE") or locked():
+        return
+    ago = ui.android.by_hand()
+    if ago is not None and ago < IN_USE:
+        raise Stop(f"you're using the Pixel (touched {ago:.0f}s ago): run this once you're done with it")
 
 
 def needs_gps():

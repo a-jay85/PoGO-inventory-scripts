@@ -103,6 +103,8 @@ Which test to run after which change, and what the merge gate asks for in a PR b
 Nothing tests taps and timing off the phone. A change to how a skill reads or taps the phone isn't done until it has run on the phone, from its worktree, through `watch.py` (the merge gate looks for that run):
 `POGO_PHONE=android python3 <worktree>/watch.py python3 <worktree>/skills/pvpc/run.py --limit 1`. Claude starts it and watches it itself; no need to ask the user to watch.
 
+A run Claude starts (CLAUDECODE set) stops before its first tap if the Pixel is unlocked and a person touched it in the last minute (`session.in_use_check`). Any Pixel run stops, instead of pressing Back, if a person touches the phone mid-run (`android.touched_mid_run`). Script taps never count: `android.by_hand` sets the phone's last touch against `/tmp/pogo-android-input`, which every adb input stamps. A "the Pixel is free" from the user can go stale: this check is what decides.
+
 Claude watches a phone run quietly, through `watch.py` (repo root) started with Bash `run_in_background: true, timeout: 7200000`:
 `POGO_PHONE=android python3 ~/PoGO-inventory-scripts/watch.py python3 <script> [args]`.
 It prints nothing while the script runs, then one short summary at the end (exit code, STOPPED / CRASHED / error lines, last lines). The full output is in `/tmp/pogo-watch/<stamp>.log`, and where the run came from (checkout, HEAD, file contents, exit code) in `<stamp>.json`. Every python3 the run starts writes which lines of its checkout ran to `<stamp>.lines.*` (`linetrace/sitecustomize.py`; on a phone run it costs nothing you can see). The script runs detached, so if the waiter times out, `watch.py --wait` waits again. No `Monitor` on a run: a user hook blocks it.

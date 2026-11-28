@@ -55,6 +55,9 @@ Android phone for the /pvpc and /ivc scripts
 
 - `class NotReady`: phone or game not in a state the scripts can work with
 - `adb(*a, timeout=30)`
+- `mark_input()`: a script's tap, key or swipe just went to the Pixel: the phone counts it as a touch, so by_hand() must not
+- `by_hand(slack=2.0)`: -> seconds since a person last touched the Pixel, or None when its last touch came from a script (adb input) or can't be read
+- `touched_mid_run()`: -> seconds since a person touched the Pixel after this run's first tap, or None
 - `pick()`: which link to the phone adb uses: USB first, then Wi-Fi (adbwifi.py keeps that one up)
 - `shell(cmd, timeout=60)`
 - `dim()`: every run, on USB or Wi-Fi: screen brightness to the lowest the phone goes for the run
@@ -670,6 +673,7 @@ A run's phone from start to end
 - `claim()`: this phone for this process
 - `busy()`: what's using each phone now, one short line each, and any other skill script running
 - `ready()`: the phone ready to be seen and tapped
+- `in_use_check()`: a run Claude starts (CLAUDECODE set) stops before its first tap while you're using the Pixel: unlocked and touched by hand in the last minute
 - `needs_gps()`
 - `gps_off()`: the Pixel's location off for the rest of the run, unless this script needs it
 - `game_in_front()`

@@ -101,7 +101,7 @@ def where(path, texts):
     if pages.friend_page(texts):  # its 'Level 78' and TOTAL ACTIVITY passed for the profile: to_badge_list scrolled it
         return home.where(path, texts)  # 23 times and stopped (Pixel, 2026-11-24: /gift left it there). home.unstick
         # knows its way out
-    if {"ME", "FRIENDS"} <= words or len(words & PROFILE_WORDS) >= 2 or no_location(texts):  # (scrolled down, its
+    if {"ME", "FRIENDS"} <= words or len(words & PROFILE_WORDS) >= 2 or no_location(texts) or badges_row(texts):  # (scrolled down, its
         return "profile"  # GYM BADGES can sit near the top too). Its level ('80') passes for a CP label: with
         # FRIENDS hidden it read as a gym view, and to_badge_list tapped X on it, 15 times in 30 s (iPhone, 2026-11-24)
     if pages.gym_badgelist(texts):
@@ -113,6 +113,15 @@ def where(path, texts):
     if gym_view(texts):
         return "gymview"
     return home.where(path, texts)
+
+
+def badges_row(texts):
+    """the profile scrolled down to its GYM BADGES row: the badges' LIST > with MEDALS under it, tabs and the ME rows
+    gone off the top -> the LIST text box, or None. Read as an unknown screen, it got a Back, which shut the profile,
+    and the walk went round map -> profile -> Back till it stopped (backlog #18, Pixel 2026-11-28 05:35)"""
+    medals = [t for t in texts if ui.norm(t[4]) == "MEDALS"]
+    lst = [t for t in texts if ui.norm(t[4]) == "LIST" and medals and t[1] <= medals[0][1] + 0.01]
+    return lst[0] if lst else None
 
 
 def no_location(texts):
@@ -536,6 +545,8 @@ def to_badge_list():
         elif screen == "profile":
             gb = [t for t in texts if ui.norm(t[4]) == "GYM BADGES"]
             lst = [t for t in texts if gb and ui.norm(t[4]).startswith("LIST") and t[1] > gb[0][1]]
+            if not lst and (row := badges_row(texts)):  # GYM BADGES scrolled off the top, its LIST still on screen
+                lst = [row]
             if lst and lst[0][1] < 0.85:
                 base.tap_box(lst[0], bounds, dy=-0.03)  # the green diamond over LIST >
                 list_top, list_sorted = True, False

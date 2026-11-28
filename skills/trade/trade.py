@@ -676,6 +676,10 @@ def open_panel(p):
             p.tap(0.5, 0.18)
             time.sleep(1.2)
             p.look()
+        if less := ui.see_less(p.texts):  # left on its Recent page: SEE LESS, back to the shortcuts
+            p.tap(*ui.center(less))
+            time.sleep(1.0)
+            p.look()
         keyboard = p.find(lambda t: ui.up(t) in ("?123", "OK") and t[1] > 0.5)
         if keyboard and p.name == "android":
             p.key("back")  # Android: hides the keyboard only, the panel stays

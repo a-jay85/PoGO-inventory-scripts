@@ -835,6 +835,7 @@ Screen reader + tap planner for every script, and the readers under the red GPS 
 - `fuzz_circle(cx, cy, r, texts, aspect)`
 - `search_box(texts)`: the search bar at the top of the list: 'Search' (Q = the magnifier) or a typed search like '#IVC' / '4&shadow'
 - `search_panel(texts)`: the filter panel that opens (with the keyboard) when the search bar is tapped
+- `see_less(texts)`: the search panel's See More page (Recent, See Less) -> its SEE LESS box, the tap back to the saved shortcuts (Favorite), or None
 - `search_text(box)`: what's typed in the search bar, as OCR reads it ('' if it just says Search)
 - `sort_arrow(path, right_most=False)`: 'down' / 'up' / None: the small arrow on a sort button (bottom right), light teal on dark teal
 - `icon_score(path, icon, at, slack=0)`: how well the green picture on a sort button matches icon (a png cut from a 406 x 890 capture): 0 to 1

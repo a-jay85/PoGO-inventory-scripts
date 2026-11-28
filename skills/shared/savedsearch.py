@@ -42,7 +42,10 @@ def panel():
             path, bounds = ui.capture()
             texts = ui.ocr(path)
             fav = any(ui.norm(t[4]) == "FAVORITE" for t in texts)
-            kb = next((t[1] for t in texts if ui.ANDROID and t[4].strip() == "?123" and t[1] > 0.5), None)
+            if less := ui.see_less(texts):  # left on its Recent page: back to the shortcuts
+                search.click(*ui.center(less), bounds)
+                continue
+            kb =next((t[1] for t in texts if ui.ANDROID and t[4].strip() == "?123" and t[1] > 0.5), None)
             if kb is not None:
                 if fav:
                     return [t for t in texts if t[1] < kb - 0.3], bounds  # (its suggestion strip too)

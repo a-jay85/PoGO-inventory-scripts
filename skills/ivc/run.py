@@ -1202,7 +1202,7 @@ def resort_members(dexes=None):
         if all(sort.strong(line)[0] for line in fam):  # a strong line's rules didn't change
             continue
         out.append({"species": sid, "cp": 0, "name": "96", "tile": "96", "shadow": False, "lucky": True, "dynamax": True})
-        if f"{sid}_shadow" in sort.BY_ID:  # (a &shadow search of a line with no shadow finds nothing)
+        if f"{sid}_SHADOW" in sort.BY_ID:  # (a &shadow search of a line with no shadow finds nothing)
             out.append({"species": sid, "cp": 0, "name": "91/96", "tile": "91/96", "shadow": True, "lucky": False,
                         "dynamax": False})
     return out

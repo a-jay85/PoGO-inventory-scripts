@@ -19,7 +19,7 @@ SHOW_FROM = 93  # below this IV% (rounded) only shadows, luckies and legendaries
 PURIFY_FROM = 84  # shadow IV% (rounded) at which the purified IV% is shown
 STAT_COMBOS = {"H", "A", "D", "HA", "HD", "AD", "HAD"}  # move initials that would read as stat letters
 # gym defenders always show their IV, so /ivc can rank them (top 20 IV or top 20 CP). User's Pokebattler top 6.
-GYM_DEFENDERS = {"blissey", "chansey", "snorlax", "slaking", "wobbuffet", "dondozo"}
+GYM_DEFENDERS = {"BLISSEY_NORMAL", "CHANSEY_NORMAL", "SNORLAX_NORMAL", "SLAKING_NORMAL", "WOBBUFFET_NORMAL", "DONDOZO_NORMAL"}
 
 
 def iv_pct(total):
@@ -148,7 +148,7 @@ def elite_moves(species):
     import pvp  # (here, not at the top: ivc.py's name rules need no game master)
     by_id = pvp.SPECIES
     names = {m["moveId"]: m["name"] for m in pvp.GM["moves"]}
-    p = by_id.get(species) or by_id.get(re.sub(r"_shadow$", "", species))
+    p = by_id.get(species) or by_id.get(species.removesuffix("_SHADOW"))
     return [names.get(m, m) for m in (p or {}).get("eliteMoves") or []]
 
 

@@ -36,7 +36,7 @@ import argparse, json, os, re, sys
 HERE = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 sys.path.insert(0, os.path.join(HERE, "..", "dex"))
-import dex
+import dex, pvp
 from base import Stop, log, newest, write_json
 import search, session, tagsheet
 
@@ -56,7 +56,7 @@ def is_mega(a):
 
 
 def region(sid):
-    return next((r for r in dex.REGIONS if r in sid), None)
+    return pvp.region(sid) if sid in pvp.SPECIES else None
 
 
 class Model:
@@ -77,13 +77,12 @@ class Model:
         cands = [s for s, p in self.by.items() if p["dex"] == a["id"]]
         if not cands:
             return None
-        f = "normal" if is_mega(a) else a["form"].lower()
-        f = {"alola": "alolan", "a": "armored"}.get(f, f)
-        hits = [s for s in cands if s.endswith("_" + f)]  # (Unova 'Standard' Darmanitan vs darmanitan_galarian_standard)
+        f = "NORMAL" if is_mega(a) else a["form"].upper()  # (DialgaDex's forms are the game's: 'A' is MEWTWO_A)
+        hits = [s for s in cands if s.endswith("_" + f)]  # (Unova 'Standard' Darmanitan vs DARMANITAN_GALARIAN_STANDARD)
         if hits:
-            return next((s for s in hits if (region(s) or "_")[1:] in f), hits[0])
+            return next((s for s in hits if (region(s) or "").upper() in f), hits[0])
         plain = [s for s in cands if not region(s)]
-        return next((s for s in plain if "_" not in s), (plain or cands)[0])
+        return next((s for s in plain if s.endswith("_NORMAL")), (plain or cands)[0])
 
     def group(self, i):
         a = self.A[i]

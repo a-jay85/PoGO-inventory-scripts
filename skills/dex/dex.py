@@ -447,27 +447,25 @@ parse = search.dex_numbers  # '14,22,29-33' -> {14, 22, 29, ..., 33}
 
 EVOLVE = {"lucky": ("lucky", "Lucky"), "xxs": ("xxs", "XXS")}  # page -> (its storage search word, its name in reports)
 
-REGIONS = {"_alolan": "alola", "_galarian": "galar", "_hisuian": "hisui", "_paldean": "paldea"}
 GENDER = {413: "female", 414: "male", 416: "female", 475: "male", 478: "female", 758: "female"}  # only this gender evolves into it
 NO_EVOLVE = {589, 617}  # Escavalier, Accelgor: need a trade. A lucky one can't be traded again; an XXS one would leave
-UNSURE = {"wurmple": "Wurmple turns into Silcoon or Cascoon at random",
-          "basculin": "only White-Striped Basculin evolves, and a search can't pick it out"}
+UNSURE = {"WURMPLE_NORMAL": "Wurmple turns into Silcoon or Cascoon at random",
+          "BASCULIN_BLUE_STRIPED": "only White-Striped Basculin evolves, and a search can't pick it out"}
 
 
 def evo_tree():
     """(by, parent): speciesId -> its game data entry (no shadow, mega or XL), and child -> what it evolves from in
     GO (pvp.parent: the one evolution map)"""
-    by = {s: p for s, p in pvp.SPECIES.items() if not re.search(r"_shadow|_mega|_xl$", s)}
+    by = {s: p for s, p in pvp.SPECIES.items() if not pvp.is_shadow(s) and not re.search(r"_MEGA(_[XY])?$", s)}
     return by, {c: p for c in by if (p := pvp.parent(c))}
 
 
 def form_terms(sid, by):
     """the search terms that pick out this form of its species"""
-    suffix = next((x for x in REGIONS if x in sid), None)
-    if suffix:
-        return f"&{REGIONS[suffix]}"
+    if pvp.region(sid):
+        return f"&{pvp.region(sid)}"
     dex = by[sid]["dex"]  # the plain form: leave out its regional forms
-    return "".join(f"&!{r}" for x, r in REGIONS.items() if any(p["dex"] == dex and x in o for o, p in by.items()))
+    return "".join(f"&!{r}" for r in pvp.REGIONS.values() if any(p["dex"] == dex and pvp.region(o) == r for o, p in by.items()))
 
 
 def source_query(sids, by, gender=None, word="lucky"):

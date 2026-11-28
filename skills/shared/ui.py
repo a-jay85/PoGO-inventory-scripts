@@ -784,7 +784,7 @@ def letters(s):
 
 
 def names_species(name, species):
-    """a dialog's species name ('MACHOP', 'RAICHU') is one of these speciesIds' (forms too: raichu_alolan). For a page
+    """a dialog's species name ('MACHOP', 'RAICHU') is one of these speciesIds' (forms too: RAICHU_ALOLA). For a page
     whose big name OCR misreads: Machop's reads 'doyew' (upside down) on the Pixel, run after run (2026-11-20 to 23)"""
     import pvp  # (here, not at the top: a script whose first argument is 'update' would run pvp.py's update)
     gm = pvp.SPECIES
@@ -799,8 +799,8 @@ def loose_match(name, texts, gm):
     that way (Porygon + 'Z' is Porygon-Z)."""
     if re.search(r"[\d*]", name):  # our own nicknames ('89 HA FP*'): never a species
         return []
-    mons = [p for p in gm["pokemon"] if not p["speciesId"].endswith(("_shadow", "_mega", "_mega_x", "_mega_y", "_xs"))
-            and "_primal" not in p["speciesId"]]
+    import pvp  # (see names_species)
+    mons = [p for p in gm["pokemon"] if pvp.plain(p["speciesId"])]
     spell = lambda p: {letters(p["speciesName"].split(" (")[0]), letters(p["speciesName"])}
     out = [p for p in mons if letters(name) in spell(p)]
     if out:
@@ -827,17 +827,17 @@ def species_for(name, texts):
     cands = []
     for p in gm["pokemon"]:
         sid = p["speciesId"]
-        if sid.endswith(("_shadow", "_mega", "_mega_x", "_mega_y", "_xs")) or "_primal" in sid:
+        if not pvp.plain(sid):
             continue
         base = p["speciesName"].split(" (")[0]
         if base.lower() == (name or "").lower():
             cands.append(p)
     if not cands and re.fullmatch(r"nidoran\W*\w?", (name or "").strip(), re.I):  # its ♂/♀ reads as '7' etc:
-        cands = [p for p in gm["pokemon"] if p["speciesId"] in ("nidoran_female", "nidoran_male")]  # CP picks one
+        cands = [p for p in gm["pokemon"] if p["speciesId"] in ("NIDORAN_FEMALE_NORMAL", "NIDORAN_MALE_NORMAL")]  # CP picks one
     if not cands and name:
         cands = loose_match(name, texts, gm)
     if (name or "").lower() == "pikachu":  # costumes all share Pikachu's base stats, so they rank the same
-        return ["pikachu"]
+        return ["PIKACHU_NORMAL"]
     if len(cands) > 1:  # regional forms etc: keep those whose types match the type line
         typed = [p for p in cands if all(t.upper() in words or t == "none" for t in p["types"])]
         cands = typed or cands

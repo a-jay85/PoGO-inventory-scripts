@@ -78,11 +78,20 @@ def load():
     return data
 
 
+_ranks = None
+
+
 def rankings():
-    """PvPoke's overall ranking per league (L G U): speciesIds, best first"""
-    if not os.path.exists(RANKS):
-        sys.exit(missing())
-    return json.load(open(RANKS))
+    """PvPoke's overall ranking per league (L G U), best first, in our ids. Every row keeps its place, so a rank
+    reads as PvPoke's: one we don't know (pancham_shadow) stays under PvPoke's id, and two PvPoke ids of one form
+    (lanturn, lanturnw) both stay"""
+    global _ranks
+    if _ranks is None:
+        if not os.path.exists(RANKS):
+            sys.exit(missing())
+        ren = load()["renamed"]
+        _ranks = {lg: [ren.get(s, s) for s in rows] for lg, rows in json.load(open(RANKS)).items()}
+    return _ranks
 
 
 def f32(x):
@@ -237,14 +246,32 @@ def build():
         dex = dex_of.get(fam) or dex_of.get(p["pokemonId"])
         return text.get(f"pokemon_name_{dex:04d}", fam.replace("_", " ").title()).upper() if dex else None
 
-    out = []
+    def new_id(v, tid):
+        """our id: the game's form name (or its species, with no forms), and for a shadow or a Mega the game's word
+        for it: BULBASAUR_NORMAL, RAICHU_ALOLA, BULBASAUR_NORMAL_SHADOW, CHARIZARD_NORMAL_MEGA_X"""
+        pid = by_t[tid]["pokemonId"]
+        name = by_t[tid].get("form") or pid
+        if not name.startswith(pid):  # (both Nidoran's forms are NIDORAN_NORMAL: NIDORAN_FEMALE_NORMAL)
+            a, b = name.split("_"), pid.split("_")
+            k = next(i for i, (x, y) in enumerate(zip(a + [None], b + [None])) if x != y)
+            name = "_".join(b + a[k:])
+        if v.get("mega"):
+            return f"{name}_{v['mega'].removeprefix('TEMP_EVOLUTION_')}"
+        return f"{name}_SHADOW" if v.get("shadow") else name
+
+    ren = {sid: new_id(v, v["t"]) for sid, v in ids.items()}
+    rn = lambda x: ren.get(x, x)
+    out, seen = [], set()
     for sid, v in ids.items():
         tid = v["t"]
         p = by_t[tid]
+        if ren[sid] in seen:  # (another PvPoke id of the same form: lanturnw, a costume Pikachu)
+            continue
+        seen.add(ren[sid])
         form = p.get("form") or ""
         s = p["stats"]
         fast, charged, elite = moves(p)
-        e = {"dex": int(tid[1:5]), "speciesName": v["name"], "speciesId": sid,
+        e = {"dex": int(tid[1:5]), "speciesName": v["name"], "speciesId": ren[sid],
              "baseStats": {"atk": s["baseAttack"], "def": s["baseDefense"], "hp": s["baseStamina"]},
              "types": types(p), "fastMoves": fast, "chargedMoves": charged, "eliteMoves": elite,
              "template": tid, "form": form, "familyId": p.get("familyId"), "candy": candy_name(p)}
@@ -252,7 +279,7 @@ def build():
         if p.get("pokemonClass") in CLASS_TAG:
             tags.append(CLASS_TAG[p["pokemonClass"]])
         tags += [tag for r, tag in REGION_TAG.items() if r in form.split("_")[1:]]
-        base = sid.removesuffix("_shadow")
+        base = ren[sid].removesuffix("_SHADOW")
         if base in rules.REGIONAL:
             tags.append("regional")
         if v.get("dup"):
@@ -281,6 +308,7 @@ def build():
                 fam = {"parent": fam["parent"] and (sh(fam["parent"]) or fam["parent"]),
                        "evolutions": [k for k in map(sh, fam["evolutions"] or []) if k]}
         fam = {k: x for k, x in fam.items() if x}
+        fam = {k: rn(x) if k == "parent" else [rn(y) for y in x] for k, x in fam.items()}
         if fam:  # (as PvPoke: no family when nothing links)
             e["family"] = {"id": e["familyId"], **fam}
         e["tags"] = tags
@@ -294,7 +322,7 @@ def build():
             mid = move_id(t["templateId"].split("_MOVE_", 1)[1], numbers)
             moves_out.append({"moveId": mid, "name": text.get(f"move_name_{n}", mid.replace("_", " ").title()),
                               "type": c.get("type", "").replace("POKEMON_TYPE_", "").lower()})
-    return {"pokemon": out, "moves": moves_out, "cpms": cpms(gm)}
+    return {"pokemon": out, "moves": moves_out, "cpms": cpms(gm), "renamed": ren}
 
 
 if __name__ == "__main__":

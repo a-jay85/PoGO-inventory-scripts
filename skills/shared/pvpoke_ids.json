@@ -1455,7 +1455,7 @@
 "komala": {"t": "V0775_POKEMON_KOMALA_NORMAL", "name": "Komala"},
 "turtonator": {"t": "V0776_POKEMON_TURTONATOR_NORMAL", "name": "Turtonator"},
 "togedemaru": {"t": "V0777_POKEMON_TOGEDEMARU_NORMAL", "name": "Togedemaru"},
-"mimikyu": {"t": "V0778_POKEMON_MIMIKYU_BUSTED", "name": "Mimikyu"},
+"mimikyu": {"t": "V0778_POKEMON_MIMIKYU_DISGUISED", "name": "Mimikyu"},
 "mimikyu_busted": {"t": "V0778_POKEMON_MIMIKYU_BUSTED", "name": "Mimikyu (Busted)"},
 "bruxish": {"t": "V0779_POKEMON_BRUXISH_NORMAL", "name": "Bruxish"},
 "drampa": {"t": "V0780_POKEMON_DRAMPA_NORMAL", "name": "Drampa"},

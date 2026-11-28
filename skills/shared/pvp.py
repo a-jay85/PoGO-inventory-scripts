@@ -117,12 +117,12 @@ def meta(league):
 def viable(species, league, shadow=False, top=VIABLE_TOP):
     """species (its shadow, if shadow and PvPoke ranks one) is in PvPoke's top in that league"""
     ids = meta(league)[:top]
-    return (f"{species}_shadow" if shadow and f"{species}_shadow" in meta(league) else species) in ids
+    return (f"{species}_SHADOW" if shadow and f"{species}_SHADOW" in meta(league) else species) in ids
 
 
 # Tyrogue evolves by its highest IV: Attack -> Hitmonlee, Defense -> Hitmonchan, HP -> Hitmontop.
 # A tie can go to any of the tied ones (the game picks at random). {child: index into (atk, def, hp)}
-IV_BRANCH = {"tyrogue": {"hitmonlee": 0, "hitmonchan": 1, "hitmontop": 2}}
+IV_BRANCH = {"TYROGUE_NORMAL": {"HITMONLEE_NORMAL": 0, "HITMONCHAN_NORMAL": 1, "HITMONTOP_NORMAL": 2}}
 
 
 # ---------- the one evolution map: every skill's parent, children, root and tree come from here ----------
@@ -131,9 +131,19 @@ IV_BRANCH = {"tyrogue": {"hitmonlee": 0, "hitmonchan": 1, "hitmontop": 2}}
 # evolution reaches (Alolan Raichu, Hisuian Typhlosion, Archaludon) for the candy family (kin_parent). Both come
 # from PokeMiners' game master (gamedata.py), which has none of the errors PvPoke's had (Carkol under Boltund).
 
+def is_shadow(sid):
+    """a shadow's id: its form's, plus _SHADOW (BULBASAUR_NORMAL_SHADOW)"""
+    return sid.endswith("_SHADOW")
+
+
+def is_mega(sid):
+    """a Mega's or a Primal's id: its form's, plus the game's word (CHARIZARD_NORMAL_MEGA_X, KYOGRE_NORMAL_PRIMAL)"""
+    return bool(re.search(r"_(MEGA(_[XY])?|PRIMAL)$", sid))
+
+
 def plain(sid):
-    """one entry per real Pokémon: no shadow / mega / primal / XL-only duplicates"""
-    return not (sid.endswith(("_shadow", "_xs", "_xl")) or "_mega" in sid or "_primal" in sid)
+    """one entry per real Pokémon: no shadow / mega / primal duplicates"""
+    return not (is_shadow(sid) or is_mega(sid))
 
 
 PLAIN = {s: p for s, p in SPECIES.items() if plain(s)}
@@ -287,8 +297,8 @@ def form_letter(form, top):
 
 
 # Eevee branches eight ways, so every form gets its own letter and the name lists every top-100 entry
-EEVEE_LETTERS = {"eevee": "N", "vaporeon": "v", "jolteon": "j", "flareon": "f", "espeon": "e",
-                 "umbreon": "u", "leafeon": "l", "glaceon": "g", "sylveon": "s"}
+EEVEE_LETTERS = {"EEVEE_NORMAL": "N", "VAPOREON_NORMAL": "v", "JOLTEON_NORMAL": "j", "FLAREON_NORMAL": "f", "ESPEON_NORMAL": "e",
+                 "UMBREON_NORMAL": "u", "LEAFEON_NORMAL": "l", "GLACEON_NORMAL": "g", "SYLVEON_NORMAL": "s"}
 
 
 def fits(ps, plus):
@@ -319,7 +329,7 @@ def eevee_name(ranks):
 def make_name(species, ivs, level=None):
     """Returns (name or None, notes). level: see all_ranks"""
     ranks = all_ranks(species, ivs, level)
-    if species == "eevee":
+    if species == "EEVEE_NORMAL":
         return eevee_name(ranks)
     notes = []
     if species in IV_BRANCH and species not in OWN_ONLY and len(tops(species, ivs)) > 1:  # a tie: the game picks one of them at random
@@ -367,8 +377,8 @@ def base_name(sid):
 
 def region(sid):
     """the region term of a regional form, or None. By its tags, else its id (Hisuian Decidueye has no tag)"""
-    return next((REGIONS[t] for t in PLAIN[sid].get("tags") or [] if t in REGIONS), None) or \
-        next((r for t, r in REGIONS.items() if f"_{t}" in sid), None)
+    return next((REGIONS[t] for t in SPECIES[sid].get("tags") or [] if t in REGIONS), None) or \
+        next((REGIONS[t] for w, t in gamedata.REGION_TAG.items() if w in sid.split("_")[1:]), None)
 
 
 def search(sid, pool):
@@ -433,7 +443,7 @@ def letters(first):
     """{form: the letter a Pvp name gives it in G and U} for the tree from first. None for a tree that branches
     (Eevee aside): there the letter was picked by hand against one of the finals, so it can't be read back."""
     t = tree(first)
-    if first == "eevee":
+    if first == "EEVEE_NORMAL":
         return {s: EEVEE_LETTERS[s] for s in t if s in EEVEE_LETTERS}
     if len([s for s in t if not evolutions(s)]) != 1:
         return None
@@ -481,7 +491,7 @@ def slots_name(first, slots):
     ranks = [(tag, r, s) for (tag, s), r in sorted(slots.items(), key=lambda kv: order.get(kv[0][1], 99))]
     if not ranks or letters(first) is None:
         return None
-    if first == "eevee":
+    if first == "EEVEE_NORMAL":
         return eevee_name(ranks)[0]
     best = {}
     for tag, r, s in ranks:
@@ -614,18 +624,18 @@ def cascade(first, owned):
 
 
 # magnemite line: magneton is t, magnemite m
-MT = lambda **kw: {({"L": ("L", "magnemite"), "Gt": ("G", "magneton"), "Gm": ("G", "magnemite"),
-                     "U": ("U", "magnezone")}[k]): r for k, r in kw.items()}
+MT = lambda **kw: {({"L": ("L", "MAGNEMITE_NORMAL"), "Gt": ("G", "MAGNETON_NORMAL"), "Gm": ("G", "MAGNEMITE_NORMAL"),
+                     "U": ("U", "MAGNEZONE_NORMAL")}[k]): r for k, r in kw.items()}
 CASCADES = [
     # the new Gt3 beats A's Gt17. A's name had no room for U99; now it does, and U99 beats B's U100.
     # B's Gt50 was beaten by the new one already, so B has nothing left.
-    ("magnemite", {"PvpL15Gt17+": MT(L=15, Gt=17, U=99), "Pvp Gt50 U100": MT(Gt=50, U=100), "Pvp Gt3": MT(Gt=3)},
+    ("MAGNEMITE_NORMAL", {"PvpL15Gt17+": MT(L=15, Gt=17, U=99), "Pvp Gt50 U100": MT(Gt=50, U=100), "Pvp Gt3": MT(Gt=3)},
      {"PvpL15Gt17+": "Pvp L15 U99", "Pvp Gt50 U100": "fallen", "Pvp Gt3": "Pvp Gt3"}),
     # nobody beats anybody: nothing changes
-    ("magnemite", {"Pvp L4": MT(L=4), "Pvp Gt9": MT(Gt=9), "Pvp U2": MT(U=2)},
+    ("MAGNEMITE_NORMAL", {"Pvp L4": MT(L=4), "Pvp Gt9": MT(Gt=9), "Pvp U2": MT(U=2)},
      {"Pvp L4": "Pvp L4", "Pvp Gt9": "Pvp Gt9", "Pvp U2": "Pvp U2"}),
     # the new one is beaten in G by an older one: the new one gets trimmed too. Ties keep.
-    ("magnemite", {"Pvp Gt5 U40": MT(Gt=5, U=40), "Pvp Gt3": MT(Gt=3), "Pvp U40": MT(U=40)},
+    ("MAGNEMITE_NORMAL", {"Pvp Gt5 U40": MT(Gt=5, U=40), "Pvp Gt3": MT(Gt=3), "Pvp U40": MT(U=40)},
      {"Pvp Gt5 U40": "Pvp U40", "Pvp Gt3": "Pvp Gt3", "Pvp U40": "Pvp U40"}),
 ]
 
@@ -634,8 +644,8 @@ def test():
     """every name make_name gives must read back (name_slots) as the ranks it was made from"""
     import random
     rnd, bad, n = random.Random(1), 0, 0
-    for sp in ("charmander", "charmeleon", "magnemite", "eevee", "vulpix_alolan", "rattata", "rattata_alolan",
-               "bulbasaur", "azurill", "marill", "dratini", "oddish", "medicham", "registeel"):
+    for sp in ("CHARMANDER_NORMAL", "CHARMELEON_NORMAL", "MAGNEMITE_NORMAL", "EEVEE_NORMAL", "VULPIX_ALOLA", "RATTATA_NORMAL", "RATTATA_ALOLA",
+               "BULBASAUR_NORMAL", "AZURILL_NORMAL", "MARILL_NORMAL", "DRATINI_NORMAL", "ODDISH_NORMAL", "MEDICHAM_NORMAL", "REGISTEEL_NORMAL"):
         for _ in range(150):
             ivs = tuple(rnd.randint(0, 15) for _ in range(3))
             name, _ = make_name(sp, ivs)
@@ -654,33 +664,33 @@ def test():
             if letters(root(sp)) is not None and slots_name(root(sp), iv_slots(sp, ivs)) != name:
                 bad += 1
                 print(f"BAD {sp} {ivs}: make_name {name!r}, slots_name {slots_name(root(sp), iv_slots(sp, ivs))!r}")
-    checks = [(name_slots("Pvp G9", "rattata"), {("G", "raticate"): 9}),
-              (name_slots("Pvp L5Gm15U35", "charmander"), {("L", "charmander"): 5, ("G", ("charmander", "charmeleon")): 15,
-                                                           ("U", "charizard"): 35}),
-              (name_slots("Pvp Gt15", "magnemite"), {("G", "magneton"): 15}),
-              (fallen({("G", ("charmander", "charmeleon")): 5}, [("Pvp G1", {("G", ("charmander", "charmeleon")): 1})],
-                      "charmander")[0], False),
-              (name_slots("Pvp G150", "charmander"), None), (name_slots("Pvp Gq5", "charmander"), None),
-              (name_slots("Pvp G5", "oddish"), None), (name_slots("PvpGN45Uu28+", "eevee"),
-                                                       {("G", "eevee"): 45, ("U", "umbreon"): 28}),
-              (fallen({("G", "charizard"): 5}, [("Pvp G5", {("G", "charizard"): 5})], "charmander")[0], False),
-              (fallen({("G", "charizard"): 5}, [("Pvp G4", {("G", "charizard"): 4})], "charmander")[0], True),
-              (fallen({("G", "charizard"): 5, ("U", "charizard"): 2}, [("Pvp G4", {("G", "charizard"): 4})],
-                      "charmander")[0], False)]
+    checks = [(name_slots("Pvp G9", "RATTATA_NORMAL"), {("G", "RATICATE_NORMAL"): 9}),
+              (name_slots("Pvp L5Gm15U35", "CHARMANDER_NORMAL"), {("L", "CHARMANDER_NORMAL"): 5, ("G", ("CHARMANDER_NORMAL", "CHARMELEON_NORMAL")): 15,
+                                                           ("U", "CHARIZARD_NORMAL"): 35}),
+              (name_slots("Pvp Gt15", "MAGNEMITE_NORMAL"), {("G", "MAGNETON_NORMAL"): 15}),
+              (fallen({("G", ("CHARMANDER_NORMAL", "CHARMELEON_NORMAL")): 5}, [("Pvp G1", {("G", ("CHARMANDER_NORMAL", "CHARMELEON_NORMAL")): 1})],
+                      "CHARMANDER_NORMAL")[0], False),
+              (name_slots("Pvp G150", "CHARMANDER_NORMAL"), None), (name_slots("Pvp Gq5", "CHARMANDER_NORMAL"), None),
+              (name_slots("Pvp G5", "ODDISH_NORMAL"), None), (name_slots("PvpGN45Uu28+", "EEVEE_NORMAL"),
+                                                       {("G", "EEVEE_NORMAL"): 45, ("U", "UMBREON_NORMAL"): 28}),
+              (fallen({("G", "CHARIZARD_NORMAL"): 5}, [("Pvp G5", {("G", "CHARIZARD_NORMAL"): 5})], "CHARMANDER_NORMAL")[0], False),
+              (fallen({("G", "CHARIZARD_NORMAL"): 5}, [("Pvp G4", {("G", "CHARIZARD_NORMAL"): 4})], "CHARMANDER_NORMAL")[0], True),
+              (fallen({("G", "CHARIZARD_NORMAL"): 5, ("U", "CHARIZARD_NORMAL"): 2}, [("Pvp G4", {("G", "CHARIZARD_NORMAL"): 4})],
+                      "CHARMANDER_NORMAL")[0], False)]
     checks += [(cascade(*c[:2]), c[2]) for c in CASCADES]
     # a form ranks a league only if 15/15/15 at 50 tops the cap minus 100: Amaura (1541) plays Great, not Ultra
-    checks += [(plays("amaura", 1500), True), (plays("amaura", 2500), False), (plays("raichu", 2500), True),
-               (make_name("amaura", (14, 14, 15))[0], "Pvp Gm38"),
-               (plan_pool([("Pvp Gm38 Um9", name_slots("Pvp Gm38 Um9", "amaura"), False)], "amaura")[0][0], "check"),
-               (plan_pool([("Pvp Gm38 Um9", iv_slots("amaura", (14, 14, 15)), True)], "amaura")[0], ("rename", "Pvp Gm38")),
-               (fallen({("U", "amaura"): 9}, [], "amaura")[0], True)]
+    checks += [(plays("AMAURA_NORMAL", 1500), True), (plays("AMAURA_NORMAL", 2500), False), (plays("RAICHU_NORMAL", 2500), True),
+               (make_name("AMAURA_NORMAL", (14, 14, 15))[0], "Pvp Gm38"),
+               (plan_pool([("Pvp Gm38 Um9", name_slots("Pvp Gm38 Um9", "AMAURA_NORMAL"), False)], "AMAURA_NORMAL")[0][0], "check"),
+               (plan_pool([("Pvp Gm38 Um9", iv_slots("AMAURA_NORMAL", (14, 14, 15)), True)], "AMAURA_NORMAL")[0], ("rename", "Pvp Gm38")),
+               (fallen({("U", "AMAURA_NORMAL"): 9}, [], "AMAURA_NORMAL")[0], True)]
     # Tyrogue goes by its highest IV; a tie keeps every tied one
-    checks += [({f for _, _, f in all_ranks("tyrogue", (15, 10, 12))}, {"tyrogue", "hitmonlee"}),
-               (tops("tyrogue", (3, 14, 9)), ["hitmonchan"]), (tops("tyrogue", (0, 1, 2)), ["hitmontop"]),
-               (sorted(tops("tyrogue", (12, 4, 12))), ["hitmonlee", "hitmontop"]), (len(tops("tyrogue", (7, 7, 7))), 3),
-               (len(tops("tyrogue")), 3), (make_name("tyrogue", (0, 5, 15)), ("Pvp G40", [])),
-               (any("confirm" in x for x in make_name("tyrogue", (11, 14, 14))[1]), True),
-               (any("confirm" in x for x in make_name("tyrogue", (0, 13, 13))[1]), True)]  # best as a Hitmon
+    checks += [({f for _, _, f in all_ranks("TYROGUE_NORMAL", (15, 10, 12))}, {"TYROGUE_NORMAL", "HITMONLEE_NORMAL"}),
+               (tops("TYROGUE_NORMAL", (3, 14, 9)), ["HITMONCHAN_NORMAL"]), (tops("TYROGUE_NORMAL", (0, 1, 2)), ["HITMONTOP_NORMAL"]),
+               (sorted(tops("TYROGUE_NORMAL", (12, 4, 12))), ["HITMONLEE_NORMAL", "HITMONTOP_NORMAL"]), (len(tops("TYROGUE_NORMAL", (7, 7, 7))), 3),
+               (len(tops("TYROGUE_NORMAL")), 3), (make_name("TYROGUE_NORMAL", (0, 5, 15)), ("Pvp G40", [])),
+               (any("confirm" in x for x in make_name("TYROGUE_NORMAL", (11, 14, 14))[1]), True),
+               (any("confirm" in x for x in make_name("TYROGUE_NORMAL", (0, 13, 13))[1]), True)]  # best as a Hitmon
     for i, (got, want) in enumerate(checks):
         if got != want:
             bad += 1

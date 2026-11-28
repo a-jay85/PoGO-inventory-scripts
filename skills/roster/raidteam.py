@@ -512,7 +512,7 @@ def known_copy(c, q, name, cp):
     dict like read_copy's, or None (not known, more than one record, or it doesn't add up at this CP)"""
     import pokedb
     p = c.piles[q]
-    base_of = lambda s: (s or "").removesuffix("_shadow")
+    base_of = lambda s: (s or "").removesuffix("_SHADOW")
     sids = {base_of(s) for s in p["sids"]}
 
     def shadow(r):

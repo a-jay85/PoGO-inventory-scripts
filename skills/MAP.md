@@ -456,6 +456,7 @@ Boxes the game pops up over any screen, by itself or left over from another scri
 - `news(texts)`: an event's news card as the game loads ('Dynamax Trails', SEE DETAILS and DISMISS; iPhone, 2026-11-13: /trade's restart stopped on it): DISMISS
 - `battery_saver(texts)`: Android's own 'Turn on Extreme Battery Saver?' box at 10% battery, over any screen (Pixel, 2026-11-13: over a hatched egg's rewards): No thanks
 - `mirroring_welcome(texts)`: iPhone Mirroring's own 'iPhone on Your Mac' welcome page as it opens ('Stay up to date', Learn More... / Not Now / Continue; iPhone, 2026-11-18: home.start stopped on it …
+- `fitness_off(texts)`: the game's 'Adventure Sync: Fitness not enabled
 - `ios_update(texts)`: iOS's own 'iOS 27.3 Beta 2 Not Installed / The update will try again later.' box over the home screen, OK its only button (iPhone, 2026-11-24 05:25: Spotlight wouldn't …
 - `stop_photos(texts)`: a PokéStop's photo page: its name across the top left, its photo in the middle, '2 PHOTOS' bottom right and the round X bottom middle
 - `which(texts)`: the box up on this screen -> (name, (fx, fy), log line, wait), or None

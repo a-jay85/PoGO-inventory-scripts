@@ -3,7 +3,7 @@
 #Reroll 2026-11-22, after its raid Rerolls began to follow CyrillJan's raid team count).
 
   python3 specieswise.py plan GIV|Transfer|Reroll                                   the Mac: the searches it would tag
-  POGO_PHONE=android caffeinate -dimsu python3 specieswise.py GIV|Transfer|Reroll   HashTagAJay on the Pixel: tag them
+  POGO_PHONE=android python3 specieswise.py GIV|Transfer|Reroll   HashTagAJay on the Pixel: tag them
 
 Each species is judged once by ../shared/verdict.py, the one rule book, as a plain one: untraded, caught 30 days ago,
 no odd size, level 20, caught nearby, its gym top 20 out. HashTagAJay's Candy and Candy XL per family come from the
@@ -27,7 +27,7 @@ Each group (one tag, one search) is tagged in bulk: long press, SELECT ALL, the 
 CyrillJan's #Reroll or #GIV, for some dex numbers (the user, 2026-11-20: after a rule change, the families it touched;
 #GIV 2026-11-23):
   python3 specieswise.py plan Reroll|GIV --as CyrillJan --and 4-6,25-26
-  POGO_PHONE=android caffeinate -dimsu python3 specieswise.py Reroll|GIV --as CyrillJan --and 4-6,25-26
+  POGO_PHONE=android python3 specieswise.py Reroll|GIV --as CyrillJan --and 4-6,25-26
 Only 0-2* ones that aren't shadows (on no raid team: the user's rule of thumb). The searches go in steps by what the
 game can search: caught in 2016-2020, caught 300+ days ago, Dynamax, caught 100 km+ away, then the rest; inside a
 step, split by the family's Candy and Candy XL (countcandy, countcandyxl) where the rules cut. Each species and step

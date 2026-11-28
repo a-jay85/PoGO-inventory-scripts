@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """One front door for every skill's script. Steps run one after another; `+` separates them.
 
-  caffeinate -dimsu python3 pogo.py <step> [args] [+ <step> [args]]...
-  POGO_PHONE=android caffeinate -dimsu python3 pogo.py pvpc --limit 5 + ivc --limit 5
-  POGO_PHONE=android caffeinate -dimsu python3 pogo.py ivc --limit 5 + ivc fallen last
+  python3 pogo.py <step> [args] [+ <step> [args]]...
+  POGO_PHONE=android python3 pogo.py pvpc --limit 5 + ivc --limit 5
+  POGO_PHONE=android python3 pogo.py ivc --limit 5 + ivc fallen last
   python3 pogo.py list                       every step and what it runs
   python3 pogo.py --no-heal <step> ...       a stop just stops (see below)
 
@@ -15,7 +15,8 @@ Every step runs as its own python3 process, so each one starts clean: its own ru
 state. The phone stays unlocked (iPhone Mirroring stays open) between steps and is closed once at
 the end, the same way a single script closes it. POGO_KEEP_OPEN=1 leaves it open at the end too.
 Under POGO_PHONE=both, a Pixel-only step (PIXEL: goplus, hatch, evo, account, advsync) runs on the
-Pixel.
+Pixel. The Mac stays awake for the whole chain (caffeinate, started by pogo.py and by every script
+that takes a phone), so no caffeinate is needed in front.
 
 A step that stops or crashes gets healed (heal.py): a headless Claude finds why and fixes it, then
 the step runs again with only what's left. Off with --no-heal or POGO_HEAL=0, and off when a Claude
@@ -172,6 +173,7 @@ def main(argv):
             usage("--heal / --no-heal needs a step")
     steps = split(argv)
     check(steps)
+    heal.locks.awake()  # the Mac awake for the whole chain, gaps between steps too: no caffeinate to type
     phone_first = os.environ.pop("POGO_HEAL_PHONE", None)  # heal.py: the first step on the one phone that failed
     keep_open = os.environ.get("POGO_KEEP_OPEN", "") not in ("", "0")
     chain = len(steps) > 1

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Read the saved searches off the phone and check they hold the terms in rules.SAVED. It only reads: it tags nothing.
 
-  POGO_PHONE=android caffeinate -dimsu python3 savedsearches.py [Clean Trades] ...
+  POGO_PHONE=android python3 savedsearches.py [Clean Trades] ...
 
 Signed in as either account: it checks that account's searches (or the ones named). The bar shows about 35 letters, so
 each search is read in pieces, moving the cursor left with the keyboard's keys (Pixel only). A missing term is listed.

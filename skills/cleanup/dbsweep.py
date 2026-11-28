@@ -2,8 +2,8 @@
 """Deletes from the Pokémon database (../shared/pokedb.py) the ones a bulk tagger tagged Transfer without opening
 them (savedsearch.tag_pile). Nothing is tagged or changed in the game.
 
-  POGO_PHONE=android caffeinate -dimsu python3 dbsweep.py [--limit N]   the Pixel
-  caffeinate -dimsu python3 dbsweep.py [--limit N]                      the iPhone, through iPhone Mirroring
+  POGO_PHONE=android python3 dbsweep.py [--limit N]   the Pixel
+  python3 dbsweep.py [--limit N]                      the iPhone, through iPhone Mirroring
   pogo.py dbsweep                                                       the same, through the front door
 
 It searches #Transfer and reads the tiles, screen by screen. A tile whose name and CP fit one record deletes that

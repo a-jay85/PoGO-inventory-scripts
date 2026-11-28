@@ -3,11 +3,11 @@
 released or not, two teams each (the user, 2026-11-19): Team Available at the level and IVs its copies have today, Team Potential with
 every copy powered up to level 50 (by its IVs). Ties with a 6th stay on. Both phones (the iPhone since 2026-11-19).
 
-  POGO_PHONE=android caffeinate -dimsu python3 raidteam.py count [copies.json] [--limit N]
+  POGO_PHONE=android python3 raidteam.py count [copies.json] [--limit N]
                                        count whoever is signed in; with a copies.json, carry on from it.
                                        --limit N: only the first N bosses (a test)
   python3 raidteam.py report [copies.json] [--limit N]   the teams again (Mac only). Default the newest count with that --limit
-  POGO_PHONE=android caffeinate -dimsu python3 raidteam.py keep [teams.json] [--limit N]
+  POGO_PHONE=android python3 raidteam.py keep [teams.json] [--limit N]
                                        every copy on a team: a favorite, its trade and Transfer tags off. Default the
                                        signed-in account's newest whole count. --limit N: at most N copies. A whole
                                        count (no --limit) runs this at its end

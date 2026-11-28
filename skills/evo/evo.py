@@ -2,7 +2,7 @@
 """Evolve every free trade evolution tagged Evo, as fast as the game lets it. CyrillJan on the Pixel only: the Mac stays
 free, and HashTagAJay doesn't need the XP.
 
-  POGO_PHONE=android caffeinate -dimsu python3 evo.py [--limit N] [--dry-run] [--here] [--candy]
+  POGO_PHONE=android python3 evo.py [--limit N] [--dry-run] [--here] [--candy]
 
 Signed in as HashTagAJay: it switches to CyrillJan first, and the phone stays on CyrillJan after. A Lucky Egg is up to
 the user: switch first (pogo.py account CyrillJan), pop it, then run this.

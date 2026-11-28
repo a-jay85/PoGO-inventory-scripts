@@ -2,8 +2,8 @@
 """Fills the Pokémon database (../shared/pokedb.py) with the IVs of one search's Pokémon: the ones it doesn't know
 yet get opened and appraised. Nothing is tagged or changed in the game.
 
-  POGO_PHONE=android caffeinate -dimsu python3 dbfill.py [--search Q] [--limit N]   the Pixel
-  caffeinate -dimsu python3 dbfill.py [--search Q] [--limit N]                      the iPhone, through iPhone Mirroring
+  POGO_PHONE=android python3 dbfill.py [--search Q] [--limit N]   the Pixel
+  python3 dbfill.py [--search Q] [--limit N]                      the iPhone, through iPhone Mirroring
   pogo.py dbfill [--search Q] [--limit N]                                           the same, through the front door
 
 --search Q: the storage search, `4*` (every 100%) when not given. Keep it tight: every result's page is looked at.

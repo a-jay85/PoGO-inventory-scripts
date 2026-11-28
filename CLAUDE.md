@@ -33,6 +33,7 @@ A fix that needs a phone test, with the phone busy, never waits for the phone. O
 
 - `POGO_PHONE=android`: the Pixel, over USB. Nothing set: the iPhone, through iPhone Mirroring. `POGO_PHONE=both`: `/gift` and `/mega` run both at once.
 - iPhone runs pause when the Mac's keyboard or mouse is touched, and go on after 5 seconds idle. The pointer goes back after each tap. Pixel taps go through adb, so the Mac stays free.
+- The Mac stays awake through every run on its own: `session.claim()` and `pogo.py` start `caffeinate -dimsu` for as long as they live (`locks.awake()`). No `caffeinate` is needed in front.
 - Every script starts from any screen (`home.start()`). At the end it quits iPhone Mirroring or locks the Pixel. `POGO_KEEP_OPEN=1` leaves it open. `python3 skills/shared/session.py open|close` does just that part.
 - Pixel setup, once: USB debugging on, tap Allow on the phone, and put the PIN in `~/.config/pogo/android-pin` (digits only, `chmod 600`). `POGO_PHONE=android python3 skills/shared/android.py check` checks it.
 - One script per phone. `session.ready()` takes a lock for the whole run (`/tmp/pogo-android.lock`, `/tmp/pogo-iphone.lock`). A second script stops and says what's using the phone. A test script must go through `session.ready()` too. `python3 skills/shared/session.py busy` says what's using each phone now, without touching one (a hook blocks the old `ps | grep` check).
@@ -100,10 +101,10 @@ The repo is public. These stay local and are in `.gitignore`:
 Which test to run after which change, and what the merge gate asks for in a PR body: `.claude/rules/testing.md` (it loads when a `.py` is read).
 
 Nothing tests taps and timing off the phone. A change to how a skill reads or taps the phone isn't done until it has run on the phone, from its worktree, through `watch.py` (the merge gate looks for that run):
-`POGO_PHONE=android python3 <worktree>/watch.py caffeinate -dimsu python3 <worktree>/skills/pvpc/run.py --limit 1`. Claude starts it and watches it itself; no need to ask the user to watch.
+`POGO_PHONE=android python3 <worktree>/watch.py python3 <worktree>/skills/pvpc/run.py --limit 1`. Claude starts it and watches it itself; no need to ask the user to watch.
 
 Claude watches a phone run quietly, through `watch.py` (repo root) started with Bash `run_in_background: true, timeout: 7200000`:
-`POGO_PHONE=android python3 ~/PoGO-inventory-scripts/watch.py caffeinate -dimsu python3 <script> [args]`.
+`POGO_PHONE=android python3 ~/PoGO-inventory-scripts/watch.py python3 <script> [args]`.
 It prints nothing while the script runs, then one short summary at the end (exit code, STOPPED / CRASHED / error lines, last lines). The full output is in `/tmp/pogo-watch/<stamp>.log`, and where the run came from (checkout, HEAD, file contents, exit code) in `<stamp>.json`. Every python3 the run starts writes which lines of its checkout ran to `<stamp>.lines.*` (`linetrace/sitecustomize.py`; on a phone run it costs nothing you can see). The script runs detached, so if the waiter times out, `watch.py --wait` waits again. No `Monitor` on a run: a user hook blocks it.
 A worktree has no `runs/` folders, and the species lists and saved reads (`runs/reads-<trainer>.json`, `checked-*.json`) live there (`skills/cleanup/runs/`). `watch.py` links the main checkout's dex, roster and cleanup `runs` folders into the worktree for the run and takes them off after. A run started without `watch.py` needs them linked by hand, and taken off before `merge_gate.py` or `wt_cleanup.py`, because they break `tests/layout.py`. Never `tests/layout.py --record` with them in place.
 

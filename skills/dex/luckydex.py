@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Put HashTagAJay's missing-lucky list into CyrillJan's saved search Luckydex. Android only for now.
 
-  POGO_PHONE=android caffeinate -dimsu python3 luckydex.py         CyrillJan signed in on the Pixel
-  POGO_PHONE=android caffeinate -dimsu python3 luckydex.py check   only step 5: changes nothing
+  POGO_PHONE=android python3 luckydex.py         CyrillJan signed in on the Pixel
+  POGO_PHONE=android python3 luckydex.py check   only step 5: changes nothing
 
 The search is the newest lucky /dex run of HashTagAJay (dex.latest) + SAFE, the terms that keep the Pokémon that
 matter out of a trade. A saved search can't be edited, only renamed or removed. So:

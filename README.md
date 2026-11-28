@@ -11,7 +11,7 @@ Each script's top comment says what it does and how to run it. The code is the r
 `pogo.py` runs any script by its step name. `+` chains steps. Each step runs as its own process.
 
 ```
-POGO_PHONE=android caffeinate -dimsu python3 pogo.py pvpc --limit 5 + ivc
+POGO_PHONE=android python3 pogo.py pvpc --limit 5 + ivc
 python3 pogo.py list          every step and the words it takes
 ```
 
@@ -29,7 +29,7 @@ When a step stops or crashes, `pogo.py` starts a headless Claude to fix it (`hea
 `watch.py` runs a script quietly and prints one short summary at the end. The full log goes to `/tmp/pogo-watch/`.
 
 ```
-POGO_PHONE=android python3 watch.py caffeinate -dimsu python3 skills/pvpc/run.py --limit 1
+POGO_PHONE=android python3 watch.py python3 skills/pvpc/run.py --limit 1
 ```
 
 ## The steps

@@ -5,15 +5,15 @@
                                           -> giv-evolved-<date>.json, dynamax-<date>.json and maxmove-xl-<date>.json
                                           (one Max Move's Candy XL per dex number), LeekDuck's egg pools
                                           -> eggs-<date>.json (adds to the last one: a species stays once seen)
-  POGO_PHONE=android caffeinate -dimsu python3 tradeable.py dynamax   either account: only searches, counts the
+  POGO_PHONE=android python3 tradeable.py dynamax   either account: only searches, counts the
                                           signed-in one's (no rule reads its count since 2026-11-16)
-  POGO_PHONE=android caffeinate -dimsu python3 tradeable.py read [searches.json]   HashTagAJay signed in: only searches
-  POGO_PHONE=android caffeinate -dimsu python3 tradeable.py [door] [--limit N]  CyrillJan signed in: the default.
+  POGO_PHONE=android python3 tradeable.py read [searches.json]   HashTagAJay signed in: only searches
+  POGO_PHONE=android python3 tradeable.py [door] [--limit N]  CyrillJan signed in: the default.
                                           The tag searches that need no page read first (2XL, GIV ...), then
                                           each untagged one left opened once and given its final tag at the door
-  POGO_PHONE=android caffeinate -dimsu python3 tradeable.py tag [--limit N]   CyrillJan signed in: the fast way,
+  POGO_PHONE=android python3 tradeable.py tag [--limit N]   CyrillJan signed in: the fast way,
                                           bulk tag searches first, then power-ups, then the door for the rest
-  POGO_PHONE=android caffeinate -dimsu python3 tradeable.py team100   either account: only searches. Its 100s
+  POGO_PHONE=android python3 tradeable.py team100   either account: only searches. Its 100s
                                           (4*) of each Team Future and Team Ideal #1 pick that trades, and of what
                                           evolves into it -> runs/<time>-team100/team100.json (verdict.cyrill_short's
                                           bar, both accounts; specieswise counts them first by itself)

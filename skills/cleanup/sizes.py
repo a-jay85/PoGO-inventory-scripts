@@ -3,8 +3,8 @@
 user 2026-11-04). A never-traded XXS one doesn't get Transfer: it's renamed xxs and tagged IVC. A never-traded trade
 evolution gets GIV instead.
 
-  POGO_PHONE=android caffeinate -dimsu python3 sizes.py [--limit N]   sweep the Transfer tags already given
-  caffeinate -dimsu python3 sizes.py [--limit N]                      the iPhone, through iPhone Mirroring
+  POGO_PHONE=android python3 sizes.py [--limit N]   sweep the Transfer tags already given
+  python3 sizes.py [--limit N]                      the iPhone, through iPhone Mirroring
 
 Start with Pokémon GO on the Pokémon screen. Searches #&xxl&!#PvpC (every tagged XXL: /pvpc judges its own),
 then #Transfer&!traded&xxs. tradeable.py, cleantrades.py and /ivc do the same to their own piles.

@@ -2,18 +2,18 @@
 """Go through a step's motions on the phone and time them, changing nothing: for speed work, where the logic isn't
 what's tested (the user, 2026-11-17). Each round opens a tile of the full list, does the step, and backs out.
 
-  POGO_PHONE=android caffeinate -dimsu python3 speedtest.py tags [<tag>] [--n 3]
+  POGO_PHONE=android python3 speedtest.py tags [<tag>] [--n 3]
         menu, TAG, scroll the sheet to the <tag> row (default Fallen) and get it ready to tap, then out by the X
         (nothing saved). The rounds after the first find the row the way a run does: from where it was seen
-  POGO_PHONE=android caffeinate -dimsu python3 speedtest.py cost [<search>] [--n 3]
+  POGO_PHONE=android python3 speedtest.py cost [<search>] [--n 3]
         the door's page bottom and back (caught date, Candy XL), then its power-up cost read, as door.facts() does.
         <search>: that search's tiles (485&shadow: shadows, whose cost is 1.2x)
-  POGO_PHONE=android caffeinate -dimsu python3 speedtest.py plays [<search>] [--n 3]
+  POGO_PHONE=android python3 speedtest.py plays [<search>] [--n 3]
         powerup.power_up in its --look mode: would it power up for a Candy XL tier? It reads the dialog, then cancels
         (485&shadow: shadows, whose plays are fewer)
-  POGO_PHONE=android caffeinate -dimsu python3 speedtest.py appraise [--n 3]
+  POGO_PHONE=android python3 speedtest.py appraise [--n 3]
         open the appraisal, read its bars, close it, and the detail page steady again
-  POGO_PHONE=android caffeinate -dimsu python3 speedtest.py list <search> [--n 1] [--dist 0.4] [--settle 0.3]
+  POGO_PHONE=android python3 speedtest.py list <search> [--n 1] [--dist 0.4] [--settle 0.3]
         type the search and read every tile, swiping down the list (search.read_results), then back to the top.
         --dist / --settle: try a swipe of that much of the screen and that wait after it, in place of the code's
   SHARED=<another checkout's skills/shared> ... : time that checkout's code instead (the before of a change)

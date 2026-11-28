@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Cleanup after trading: tag the saved searches, power up the Clean Trades ones that cross an XL tier, tag them Transfer.
 
-  POGO_PHONE=android caffeinate -dimsu python3 cleantrades.py [--limit N]
-  caffeinate -dimsu python3 cleantrades.py [--limit N]    the iPhone, through iPhone Mirroring
-  POGO_PHONE=android caffeinate -dimsu python3 cleantrades.py --look    only step 2, and it only reads: CANCEL every time
-  POGO_PHONE=android caffeinate -dimsu python3 cleantrades.py evo       steps 1 and 3
-  POGO_PHONE=android caffeinate -dimsu python3 cleantrades.py transfer [--limit N]   step 2 for all of #Transfer
+  POGO_PHONE=android python3 cleantrades.py [--limit N]
+  python3 cleantrades.py [--limit N]    the iPhone, through iPhone Mirroring
+  POGO_PHONE=android python3 cleantrades.py --look    only step 2, and it only reads: CANCEL every time
+  POGO_PHONE=android python3 cleantrades.py evo       steps 1 and 3
+  POGO_PHONE=android python3 cleantrades.py transfer [--limit N]   step 2 for all of #Transfer
                                           (catches up the ones tagged before every tagger powered them up first)
 
 Start with Pokémon GO on the Pokémon screen. Four steps, always in this order:

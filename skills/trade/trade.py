@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """/trade: local trades between the user's two accounts, regular trades only.
 
-  caffeinate -dimsu python3 trade.py [--limit N] [--done N]
-  caffeinate -dimsu python3 trade.py look          (what the script reads on each phone; taps nothing)
-  caffeinate -dimsu python3 trade.py restart       (force-close and reopen Pokémon GO on both phones; trades nothing)
-  caffeinate -dimsu python3 trade.py --rehearse N  (N rounds up to the confirm screen, never confirmed: for timing)
+  python3 trade.py [--limit N] [--done N]
+  python3 trade.py look          (what the script reads on each phone; taps nothing)
+  python3 trade.py restart       (force-close and reopen Pokémon GO on both phones; trades nothing)
+  python3 trade.py --rehearse N  (N rounds up to the confirm screen, never confirmed: for timing)
 
 One phone: POGO_PHONE=android (or ios) trades on that phone alone, with whoever sends it a local trade request by
 hand from another phone. It opens the Friends tab until the request shows at its top (a request only shows on a list

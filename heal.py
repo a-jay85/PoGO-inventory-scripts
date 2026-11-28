@@ -1,6 +1,6 @@
 """pogo.py heals: a step that stops or crashes gets fixed, then runs again with only what's left.
 
-  POGO_PHONE=android caffeinate -dimsu python3 ~/PoGO-inventory-scripts/pogo.py pvpc --limit 50 + ivc
+  POGO_PHONE=android python3 ~/PoGO-inventory-scripts/pogo.py pvpc --limit 50 + ivc
   python3 ~/PoGO-inventory-scripts/pogo.py ...             the iPhone (POGO_PHONE unset), from a tmux pane too
 
 On for every pogo.py run. Off: --no-heal, POGO_HEAL=0, or pogo.py started by a Claude session (CLAUDECODE set: the

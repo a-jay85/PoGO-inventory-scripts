@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Connect the GO Plus+: tap its Poké Ball at the top right of the map. Pixel only.
 
-  POGO_PHONE=android caffeinate -dimsu python3 goplus.py [--look]
+  POGO_PHONE=android python3 goplus.py [--look]
 
 Which phone and account (the user, 2026-11-10):
 - Pixel + CyrillJan: the GO Plus+ is paired with it and always on (while its battery lasts), so a tap connects, every

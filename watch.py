@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Run a phone script quietly: no output while it runs, a short summary when it ends.
 
-  POGO_PHONE=android python3 watch.py caffeinate -dimsu python3 pogo.py pvpc --limit 5
+  POGO_PHONE=android python3 watch.py python3 pogo.py pvpc --limit 5
   python3 watch.py --wait        wait again for the newest run (after the waiter itself timed out)
 
 Claude starts it with Bash run_in_background, so a run makes one notice: the end. The script runs detached

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Feed berries to the Pokémon in the gyms you're defending, from the gym badge list.
 
-  POGO_PHONE=android caffeinate -dimsu python3 gymfeed.py [--limit N]   the Android phone
-  caffeinate -dimsu python3 gymfeed.py [--limit N]                      the iPhone
+  POGO_PHONE=android python3 gymfeed.py [--limit N]   the Android phone
+  python3 gymfeed.py [--limit N]                      the iPhone
 
 - Profile (ME tab), down to GYM BADGES, LIST. Sorts the badges by Defending (shield, arrow down): the gyms you're
   in come first. The list forgets its sort each time it opens, so it sorts every time.

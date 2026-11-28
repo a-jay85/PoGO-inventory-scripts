@@ -153,7 +153,7 @@ def spread(im, t, top):
     cx, y = t[0] + t[2] / 2, t[1]
     box = im.crop((int((cx - HALF_W) * W), int(max(y - ABOVE[0], top) * H), int((cx + HALF_W) * W),
                    int((y - ABOVE[1]) * H)))
-    return statistics.pstdev(box.convert("L").getdata())
+    return statistics.pstdev(box.convert("L").get_flattened_data())
 
 
 def read_grid(path, texts, known=None):

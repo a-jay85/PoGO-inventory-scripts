@@ -1036,6 +1036,14 @@ def search_panel(texts):
     return (bool(words & {"RECOMMENDED", "SEE MORE"}) or {"RECENT", "SEE LESS"} <= words) and cps < 3
 
 
+def see_less(texts):
+    """the search panel's See More page (Recent, See Less) -> its SEE LESS box, the tap back to the saved shortcuts
+    (Favorite), or None. The game opens the panel again on the page it was left on (Pixel 2026-11-28: savedsearches
+    stopped, no FAVORITE on it)"""
+    words = {norm(t[4]) for t in texts}
+    return label(texts, "SEE LESS") if "RECENT" in words and "FAVORITE" not in words else None
+
+
 def search_text(box):
     """what's typed in the search bar, as OCR reads it ('' if it just says Search)"""
     t = re.sub(r"^(?:[<‹]\s*[Q9]|Q)[\s,.]+|^[<‹]\s*Q?|^Q(?=\d)|^[Q9](?=Search$)|^9\s+", "", box[4]).strip()  # 9: the magnifier misread

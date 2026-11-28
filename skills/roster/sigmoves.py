@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Signature moves not in GO yet (the user, 2026-11-19: future-proofing counts mainline moves too): a damaging move
 (not Z, not Max) that only one family learns in the main games, by Pokémon Showdown's data, and that GO's game master
-(../shared/gamemaster.json) doesn't have. Smeargle's Sketch is left out. Writes sigmoves.json beside this file: one
+(PokeMiners', through ../shared/gamedata.py) doesn't have. Smeargle's Sketch is left out. Writes sigmoves.json beside this file: one
 row per Pokémon (dex number and Showdown form) that learns one, with the move's type.
 
   python3 sigmoves.py          fetch Showdown's moves, learnsets and Pokédex, write sigmoves.json (a few seconds)

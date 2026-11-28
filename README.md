@@ -88,7 +88,7 @@ POGO_PHONE=android python3 watch.py caffeinate -dimsu python3 skills/pvpc/run.py
 python3 skills/shared/pvp.py check <species> <cp> <hp> <stars>   IV/level combos for a CP and HP, with best ranks
 python3 skills/shared/pvp.py rank <species> <atk> <def> <hp>     ranks for the species and each evolution
 python3 skills/shared/pvp.py name <species> <atk> <def> <hp>     the nickname a script would give it
-python3 skills/shared/pvp.py update                              download fresh PvPoke data
+python3 skills/shared/pvp.py update                              download the game master and PvPoke ranks again
 ```
 
 ```
@@ -103,7 +103,7 @@ The older `pvp.py` at the repo root does `match`, `rank` and `check` with the ro
 
 ## Data files
 
-`gamemaster.json`, `Pokemon.js` and `rankings.json` come from [PvPoke](https://github.com/pvpoke/pvpoke) (MIT license). Their license is in `LICENSE-pvpoke`. `python3 skills/shared/pvp.py update` refreshes the copies in `skills/shared/`.
+The scripts read [PokeMiners' game master](https://github.com/PokeMiners/game_masters) and PvPoke's league rankings. Neither is in the repo: `python3 skills/shared/gamedata.py update` downloads them into `~/.config/pogo/gamedata/`. The root copies of `gamemaster.json` and `Pokemon.js` (for the root `pvp.py`) come from [PvPoke](https://github.com/pvpoke/pvpoke) (MIT license). Their license is in `LICENSE-pvpoke`.
 
 ## Contributing
 

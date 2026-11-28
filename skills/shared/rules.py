@@ -63,6 +63,36 @@ BY_HAND = ("spinda", "sawk", "scatterbug", "spewpa", "vivillon", "flabebe", "flo
 # sea, Basculin's stripe, Flabebe's flower, Tatsugiri, Furfrou's trim, Vivillon's pattern) stays by hand
 SF_NATIVE = {"tauros", "tauros_aqua", "illumise", "seviper", "lunatone", "panpour", "simipour", "throh", "durant",
              "oricorio_pom_pom"}
+# regional exclusives (each gives the game data's "regional" tag). PokeMiners' game master has no region field, so
+# this is a hand list (the user, 2026-11-27): PvPoke's "regional" tag as of 2026-11-27
+REGIONAL = ("farfetchd", "kangaskhan", "kangaskhan_mega", "mr_mime", "tauros", "tauros_aqua", "tauros_blaze",
+            "tauros_combat", "heracross", "heracross_mega", "corsola", "volbeat", "illumise", "torkoal", "zangoose",
+            "seviper", "lunatone", "solrock", "tropius", "relicanth", "pachirisu", "gastrodon", "chatot", "carnivine",
+            "pansage", "simisage", "pansear", "simisear", "panpour", "simipour", "basculin", "maractus", "sigilyph",
+            "bouffalant", "heatmor", "durant", "hawlucha", "klefki", "comfey", "stonjourner", "tatsugiri_curly",
+            "tatsugiri_droopy", "tatsugiri_stretchy")
+# not in GO yet (the game data's released: false). PokeMiners' game master holds every Pokémon the game knows, out or
+# not, so this is a hand list (the user, 2026-11-27): the ones both PvPoke and DialgaDex called unreleased on
+# 2026-11-27, plus Koraidon, Miraidon, Type: Null, and forms seen only in battle. Take one out when it comes out
+UNRELEASED = (
+    "phione", "manaphy", "arceus", "arceus_bug", "arceus_dark", "arceus_dragon", "arceus_electric", "arceus_fairy",
+    "arceus_fighting", "arceus_fire", "arceus_flying", "arceus_ghost", "arceus_grass", "arceus_ground", "arceus_ice",
+    "arceus_poison", "arceus_psychic", "arceus_rock", "arceus_steel", "arceus_water", "darmanitan_galarian_zen",
+    "darmanitan_zen", "meloetta_pirouette", "wishiwashi", "wishiwashi_school", "wishiwashi_solo", "pyukumuku",
+    "type_null", "silvally", "silvally_bug", "silvally_dark", "silvally_dragon", "silvally_electric", "silvally_fairy",
+    "silvally_fighting", "silvally_fire", "silvally_flying", "silvally_ghost", "silvally_grass", "silvally_ground",
+    "silvally_ice", "silvally_poison", "silvally_psychic", "silvally_rock", "silvally_steel", "silvally_water",
+    "minior_core", "necrozma_ultra", "magearna", "chewtle", "drednaw", "milcery", "alcremie", "pincurchin", "eiscue",
+    "eiscue_ice", "eiscue_noice", "cufant", "copperajah", "dracozolt", "arctozolt", "dracovish", "arctovish",
+    "eternatus_eternamax", "glastrier", "spectrier", "calyrex", "calyrex_ice_rider", "capsakid", "scovillain", "rellor",
+    "rabsca", "finizen", "palafin", "palafin_hero", "palafin_zero", "cyclizar", "veluza", "farigiraf", "greattusk",
+    "screamtail", "brutebonnet", "fluttermane", "slitherwing", "sandyshocks", "irontreads", "ironbundle", "ironhands",
+    "ironjugulis", "ironmoth", "ironthorns", "wo_chien", "chien_pao", "ting_lu", "chi_yu", "roaringmoon",
+    "ironvaliant", "walking_wake", "iron_leaves", "okidogi", "munkidori", "fezandipiti", "archaludon", "gouging_fire",
+    "raging_bolt", "iron_boulder", "iron_crown", "terapagos", "pecharunt", "koraidon", "koraidon_apex", "miraidon",
+    "miraidon_ultimate",
+    # seen only in battle: none is ever in a storage
+    "aegislash_blade", "mimikyu_busted", "morpeko_hangry", "cramorant_gulping", "cramorant_gorging")
 PVP_FLOOR = 5  # every rank 1 IV at least this
 HARD_CANDY = 100  # a stage 1 that costs this much candy to evolve into counts for the evolved GIV rule
 # dex numbers whose shiny the game hasn't released: one is never shiny, whatever the read says (Minior, the user

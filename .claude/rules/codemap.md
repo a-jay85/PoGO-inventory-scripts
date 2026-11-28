@@ -19,6 +19,7 @@ Before writing a helper, grep `skills/MAP.md` (every function, its arguments and
 - `skills/shared/door.py`: The door: a Pokémon /ivc, /pvpc or /ivc just found isn't a keeper gets its final tag right there (verdict.py), on the detail page that's still open
 - `skills/shared/eggs.py`: The Eggs tab: read the eggs, put the mode's one in the free ∞ incubator, and set the hatch timer
 - `skills/shared/fallen.py`: Fallen out: older Pokémon that newer, better ones push out of the top
+- `skills/shared/gamedata.py`: The game data every script reads: PokeMiners' game master (what the game itself ships), its English names, and PvPoke's league rankings (the meta list)
 - `skills/shared/home.py`: Start from anywhere: every script calls start() first, so the phone can be on any screen, or Pokémon GO not open
 - `skills/shared/jsonfile.py`: JSON files other runs read back (a day's count, a resume point, a skip list)
 - `skills/shared/locks.py`: The phone locks: one file per phone that session.claim() holds (flock) for a whole run
@@ -28,7 +29,7 @@ Before writing a helper, grep `skills/MAP.md` (every function, its arguments and
 - `skills/shared/pokedb.py`: A memory of each account's Pokémon, built from what the scripts already read
 - `skills/shared/popups.py`: Boxes the game pops up over any screen, by itself or left over from another script, that one safe tap closes
 - `skills/shared/powerup.py`: Powering one Pokémon up: its level from the page and the dialog, and the cheap jumps to the next Candy XL tier
-- `skills/shared/pvp.py`: The game master (PvPoke's gamemaster.json): base stats, CP and HP, the level from IVs, CP and HP (level_of), evolutions, and PvP ranks and nicknames
+- `skills/shared/pvp.py`: The game master (PokeMiners', built by gamedata.py under PvPoke's ids): base stats, CP and HP, the level from IVs, CP and HP (level_of), evolutions, and PvP ranks and …
 - `skills/shared/raidteams.py`: The raid team rule (the user, 2026-11-17): a Pokémon on its holder's own team of 6 against some 4★+ raid boss, at its real level and IVs (Team Available), or with every …
 - `skills/shared/rules.py`: Tag names, rule numbers and species lists that skills and verdict.py (the rule book) use: one copy, here
 - `skills/shared/savedsearch.py`: The search list's saved searches: read their labels, run one, add to it, type a long search, and tag everything a search finds (tag_pile: long press, SELECT ALL, tag)

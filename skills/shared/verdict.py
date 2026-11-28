@@ -90,8 +90,8 @@ AGES = {"lucky": (True, True), "old": (False, True), "new": (False, False)}  # F
 # GIV (medal), from rules.py's MEDALS: dex -> (size it needs, or None; fits(kg); the kg range that reads right)
 MEDALS = {min(search.dexes_of(q)): (("xxs", "xs") if "xxs,xs" in q else None, fits, rules.MEDAL_KG[name])
           for name, q, fits in rules.MEDALS}
-FUSED = ("kyurem_black", "kyurem_white", "necrozma_dusk_mane", "necrozma_dawn_wings")  # trades.py: can't be traded
-TRADE_BY_HAND = {"meltan", "melmetal"}  # mythical, but trades.py retags them like a legendary
+FUSED = ("KYUREM_BLACK", "KYUREM_WHITE", "NECROZMA_DUSK_MANE", "NECROZMA_DAWN_WINGS")  # trades.py: can't be traded
+TRADE_BY_HAND = {"MELTAN_NORMAL", "MELMETAL_NORMAL"}  # mythical, but trades.py retags them like a legendary
 OWN_TAGS = ("Old", EVO, "GuaranteedLucky")  # untraded with one of these: it stays, only IVC / PvpC comes off
 TRADE_TAGS = ("GIV", "XLX", "2XL", "Reroll", "Old", "Special", "GuaranteedLucky")  # "trade it": off a traded one
 # the user's remote-trade stock (2026-11-13): RT is the whole group they'd part with, the game's own Remote Trade tag the
@@ -444,7 +444,7 @@ def special(f, sid, kinds, strip):
         if not f.raid:
             return Verdict("keep", (), "mythical, not from a raid: a one- or two-time one, kept")
         return tag("Spot Transfer", why="mythical from a raid: can't be traded", off=strip, clear=True, unstar=True)
-    if f.traded and sid == "meltan":  # (before the size: no trade, so an xxs one is no matter)
+    if f.traded and sid == "MELTAN_NORMAL":  # (before the size: no trade, so an xxs one is no matter)
         return tag("Transfer", why="traded Meltan: plenty of its Candy", off=strip, clear=True, unstar=True)
     if f.size is None or f.size in SIZE_NAMES:  # trades.py passes over an xxs one
         return unsure(f"special trade, size {f.size or 'not read'}: by hand")

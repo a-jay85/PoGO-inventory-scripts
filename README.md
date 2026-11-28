@@ -97,13 +97,11 @@ Meditite [('L', 6)]
 Medicham [('G', 613)]
 ```
 
-League caps are 500, 1500 and 2500. Max level is 50, with no best buddy. Tied spreads share the better rank. Species names use PvPoke IDs, like `medicham` or `stunfisk_galarian`.
-
-The older `pvp.py` at the repo root does `match`, `rank` and `check` with the root copies of the data files.
+League caps are 500, 1500 and 2500. Max level is 50, with no best buddy. Tied spreads share the better rank. Species ids are PokeMiners' form names, like `MEDICHAM_NORMAL` or `STUNFISK_GALARIAN`. The command line also takes a plain name or an old PvPoke id (`medicham`, `stunfisk_galarian`).
 
 ## Data files
 
-The scripts read [PokeMiners' game master](https://github.com/PokeMiners/game_masters) and PvPoke's league rankings. Neither is in the repo: `python3 skills/shared/gamedata.py update` downloads them into `~/.config/pogo/gamedata/`. The root copies of `gamemaster.json` and `Pokemon.js` (for the root `pvp.py`) come from [PvPoke](https://github.com/pvpoke/pvpoke) (MIT license). Their license is in `LICENSE-pvpoke`.
+The scripts read [PokeMiners' game master](https://github.com/PokeMiners/game_masters) and PvPoke's league rankings. Neither is in the repo: `python3 skills/shared/gamedata.py update` downloads them into `~/.config/pogo/gamedata/`. The rankings come from [PvPoke](https://github.com/pvpoke/pvpoke) (MIT license). Its license is in `LICENSE-pvpoke`.
 
 ## Contributing
 

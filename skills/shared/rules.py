@@ -45,7 +45,7 @@ TRANSFER_CANDY = 1
 XLX_LEVEL = 26  # from here a power-up costs 4 Candy or more (4,000 Stardust at 26-26.5, 4,500+ after)
 # CyrillJan's pile only: Reroll, with the other reasons HashTagAJay needs one (GIV till 2026-11-23, when GIV became
 # "CyrillJan needs the trade's candy" and Reroll "HashTagAJay needs it": the user)
-REROLL_FOR_TAKER = {"tandemaus": "HashTagAJay still wants the family of 3 Maushold"}
+REROLL_FOR_TAKER = {"TANDEMAUS_NORMAL": "HashTagAJay still wants the family of 3 Maushold"}
 XLX_FOR = {TAKER: XLX_LEVEL, GIVER: XLX_LEVEL}  # by who'd get it: 4 Candy+ a power-up, both (the user, 2026-11-16)
 PVE_TOP = 6  # verdict.py's "raid" list: a traded copy would be this high against some raid boss in DialgaDex
 # HashTagAJay's pile (Leftovers), judged for CyrillJan or the user's wife's account, which is behind CyrillJan: "good
@@ -53,46 +53,45 @@ PVE_TOP = 6  # verdict.py's "raid" list: a traded copy would be this high agains
 REROLL_ENOUGH = 5  # CyrillJan's Reroll: HashTagAJay holding this many 100s of a family needs no more (the user, 2026-11-20)
 REROLL_ML = 20  # Reroll: PvPoke's Master League top this many (or evolves into one)
 HARD_EGGS = ("10 km", "12 km")  # GIV: a family that hatches from these eggs (refresh keeps every one it has seen)
-HARD_TO_FARM = ("smeargle",)  # GIV: hard to farm too
+HARD_TO_FARM = ("SMEARGLE_NORMAL",)  # GIV: hard to farm too
 # Leftovers: a likely special trade the user tags by hand (the user, 2026-11-16). PvPoke's "regional" tag, plus these
 # it misses, and their earlier stages. Spinda: each pattern is a new dex entry. Not SF_NATIVE
-BY_HAND = ("spinda", "sawk", "scatterbug", "spewpa", "vivillon", "flabebe", "floette", "florges",
-           "oricorio_baile", "oricorio_pau", "oricorio_sensu", "shellos", "gastrodon", "furfrou")
+BY_HAND = ("SPINDA_00", "SAWK_NORMAL", "SCATTERBUG_ARCHIPELAGO", "SPEWPA_ARCHIPELAGO", "VIVILLON_ARCHIPELAGO", "FLABEBE_BLUE", "FLOETTE_BLUE", "FLORGES_BLUE",
+           "ORICORIO_BAILE", "ORICORIO_PAU", "ORICORIO_SENSU", "SHELLOS_EAST_SEA", "GASTRODON_EAST_SEA", "FURFROU_DANDY")
 # regionals that spawn in San Francisco, CA: judged like any other, not by hand (the user, 2026-11-19). From Pokemon GO
 # Hub's regional list (North America, the Americas, the Western Hemisphere). A form the page can't tell apart (Shellos'
 # sea, Basculin's stripe, Flabebe's flower, Tatsugiri, Furfrou's trim, Vivillon's pattern) stays by hand
-SF_NATIVE = {"tauros", "tauros_aqua", "illumise", "seviper", "lunatone", "panpour", "simipour", "throh", "durant",
-             "oricorio_pom_pom"}
+SF_NATIVE = {"TAUROS_NORMAL", "TAUROS_PALDEA_AQUA", "ILLUMISE_NORMAL", "SEVIPER_NORMAL", "LUNATONE_NORMAL", "PANPOUR_NORMAL", "SIMIPOUR_NORMAL", "THROH_NORMAL", "DURANT_NORMAL",
+             "ORICORIO_POMPOM"}
 # regional exclusives (each gives the game data's "regional" tag). PokeMiners' game master has no region field, so
 # this is a hand list (the user, 2026-11-27): PvPoke's "regional" tag as of 2026-11-27
-REGIONAL = ("farfetchd", "kangaskhan", "kangaskhan_mega", "mr_mime", "tauros", "tauros_aqua", "tauros_blaze",
-            "tauros_combat", "heracross", "heracross_mega", "corsola", "volbeat", "illumise", "torkoal", "zangoose",
-            "seviper", "lunatone", "solrock", "tropius", "relicanth", "pachirisu", "gastrodon", "chatot", "carnivine",
-            "pansage", "simisage", "pansear", "simisear", "panpour", "simipour", "basculin", "maractus", "sigilyph",
-            "bouffalant", "heatmor", "durant", "hawlucha", "klefki", "comfey", "stonjourner", "tatsugiri_curly",
-            "tatsugiri_droopy", "tatsugiri_stretchy")
+REGIONAL = ("FARFETCHD_NORMAL", "KANGASKHAN_NORMAL", "KANGASKHAN_NORMAL_MEGA", "MR_MIME_NORMAL", "TAUROS_NORMAL", "TAUROS_PALDEA_AQUA", "TAUROS_PALDEA_BLAZE",
+            "TAUROS_PALDEA_COMBAT", "HERACROSS_NORMAL", "HERACROSS_NORMAL_MEGA", "CORSOLA_NORMAL", "VOLBEAT_NORMAL", "ILLUMISE_NORMAL", "TORKOAL_NORMAL", "ZANGOOSE_NORMAL",
+            "SEVIPER_NORMAL", "LUNATONE_NORMAL", "SOLROCK_NORMAL", "TROPIUS_NORMAL", "RELICANTH_NORMAL", "PACHIRISU_NORMAL", "GASTRODON_EAST_SEA", "CHATOT_NORMAL", "CARNIVINE_NORMAL",
+            "PANSAGE_NORMAL", "SIMISAGE_NORMAL", "PANSEAR_NORMAL", "SIMISEAR_NORMAL", "PANPOUR_NORMAL", "SIMIPOUR_NORMAL", "BASCULIN_BLUE_STRIPED", "MARACTUS_NORMAL", "SIGILYPH_NORMAL",
+            "BOUFFALANT_NORMAL", "HEATMOR_NORMAL", "DURANT_NORMAL", "HAWLUCHA_NORMAL", "KLEFKI_NORMAL", "COMFEY_NORMAL", "STONJOURNER_NORMAL", "TATSUGIRI_CURLY",
+            "TATSUGIRI_DROOPY", "TATSUGIRI_STRETCHY")
 # not in GO yet (the game data's released: false). PokeMiners' game master holds every Pokémon the game knows, out or
 # not, so this is a hand list (the user, 2026-11-27): the ones both PvPoke and DialgaDex called unreleased on
 # 2026-11-27, plus Koraidon, Miraidon, Type: Null, and forms seen only in battle. Take one out when it comes out
 UNRELEASED = (
-    "phione", "manaphy", "arceus", "arceus_bug", "arceus_dark", "arceus_dragon", "arceus_electric", "arceus_fairy",
-    "arceus_fighting", "arceus_fire", "arceus_flying", "arceus_ghost", "arceus_grass", "arceus_ground", "arceus_ice",
-    "arceus_poison", "arceus_psychic", "arceus_rock", "arceus_steel", "arceus_water", "darmanitan_galarian_zen",
-    "darmanitan_zen", "meloetta_pirouette", "wishiwashi", "wishiwashi_school", "wishiwashi_solo", "pyukumuku",
-    "type_null", "silvally", "silvally_bug", "silvally_dark", "silvally_dragon", "silvally_electric", "silvally_fairy",
-    "silvally_fighting", "silvally_fire", "silvally_flying", "silvally_ghost", "silvally_grass", "silvally_ground",
-    "silvally_ice", "silvally_poison", "silvally_psychic", "silvally_rock", "silvally_steel", "silvally_water",
-    "minior_core", "necrozma_ultra", "magearna", "chewtle", "drednaw", "milcery", "alcremie", "pincurchin", "eiscue",
-    "eiscue_ice", "eiscue_noice", "cufant", "copperajah", "dracozolt", "arctozolt", "dracovish", "arctovish",
-    "eternatus_eternamax", "glastrier", "spectrier", "calyrex", "calyrex_ice_rider", "capsakid", "scovillain", "rellor",
-    "rabsca", "finizen", "palafin", "palafin_hero", "palafin_zero", "cyclizar", "veluza", "farigiraf", "greattusk",
-    "screamtail", "brutebonnet", "fluttermane", "slitherwing", "sandyshocks", "irontreads", "ironbundle", "ironhands",
-    "ironjugulis", "ironmoth", "ironthorns", "wo_chien", "chien_pao", "ting_lu", "chi_yu", "roaringmoon",
-    "ironvaliant", "walking_wake", "iron_leaves", "okidogi", "munkidori", "fezandipiti", "archaludon", "gouging_fire",
-    "raging_bolt", "iron_boulder", "iron_crown", "terapagos", "pecharunt", "koraidon", "koraidon_apex", "miraidon",
-    "miraidon_ultimate",
+    "PHIONE_NORMAL", "MANAPHY_NORMAL", "ARCEUS_NORMAL", "ARCEUS_BUG", "ARCEUS_DARK", "ARCEUS_DRAGON", "ARCEUS_ELECTRIC", "ARCEUS_FAIRY",
+    "ARCEUS_FIGHTING", "ARCEUS_FIRE", "ARCEUS_FLYING", "ARCEUS_GHOST", "ARCEUS_GRASS", "ARCEUS_GROUND", "ARCEUS_ICE",
+    "ARCEUS_POISON", "ARCEUS_PSYCHIC", "ARCEUS_ROCK", "ARCEUS_STEEL", "ARCEUS_WATER", "DARMANITAN_GALARIAN_ZEN",
+    "DARMANITAN_ZEN", "MELOETTA_PIROUETTE", "WISHIWASHI_SOLO", "WISHIWASHI_SCHOOL", "PYUKUMUKU_NORMAL",
+    "TYPE_NULL_NORMAL", "SILVALLY_NORMAL", "SILVALLY_BUG", "SILVALLY_DARK", "SILVALLY_DRAGON", "SILVALLY_ELECTRIC", "SILVALLY_FAIRY",
+    "SILVALLY_FIGHTING", "SILVALLY_FIRE", "SILVALLY_FLYING", "SILVALLY_GHOST", "SILVALLY_GRASS", "SILVALLY_GROUND",
+    "SILVALLY_ICE", "SILVALLY_POISON", "SILVALLY_PSYCHIC", "SILVALLY_ROCK", "SILVALLY_STEEL", "SILVALLY_WATER",
+    "MINIOR_BLUE", "NECROZMA_ULTRA", "MAGEARNA_NORMAL", "CHEWTLE_NORMAL", "DREDNAW_NORMAL", "MILCERY_NORMAL", "ALCREMIE_NORMAL", "PINCURCHIN_NORMAL", "EISCUE_ICE", "EISCUE_NOICE",
+    "CUFANT_NORMAL", "COPPERAJAH_NORMAL", "DRACOZOLT_NORMAL", "ARCTOZOLT_NORMAL", "DRACOVISH_NORMAL", "ARCTOVISH_NORMAL",
+    "ETERNATUS_ETERNAMAX", "GLASTRIER_NORMAL", "SPECTRIER_NORMAL", "CALYREX_NORMAL", "CALYREX_ICE_RIDER", "CAPSAKID_NORMAL", "SCOVILLAIN_NORMAL", "RELLOR_NORMAL",
+    "RABSCA_NORMAL", "FINIZEN_NORMAL", "PALAFIN_ZERO", "PALAFIN_HERO", "CYCLIZAR_NORMAL", "VELUZA_NORMAL", "FARIGIRAF_NORMAL", "GREATTUSK_NORMAL",
+    "SCREAMTAIL_NORMAL", "BRUTEBONNET_NORMAL", "FLUTTERMANE_NORMAL", "SLITHERWING_NORMAL", "SANDYSHOCKS_NORMAL", "IRONTREADS_NORMAL", "IRONBUNDLE_NORMAL", "IRONHANDS_NORMAL",
+    "IRONJUGULIS_NORMAL", "IRONMOTH_NORMAL", "IRONTHORNS_NORMAL", "WOCHIEN_NORMAL", "CHIENPAO_NORMAL", "TINGLU_NORMAL", "CHIYU_NORMAL", "ROARINGMOON_NORMAL",
+    "IRONVALIANT_NORMAL", "WALKINGWAKE_NORMAL", "IRONLEAVES_NORMAL", "OKIDOGI_NORMAL", "MUNKIDORI_NORMAL", "FEZANDIPITI_NORMAL", "ARCHALUDON_NORMAL", "GOUGINGFIRE_NORMAL",
+    "RAGINGBOLT_NORMAL", "IRONBOULDER_NORMAL", "IRONCROWN_NORMAL", "TERAPAGOS_NORMAL", "PECHARUNT_NORMAL", "KORAIDON_APEX", "MIRAIDON_ULTIMATE",
     # seen only in battle: none is ever in a storage
-    "aegislash_blade", "mimikyu_busted", "morpeko_hangry", "cramorant_gulping", "cramorant_gorging")
+    "AEGISLASH_BLADE", "MIMIKYU_BUSTED", "MORPEKO_HANGRY", "CRAMORANT_GULPING", "CRAMORANT_GORGING")
 PVP_FLOOR = 5  # every rank 1 IV at least this
 HARD_CANDY = 100  # a stage 1 that costs this much candy to evolve into counts for the evolved GIV rule
 # dex numbers whose shiny the game hasn't released: one is never shiny, whatever the read says (Minior, the user

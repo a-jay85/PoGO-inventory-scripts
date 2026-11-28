@@ -38,8 +38,8 @@ NAME = "xxs"
 
 def can_trade(sid, shadow):
     """can it go to the other account at all"""
-    tags = pvp.SPECIES[sid.removesuffix("_shadow")].get("tags") or []
-    return not shadow and not sid.endswith("_shadow") and dex(sid) not in rules.NEVER_TRADED and "mythical" not in tags
+    tags = pvp.SPECIES[sid.removesuffix("_SHADOW")].get("tags") or []
+    return not shadow and not pvp.is_shadow(sid) and dex(sid) not in rules.NEVER_TRADED and "mythical" not in tags
 
 
 @dataclass
@@ -184,51 +184,51 @@ def test():
     none = {TAKER: {}, GIVER: {}}
     unread = {TAKER: None, GIVER: None}
     p = lambda *a: (lambda r: (r.path, r.tag, r.name))(plan(*a))
-    check("chain bulbasaur", chain("bulbasaur"), (["ivysaur", "venusaur"], "end"))
-    check("chain eevee", chain("eevee"), ([], "fork"))
-    check("chain feebas", chain("feebas"), ([], "quest, buddy km"))
-    check("chain poliwag", chain("poliwag"), (["poliwhirl"], "fork"))
-    check("chain combee, male", chain("combee", "male"), ([], "end"))
-    check("chain combee, female", chain("combee", "female"), ([], "gender FEMALE"))
-    check("traded male combee", p(TAKER, "combee", 3.0, 0.3, True, none, unread, False, "male"), ([], "Transfer", None))
-    check("candy", path_candy("bulbasaur", ["ivysaur", "venusaur"]), 125)
-    check("traded, to the end", p(GIVER, "bulbasaur", 3.0, 0.3, True, none, unread),
-          (["ivysaur", "venusaur"], "Transfer", None))
-    check("traded, fork", p(TAKER, "poliwag", 5.0, 0.3, True, none, unread), (["poliwhirl"], rules.EVO, None))
-    check("HTAJ, nothing", p(TAKER, "bulbasaur", 3.0, 0.3, False, {TAKER: {2: box(1, .1), 3: box(1, .1)}, GIVER: {}},
+    check("chain bulbasaur", chain("BULBASAUR_NORMAL"), (["IVYSAUR_NORMAL", "VENUSAUR_NORMAL"], "end"))
+    check("chain eevee", chain("EEVEE_NORMAL"), ([], "fork"))
+    check("chain feebas", chain("FEEBAS_NORMAL"), ([], "quest, buddy km"))
+    check("chain poliwag", chain("POLIWAG_NORMAL"), (["POLIWHIRL_NORMAL"], "fork"))
+    check("chain combee, male", chain("COMBEE_NORMAL", "male"), ([], "end"))
+    check("chain combee, female", chain("COMBEE_NORMAL", "female"), ([], "gender FEMALE"))
+    check("traded male combee", p(TAKER, "COMBEE_NORMAL", 3.0, 0.3, True, none, unread, False, "male"), ([], "Transfer", None))
+    check("candy", path_candy("BULBASAUR_NORMAL", ["IVYSAUR_NORMAL", "VENUSAUR_NORMAL"]), 125)
+    check("traded, to the end", p(GIVER, "BULBASAUR_NORMAL", 3.0, 0.3, True, none, unread),
+          (["IVYSAUR_NORMAL", "VENUSAUR_NORMAL"], "Transfer", None))
+    check("traded, fork", p(TAKER, "POLIWAG_NORMAL", 5.0, 0.3, True, none, unread), (["POLIWHIRL_NORMAL"], rules.EVO, None))
+    check("HTAJ, nothing", p(TAKER, "BULBASAUR_NORMAL", 3.0, 0.3, False, {TAKER: {2: box(1, .1), 3: box(1, .1)}, GIVER: {}},
                              {TAKER: set(), GIVER: None}), ([], "GIV", "xxs"))
-    check("HTAJ, nothing but page unread", p(TAKER, "bulbasaur", 3.0, 0.3, False, none, unread), ([], None, None))
+    check("HTAJ, nothing but page unread", p(TAKER, "BULBASAUR_NORMAL", 3.0, 0.3, False, none, unread), ([], None, None))
     recs = {TAKER: {1: box(2.0, 0.2), 2: box(8.0, 0.9), 3: box(0.5, 0.1)}, GIVER: {}}
-    check("HTAJ, Ivysaur record", p(TAKER, "bulbasaur", 3.0, 0.3, False, recs, unread),
-          (["ivysaur", "venusaur"], "GIV", "xxs"))
-    check("HTAJ, empty xxs entry", p(TAKER, "bulbasaur", 3.0, 0.3, False, none, {TAKER: {3}, GIVER: None}),
-          (["ivysaur", "venusaur"], "GIV", "xxs"))
-    check("HTAJ, holds its own", p(TAKER, "bulbasaur", 3.0, 0.3, False, {TAKER: {1: box(3.0, 0.5)}, GIVER: {}},
-                                    unread), (["ivysaur", "venusaur"], "GIV", "xxs"))
-    check("CJ, HTAJ record -> GIV", p(GIVER, "bulbasaur", 3.0, 0.3, False, recs, unread), ([], "GIV", "xxs"))
-    check("CJ, HTAJ xxs entry -> GIV", p(GIVER, "bulbasaur", 3.0, 0.3, False, none, {TAKER: {1}, GIVER: None}),
+    check("HTAJ, Ivysaur record", p(TAKER, "BULBASAUR_NORMAL", 3.0, 0.3, False, recs, unread),
+          (["IVYSAUR_NORMAL", "VENUSAUR_NORMAL"], "GIV", "xxs"))
+    check("HTAJ, empty xxs entry", p(TAKER, "BULBASAUR_NORMAL", 3.0, 0.3, False, none, {TAKER: {3}, GIVER: None}),
+          (["IVYSAUR_NORMAL", "VENUSAUR_NORMAL"], "GIV", "xxs"))
+    check("HTAJ, holds its own", p(TAKER, "BULBASAUR_NORMAL", 3.0, 0.3, False, {TAKER: {1: box(3.0, 0.5)}, GIVER: {}},
+                                    unread), (["IVYSAUR_NORMAL", "VENUSAUR_NORMAL"], "GIV", "xxs"))
+    check("CJ, HTAJ record -> GIV", p(GIVER, "BULBASAUR_NORMAL", 3.0, 0.3, False, recs, unread), ([], "GIV", "xxs"))
+    check("CJ, HTAJ xxs entry -> GIV", p(GIVER, "BULBASAUR_NORMAL", 3.0, 0.3, False, none, {TAKER: {1}, GIVER: None}),
           ([], "GIV", "xxs"))
     mine = {TAKER: {1: box(1.0, 0.1), 2: box(1.0, 0.1), 3: box(1.0, 0.1)}, GIVER: {3: box(90, 1.9)}}
-    check("CJ, own Venusaur record", p(GIVER, "bulbasaur", 3.0, 0.3, False, mine, unread),
-          (["ivysaur", "venusaur"], "GIV", "xxs"))
-    check("CJ, own record past a fork", p(GIVER, "poliwag", 5.0, 0.3, False,
-                                         {TAKER: {}, GIVER: {186: box(99, 9)}}, unread), (["poliwhirl"], rules.EVO, None))
+    check("CJ, own Venusaur record", p(GIVER, "BULBASAUR_NORMAL", 3.0, 0.3, False, mine, unread),
+          (["IVYSAUR_NORMAL", "VENUSAUR_NORMAL"], "GIV", "xxs"))
+    check("CJ, own record past a fork", p(GIVER, "POLIWAG_NORMAL", 5.0, 0.3, False,
+                                         {TAKER: {}, GIVER: {186: box(99, 9)}}, unread), (["POLIWHIRL_NORMAL"], rules.EVO, None))
     read = {TAKER: set(), GIVER: None}
-    check("CJ, nothing anywhere", p(GIVER, "bulbasaur", 3.0, 0.3, False,
+    check("CJ, nothing anywhere", p(GIVER, "BULBASAUR_NORMAL", 3.0, 0.3, False,
                                     {TAKER: mine[TAKER], GIVER: {2: box(1.0, 0.1), 3: box(1.0, 0.1)}}, read),
           ([], "Transfer", None))
-    check("CJ, HTAJ xxs page unread: unsure", p(GIVER, "bulbasaur", 3.0, 0.3, False,
+    check("CJ, HTAJ xxs page unread: unsure", p(GIVER, "BULBASAUR_NORMAL", 3.0, 0.3, False,
                                                 {TAKER: mine[TAKER], GIVER: {2: box(1.0, 0.1), 3: box(1.0, 0.1)}},
                                                 unread), ([], None, None))
-    check("CJ, a stage with no box read: unsure", p(GIVER, "bulbasaur", 3.0, 0.3, False,
+    check("CJ, a stage with no box read: unsure", p(GIVER, "BULBASAUR_NORMAL", 3.0, 0.3, False,
                                                     {TAKER: mine[TAKER], GIVER: {2: box(1.0, 0.1)}}, read),
           ([], None, None))
-    check("HTAJ shadow, GIV: unsure", p(TAKER, "bulbasaur", 3.0, 0.3, False, {TAKER: {2: box(1, .1), 3: box(1, .1)},
+    check("HTAJ shadow, GIV: unsure", p(TAKER, "BULBASAUR_NORMAL", 3.0, 0.3, False, {TAKER: {2: box(1, .1), 3: box(1, .1)},
                                          GIVER: {}}, {TAKER: set(), GIVER: None}, True), ([], None, None))
-    check("traded shadow: Transfer still", p(TAKER, "bulbasaur", 3.0, 0.3, True, none, unread, True),
-          (["ivysaur", "venusaur"], "Transfer", None))
-    check("can't trade Gimmighoul", can_trade("gimmighoul", False), False)
-    check("can trade Bulbasaur", can_trade("bulbasaur", False), True)
+    check("traded shadow: Transfer still", p(TAKER, "BULBASAUR_NORMAL", 3.0, 0.3, True, none, unread, True),
+          (["IVYSAUR_NORMAL", "VENUSAUR_NORMAL"], "Transfer", None))
+    check("can't trade Gimmighoul", can_trade("GIMMIGHOUL_NORMAL", False), False)
+    check("can trade Bulbasaur", can_trade("BULBASAUR_NORMAL", False), True)
     print("all xxs cases right" if not bad else f"{bad} wrong")
     return bad
 

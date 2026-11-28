@@ -116,7 +116,7 @@ def cmd_refresh():
     for cap in (1500, 2500, 10000):
         ranks = json.load(urllib.request.urlopen(PVP_URL % cap))[:100]
         for i, r in enumerate(ranks, 1):
-            sid = r["speciesId"].replace("_shadow", "")
+            sid = pvp.GM["renamed"].get(r["speciesId"], r["speciesId"]).removesuffix("_SHADOW")  # (PvPoke's id)
             if sid not in pvp.SPECIES:
                 print(f"{cap}: no {sid} in the game data")
                 continue
@@ -287,7 +287,7 @@ class Model:
         return any(t in (self.by[sid].get("tags") or []) for t in SPECIAL)
 
     def tradeable(self, sid):
-        return self.dex(sid) not in dex.NEVER_TRADED and not re.search(r"_shadow|_mega|_primal", sid)
+        return self.dex(sid) not in dex.NEVER_TRADED and pvp.plain(sid)
 
 
 def luckydex(m, missing):

@@ -26,21 +26,21 @@ CLEAN_TRADES = {GIVER: "!4*&!3*&traded&!favorite&!#", TAKER: "traded&!3*&!4*&!lu
 TRADEABLE = "!traded&!4*&!3*&!favorite&!xxl&!shiny&!shadow&!legendary&!ultra beasts&!#"
 
 TABLES = {  # made up
-    TAKER: {"to": TAKER, "why": {"machop": ("Luckydex", "hole"), "nidoran_female": ("Luckydex", "hole"),
-                                 "rhyhorn": ("Reroll", "#1"), "geodude": ("Reroll", "PvP"), "magikarp": ("Reroll", "hole"),
-                                 "tandemaus": ("Reroll", "family of 3")},
-            "lucky": {"nidoran_female": "female"}, "evolved": {"golem": "stage 2"}, "no_dmax": set(), "xl_full": set(),
-            "raid": {"rhyhorn", "rhydon"}, "raid_self": {"rhydon"}, "hard": {}, "by_hand": set(), "dmax": {"wooloo": 480},
-            "team_xl": {"pidgey": [1440, "pidgeot", 4]},
-            "team_line": {"pidgey", "pidgeotto", "pidgeot", "rhyhorn", "rhydon", "rhyperior"}},  # (a Team Future/Ideal line: 4 100s)
-    GIVER: {"to": GIVER, "why": {"rhyhorn": ("GIV", "PvP")}, "lucky": {}, "evolved": {"golem": "stage 2"},
-            "no_dmax": {"wooloo"}, "xl_full": set(), "raid": {"rhyhorn", "rhydon"},
-            "raid_self": {"rhydon"}, "hard": {}, "by_hand": set(), "dmax": {"wooloo": 480}},
+    TAKER: {"to": TAKER, "why": {"MACHOP_NORMAL": ("Luckydex", "hole"), "NIDORAN_FEMALE_NORMAL": ("Luckydex", "hole"),
+                                 "RHYHORN_NORMAL": ("Reroll", "#1"), "GEODUDE_NORMAL": ("Reroll", "PvP"), "MAGIKARP_NORMAL": ("Reroll", "hole"),
+                                 "TANDEMAUS_NORMAL": ("Reroll", "family of 3")},
+            "lucky": {"NIDORAN_FEMALE_NORMAL": "female"}, "evolved": {"GOLEM_NORMAL": "stage 2"}, "no_dmax": set(), "xl_full": set(),
+            "raid": {"RHYHORN_NORMAL", "RHYDON_NORMAL"}, "raid_self": {"RHYDON_NORMAL"}, "hard": {}, "by_hand": set(), "dmax": {"WOOLOO_NORMAL": 480},
+            "team_xl": {"PIDGEY_NORMAL": [1440, "PIDGEOT_NORMAL", 4]},
+            "team_line": {"PIDGEY_NORMAL", "PIDGEOTTO_NORMAL", "PIDGEOT_NORMAL", "RHYHORN_NORMAL", "RHYDON_NORMAL", "RHYPERIOR_NORMAL"}},  # (a Team Future/Ideal line: 4 100s)
+    GIVER: {"to": GIVER, "why": {"RHYHORN_NORMAL": ("GIV", "PvP")}, "lucky": {}, "evolved": {"GOLEM_NORMAL": "stage 2"},
+            "no_dmax": {"WOOLOO_NORMAL"}, "xl_full": set(), "raid": {"RHYHORN_NORMAL", "RHYDON_NORMAL"},
+            "raid_self": {"RHYDON_NORMAL"}, "hard": {}, "by_hand": set(), "dmax": {"WOOLOO_NORMAL": 480}},
 }
 PLAN = {"tags": {"Luckydex": ["&66", "&29&female"], "Reroll": ["&111", "&74,129,924"], "GIV": []}, "2xl": ["&111-112"],
         "giv_evolved": ["&76", rules.DYNAMAX]}  # tradeable.build_plan's answer for TABLES[TAKER]
-SIDS = ["pidgey", "machop", "nidoran_female", "rhyhorn", "rhydon", "geodude", "magikarp", "golem", "tandemaus", "blissey",
-        "haunter", "mewtwo", "meltan", "mew", "nihilego", "wooloo"]
+SIDS = ["PIDGEY_NORMAL", "MACHOP_NORMAL", "NIDORAN_FEMALE_NORMAL", "RHYHORN_NORMAL", "RHYDON_NORMAL", "GEODUDE_NORMAL", "MAGIKARP_NORMAL", "GOLEM_NORMAL", "TANDEMAUS_NORMAL", "BLISSEY_NORMAL",
+        "HAUNTER_NORMAL", "MEWTWO_NORMAL", "MELTAN_NORMAL", "MEW_NORMAL", "NIHILEGO_NORMAL", "WOOLOO_NORMAL"]
 FLAGS = ["lucky", "shiny", "shadow", "costume", "background", "gigantamax", "dynamax"]
 DATES = [datetime.date(2019, 6, 1), datetime.date(2025, 6, 1), datetime.date(2026, 10, 1)]
 

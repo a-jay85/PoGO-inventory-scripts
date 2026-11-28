@@ -26,7 +26,7 @@ WEIGHT_SLACK = 0.02  # each side of the weight, as a share of it: more than Enri
 
 def average(sid):
     """(average height m, average weight kg) of a species, or None if the game data has no size for it"""
-    s = (pvp.SPECIES.get(sid) or pvp.SPECIES.get(sid.removesuffix("_shadow")) or {}).get("size") or {}
+    s = (pvp.SPECIES.get(sid) or pvp.SPECIES.get(sid.removesuffix("_SHADOW")) or {}).get("size") or {}
     return (s["h"], s["w"]) if s.get("h") and s.get("w") else None
 
 
@@ -74,7 +74,7 @@ def test():
         print(f"{'ok ' if ok else 'BAD'} {what}: {got}" + ("" if ok else f" (want {want})"))
 
     # Bulbasaur 0.7 m 6.9 kg -> Ivysaur 1.0 m 13.0 kg
-    s = after("bulbasaur", "ivysaur", 3.45, 0.35)
+    s = after("BULBASAUR_NORMAL", "IVYSAUR_NORMAL", 3.45, 0.35)
     check("height exact", (round(s[0], 3), round(s[1], 3)), (0.493, 0.507))
     check("weight scales", round((s[2] + s[3]) / 2, 2), 6.5)
     check("beats a far record", sure_small(s, {"kg_min": 7.0, "m_min": 0.6}), ["shortest", "lightest"])
@@ -82,7 +82,7 @@ def test():
     check("tie is no record", sure_small(s, {"kg_min": 1.0, "m_min": 0.507}), [])
     check("no box yet", sure_small(s, {"kg_min": None, "kg_max": None, "m_min": None, "m_max": None}), ["first record"])
     check("holds", holds_small(3.45, 0.35, {"kg_min": 3.45, "m_min": 0.3}), ["lightest"])
-    check("shadow uses plain sizes", after("bulbasaur_shadow", "ivysaur_shadow", 3.45, 0.35) == s, True)
+    check("shadow uses plain sizes", after("BULBASAUR_NORMAL_SHADOW", "IVYSAUR_NORMAL_SHADOW", 3.45, 0.35) == s, True)
     print("all evosize cases right" if not bad else f"{bad} wrong")
     return bad
 

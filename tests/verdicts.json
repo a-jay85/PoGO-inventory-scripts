@@ -35,13 +35,13 @@
   "unsure",
   [],
   null,
-  "could be pidgey, rattata"
+  "could be PIDGEY_NORMAL, RATTATA_NORMAL"
  ],
  "two forms": [
   "unsure",
   [],
   null,
-  "could be rattata, rattata_alolan"
+  "could be RATTATA_NORMAL, RATTATA_ALOLA"
  ],
  "traded not read": [
   "unsure",
@@ -295,7 +295,7 @@
   "unsure",
   [],
   null,
-  "could be minior_core, minior_meteor"
+  "could be MINIOR_BLUE, minior_meteor"
  ],
  "shiny lucky, traded, a top IV": [
   "keep",
@@ -1215,7 +1215,7 @@
    "GIV"
   ],
   null,
-  "CyrillJan has 4 100s of salamence's line (Team Future/Ideal): wants 1440 Candy XL, has 1000"
+  "CyrillJan has 4 100s of SALAMENCE_NORMAL's line (Team Future/Ideal): wants 1440 Candy XL, has 1000"
  ],
  "C team line, 4 100s, 1500 XL: Transfer": [
   "tag",
@@ -1251,7 +1251,7 @@
    "GIV"
   ],
   null,
-  "HashTagAJay has 5 100s of salamence's line (Team Future/Ideal): wants 1800 Candy XL, has 1000"
+  "HashTagAJay has 5 100s of SALAMENCE_NORMAL's line (Team Future/Ideal): wants 1800 Candy XL, has 1000"
  ],
  "H team line, 5 100s, 1900 XL: Transfer": [
   "tag",

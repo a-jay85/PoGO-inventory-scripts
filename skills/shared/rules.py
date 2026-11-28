@@ -118,6 +118,7 @@ ODD = ("lucky", "costume", "background")
 TAG_SKIP = "".join(f"&!{t}" for t in (*ODD, *GYM_DEX))  # NO_SPECIAL leaves out the others
 BULK_GUARD = NO_SPECIAL + TAG_SKIP
 DOOR_PICK = "&!xxl&" + ",".join(map(str, ("shiny", "gigantamax", *SPECIAL, *ODD, *GYM_DEX)))  # all but xxl: BULK_GUARD's
+NEVER_TRADED = {999, 1000}  # Gimmighoul, Gholdengo: can't be traded, so never lucky
 LUCKY_YEARS = (2016, 2020)  # an untraded catch from these years is lucky once traded
 GUARANTEED = "GuaranteedLucky"
 LUCKY_YEAR = f"&year{LUCKY_YEARS[0]}-{LUCKY_YEARS[1]}"

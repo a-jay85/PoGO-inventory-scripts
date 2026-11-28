@@ -114,6 +114,24 @@ def move_id(m, numbers):
     return (numbers.get(m, str(m)) if isinstance(m, int) else m).removesuffix("_FAST")
 
 
+NEEDS = (("evolutionItemRequirement", "item"), ("lureItemRequirement", "lure"), ("questDisplay", "quest"),
+         ("mustBeBuddy", "buddy"), ("kmBuddyDistanceRequirement", "buddy km"), ("genderRequirement", "gender"),
+         ("evolutionMoveRequirement", "move"), ("onlyDaytime", "daytime"), ("onlyNighttime", "nighttime"),
+         ("onlyDuskPeriod", "dusk"), ("onlyFullMoon", "full moon"), ("onlyUpsideDown", "upside down"),
+         ("noCandyCostViaTrade", "trade"))  # an evolution branch's field -> what it asks for besides candy
+
+
+def evolve_cost(b):
+    """one evolutionBranch -> {"candy": n, "needs": [what else it asks for: 'item ITEM_KINGS_ROCK', 'gender MALE',
+    'quest', 'trade' ...]}. Empty needs: candy alone, a tap on EVOLVE does it"""
+    needs = []
+    for k, what in NEEDS:
+        v = b.get(k)
+        if v:
+            needs.append(f"{what} {v}" if isinstance(v, str) else what)
+    return {"candy": b.get("candyCost") or 0, "needs": needs}
+
+
 def build():
     """the species data from PokeMiners' game master, the English names and the id table"""
     gm = raw()
@@ -179,7 +197,7 @@ def build():
     def mapped(t, pid):  # (a form PvPoke has no id for, like Dusk Rockruff or a costume: its species' plain one)
         return t if main_id(t) else template(pid, None)
 
-    kids_of, parent_of = {}, {}
+    kids_of, parent_of, cost_of = {}, {}, {}
     for tid, p in by_t.items():
         if not main_id(tid) and not p.get("form"):  # (the formless copy of a species with forms)
             continue
@@ -191,6 +209,7 @@ def build():
                 kt = mapped(template(b["evolution"], b.get("form")), b["evolution"])
                 if kt and main_id(kt) and main_id(kt) not in kids:
                     kids.append(main_id(kt))
+                    cost_of.setdefault(home, {})[main_id(kt)] = evolve_cost(b)
     for tid, kids in kids_of.items():
         for k in kids:
             parent_of.setdefault(k, main_id(tid))
@@ -256,7 +275,8 @@ def build():
                 tags.append("shadow" if v.get("shadow") else "shadoweligible")
             # (another PvPoke id of the same template, like lanturnw or a costume Pikachu, has the main one's parent.
             # It evolves into nothing: a costume one can't evolve)
-            fam = {"parent": parent_of.get(main), "evolutions": kids_of.get(tid) if sid == main else None}
+            fam = {"parent": parent_of.get(main), "evolutions": kids_of.get(tid) if sid == main else None,
+                   "costs": cost_of.get(tid) if sid == main else None}
             if v.get("shadow"):  # (a shadow's family is shadows. No shadow of the parent: the parent, as PvPoke)
                 fam = {"parent": fam["parent"] and (sh(fam["parent"]) or fam["parent"]),
                        "evolutions": [k for k in map(sh, fam["evolutions"] or []) if k]}

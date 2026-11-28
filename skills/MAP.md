@@ -253,6 +253,15 @@ The Eggs tab: read the eggs, put the mode's one in the free ∞ incubator, and s
 - `fill_and_time()`: on the Eggs tab: the mode's free egg into the ∞ incubator (if it's free), then the hatch timer (see 1
 - `check()`: from the map: the Eggs tab, fill_and_time, and back to the map
 
+## skills/shared/evosize.py
+A Pokémon's height and weight after it evolves, and whether that sets a sure Pokédex size record
+
+- `average(sid)`: (average height m, average weight kg) of a species, or None if the game data has no size for it
+- `after(sid, into, kg, m)`: the size of a (not XXL) sid of kg and m once it's into
+- `sure_small(size, record)`: size: after()'s range
+- `holds_small(kg, m, record)`: this one, as it is, is (or ties) the record holder on the small side -> ['shortest', 'lightest']
+- `test()`
+
 ## skills/shared/fallen.py
 Fallen out: older Pokémon that newer, better ones push out of the top
 
@@ -274,6 +283,7 @@ The game data every script reads: PokeMiners' game master (what the game itself 
 - `cpms(gm)`: the CP multiplier of every level from 1 to MAX_CPM_LEVEL, half levels too (the mean of the squares)
 - `move_numbers(gm)`: move number -> its name in the templates (COMBAT_V0482_MOVE_DYNAMAX_CANNON: 482 -> DYNAMAX_CANNON)
 - `move_id(m, numbers)`: PvPoke's move id: no _FAST on the end
+- `evolve_cost(b)`: one evolutionBranch -> {"candy": n, "needs": [what else it asks for: 'item ITEM_KINGS_ROCK', 'gender MALE', 'quest', 'trade' ...]}. Empty needs: candy alone, a tap on …
 - `build()`: the species data from PokeMiners' game master, the English names and the id table
 
 ## skills/shared/home.py
@@ -485,6 +495,7 @@ The game master (PokeMiners', built by gamedata.py under PvPoke's ids): base sta
 - `kin_root(sid)`: the candy family's first stage (Alolan Raichu: Pichu)
 - `candy_family(sid)`: the family's Candy name, as the detail page and the Pokémon database say it (base.candy): 'ARON', 'MARILL' for Azurill, 'MR MIME', 'FLABEBE'
 - `evolutions(species, ivs=None)`: what species can evolve into in GO. ivs: only the evolutions these IVs can lead to (Tyrogue)
+- `evolve_cost(species, into)`: what evolving species into `into` costs: {"candy": n, "needs": [...]} (gamedata.evolve_cost), or None if the game data doesn't say
 - `family(species, ivs=None)`: species plus every evolution reachable from it (with these IVs, if given)
 - `tops(species, ivs=None)`: final evolutions reachable from species (itself if final)
 - `lc_eligible(species)`
@@ -1433,6 +1444,23 @@ Rules for /ivc: which IVC Pokémon to keep (favorite + untag) and which to send 
 - `decide(m, results)`: m: dict species, cp, name, shadow, lucky, dynamax (raid_team: raidteams.on_team's answer)
 - `pick_species(options)`: one species from the CP/HP guesses
 - `searches_for(m)`: every search decide() needs for this member
+- `test()`
+
+## skills/ivc/xxs.py
+/ivc's rules for an xxs one in #IVC that isn't a top IV copy (the user, 2026-11-27)
+
+- `can_trade(sid, shadow)`: can it go to the other account at all
+- `class Plan`
+- `chain(sid, gender=None)`: -> (the stages it evolves through to its stop, why it stops: 'end', 'fork' or what the next one needs)
+- `path_candy(sid, path)`
+- `line(sid)`: every species it can still become, past forks too (not itself)
+- `dex(sid)`
+- `gains(sid, kg, m, stages, records, missing)`: what each stage would give one account: a sure small-side record (records: {dex: dex_records row}) or an empty xxs entry (missing: its xxs page's missing dex numbers, …
+- `evolve(sid, why, end_tag, end_name, gender=None)`: evolve to the stop: a fork or a special need -> Evo, the end -> end_tag
+- `unread(sid, records, missing, stages)`: what's not read yet that a Transfer would rest on -> a reason, or None
+- `plan(account, sid, kg, m, traded, records, missing, shadow=False, gender=None)`: records, missing: {account: dex_records rows by dex number}, {account: the xxs page's missing numbers or None}. gender: 'male', 'female' or None (not read)
+- `judge(account, sid, kg, m, traded, records, missing, gender)`
+- `load()`: (records, missing) for both accounts, from the Pokémon database and the newest xxs page read
 - `test()`
 
 ## skills/mega/mega.py

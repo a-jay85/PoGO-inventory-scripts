@@ -32,6 +32,7 @@
    "evo": "evo/evo.py",
    "gift": "gift/gift.py",
    "goplus": "goplus/goplus.py",
+   "gymdefend": "gymfeed/gymdefend.py",
    "gymfeed": "gymfeed/gymfeed.py",
    "hatch": "hatch/hatch.py",
    "ivc": "ivc/run.py",
@@ -768,6 +769,48 @@
   ],
   "runs": [
    "skills/goplus/runs"
+  ]
+ },
+ "skills/gymfeed/gymdefend.py": {
+  "copies": {},
+  "names": [
+   "BAND",
+   "FEEDS",
+   "GOLDEN",
+   "GONE_END",
+   "HERE",
+   "PER_WINDOW",
+   "PHONE",
+   "Pixel",
+   "RUNS",
+   "SET",
+   "SETTINGS",
+   "SPOTS",
+   "STALE",
+   "WINDOW",
+   "_set_seen",
+   "back_out",
+   "dark",
+   "feed",
+   "heart_levels",
+   "is_page",
+   "load_feeds",
+   "log",
+   "main",
+   "note_feed",
+   "own_frames",
+   "pause",
+   "pick",
+   "pink",
+   "pixel_frames",
+   "settings",
+   "window"
+  ],
+  "runs": [
+   "skills/gymfeed/runs",
+   "skills/gymfeed/runs/gymdefend-feeds-iphone.json",
+   "skills/gymfeed/runs/gymdefend-settings.json",
+   "skills/pvpc/runs/<time>/feed-024254.png"
   ]
  },
  "skills/gymfeed/gymfeed.py": {
@@ -1583,6 +1626,7 @@
    "RESUMED",
    "WIDTH",
    "_checked",
+   "_full",
    "_last_adb",
    "_motion",
    "_next",
@@ -1591,6 +1635,7 @@
    "_size",
    "act",
    "adb",
+   "band_shot",
    "bounds",
    "capture",
    "dim",

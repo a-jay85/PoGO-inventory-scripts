@@ -66,6 +66,7 @@ Android phone for the /pvpc and /ivc scripts
 - `shape(im, scale=1)`: shrink to WIDTH, then add the strips (top one in the top row's colour, bottom one in the bottom row's)
 - `raw_shot()`: the phone's own screenshot (~0.3 s)
 - `phone_shot()`: the phone's own screenshot
+- `band_shot(y0, y1)`: rows y0..y1 (fractions of the phone's height) of the phone's own screenshot, shrunk to WIDTH wide
 - `sharp(path='/tmp/pvpc_android_sharp.png')`: the phone's own screenshot in the capture layout, 3x bigger, for small symbols ('!', '&')
 - `sharp_last(path='/tmp/pvpc_android_sharp.png')`: sharp() of the last capture()'s own screenshot: no new one
 - `capture(path)`
@@ -1239,6 +1240,27 @@ Connect the GO Plus+: tap its Poké Ball at the top right of the map
 - `find()`: the ball on the map, or None
 - `connect()`: on the map: the ball off -> tapped, and on
 - `script(only_look)`
+- `main()`
+
+## skills/gymfeed/gymdefend.py
+Defend a gym under attack: feed a Golden Razz to each Pokémon whose heart turns more black than pink, as fast as it can, then X back to the gym view to watch every heart …
+
+- `settings()`: SET, with runs/gymdefend-settings.json read again when it changed
+- `load_feeds()`
+- `window(times, now=None)`: -> (berries in the window now open, when it ends) from a Pokémon's feed times
+- `note_feed(feeds, name)`
+- `pink(p)`
+- `dark(p)`
+- `heart_levels(im)`: a band of the gym view at 406 wide -> [(cx, bottom y, black share)], fractions of the band
+- `own_frames(slot)`: the feeding phone's band, over and over -> slot[0] = (when taken, image, (cy0, cy1))
+- `pixel_frames(slot)`: the Pixel's band while the iPhone feeds (watched only)
+- `is_page(v)`
+- `feed(cx, cy, bounds, spots, feeds, names)`: tap under the heart at (cx, cy) (capture fractions), feed a Golden Razz, X back
+- `back_out(bounds)`: X until the gym view shows again (an X tapped while the berry is eaten can be dropped)
+- `class Pixel`: what the Pixel's hearts say, while the iPhone feeds: black ones, and the ones fed there by hand
+  - `read(self, hs)`
+  - `hand_fed(self, cx)`
+- `pick(hs, ph, last, px, full)`: -> ((cx, fy, share), why) of the heart to feed now, or None
 - `main()`
 
 ## skills/gymfeed/gymfeed.py

@@ -4,7 +4,8 @@ paths:
 ---
 # /gymfeed notes (the rules are in gymfeed.py's top comment)
 
-- Full hearts get fed anyway (badge points). Gold badges are skipped on purpose. Never Golden Razz, Silver Pinap or Poffins.
+- Full hearts get fed anyway (badge points). Gold badges are skipped on purpose. /gymfeed never feeds Golden Razz, Silver Pinap or Poffins.
+- `gymdefend.py` is the one exception: it feeds Golden Razz to defend a gym under attack, only when a heart is more black than pink (the user, 2026-11-28). It keeps each Pokémon's count of 10 per 30 min in `runs/gymdefend-feeds-<phone>.json`. A wasted feed early leaves none for later in the window: on 2026-11-28 two wasted feeds on Chansey (a late Pixel heart, and a restart that forgot a feed) came before the gym fell.
 - The number beside the floating berry is berries fed since the Pokémon went into the gym, not the bag count. Bag counts come from the BERRIES menu only.
 - A gold badge needs no meter AND a gold frame: a blend pixel once read silver as gold. The list-ends-at-first-badge-without-bubble rule was measured only on the iPhone.
 - A "full" call with a berry still showing means the reader failed. Check the full-*.png shots first when a run feeds too little. A count can't rise after a tap.

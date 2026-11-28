@@ -58,6 +58,7 @@ STEPS = {
     "roster":      ("roster/roster.py", {"count", "report"}, {"report"}),
     "raidteam":    ("roster/raidteam.py", {"count", "report", "keep"}, {"report"}),
     "gymfeed":     ("gymfeed/gymfeed.py", set(), set()),
+    "gymdefend":   ("gymfeed/gymdefend.py", set(), set()),
     "goplus":      ("goplus/goplus.py", set(), set()),
     "hatch":       ("hatch/hatch.py", {"shortest", "longest"}, set()),
     "account":     ("shared/account.py", {"HashTagAJay", "CyrillJan"}, set()),

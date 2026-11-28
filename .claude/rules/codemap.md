@@ -69,6 +69,7 @@ Before writing a helper, grep `skills/MAP.md` (every function, its arguments and
 - `skills/goplus/goplus.py`: Connect the GO Plus+: tap its Poké Ball at the top right of the map
 
 ## skills/gymfeed
+- `skills/gymfeed/gymdefend.py`: Defend a gym under attack: feed a Golden Razz to each Pokémon whose heart turns more black than pink, as fast as it can, then X back to the gym view to watch every heart …
 - `skills/gymfeed/gymfeed.py`: Feed berries to the Pokémon in the gyms you're defending, from the gym badge list
 
 ## skills/hatch

@@ -218,6 +218,34 @@ def phone_shot():
     return im
 
 
+_full = []  # (width, height) of the phone's own screenshot, once band_shot has seen one
+
+
+def band_shot(y0, y1):
+    """rows y0..y1 (fractions of the phone's height) of the phone's own screenshot, shrunk to WIDTH wide. Only those
+    rows cross the link: 0.3-0.75 of the screen took about 0.55 s, a whole one 0.7 s (gymdefend, 2026-11-28). For a
+    script that watches one part of the screen over and over. -> (image, (cy0, cy1): where its top and bottom sit in
+    capture() fractions), or None when adb fails (no retries: the next look is a moment away)"""
+    if not _full:
+        _full.append(raw_shot().size)  # (raw_shot picks the link first)
+    W, H = _full[0]
+    r0, r1 = int(y0 * H), int(y1 * H)
+    cmd = f"screencap | tail -c +17 | head -c {r1 * W * 4} | tail -c {(r1 - r0) * W * 4} | gzip -1"  # 16-byte header
+    try:
+        r = subprocess.run(["adb", "exec-out", cmd], capture_output=True, timeout=5)
+        raw = gzip.decompress(r.stdout)
+    except (subprocess.TimeoutExpired, EOFError, OSError, zlib.error):
+        return None
+    if len(raw) < (r1 - r0) * W * 4:
+        return None
+    im = Image.frombuffer("RGBA", (W, r1 - r0), raw, "raw", "RGBA", 0, 1).convert("RGB")
+    im = im.resize((WIDTH, max(1, round(WIDTH * (r1 - r0) / W))))
+    hh = round(WIDTH * H / W)  # the phone's height in the capture, and its top strip (as shape() pads it)
+    pad = max(0, IPHONE_H - hh)
+    top = pad - min(BOTTOM_PAD, pad)
+    return im, ((top + r0 / H * hh) / IPHONE_H, (top + r1 / H * hh) / IPHONE_H)
+
+
 def sharp(path="/tmp/pvpc_android_sharp.png"):
     """the phone's own screenshot in the capture layout, 3x bigger, for small symbols ('!', '&')"""
     shape(phone_shot(), 3)[0].save(path, compress_level=1)

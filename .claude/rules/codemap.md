@@ -18,6 +18,7 @@ Before writing a helper, grep `skills/MAP.md` (every function, its arguments and
 - `skills/shared/base.py`: The shared tapper: screen reading, taps, timing, run folders and logging, and the detail-screen steps (appraise, tags, star, rename) every skill's script uses
 - `skills/shared/door.py`: The door: a Pokémon /ivc, /pvpc or /ivc just found isn't a keeper gets its final tag right there (verdict.py), on the detail page that's still open
 - `skills/shared/eggs.py`: The Eggs tab: read the eggs, put the mode's one in the free ∞ incubator, and set the hatch timer
+- `skills/shared/evosize.py`: A Pokémon's height and weight after it evolves, and whether that sets a sure Pokédex size record
 - `skills/shared/fallen.py`: Fallen out: older Pokémon that newer, better ones push out of the top
 - `skills/shared/gamedata.py`: The game data every script reads: PokeMiners' game master (what the game itself ships), its English names, and PvPoke's league rankings (the meta list)
 - `skills/shared/home.py`: Start from anywhere: every script calls start() first, so the phone can be on any screen, or Pokémon GO not open
@@ -77,6 +78,7 @@ Before writing a helper, grep `skills/MAP.md` (every function, its arguments and
 - `skills/ivc/names.py`: /ivc's names pass (run.py names, and the end of every sort): works through the IVC-tagged list with no Claude
 - `skills/ivc/run.py`: Unattended /ivc: keep the best IVC Pokémon (favorite + untick IVC)
 - `skills/ivc/sort.py`: Rules for /ivc: which IVC Pokémon to keep (favorite + untag) and which to send to the door (its final tag)
+- `skills/ivc/xxs.py`: /ivc's rules for an xxs one in #IVC that isn't a top IV copy (the user, 2026-11-27)
 
 ## skills/mega
 - `skills/mega/mega.py`: Mega Evolve every Pokémon tagged TODO, once a day each

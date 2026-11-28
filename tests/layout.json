@@ -1201,6 +1201,28 @@
   ],
   "runs": []
  },
+ "skills/ivc/xxs.py": {
+  "copies": {},
+  "names": [
+   "GIVER",
+   "HERE",
+   "NAME",
+   "Plan",
+   "TAKER",
+   "chain",
+   "dataclass",
+   "dex",
+   "evolve",
+   "field",
+   "gains",
+   "line",
+   "load",
+   "path_candy",
+   "plan",
+   "test"
+  ],
+  "runs": []
+ },
  "skills/mega/mega.py": {
   "copies": {},
   "names": [
@@ -1865,6 +1887,20 @@
   ],
   "runs": []
  },
+ "skills/shared/evosize.py": {
+  "copies": {},
+  "names": [
+   "HERE",
+   "ROUND",
+   "WEIGHT_SLACK",
+   "after",
+   "average",
+   "holds_small",
+   "sure_small",
+   "test"
+  ],
+  "runs": []
+ },
  "skills/shared/fallen.py": {
   "copies": {
    "skills/shared/fallen.py": 2
@@ -1894,6 +1930,7 @@
    "IDS",
    "KEEP_BUILDS",
    "MAX_CPM_LEVEL",
+   "NEEDS",
    "RANKS",
    "RANK_LISTS",
    "RANK_URL",
@@ -1904,6 +1941,7 @@
    "build",
    "built",
    "cpms",
+   "evolve_cost",
    "f32",
    "load",
    "missing",
@@ -2283,6 +2321,7 @@
    "display",
    "eevee_name",
    "evolutions",
+   "evolve_cost",
    "fallen",
    "family",
    "fits",

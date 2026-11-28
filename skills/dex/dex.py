@@ -793,6 +793,8 @@ def latest(page, trainer):
     """-> (the newest run's missing numbers, its folder) for this page and account, or (None, None). Lucky: an
     evolve-lucky run counts (its search already leaves out what a lucky Pokémon can evolve into)"""
     runs = os.path.join(HERE, "runs")
+    if not os.path.isdir(runs):
+        return None, None
     ok = [d for d in sorted(os.listdir(runs), reverse=True) if os.path.isdir(os.path.join(runs, d))
           and d.endswith("-" + page) and trainer_of(os.path.join(runs, d)) == trainer
           and os.path.exists(os.path.join(runs, d, f"missing-{page}.txt"))]

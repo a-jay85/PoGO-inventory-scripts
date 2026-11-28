@@ -82,7 +82,8 @@ class Model:
         if hits:
             return next((s for s in hits if (region(s) or "").upper() in f), hits[0])
         plain = [s for s in cands if not region(s)]
-        return next((s for s in plain if s.endswith("_NORMAL")), (plain or cands)[0])
+        bare = {n for o, n in pvp.GM["renamed"].items() if "_" not in o}  # (the form PvPoke called plain: ZYGARDE_FIFTY_PERCENT)
+        return next((s for s in plain if s in bare), (plain or cands)[0])
 
     def group(self, i):
         a = self.A[i]

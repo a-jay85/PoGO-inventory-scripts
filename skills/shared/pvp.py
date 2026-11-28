@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The game master (PokeMiners', built by gamedata.py under PvPoke's ids): base stats, CP and HP, the level from IVs, CP and HP (level_of),
+"""The game master (PokeMiners', built by gamedata.py, ids are its form names like RAICHU_ALOLA): base stats, CP and HP, the level from IVs, CP and HP (level_of),
 evolutions, and PvP ranks and nicknames.
 
   pvp.py check <species> <cp> <hp> <stars> [--near a/d/h] [--own]
@@ -640,6 +640,15 @@ CASCADES = [
 ]
 
 
+def to_sid(name):
+    """a species id from what a person types: the id itself, an old PvPoke id (meditite, stunfisk_galarian), or a name
+    in any case (meditite -> MEDITITE_NORMAL). Unknown names come back as typed."""
+    for x in (name, GM.get("renamed", {}).get(name), name.upper(), name.upper() + "_NORMAL"):
+        if x in SPECIES:
+            return x
+    return name
+
+
 def test():
     """every name make_name gives must read back (name_slots) as the ranks it was made from"""
     import random
@@ -702,7 +711,7 @@ def test():
 if __name__ == "__main__":
     if sys.argv[1:] == ["test"]:
         test()
-    cmd, sp = sys.argv[1], sys.argv[2]
+    cmd, sp = sys.argv[1], to_sid(sys.argv[2])
     if sp not in SPECIES:
         sys.exit(f"unknown species {sp!r}; close matches: {[s for s in SPECIES if sp.split('_')[0] in s][:10]}")
     near = None

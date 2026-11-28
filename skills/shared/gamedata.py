@@ -4,10 +4,13 @@ PvPoke's league rankings (the meta list). None of it is in the repo: it lives in
 
   gamedata.py update   -> download all three again, then build species.json from them
   gamedata.py build    -> build the species file again from the files already downloaded, and say where it went
+  gamedata.py rename [--dry-run] -> once, after the switch to PokeMiners' names: rename the old PvPoke ids in pokemon.db,
+                       every skills/*/runs/**.json and skills/*/.state.json (safe to run again)
 
-The species file (species-<key>.json in the same folder) is in PvPoke's shape ({"pokemon": [...], "moves": [...], "cpms": [...]}) under PvPoke's ids, so pvp.py
-and every script read it as they read PvPoke's game master before. pvpoke_ids.json (beside this file) says which
-PokeMiners template each PvPoke id is. The regional and unreleased lists are hand lists in rules.py. The key is a
+The species file (species-<key>.json in the same folder) is in PvPoke's shape ({"pokemon": [...], "moves": [...], "cpms": [...]}) under PokeMiners' form names
+(the template's form, or its species if it has none, plus _SHADOW, _MEGA, _MEGA_X, _MEGA_Y or _PRIMAL: BULBASAUR_NORMAL,
+RAICHU_ALOLA, CHARIZARD_NORMAL_MEGA_X). pvpoke_ids.json (beside this file) says which PokeMiners template each PvPoke
+id is, which also names the forms PvPoke ranks. The file's "renamed" maps each old PvPoke id to its new id. The regional and unreleased lists are hand lists in rules.py. The key is a
 hash of what it's built from (the downloads, the id table, this file, rules.py), so each checkout reads its own
 build and a worktree's never changes what the main checkout reads. load() builds it when it's missing (0.2 s).
 """
@@ -325,6 +328,50 @@ def build():
     return {"pokemon": out, "moves": moves_out, "cpms": cpms(gm), "renamed": ren}
 
 
+def rename_saved(dry=False):
+    """the switch to the game's form names (2026-11-27): every species id saved under PvPoke's old one (pokemon.db,
+    every JSON in the skills' runs folders, the .state.json files) gets its new one. A string that is an old id, or
+    one before a '|' ('rhyhorn|shadow'), is renamed. Safe to run again: no new id is an old one"""
+    import pokedb
+    ren = load()["renamed"]
+
+    def rn(x):
+        if isinstance(x, str):
+            head, sep, tail = x.partition("|")
+            return ren[head] + sep + tail if head in ren else x
+        if isinstance(x, list):
+            return [rn(y) for y in x]
+        if isinstance(x, dict):
+            return {rn(k): rn(v) for k, v in x.items()}
+        return x
+
+    c = pokedb.connect()
+    if c is not None:
+        n = sum(c.execute("SELECT COUNT(*) FROM pokemon WHERE species=?", (o,)).fetchone()[0] for o in ren)
+        if not dry:
+            c.execute("BEGIN")
+            for o, s in ren.items():
+                c.execute("UPDATE pokemon SET species=? WHERE species=?", (s, o))
+            c.execute("COMMIT")
+        print(f"{pokedb.path()}: {n} Pokémon renamed")
+    skills = os.path.dirname(HERE)
+    files = glob.glob(os.path.join(skills, "*", "runs", "**", "*.json"), recursive=True) + \
+        glob.glob(os.path.join(skills, "*", ".state.json"))
+    changed = 0
+    for f in sorted(files):
+        try:
+            d = json.load(open(f))
+        except (OSError, ValueError):
+            continue
+        if (new := rn(d)) != d:
+            changed += 1
+            if not dry:
+                tmp = f + ".tmp"
+                json.dump(new, open(tmp, "w"), indent=1, ensure_ascii=False)
+                os.replace(tmp, f)
+    print(f"{changed} of {len(files)} JSON files renamed" + (" (dry run: nothing written)" if dry else ""))
+
+
 if __name__ == "__main__":
     if sys.argv[1:] == ["update"]:
         update()
@@ -333,5 +380,7 @@ if __name__ == "__main__":
             os.remove(built())
         data = load()
         print(f"{len(data['pokemon'])} species, {len(data['moves'])} moves -> {built()}")
+    elif sys.argv[1:2] == ["rename"]:
+        rename_saved(dry="--dry-run" in sys.argv)
     else:
         sys.exit(__doc__)

@@ -278,13 +278,14 @@ The game data every script reads: PokeMiners' game master (what the game itself 
 - `raw()`: PokeMiners' game master as downloaded: a list of {templateId, data}
 - `built()`: this checkout's species file: named by a hash of everything it's built from
 - `load()`: the species file: {"pokemon": [...], "moves": [...], "cpms": [...]}, built first if this checkout has none
-- `rankings()`: PvPoke's overall ranking per league (L G U): speciesIds, best first
+- `rankings()`: PvPoke's overall ranking per league (L G U), best first, in our ids
 - `f32(x)`: the game's numbers are 32-bit floats: the same value PvPoke writes (0.094 -> 0.0939999967813491)
 - `cpms(gm)`: the CP multiplier of every level from 1 to MAX_CPM_LEVEL, half levels too (the mean of the squares)
 - `move_numbers(gm)`: move number -> its name in the templates (COMBAT_V0482_MOVE_DYNAMAX_CANNON: 482 -> DYNAMAX_CANNON)
 - `move_id(m, numbers)`: PvPoke's move id: no _FAST on the end
 - `evolve_cost(b)`: one evolutionBranch -> {"candy": n, "needs": [what else it asks for: 'item ITEM_KINGS_ROCK', 'gender MALE', 'quest', 'trade' ...]}. Empty needs: candy alone, a tap on …
 - `build()`: the species data from PokeMiners' game master, the English names and the id table
+- `rename_saved(dry=False)`: the switch to the game's form names (2026-11-27): every species id saved under PvPoke's old one (pokemon.db, every JSON in the skills' runs folders, the .state.json …
 
 ## skills/shared/home.py
 Start from anywhere: every script calls start() first, so the phone can be on any screen, or Pokémon GO not open
@@ -474,7 +475,7 @@ Powering one Pokémon up: its level from the page and the dialog, and the cheap 
 - `power_up(info, texts, levels=None, known=None)`: 1-2 power-ups (up to 4 for a lucky one) if this one sits right under an XL tier (PLAYS, LUCKY_PLAYS, SHADOW_PLAYS)
 
 ## skills/shared/pvp.py
-The game master (PokeMiners', built by gamedata.py under PvPoke's ids): base stats, CP and HP, the level from IVs, CP and HP (level_of), evolutions, and PvP ranks and …
+The game master (PokeMiners', built by gamedata.py, ids are its form names like RAICHU_ALOLA): base stats, CP and HP, the level from IVs, CP and HP (level_of), …
 
 - `can_dynamax()`: dex numbers that can Dynamax (tradeable.py refresh's ../cleanup/dynamax-<date>.json, from the game master), or None when there's no such file yet
 - `cpm(level)`
@@ -486,7 +487,9 @@ The game master (PokeMiners', built by gamedata.py under PvPoke's ids): base sta
 - `rank(species, ivs, cap)`
 - `meta(league)`: PvPoke's overall ranking for a league (L G U), best first, as of the last update
 - `viable(species, league, shadow=False, top=VIABLE_TOP)`: species (its shadow, if shadow and PvPoke ranks one) is in PvPoke's top in that league
-- `plain(sid)`: one entry per real Pokémon: no shadow / mega / primal / XL-only duplicates
+- `is_shadow(sid)`: a shadow's id: its form's, plus _SHADOW (BULBASAUR_NORMAL_SHADOW)
+- `is_mega(sid)`: a Mega's or a Primal's id: its form's, plus the game's word (CHARIZARD_NORMAL_MEGA_X, KYOGRE_NORMAL_PRIMAL)
+- `plain(sid)`: one entry per real Pokémon: no shadow / mega / primal duplicates
 - `listed(sid)`: what the game data says sid evolves into
 - `parents()`: child -> the one it evolves from
 - `parent(sid)`: what sid evolves from in GO, or None
@@ -529,6 +532,7 @@ The game master (PokeMiners', built by gamedata.py under PvPoke's ids): base sta
 - `fmt_ranks(species, ivs, level=None)`
 - `cmd_check(species, cpv, hpv, stars, near=None)`: stars -1 = any. near = (a, d, h) from the bars: keep combos within 1 of it on every stat.
 - `cascade(first, owned)`: plays plan_pool to the end like act-fallen does: owned = {name: its real slots}. Checks get appraised, renames get done, again until nothing changes
+- `to_sid(name)`: a species id from what a person types: the id itself, an old PvPoke id (meditite, stunfisk_galarian), or a name in any case (meditite -> MEDITITE_NORMAL)
 - `test()`: every name make_name gives must read back (name_slots) as the ranks it was made from
 
 ## skills/shared/raidteams.py
@@ -803,7 +807,7 @@ Screen reader + tap planner for every script, and the readers under the red GPS 
 - `nickname_field(texts)`: the text box in the Set Nickname dialog (a stand-in box if it's empty)
 - `ticked_tags(path, texts)`: tag rows in the TAG dialog, and whether each has the green tick on the right
 - `letters(s)`: 'Flabébé' -> 'flabebe', 'Type: Null' -> 'typenull', 'Mime Jr.' -> 'mimejr'
-- `names_species(name, species)`: a dialog's species name ('MACHOP', 'RAICHU') is one of these speciesIds' (forms too: raichu_alolan)
+- `names_species(name, species)`: a dialog's species name ('MACHOP', 'RAICHU') is one of these speciesIds' (forms too: RAICHU_ALOLA)
 - `loose_match(name, texts, gm)`: no exact name match
 - `species_for(name, texts)`
 - `is_bar(px)`

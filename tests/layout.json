@@ -407,7 +407,6 @@
    "PITCH",
    "PLAIN_MAX",
    "PREFIX",
-   "REGIONS",
    "REGION_NAMES",
    "SCROLL",
    "SURE_PIC",
@@ -1167,6 +1166,7 @@
    "hd",
    "identify",
    "is_gym",
+   "is_mega",
    "iv_pct",
    "iv_sum",
    "judge_pool",
@@ -1941,6 +1941,7 @@
    "REGION_TAG",
    "TEXT",
    "TEXT_URL",
+   "_ranks",
    "build",
    "built",
    "cpms",
@@ -1952,6 +1953,7 @@
    "move_numbers",
    "rankings",
    "raw",
+   "rename_saved",
    "update"
   ],
   "runs": []
@@ -2332,6 +2334,8 @@
    "form_letter",
    "hp",
    "is_gym",
+   "is_mega",
+   "is_shadow",
    "iv_slots",
    "kept",
    "kin_parent",
@@ -2363,6 +2367,7 @@
    "stat_product",
    "table",
    "test",
+   "to_sid",
    "tops",
    "tree",
    "viable"

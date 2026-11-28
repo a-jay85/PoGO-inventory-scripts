@@ -687,6 +687,19 @@ def under(t, c):
     return 0.08 < t[1] - c[1] < 0.13 and (abs((t[0] + t[2] / 2) - cx) < 0.1 or "•" in t[4][1:] and t[0] < cx < t[0] + t[2])
 
 
+FLIP = dict(zip("SsXxZzHINOo0l8 69undpbqMW", "SsXxZzHINOo0l8 96nupdqbWM"))  # each letter turned upside down
+
+
+def unflip(name):
+    """a tile name read upside down, turned back. A name of letters that look the same upside down can read that
+    way on its own, the rest of the screen right way up: 'XXS' as 'SXX', '96 H xxs' as 'SXX H960' (Pixel /ivc,
+    2026-11-27; a done name then got opened). Only a name that starts with sxx: no real name does"""
+    n = name.rstrip("•· ")  # (the reader put a • after a turned 'SXX')
+    if re.match(r"sxx", n, re.I) and all(ch in FLIP for ch in n):
+        return "".join(FLIP[ch] for ch in reversed(n)).strip()
+    return name
+
+
 def tiles(texts):
     """Pokémon tiles in the list, in reading order: (name, cp, x, y) with x, y = middle of the tile image"""
     cps = tile_cps(texts)
@@ -707,7 +720,7 @@ def tiles(texts):
             if len(over) > 1 and len(parts) == len(over) and c in over:
                 name = parts[over.index(c)]
             x = cx if len(over) > 1 else n[0] + n[2] / 2  # a box over several tiles: its middle is another tile's
-            out.append((name.lstrip("•· ").strip(), int(re.sub(r"\D", "", c[4])), x, (c[1] + c[3] + n[1]) / 2))
+            out.append((unflip(name.lstrip("•· ").strip()), int(re.sub(r"\D", "", c[4])), x, (c[1] + c[3] + n[1]) / 2))
     # rows by the gap between them: rounding y to steps of 0.05 split a row at 0.8202 / 0.8256 (16.4 / 16.5 steps),
     # and the 3rd tile came before the 2nd (Pixel 2026-11-18). Rows sit 0.13+ apart, a row's tiles within 0.01
     rows = []

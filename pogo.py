@@ -1,40 +1,32 @@
 #!/usr/bin/env python3
-"""One front door for every skill's script. Steps run one after
-another; `+` separates them.
+"""One front door for every skill's script. Steps run one after another; `+` separates them.
 
   caffeinate -dimsu python3 pogo.py <step> [args] [+ <step> [args]]...
-  POGO_PHONE=android caffeinate -dimsu python3 pogo.py \\
-      pvpc --limit 5 + ivc --limit 5
-  POGO_PHONE=android caffeinate -dimsu python3 pogo.py \\
-      ivc --limit 5 + ivc fallen last
-  python3 pogo.py list                  every step and what it runs
-  python3 pogo.py --no-heal <step> ...  a stop just stops (see below)
+  POGO_PHONE=android caffeinate -dimsu python3 pogo.py pvpc --limit 5 + ivc --limit 5
+  POGO_PHONE=android caffeinate -dimsu python3 pogo.py ivc --limit 5 + ivc fallen last
+  python3 pogo.py list                       every step and what it runs
+  python3 pogo.py --no-heal <step> ...       a stop just stops (see below)
 
-A step's args are the same as its own script's (see the top of its
-script; `pogo.py list` shows every step). `last` in a step's args is
-the run folder that an earlier step of the same skill folder made in
-this chain (pvpc, then `pvpc fallen last`).
+A step's args are the same as its own script's (see the top of its script; `pogo.py list` shows
+every step). `last` in a step's args is the run folder that an earlier step of the same skill folder
+made in this chain (pvpc, then `pvpc fallen last`).
 
-Every step runs as its own python3 process, so each one starts
-clean: its own run folder, its own state. The phone stays unlocked
-(iPhone Mirroring stays open) between steps and is closed once at
-the end, the same way a single script closes it. POGO_KEEP_OPEN=1
-leaves it open at the end too. Under POGO_PHONE=both, a Pixel-only
-step (PIXEL: goplus, hatch, evo, account, advsync) runs on the Pixel.
+Every step runs as its own python3 process, so each one starts clean: its own run folder, its own
+state. The phone stays unlocked (iPhone Mirroring stays open) between steps and is closed once at
+the end, the same way a single script closes it. POGO_KEEP_OPEN=1 leaves it open at the end too.
+Under POGO_PHONE=both, a Pixel-only step (PIXEL: goplus, hatch, evo, account, advsync) runs on the
+Pixel.
 
-A step that stops or crashes gets healed (heal.py): a headless
-Claude finds why and fixes it, then the step runs again with only
-what's left. Off with --no-heal or POGO_HEAL=0, and off when a Claude
-session starts pogo.py (CLAUDECODE set: that Claude is the one
-watching). --heal turns it on there too.
+A step that stops or crashes gets healed (heal.py): a headless Claude finds why and fixes it, then
+the step runs again with only what's left. Off with --no-heal or POGO_HEAL=0, and off when a Claude
+session starts pogo.py (CLAUDECODE set: that Claude is the one watching). --heal turns it on there
+too.
 
-The whole chain is checked before step 1 runs: an unknown step or a
-bad first word stops it with nothing done. A step that doesn't end
-well (stopped, crashed, usage error, even after healing) doesn't
-stop the chain: the steps after it still run, and the chain ends
-with the first bad step's exit code and a line naming every bad
-step. Ctrl-C (exit 130) or a step killed by a signal stops the chain
-there.
+The whole chain is checked before step 1 runs: an unknown step or a bad first word stops it with
+nothing done. A step that doesn't end well (stopped, crashed, usage error, even after healing)
+doesn't stop the chain: the steps after it still run, and the chain ends with the first bad step's
+exit code and a line naming every bad step. Ctrl-C (exit 130) or a step killed by a signal stops the
+chain there.
 """
 import json, os, subprocess, sys, textwrap, time
 import heal
@@ -76,7 +68,7 @@ PIXEL = {"goplus", "hatch", "evo", "account", "advsync"}  # Pixel only: under PO
 
 
 def usage(msg=None):
-    head = textwrap.fill(f"pogo.py: {msg}", 70, subsequent_indent="  ") + "\n\n" if msg else ""
+    head = textwrap.fill(f"pogo.py: {msg}", 100, subsequent_indent="  ") + "\n\n" if msg else ""
     sys.exit(head + __doc__)
 
 
@@ -171,7 +163,7 @@ def main(argv):
         for name, (script, words, mac) in STEPS.items():
             extra = f"  [{' | '.join(sorted(words))}]" if words else ""
             line = f"  {name:12} {script}{extra}" + (f"  (Mac only: {', '.join(sorted(mac))})" if mac else "")
-            print(textwrap.fill(line, 70, subsequent_indent=" " * 15, break_on_hyphens=False))
+            print(textwrap.fill(line, 100, subsequent_indent=" " * 15, break_on_hyphens=False))
         return 0
     healing = heal.wanted(argv[0])
     if argv[0] in ("--heal", "--no-heal"):
